@@ -72,7 +72,7 @@ sub find_whitelist_entry {
         @issues = @{$suite};
     }
     else {
-        $test =~ s/_postun$//g if check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1);
+        $test =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
         return undef unless exists $suite->{$test};
         @issues = @{$suite->{$test}};
     }

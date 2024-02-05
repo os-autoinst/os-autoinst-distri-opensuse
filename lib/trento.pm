@@ -1088,7 +1088,10 @@ sub cypress_configs {
       ' -f Premium' .
       ' -n %s' .
       ' --trento-version %s',
-      $machine_ip, get_trento_password(), qesap_get_nodes_number(), get_required_var('TRENTO_VERSION');
+      $machine_ip,
+      get_trento_password(),
+      qesap_get_nodes_number(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')),
+      get_required_var('TRENTO_VERSION');
     if (get_var('TRENTO_AGENT_RPM')) {
         my $cypress_env_cmd .= ' -a ' . get_var('TRENTO_AGENT_RPM');
     }

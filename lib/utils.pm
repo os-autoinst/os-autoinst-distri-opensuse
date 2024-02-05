@@ -2434,7 +2434,6 @@ sub install_patterns {
                 $cf_selected = 1;
             }
             elsif ($cf_selected == 1) {
-                record_soft_failure 'bsc#950763 CFEngine pattern is listed twice in installer';
                 next;
             }
         }

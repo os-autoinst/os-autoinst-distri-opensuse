@@ -511,10 +511,18 @@ sub qesap_get_inventory {
 =head3 qesap_get_nodes_number
 
 Get the number of cluster nodes from the inventory.yaml
+
+=over 1
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=back
 =cut
 
 sub qesap_get_nodes_number {
-    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
+    my $inventory = qesap_get_inventory(provider => $args{provider});
     my $yp = YAML::PP->new();
 
     my $inventory_content = script_output("cat $inventory");
@@ -529,10 +537,18 @@ sub qesap_get_nodes_number {
 =head3 qesap_get_nodes_names
 
 Get the cluster nodes' names from the inventory.yaml
+
+=over 1
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=back
 =cut
 
 sub qesap_get_nodes_names {
-    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
+    my $inventory = qesap_get_inventory(provider => $args{provider});
     my $yp = YAML::PP->new();
 
     my $inventory_content = script_output("cat $inventory");

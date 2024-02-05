@@ -58,7 +58,11 @@ sub run {
             if (script_run("[[ -s /tmp/${guest}_dmesg_err.txt ]]") == 0) {
                 upload_logs("/tmp/${guest}_dmesg_err_before.txt") if (script_run("[[ -s /tmp/${guest}_dmesg_err_before.txt ]]") == 0); #in case err can't filtered out automatically
                 upload_logs("/tmp/${guest}_dmesg_err.txt");
-                record_soft_failure "The /tmp/${guest}_dmesg_err.txt needs to be checked manually! poo#55555";
+                if (get_var('KNOWN_BUGS_IN_DMESG')) {
+                    record_soft_failure("The /tmp/${guest}_dmesg_err.txt needs to be checked manually! List of known dmesg failures: " . get_var('KNOWN_BUGS_IN_DMESG') . ". Please look into dmesg file to determine if it is a known bug. If it is a new issue, please take action as described in poo#151361.");
+                } else {
+                    record_soft_failure("The /tmp/${guest}_dmesg_err.txt needs to be checked manually! Please look into dmesg file to determine if it is a new bug, take action as described in poo#151361.");
+                }
                 assert_script_run("cat /tmp/${guest}_dmesg_err.txt");
             }
 
