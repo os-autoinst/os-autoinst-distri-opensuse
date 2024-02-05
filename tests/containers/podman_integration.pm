@@ -55,8 +55,11 @@ sub run {
         my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
         assert_script_run "useradd -m -G $serial_group $testapi::username";
         assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
+        ensure_serialdev_permissions;
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal();
     }
-    select_user_serial_terminal();
 
     # Download podman sources
     my $test_dir = "/var/tmp";
