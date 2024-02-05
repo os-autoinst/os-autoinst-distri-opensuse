@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: lvm2 util-linux parted device-mapper
@@ -44,7 +44,19 @@ sub download_hana_assets_from_server {
     my $hana_location = data_url('ASSET_0');
     # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
     # 27.3MB/s download speed. Adjust according to expected server conditions.
-    assert_script_run "wget -O - $hana_location | tar -xf -", timeout => $nettout;
+    assert_script_run "wgeti -O -- - $hana_location | tar -xf -- -", timeout => $nettout;
+    # Skip checksum check if DISABLE_CHECKSUM is set, or if checksum file is not
+    # part of the archive
+    my $sap_chksum_file = 'MD5FILE.DAT';
+    my $chksum_file = 'checksum.md5sum';
+    my $no_checksum_file = script_run "[[ -f $target/$chksum_file || -f $target/$sap_chksum_file ]]";
+    return 1 if (get_var('DISABLE_CHECKSUM') || $no_checksum_file);
+
+    # Switch to $target to verify copied contents are OK
+    assert_script_run "pushd $target";
+    # If SAP provided MD5 sum file is present convert it to the md5sum format
+    assert_script_run "[[ -f $sap_chksum_file ]] && awk '{print $2\" \"$1}' $target/$sap_chksum_file > $target/$chksum_file";
+    assert_script_run "md5sum -c --quiet -- $chksum_file", $nettout;
     assert_script_run "cd";
 }
 
