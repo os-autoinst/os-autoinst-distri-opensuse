@@ -41,13 +41,24 @@ sub run {
     }
 
     # Install tests dependencies
-    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat skopeo sudo systemd-container);
+    my @pkgs = qw(aardvark-dns bats jq make netavark netcat-openbsd openssl python3-PyYAML socat skopeo sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote) unless is_sle_micro;
     if (is_transactional) {
         trup_call "-c pkg install -y @pkgs";
         check_reboot_changes;
     } else {
         zypper_call "in @pkgs";
+    }
+
+    # Workarounds for tests to work:
+    # 1. Use netavark instead of cni
+    # 2. Avoid default mounts for containers
+    assert_script_run "podman system reset -f";
+    if (is_transactional) {
+        trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+        check_reboot_changes;
+    } else {
+        script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
     }
 
     # Create user if not present
