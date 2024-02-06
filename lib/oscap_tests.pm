@@ -1032,8 +1032,6 @@ sub oscap_security_guide_setup {
 sub oscap_remediate {
     my ($self) = @_;
     my $out_ansible_playbook;
-    select_console 'root-console';
-
     # Verify mitigation mode
     if ($remediated == 0) {
         push(@test_run_report, "[tests_results]");
@@ -1071,6 +1069,11 @@ sub oscap_remediate {
         }
         $ret
           = script_run($script_cmd, timeout => 3200);
+        # In case if STIG rules switches console to GUI need to switch it back
+        if ($profile_ID =~ /stig/) {
+            select_console 'root-console';
+        }
+
         record_info("Return=$ret", "$script_cmd  returned: $ret");
         if ($ret != 0 and $ret != 2 and $ret != 4) {
             record_info("Returened $ret", 'remediation should be succeeded', result => 'fail');
