@@ -21,6 +21,7 @@ my $test_dir = "/var/tmp";
 my $podman_version = "";
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_podman_when_needed($host_distri);
@@ -41,14 +42,27 @@ sub run {
     }
 
     # Install tests dependencies
-    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat skopeo sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote) unless is_sle_micro;
+    my @pkgs = qw(aardvark-dns bats catatonit jq make netavark netcat-openbsd openssl podman-remote python3-PyYAML socat skopeo sudo systemd-container);
+    push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
     if (is_transactional) {
         trup_call "-c pkg install -y @pkgs";
         check_reboot_changes;
     } else {
         zypper_call "in @pkgs";
     }
+
+    # Workarounds for tests to work:
+    # 1. Use netavark instead of cni
+    # 2. Avoid default mounts for containers
+    # 3. Switch to cgroups v2
+    assert_script_run "podman system reset -f";
+    if (is_transactional) {
+        trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+        check_reboot_changes;
+    } else {
+        script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+    }
+    switch_cgroup_version($self, 2);
 
     # Create user if not present
     if (script_run("grep $testapi::username /etc/passwd") != 0) {
@@ -91,21 +105,19 @@ sub run {
     # user / remote
     #
 
-    unless (is_sle_micro) {
-        assert_script_run "cp -r test/system.orig test/system";
-        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
-        foreach my $test (@skip_tests) {
-            script_run "rm test/system/$test.bats";
-        }
-
-        $log_file = "bats-user-remote.tap";
-        assert_script_run "echo $log_file .. > $log_file";
-        background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
-        parse_extra_log(TAP => $log_file);
-        assert_script_run "rm -rf test/system";
-        script_run 'kill %1';
+    assert_script_run "cp -r test/system.orig test/system";
+    @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
+    foreach my $test (@skip_tests) {
+        script_run "rm test/system/$test.bats";
     }
+
+    $log_file = "bats-user-remote.tap";
+    assert_script_run "echo $log_file .. > $log_file";
+    background_script_run "podman system service --timeout=0";
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
+    parse_extra_log(TAP => $log_file);
+    assert_script_run "rm -rf test/system";
+    script_run 'kill %1';
 
     #
     # root / local
@@ -130,20 +142,18 @@ sub run {
     # root / remote
     #
 
-    unless (is_sle_micro) {
-        assert_script_run "cp -r test/system.orig test/system";
-        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
-        foreach my $test (@skip_tests) {
-            script_run "rm test/system/$test.bats";
-        }
-
-        $log_file = "bats-root-remote.tap";
-        assert_script_run "echo $log_file .. > $log_file";
-        background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root --remote | tee -a $log_file", 2600;
-        parse_extra_log(TAP => $log_file);
-        script_run 'kill %1';
+    assert_script_run "cp -r test/system.orig test/system";
+    @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
+    foreach my $test (@skip_tests) {
+        script_run "rm test/system/$test.bats";
     }
+
+    $log_file = "bats-root-remote.tap";
+    assert_script_run "echo $log_file .. > $log_file";
+    background_script_run "podman system service --timeout=0";
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root --remote | tee -a $log_file", 2600;
+    parse_extra_log(TAP => $log_file);
+    script_run 'kill %1';
 }
 
 sub cleanup() {
