@@ -17,7 +17,7 @@
       <li><a href="#run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</a></li>
       <li><a href="#get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</a></li>
       <li><a href="#sles4sap_cleanup">sles4sap_cleanup</a></li>
-      <li><a href="#get_hana_topology-get_hana_topology-hostname-hostname">get_hana_topology get_hana_topology([hostname =&gt; $hostname]);</a></li>
+      <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
       <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
       <li><a href="#is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</a></li>
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
@@ -66,10 +66,7 @@ otherwise it will be executed as root.</code></pre>
 
 <pre><code>Clean up Network peering and qesap deployment</code></pre>
 
-<h2 id="get_hana_topology-get_hana_topology-hostname-hostname">get_hana_topology get_hana_topology([hostname =&gt; $hostname]);</h2>
-
-<pre><code>Parses command output, returns list of hashes containing values for each host.
-If hostname defined, returns hash with values only for host specified.</code></pre>
+<h2 id="get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</h2>
 
 <h2 id="is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</h2>
 
