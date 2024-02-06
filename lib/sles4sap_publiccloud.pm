@@ -372,12 +372,12 @@ sub check_takeover {
 =cut
 
 sub enable_replication {
-    my ($self) = @_;
+    my ($self, $topology) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
-    my $topology = $self->get_hana_topology();
+    #my $topology = $self->get_hana_topology();
     foreach (qw(vhost remoteHost srmode op_mode site)) {
         die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_});
     }

@@ -57,6 +57,9 @@ sub run {
         $sbd_delay = $self->sbd_delay_formula();
     }
 
+    # Check topology before to stop HANA
+    my $topology = $self->get_hana_topology();
+
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
     $self->stop_hana(method => $takeover_action);
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
@@ -81,7 +84,7 @@ sub run {
     $self->check_takeover;
 
     record_info('Replication', join(' ', ('Enabling replication on', ucfirst($site_name), '(DEMOTED)')));
-    $self->enable_replication();
+    $self->enable_replication($topology);
 
     record_info(ucfirst($site_name) . ' start');
     $self->cleanup_resource();

@@ -451,7 +451,7 @@ subtest '[enable_replication]' => sub {
             site => 'ROCKERDUCK',
         }
     );
-    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
+    #$sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
     my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -461,7 +461,7 @@ subtest '[enable_replication]' => sub {
 
     set_var('SAP_SIDADM', 'YONDUR');
 
-    $self->enable_replication();
+    $self->enable_replication(\%test_topology);
 
     set_var('SAP_SIDADM', undef);
 
