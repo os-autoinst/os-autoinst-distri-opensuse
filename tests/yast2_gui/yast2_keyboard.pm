@@ -78,7 +78,6 @@ sub run {
     x11_start_program("xterm");
     enter_cmd "/sbin/yast2 keyboard";
     if (check_screen("yast2-keyboard-ui", 10)) {
-        record_soft_failure "bsc#1142559, yast2 keyboard should not start as non root user";
         send_key "alt-c";
         wait_still_screen 2;
     }
