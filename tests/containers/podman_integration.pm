@@ -21,6 +21,7 @@ my $test_dir = "/var/tmp";
 my $podman_version = "";
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_podman_when_needed($host_distri);
@@ -53,6 +54,7 @@ sub run {
     # Workarounds for tests to work:
     # 1. Use netavark instead of cni
     # 2. Avoid default mounts for containers
+    # 3. Switch to cgroups v2
     assert_script_run "podman system reset -f";
     if (is_transactional) {
         trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
@@ -60,6 +62,7 @@ sub run {
     } else {
         script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
     }
+    switch_cgroup_version($self, 2);
 
     # Create user if not present
     if (script_run("grep $testapi::username /etc/passwd") != 0) {
