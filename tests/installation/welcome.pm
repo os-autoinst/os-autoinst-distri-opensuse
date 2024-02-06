@@ -117,7 +117,7 @@ sub run {
     while ($iterations++ < scalar(@welcome_tags)) {
         # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
         wait_still_screen 5;
-        my $timeout = is_aarch64 ? '1000' : '500';
+        my $timeout = is_aarch64 || is_ppc64le ? '1000' : '500';
         assert_screen(\@welcome_tags, $timeout);
         # Normal exit condition
         if (match_has_tag 'local-registration-server') {
