@@ -24,7 +24,7 @@ subtest '[prepare_swpm]' => sub {
     my $mockObject = sles4sap->new();
     my $sles4sap = Test::MockModule->new('sles4sap', no_auto => 1);
     $sles4sap->redefine(assert_script_run => sub { return 0 });
-    $sles4sap->redefine(record_info => sub { return 0; });
+    $sles4sap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap->redefine(script_output => sub { return 1; });
     my %input_vars = (sapcar_bin_path => '/sapinst/SAPCAR',
         sar_archives_dir => '/sapinst/',
@@ -175,7 +175,7 @@ subtest '[netweaver_installation_data] Test returned values - common variables' 
 subtest '[sapcontrol_process_check] Test expected failures.' => sub {
     my $mockObject = sles4sap->new();
     my $sles4sap = Test::MockModule->new('sles4sap', no_auto => 1);
-    $sles4sap->redefine(record_info => sub { return; });
+    $sles4sap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap->redefine(sapcontrol => sub { return '3'; });
     my %argument_values = (
         sidadm => 'sidadm', instance_id => '00', expected_state => 'started');
@@ -202,7 +202,7 @@ subtest '[sapcontrol_process_check] Test expected failures.' => sub {
 subtest '[sapcontrol_process_check] Function PASS.' => sub {
     my $mockObject = sles4sap->new();
     my $sles4sap = Test::MockModule->new('sles4sap', no_auto => 1);
-    $sles4sap->redefine(record_info => sub { return; });
+    $sles4sap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %argument_values = (instance_id => '00', expected_state => 'started');
 
     $sles4sap->redefine(sapcontrol => sub { return '4' });

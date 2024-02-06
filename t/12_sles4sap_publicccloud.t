@@ -104,18 +104,36 @@ subtest '[list_cluster_nodes]' => sub {
     $self->{instances} = \@instances;
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    my $crm_node_server_out = "Captain_hook\nCaptainHarlock";
+
+    my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
+            push @calls, $args{cmd};
             return 0 if $args{cmd} eq 'crm status';
-            return $crm_node_server_out; }
+            return "Captain_hook\nCaptainHarlock"; }
     );
 
     my $node_list = $self->list_cluster_nodes();
+
     is ref($node_list), 'ARRAY', 'Func,tion returns array ref.';
     is @$node_list, @instances, 'Test expected result.';
+};
 
-    $sles4sap_publiccloud->redefine(run_cmd => sub { return 1; });
+
+subtest '[list_cluster_nodes] failure' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my @instances = ('Captain_hook', 'CaptainHarlock');
+    $self->{instances} = \@instances;
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 1; }
+    );
+
     dies_ok { $self->list_cluster_nodes() } 'Expected failure: missing mandatory arg';
 };
 
@@ -183,105 +201,53 @@ subtest '[is_primary_node_online]' => sub {
     is $res, 1, "System replication is online on primary node";
 };
 
-
 subtest '[get_hana_topology]' => sub {
+    my @calls;
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
-    my @calls;
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %test_topology = (
+        vmhanaAAAAA => {
+            vhost => 'vmhanaAAAAA'},
+        vmhanaBBBBB => {
+            vhost => 'vmhanaBBBBB'}
+    );
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
-            my $res = <<END;
-Global/global/cib-time="Fri Dec 15 05:54:20 2023"
-Global/global/maintenance="false"
-Hosts/vmhana01/clone_state="PROMOTED"
-Hosts/vmhana01/lpa_ha0_lpt="1702619602"
-Hosts/vmhana01/node_state="online"
-Hosts/vmhana01/op_mode="logreplay"
-Hosts/vmhana01/remoteHost="vmhana02"
-Hosts/vmhana01/roles="2:P:master1:master:worker:master"
-Hosts/vmhana01/site="site_a"
-Hosts/vmhana01/srah="-"
-Hosts/vmhana01/srmode="sync"
-Hosts/vmhana01/sync_state="PRIM"
-Hosts/vmhana01/version="2.00.073.00"
-Hosts/vmhana01/vhost="vmhana01"
-Hosts/vmhana02/clone_state="DEMOTED"
-Hosts/vmhana02/lpa_ha0_lpt="30"
-Hosts/vmhana02/node_state="online"
-Hosts/vmhana02/op_mode="logreplay"
-Hosts/vmhana02/remoteHost="vmhana01"
-Hosts/vmhana02/roles="4:S:master1:master:worker:master"
-Hosts/vmhana02/site="site_b"
-Hosts/vmhana02/srah="-"
-Hosts/vmhana02/srmode="sync"
-Hosts/vmhana02/sync_state="SOK"
-Hosts/vmhana02/version="2.00.073.00"
-Hosts/vmhana02/vhost="vmhana02"
-END
-            return $res;
+            return "Output does no matter as calculate_hana_topology is redefined.";
     });
-    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $topology = $self->get_hana_topology();
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    my $num_of_hosts = 0;
-    for my $entry (@$topology) {
-        $num_of_hosts++;
-        my %host_entry = %$entry;
-        note("vhost: $host_entry{vhost}");
-        like $host_entry{vhost}, qr/vmhana/, "Parsing is ok for field vhost";
-    }
+    note("\n  C -->  " . join("\n  -->  ", @calls));
 
-    ok $num_of_hosts eq 2;
-};
-
-
-subtest '[get_hana_topology] for a specific node' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
-    my @calls;
-    $sles4sap_publiccloud->redefine(run_cmd => sub {
-            my ($self, %args) = @_;
-            push @calls, $args{cmd};
-            my $res = <<END;
-Hosts/vmhana01/vhost="vmhana01"
-Hosts/vmhana02/vhost="vmhana02"
-END
-            return $res;
-    });
-    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    my $entry = $self->get_hana_topology(hostname => 'vmhana02');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    my %host_entry = %$entry;
-    note("vhost: $host_entry{vhost}");
-    like $host_entry{vhost}, qr/vmhana02/, "Parsing is ok for field vhost";
+    ok((keys %$topology eq 2), "Two nodes returned by calculate_hana_topology");
+    # how to access one inner value in one shot
+    ok((%$topology{vmhanaAAAAA}->{vhost} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
+    ok((any { qr/SAPHanaSR-showAttr --format=script/ } @calls), 'function calls SAPHanaSR-showAttr');
 };
 
 
 subtest '[get_hana_topology] bad output' => sub {
     my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     my @calls;
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %empty_topology = ();
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%empty_topology; });
+
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
-            my $res = <<END;
-Signon to CIB failed: Transport endpoint is not connected
-Init failed, could not perform requested operations
-No attributes found for SID=ha0
-END
-            return $res;
+            return "Output does no matter as calculate_hana_topology is redefined.";
     });
-    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $topology = $self->get_hana_topology();
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok scalar @$topology eq 0;
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+    ok keys %$topology eq 0;
 };
 
 
@@ -290,18 +256,23 @@ subtest '[check_takeover]' => sub {
     $self->{my_instance}->{instance_id} = 'Yondu';
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     my @calls;
+    my %test_topology = (
+        vmhana01 => {
+            sync_state => 'PRIM',
+            vhost => 'vmhana01',
+        },
+        vmhana02 => {
+            sync_state => 'SOK',
+            vhost => 'vmhana02',
+        }
+    );
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
-            my $res = <<END;
-Hosts/vmhana01/sync_state="PRIM"
-Hosts/vmhana01/vhost="vmhana01"
-Hosts/vmhana02/sync_state="SOK"
-Hosts/vmhana02/vhost="vmhana02"
-END
-            return $res;
+            return "Output does no matter as calculate_hana_topology is redefined.";
     });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -310,7 +281,8 @@ END
     #  - none has the name of "current node" that is Yondu
     #  - at least one of them with name different from Yondu is in state PRIM
     ok $self->check_takeover();
-    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    note("\n  C -->  " . join("\n  -->  ", @calls));
 };
 
 
@@ -324,16 +296,15 @@ subtest '[check_takeover] fail in showAttr' => sub {
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
-            my $res = <<END;
-Signon to CIB failed: Transport endpoint is not connected
-Init failed, could not perform requested operations
-No attributes found for SID=ha0
-END
-            return $res;
+            return "Output does no matter as calculate_hana_topology is redefined.";
     });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %empty_topology = ();
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%empty_topology; });
+
     dies_ok { $self->check_takeover() } "check_takeover fails if SAPHanaSR-showAttr keep give bad respose";
-    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    note("\n  C -->  " . join("\n  -->  ", @calls));
 };
 
 
@@ -358,7 +329,7 @@ Hosts/vmhana01/sync_state="SOK"
 Hosts/vmhana02/vhost="vmhana02"
 END
     dies_ok { $self->check_takeover() } "check_takeover fails if sync_state is missing in SAPHanaSR-showAttr output";
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  -->  ", @calls));
     @calls = ();
 
     $showAttr = <<END;
@@ -454,6 +425,46 @@ subtest '[create_playbook_section_list] registration => suseconnect' => sub {
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /.*use_suseconnect=true.*/ } @$ansible_playbooks), 'registration playbook is called with use_suseconnect=true when registration => suseconnect');
+};
+
+
+subtest '[enable_replication]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0; });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %test_topology = (
+        vmhana01 => {
+            vhost => 'vmhana01',
+            remoteHost => 'vmhana02',
+            srmode => 'PIPPO',
+            op_mode => 'PAPERINO',
+        },
+        vmhana02 => {
+            vhost => 'vmhana02',
+            remoteHost => 'vmhana01',
+            srmode => 'PIPPO',
+            op_mode => 'PAPERINO',
+        }
+    );
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 1; }
+    );
+
+    set_var('SAP_SIDADM', 'YONDUR');
+
+    $self->enable_replication();
+
+    set_var('SAP_SIDADM', undef);
+
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+    ok((any { qr/hdbnsutil -sr_register/ } @calls), 'hdbnsutil cmd correctly called');
 };
 
 done_testing;

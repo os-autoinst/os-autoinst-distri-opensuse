@@ -7,7 +7,6 @@ use Test::MockModule;
 use Test::Mock::Time;
 
 use List::Util qw(any none);
-use Data::Dumper;
 
 use testapi 'set_var';
 use qesapdeployment;

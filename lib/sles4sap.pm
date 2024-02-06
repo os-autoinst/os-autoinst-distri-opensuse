@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2017-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for SAP tests
@@ -27,7 +27,6 @@ use utils qw(zypper_call);
 use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
 use Utils::Logging qw(save_and_upload_log);
-use List::MoreUtils qw(uniq);
 use Carp qw(croak);
 
 our @EXPORT = qw(
