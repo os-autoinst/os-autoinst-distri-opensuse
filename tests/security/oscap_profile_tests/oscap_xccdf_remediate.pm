@@ -12,6 +12,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
+    select_console 'root-console';
 
     $self->oscap_remediate();
 }
