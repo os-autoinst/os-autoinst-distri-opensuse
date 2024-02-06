@@ -74,7 +74,7 @@ sub run {
         }
         else {
             remove_suseconnect_product('sle-module-legacy');
-            (script_run 'rpm -qa | grep java-1_') || zypper_call('rm java-1_*');
+            (script_run 'rpm -qa | grep java-*') || zypper_call('rm java-*');
         }
     }
 }
