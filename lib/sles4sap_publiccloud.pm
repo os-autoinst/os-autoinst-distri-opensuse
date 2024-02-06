@@ -378,10 +378,12 @@ sub enable_replication {
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
     my $topology = $self->get_hana_topology();
-    foreach (qw(vhost remoteHost srmode op_mode)) { die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_}); }
+    foreach (qw(vhost remoteHost srmode op_mode site)) {
+        die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_});
+    }
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
-        '--name=' . %$topology{$hostname}->{vhost},
+        '--name=' . %$topology{$hostname}->{site},
         '--remoteHost=' . %$topology{$hostname}->{remoteHost},
         '--remoteInstance=00',
         '--replicationMode=' . %$topology{$hostname}->{srmode},

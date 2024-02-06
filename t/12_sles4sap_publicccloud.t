@@ -441,12 +441,14 @@ subtest '[enable_replication]' => sub {
             remoteHost => 'vmhana02',
             srmode => 'PIPPO',
             op_mode => 'PAPERINO',
+            site => 'DONALDUCK',
         },
         vmhana02 => {
             vhost => 'vmhana02',
             remoteHost => 'vmhana01',
             srmode => 'PIPPO',
             op_mode => 'PAPERINO',
+            site => 'ROCKERDUCK',
         }
     );
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
@@ -465,6 +467,8 @@ subtest '[enable_replication]' => sub {
 
     note("\n  C -->  " . join("\n  -->  ", @calls));
     ok((any { qr/hdbnsutil -sr_register/ } @calls), 'hdbnsutil cmd correctly called');
+    ok((any { qr/--name=DONALDUCK/ } @calls), 'hdbnsutil name');
+    ok((any { qr/--remoteHost=vmhana02/ } @calls), 'hdbnsutil vmhana02');
 };
 
 done_testing;
