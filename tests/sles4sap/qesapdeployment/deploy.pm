@@ -14,7 +14,24 @@ sub run {
     my ($self) = @_;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
-    die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
+
+    if ($ret[0]) {
+        if (qesap_file_find_string(file => $ret[1], search_string => 'An internal execution error occurred. Please retry later')) {
+            record_info('DETECTED TERRAFORM ERROR', 'INTERNAL ERROR');
+            @ret = qesap_execute(cmd => 'terraform',
+                logname => 'qesap_terraform_retry.log.txt',
+                timeout => 1800);
+            if ($ret[0])
+            {
+                qesap_cluster_logs();
+                die "'qesap.py terraform' return: $ret[0]";
+            }
+            record_info('TERRAFORM RETRY PASS');
+        }
+        else {
+            die "'qesap.py terraform' return: $ret[0]";
+        }
+    }
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);
 
