@@ -29,6 +29,7 @@ use qesapdeployment;
 use YAML::PP;
 use publiccloud::instance;
 use sles4sap;
+use saputils;
 
 our @EXPORT = qw(
   run_cmd
@@ -190,33 +191,14 @@ sub sles4sap_cleanup {
 }
 
 =head2 get_hana_topology
-    get_hana_topology([hostname => $hostname]);
+    Parses command output, returns hash of hashes containing values for each host.
 
-    Parses command output, returns list of hashes containing values for each host.
-    If hostname defined, returns hash with values only for host specified.
 =cut
 
 sub get_hana_topology {
-    my ($self, %args) = @_;
-    my @topology;
+    my ($self) = @_;
     my $cmd_out = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
-    record_info("cmd_out", $cmd_out);
-    my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $cmd_out);
-    my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
-
-    for my $host (@all_hosts) {
-        # Only takes parameter and value for lines about one specific host at time
-        my %host_parameters = map { my ($node, $parameter, $value) = split(/[\/=]/, $_);
-            if ($host eq $node) { ($parameter, $value) } else { () } }
-          @all_parameters;
-        push(@topology, \%host_parameters);
-
-        if (defined($args{hostname}) && $args{hostname} eq $host) {
-            return \%host_parameters;
-        }
-    }
-
-    return \@topology;
+    return calculate_hana_topology(input => $cmd_out);
 }
 
 =head2 is_hana_online
@@ -364,13 +346,15 @@ sub check_takeover {
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
         $retry_count++;
-        for my $entry (@$topology) {
-            my %host_entry = %$entry;
-            die "Missing 'vhost' field in topology output" unless defined($host_entry{vhost});
-            die "Missing 'sync_state' field in topology output" unless defined($host_entry{sync_state});
-            record_info("Cluster Host", "vhost: $host_entry{vhost} compared with $hostname \n sync_state: $host_entry{sync_state} compared with PRIM");
-            if ($host_entry{vhost} ne $hostname && $host_entry{sync_state} eq "PRIM") {
-                record_info("Takeover status:", "Takeover complete to node '$host_entry{vhost}'");
+        while (my ($entry, $host_entry) = each %$topology) {
+            foreach (qw(vhost sync_state)) { die "Missing '$_' field in topology output" unless defined(%$host_entry{$_}); }
+            my $vhost = %$host_entry{vhost};
+            my $sync_state = %$host_entry{sync_state};
+            record_info("Cluster Host", join("\n",
+                    "vhost: $vhost compared with $hostname",
+                    "sync_state: $sync_state compared with PRIM"));
+            if ($vhost ne $hostname && $sync_state eq "PRIM") {
+                record_info("Takeover status:", "Takeover complete to node '$vhost");
                 last TAKEOVER_LOOP;
             }
         }
@@ -393,14 +377,15 @@ sub enable_replication {
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
-    my $topology_out = $self->get_hana_topology(hostname => $hostname);
-    my %topology = %$topology_out;
-    my $cmd = "hdbnsutil -sr_register " .
-      "--name=$topology{vhost} " .
-      "--remoteHost=$topology{remoteHost} " .
-      "--remoteInstance=00 " .
-      "--replicationMode=$topology{srmode} " .
-      "--operationMode=$topology{op_mode}";
+    my $topology = $self->get_hana_topology();
+    foreach (qw(vhost remoteHost srmode op_mode)) { die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_}); }
+
+    my $cmd = join(' ', 'hdbnsutil -sr_register',
+        '--name=' . %$topology{$hostname}->{vhost},
+        '--remoteHost=' . %$topology{$hostname}->{remoteHost},
+        '--remoteInstance=00',
+        '--replicationMode=' . %$topology{$hostname}->{srmode},
+        '--operationMode=' . %$topology{$hostname}->{op_mode});
 
     record_info('CMD Run', $cmd);
     $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"));
