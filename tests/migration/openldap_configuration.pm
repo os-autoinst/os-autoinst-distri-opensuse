@@ -20,9 +20,6 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    # Install openldap since we need use slaptest tools
-    zypper_call("in sssd sssd-tools sssd-ldap openldap2 openldap2-client");
-
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service('nscd') if check_unit_file('nscd');
 
