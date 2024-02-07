@@ -50,8 +50,7 @@ my @log_files = ();
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
-use constant QESAPDEPLOY_PY => 'python3.10';
-use constant QESAPDEPLOY_PIP => 'pip3.10';
+use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.10';
 
 our @EXPORT = qw(
   qesap_upload_logs
@@ -235,6 +234,24 @@ sub qesap_venv_cmd_exec {
     return $ret;
 }
 
+=head3 qesap_py
+
+  Return string of the python to use
+=cut
+
+sub qesap_py {
+    return 'python' . get_var('QESAP_PYTHON_VERSION', QESAPDEPLOY_PY_DEFAULT_VER);
+}
+
+=head3 qesap_pip
+
+  Return string of the pip to use
+=cut
+
+sub qesap_pip {
+    return 'pip' . get_var('QESAP_PIP_VERSION', QESAPDEPLOY_PY_DEFAULT_VER);
+}
+
 =head3 qesap_pip_install
 
   Install all Python requirements of the qe-sap-deployment
@@ -244,15 +261,15 @@ sub qesap_venv_cmd_exec {
 sub qesap_pip_install {
     my %paths = qesap_get_file_paths();
     my $pip_install_log = '/tmp/pip_install.txt';
-    my $pip_ints_cmd = join(' ', QESAPDEPLOY_PIP, 'install --no-color --no-cache-dir',
+    my $pip_ints_cmd = join(' ', qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt",
         '|& tee -a', $pip_install_log);
 
     # Create a Python virtualenv
-    assert_script_run(join(' ', QESAPDEPLOY_PY, '-m venv', QESAPDEPLOY_VENV));
+    assert_script_run(join(' ', qesap_py(), '-m venv', QESAPDEPLOY_VENV));
 
     # Configure pip in it
-    qesap_venv_cmd_exec(cmd => QESAPDEPLOY_PIP . ' config --site set global.progress_bar off', failok => 1);
+    qesap_venv_cmd_exec(cmd => qesap_pip() . ' config --site set global.progress_bar off', failok => 1);
 
     push(@log_files, $pip_install_log);
     record_info('QESAP repo', 'Installing all qe-sap-deployment python requirements');
@@ -449,7 +466,7 @@ sub qesap_execute {
         $exec_log =~ s/[-\s]+/_/g;
     }
 
-    my $qesap_cmd = join(' ', QESAPDEPLOY_PY, $paths{deployment_dir} . '/scripts/qesap/qesap.py',
+    my $qesap_cmd = join(' ', qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
         '-c', $paths{qesap_conf_trgt},
         '-b', $paths{deployment_dir},
