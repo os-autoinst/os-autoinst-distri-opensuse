@@ -603,5 +603,12 @@
             "alp":  ["1.0"]
         },
         "type": "bug"
+    },
+    "Truncating stdout of dmi_memory_id": {
+        "description": "Truncating stdout of 'dmi_memory_id' up to .* byte",
+        "products": {
+            "sle": ["15-SP6"]
+        },
+        "type": "ignore"
     }
 }
