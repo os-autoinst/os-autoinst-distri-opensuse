@@ -20,6 +20,28 @@ use containers::common;
 my $test_dir = "/var/tmp";
 my $podman_version = "";
 
+sub run_tests {
+    my %params = @_;
+    my ($rootless, $remote, $skip_tests) = ($params{rootless}, $params{remote}, $params{skip_tests});
+
+    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
+    my $args = ($rootless ? "--rootless" : "--root");
+    $args .= " --remote" if ($remote);
+
+    my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
+
+    assert_script_run "cp -r test/system.orig test/system";
+    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+    script_run "rm test/system/$_.bats" foreach (@skip_tests);
+
+    assert_script_run "echo $log_file .. > $log_file";
+    background_script_run "podman system service --timeout=0" if ($remote);
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 3600;
+    parse_extra_log(TAP => $log_file);
+    assert_script_run "rm -rf test/system";
+    script_run 'kill %1' if ($remote);
+}
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -85,80 +107,20 @@ sub run {
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "cp -r test/system test/system.orig";
 
-    my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
-
-    #
     # user / local
-    #
+    run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
 
-    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
-    foreach my $test (@skip_tests) {
-        script_run "rm test/system/$test.bats";
-    }
-
-    my $log_file = "bats-user-local.tap";
-    assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless | tee -a $log_file", 2600;
-    parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf test/system";
-
-    #
     # user / remote
-    #
-
-    unless (is_sle_micro('<5.5')) {
-        assert_script_run "cp -r test/system.orig test/system";
-        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
-        foreach my $test (@skip_tests) {
-            script_run "rm test/system/$test.bats";
-        }
-
-        $log_file = "bats-user-remote.tap";
-        assert_script_run "echo $log_file .. > $log_file";
-        background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
-        parse_extra_log(TAP => $log_file);
-        assert_script_run "rm -rf test/system";
-        script_run 'kill %1';
-    }
-
-    #
-    # root / local
-    #
+    run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', '')) unless (is_sle_micro('<5.5'));
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/podman-$podman_version/");
 
-    assert_script_run "cp -r test/system.orig test/system";
-    @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
-    foreach my $test (@skip_tests) {
-        script_run "rm test/system/$test.bats";
-    }
+    # root / local
+    run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
 
-    $log_file = "bats-root-local.tap";
-    assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root | tee -a $log_file", 2600;
-    parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf test/system";
-
-    #
     # root / remote
-    #
-
-    unless (is_sle_micro('<5.5')) {
-        assert_script_run "cp -r test/system.orig test/system";
-        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
-        foreach my $test (@skip_tests) {
-            script_run "rm test/system/$test.bats";
-        }
-
-        $log_file = "bats-root-remote.tap";
-        assert_script_run "echo $log_file .. > $log_file";
-        background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root --remote | tee -a $log_file", 2600;
-        parse_extra_log(TAP => $log_file);
-        script_run 'kill %1';
-    }
+    run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', '')) unless (is_sle_micro('<5.5'));
 }
 
 sub cleanup() {
