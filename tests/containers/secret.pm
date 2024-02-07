@@ -65,7 +65,7 @@ sub run {
     record_info("Commit cont", "Commit container secret1-test");
     assert_script_run("$runtime commit secret1-test secret1-test-image");
     my $output = script_output("$runtime $runtime_command --name secret1-test-commit secret1-test-image:latest cat /run/secrets/secret1", proceed_on_failure => 1);
-    die("Secret commited") if ($output !~ m/T0p_S3cr3t1/);
+    die("Secret commited") if ($output =~ m/T0p_S3cr3t1/);
 
     # Accessing secrets as env variables is not available in Docker
     if ($runtime =~ 'podman') {
@@ -75,7 +75,7 @@ sub run {
         record_info("Commit cont", "Commit container secret2-test");
         assert_script_run("podman commit secret2-test secret2-test-image");
         $output = script_output("podman run --name secret2-test-commit secret2-test-image:latest printenv TOP_SECRET2", proceed_on_failure => 1);
-        die("Secret commited") if ($output !~ m/T0p_S3cr3t2/);
+        die("Secret commited") if ($output =~ m/T0p_S3cr3t2/);
     }
 
     # Remove secrets
