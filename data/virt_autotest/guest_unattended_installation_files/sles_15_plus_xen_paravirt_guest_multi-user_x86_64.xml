@@ -293,6 +293,14 @@ echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
 ]]>
         </source>
       </script>
+      <!-- journal_config.sh works on sle15sp6+ guest only -->
+      <script>
+        <filename>journal_config.sh</filename>
+        <source><![CDATA[
+echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+]]>
+        </source>
+      </script
     </init-scripts>
   </scripts>
 </profile>

@@ -32,13 +32,20 @@ sub enable_debug_logging {
     turn_on_libvirt_debugging_log;
 
     # enable journal log with previous reboot
-    my $journald_conf_file = "/etc/systemd/journald.conf";
-    if (!script_run "ls $journald_conf_file") {
+    if (is_sle('>=15-SP6')) {
+        unless (get_var('AUTOYAST')) {
+            my $journald_conf_file = "/etc/systemd/journald.conf.d/01-virt-test.conf";
+            script_run("echo -e \"[Journal]\\\nStorage=persistent\" > $journald_conf_file");
+            script_run "systemd-analyze cat-config systemd/journald.conf | grep Storage";
+            script_run 'systemctl restart systemd-journald';
+        }
+    }
+    else {
+        my $journald_conf_file = "/etc/systemd/journald.conf";
         script_run "sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\$/Storage=persistent/};\${x;/^\$/{s//Storage=persistent/;H};x}' $journald_conf_file";
         script_run "grep Storage $journald_conf_file";
         script_run 'systemctl restart systemd-journald';
     }
-    save_screenshot;
 
     # enable qemu core dumps
     my $qemu_conf_file = "/etc/libvirt/qemu.conf";
