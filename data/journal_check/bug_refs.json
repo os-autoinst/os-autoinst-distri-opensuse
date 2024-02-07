@@ -610,5 +610,33 @@
             "sle": ["15-SP6"]
         },
         "type": "ignore"
+    },
+    "tsc unstable": {
+        "description": "clocksource: timekeeping watchdog on CPU.*: Marking clocksource 'tsc' as unstable because the skew is too large",
+        "products": {
+            "sle": ["15-SP6"]
+        },
+        "type": "ignore"
+    },
+    "clocksource info": {
+        "description": "clocksource: .* .*now: .* .*last: .* mask: .*",
+        "products": {
+            "sle": ["15-SP6"]
+        },
+        "type": "ignore"
+    },
+    "clocksource skewed": {
+        "description": "clocksource: .* skewed .* over watchdog .*",
+        "products": {
+            "sle": ["15-SP6"]
+        },
+        "type": "ignore"
+    },
+    "clocksource switched": {
+        "description": "clocksource: .* is current clocksource",
+        "products": {
+            "sle": ["15-SP6"]
+        },
+        "type": "ignore"
     }
 }
