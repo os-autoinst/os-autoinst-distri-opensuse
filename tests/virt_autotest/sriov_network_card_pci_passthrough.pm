@@ -269,10 +269,9 @@ sub prepare_guest_for_sriov_passthrough {
     }
 
     # Journals with previous reboot
-    my $journald_conf_file = "/etc/systemd/journald.conf";
-    if (!script_run "ssh root\@$vm \"ls $journald_conf_file\"") {
+    if (guest_is_sle($vm, '<=15-sp5')) {
+        my $journald_conf_file = "/etc/systemd/journald.conf";
         script_run "ssh root\@$vm \"sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\\\$/Storage=persistent/};\\\${x;/^\\\$/{s//Storage=persistent/;H};x}' $journald_conf_file\"";
-        script_run "ssh root\@$vm \"grep Storage $journald_conf_file\"";
         script_run "ssh root\@$vm 'systemctl restart systemd-journald'";
     }
 

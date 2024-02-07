@@ -254,6 +254,15 @@ grub2-set-default 2
         </source>
       </script>
       % }
+      % if ($get_var->('VERSION') ge '15-SP6') {
+      <script>
+	<filename>journal_config.sh</filename>
+	<source><![CDATA[
+echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+]]>
+	</source>
+      </script>
+      % }
       <script/>
     </post-scripts>
   </scripts>
