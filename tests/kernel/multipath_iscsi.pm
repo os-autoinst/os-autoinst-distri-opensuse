@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Smoke test for multipath over iscsi
@@ -43,6 +43,12 @@ sub run {
     assert_script_run("multipathd -k\"show multipaths status\"");
     # Connection cleanup
     iscsi_logout $iqn, $target;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    $self->upload_coredumps;
 }
 
 1;
