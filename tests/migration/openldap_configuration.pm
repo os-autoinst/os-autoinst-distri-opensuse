@@ -11,6 +11,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
+use Utils::Architectures;
 use utils;
 use Utils::Systemd qw(systemctl disable_and_stop_service check_unit_file);
 use version_utils qw(is_tumbleweed is_sle);
@@ -19,6 +20,10 @@ use Utils::Logging 'tar_and_upload_log';
 sub run {
     my ($self) = @_;
     select_serial_terminal;
+
+    # Install openldap since we need use slaptest tools
+    my $install_openldap = !((get_var('FLAVOR') =~ /Regression/) && check_var('HDDVERSION', '15-SP3') && is_x86_64);
+    zypper_call("in sssd sssd-tools sssd-ldap openldap2 openldap2-client") if $install_openldap;
 
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service('nscd') if check_unit_file('nscd');
