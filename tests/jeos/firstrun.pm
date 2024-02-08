@@ -167,7 +167,7 @@ sub run {
     send_key 'ret';
 
     # Accept EULA if required
-    unless (is_tumbleweed || is_microos || is_leap('>=15.4')) {
+    if (is_sle || is_sle_micro) {
         assert_screen 'jeos-doyouaccept';
         send_key 'ret';
     }
