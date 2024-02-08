@@ -15,7 +15,7 @@ use Test::Assert 'assert_matches';
 
 sub run {
     my $ntp_settings = $testapi::distri->get_ntp_configuration()->get_ntp_servers();
-    assert_matches(qr/suse\.pool\.ntp\.org|10\.160\.0\.45\ 10\.160\.0\.44\ 10\.160\.255\.254/, $ntp_settings, "NTP setting is not correct");
+    assert_matches(qr/suse\.pool\.ntp\.org|10\.160\.0\.45\ 10\.160\.0\.44\ 10\.160\.255\.254|10\.144\.55\.130 10\.144\.55\.131/, $ntp_settings, "NTP setting is not correct");
     $testapi::distri->get_ntp_configuration()->press_next();
 }
 
