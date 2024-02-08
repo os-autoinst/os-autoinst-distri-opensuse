@@ -81,7 +81,7 @@ sub run {
     # Remove secrets
     record_info("secret rm", "Remove all secrets created");
     assert_script_run("$runtime secret rm secret1 secret2");
-    $output = script_output("$runtime secret ls --quiet"); 
+    $output = script_output("$runtime secret ls --quiet");
     die("Secrets have not been deleted") if ($output);
 
     # Stop the swarm in Docker
