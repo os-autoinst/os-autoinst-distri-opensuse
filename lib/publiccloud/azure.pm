@@ -17,11 +17,13 @@ use mmapi 'get_current_job_id';
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
+use Data::Dumper;
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
 has image_gallery => 'test_image_gallery';
 has lease_id => undef;
+has storage_region => 'westeurope';
 
 my $default_sku = 'gen2';
 
@@ -139,6 +141,15 @@ sub get_image_version {
         return undef;
     }
     record_info('IMG VER FOUND', "Found $image image version.");
+
+    my $regions = decode_azure_json($json)->{publishingProfile}->{targetRegions};
+    my @regions_list = map { lc($_->{name} =~ s/[-\s]//gr) } @$regions;
+    if (!grep(/^$self->{provider_client}->{region}$/, @regions_list)) {
+        record_info('REGION MISMATCH', 'The ' . $self->provider_client->region . ' is not listed in the targetRegions(' . join(',', @regions_list) . ') of this image version.');
+        return undef;
+    }
+    record_info('REGION OK', 'The ' . $self->provider_client->region . ' is listed in the targetRegions(' . join(',', @regions_list) . ') of this image version.');
+
     return $image;
 }
 
@@ -196,8 +207,8 @@ sub create_resources {
     assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
 
     record_info('INFO', 'Create storage account ' . $storage_account);
-    assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
-          . $self->provider_client->region . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
+    assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l ' . $self->storage_region
+          . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
 
     record_info('INFO', 'Create storage container ' . $container);
     assert_script_run('az storage container create --account-name ' . $storage_account
@@ -246,6 +257,7 @@ Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2'
 =cut
 
 sub generate_azure_image_definition {
+    my ($self) = @_;
     return get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION') if (get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION'));
 
     my $distri = get_required_var('DISTRI');
@@ -264,7 +276,7 @@ returns the name of the found image definition or undef if not found
 
 sub get_image_definition {
     my ($self, $resource_group, $gallery) = @_;
-    my $name = generate_azure_image_definition();
+    my $name = $self->generate_azure_image_definition();
     record_info('get_image_definition', "Searching for image definition in gallery=$gallery under group=$resource_group with name=$name");
 
     my $definitions = script_output("az sig image-definition list --resource-group '$resource_group' --gallery-name '$gallery'");
@@ -388,7 +400,7 @@ sub create_image_definition {
         record_info("gen img-def", "Create image definitions:\n$definition");
         assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
-              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized'", timeout => 300);
+              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized' --location " . $self->storage_region, timeout => 300);
     }
 }
 
@@ -403,22 +415,14 @@ sub create_image_version {
     my $subscription = $self->provider_client->subscription;
     my $sa_url = "/subscriptions/$subscription/resourceGroups/imageGroups/providers/Microsoft.Storage/storageAccounts/$storage_account";
 
-    ## For the Azure Compute Gallery, multiple target regions are supported.
-    # This is necessary, because the image version upload needs to happen once for all regions, for which we want to
-    # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
-    # it can contain a comma-separated list of all regions, in which the uploaded image should be available
-    # The $self->region is not used here as it contains only the first region from the list.
-    my $target_regions = get_required_var("PUBLIC_CLOUD_REGION");
-    $target_regions =~ s/,/ /g;    # CLI expects spaces as separation, not commas
-
     my $definition = $self->get_image_definition($resource_group, $gallery);
     my $version = generate_img_version();
     my $os_vhd_uri = $self->get_blob_uri($file);
     my $tags = generate_tags();
     # Note: Repetitive calls do not fail
-    assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
+    assert_script_run("az sig image-version create --debug --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-          "--os-vhd-uri $os_vhd_uri --target-regions '$target_regions'", timeout => 60 * 30);
+          "--os-vhd-uri $os_vhd_uri --target-regions '" . $self->provider_client->region . "' --location " . $self->storage_region, timeout => 60 * 30);
 }
 
 =head2 upload_img
