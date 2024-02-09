@@ -11,7 +11,7 @@ use testapi;
 use Utils::Architectures;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry wait_for_purge_kernels);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
-use constant ADDONS_COUNT => 50;
+use constant ADDONS_COUNT => 2000;
 use y2_module_consoletest;
 use YaST::workarounds;
 

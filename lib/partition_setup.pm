@@ -552,6 +552,8 @@ sub take_first_disk_storage_ng {
 
         send_key $cmd{next};
         assert_screen 'partition-scheme';
+        send_key_until_needlematch 'after-partitioning', $cmd{next}, 11, 3;
+        return;
     }
     elsif (is_ipmi) {
         send_key_until_needlematch 'after-partitioning', $cmd{next}, 11, 3;
