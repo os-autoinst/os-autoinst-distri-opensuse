@@ -168,7 +168,7 @@ sub login_to_console {
             use_ssh_serial_console;
             save_screenshot;
             #start upgrade
-            enter_cmd("DISPLAY= yast.ssh");
+            enter_cmd("yast.ssh");
             save_screenshot;
             #wait upgrade finish
             assert_screen('rebootnow', 2700);

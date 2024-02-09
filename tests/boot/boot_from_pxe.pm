@@ -223,7 +223,7 @@ sub run {
         save_screenshot;
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            $is_nvdimm && check_var('VIDEOMODE', 'text') ? type_string_very_slow('DISPLAY= ') : type_string_slow('DISPLAY= ');
+            # $is_nvdimm && check_var('VIDEOMODE', 'text') ? type_string_very_slow('DISPLAY= ') : type_string_slow('DISPLAY= ');
             $is_nvdimm ? enter_cmd_very_slow("yast.ssh") : enter_cmd_slow("yast.ssh");
         }
         wait_still_screen;
