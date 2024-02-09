@@ -170,7 +170,7 @@ sub run {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
             # does not appear, thus we have to skip it
-            unless ((check_var('FLAVOR', 'Full')) || check_var('FLAVOR', 'Full-QR') || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
+            unless ((check_var('FLAVOR', 'Full')) || check_var('FLAVOR', 'Full-QR') || (is_sle('15-SP3+') && (check_var('FLAVOR', 'Server-DVD-Updates'))) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
                 assert_screen 'addon-menu-active';
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
