@@ -52,7 +52,7 @@ sub run {
     assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
     assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
     # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
-    assert_script_run("$runtime exec outer-container podman run -it $image ls") unless is_sle('=15-SP1');
+    assert_script_run("$runtime exec -it outer-container podman run -it $image ls") unless is_sle('=15-SP1');
 }
 
 sub cleanup {
