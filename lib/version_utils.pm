@@ -31,6 +31,7 @@ use constant {
           is_leap
           is_opensuse
           is_tumbleweed
+          is_slowroll
           is_rescuesystem
           is_sles4sap
           is_sles4sap_standard
@@ -317,6 +318,18 @@ sub is_tumbleweed {
     return 1 if get_var('VERSION') =~ /Tumbleweed/;
     return 1 if is_gnome_next;
     return get_var('VERSION') =~ /^Staging:/;
+}
+
+=head2 is_slowroll
+
+Returns true if called on slowroll
+=cut
+
+sub is_slowroll {
+    # Slowroll and its stagings
+    return 0 unless check_var('DISTRI', 'opensuse');
+    return 1 if get_var('VERSION') =~ /Slowroll/;
+    # Staging has VERSION=Slowroll:Staging which is covered by the line above
 }
 
 =head2 is_leap

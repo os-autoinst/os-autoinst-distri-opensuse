@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall is_alp is_transactional);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_alp is_transactional);
 use mm_network;
 use Utils::Backends;
 
@@ -383,7 +383,8 @@ sub uefi_bootmenu_params {
     assert_screen("grub2-enter-edit-mode", 30) if is_jeos;
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.1'))) {
+    if (is_jeos && (!is_sle('=12-SP5') || is_opensuse)) {
+
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "keep" word
