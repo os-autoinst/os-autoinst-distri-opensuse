@@ -20,7 +20,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call);
-use version_utils qw(is_sle is_leap is_opensuse is_transactional);
+use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common qw(is_updates_tests is_migration_tests);
 use transactional qw(check_reboot_changes trup_call);
@@ -46,10 +46,24 @@ sub run {
     # Supported Java versions for sle15sp1+ and sle12sp5
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP2/#development-java-versions
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/12-SP5/index.html#TechInfo.Java
-    # java-11-openjdk                   -> Basesystem
-    # java-10-openjdk & java-1_8_0-ibm  -> Legacy
+    # java-{11,17,21}-openjdk                   -> Basesystem
+    # java-10-openjdk & java-1_8_0-ibm          -> Legacy
+    # from sle15sp6+
+    # java-11-openjdk                           -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
-    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk{,-demo,-devel} java-1_*' : 'java-*-devel';
+    my $pkgs_legacy = 'java-1_8*';
+
+    if (is_tumbleweed) {
+        $cmd .= 'java-*-devel';
+    } elsif (is_sle('15-SP6+') || is_leap('15.6+')) {
+        $cmd .= "java-21-openjdk{,-demo,-devel} $pkgs_legacy";
+    } elsif (is_sle('15+') || is_sle('=12-SP5') || is_leap) {
+        $cmd .= "java-11-openjdk{,-demo,-devel} $pkgs_legacy";
+    } elsif (is_sle('<12-SP5')) {
+        $cmd .= $pkgs_legacy;
+    } else {
+        die sprintf("Specify expected java version for %s %s", get_var('DISTRI'), get_var('VERSION'));
+    }
 
     if (is_transactional) {
         select_console 'root-console';
@@ -70,11 +84,11 @@ sub run {
     unless (is_updates_tests || is_opensuse || is_migration_tests) {
         if (is_transactional) {
             trup_call("register -d -p sle-module-legacy/$version_id/$arch");
-            (script_run 'rpm -qa | grep java-1_') || trup_call('pkg remove --no-confirm java-1_*');
+            (script_run "rpm -qa | grep $pkgs_legacy") || trup_call("pkg remove --no-confirm $pkgs_legacy");
         }
         else {
             remove_suseconnect_product('sle-module-legacy');
-            (script_run 'rpm -qa | grep java-*') || zypper_call('rm java-*');
+            (script_run "rpm -qa | grep $pkgs_legacy") || zypper_call("rm $pkgs_legacy");
         }
     }
 }
