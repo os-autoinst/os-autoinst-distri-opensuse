@@ -41,10 +41,12 @@ conditional_schedule:
   version_specific:
     VERSION:
       15-SP5:
+        - console/openssl_nodejs
         - console/golang
         - console/redis
         - '{{arch_specific}}'
       15-SP4:
+        - console/openssl_nodejs
         - console/golang
         - console/redis
         - '{{arch_specific}}'
