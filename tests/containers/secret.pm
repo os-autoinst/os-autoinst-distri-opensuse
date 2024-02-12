@@ -13,6 +13,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
+use containers::utils qw(get_podman_version);
+use version_utils;
 
 sub run {
     my ($self, $args) = @_;
@@ -33,15 +35,20 @@ sub run {
         fail_message => "Error creating secret from CLI", timeout => 60);
     record_info("secret inspect CLI", script_output("podman secret inspect secret2"));
 
-    # Check if secret exists
-    record_info("secret exists", "In Podman, check that each created secret exists");
-    assert_script_run("podman secret exists secret1",
-        fail_message => "Error checking if secret exists");
-    assert_script_run("podman secret exists secret2",
-        fail_message => "Error checking if secret exists");
-    # This secret3 does not exist and thus `secret exists` must return 1
-    assert_script_run("! podman secret exists secret3",
-        fail_message => "Error checking that secret doesn't exist");
+    # "podman secret exists" was added to podman 4.5.0 according to
+    # https://github.com/containers/podman/blob/main/RELEASE_NOTES.md#450
+    my $podman_version = get_podman_version();
+    if (version->parse($podman_version) >= version->parse('4.5.0')) {
+        # Check if secret exists
+        record_info("secret exists", "In Podman, check that each created secret exists");
+        assert_script_run("podman secret exists secret1",
+            fail_message => "Error checking if secret exists");
+        assert_script_run("podman secret exists secret2",
+            fail_message => "Error checking if secret exists");
+        # This secret3 does not exist and thus `secret exists` must return 1
+        assert_script_run("! podman secret exists secret3",
+            fail_message => "Error checking that secret doesn't exist");
+    }
 
     # List all secrets
     record_info("secret ls", script_output("podman secret ls"));

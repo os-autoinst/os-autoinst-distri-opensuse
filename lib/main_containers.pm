@@ -22,7 +22,6 @@ our @EXPORT = qw(
   is_container_test
   load_container_tests
   load_host_tests_podman
-  load_secret_test
   load_image_test
   load_3rd_party_image_test
   load_container_engine_test
@@ -76,7 +75,7 @@ sub load_volume_tests {
     loadtest('containers/volumes', run_args => $run_args, name => 'volumes_' . $run_args->{runtime});
 }
 
-sub load_secret_test {
+sub load_secret_tests {
     my ($run_args) = @_;
     loadtest('containers/secret', run_args => $run_args, name => 'secret_' . $run_args->{runtime});
 }
@@ -122,7 +121,7 @@ sub load_host_tests_podman {
             loadtest 'containers/rootless_podman';
             loadtest 'containers/podman_remote' if is_sle '>15-sp2';
         }
-        load_secret_test($run_args);
+        load_secret_tests($run_args);
         load_volume_tests($run_args);
     }
 }
