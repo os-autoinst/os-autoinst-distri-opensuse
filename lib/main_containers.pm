@@ -22,6 +22,7 @@ our @EXPORT = qw(
   is_container_test
   load_container_tests
   load_host_tests_podman
+  load_secret_test
   load_image_test
   load_3rd_party_image_test
   load_container_engine_test
@@ -75,6 +76,11 @@ sub load_volume_tests {
     loadtest('containers/volumes', run_args => $run_args, name => 'volumes_' . $run_args->{runtime});
 }
 
+sub load_secret_test {
+    my ($run_args) = @_;
+    loadtest('containers/secret', run_args => $run_args, name => 'secret_' . $run_args->{runtime});
+}
+
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
@@ -116,6 +122,7 @@ sub load_host_tests_podman {
             loadtest 'containers/rootless_podman';
             loadtest 'containers/podman_remote' if is_sle '>15-sp2';
         }
+        load_secret_test($run_args);
         load_volume_tests($run_args);
     }
 }
@@ -146,11 +153,11 @@ sub load_host_tests_docker {
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
     }
-    load_volume_tests($run_args);
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
+    load_volume_tests($run_args);
 }
 
 sub load_host_tests_containerd_crictl {
