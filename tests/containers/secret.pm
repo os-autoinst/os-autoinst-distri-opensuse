@@ -24,6 +24,8 @@ sub run {
     # Skip this module on podman < 3.1.0
     return if (version->parse($podman_version) < version->parse('3.1.0'));
 
+    $self->containers_factory('podman');
+
     select_serial_terminal();
 
     # Create a secret1 from file and inspect it
