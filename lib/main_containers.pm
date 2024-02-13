@@ -21,10 +21,6 @@ use warnings;
 our @EXPORT = qw(
   is_container_test
   load_container_tests
-  load_host_tests_podman
-  load_image_test
-  load_3rd_party_image_test
-  load_container_engine_test
 );
 
 sub is_container_test {
