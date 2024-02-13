@@ -3,6 +3,10 @@ name:           skip_registration
 description:    >
   Skipping registration for SLE 15, as requires network connection.
   This is default behavior for SLE 12.
+vars:
+  ADDONS: 'all-packages'
+  SCC_ADDONS: 'base,serverapp,desktop'
+  SCC_REGISTER: 'none'
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
