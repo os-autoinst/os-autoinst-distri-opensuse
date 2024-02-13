@@ -525,16 +525,6 @@
         },
         "type": "bug"
     },
-    "bsc#1217872": {
-        "description": "sedispatch.*: Connection Error (Failed to connect to socket /run/dbus/system_bus_socket: Connection refused): AVC Will be dropped",
-
-        "products": {
-            "sle-micro": ["5.4" , "5.5", "6.0"],
-            "leap-micro": [ "5.5" ],
-            "alp": ["1.0"]
-        },
-        "type": "bug"
-    },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
