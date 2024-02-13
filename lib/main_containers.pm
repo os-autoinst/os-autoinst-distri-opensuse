@@ -93,33 +93,30 @@ sub load_container_engine_privileged_mode {
 
 sub load_host_tests_podman {
     my ($run_args) = @_;
-    # podman package is only available as of 15-SP1
-    unless (is_sle("<15-sp1")) {
-        load_container_engine_test($run_args);
-        # In Public Cloud we don't have internal resources
-        load_image_test($run_args) unless is_public_cloud || is_alp;
-        load_3rd_party_image_test($run_args);
-        load_container_engine_privileged_mode($run_args);
-        loadtest 'containers/podman_bci_systemd';
-        loadtest 'containers/podman_pods';
-        # Default for ALP is Netavark
-        loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
-        # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
-        loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
-        # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
-        loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
-        # Buildah is not available in SLE Micro, MicroOS and staging projects
-        loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
-        loadtest 'containers/podman_quadlet' if is_tumbleweed;
-        # https://github.com/containers/podman/issues/5732#issuecomment-610222293
-        # exclude rootless podman on public cloud because of cgroups2 special settings
-        unless (is_sle('<15-sp2') || is_openstack || is_public_cloud) {
-            loadtest 'containers/rootless_podman';
-            loadtest 'containers/podman_remote' if is_sle '>15-sp2';
-        }
-        load_secret_tests($run_args);
-        load_volume_tests($run_args);
+    load_container_engine_test($run_args);
+    # In Public Cloud we don't have internal resources
+    load_image_test($run_args) unless is_public_cloud || is_alp;
+    load_3rd_party_image_test($run_args);
+    load_container_engine_privileged_mode($run_args);
+    loadtest 'containers/podman_bci_systemd';
+    loadtest 'containers/podman_pods';
+    # Default for ALP is Netavark
+    loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
+    # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
+    loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
+    # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
+    loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
+    # Buildah is not available in SLE Micro, MicroOS and staging projects
+    loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+    loadtest 'containers/podman_quadlet' if is_tumbleweed;
+    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
+    # exclude rootless podman on public cloud because of cgroups2 special settings
+    unless (is_sle('<15-sp2') || is_openstack || is_public_cloud) {
+        loadtest 'containers/rootless_podman';
+        loadtest 'containers/podman_remote' if is_sle '>15-sp2';
     }
+    load_secret_tests($run_args);
+    load_volume_tests($run_args);
 }
 
 sub load_host_tests_docker {
