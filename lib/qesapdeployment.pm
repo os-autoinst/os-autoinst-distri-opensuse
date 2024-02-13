@@ -533,24 +533,32 @@ sub qesap_execute_conditional_retry {
 
     my @ret = qesap_execute(cmd => $args{cmd}, verbose => $args{verbose}, timeout => $args{timeout}, logname => $args{logname});
 
-    if ($ret[0]) {
-        if (qesap_file_find_string(file => $ret[1], search_string => $args{error_string})) {
-            record_info('DETECTED '. uc($args{cmd}) . ' ERROR', $args{error_string});
-            @ret = qesap_execute(cmd => $args{cmd},
-                logname => 'qesap_' . $args{cmd} . '_retry.log.txt',
-                timeout => $args{timeout});
-            if ($ret[0])
-            {
-                qesap_cluster_logs();
+    while ($args{retries} > 0) {
+        if ($ret[0]) {
+            if (qesap_file_find_string(file => $ret[1], search_string => $args{error_string})) {
+                record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_string});
+                @ret = qesap_execute(cmd => $args{cmd},
+                    logname => 'qesap_' . $args{cmd} . '_retry.log.txt',
+                    timeout => $args{timeout});
+                if ($ret[0] == 0) {
+                    record_info('QESAP_EXECUTE RETRY PASS');
+                    last;
+                }
+            } else {
                 die "'qesap.py $args{cmd}' return: $ret[0]";
             }
-            record_info('QESAP_EXECUTE RETRY PASS');
-            return @ret;
+        } else {
+            last;
         }
-        else {
-            die "'qesap.py $args{cmd}' return: $ret[0]";
-        }
+
+        $args{retries}--;
     }
+
+    if ($ret[0]) {
+        qesap_cluster_logs();
+        die "'qesap.py (after retry) $args{cmd}' return: $ret[0]";
+    }
+
     return @ret;
 }
 

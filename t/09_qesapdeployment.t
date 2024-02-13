@@ -372,6 +372,55 @@ subtest '[qesap_execute] logname' => sub {
     ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
 };
 
+subtest '[qesap_execute_conditional_retry] retry after fail with expected error message' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $cmd = 'TIFA';
+    my $error_string = 'AERIS';
+    my $retry_log = '_retry.log.txt';
+    my $expected_res = 0;
+    my $expected_log_name = "qesap_exec_$cmd.log.txt";
+    $qesap->redefine(record_info => sub {
+            push @calls, join(' ', @_);
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            $args{logname} //= "a log name";
+            push @calls, $args{logname};
+            if ($args{logname} =~ /\Q$retry_log\E/) {
+                return (0, 'log');
+            } else {
+                return (1, 'log');
+            }
+    });
+    $qesap->redefine(qesap_file_find_string => sub { return 1; });
+
+    my @res = qesap_execute_conditional_retry(cmd => $cmd, error_string => $error_string);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res[0] == 0, "Check if the rc of the result is 0";
+    ok(any { /$retry_log/ } @calls, "Check if retry log is mentioned in any call");
+    ok(any { /QESAP_EXECUTE RETRY PASS/ } @calls, "Check if QESAP_EXECUTE RETRY PASS is recorded");
+};
+
+subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $cmd = 'TIFA';
+    my $error_string = 'AERIS';
+    $qesap->redefine(record_info => sub {
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    $qesap->redefine(qesap_execute => sub {
+            return (1, 'log');
+    });
+    $qesap->redefine(qesap_file_find_string => sub { return 0; });
+
+    dies_ok { qesap_execute_conditional_retry(cmd => $cmd, error_string => $error_string) } 'Expected die if string is not found';
+};
+
 subtest '[qesap_file_find_string] success' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;

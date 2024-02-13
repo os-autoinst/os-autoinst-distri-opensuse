@@ -13,7 +13,7 @@ use qesapdeployment;
 sub run {
     my ($self) = @_;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    qesap_execute_conditional_retry(cmd => 'terraform', verbose => 1, timeout => 1800, retries => 1, search_string => 'An internal execution error occurred. Please retry later');
+    my @ret = qesap_execute_conditional_retry(cmd => 'terraform', verbose => 1, timeout => 1800, retries => 1, error_string => 'An internal execution error occurred. Please retry later');
 
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);
