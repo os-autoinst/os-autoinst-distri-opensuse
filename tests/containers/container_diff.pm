@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: container-diff
-# Summary: Print and save diffs between two cotaniners using container-diff tool
+# Summary: Print and save diffs between two containers using container-diff tool
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
