@@ -19,8 +19,6 @@ sub run {
     my ($self, $args) = @_;
     my $runtime = $args->{runtime};
 
-    $self->containers_factory($runtime);
-
     select_serial_terminal();
 
     my $docker_version = "";
