@@ -141,15 +141,15 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
         loadtest 'containers/docker_compose' unless (is_public_cloud || is_sle('=12-sp3'));
     }
-    # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
-        loadtest 'containers/validate_btrfs';
-    }
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
     load_volume_tests($run_args);
+    # Expected to work anywhere except of real HW backends, PC and Micro
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
+        loadtest 'containers/validate_btrfs';
+    }
 }
 
 sub load_host_tests_containerd_crictl {
