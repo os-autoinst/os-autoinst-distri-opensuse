@@ -17,6 +17,11 @@ use utils;
 sub run {
     select_console 'root-console';
 
+    if (is_aarch64 && get_var('BACKEND') eq 'qemu') {
+        record_info 'Skip', 'No nested virt available on aarch64 yet';
+        return;
+    }
+
     if (is_x86_64) {
         enter_cmd "qemu-system-x86_64 -nographic -enable-kvm";
         assert_screen 'qemu-no-bootable-device', 60;
