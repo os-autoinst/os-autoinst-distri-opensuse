@@ -24,10 +24,11 @@ jobs:
       - name: Determine the latest Tumbleweed build on o3
         id: latest_build
         run: >-
-          echo build=$(curl -s
-          ${OPENQA_HOST:-https://openqa.opensuse.org}/group_overview/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}.json
-          | jq -r '([ .build_results[] | select(.tag.description=="published") | select(.version=="Tumbleweed") | .build ] | sort | reverse)[]'
-          | head -n1) >> "$GITHUB_OUTPUT"
+          echo build=$(openqa-cli
+          --host ${OPENQA_HOST:-https://openqa.opensuse.org}
+          job_groups/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}/build_results limit_builds=1 only_tagged=1
+          | jq -r '[ .build_results[] | select(.tag.description=="published") | .build ][]'
+          ) >> "$GITHUB_OUTPUT"
       - name: Trigger and monitor a basic openQA test on o3
         run: >-
           openqa-cli schedule
