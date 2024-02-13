@@ -419,10 +419,11 @@ sub create_image_version {
     my $version = generate_img_version();
     my $os_vhd_uri = $self->get_blob_uri($file);
     my $tags = generate_tags();
+    my $target_regions = ($self->provider_client->region !~ $self->storage_region) ? $self->provider_client->region . ' ' . $self->storage_region : $self->provider_client->region;
     # Note: Repetitive calls do not fail
     assert_script_run("az sig image-version create --debug --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-          "--os-vhd-uri $os_vhd_uri --target-regions '" . $self->provider_client->region . "' --location " . $self->storage_region, timeout => 60 * 30);
+          "--os-vhd-uri $os_vhd_uri --target-regions $target_regions --location " . $self->storage_region, timeout => 60 * 30);
 }
 
 =head2 upload_img
