@@ -20,6 +20,8 @@ sub run {
     my ($self, $args) = @_;
     my $output = '';
 
+    $self->containers_factory('podman');
+
     my $podman_version = get_podman_version();
     # Skip this module on podman < 3.1.0
     return if (version->parse($podman_version) < version->parse('3.1.0'));
@@ -74,6 +76,8 @@ sub run {
     assert_script_run("podman secret rm secret1 secret2");
     die("Secrets have not been deleted")
       if (script_output("podman secret ls --quiet"));
+
+    $self->cleanup_system_host();
 }
 
 1;
