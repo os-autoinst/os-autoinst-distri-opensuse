@@ -20,6 +20,10 @@ sub run {
     my ($self, $args) = @_;
     my $output = '';
 
+    my $podman_version = get_podman_version();
+    # Skip this module on podman < 3.1.0
+    return if (version->parse($podman_version) < version->parse('3.1.0'));
+
     select_serial_terminal();
 
     # Create a secret1 from file and inspect it
@@ -37,7 +41,6 @@ sub run {
 
     # "podman secret exists" was added to podman 4.5.0 according to
     # https://github.com/containers/podman/blob/main/RELEASE_NOTES.md#450
-    my $podman_version = get_podman_version();
     if (version->parse($podman_version) >= version->parse('4.5.0')) {
         # Check if secret exists
         record_info("secret exists", "In Podman, check that each created secret exists");
