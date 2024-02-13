@@ -47,6 +47,8 @@ sub run {
 
     # Stop the firewall if it was started by this test module
     systemctl('stop ' . $self->firewall()) if $stop_firewall;
+
+    $podman->cleanup_system_host();
 }
 
 sub post_fail_hook {
