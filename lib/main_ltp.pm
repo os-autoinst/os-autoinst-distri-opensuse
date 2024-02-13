@@ -48,7 +48,7 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel/) {
+        if ((get_var('FLAVOR', '') =~ /Incidents-Kernel/) || (get_var('FLAVOR') == `Online`) && (get_var('AZURE') || get_var('KERNEL_BASE'))) {
             loadtest_kernel 'update_kernel';
         }
         loadtest_kernel 'install_ltp';

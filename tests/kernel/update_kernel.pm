@@ -419,7 +419,7 @@ sub run {
     my $incident_id = undef;
     my $kernel_package = get_kernel_flavor;
 
-    unless ($repo) {
+    unless (($repo) || get_var('FLAVOR') =='Online') {
         $repo = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
