@@ -85,6 +85,9 @@ main(){
   OS_VERSION="$1"
   echo "OS_VERSION: $OS_VERSION"
 
+  # set variable to fix https://progress.opensuse.org/issues/155083
+  export OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
+
   # Install dependencies to apply source patches and run tests
   zypper -n in quilt rpm-build  libopenssl1_1-hmac
 
