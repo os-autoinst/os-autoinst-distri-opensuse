@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#SAPINIT_RE-SYSTEMD_RE">SAPINIT_RE &amp; SYSTEMD_RE</a></li>
       <li><a href="#SYSTEMCTL_UNITS_RE">SYSTEMCTL_UNITS_RE</a></li>
+      <li><a href="#ASE_RESPONSE_FILE">ASE_RESPONSE_FILE</a></li>
       <li><a href="#ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</a></li>
       <li><a href="#fix_path">fix_path</a></li>
       <li><a href="#set_ps_cmd">set_ps_cmd</a></li>
@@ -60,6 +61,8 @@
       <li><a href="#sapcontrol_process_check">sapcontrol_process_check</a></li>
       <li><a href="#get_remote_instance_number">get_remote_instance_number</a></li>
       <li><a href="#get_instance_profile_path">get_instance_profile_path</a></li>
+      <li><a href="#load_ase_env">load_ase_env</a></li>
+      <li><a href="#upload_ase_logs">upload_ase_logs</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap.pm</h1>
@@ -85,6 +88,12 @@ $self-&gt;SYSTEMD_RE(qr/some regexp/);</code></pre>
 $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p>Set or get a regular expression to test in the output of <code>systemctl --list-unit-files</code> whether the SAP workload was started via systemd units.</p>
+
+<h2 id="ASE_RESPONSE_FILE">ASE_RESPONSE_FILE</h2>
+
+<pre><code>$self-&gt;ASE_RESPONSE_FILE($filename);</code></pre>
+
+<p>Let the class methods know the name of the ASE response file currently in use. It is set to undef by default. Test modules testing for SAP ASE should set this property before anything else.</p>
 
 <h2 id="ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</h2>
 
@@ -297,9 +306,15 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
    swpm_sar_filename=&gt;$swpm_sar_filename,
    target_path=&gt;$target_path);</code></pre>
 
-<p><b>sapcar_bin_path</b> Filename with full path to SAPCAR binary <b>sar_archives_dir</b> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...) <b>swpm_sar_filename</b> SWPM SAR archive filename <b>target_path</b> Target path for archives to be unpacked into</p>
-
 <p>Unpacks and prepares swpm package from specified source dir into target directory using SAPCAR tool. After extraction it checks for &#39;sapinst&#39; executable being present in target path. Croaks if executable is missing.</p>
+
+<p><b>sapcar_bin_path</b> Filename with full path to SAPCAR binary</p>
+
+<p><b>sar_archives_dir</b> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...)</p>
+
+<p><b>swpm_sar_filename</b> SWPM SAR archive filename</p>
+
+<p><b>target_path</b> Target path for archives to be unpacked into</p>
 
 <h2 id="prepare_sapinst_profile">prepare_sapinst_profile</h2>
 
@@ -310,13 +325,27 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p>Copies sapinst profile template from NFS to target dir and fills in required variables.</p>
 
-<p><b>profile_target_file</b> Full filename and path for sapinst install profile to be created <b>profile_template_file</b> Template file location from which will the profile be sceated <b>sar_location_directory</b> Location of SAR files - this is filled into template</p>
+<p><b>profile_target_file</b> Full filename and path for sapinst install profile to be created</p>
+
+<p><b>profile_template_file</b> Template file location from which will the profile be sceated</p>
+
+<p><b>sar_location_directory</b> Location of SAR files - this is filled into template</p>
 
 <h2 id="prepare_sap_instances_data">prepare_sap_instances_data</h2>
 
 <pre><code>$self-&gt;prepare_sap_instances_data();</code></pre>
 
-<p>Prepares data for installation of all SAP components using openqa parameter &quot;SAP_INSTANCES&quot;. parameter example: SAP_INSTANCES = &quot;ASCS,ERS,PAS,AAS&quot;. <b>HDB</b> = Hana database export - netweaver component, not database <b>ASCS</b> = Central services <b>ERS</b> = Enqueue replication <b>PAS</b> = Primary application server <b>AAS</b> = Additional application server</p>
+<p>Prepares data for installation of all SAP components using openqa parameter &quot;SAP_INSTANCES&quot;. parameter example: SAP_INSTANCES = &quot;ASCS,ERS,PAS,AAS&quot;.</p>
+
+<p><b>HDB</b> = Hana database export - netweaver component, not database</p>
+
+<p><b>ASCS</b> = Central services</p>
+
+<p><b>ERS</b> = Enqueue replication</p>
+
+<p><b>PAS</b> = Primary application server</p>
+
+<p><b>AAS</b> = Additional application server</p>
 
 <h2 id="get_nw_instance_name">get_nw_instance_name</h2>
 
@@ -324,7 +353,9 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p>Returns standard sap instance directory name constructed from instance id and instance type.</p>
 
-<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS) <b>instance_id</b> Instance ID - two digit number</p>
+<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS)</p>
+
+<p><b>instance_id</b> Instance ID - two digit number</p>
 
 <h2 id="is_instance_type_supported">is_instance_type_supported</h2>
 
@@ -337,15 +368,20 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <h2 id="share_hosts_entry">share_hosts_entry</h2>
 
 <pre><code>$self-&gt;share_hosts_entry(virtual_hostname=&gt;$virtual_hostname,
-   virtual_ip=&gt;$virtual_ip,
-   shared_directory_root=&gt;shared_directory_root);
+                         virtual_ip=&gt;$virtual_ip,
+                         shared_directory_root=&gt;shared_directory_root);</code></pre>
 
-Creates file with virtual IP and hostname entry for /etc/hosts file on mounted shared device (Default: /sapmnt).
-This is to help creating /etc/hosts file which would include entries for all nodes.
-File name: &lt;INSTANCE_TYPE&gt;
-File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
+<p>Creates file with virtual IP and hostname entry for <code>/etc/hosts</code> file on mounted shared device (Default: <code>/sapmnt</code>). This is to help creating <code>/etc/hosts</code> file which would include entries for all nodes.</p>
 
-<p><b>virtual_hostname</b> Virtual hostname (alias) which is tied to instance and will be moved with HA IP addr resource <b>virtual_ip</b> Virtual IP addr tied to an instance and HA resource <b>shared_directory_root</b> Shared directory available for all instances. Separate directory &#39;hosts&#39; will be created</p>
+<p>File name: &lt;INSTANCE_TYPE&gt;</p>
+
+<p>File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</p>
+
+<p><b>virtual_hostname</b> Virtual hostname (alias) which is tied to instance and will be moved with HA IP addr resource</p>
+
+<p><b>virtual_ip</b> Virtual IP addr tied to an instance and HA resource</p>
+
+<p><b>shared_directory_root</b> Shared directory available for all instances. Separate directory &#39;hosts&#39; will be created</p>
 
 <h2 id="add_hosts_file_entries">add_hosts_file_entries</h2>
 
@@ -367,7 +403,9 @@ File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
 
 <p>Prints output for standard set of commands to show info about system in various stages of the test for troubleshooting. It is possible to activate or deactivate various output sections by named args:</p>
 
-<p><b>cluster</b> - Shows cluster related outputs <b>netweaver</b> - Shows netweaver related outputs</p>
+<p><b>cluster</b> - Shows cluster related outputs</p>
+
+<p><b>netweaver</b> - Shows netweaver related outputs</p>
 
 <h2 id="sapcontrol">sapcontrol</h2>
 
@@ -378,9 +416,25 @@ File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
 
 <p>Executes sapcontrol webmethod for instance specified in arguments and returns exit code received from command. Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.</p>
 
-<p>Sapcontrol return codes: RC 0 = webmethod call was successfull RC 1 = webmethod call failed RC 2 = last webmethod call in progress (processes are starting/stopping) RC 3 = all processes GREEN RC 4 = all processes GREY (stopped)</p>
+<p>Sapcontrol return codes:</p>
 
-<p><b>instance_id</b> 2 digit instance number <b>webmethod</b> webmethod name to be executed (Ex: Stop, GetProcessList, ...) <b>additional_args</b> additional arguments to be appended at the end of command <b>return_output</b> returns output instead of RC <b>remote_hostname</b> hostname of the target instance for remote execution. Local execution does not need this. <b>sidadm_password</b> Password for sidadm user. Only required for remote execution.</p>
+<pre><code>RC 0 = webmethod call was successfull
+RC 1 = webmethod call failed
+RC 2 = last webmethod call in progress (processes are starting/stopping)
+RC 3 = all processes GREEN
+RC 4 = all processes GREY (stopped)</code></pre>
+
+<p><b>instance_id</b> 2 digit instance number</p>
+
+<p><b>webmethod</b> webmethod name to be executed (Ex: Stop, GetProcessList, ...)</p>
+
+<p><b>additional_args</b> additional arguments to be appended at the end of command</p>
+
+<p><b>return_output</b> returns output instead of RC</p>
+
+<p><b>remote_hostname</b> hostname of the target instance for remote execution. Local execution does not need this.</p>
+
+<p><b>sidadm_password</b> Password for sidadm user. Only required for remote execution.</p>
 
 <h2 id="sapcontrol_process_check">sapcontrol_process_check</h2>
 
@@ -390,9 +444,27 @@ File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
    timeout=&gt;$timeout,
    wait_for_state=&gt;$wait_for_state]);</code></pre>
 
-<p>Runs &quot;sapcontrol -nr &lt;INST_NO&gt; -function GetProcessList&quot; via SIDadm and compares RC against expected state. Croaks if state is not correct. RC 0 = webmethod call was successfull RC 1 = webmethod call failed (This includes NIECONN_REFUSED status) RC 2 = last webmethod call in progress (processes are starting/stopping) RC 3 = all processes GREEN RC 4 = all processes GREY (stopped)</p>
+<p>Runs &quot;sapcontrol -nr &lt;INST_NO&gt; -function GetProcessList&quot; via SIDadm and compares RC against expected state. Croaks if state is not correct.</p>
 
-<p><b>expected_state</b> State that is expected (failed, started, stopped) <b>instance_id</b> Instance number - two digit number <b>loop_sleep</b> sleep time between checks - only used if &#39;wait_for_state&#39; is true <b>timeout</b> timeout for waiting for target state, after which function croaks <b>wait_for_state</b> If set to true, function will wait for expected state until success or timeout</p>
+<p>Expected return codes are:</p>
+
+<pre><code>RC 0 = webmethod call was successfull
+RC 1 = webmethod call failed (This includes NIECONN_REFUSED status)
+RC 2 = last webmethod call in progress (processes are starting/stopping)
+RC 3 = all processes GREEN
+RC 4 = all processes GREY (stopped)</code></pre>
+
+<p>Method arguments:</p>
+
+<p><b>expected_state</b> State that is expected (failed, started, stopped)</p>
+
+<p><b>instance_id</b> Instance number - two digit number</p>
+
+<p><b>loop_sleep</b> sleep time between checks - only used if &#39;wait_for_state&#39; is true</p>
+
+<p><b>timeout</b> timeout for waiting for target state, after which function croaks</p>
+
+<p><b>wait_for_state</b> If set to true, function will wait for expected state until success or timeout</p>
 
 <h2 id="get_remote_instance_number">get_remote_instance_number</h2>
 
@@ -408,7 +480,21 @@ File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
 
 <p>Returns full instance profile path for specified instance type</p>
 
-<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS) <b>instance_id</b> Instance number - two digit number</p>
+<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS)</p>
+
+<p><b>instance_id</b> Instance number - two digit number</p>
+
+<h2 id="load_ase_env">load_ase_env</h2>
+
+<pre><code>$self-&gt;load_ase_env</code></pre>
+
+<p>Loads environment variables from ASE installation into the current shell session.</p>
+
+<h2 id="upload_ase_logs">upload_ase_logs</h2>
+
+<pre><code>$self-&gt;upload_ase_logs</code></pre>
+
+<p>Save and upload to openQA the SAP ASE installation logs. These are typically located in <code>/opt/sap/log</code> and <code>/opt/sap/$SYBASE_ASE/install</code> but depend on the response file used during installation.</p>
 
 
 </body>
