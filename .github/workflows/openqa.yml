@@ -24,7 +24,7 @@ jobs:
       - name: Determine the latest Tumbleweed build on o3
         id: latest_build
         run: >-
-          echo build=$(openqa-cli
+          echo build=$(openqa-cli api
           --host ${OPENQA_HOST:-https://openqa.opensuse.org}
           job_groups/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}/build_results limit_builds=1 only_tagged=1
           | jq -r '[ .build_results[] | select(.tag.description=="published") | .build ][]'
