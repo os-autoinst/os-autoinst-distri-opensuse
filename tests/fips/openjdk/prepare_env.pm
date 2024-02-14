@@ -12,7 +12,6 @@ use warnings;
 use testapi;
 use utils;
 use openjdktest;
-use version_utils qw(is_sle is_leap is_tumbleweed);
 
 sub run {
     my $self = @_;
@@ -30,8 +29,10 @@ sub run {
     select_console "root-console";
     zypper_call("in mozilla-nss-tools git-core");
 
-    assert_script_run("mkdir /etc/pki/nssdb");
-    script_run_interactive("certutil -d /etc/pki/nssdb -N", $interactive_str, 30);
+    if (script_run("test -d /etc/pki/nssdb") != 0) {
+        assert_script_run("mkdir /etc/pki/nssdb");
+        script_run_interactive("certutil -d /etc/pki/nssdb -N", $interactive_str, 30);
+    }
 }
 
 sub test_flags {
