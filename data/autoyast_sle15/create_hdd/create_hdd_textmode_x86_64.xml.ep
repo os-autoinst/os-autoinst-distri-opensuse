@@ -14,7 +14,12 @@
       <update_nvram>true</update_nvram>
       <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
     </global>
+    % unless ( $check_var->('UEFI', '1') ) {
     <loader_type>grub2</loader_type>
+    % }
+    % if ( $check_var->('UEFI', '1') ) {
+    <loader_type>grub2-efi</loader_type>
+    % }
   </bootloader>
   <firewall t="map">
     <default_zone>public</default_zone>
@@ -154,6 +159,20 @@
       <disklabel>gpt</disklabel>
       <enable_snapshots t="boolean">true</enable_snapshots>
       <partitions t="list">
+        % if ( $check_var->('UEFI', '1') ) {
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">vfat</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">259</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>300M</size>
+        </partition>
+        % }
         <partition t="map">
           <create t="boolean">true</create>
           <create_subvolumes t="boolean">true</create_subvolumes>
@@ -288,6 +307,11 @@
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
       <package>grub2</package>
+      % if ( $check_var->('UEFI', '1') ) {
+      <package>shim</package>
+      <package>mokutil</package>
+      <package>grub2-x86_64-efi</package>
+      % }
       <package>kexec-tools</package>
       <package>glibc</package>
       <package>firewalld</package>
