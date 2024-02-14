@@ -529,8 +529,8 @@ sub unique_macaddr {
     $prefix =~ s/:/_/;
     $prefix = hex($prefix);
 
-    $self->{unique_macaddr_cnt} = $self->{unique_macaddr_cnt} ? 0 : $self->{unique_macaddr_cnt} + 1;
-    $prefix += $self->{unique_macaddr_cnt};
+    $self->{unique_macaddr_cnt} //= 0;
+    $prefix += $self->{unique_macaddr_cnt}++;
 
     my $w_id = get_required_var('WORKER_ID');
     die("WORKER_ID too big!") if ($w_id > 0xffffffff);
