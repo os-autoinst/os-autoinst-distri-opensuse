@@ -59,6 +59,7 @@ sub run {
     send_key "ret";
     wait_still_screen(2, 2);
     assert_and_click("evolution_read_test_message");
+
     # Exit
     send_key "ctrl-w";
     send_key "ctrl-q";
