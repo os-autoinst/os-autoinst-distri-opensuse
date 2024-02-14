@@ -35,6 +35,7 @@ our @EXPORT = qw(
   SAPINIT_RE
   SYSTEMD_RE
   SYSTEMCTL_UNITS_RE
+  ASE_RESPONSE_FILE
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -69,6 +70,8 @@ our @EXPORT = qw(
   sapcontrol
   get_instance_profile_path
   get_remote_instance_number
+  load_ase_env
+  upload_ase_logs
 );
 
 =head1 SYNOPSIS
@@ -116,6 +119,17 @@ whether the SAP workload was started via systemd units.
 =cut
 
 has SYSTEMCTL_UNITS_RE => undef;
+
+=head2 ASE_RESPONSE_FILE
+
+    $self->ASE_RESPONSE_FILE($filename);
+
+Let the class methods know the name of the ASE response file currently in use. It is set to
+undef by default. Test modules testing for SAP ASE should set this property before anything else.
+
+=cut
+
+has ASE_RESPONSE_FILE => undef;
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -296,13 +310,14 @@ Croaks on failure.
 
 sub prepare_profile {
     my ($self, $profile) = @_;
-    return unless ($profile eq 'HANA' or $profile eq 'NETWEAVER');
+    my @valid_profiles = qw(HANA NETWEAVER SAP-ASE);
+    return unless (grep /^$profile$/, @valid_profiles);
 
     # Will prepare system with saptune only if it's available.
     my $has_saptune = $self->is_saptune_installed();
 
     if ($has_saptune) {
-        assert_script_run "saptune daemon start";
+        assert_script_run 'saptune service takeover';
         assert_script_run "saptune solution apply $profile";
     }
     elsif (is_sle('15+')) {
@@ -340,7 +355,7 @@ sub prepare_profile {
         $prev_console = undef;
 
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
-        # reset and appear in SUD, so need to select 'root-console' again
+        # reset and appear in SUT, so need to select 'root-console' again
         assert_screen(
             [
                 qw(root-console displaymanager displaymanager-password-prompt generic-desktop
@@ -350,28 +365,28 @@ sub prepare_profile {
     }
     else {
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical
-        # console to reset and appear in SUD, so need to select 'root-console' again
+        # console to reset and appear in SUT, so need to select 'root-console' again
         # 'root-console' can be re-selected safely even if DESKTOP=textmode
         select_serial_terminal;
     }
 
     if ($has_saptune) {
-        assert_script_run "saptune daemon start";
+        assert_script_run 'saptune service takeover';
         my $ret = script_run("saptune solution verify $profile", die_on_timeout => 0);
         if (!defined $ret) {
-            # Command timed out. 'saptune daemon start' could have caused the SUT to
+            # Command timed out. 'saptune service takeover' could have caused the SUT to
             # move out of root-console, so select root-console and try again
             select_serial_terminal;
             $ret = script_run "saptune solution verify $profile";
         }
         record_soft_failure("poo#57464: 'saptune solution verify' returned warnings or errors! Please check!") if ($ret && !is_qemu());
 
-        my $output = script_output "saptune daemon status", proceed_on_failure => 1;
+        my $output = script_output 'saptune service status', proceed_on_failure => 1;
         if (!defined $output) {
             # Command timed out or failed. 'saptune solution verify' could have caused
             # the SUT to move out of root-console, so select root-console and try again
             select_serial_terminal;
-            $output = script_output "saptune daemon status";
+            $output = script_output 'saptune service status';
         }
         record_info("saptune status", $output);
     }
@@ -995,13 +1010,16 @@ sub startup_type {
     swpm_sar_filename=>$swpm_sar_filename,
     target_path=>$target_path);
 
-B<sapcar_bin_path> Filename with full path to SAPCAR binary
-B<sar_archives_dir> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...)
-B<swpm_sar_filename> SWPM SAR archive filename
-B<target_path> Target path for archives to be unpacked into
-
 Unpacks and prepares swpm package from specified source dir into target directory using SAPCAR tool.
 After extraction it checks for 'sapinst' executable being present in target path. Croaks if executable is missing.
+
+B<sapcar_bin_path> Filename with full path to SAPCAR binary
+
+B<sar_archives_dir> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...)
+
+B<swpm_sar_filename> SWPM SAR archive filename
+
+B<target_path> Target path for archives to be unpacked into
 
 =cut
 
@@ -1038,7 +1056,9 @@ sub prepare_swpm {
 Copies sapinst profile template from NFS to target dir and fills in required variables.
 
 B<profile_target_file> Full filename and path for sapinst install profile to be created
+
 B<profile_template_file> Template file location from which will the profile be sceated
+
 B<sar_location_directory> Location of SAR files -  this is filled into template
 
 =cut
@@ -1072,10 +1092,15 @@ sub prepare_sapinst_profile {
 
 Prepares data for installation of all SAP components using openqa parameter "SAP_INSTANCES".
 parameter example: SAP_INSTANCES = "ASCS,ERS,PAS,AAS".
+
 B<HDB> = Hana database export - netweaver component, not database
+
 B<ASCS> = Central services
+
 B<ERS> = Enqueue replication
+
 B<PAS> = Primary application server
+
 B<AAS> = Additional application server
 
 =cut
@@ -1131,6 +1156,7 @@ sub netweaver_installation_data {
 Returns standard sap instance directory name constructed from instance id and instance type.
 
 B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
+
 B<instance_id> Instance ID - two digit number
 
 =cut
@@ -1174,17 +1200,22 @@ sub is_instance_type_supported {
 
 =head2 share_hosts_entry
 
- $self->share_hosts_entry(virtual_hostname=>$virtual_hostname,
-    virtual_ip=>$virtual_ip,
-    shared_directory_root=>shared_directory_root);
+  $self->share_hosts_entry(virtual_hostname=>$virtual_hostname,
+                           virtual_ip=>$virtual_ip,
+                           shared_directory_root=>shared_directory_root);
 
- Creates file with virtual IP and hostname entry for /etc/hosts file on mounted shared device (Default: /sapmnt).
- This is to help creating /etc/hosts file which would include entries for all nodes.
- File name: <INSTANCE_TYPE>
- File content: <virtual IP> <virtual_hostname>
+Creates file with virtual IP and hostname entry for C</etc/hosts> file on mounted shared
+device (Default: C</sapmnt>). This is to help creating C</etc/hosts> file which would include
+entries for all nodes.
+
+File name: <INSTANCE_TYPE>
+
+File content: <virtual IP> <virtual_hostname>
 
 B<virtual_hostname> Virtual hostname (alias) which is tied to instance and will be moved with HA IP addr resource
+
 B<virtual_ip> Virtual IP addr tied to an instance and HA resource
+
 B<shared_directory_root> Shared directory available for all instances. Separate directory 'hosts' will be created
 
 =cut
@@ -1248,6 +1279,7 @@ Prints output for standard set of commands to show info about system in various 
 It is possible to activate or deactivate various output sections by named args:
 
 B<cluster> - Shows cluster related outputs
+
 B<netweaver> - Shows netweaver related outputs
 
 =cut
@@ -1288,17 +1320,23 @@ Executes sapcontrol webmethod for instance specified in arguments and returns ex
 Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.
 
 Sapcontrol return codes:
-RC 0 = webmethod call was successfull
-RC 1 = webmethod call failed
-RC 2 = last webmethod call in progress (processes are starting/stopping)
-RC 3 = all processes GREEN
-RC 4 = all processes GREY (stopped)
+
+    RC 0 = webmethod call was successfull
+    RC 1 = webmethod call failed
+    RC 2 = last webmethod call in progress (processes are starting/stopping)
+    RC 3 = all processes GREEN
+    RC 4 = all processes GREY (stopped)
 
 B<instance_id> 2 digit instance number
+
 B<webmethod> webmethod name to be executed (Ex: Stop, GetProcessList, ...)
+
 B<additional_args> additional arguments to be appended at the end of command
+
 B<return_output> returns output instead of RC
+
 B<remote_hostname> hostname of the target instance for remote execution. Local execution does not need this.
+
 B<sidadm_password> Password for sidadm user. Only required for remote execution.
 
 =cut
@@ -1347,16 +1385,25 @@ sub sapcontrol {
 
 Runs "sapcontrol -nr <INST_NO> -function GetProcessList" via SIDadm and compares RC against expected state.
 Croaks if state is not correct.
-RC 0 = webmethod call was successfull
-RC 1 = webmethod call failed (This includes NIECONN_REFUSED status)
-RC 2 = last webmethod call in progress (processes are starting/stopping)
-RC 3 = all processes GREEN
-RC 4 = all processes GREY (stopped)
+
+Expected return codes are:
+
+    RC 0 = webmethod call was successfull
+    RC 1 = webmethod call failed (This includes NIECONN_REFUSED status)
+    RC 2 = last webmethod call in progress (processes are starting/stopping)
+    RC 3 = all processes GREEN
+    RC 4 = all processes GREY (stopped)
+
+Method arguments:
 
 B<expected_state> State that is expected (failed, started, stopped)
+
 B<instance_id> Instance number - two digit number
+
 B<loop_sleep> sleep time between checks - only used if 'wait_for_state' is true
+
 B<timeout> timeout for waiting for target state, after which function croaks
+
 B<wait_for_state> If set to true, function will wait for expected state until success or timeout
 
 =cut
@@ -1439,6 +1486,7 @@ sub get_remote_instance_number () {
 Returns full instance profile path for specified instance type
 
 B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
+
 B<instance_id> Instance number - two digit number
 
 =cut
@@ -1460,6 +1508,45 @@ sub get_instance_profile_path () {
     croak "Profile '$profile_path' does not exist" if script_run("test -e $profile_path");
 
     return ($profile_path);
+}
+
+=head2 load_ase_env
+
+  $self->load_ase_env
+
+Loads environment variables from ASE installation into the current shell session.
+
+=cut
+
+sub load_ase_env {
+    my ($self) = @_;
+    return unless $self->ASE_RESPONSE_FILE;
+
+    # SAP ASE installation leaves a SYBASE.sh file with environment variables definitions in
+    # the directory where it was installed. The command below will extract the value of the
+    # install directory from the response file and prepend it to SYBASE.sh to load those
+    # variables
+    # Command will look like this:
+    # source $(awk -F= '/^USER_INSTALL_DIR/ {print $2}' $HOME/ASE_RESPONSE_FILE.txt)/SYBASE.sh
+    assert_script_run q|source $(awk -F= '/^USER_INSTALL_DIR/ {print $2}' $HOME/| . $self->ASE_RESPONSE_FILE . ')/SYBASE.sh';
+    assert_script_run 'export LANG=' . get_var('INSTLANG', 'en_US.UTF-8');
+}
+
+=head2 upload_ase_logs
+
+  $self->upload_ase_logs
+
+Save and upload to openQA the SAP ASE installation logs. These are typically located in
+C</opt/sap/log> and C</opt/sap/$SYBASE_ASE/install> but depend on the response file used
+during installation.
+
+=cut
+
+sub upload_ase_logs {
+    my ($self) = @_;
+    return unless $self->ASE_RESPONSE_FILE;
+    $self->load_ase_env;
+    save_and_upload_log('tar -zcf ase_logs.tar.gz $SYBASE/log $SYBASE/$SYBASE_ASE/install/*.log', 'ase_logs.tar.gz');
 }
 
 sub post_run_hook {
@@ -1487,6 +1574,9 @@ sub post_fail_hook {
 
     # NW installation logs, if needed
     $self->upload_nw_install_log if get_var('NW');
+
+    # ASE installation logs, if needed
+    $self->upload_ase_logs;
 
     # HA cluster logs, if needed
     ha_export_logs if get_var('HA_CLUSTER');
