@@ -19,6 +19,8 @@ sub run {
     my ($self, $args) = @_;
     my $runtime = $args->{runtime};
 
+    my $engine = $self->containers_factory($runtime);
+
     select_serial_terminal();
 
     my $docker_version = "";
@@ -144,6 +146,8 @@ sub run {
     assert_script_run("$runtime volume prune $all -f | grep -Fx $test_volume");
     assert_script_run("! $runtime volume inspect $test_volume");
     assert_script_run("[ \$($runtime volume ls --quiet --filter dangling=true | wc -l\) -eq 0 ]");
+
+    $engine->cleanup_system_host();
 }
 
 1;

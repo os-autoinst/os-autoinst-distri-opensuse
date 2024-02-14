@@ -70,6 +70,8 @@ sub run {
         systemctl('stop ' . $self->firewall());
         systemctl('restart docker');
     }
+
+    $engine->cleanup_system_host();
 }
 
 sub post_fail_hook {
