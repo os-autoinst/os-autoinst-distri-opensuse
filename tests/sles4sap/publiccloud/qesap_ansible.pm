@@ -14,7 +14,7 @@ use publiccloud::utils;
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
-use version_utils 'is_sle';
+use version_utils qw(is_sle check_version);
 
 sub test_flags {
     return {fatal => 1, publiccloud_multi_module => 1};
@@ -78,6 +78,16 @@ sub run {
 
         # Skip instances without HANA db or setup without cluster
         next if ($instance_id !~ m/vmhana/) or !$ha_enabled;
+
+        # Example usage of pacemaker_version
+        my $pacemaker_version = $self->pacemaker_version();
+        record_info('PACEMAKER VERSION', $pacemaker_version);
+        if (check_version('>=2.1.7', $pacemaker_version)) {
+            record_info("PACEMAKER >= 2.1.7");
+        }
+        else {
+            record_info("PACEMAKER < 2.1.7");
+        }
         $self->wait_for_sync();
 
         # Define initial state for both sites
