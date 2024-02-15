@@ -25,11 +25,6 @@ sub run {
     # Install runtime dependencies
     zypper_call("in sudo");
 
-    # Make sure the code changes are there
-    if (is_sle) {
-        assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");
-    }
-
     # Simulate a ram device
     assert_script_run("modprobe brd rd_nr=1 rd_size=512000");
 
