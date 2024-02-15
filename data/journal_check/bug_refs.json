@@ -345,6 +345,13 @@
         },
         "type": "ignore"
     },
+    "bsc#1219229": {
+        "description": "chronyd.*Could not add source.*",
+        "products": {
+            "sle-micro": [ "6.0" ]
+        },
+        "type": "ignore"
+    },
     "ssh-connection-close-by-remote": {
         "description": "error: kex_exchange_identification: Connection closed by remote host",
         "products": {
