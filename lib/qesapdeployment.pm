@@ -63,6 +63,7 @@ our @EXPORT = qw(
   qesap_get_ansible_roles_dir
   qesap_prepare_env
   qesap_execute
+  qesap_execute_conditional_retry
   qesap_ansible_cmd
   qesap_ansible_script_output_file
   qesap_ansible_script_output
@@ -484,6 +485,81 @@ sub qesap_execute {
     qesap_upload_logs();
     my @results = ($exec_rc, $exec_log);
     return @results;
+}
+
+=head3 qesap_execute_conditional_retry
+
+    qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
+    cmd_options - allows to append additional qesap.py commands arguments
+    like "qesap.py terraform -d"
+        Example:
+        qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
+        qesap.py terraform -d
+
+    Execute qesap glue script commands. Check project documentation for available options:
+    https://github.com/SUSE/qe-sap-deployment
+    Test only returns execution result, failure has to be handled by calling method.
+
+=over 7
+
+=item B<CMD> - qesap.py subcommand to run
+
+=item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
+
+=item B<VERBOSE> - activate verbosity in qesap.py
+
+=item B<TIMEOUT> - max expected execution time
+
+=item B<LOGNAME> - filename of the log file. This argument is optional,
+                   if not specified the log filename is internally calculated
+                   using content from CMD and CMD_OPTIONS.
+
+=item B<RETRIES> - number of retries in case of expected error
+
+=item B<ERROR_STRING> - error string to look for
+
+=back
+=cut
+
+sub qesap_execute_conditional_retry {
+    my (%args) = @_;
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory error string' unless $args{error_string};
+    my $verbose = $args{verbose} ? "--verbose" : "";
+    $args{cmd_options} ||= '';
+    $args{timeout} //= bmwqemu::scale_timeout(90);
+    $args{logname} //= '';
+    $args{retries} //= 1;
+
+    my @ret = qesap_execute(cmd => $args{cmd}, verbose => $args{verbose}, timeout => $args{timeout}, logname => $args{logname});
+
+    while ($args{retries} > 0) {
+        if ($ret[0]) {
+            if (qesap_file_find_string(file => $ret[1], search_string => $args{error_string})) {
+                record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_string});
+                @ret = qesap_execute(cmd => $args{cmd},
+                    logname => 'qesap_' . $args{cmd} . '_retry.log.txt',
+                    timeout => $args{timeout});
+                if ($ret[0] == 0) {
+                    record_info('QESAP_EXECUTE RETRY PASS');
+                    last;
+                }
+            } else {
+                die "'qesap.py $args{cmd}' return: $ret[0]";
+            }
+        } else {
+            last;
+        }
+
+        $args{retries}--;
+    }
+
+    if ($ret[0]) {
+        qesap_cluster_logs();
+        die "'qesap.py (after retry) $args{cmd}' return: $ret[0]";
+    }
+
+    return @ret;
 }
 
 =head3 qesap_file_find_string
