@@ -33,7 +33,6 @@ sub run {
 
     # Verify that there is no unpartitioned space left
     my $left_sectors = (is_sle_micro("5.4+") && is_aarch64) ? 2048 : 0;
-    $left_sectors = 4062 if (is_sle_micro(">=6.0") && is_aarch64);    # jsc#PED-3494
     validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* $left_sectors sectors/);
 
     # Verify that the filesystem mounted at /var grew beyond the default 5GiB
