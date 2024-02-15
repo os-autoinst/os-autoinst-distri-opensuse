@@ -33,6 +33,7 @@
           <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
+          <li><a href="#qesap_execute_conditional_retry">qesap_execute_conditional_retry</a></li>
           <li><a href="#qesap_file_find_string">qesap_file_find_string</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
@@ -242,6 +243,51 @@ Test only returns execution result, failure has to be handled by calling method.
 
 </dd>
 <dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_execute_conditional_retry">qesap_execute_conditional_retry</h3>
+
+<pre><code>qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
+cmd_options - allows to append additional qesap.py commands arguments
+like &quot;qesap.py terraform -d&quot;
+    Example:
+    qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
+    qesap.py terraform -d
+
+Execute qesap glue script commands. Check project documentation for available options:
+https://github.com/SUSE/qe-sap-deployment
+Test only returns execution result, failure has to be handled by calling method.</code></pre>
+
+<dl>
+
+<dt id="CMD---qesap.py-subcommand-to-run1"><b>CMD</b> - qesap.py subcommand to run</dt>
+<dd>
+
+</dd>
+<dt id="CMD_OPTIONS---set-of-arguments-for-the-qesap.py-subcommand1"><b>CMD_OPTIONS</b> - set of arguments for the qesap.py subcommand</dt>
+<dd>
+
+</dd>
+<dt id="VERBOSE---activate-verbosity-in-qesap.py1"><b>VERBOSE</b> - activate verbosity in qesap.py</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---max-expected-execution-time1"><b>TIMEOUT</b> - max expected execution time</dt>
+<dd>
+
+</dd>
+<dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS1"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS.</dt>
+<dd>
+
+</dd>
+<dt id="RETRIES---number-of-retries-in-case-of-expected-error"><b>RETRIES</b> - number of retries in case of expected error</dt>
+<dd>
+
+</dd>
+<dt id="ERROR_STRING---error-string-to-look-for"><b>ERROR_STRING</b> - error string to look for</dt>
 <dd>
 
 </dd>
@@ -481,7 +527,7 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---max-expected-execution-time1"><b>TIMEOUT</b> - max expected execution time</dt>
+<dt id="TIMEOUT---max-expected-execution-time2"><b>TIMEOUT</b> - max expected execution time</dt>
 <dd>
 
 </dd>
