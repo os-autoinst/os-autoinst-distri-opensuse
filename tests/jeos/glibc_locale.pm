@@ -38,6 +38,11 @@ my %test_data_lang = (
     de_DE => 'Eine Anleitung zum Melden von Programmfehlern finden Sie hier:'
 );
 
+sub switch_user {
+    enter_cmd("su - $testapi::username");
+    validate_script_output('whoami', sub { m/$testapi::username/ });
+}
+
 sub change_locale {
     # if there is no new language to be set, let's return
     my $new_language = shift;
@@ -75,9 +80,9 @@ sub test_users_locale {
     my $ldd_help_string_expected = shift;
 
     record_info('Check', "Verifying $rc_lc_udpated->{RC_LANG}");
-    ## Let's repeat the whole user login process again
-    reset_consoles;
-    select_console('user-console', ensure_tty_selected => 0, skip_setterm => 1);
+    # the whole user login process again should be repeated over here
+    # as console switching can be expensive in openQA, it is enough to switch users
+    switch_user;
 
     assert_script_run("locale | tee -a /dev/$serialdev | grep $rc_lc_udpated->{RC_LANG}",
         fail_message => "Expected LANG ($rc_lc_udpated->{RC_LANG}) has not been found!");
@@ -206,6 +211,14 @@ sub run {
     ensure_serialdev_permissions;
     (test_users_locale($rc_lc_reverted, $test_data_lang{$lang_ref}) eq $original_glibc_string) or die "Locale has changed after reboot!\n";
     reset_consoles;
+}
+
+sub post_fail_hook {
+    # print debug info
+    enter_cmd 'locale';
+    enter_cmd 'localectl';
+    enter_cmd 'loginctl';
+    shift->SUPER::post_fail_hook;
 }
 
 1;
