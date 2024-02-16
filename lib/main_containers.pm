@@ -91,6 +91,12 @@ sub load_container_engine_privileged_mode {
     loadtest('containers/privileged_mode', run_args => $run_args, name => $run_args->{runtime} . "_privileged_mode");
 }
 
+sub load_compose_tests {
+    my ($run_args) = @_;
+    return unless (is_tumbleweed || is_microos);
+    loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
+}
+
 sub load_host_tests_podman {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
@@ -117,6 +123,7 @@ sub load_host_tests_podman {
     }
     load_secret_tests($run_args);
     load_volume_tests($run_args);
+    load_compose_tests($run_args);
 }
 
 sub load_host_tests_docker {
@@ -139,13 +146,13 @@ sub load_host_tests_docker {
         # to maintenance jobs or new products after Beta release
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
-        loadtest 'containers/docker_compose' unless (is_public_cloud || is_sle('=12-sp3'));
     }
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
     load_volume_tests($run_args);
+    load_compose_tests($run_args);
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
