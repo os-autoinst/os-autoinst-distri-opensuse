@@ -41,4 +41,10 @@ conditional_schedule:
         TEST_SUITE_NAME:
             fips_ker_mode_tests_crypt_tool:
                 - security/dm_crypt
+                - '{{live_patch_available}}'
+    live_patch_available:
+        ARCH:
+            s390x:
+                - console/suseconnect.pm
+            x86_64:
                 - console/suseconnect.pm
