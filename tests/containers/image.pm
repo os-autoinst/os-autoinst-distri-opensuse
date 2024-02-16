@@ -54,4 +54,8 @@ sub run {
     $engine->cleanup_system_host();
 }
 
+sub post_fail_hook {
+    sleep;
+}
+
 1;
