@@ -103,6 +103,11 @@ sub run {
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
     my %bins;
 
+    if (get_var('BUILD') =~ /tomcat/ && get_var('HDD_1') =~ /SLED/) {
+        record_info('not shipped', 'tomcat is not shipped to Desktop https://suse.slack.com/archives/C02D16TCP99/p1706675337430879');
+        return;
+    }
+
     select_serial_terminal;
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
