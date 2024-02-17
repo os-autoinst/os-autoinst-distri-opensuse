@@ -85,7 +85,11 @@ sub run {
     basic_test($runtime, 0);
 
     if ($runtime eq "podman") {
-        select_user_serial_terminal();
+        if (is_transactional) {
+            select_console "user-console";
+        } else {
+            select_user_serial_terminal();
+        }
         basic_test($runtime, 1);
     }
 
