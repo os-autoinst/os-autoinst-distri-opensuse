@@ -93,7 +93,7 @@ sub load_container_engine_privileged_mode {
 
 sub load_compose_tests {
     my ($run_args) = @_;
-    return unless (is_tumbleweed || is_microos);
+    return unless (is_tumbleweed);
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
 }
 
