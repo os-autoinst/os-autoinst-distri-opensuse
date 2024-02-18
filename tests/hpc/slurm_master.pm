@@ -211,6 +211,12 @@ sub t08_basic() {
     return %results;
 }
 
+sub t09_basic() {
+    my $name = "slurm rest api";
+    my $description = "Basic slurm REST API test";
+    my $result = 0;
+}
+
 #############################################
 ## Accounting tests: for HPC/slurm cluster ##
 #############################################
@@ -415,6 +421,9 @@ sub run ($self) {
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg $slurm_pkg-munge $slurm_pkg-torque");
     record_info script_output("rpm -q --queryformat='%{VERSION}' $slurm_pkg"), 'slurm version';
+    # slurm provides rest api daemon
+    zypper_call("in slurm-rest");
+    # TODO: Add config preparation
 
     if ($slurm_conf =~ /ha/) {
         $self->mount_nfs();
