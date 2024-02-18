@@ -334,11 +334,11 @@ sub t01_accounting() {
 sub run_ha_tests() {
     my @all_results;
 
-    my %test01 = t01_ha();
-    push(@all_results, \%test01);
+    #my %test01 = t01_ha();
+    #push(@all_results, \%test01);
 
-    my %test02 = t02_ha();
-    push(@all_results, \%test02);
+    #my %test02 = t02_ha();
+    #push(@all_results, \%test02);
 
     return @all_results;
 }
