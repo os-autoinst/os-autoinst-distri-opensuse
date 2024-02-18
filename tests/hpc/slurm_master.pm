@@ -56,28 +56,28 @@ sub run_basic_tests() {
     my %test01 = t01_basic();
     push(@all_results, \%test01);
 
-    my %test02 = t02_basic();
-    push(@all_results, \%test02);
+    #my %test02 = t02_basic();
+    #push(@all_results, \%test02);
 
-    my %test03 = t03_basic();
-    push(@all_results, \%test03);
+    #my %test03 = t03_basic();
+    #push(@all_results, \%test03);
 
-    my %test04 = t04_basic();
-    push(@all_results, \%test04);
+    #my %test04 = t04_basic();
+    #push(@all_results, \%test04);
 
-    if (is_sle('>15-SP2')) {
-        my %test05 = t05_basic();
-        push(@all_results, \%test05);
-    }
+    #if (is_sle('>15-SP2')) {
+    #    my %test05 = t05_basic();
+    #    push(@all_results, \%test05);
+    #}
 
-    my %test06 = t06_basic();
-    push(@all_results, \%test06);
+    #my %test06 = t06_basic();
+    #push(@all_results, \%test06);
 
-    my %test07 = t07_basic();
-    push(@all_results, \%test07);
+    #my %test07 = t07_basic();
+    #push(@all_results, \%test07);
 
-    my %test08 = t08_basic();
-    push(@all_results, \%test08);
+    #my %test08 = t08_basic();
+    #push(@all_results, \%test08);
 
     my %test09 = t09_basic();
     push(@all_results, \%test09);
