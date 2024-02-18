@@ -235,4 +235,14 @@ EOF
     assert_script_run($_) foreach (split /\n/, $config);
 }
 
+=head2
+
+Prepare slurmrest.d config
+
+=cut
+
+sub prepare_slurmrestd_conf ($self) {
+
+}
+
 1;

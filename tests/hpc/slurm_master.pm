@@ -215,6 +215,9 @@ sub t09_basic() {
     my $name = "slurm rest api";
     my $description = "Basic slurm REST API test";
     my $result = 0;
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 #############################################
@@ -423,7 +426,6 @@ sub run ($self) {
     record_info script_output("rpm -q --queryformat='%{VERSION}' $slurm_pkg"), 'slurm version';
     # slurm provides rest api daemon
     zypper_call("in slurm-rest");
-    # TODO: Add config preparation
 
     if ($slurm_conf =~ /ha/) {
         $self->mount_nfs();
@@ -448,6 +450,9 @@ sub run ($self) {
     systemctl('is-active slurmctld');
     $self->enable_and_start('slurmd');
     systemctl('is-active slurmd');
+
+    # TODO: Add config preparation
+    $self->prepare_slurmrestd_conf();
 
     # wait for slave to be ready
     barrier_wait('SLURM_MASTER_SERVICE_ENABLED');
