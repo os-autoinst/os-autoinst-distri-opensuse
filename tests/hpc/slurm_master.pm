@@ -79,6 +79,9 @@ sub run_basic_tests() {
     my %test08 = t08_basic();
     push(@all_results, \%test08);
 
+    my %test09 = t09_basic();
+    push(@all_results, \%test09);
+
     return @all_results;
 }
 
