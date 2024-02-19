@@ -21,7 +21,7 @@ sub run {
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd "ftp://ftp.suse.com";
     assert_screen 'nautilus-ftp-login';
-    if (is_tumbleweed) {
+    if (is_tumbleweed || is_sle('15-SP6+')) {
         record_soft_failure("bsc#1205589 Enter key doesn't work on nautilus-ftp-login screen");
         assert_and_click "nautilus-ftp-connect";
     }
