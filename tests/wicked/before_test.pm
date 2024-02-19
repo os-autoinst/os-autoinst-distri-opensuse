@@ -51,6 +51,12 @@ sub run {
         RateLimitBurst=0
 EOT
     record_info('journald.conf', script_output('systemd-analyze cat-config --no-pager systemd/journald.conf'));
+    # Prepare jounral to write to disk
+    assert_script_run('mkdir -p /var/log/journal');
+    assert_script_run('systemd-tmpfiles --create --prefix /var/log/journal');
+    assert_script_run('journalctl --flush');
+    assert_script_run('journalctl --sync');
+
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
 
