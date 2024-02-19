@@ -65,7 +65,9 @@ sub _cleanup {
 }
 
 sub install_packages {
-    my @pkgs = qw(netavark aardvark-dns);
+    my @pkgs = @_;
+    return 0 unless @pkgs;
+
     if (is_transactional) {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
@@ -75,7 +77,7 @@ sub install_packages {
 }
 
 sub switch_to_netavark {
-    install_packages();
+    install_packages('netavark', 'aardvark-dns');
     # change network backend to *netavark*
     assert_script_run(q(echo -e '[Network]\nnetwork_backend="netavark"' >> /etc/containers/containers.conf));
     # reset the storage back to the initial state
@@ -99,7 +101,7 @@ sub run {
         switch_to_netavark;
     } else {
         record_info('default', 'netavark should be the default network backend');
-        zypper_call('in aardvark-dns') if is_sle;
+        install_packages('aardvark-dns');
     }
 
     $podman->cleanup_system_host();
