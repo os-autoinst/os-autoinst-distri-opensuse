@@ -13,6 +13,7 @@ package hana_sr_schedule_primary_tests;
 use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
+use sles4sap_publiccloud;
 use testapi;
 use main_common 'loadtest';
 
@@ -27,10 +28,11 @@ sub run {
     $self->import_context($run_args);
 
     record_info("Schedule", "Executing tests on master Hana DB");
+    my @hana_sites = get_hana_site_names();
     # 'HANASR_PRIMARY_ACTIONS' - define to override test flow
     my @database_actions = split(",", get_var("HANASR_PRIMARY_ACTIONS", 'stop,kill,crash'));
     for my $action (@database_actions) {
-        for my $site ('site_a', 'site_b') {
+        for my $site (@hana_sites) {
             my $test_name = join('_', ucfirst($action), "$site-primary");
             $run_args->{hana_test_definitions}{$test_name}{action} = $action;
             $run_args->{hana_test_definitions}{$test_name}{site_name} = $site;
