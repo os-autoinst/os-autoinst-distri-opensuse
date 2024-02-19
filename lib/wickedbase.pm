@@ -655,7 +655,8 @@ sub upload_wicked_logs {
     record_info('Logs', "Collecting logs in $logs_dir");
     script_run("mkdir -p $logs_dir");
     script_run("date +'%Y-%m-%d %T.%6N' > $logs_dir/date");
-    script_run("journalctl -b -o short-precise|tail -n +2 > $logs_dir/journalctl.log");
+    script_run('journalctl --sync');
+    script_run("journalctl -b -o short-precise > $logs_dir/journalctl.log");
     script_run("wicked ifstatus --verbose all > $logs_dir/wicked_ifstatus.log 2>&1");
     script_run("wicked show-config > $logs_dir/wicked_config.log 2>&1");
     script_run("wicked show-xml > $logs_dir/wicked_xml.log 2>&1");
