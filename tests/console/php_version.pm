@@ -58,4 +58,8 @@ sub run {
     # test reading file
     assert_script_run('php -r \'echo readfile("/etc/hosts")."\\n";\' | grep localhost');
 }
+
+sub test_flags {
+    return {fatal => 1};
+}
 1;
