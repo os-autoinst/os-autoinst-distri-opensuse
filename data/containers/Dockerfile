@@ -2,6 +2,7 @@
 # use base variable when you call test_containered_app
 FROM baseimage_var
 
+RUN zypper --gpg-auto-import-keys ref
 RUN zypper -n in apache2 && zypper clean -a
 RUN echo 'ServerName AppacheInContainer' >> /etc/apache2/httpd.conf
 
