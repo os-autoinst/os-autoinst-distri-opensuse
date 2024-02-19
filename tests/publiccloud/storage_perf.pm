@@ -75,7 +75,8 @@ sub run {
     my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
     my $use_nvme = is_azure() && get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v(2|3)';
-
+    my $db_timeout = 180;
+    my $res;
     my @scenario = (
         {
             name => 'reference',
@@ -202,7 +203,9 @@ sub run {
             my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
             my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
             my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
+            $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1, timeout => $db_timeout)
+              if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
+            return unless ($res);
             my %influx_read_args = (
                 url => $url,
                 db => $db,

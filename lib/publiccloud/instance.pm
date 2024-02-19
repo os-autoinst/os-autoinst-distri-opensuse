@@ -637,6 +637,7 @@ sub store_boottime_db() {
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
     my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
+    my $db_timeout = 180;
 
     return unless ($results && $data_push);
     unless ($token) {
@@ -669,7 +670,7 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{analyze}
     };
-    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1, timeout => $db_timeout);
     return unless ($res);
 
     record_info("STORE blame", $results->{type});
@@ -679,7 +680,7 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{blame}
     };
-    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1, timeout => $db_timeout);
     return $res;
 }
 

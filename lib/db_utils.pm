@@ -67,15 +67,20 @@ sub influxdb_push_data {
     my ($url, $db, $org, $token, $data, %args) = @_;
     $args{quiet} //= 1;
     $args{proceed_on_failure} //= 0;
+    $args{timeout} //= 90;
     $data = build_influx_query($data);
+    # connectivity pre-check
+    if (script_run('curl --silent --insecure --fail ' . $url . '>/dev/null', timeout => $args{timeout}, die_on_timeout => 0)) {    # curl error
+        record_info("Check", 'Cannot access DB on: ' . $url, result => 'fail');
+        return 0;
+    }
     my $cmd = sprintf("curl -iLk -X POST '$url/api/v2/write?org=$org&bucket=$db' --header 'Authorization: Token $token' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $data);
-
     # Hide the token in the info box
     my $out = $cmd;
     $out =~ s/$token/<redacted>/;
     record_info('curl POST', $out);
 
-    my $output = script_output($cmd, quiet => $args{quiet}, proceed_on_failure => $args{proceed_on_failure});
+    my $output = script_output($cmd, $args{timeout}, quiet => $args{quiet}, proceed_on_failure => $args{proceed_on_failure});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
     unless ($return_code >= 200 && $return_code < 300) {
         my $msg = "Failed pushing data into Influx DB:\n$output\n";
