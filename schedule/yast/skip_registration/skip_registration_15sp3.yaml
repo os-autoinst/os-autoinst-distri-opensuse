@@ -7,6 +7,8 @@ vars:
   ADDONS: 'all-packages'
   SCC_ADDONS: 'base,serverapp,desktop'
   SCC_REGISTER: 'none'
+  DESKTOP: 'gnome'
+  YUI_REST_API: '1'
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
