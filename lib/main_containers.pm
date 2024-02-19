@@ -101,6 +101,11 @@ sub load_compose_tests {
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
 }
 
+sub load_firewall_test {
+    my ($run_args) = @_;
+    loadtest('containers/firewall', run_args => $run_args, name => $run_args->{runtime} . "_firewall");
+}
+
 sub load_host_tests_podman {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
@@ -113,7 +118,7 @@ sub load_host_tests_podman {
     # Default for ALP is Netavark
     loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
-    loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
+    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos || is_alp);
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
@@ -138,7 +143,7 @@ sub load_host_tests_docker {
     load_3rd_party_image_test($run_args);
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
-    loadtest 'containers/docker_firewall' unless (is_public_cloud || is_openstack || is_microos);
+    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory and in SLE Micro/MicroOS
