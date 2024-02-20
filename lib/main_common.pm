@@ -616,6 +616,8 @@ sub load_jeos_tests {
     if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
         loadtest 'microos/verify_setup';
         loadtest 'microos/image_checks';
+    } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
+        loadtest "boot/cloud_init";
     } else {
         loadtest "jeos/firstrun";
     }
