@@ -41,6 +41,7 @@
           <li><a href="#azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</a></li>
         </ul>
       </li>
+      <li><a href="#get_hana_site_names">get_hana_site_names</a></li>
       <li><a href="#create_hana_vars_section">create_hana_vars_section</a></li>
       <li><a href="#display_full_status">display_full_status</a></li>
       <li><a href="#list_cluster_nodes">list_cluster_nodes</a></li>
@@ -189,6 +190,15 @@ in the &quot;ansible: create:&quot; section of config.yaml file.</code></pre>
 Collects data and creates string of arguments that can be supplied to playbook.
 spn_application_id - application ID that allows API access for STONITH device
 spn_application_password - password provided for application ID above</code></pre>
+
+<h2 id="get_hana_site_names">get_hana_site_names</h2>
+
+<pre><code>Get primary and secondary site name.
+This information is both needed to configure the qe-sap-deployment
+and later in the test when calling `hdbnsutil -sr_register`.
+This function mostly read the information from job settings
+HANA_PRIMARY_SITE and HANA_SECONDARY_SITE, so main reason to have
+it behind a function is to have coherent defaults.</code></pre>
 
 <h2 id="create_hana_vars_section">create_hana_vars_section</h2>
 
