@@ -49,10 +49,13 @@ sub run {
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
 
     # Podman inside the container
-    assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
-    assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
-    # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
-    assert_script_run("$runtime exec -it outer-container podman run -it $image ls") unless is_sle('=15-SP1');
+    # poo#155422 --> there's no podman in SLE12-SP3 and so netavark fails
+    unless (is_sle('=12-sp3')) {
+        assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
+        assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
+        # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
+        assert_script_run("$runtime exec -it outer-container podman run -it $image ls");
+    }
 }
 
 sub cleanup {
