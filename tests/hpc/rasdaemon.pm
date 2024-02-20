@@ -25,16 +25,17 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use Utils::Logging 'export_logs_basic';
 use utils;
+use version_utils qw(is_sle is_tumbleweed);
 
 our $file = 'tmpresults.xml';
 
 sub inject_error() {
     # Inject some software errors
-    script_run('echo 0x9c00410000080f2b > /sys/kernel/debug/mce-inject/status');
-    script_run('echo d5a099a9 > /sys/kernel/debug/mce-inject/addr');
-    script_run('echo 4 > /sys/kernel/debug/mce-inject/bank');
+    script_run('echo 0x9c00000000000000 > /sys/kernel/debug/mce-inject/status');
+    script_run('echo 0xd5a099a9 > /sys/kernel/debug/mce-inject/addr');
     script_run('echo 0xdead57ac1ba0babe > /sys/kernel/debug/mce-inject/misc');
     script_run("echo \"sw\" > /sys/kernel/debug/mce-inject/flags");
+    script_run('echo 4 > /sys/kernel/debug/mce-inject/bank');
 }
 
 our $ras_mc_ctl_results;
@@ -54,7 +55,7 @@ sub subtestcase_output ($out, $regex, $description) {
 
 sub run {
     # load kernel module
-    assert_script_run('modprobe mce-inject') if (is_x86_64 && check_var('VERSION', '15-SP2'));
+    assert_script_run('modprobe mce-inject') if is_x86_64;
 
     my $rt = zypper_call('in rasdaemon');
     test_case('Installation', 'rasdaemon', $rt);
@@ -102,16 +103,13 @@ sub run {
         && $empty_error_output =~ /PCIe AER errors/ && $empty_error_output =~ /No MCE errors/);
 
     # x86_64 check: Validating output of 'ras-mc-ctl --errors' after MCE error is injected
-    if (is_x86_64 && check_var('VERSION', '15-SP2')) {
+    if (is_x86_64 && (is_sle('=15-sp2') || is_sle('=15-sp6') || is_tumbleweed)) {
         inject_error();
         my $error_output = script_output('ras-mc-ctl --errors');
         record_info('INFO', $error_output);
-
         die('No MCE event recored - ' . $error_output)
-          unless ($error_output =~ /MCE events/ && $error_output =~ /status=0x9c00410000080f2b/);
+          unless ($error_output =~ /MCE events/ && $error_output =~ /status=0x9c00000000000000/);
     }
-
-    ##TODO: try to add error injection for ARM
 }
 
 sub post_run_hook ($self) {
