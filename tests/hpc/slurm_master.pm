@@ -456,6 +456,7 @@ sub run ($self) {
 
     # TODO: Add config preparation
     $self->prepare_slurmrestd_conf();
+    wait(99999);
 
     # wait for slave to be ready
     barrier_wait('SLURM_MASTER_SERVICE_ENABLED');
