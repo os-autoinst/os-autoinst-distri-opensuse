@@ -73,6 +73,7 @@ sub run {
     }
 
     # Check connectivity to all instances and status of the cluster in case of HA deployment
+    my @hana_sites = get_hana_site_names();
     foreach my $instance (@{$self->{instances}}) {
         $self->{my_instance} = $instance;
         my $instance_id = $instance->{'instance_id'};
@@ -88,8 +89,13 @@ sub run {
         my $resource_output = $self->run_cmd(cmd => "crm status full", quiet => 1);
         record_info("crm out", $resource_output);
         my $master_node = $self->get_promoted_hostname();
-        $run_args->{site_a} = $instance if ($instance_id eq $master_node);
-        $run_args->{site_b} = $instance if ($instance_id ne $master_node);
+
+        if ($instance_id eq $master_node) {
+            $run_args->{$hana_sites[0]} = $instance;
+        }
+        else {
+            $run_args->{$hana_sites[1]} = $instance;
+        }
     }
 
     get_var('QESAP_DEPLOYMENT_IMPORT')
@@ -100,8 +106,8 @@ sub run {
 
     record_info(
         'Instances:', "Detected HANA instances:
-    Site A (PRIMARY): $run_args->{site_a}{instance_id}
-    Site B: $run_args->{site_b}{instance_id}"
+    Site A (PRIMARY): $run_args->{$hana_sites[0]}{instance_id}
+    Site B: $run_args->{$hana_sites[1]}{instance_id}"
     );
     return 1;
 }

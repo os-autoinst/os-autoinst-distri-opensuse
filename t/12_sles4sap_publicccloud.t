@@ -439,14 +439,14 @@ subtest '[enable_replication]' => sub {
         vmhana01 => {
             vhost => 'vmhana01',
             remoteHost => 'vmhana02',
-            srmode => 'PIPPO',
-            op_mode => 'PAPERINO',
+            srmode => 'LeeAdama',
+            op_mode => 'ZakAdama',
         },
         vmhana02 => {
             vhost => 'vmhana02',
             remoteHost => 'vmhana01',
-            srmode => 'PIPPO',
-            op_mode => 'PAPERINO',
+            srmode => 'LeeAdama',
+            op_mode => 'ZakAdama',
         }
     );
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
@@ -459,12 +459,29 @@ subtest '[enable_replication]' => sub {
 
     set_var('SAP_SIDADM', 'YONDUR');
 
-    $self->enable_replication();
+    $self->enable_replication('WilliamAdama');
 
     set_var('SAP_SIDADM', undef);
 
     note("\n  C -->  " . join("\n  -->  ", @calls));
     ok((any { qr/hdbnsutil -sr_register/ } @calls), 'hdbnsutil cmd correctly called');
+    ok((any { qr/-name WilliamAdama/ } @calls), 'hdbnsutil cmd has right site name');
+};
+
+subtest '[get_hana_site_names] default values' => sub {
+    my @res = get_hana_site_names();
+    ok(($res[0] eq 'site_a'), "Default value for the primary site is site_a");
+    ok(($res[1] eq 'site_b'), "Default value for the secondary site is site_b");
+};
+
+subtest '[get_hana_site_names] values from settings' => sub {
+    set_var('HANA_PRIMARY_SITE', 'MarcoPolo');
+    set_var('HANA_SECONDARY_SITE', 'ZhengHe');
+    my @res = get_hana_site_names();
+    set_var('HANA_PRIMARY_SITE', undef);
+    set_var('HANA_SECONDARY_SITE', undef);
+    ok(($res[0] eq 'MarcoPolo'), "Value for the primary site is from setting");
+    ok(($res[1] eq 'ZhengHe'), "Value for the secondary site is from setting");
 };
 
 done_testing;
