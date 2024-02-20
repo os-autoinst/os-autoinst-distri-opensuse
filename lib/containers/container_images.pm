@@ -126,13 +126,14 @@ sub build_with_zypper_docker {
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
 
     my $log = "/tmp/zypper-docker-list-updates.log";
-    script_retry("zypper-docker list-updates $image >$log", timeout => 300, retry => 3, delay => 60);
+    my $zypper_docker = 'zypper-docker --gpg-auto-import-keys';
+    my $rc = script_retry("$zypper_docker list-updates $image | tee $log", timeout => 300, retry => 3, delay => 60);
     return if script_run("grep 'No updates found.' $log");
 
-    script_retry("zypper-docker up $image $derived_image", timeout => 300, retry => 3, delay => 60);
+    script_retry("$zypper_docker up $image $derived_image", timeout => 300, retry => 3, delay => 60);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
-    script_retry("zypper-docker list-updates $derived_image | grep 'No updates found'", timeout => 300, retry => 3, delay => 60);
+    validate_script_output_retry("$zypper_docker list-updates $derived_image", qr/No updates found/, timeout => 300, retry => 3, delay => 60);
 
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
