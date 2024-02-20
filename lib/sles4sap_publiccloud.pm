@@ -62,6 +62,8 @@ our @EXPORT = qw(
   is_hana_database_online
   get_hana_database_status
   is_primary_node_online
+  pacemaker_version
+  saphanasr_showAttr_version
   get_hana_site_names
 );
 
@@ -954,6 +956,45 @@ sub is_primary_node_online {
     }
     record_info('SYSTEM REPLICATION STATUS', "System replication status in primary node.\n$output");
     return 1;
+}
+
+=head2 pacemaker_version
+
+    Returns the pacemaker version
+
+=cut
+
+sub pacemaker_version {
+    my ($self) = @_;
+    my $version_cmd = 'pacemakerd --version';
+
+    my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1);
+    record_info("PACEMAKER VERSION", $version_output);
+
+    if ($version_output =~ /Pacemaker (\d+\.\d+\.\d+)/) {
+        return $1;
+    } else {
+        return '';
+    }
+}
+
+=head2 saphanasr_showAttr_version
+
+    Returns the SAPHanaSR-showattr version
+
+=cut
+
+sub saphanasr_showAttr_version {
+    my ($self) = @_;
+    my $version_cmd = 'SAPHanaSR-showAttr --version';
+
+    my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1);
+
+    if ($version_output =~ /(\d+\.\d+(?:\.\d+)*)/) {
+        return $1;
+    } else {
+        return '';
+    }
 }
 
 1;
