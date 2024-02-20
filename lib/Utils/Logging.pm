@@ -250,12 +250,14 @@ sub problem_detection {
     clear_console;
 
     # Segmentation faults
-    record_info('COREDUMP detection: ', script_output('coredumpctl list', proceed_on_failure => 1));
-    save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
-    # Save core dumps
-    enter_cmd "mkdir -p coredumps";
-    enter_cmd 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
-    clear_console;
+    if (script_run('which coredumpctl') == 0) {
+        record_info('COREDUMP detection: ', script_output('coredumpctl list', proceed_on_failure => 1));
+        save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
+        # Save core dumps
+        enter_cmd "mkdir -p coredumps";
+        enter_cmd 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
+        clear_console;
+    }
 
     # Broken links
     save_and_upload_log(
