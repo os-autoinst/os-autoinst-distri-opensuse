@@ -21,13 +21,6 @@ sub run {
     my $hostname = get_var('HOSTNAME');
     my $is_server = ($hostname =~ /server|master/);
 
-    if ($is_server) {
-        barrier_create 'MM_SETUP_DONE', 2;
-        barrier_create 'MM_SETUP_PING_CHECK_DONE', 2;
-        mutex_create 'barrier_setup_mm_done';
-    }
-    mutex_wait 'barrier_setup_mm_done';
-
     select_console 'root-console';
 
     # Do not use external DNS for our internal hostnames
@@ -53,11 +46,13 @@ sub run {
     # See: poo#93850
     permit_root_ssh();
 
-    barrier_wait 'MM_SETUP_DONE';
-    if (!$is_server) {
+    if ($is_server) {
+        barrier_create 'MM_SETUP_PING_CHECK_DONE', 2;
+        barrier_wait 'MM_SETUP_PING_CHECK_DONE';
+    } else {
         ping_size_check('server');
+        barrier_wait 'MM_SETUP_PING_CHECK_DONE';
     }
-    barrier_wait 'MM_SETUP_PING_CHECK_DONE';
 }
 
 1;
