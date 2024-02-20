@@ -13,6 +13,7 @@ env:
   OPENQA_API_SECRET: ${{ secrets.OPENQA_API_SECRET }}
   GH_REPO: ${{ github.event.pull_request.head.repo.full_name }}
   GH_REF: ${{ github.event.pull_request.head.ref }}
+  GH_PR_BODY: ${{ github.event.pull_request.body }}
 
 jobs:
   trigger_and_monitor_openqa:
@@ -41,3 +42,10 @@ jobs:
           UEFI_PFLASH_VARS=opensuse-Tumbleweed-x86_64-${{ steps.latest_build.outputs.build }}-textmode@64bit-uefi-vars.qcow2
           BUILD="$GH_REPO.git#$GH_REF" _GROUP_ID="${OPENQA_SCHEDULE_GROUP_ID:-118}"
           CASEDIR="$GITHUB_SERVER_URL/$GH_REPO.git#$GH_REF"
+  clone_mentioned_job:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
+    steps:
+      - name: Clone and monitor job mentioned in PR description
+        uses: os-autoinst/scripts/actions/clone-job@master
