@@ -64,6 +64,7 @@ our @EXPORT = qw(
   is_primary_node_online
   pacemaker_version
   saphanasr_showAttr_version
+  get_hana_site_names
 );
 
 =head2 run_cmd
@@ -374,7 +375,7 @@ sub check_takeover {
 =cut
 
 sub enable_replication {
-    my ($self) = @_;
+    my ($self, $site_name) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
@@ -383,7 +384,7 @@ sub enable_replication {
     foreach (qw(vhost remoteHost srmode op_mode)) { die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_}); }
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
-        '--name=' . %$topology{$hostname}->{vhost},
+        '--name=' . $site_name,
         '--remoteHost=' . %$topology{$hostname}->{remoteHost},
         '--remoteInstance=00',
         '--replicationMode=' . %$topology{$hostname}->{srmode},
@@ -785,6 +786,21 @@ sub azure_fencing_agents_playbook_args {
     return ($playbook_opts);
 }
 
+=head2 get_hana_site_names
+
+    Get primary and secondary site name.
+    This information is both needed to configure the qe-sap-deployment
+    and later in the test when calling `hdbnsutil -sr_register`.
+    This function mostly read the information from job settings
+    HANA_PRIMARY_SITE and HANA_SECONDARY_SITE, so main reason to have
+    it behind a function is to have coherent defaults.
+
+=cut
+
+sub get_hana_site_names {
+    return (get_var('HANA_PRIMARY_SITE', 'site_a'), get_var('HANA_SECONDARY_SITE', 'site_b'));
+}
+
 =head2 create_hana_vars_section
 
     Detects HANA/HA scenario from openQA variables and creates "terraform: variables:" section in config.yaml file.
@@ -796,13 +812,14 @@ sub create_hana_vars_section {
     # Cluster related setup
     my %hana_vars;
     if ($ha_enabled == 1) {
+        my @hana_sites = get_hana_site_names();
         $hana_vars{sap_hana_install_software_directory} = get_required_var('HANA_MEDIA');
         $hana_vars{sap_hana_install_master_password} = get_required_var('_HANA_MASTER_PW');
         $hana_vars{sap_hana_install_sid} = get_required_var('INSTANCE_SID');
         $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
         $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
-        $hana_vars{primary_site} = get_var('HANA_PRIMARY_SITE', 'site_a');
-        $hana_vars{secondary_site} = get_var('HANA_SECONDARY_SITE', 'site_b');
+        $hana_vars{primary_site} = $hana_sites[0];
+        $hana_vars{secondary_site} = $hana_sites[1];
         set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
     }
     return (\%hana_vars);

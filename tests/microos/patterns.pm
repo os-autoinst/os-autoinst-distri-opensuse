@@ -11,6 +11,7 @@ use testapi;
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call);
 use serial_terminal qw(select_serial_terminal);
+use version_utils qw(is_sle_micro);
 
 sub run {
     shift->select_serial_terminal();
@@ -22,12 +23,17 @@ sub run {
     my @available_patterns = split(/\n/, script_output "zypper -q se -t pattern -u");
     my @patterns = map { m/\|\s+(.*?)\s+\|.*pattern$/ } @available_patterns;
 
+    # on slem6.0,no need to install 'alp_elemental_client', see bsc#1219200
+    my @inst_patterns = @patterns;
+    @inst_patterns = grep (!/alp_elemental_client/, @patterns) if is_sle_micro('>=6.0');
+
     # install new patterns
-    trup_call('pkg install -t pattern ' . join(" ", @patterns), timeout => 720);
+    trup_call('pkg install -t pattern ' . join(" ", @inst_patterns), timeout => 720);
     process_reboot(trigger => 1);
 
     # expect empty list therefore ZYPPER_EXIT_INF_CAP_NOT_FOUND
-    zypper_call "-q se -t pattern -u", exitcode => [104];
+    # skip the check below on slem6.0 due to bsc#1219200
+    zypper_call "-q se -t pattern -u", exitcode => [104] unless is_sle_micro('>=6.0');
 }
 
 sub post_fail_hook {

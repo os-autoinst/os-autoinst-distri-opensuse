@@ -26,11 +26,13 @@ sub run {
 
     # Needed to have peering and ansible state propagated in post_fail_hook
     $self->import_context($run_args);
-    croak('site_b is missing or undefined in run_args') if (!$run_args->{site_b});
+
+    my @hana_sites = get_hana_site_names();
+    croak("$hana_sites[1] is missing or undefined in run_args") if (!$run_args->{$hana_sites[1]});
 
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
-    my $site_b = $run_args->{site_b};
+    my $site_b = $run_args->{$hana_sites[1]};
     my $sbd_delay;
     select_serial_terminal;
 

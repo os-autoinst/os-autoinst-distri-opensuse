@@ -101,7 +101,7 @@ sub run {
             my $failed_service_output = script_output("systemctl status $service -l || true");
             foreach my $bsc (@matched_bugs) {
                 if ($failed_service_output =~ $bug_pattern->{$bsc}->{description}) {
-                    record_soft_failure("$service failed due to $bsc\n$failed_service_output");
+                    record_soft_failure("$service failed due to $bsc\n$failed_service_output") unless $bug_pattern->{$bsc}->{type} eq 'ignore';
                     next SRV;
                 }
             }

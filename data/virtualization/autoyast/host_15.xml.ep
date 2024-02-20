@@ -291,14 +291,54 @@
   </users>
   <scripts>
     <post-scripts config:type="list">
+      % if ($check_var->('SYSTEM_ROLE', 'xen') && $get_var->('VERSION') gt '15-SP5') {
       <script>
-        <filename>debug_libvirtd.sh</filename>
+        <filename>configure_xen_modular_libvirt_log.sh</filename>
         <source><![CDATA[
-cat >> /etc/libvirt/libvirtd.conf<< EOF
+for drv in xen network nodedev nwfilter secret storage proxy lock
+do
+cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
+log_level = 1
+log_filters="1:qemu 1:libxl 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci"
+log_outputs="1:file:/var/log/libvirt/virt${drv}d.log"
+EOF
+done
+]]>
+        </source>
+      </script>
+      % }
+      % if ($check_var->('SYSTEM_ROLE', 'kvm') && $get_var->('VERSION') gt '15-SP5') {
+      <script>
+        <filename>configure_kvm_modular_libvirt_log.sh</filename>
+        <source><![CDATA[
+for drv in qemu log network nodedev nwfilter secret storage proxy lock 
+do
+cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
+log_level = 1
+log_filters="1:qemu 1:libxl 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci"
+log_outputs="1:file:/var/log/libvirt/virt${drv}d.log"
+EOF
+done
+]]>
+        </source>
+      </script>
+      % }
+      % if ($get_var->('VERSION') lt '15-SP6') {
+      <script>
+        <filename>configure_monolithic_libvirt_log.sh</filename>
+        <source><![CDATA[
+cat >> "/etc/libvirt/libvirtd.conf" << EOF
 log_level = 1
 log_filters="1:qemu 1:libxl 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci"
 log_outputs="1:file:/var/log/libvirt/libvirtd.log"
 EOF
+]]>
+        </source>
+      </script>
+      % }
+      <script>
+        <filename>config_setup.sh</filename>
+        <source><![CDATA[
 cp /usr/lib/systemd/network/99-default.link  /etc/systemd/network/99-default.link
 sed -i s/MACAddressPolicy=persistent/MACAddressPolicy=none/ /etc/systemd/network/99-default.link
 

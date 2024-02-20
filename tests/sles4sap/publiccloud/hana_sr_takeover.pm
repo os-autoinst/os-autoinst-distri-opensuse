@@ -28,16 +28,16 @@ sub run {
     my $takeover_action = $run_args->{hana_test_definitions}{$test_name}{action};
     my $site_name = $run_args->{hana_test_definitions}{$test_name}{site_name};
     my $target_site = $run_args->{$site_name};
-    my $sbd_delay;
     die("Target site '$site_name' data is missing. This might indicate deployment issue.")
       unless $target_site;
+    my $sbd_delay;
 
     # Switch to control to target site (currently PROMOTED)
     $self->{my_instance} = $target_site;
 
     # Check initial cluster status
     $self->run_cmd(cmd => 'zypper -n in ClusterTools2', timeout => 300);
-    $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5');
+    $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => 120);
     my $cluster_status = $self->run_cmd(cmd => 'crm status');
     record_info('Cluster status', $cluster_status);
     die(uc($site_name) . " '$target_site->{instance_id}' is NOT in MASTER mode.") if
@@ -81,7 +81,7 @@ sub run {
     $self->check_takeover;
 
     record_info('Replication', join(' ', ('Enabling replication on', ucfirst($site_name), '(DEMOTED)')));
-    $self->enable_replication();
+    $self->enable_replication($site_name);
 
     record_info(ucfirst($site_name) . ' start');
     $self->cleanup_resource();

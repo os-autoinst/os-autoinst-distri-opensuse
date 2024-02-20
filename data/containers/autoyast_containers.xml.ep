@@ -31,6 +31,14 @@
         % }
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ($get_var->('VERSION') =~ /15-SP[1-3]/) {
+      <addon>
+        <name>SLES-LTSS</name>
+        <arch>{{ARCH}}</arch>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
     </addons>
   </suse_register>
   <general>
