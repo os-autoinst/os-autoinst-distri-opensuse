@@ -234,11 +234,13 @@ sub run {
         unless (get_var('HOST_INSTALL_AUTOYAST')) {
             select_console 'installation';
             save_screenshot;
-            if (check_var('VIDEOMODE', 'ssh-x') or is_tumbleweed) {
-                enter_cmd_slow("yast.ssh");
-            }
-            elsif (check_var('VIDEOMODE', 'text')) {
+            #It was 'enter_cmd_slow('DISPLAY= yast.ssh') for SLE;'
+            #Removing 'DIAPLAY= ' for SLE15SP6 because it resulted in SCC registration failure(bsc#1218798).
+            if (check_var('VIDEOMODE', 'text') and is_sle('<=15-SP5')) {
                 enter_cmd_slow('DISPLAY= yast.ssh');
+            }
+            else {
+                enter_cmd_slow("yast.ssh");
             }
             save_screenshot;
             wait_still_screen;
