@@ -140,8 +140,8 @@ sub load_host_tests_docker {
     loadtest 'containers/docker_firewall' unless (is_public_cloud || is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
-        # zypper-docker is not available in factory and in SLE Micro/MicroOS
-        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro);
+        # zypper-docker is not available in factory, SLE Micro/MicroOS & SLE/Leap 15.6
+        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro || is_sle('>=15-SP6') || is_leap('>=15.6'));
         loadtest 'containers/docker_runc';
     }
     unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro || is_staging) {
