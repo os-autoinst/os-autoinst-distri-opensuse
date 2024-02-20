@@ -14,6 +14,32 @@
 #    6) try reboot
 #    7) all done
 #
+#   variables: I added variables to contol behavior of the test when needed
+#
+#   UPDATE_ADD_CONFLICT
+#     Add conflict manually, this was needed for expected openssh
+#     collison on 12sp5, when when new bin had conflict with old ver
+#     openssh is specific as it does no update but replace the old ver
+#     see openssh.spec:
+#     # To replace the openssh package:
+#     Conflicts:      openssh < %{version}
+#
+#   UPDATE_PATCH_WITH_SOLVER_FEATURE
+#     force-resolution feature is used only for preinstall and conflicts
+#     this variable will enable it for patch when needed
+#
+#   Control solution option in sle12_zypp_resolve workaround function for SLE12
+#   There is zypper version withou force-resolution feature, below are solution
+#   option for each step sle12_zypp_resolve is used
+#
+#   UPDATE_RESOLVE_SOLUTION_CONFLICT_PREINSTALL
+#   UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL
+#   UPDATE_RESOLVE_SOLUTION_CONFLICT_UNINSTALL
+#   UPDATE_RESOLVE_SOLUTION_PREINSTALL
+#   UPDATE_RESOLVE_SOLUTION_INSTALL
+#   UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN
+#   UPDATE_RESOLVE_SOLUTION_UNINSTALL
+#
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
 use base "opensusebasetest";
@@ -31,6 +57,7 @@ use version_utils qw(is_sle);
 use Data::Dumper qw(Dumper);
 
 my @conflicting_packages = (
+    'libwx_base-suse-nostl-devel', 'wxWidgets-3_2-nostl-devel',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
     'kernel-default-base', 'kernel-default-extra'
 );
@@ -74,14 +101,15 @@ sub get_results {
 }
 
 sub sle12_zypp_resolve {
-    my ($cmd, $log) = @_;
+    my ($cmd, $log, $solution) = @_;
+    $solution //= 1;
     die '$cmd is required' unless defined $cmd;
     $log = " | tee /tmp/$log" if defined $log;
     script_output "expect -c '
         spawn $cmd;
         expect {
             \"Choose from\" {
-                send 1\\r
+                send $solution\\r
                 exp_continue
             }
             \"Continue\" {
@@ -101,6 +129,7 @@ sub run {
     my $repos = get_required_var('INCIDENT_REPO');
     my %installable;    #Binaries already released that can already be installed.
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
+    my @new_binaries_conflicts;    #New binaries with conflict will be installed alone e.g. libwx_base-suse-nostl-devel conflicts with libwx_base-devel
     my %bins;
 
     if (get_var('BUILD') =~ /tomcat/ && get_var('HDD_1') =~ /SLED/) {
@@ -156,6 +185,10 @@ sub run {
     for my $patch (@patches) {
         my %patch_bins = %bins;
         my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts);
+        my @conflicts = is_sle('<=12-SP5') ? @conflicting_packages_sle12 : @conflicting_packages;
+        foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT'))) {
+            push(@conflicts, $_);
+        }
         # Make sure on SLE 15+ zyppper 1.14+ with '--force-resolution --solver-focus Update' patched binaries are installed
         my $solver_focus = $zypper_version >= 14 ? '--force-resolution --solver-focus Update ' : '';
 
@@ -206,14 +239,19 @@ sub run {
 
         foreach my $b (@patch_l2, @patch_l3) {
             if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
-                push(@new_binaries, $b);
-            } else {
-                $installable{$b} = 1;
+                if (grep($b eq $_, @conflicts)) {
+                    push(@new_binaries_conflicts, $b);
+                }
+                else {
+                    push(@new_binaries, $b);
+                }
+            }
+            else {
+                $installable{$b} = 1 unless grep($b eq $_, @blocked_packages);
             }
         }
 
         for my $pkg (keys %installable) {
-            my @conflicts = is_sle('<=12-SP5') ? @conflicting_packages_sle12 : @conflicting_packages;
             if (grep($pkg eq $_, @conflicts)) {
                 push(@update_conflicts, $pkg);
                 delete($installable{$pkg});
@@ -229,7 +267,7 @@ sub run {
                     zypper_call("-v in -l $solver_focus $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
                 }
                 else {
-                    sle12_zypp_resolve("zypper -v in -l $single_package", "prepare_${patch}_${single_package}.log");
+                    sle12_zypp_resolve("zypper -v in -l $single_package", "prepare_${patch}_${single_package}.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_PREINSTALL', 1));
                 }
 
                 # Store version of installed binaries before update.
@@ -243,7 +281,7 @@ sub run {
                     zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
                 }
                 else {
-                    sle12_zypp_resolve("zypper -v in -l -t patch $patch");
+                    sle12_zypp_resolve("zypper -v in -l -t patch $patch",, get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
                 }
 
                 # Store version of installed binaries after update.
@@ -257,7 +295,7 @@ sub run {
                     zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
                 }
                 else {
-                    sle12_zypp_resolve('zypper -v dup -l --replacefiles');
+                    sle12_zypp_resolve('zypper -v dup -l --replacefiles',, get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_UNINSTALL', 1));
                 }
                 # remove conflicts
                 foreach (@update_conflicts) {
@@ -278,7 +316,7 @@ sub run {
             }
             else {
                 my $packages = join(' ', keys %installable);
-                sle12_zypp_resolve("zypper -v in $packages", "prepare_$patch.log");
+                sle12_zypp_resolve("zypper -v in $packages", "prepare_$patch.log", get_var('UPDATE_RESOLVE_SOLUTION_PREINSTALL', 1));
             }
         }
 
@@ -292,12 +330,17 @@ sub run {
 
         # Patch binaries already installed.
         record_info 'Install patch', "Install patch $patch";
-        if (get_var('RESOLVE_PATCH_CONFLICT')) {
+        if (get_var('UPDATE_PATCH_WITH_SOLVER_FEATURE')) {
             if ($solver_focus) {
-                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+                zypper_call("in -l $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
             }
             else {
-                sle12_zypp_resolve('zypper -v dup -l --replacefiles', "zypper_$patch.log");
+                if (get_var('UPDATE_RESOLVE_SOLUTION_INSTALL')) {
+                    sle12_zypp_resolve('zypper -v dup -l --replacefiles', "zypper_$patch.log", get_var('UPDATE_RESOLVE_SOLUTION_INSTALL', 1));
+                }
+                else {
+                    zypper_call("in -l @new_binaries_conflicts", exitcode => [0, 102, 103], log => "new_${patch}_conflicts.log", timeout => 1500);
+                }
             }
         }
         else {
@@ -308,6 +351,16 @@ sub run {
         if (scalar @new_binaries) {
             record_info 'Install new packages', "New packages: @new_binaries";
             zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+        }
+
+        if (scalar @new_binaries_conflicts) {
+            record_info 'New conflicts', "New packages with conflict: @new_binaries_conflicts";
+            if (get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN')) {
+                sle12_zypp_resolve("zypper -v in -l @new_binaries_conflicts", "new_${patch}_conflicts.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN', 2));
+            }
+            else {
+                zypper_call("in -l $solver_focus @new_binaries_conflicts", exitcode => [0, 102, 103], log => "new_${patch}_conflicts.log", timeout => 1500);
+            }
         }
 
         # After the patches have been applied and the new binaries have been
@@ -350,7 +403,7 @@ sub run {
                 zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
             }
             else {
-                sle12_zypp_resolve('zypper -v dup -l --replacefiles');
+                sle12_zypp_resolve('zypper -v dup -l --replacefiles',, get_var('UPDATE_RESOLVE_SOLUTION_UNINSTALL', 1));
             }
             # remove patched packages with multiple versions installed e.g. kernel-source
             foreach (@patch_l3, @patch_l2) {
