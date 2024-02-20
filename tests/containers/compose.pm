@@ -74,8 +74,10 @@ sub run {
     my @pkgs = qw(docker-compose);
 
     if (is_transactional) {
-        trup_call("pkg install @pkgs");
-        check_reboot_changes;
+        if (script_run("rpm -q @pkgs >/dev/null") != 0) {
+            trup_call("pkg install @pkgs");
+            check_reboot_changes;
+        }
     } else {
         zypper_call "in @pkgs";
     }
