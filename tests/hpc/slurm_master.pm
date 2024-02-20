@@ -321,6 +321,7 @@ sub t01_accounting() {
         ($jobs =~ /$users{user_4}/));
 
     record_info('INFO DB', "$jobs");
+    sleep(99999);
 
   FAIL:
     my %results = generate_results($name, $description, $result);
@@ -456,7 +457,6 @@ sub run ($self) {
 
     # TODO: Add config preparation
     $self->prepare_slurmrestd_conf();
-    sleep(99999);
 
     # wait for slave to be ready
     barrier_wait('SLURM_MASTER_SERVICE_ENABLED');
