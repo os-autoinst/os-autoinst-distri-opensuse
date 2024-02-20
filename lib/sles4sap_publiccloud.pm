@@ -65,6 +65,7 @@ our @EXPORT = qw(
   pacemaker_version
   saphanasr_showAttr_version
   get_hana_site_names
+  wait_for_zypper
 );
 
 =head2 run_cmd
@@ -995,6 +996,43 @@ sub saphanasr_showAttr_version {
     } else {
         return '';
     }
+}
+
+=head2 wait_for_zypper
+
+    The function attempts to run 'zypper ref' to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
+    Returns normally if Zypper is not locked, or dies after a maximum number of retries if Zypper remains locked.
+
+=over 2
+
+=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
+
+=item B<MAX_RETRIES> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.
+
+=item B<RETRY_DELAY> - The number of seconds to wait between retries. Default is 20 seconds.
+
+=back
+=cut
+
+sub wait_for_zypper {
+    my ($self, %args) = @_;
+    croak("Argument <instance> missing") unless ($args{instance});
+    $args{max_retries} //= 10;
+    $args{retry_delay} //= 20;
+    my $retries = 0;
+
+    while ($retries < $args{max_retries}) {
+        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref', username => 'cloudadmin', proceed_on_failure => 1, rc_only => 1, quiet => 1);
+        if ($ret == 7) {
+            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retries/$args{max_retries}");
+            sleep $args{retry_delay};
+            $retries++;
+        } else {
+            last;
+        }
+    }
+
+    die "Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)" if $retries >= $args{max_retries};
 }
 
 1;

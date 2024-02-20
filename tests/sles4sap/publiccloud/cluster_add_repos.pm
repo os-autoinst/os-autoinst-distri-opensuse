@@ -7,6 +7,7 @@
 use strict;
 use warnings;
 use base 'sles4sap_publiccloud_basetest';
+use sles4sap_publiccloud;
 use testapi;
 
 sub test_flags {
@@ -29,6 +30,7 @@ sub run {
         }
         foreach my $instance (@{$self->{instances}}) {
             next if ($instance->{'instance_id'} !~ m/vmhana/);
+            $self->wait_for_zypper(instance => $instance);
             $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
                 username => 'cloudadmin');
         }
@@ -36,6 +38,7 @@ sub run {
     }
     foreach my $instance (@{$self->{instances}}) {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
+        $self->wait_for_zypper(instance => $instance);
         $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin', timeout => 1500);
     }
 }

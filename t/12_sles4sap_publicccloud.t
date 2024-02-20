@@ -7,6 +7,7 @@ use Test::Mock::Time;
 use testapi;
 use List::Util qw(any none);
 
+use publiccloud::instance;
 use sles4sap_publiccloud;
 
 subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
@@ -482,6 +483,57 @@ subtest '[get_hana_site_names] values from settings' => sub {
     set_var('HANA_SECONDARY_SITE', undef);
     ok(($res[0] eq 'MarcoPolo'), "Value for the primary site is from setting");
     ok(($res[1] eq 'ZhengHe'), "Value for the secondary site is from setting");
+};
+
+subtest '[wait_for_zypper] zypper unlocked at first try' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $pc_instance = Test::MockModule->new('publiccloud::instance');
+    my $instance = publiccloud::instance->new();
+    $pc_instance->redefine(run_ssh_command => sub { return 0; });
+
+    lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper was not locked, command succeeded without retries';
+};
+
+subtest '[wait_for_zypper] zypper fails at first try with non 7 rc' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $pc_instance = Test::MockModule->new('publiccloud::instance');
+    my $instance = publiccloud::instance->new();
+    $pc_instance->redefine(run_ssh_command => sub { return 1; });
+
+    lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper command failed with a non-locking issue and did not retry';
+};
+
+subtest '[wait_for_zypper] zypper fails at first try with 7 rc but pass at second retry' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $self = sles4sap_publiccloud->new();
+    my $pc_instance = Test::MockModule->new('publiccloud::instance');
+    my $instance = publiccloud::instance->new();
+    my $attempt = 0;
+    my @record_infos;
+
+    $pc_instance->redefine(run_ssh_command => sub {
+            return $attempt++ ? 0 : 7;    # return 7 on first call, 0 on second
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_));
+    });
+
+    lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper was locked initially but succeeded on retry';
+};
+
+subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $pc_instance = Test::MockModule->new('publiccloud::instance');
+    my $instance = publiccloud::instance->new();
+    my @record_infos;
+
+    $pc_instance->redefine(run_ssh_command => sub { return 7; });
+    $sles4sap_publiccloud->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_));
+    });
+
+    dies_ok { $self->wait_for_zypper(instance => $instance, max_retries => 3) } 'Zypper remained locked after max retries';
 };
 
 done_testing;
