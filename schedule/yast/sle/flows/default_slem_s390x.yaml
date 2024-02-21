@@ -21,19 +21,22 @@ software:
   - installation/installation_overview
 booting:
   - installation/disable_grub_timeout
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
 installation_settings:
   - installation/launch_installation
 installation:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-timeout: []
+timeout:
+  - installation/performing_installation/stop_timeout_system_reboot_now
 installation_logs:
   - installation/logs_from_installation_system
 confirm_reboot:
-  - installation/performing_installation/confirm_reboot
-reconnect: []
-grub:
-  - installation/grub_test
+  - installation/reboot_after_installation
+reconnect:
+  - boot/reconnect_mgmt_console
+grub: []
 first_login:
   - installation/first_boot
 system_validation: []

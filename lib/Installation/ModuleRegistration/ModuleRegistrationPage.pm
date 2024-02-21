@@ -39,6 +39,8 @@ sub init {
     $self->{rct_item_pcm} = 'sle-module-public-cloud';
     $self->{rct_item_serverapp} = 'sle-module-server-applications';
     $self->{rct_item_ltss} = 'SLES-LTSS';
+    $self->{rct_item_live} = 'sle-module-live-patching';
+    $self->{rct_item_phub} = 'PackageHub';
     return $self;
 }
 
