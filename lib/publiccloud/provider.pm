@@ -20,6 +20,7 @@ use Data::Dumper;
 use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
+use db_utils qw(is_ok_url);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -316,8 +317,9 @@ sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
     $args{check_guestregister} //= 1;
-
     my @vms = $self->terraform_apply(%args);
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
+
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
         if ($args{check_connectivity}) {
@@ -329,8 +331,16 @@ sub create_instances {
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});
         # Performance data: boottime
-        my $btime = $instance->measure_boottime($instance, 'first');
-        $instance->store_boottime_db($btime);
+        if (is_ok_url($url)) {
+            local $@;
+            eval {
+                my $btime = $instance->measure_boottime($instance, 'first');
+                $instance->store_boottime_db($btime, $url);
+            };
+            record_info("WARN", "Boottime measures cannot be provided", result => 'fail') if ($@);
+        } else {
+            record_info("WARN", "Cannot connect url:" . $url, result => 'fail');
+        }
     }
     return @vms;
 }
