@@ -29,7 +29,6 @@ sub run {
         'pcsc-lite' => '1.9.4',
         'libp11-3' => '0.4.11',
         'pcsc-tools' => '1.5.8',
-        'pkcs11-helper' => '1.25.1'
     };
     zypper_call("in " . join(' ', keys %$pkg_list));
     package_upgrade_check($pkg_list);
