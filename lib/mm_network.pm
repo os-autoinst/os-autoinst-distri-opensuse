@@ -58,11 +58,11 @@ sub configure_static_ip {
     my $ip = $args{ip};
     my $mtu = $args{mtu} // get_var('MM_MTU', 1380);
     my $is_nm = $args{is_nm} // is_networkmanager();
-    my $device = $args{device};
+    my $device = $args{device} // '\S';
 
     if ($is_nm) {
         my $nm_id;
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | grep '$device' | head -n1");
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
         record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip\nMTU: $mtu");
@@ -105,11 +105,11 @@ sub configure_dhcp {
 sub configure_default_gateway {
     my (%args) = @_;
     my $is_nm = $args{is_nm} // is_networkmanager();
-    my $device = $args{device};
+    my $device = $args{device} // '\S';
     if ($is_nm) {
         my $nm_id;
         # When $device is not specified grep just does nothing and first connection is selected
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | grep '$device' | head -n1");
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
