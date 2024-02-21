@@ -30,6 +30,7 @@ use YAML::PP;
 use publiccloud::instance;
 use sles4sap;
 use saputils;
+use version_utils qw(check_version);
 
 our @EXPORT = qw(
   run_cmd
@@ -443,7 +444,15 @@ sub get_promoted_instance {
 
     Wait for replica site to sync data with primary.
     Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK && PRIM" and no SFAIL.
-    Continue after expected output matched three times continually to make sure cluster is synced.
+    Continue after expected output matched N times continually to make sure cluster is synced.
+
+    Expected confitions:
+     - Both primary and replica must be online.
+     - primary must have sync_state 'PRIM'
+     - primary must have clone_state 'PROMOTED'
+     - replica must have sync_state 'SOK'  - this means data is in sync
+     - replica must have clone_state 'DEMOTED'
+     - site order does not matter
 =cut
 
 sub wait_for_sync {
@@ -454,6 +463,19 @@ sub wait_for_sync {
     my $output_fail = 0;
     record_info("Sync wait", "Waiting for data sync between nodes");
 
+    my $online_detector;
+    my $pacemaker_version = $self->pacemaker_version();
+    if (check_version('>=2.1.7', $pacemaker_version)) {
+        # -r is extended regexp for sed, needed to use \s
+        # sed is needed to convert all separation in the output to single space, needed for the next step
+        # cut extract exactly the 4th column
+        # the grep only match numbers that are not 0
+        $online_detector = "sed -r 's/\\s+/ /g' | cut -d ' ' -f 4 | grep -E '^[1-9]'";
+    }
+    else {
+        $online_detector = 'grep online';
+    }
+
     # Check sync status periodically until ok or timeout
     my $start_time = time;
 
@@ -461,7 +483,8 @@ sub wait_for_sync {
         die 'HANA replication: node did not sync in time' if $count == 1;
         die 'HANA replication: node is stuck at SFAIL' if $output_fail == 10;
         sleep 30;
-        my $ret = $self->run_cmd(cmd => 'SAPHanaSR-showAttr | grep online', proceed_on_failure => 1);
+
+        my $ret = $self->run_cmd(cmd => "SAPHanaSR-showAttr | $online_detector", proceed_on_failure => 1);
         $output_pass++ if $ret =~ /SOK/ && $ret =~ /PRIM/ && $ret !~ /SFAIL/;
         $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
         $output_fail++ if $ret =~ /SFAIL/;

@@ -484,4 +484,34 @@ subtest '[get_hana_site_names] values from settings' => sub {
     ok(($res[1] eq 'ZhengHe'), "Value for the secondary site is from setting");
 };
 
+
+subtest '[wait_for_sync] bare minimal to have a test pass' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+
+    my @SAPHanaSRshowAttr;
+    # the fact that we have 5 of them is key point to have the test to pass
+    unshift @SAPHanaSRshowAttr, 'online SOK PRIM';
+    unshift @SAPHanaSRshowAttr, 'online SOK PRIM';
+    unshift @SAPHanaSRshowAttr, 'online SOK PRIM';
+    unshift @SAPHanaSRshowAttr, 'online SOK PRIM';
+    unshift @SAPHanaSRshowAttr, 'online SOK PRIM';
+    unshift @SAPHanaSRshowAttr, 'CLOSE IN GLORY';    # needed by the record_info before the return
+
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return pop @SAPHanaSRshowAttr; }
+    );
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '2.1.5'; });
+
+    my $ret = $self->wait_for_sync();
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+
+    ok $ret;
+};
+
+
 done_testing;
