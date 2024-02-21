@@ -54,6 +54,7 @@ use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 use Data::Dumper qw(Dumper);
 
 my @conflicting_packages = (
@@ -61,6 +62,9 @@ my @conflicting_packages = (
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
     'kernel-default-base', 'kernel-default-extra'
 );
+
+# https://progress.opensuse.org/issues/153388
+push(@conflicting_packages, ('dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default')) if is_aarch64;
 
 my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-example-pages', 'apache2-utils', 'apache2-worker',
     'apache2-tls13', 'apache2-tls13-doc', 'apache2-tls13-example-pages', 'apache2-tls13-prefork', 'apache2-tls13-worker',
