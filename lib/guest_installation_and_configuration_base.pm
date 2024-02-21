@@ -874,7 +874,12 @@ sub config_guest_network_selection {
         $self->{guest_netaddr_attached} = [$self->{guest_netaddr}];
     }
 
-    $self->{guest_network_selection_options} .= ",$self->{guest_network_others}" if ($self->{guest_network_others} ne '');
+    if ($self->{guest_network_others} ne '') {
+        $self->{guest_network_selection_options} .= ",$self->{guest_network_others}";
+        if ($self->{guest_version} eq '15-sp6' and check_var('VERSION_TO_INSTALL', '12-SP5') and $self->{guest_network_others} =~ /rom_bar=off/) {
+            record_soft_failure("bsc#1217359 - [SLES][12-SP5][x86_64][kvm][uefi] Failed to install 15-SP6 uefi guest on 12-SP5 KVM host due to efi exception");
+        }
+    }
 
     return $self;
 }

@@ -37,7 +37,7 @@
     <guest_storage_others></guest_storage_others>
     <guest_network_type>bridge</guest_network_type>
     <guest_network_device>br123</guest_network_device>
-    <guest_network_others></guest_network_others>
+    <guest_network_others>rom_bar=off</guest_network_others>
     <guest_netaddr>192.168.123.0/24</guest_netaddr>
     <guest_ipaddr></guest_ipaddr>
     <guest_ipaddr_static>false</guest_ipaddr_static>
