@@ -11,6 +11,8 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
+use Utils::Backends 'use_ssh_serial_console';
+use ipmi_backend_utils;
 use virt_utils;
 
 sub get_script_run {
@@ -66,6 +68,9 @@ sub post_execute_script_assertion {
 
 sub run {
     my $self = shift;
+
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
 
     # Add option to keep guest after successful installation
     # Only for x86_64 now

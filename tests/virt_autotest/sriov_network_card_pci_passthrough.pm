@@ -95,7 +95,6 @@ sub run_test {
         #check the networking of the plugged interface
         #use br123 as ssh connection
         test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
-        check_guest_health($guest);
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
@@ -110,16 +109,12 @@ sub run_test {
             test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
             save_network_device_status_logs($guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
-        check_guest_health($guest);
 
         #reboot the guest
         record_info("VM reboot", "$guest");
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
         wait_guest_online($guest, 30);
         save_network_device_status_logs($guest, $passthru_vf_count + 3 . '-after_guest_reboot');
-
-        #check host and guest to make sure they work well
-        check_guest_health($guest);
 
         #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
@@ -136,9 +131,6 @@ sub run_test {
         }
         script_run "lspci | grep Ethernet";
         save_screenshot;
-
-        #check host and guest to make sure they work well
-        check_guest_health($guest);
 
     }
 
@@ -274,8 +266,6 @@ sub prepare_guest_for_sriov_passthrough {
         script_run "ssh root\@$vm \"sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\\\$/Storage=persistent/};\\\${x;/^\\\$/{s//Storage=persistent/;H};x}' $journald_conf_file\"";
         script_run "ssh root\@$vm 'systemctl restart systemd-journald'";
     }
-
-    check_guest_health($vm);
 
 }
 

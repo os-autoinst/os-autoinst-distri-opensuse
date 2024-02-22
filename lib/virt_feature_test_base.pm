@@ -37,6 +37,7 @@ use List::Util 'first';
 use testapi;
 use utils;
 use ipmi_backend_utils;
+use Utils::Backends 'use_ssh_serial_console';
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
@@ -50,6 +51,9 @@ sub run_test {
 sub prepare_run_test {
     my $self = shift;
 
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
+
     unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
         reconnect_when_ssh_console_broken;
         alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
@@ -60,6 +64,7 @@ sub prepare_run_test {
 
     virt_utils::cleanup_host_and_guest_logs;
     virt_utils::start_monitor_guest_console;
+
 }
 
 sub run {
@@ -70,6 +75,8 @@ sub run {
     $self->{"start_run"} = time();
     $self->run_test;
     $self->{"stop_run"} = time();
+
+    check_guest_health($_) foreach (keys %virt_autotest::common::guests);
 
     virt_utils::stop_monitor_guest_console if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
 
