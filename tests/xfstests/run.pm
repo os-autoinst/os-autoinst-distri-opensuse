@@ -293,7 +293,7 @@ sub save_kdump {
     $args{kernel} ||= 0;
     $args{debug} ||= 0;
     my $name = test_name($test);
-    my $ret = script_run("mv /var/crash/* $dir/$name");
+    my $ret = script_run("mv /var/crash/* $dir/$name", timeout => 300);
     if ($args{debug}) {
         $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz --absolute-names /usr/lib/debug/boot; fi");
     }
