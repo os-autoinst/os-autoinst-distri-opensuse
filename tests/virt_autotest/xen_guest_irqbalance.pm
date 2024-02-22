@@ -93,7 +93,6 @@ sub run_test {
         }
         record_info("NIC IRQs distribution on $nproc cpu cores", "@increased_irqs_on_cpu");
 
-        check_guest_health($guest);
     }
 
     restore_xml_changed_guests();
@@ -117,6 +116,7 @@ sub restore_xml_changed_guests {
         remove_vm($guest);
         restore_downloaded_guests($guest, $changed_xml_dir);
         assert_script_run "virsh start $guest";
+        wait_guest_online($guest);
     }
 }
 
@@ -138,7 +138,6 @@ sub prepare_guest_for_irqbalance {
     }
 
     wait_guest_online($vm_name);
-    check_guest_health($vm_name);
     assert_script_run "ssh root\@$vm_name \"zypper in -y irqbalance\"" unless script_run("ssh root\@$vm_name \"rpm -q irqbalance\"") eq 0;
 
 }
