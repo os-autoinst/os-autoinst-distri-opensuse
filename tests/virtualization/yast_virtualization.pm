@@ -32,7 +32,6 @@ sub run {
     }
     send_key 'alt-k';    # KVM Server
     send_key 'alt-v';    # KVM tools
-    send_key 'alt-l';    # libvirt-lxc
 
     # launch the installation
     send_key 'alt-a';

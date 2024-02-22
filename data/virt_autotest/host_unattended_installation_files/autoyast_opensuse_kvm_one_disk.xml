@@ -120,7 +120,6 @@
 	<service>virtnetworkd</service>
 	<service>virtnodedevd</service>
 	<service>virtsecretd</service>
-	<service>virtproxyd</service>
 	<service>virtnwfilterd</service>
       </enable>
     </services>
