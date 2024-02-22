@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use utils 'zypper_call';
 use power_action_utils 'power_action';
-use version_utils qw(is_tumbleweed is_sle);
+use version_utils qw(is_tumbleweed is_sle check_version);
 
 sub run {
     my ($self) = @_;
@@ -23,6 +23,10 @@ sub run {
     if (script_run 'rpm -q perl-Bootloader') {
         zypper_call 'in perl-Bootloader';
     }
+
+    # version older than 1.1 does not support option default-settings
+    my $pbl_version = script_output("rpm -q --qf '%{version}' perl-Bootloader");
+    my $new_pbl = check_version('>=1.1', $pbl_version);
 
     # pbl --loader is not available on <15-SP3
     unless (is_sle("<15-SP3")) {
@@ -49,12 +53,12 @@ sub run {
     assert_script_run 'pbl --del-option "TEST_OPTION"';
     assert_script_run('! grep -q "TEST_OPTION" /etc/default/grub');
 
-    # Create new log file and check if it exists and not empty
-    assert_script_run 'pbl --log /var/log/pbl-test.log';
-    if (is_tumbleweed && script_run('grep pbl /var/log/pbl-test.log') != 0) {
-        record_soft_failure('bsc#1219347 - pbl log creates empty log file');
-    } else {
-        validate_script_output 'cat /var/log/pbl-test.log', qr/pbl/;
+    # Add new option and check if it's logged in new log file
+    assert_script_run 'pbl --log /var/log/pbl-test.log --add-option LOG_OPTION="log_value"';
+    validate_script_output 'cat /var/log/pbl-test.log', qr/log_value/;
+
+    if ($new_pbl) {
+        validate_script_output 'pbl --default-settings', qr/kernel|initrd|append/;
     }
     power_action('reboot', textmode => 1);
     $self->wait_boot;
