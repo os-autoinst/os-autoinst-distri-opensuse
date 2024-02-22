@@ -10,7 +10,7 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry wait_for_purge_kernels);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 use YaST::workarounds;
@@ -829,7 +829,7 @@ sub get_addon_fullname {
         hpcm => 'sle-module-hpc',
         legacy => 'sle-module-legacy',
         lgm => 'sle-module-legacy',
-        ltss => 'SLES-LTSS',
+        ltss => is_hpc('15+') ? 'SLE_HPC-LTSS' : 'SLES-LTSS',
         pcm => 'sle-module-public-cloud',
         rt => 'SUSE-Linux-Enterprise-RT',
         sapapp => 'sle-module-sap-applications',
