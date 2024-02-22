@@ -15,6 +15,7 @@ schedule:
     - installation/partitioning/guided_setup/accept_default_part_scheme
     - installation/partitioning/guided_setup/do_not_propose_separate_home
   software:
+    - installation/select_visible_patterns_from_bottom
     - installation/installation_settings/validate_default_target
   system_preparation:
     - console/system_prepare
