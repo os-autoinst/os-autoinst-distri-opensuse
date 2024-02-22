@@ -79,7 +79,7 @@ sub process_reboot {
 
     if (is_public_cloud) {
         my $instance = publiccloud::instances::get_instance();
-        $instance->softreboot();    # Handled re-establishing of the required ssh tunnel and consoles
+        $instance->softreboot();    # Re-establishes the required ssh tunnel and consoles
         return;
     }
 

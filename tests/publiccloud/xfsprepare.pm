@@ -150,6 +150,9 @@ sub run {
     partition_disk($device, $mnt_xfs, $mnt_scratch);
     create_config($device, $mnt_xfs, $mnt_scratch);
     script_run("source $CONFIG_FILE");
+
+    # Dummy file, required in xfstests/run.pm
+    assert_script_run("fallocate -l 32M /opt/xfstests/test_dev");
 }
 
 1;

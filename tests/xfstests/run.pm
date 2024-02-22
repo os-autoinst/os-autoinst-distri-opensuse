@@ -30,7 +30,8 @@ use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
-use version_utils 'is_alp';
+use version_utils qw(is_alp is_public_cloud);
+use publiccloud::instances;
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -458,12 +459,12 @@ sub test_run_without_heartbeat {
         if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
 
         prepare_system_shutdown;
-        check_var('VIRTIO_CONSOLE', '1') ? power('reset') : send_key 'alt-sysrq-b';
+        reboot();
         reconnect_mgmt_console if is_pvm;
         $self->wait_boot;
 
         sleep 1;
-        select_console('root-console');
+        select_console('root-console') unless is_public_cloud;
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
         unless (check_var('NO_KDUMP', '1')) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
@@ -570,13 +571,13 @@ sub run {
         # Here to reboot "again" to keep logic and real screen in the same page. After reboot to continue the rest tests.
         eval {
             prepare_system_shutdown;
-            check_var('VIRTIO_CONSOLE', '1') ? power('reset') : send_key 'alt-sysrq-b';
+            reboot();
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot;
         };
 
         sleep(1);
-        select_console('root-console');
+        select_console('root-console') unless is_public_cloud;
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
         unless (check_var('NO_KDUMP', '1')) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
@@ -603,6 +604,20 @@ sub run {
     my $back_pid = background_script_run("tar zcvf $local_file --absolute-names /opt/log/");
     script_run("wait $back_pid");
     upload_logs($local_file, failok => 1, timeout => 180);
+}
+
+sub reboot() {
+    if (check_var('VIRTIO_CONSOLE', '1')) {
+        # Note: Public Cloud instances use a helper VM, so we need to ensure we are rebooting the public cloud instance and not the openQA helper VM!
+        if (is_public_cloud) {
+            my $instance = publiccloud::instances::get_instance();
+            $instance->softreboot();
+        } else {
+            power('reset');
+        }
+    } else {
+        send_key('alt-sysrq-b');
+    }
 }
 
 sub test_flags {
