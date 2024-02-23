@@ -75,7 +75,7 @@ sub run {
 
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
-        sleep bmwqemu::scale_timeout(10);
+        sleep bmwqemu::scale_timeout(30);
         $self->do_hana_sr_register(node => $node1);
         sleep bmwqemu::scale_timeout(10);
         my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
