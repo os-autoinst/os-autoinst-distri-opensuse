@@ -25,7 +25,8 @@ sub run {
 
     if (get_var('QESAP_DEPLOYMENT_IMPORT')) {
         loadtest('sles4sap/publiccloud/qesap_reuse_infra', name => 'prepare_existing_infrastructure', run_args => $run_args, @_);
-        loadtest('sles4sap/publiccloud/qesap_ansible', name => 'verify_infrastructure', run_args => $run_args, @_);
+        loadtest('sles4sap/publiccloud/qesap_ansible', name => 'deploy_qesap_ansible', run_args => $run_args, @_);
+        loadtest('sles4sap/publiccloud/qesap_prevalidate', name => 'qesap_prevalidate', run_args => $run_args, @_);
     }
     else {
         if (check_var('IS_MAINTENANCE', 1)) {
@@ -39,6 +40,7 @@ sub run {
             loadtest('sles4sap/publiccloud/cluster_add_repos', name => 'cluster_add_repos', run_args => $run_args, @_);
         }
         loadtest('sles4sap/publiccloud/qesap_ansible', name => 'deploy_qesap_ansible', run_args => $run_args, @_);
+        loadtest('sles4sap/publiccloud/qesap_prevalidate', name => 'qesap_prevalidate', run_args => $run_args, @_);
     }
     if (check_var('FENCING_MECHANISM', 'native') and check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         # MSI is preferred method not requiring additional password so it is set to default.
