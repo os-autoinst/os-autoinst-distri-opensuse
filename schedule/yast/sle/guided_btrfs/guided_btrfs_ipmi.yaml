@@ -7,6 +7,8 @@ vars:
   HDDSIZEGB: 40
   YUI_REST_API: 1
 schedule:
+  guided_hard_disks:
+    - installation/partitioning/guided_setup/accept_default_hard_disks_selection
   system_preparation:
     - console/system_prepare
     - console/force_scheduled_tasks
@@ -16,10 +18,6 @@ schedule:
     - console/validate_no_cow_attribute
     - console/verify_separate_home
 test_data:
-  guided_partitioning:
-    disks:
-      - sda
-  device: sda
   table_type: gpt
   subvolume:
     cow:
