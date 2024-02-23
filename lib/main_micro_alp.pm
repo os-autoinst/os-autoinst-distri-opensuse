@@ -46,14 +46,13 @@ sub load_config_tests {
 
 sub load_boot_from_disk_tests {
     loadtest 'installation/bootloader_start' if is_s390x();
-    if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
-        loadtest 'jeos/firstrun';
-    } elsif (is_s390x()) {
-        loadtest 'boot/boot_to_desktop';
+    if (get_var('HDD_2')) {
+        # HDD_2 is usually used for ignition/combustion disk
+        is_s390x() ? loadtest 'microos/disk_boot' : loadtest 'boot/boot_to_desktop';
     } else {
-        loadtest 'microos/disk_boot';
+        # if ignition/combustion disk is not provided, it will boot the wizard
+        loadtest 'jeos/firstrun';
     }
-
     loadtest 'installation/system_workarounds' if (is_aarch64 && is_microos);
     replace_opensuse_repos_tests if is_repo_replacement_required;
 }
