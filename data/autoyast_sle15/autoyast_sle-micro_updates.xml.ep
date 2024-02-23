@@ -41,6 +41,14 @@
       <pattern>microos-selinux</pattern>
     </patterns>
   </software>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel>191M</crash_kernel>
+    <general>
+      <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+      <KDUMP_DUMPLEVEL>1</KDUMP_DUMPLEVEL>
+    </general>
+  </kdump>
   <users config:type="list">
     <user>
       <fullname>Bernhard M. Wiedemann</fullname>
