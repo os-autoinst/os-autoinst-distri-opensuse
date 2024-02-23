@@ -76,7 +76,7 @@ sub test_cryptographic_policies() {
     # TODO: This does not work for Tumbleweed because of nmap
     # See pull request #11930 for more details
     my @crypto_params = (["Ciphers", "cipher", "-c "], ["KexAlgorithms", "kex", "-o kexalgorithms="], ["MACS", "mac", "-m "]);
-    push(@crypto_params, ["HostKeyAlgorithms", "key", "-o HostKeyAlgorithms="]) unless (is_opensuse);
+    push(@crypto_params, ["HostKeyAlgorithms", "key", "-o UpdateHostKeys=no -o HostKeyAlgorithms="]) unless (is_opensuse);
     my @policies;
 
     # Create an array of the different cryptographic policies that will be tested
