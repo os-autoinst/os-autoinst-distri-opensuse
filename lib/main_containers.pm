@@ -116,7 +116,7 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
     # Default for ALP is Netavark
-    loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
+    loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos || is_alp);
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)

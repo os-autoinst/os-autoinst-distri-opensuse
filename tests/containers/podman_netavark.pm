@@ -24,7 +24,7 @@ sub is_cni_in_tw {
 # podman >=4.8.0 defaults to netavark
 sub is_cni_default {
     my $podman_version = get_podman_version();
-    return package_version_cmp($podman_version, '4.8.0') < 0 || is_sle_micro('<6.0');
+    return package_version_cmp($podman_version, '4.8.0') < 0 || is_sle_micro('<5.5') || (is_sle_micro('=5.5') && !is_public_cloud);
 }
 
 sub remove_subtest_setup {
@@ -64,8 +64,9 @@ sub _cleanup {
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
 }
 
-sub switch_to_netavark {
-    my @pkgs = qw(netavark aardvark-dns);
+sub install_packages {
+    my @pkgs = @_;
+    return 0 unless @pkgs;
 
     if (is_transactional) {
         trup_call("pkg install @pkgs");
@@ -73,7 +74,10 @@ sub switch_to_netavark {
     } else {
         zypper_call("in @pkgs");
     }
+}
 
+sub switch_to_netavark {
+    install_packages('netavark', 'aardvark-dns');
     # change network backend to *netavark*
     assert_script_run(q(echo -e '[Network]\nnetwork_backend="netavark"' >> /etc/containers/containers.conf));
     # reset the storage back to the initial state
@@ -97,7 +101,7 @@ sub run {
         switch_to_netavark;
     } else {
         record_info('default', 'netavark should be the default network backend');
-        zypper_call('in aardvark-dns') if is_sle;
+        install_packages('aardvark-dns');
     }
 
     $podman->cleanup_system_host();
