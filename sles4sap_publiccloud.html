@@ -50,6 +50,7 @@
       <li><a href="#is_primary_node_online">is_primary_node_online</a></li>
       <li><a href="#pacemaker_version">pacemaker_version</a></li>
       <li><a href="#saphanasr_showAttr_version">saphanasr_showAttr_version</a></li>
+      <li><a href="#wait_for_zypper">wait_for_zypper</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -253,6 +254,27 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 <h2 id="saphanasr_showAttr_version">saphanasr_showAttr_version</h2>
 
 <pre><code>Returns the SAPHanaSR-showattr version</code></pre>
+
+<h2 id="wait_for_zypper">wait_for_zypper</h2>
+
+<pre><code>The function attempts to run &#39;zypper ref&#39; to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
+Returns normally if Zypper is not locked, or dies after a maximum number of retries if Zypper remains locked.</code></pre>
+
+<dl>
+
+<dt id="instance---The-instance-object-on-which-the-Zypper-command-is-executed.-This-object-must-have-the-run_ssh_command-method-implemented"><b>$instance</b> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.</dt>
+<dd>
+
+</dd>
+<dt id="MAX_RETRIES---The-maximum-number-of-times-the-function-will-retry-checking-if-Zypper-is-locked.-Default-is-10"><b>MAX_RETRIES</b> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.</dt>
+<dd>
+
+</dd>
+<dt id="RETRY_DELAY---The-number-of-seconds-to-wait-between-retries.-Default-is-20-seconds"><b>RETRY_DELAY</b> - The number of seconds to wait between retries. Default is 20 seconds.</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
