@@ -67,12 +67,14 @@ sub _cleanup {
 sub install_packages {
     my @pkgs = @_;
     return 0 unless @pkgs;
-
-    if (is_transactional) {
-        trup_call("pkg install @pkgs");
-        check_reboot_changes;
-    } else {
-        zypper_call("in @pkgs");
+    # skip if already installed:
+    unless (script_run("rpm -q @pkgs") == 0) {
+        if (is_transactional) {
+            trup_call("pkg install @pkgs");
+            check_reboot_changes;
+        } else {
+            zypper_call("in @pkgs");
+        }
     }
 }
 
