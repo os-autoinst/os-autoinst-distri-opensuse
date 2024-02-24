@@ -30,6 +30,16 @@ if (get_var("VERSION")) {
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
+        sles12sp3PV => {
+            name => 'sles12sp3PV',
+            autoyast => 'autoyast_xen/sles12sp3PV_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp3',
+            macaddress => '52:54:00:78:73:b9',
+            ip => '192.168.122.121',
+            distro => 'SLE_12_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.121/24,192.168.122.1,192.168.122.1"',
+        },
         sles12sp4PV => {
             name => 'sles12sp4PV',
             autoyast => 'autoyast_xen/sles12sp4PV_PRG.xml',
@@ -175,6 +185,11 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     } elsif (is_sle('=12-SP4')) {
         my @allowed_guests = qw(sles12sp4HVM sles12sp4PV sles12sp5HVM sles12sp5PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=12-SP3')) {
+        my @allowed_guests = qw(sles12sp3PV);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
