@@ -66,7 +66,7 @@ sub _cleanup {
 
 sub install_packages {
     my @pkgs = @_;
-    return 0 unless @pkgs;
+    return if (script_run("rpm -q @pkgs >/dev/null") == 0);
 
     if (is_transactional) {
         trup_call("pkg install @pkgs");
