@@ -7,39 +7,12 @@ vars:
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
-  YUI_REST_API: 1
 schedule:
+  - autoyast/prepare_profile
   - installation/bootloader_start
-  - installation/setup_libyui
-  - '{{access_beta_distribution}}'
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/new_partitioning_gpt
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_plymouth
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/handle_reboot
+  - autoyast/installation
   - installation/boot_encrypt
   - installation/first_boot
-  - console/validate_lvm
+  - fips/fips_install_separate_boot_verify
   - console/validate_encrypt
-
-conditional_schedule:
-  access_beta_distribution:
-    BETA:
-      1:
-        - installation/access_beta_distribution
+  - console/validate_lvm
