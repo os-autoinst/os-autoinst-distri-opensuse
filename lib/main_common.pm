@@ -2824,6 +2824,7 @@ sub load_system_update_tests {
         }
         else {
             loadtest "update/zypper_clear_repos";
+            loadtest "update/slowroll_repos" if check_var('VERSION', 'Slowroll');
             set_var('CLEAR_REPOS', 1);
         }
     }
