@@ -1,0 +1,18 @@
+{
+  "ignition": { "version": "3.1.0" },
+  "passwd": {
+    "users": [
+      {
+        "name": "root",
+        "passwordHash": "iNhMyEZAbxWvA"
+      }
+    ]
+  },
+  "storage": {
+    "files": [{
+      "path": "/etc/vconsole.conf",
+      "overwrite": true,
+      "contents": { "source": "data:,KEYMAP=us%0A" }
+    }]
+  } 
+}
