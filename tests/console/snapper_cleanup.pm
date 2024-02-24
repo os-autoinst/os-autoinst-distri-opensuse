@@ -67,10 +67,10 @@ sub snapper_cleanup {
     # Get actual exclusive disk space to verify exclusive disk space is taken into account
     my $qgroup_excl_space = get_space("btrfs qgroup show  / --raw | grep 1/0 | awk -F ' ' '{print\$3}'");
     if ($qgroup_excl_space > $exp_excl_space) {
-        my $msg = "bsc#998360: qgroup 1/0: Exclusive space is above user-defined limit:\n"
+        my $reference = "bsc#998360: qgroup 1/0: Exclusive space is above user-defined limit:\n"
           . "$exp_excl_space (expected exclusive disk space) < $qgroup_excl_space (consumed exclusive disk space)";
         if (check_var('VERSION', '12-SP2')) {
-            record_info('Softfail', $msg, result => 'softfail');
+            record_soft_failure($reference);
         }
         else {
             die $msg;
