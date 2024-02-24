@@ -19,7 +19,7 @@ sub run {
         cmd => 'cd \\; $port.WriteLine($(cscript .\\UpdateInstall.vbs /Automate))',
         code => sub {
             die("Update script finished unespectedly or timed out...")
-              unless wait_serial("The update process finished with value 1", timeout => 3600);
+              unless wait_serial('The update process finished with value \d+\S+', timeout => 3600);
         }
     );
     save_screenshot;
