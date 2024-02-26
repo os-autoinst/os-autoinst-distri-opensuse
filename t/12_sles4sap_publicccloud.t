@@ -498,6 +498,10 @@ subtest '[wait_for_zypper] zypper fails at first try with non 7 rc' => sub {
     my $self = sles4sap_publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    $sles4sap_publiccloud->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_));
+    });
     $pc_instance->redefine(run_ssh_command => sub { return 1; });
 
     lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper command failed with a non-locking issue and did not retry';
