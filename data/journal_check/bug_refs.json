@@ -563,7 +563,8 @@
         "description": "qgroup reserved space leaked",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.0"]
         },
         "type": "bug"
     },
