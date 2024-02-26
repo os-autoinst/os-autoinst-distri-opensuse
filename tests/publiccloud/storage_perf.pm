@@ -73,9 +73,8 @@ sub run {
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
     my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
     my $use_nvme = is_azure() && get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v(2|3)';
-
     my @scenario = (
         {
             name => 'reference',
@@ -193,7 +192,7 @@ sub run {
         $values->{write_latency} = $json->{jobs}[0]->{write}->{lat_ns}->{mean} / 1000;
 
         # Store values in influx-db
-        if ($url) {
+        if (is_ok_url($url)) {
             my $data = {
                 table => 'storage_fio',
                 tags => $tags,
@@ -202,7 +201,8 @@ sub run {
             my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
             my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
             my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
+            influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1)
+              if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
             my %influx_read_args = (
                 url => $url,
                 db => $db,

@@ -631,14 +631,13 @@ To activate boottime push, shall be available results and
 =cut
 
 sub store_boottime_db() {
-    my ($self, $results) = @_;
+    my ($self, $results, $url) = @_;
     my $data_push = get_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1);
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
     my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
 
-    return unless ($results && $data_push);
+    return unless ($results && $data_push && $url);
     unless ($token) {
         record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
         return 0;

@@ -16,6 +16,7 @@ our @EXPORT = qw(
   influxdb_read_data
   push_image_data_to_db
   check_postgres_db
+  is_ok_url
 );
 
 sub build_influx_kv {
@@ -69,7 +70,6 @@ sub influxdb_push_data {
     $args{proceed_on_failure} //= 0;
     $data = build_influx_query($data);
     my $cmd = sprintf("curl -iLk -X POST '$url/api/v2/write?org=$org&bucket=$db' --header 'Authorization: Token $token' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $data);
-
     # Hide the token in the info box
     my $out = $cmd;
     $out =~ s/$token/<redacted>/;
@@ -231,4 +231,14 @@ sub check_postgres_db {
         return 0;
     }
     return 1;
+}
+
+sub is_ok_url {
+    # url connectivity check
+    # Parameters: url[:port] [, timeout: default=90]
+    my ($url, %args) = @_;
+    $args{timeout} //= 120;
+    my $cmd = "curl -skf --connect-timeout " . $args{timeout} . " " . $url . " >/dev/null";
+    # t+3 to let curl trigger first.
+    return (script_run($cmd, timeout => ($args{timeout} + 3), die_on_timeout => 0) == 0);
 }
