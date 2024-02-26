@@ -748,6 +748,7 @@ sub create_playbook_section_list {
           sap-hana-system-replication-hooks.yaml
         );
         push @playbook_list, $hana_cluster_playbook;
+        push @playbook_list, 'post-sap-hana-cluster.yaml';
     }
     return (\@playbook_list);
 }
