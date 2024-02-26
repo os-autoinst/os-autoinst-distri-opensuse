@@ -37,7 +37,7 @@ This is the documentation for Object Oriented approach used in automated GUI tes
    
 ## Context
 
-SUSE Products changes and evolves across versions, and we are expected to write tests for various versions of the same product. However, we may still want to re-use the same [business
+SUSE Products changes and evolves across versions, and we are expected to write tests for various versions of the same product. However, we may still want to reuse the same [business
 logic](https://en.wikipedia.org/wiki/Business_logic) and avoid to write different code for each specific case.
 
 Throughout the course of the project history, we attempted to solve this issue with many approaches; in the following order:
@@ -54,7 +54,7 @@ In the following guide let's explain in detail the last solution.
 ## Overview
 
 The framework proposed here is based on
-[Page Object Desing Pattern](https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/),
+[Page Object Design Pattern](https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/),
 implemented using ["Old school" object-oriented perl](https://www.perl.com/article/25/2013/5/20/Old-School-Object-Oriented-Perl/)
 with a certain adaptation related to the environment-specific demands.
 
