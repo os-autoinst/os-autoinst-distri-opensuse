@@ -62,7 +62,7 @@ sub configure_static_ip {
 
     if ($is_nm) {
         my $nm_id;
-        $device = '\S' unless defined $device;
+        $device //= '\S';
         my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
@@ -75,7 +75,7 @@ sub configure_static_ip {
         my $mac = $net_conf->{fixed}->{mac};
 
         # Get default network adapter name
-        $device = script_output("grep $mac /sys/class/net/*/address |cut -d / -f 5") unless ($device);
+        $device ||= script_output("grep $mac /sys/class/net/*/address |cut -d / -f 5");
         record_info('set_ip', "Device: $device\nIP: $ip\nMTU: $mtu");
 
         # check for duplicate IP
