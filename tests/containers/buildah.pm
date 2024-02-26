@@ -22,15 +22,20 @@ use version_utils qw(get_os_release);
 use containers::common;
 
 sub run {
+    my ($self, $args) = @_;
     select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
 
-    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+    my $runtime = $args->{runtime};
+    my $image = "registry.opensuse.org/opensuse/tumbleweed:latest";
 
-    record_info('Test', "Install buildah");
+    record_info('Test', "Install buildah along with $runtime");
     install_buildah_when_needed($host_distri);
-    install_podman_when_needed($host_distri);
-
+    install_podman_when_needed($host_distri) if ($runtime eq 'podman');
+    if ($runtime eq 'docker') {
+        install_docker_when_needed($host_distri);
+        zypper_call('install skopeo');
+    }
     record_info('Version', script_output('buildah --version'));
 
     record_info('Test', "Pull image $image");
@@ -42,9 +47,13 @@ sub run {
     validate_script_output('buildah containers', sub { /tumbleweed-working-container/ });
     validate_script_output("buildah run $container -- cat /etc/os-release", sub { /openSUSE Tumbleweed/ });
 
-    record_info('Test', "Install random package in the container");
-    assert_script_run("buildah run $container -- zypper in -y python3", timeout => 300);
-    assert_script_run("buildah run $container -- python3 --version");
+    # When trying to install packages inside the container in Docker, there's a
+    # network failure
+    if ($runtime eq 'podman') {
+        record_info('Test', "Install random package in the container");
+        assert_script_run("buildah run $container -- zypper in -y python3", timeout => 300);
+        assert_script_run("buildah run $container -- python3 --version");
+    }
 
     record_info('Test', "Add environment variable to the container");
     assert_script_run("buildah config --env foo=bar $container");
@@ -64,10 +73,13 @@ sub run {
     validate_script_output("buildah inspect --format '{{.OCIv1.Author}}' $container", sub { /someone at suse.com/ });
     validate_script_output("buildah inspect --format '{{.OCIv1.Config.Labels.name}}' $container", sub { /buildah_openqa_test/ });
 
-    record_info('Test', "Commit image and use it with podman");
+    record_info('Test', "Commit image and use it with podman or docker");
     assert_script_run("buildah commit $container newimage", timeout => 300);
     validate_script_output("buildah images", sub { /newimage/ });
-    validate_script_output("podman run -t --rm newimage", sub { /Test shall pass/ });
+    # There's need to copy the new image to Docker's storage
+    assert_script_run('skopeo copy containers-storage:localhost/newimage:latest docker-daemon:localhost/newimage:latest')
+      if ($runtime eq 'docker');
+    validate_script_output("$runtime run --rm localhost/newimage", sub { /Test shall pass/ });
 
     record_info('Test', "Create image with new tag");
     assert_script_run("buildah tag newimage newimage:sometag");
