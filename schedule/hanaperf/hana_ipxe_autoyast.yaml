@@ -8,6 +8,7 @@ schedule:
   - autoyast/prepare_profile
   - '{{pxe_bootloader}}'
   - autoyast/installation
+  - '{{ppc64le_postinstall}}'
 conditional_schedule:
   pxe_bootloader:
     ARCH:
@@ -15,3 +16,16 @@ conditional_schedule:
         - installation/ipxe_install
       ppc64le:
         - installation/bootloader
+  ppc64le_postinstall:
+    ARCH:
+      ppc64le:
+        - autoyast/console
+        - kernel_performance/install_qatestset
+        - boot/reconnect_mgmt_console
+        - support_server/login
+        - autoyast/console
+        - '{{full_run}}'
+  full_run:
+    HANA_PERF_FULL_RUN:
+      1:
+        - kernel_performance/full_run

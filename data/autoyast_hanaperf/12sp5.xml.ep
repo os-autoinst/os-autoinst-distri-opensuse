@@ -10,7 +10,11 @@
       <terminal>serial</terminal>
       <timeout config:type="integer">8</timeout>
     </global>
+    % if ($check_var->('ARCH', 'x86_64')) {
     <loader_type>grub2-efi</loader_type>
+    % } else {
+    <loader_type>grub2</loader_type>
+    % }
   </bootloader>
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
@@ -20,6 +24,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
+      <second_stage config:type="boolean">false</second_stage>
     </mode>
     <proposals config:type="list"/>
     <signature-handling>
@@ -56,11 +61,17 @@
   </networking>
   <partitioning config:type="list">
     <drive>
+      % if ($check_var->('MACHINE', 'ppc64le_legolas_2')) {
+      <device>/dev/disk/by-id/wwn-0x5002538b72965a70</device>
+      <disklabel>msdos</disklabel>
+      % } else {
       <device>/dev/sda</device>
       <disklabel>gpt</disklabel>
+      % }
       <enable_snapshots config:type="boolean">true</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+	% if ($check_var->('ARCH', 'x86_64')) {
         <partition>
           <create config:type="boolean">true</create>
           <crypt_fs config:type="boolean">false</crypt_fs>
@@ -75,6 +86,7 @@
           <resize config:type="boolean">false</resize>
           <size>155352576</size>
         </partition>
+        % }
         <partition>
           <create config:type="boolean">true</create>
           <crypt_fs config:type="boolean">false</crypt_fs>
@@ -102,6 +114,7 @@
           <partition_nr config:type="integer">3</partition_nr>
           <resize config:type="boolean">false</resize>
           <size>max</size>
+	  % if ($check_var->('ARCH', 'x86_64')) {
           <subvolumes config:type="list">
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>
@@ -184,6 +197,7 @@
               <path>var/tmp</path>
             </listentry>
           </subvolumes>
+          % }
         </partition>
       </partitions>
       <pesize/>
@@ -211,24 +225,28 @@
     <packages config:type="list">
       <package>openssh</package>
       <package>numactl</package>
+      % if ($check_var->('ARCH', 'x86_64')) {
       <package>grub2-x86_64-efi</package>
-      <package>glibc</package>
       <package>efibootmgr</package>
+      <package>biosdevname</package>
+      % }
+      <package>glibc</package>
       <package>e2fsprogs</package>
       <package>dosfstools</package>
       <package>btrfsprogs</package>
-      <package>biosdevname</package>
     </packages>
     <patterns config:type="list">
+      % if ($check_var->('ARCH', 'x86_64')) {
       <pattern>32bit</pattern>
-      <pattern>Minimal</pattern>
-      <pattern>apparmor</pattern>
-      <pattern>base</pattern>
-      <pattern>documentation</pattern>
       <pattern>sles-Minimal-32bit</pattern>
       <pattern>sles-apparmor-32bit</pattern>
       <pattern>sles-base-32bit</pattern>
       <pattern>sles-documentation-32bit</pattern>
+      % }
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
       <pattern>sles-yast2</pattern>
       <pattern>yast2</pattern>
     </patterns>
