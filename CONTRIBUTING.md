@@ -183,7 +183,7 @@ if (match_has_tag('yast2_missing_package')) {
 * Whenever possible, [provide a verification run][1] of a job that runs the code.
   This can also be done by mentioning the job to be cloned via
   `openqa: Clone https://openqa.opensuse.org/tests/<JOB_ID>` in the PR description.
-  This only works for jobs on https://openqa.opensuse.org. For other job you can
+  This only works for jobs on https://openqa.opensuse.org. For other jobs you can
   use the [openqa-clone-custom-git-refspec][2] script.
 
 Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.
