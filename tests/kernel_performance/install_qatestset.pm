@@ -41,7 +41,7 @@ sub extract_settings_qaset_config {
     my @fields = split(/;/, $values);
     if (scalar @fields > 0) {
         foreach my $a_value (@fields) {
-            assert_script_run("echo ${a_value} >> /root/qaset/config");
+            assert_script_run("echo '${a_value}' >> /root/qaset/config");
         }
     }
 }
