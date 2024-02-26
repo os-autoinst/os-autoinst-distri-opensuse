@@ -1,0 +1,24 @@
+---
+repos:
+  - name: sle-module-basesystem
+    alias: Basesystem
+    uri: cd:/\?devices=/dev/disk/by-id/scsi-0QEMU_QEMU_CD-ROM_cd0
+    enabled: 'No'
+    filter: name
+  - name: sle-module-server-applications
+    alias: Server-Applications
+    uri: cd:/\?devices=/dev/disk/by-id/scsi-0QEMU_QEMU_CD-ROM_cd0
+    enabled: 'No'
+    filter: name
+  - name: sle-ha
+    alias: SLEHA
+    uri: cd:/\?devices=/dev/disk/by-id/scsi-0QEMU_QEMU_CD-ROM_cd0
+    enabled: 'No'
+    filter: name
+  - name: SLES
+    nr: 3
+    alias: SLES
+    uri: cd:/\?devices=/dev/disk/by-id/scsi-0QEMU_QEMU_CD-ROM_cd0
+    enabled: 'No'
+    # As we cannot yet extrapolate vars.json variables, using nr to identify repo
+    filter: nr
