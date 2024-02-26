@@ -20,7 +20,7 @@ Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 ## How to get this repository working
 
 Upon setting up a new openQA instance, it's also necessary to install some
-aditional dependencies that are inherent to this repository.
+additional dependencies that are inherent to this repository.
 
 * On openSUSE to install an openQA worker and all dependencies do:
 
@@ -147,7 +147,7 @@ and additionally the following rules:
   "why did we change it".
 * Consider "multi-tag `assert_screen` with `match_has_tag`": Please use a
   multi-tag `assert_screen` with `match_has_tag` instead of `check_screen`
-  with non-zero timeout to prevent introducing any timing dependant behaviour,
+  with non-zero timeout to prevent introducing any timing dependent behaviour,
   to save test execution time as well as state more explicitly from the testers
   point of view what are the expected alternatives. For example:
 * Avoid use of egrep and fgrep. The two commands are deprecated, so please use 
@@ -174,7 +174,7 @@ if (match_has_tag('yast2_missing_package')) {
 
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
-  set up your local environment, use `make tidy` before commiting your changes,
+  set up your local environment, use `make tidy` before committing your changes,
   ensure your new code adheres to our coding style or use `make tidy-full` if
   you have already few commits.
 * Every pull request is tested by our CI system for different perl versions,
