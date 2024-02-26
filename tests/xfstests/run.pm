@@ -494,7 +494,7 @@ sub test_run_without_heartbeat {
 
 sub run {
     my $self = shift;
-    select_serial_terminal();
+    get_var('PUBLIC_CLOUD') ? select_console('root-console') : select_serial_terminal();
     return if get_var('XFSTESTS_NFS_SERVER');
     my $enable_heartbeat = 1;
     $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
