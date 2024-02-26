@@ -75,6 +75,8 @@ sub install_packages {
         } else {
             zypper_call("in @pkgs");
         }
+    } else {
+        record_info("Install", "Installation skipped, package(s) present already: " . join ', ', @pkgs);
     }
 }
 
