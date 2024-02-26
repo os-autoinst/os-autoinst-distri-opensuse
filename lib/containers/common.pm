@@ -21,7 +21,7 @@ use Mojo::JSON;
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
   install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity
-  test_search_registry switch_cgroup_version);
+  test_search_registry switch_cgroup_version install_packages);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -343,6 +343,19 @@ sub switch_cgroup_version {
     select_serial_terminal;
 
     validate_script_output("cat /proc/cmdline", sub { m/systemd\.unified_cgroup_hierarchy=$setting/ });
+}
+
+sub install_packages {
+    my @pkgs = @_;
+    # skip if already installed:
+    unless (script_run("rpm -q @pkgs") == 0) {
+        if (is_transactional) {
+            trup_call("pkg install @pkgs");
+            check_reboot_changes;
+        } else {
+            zypper_call("in @pkgs");
+        }
+    }
 }
 
 1;

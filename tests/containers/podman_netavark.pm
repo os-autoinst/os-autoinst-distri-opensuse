@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman, netavark, aardvark
@@ -11,9 +11,8 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud);
+use containers::common qw(install_packages);
 use containers::utils qw(get_podman_version registry_url);
-use transactional qw(trup_call check_reboot_changes);
-use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
 
@@ -62,20 +61,6 @@ sub _cleanup {
     }
 
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
-}
-
-sub install_packages {
-    my @pkgs = @_;
-    return 0 unless @pkgs;
-    # skip if already installed:
-    unless (script_run("rpm -q @pkgs") == 0) {
-        if (is_transactional) {
-            trup_call("pkg install @pkgs");
-            check_reboot_changes;
-        } else {
-            zypper_call("in @pkgs");
-        }
-    }
 }
 
 sub switch_to_netavark {

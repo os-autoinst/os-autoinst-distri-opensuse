@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Copying and distribution of this file, with or without modification,
@@ -17,7 +17,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'systemctl';
 use version_utils 'is_sle';
-use transactional qw(process_reboot trup_call);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common 'install_docker_when_needed';
 use version_utils 'get_os_release';
