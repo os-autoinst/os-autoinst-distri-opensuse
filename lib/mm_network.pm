@@ -58,10 +58,11 @@ sub configure_static_ip {
     my $ip = $args{ip};
     my $mtu = $args{mtu} // get_var('MM_MTU', 1380);
     my $is_nm = $args{is_nm} // is_networkmanager();
-    my $device = $args{device} // '\S';
+    my $device = $args{device};
 
     if ($is_nm) {
         my $nm_id;
+        $device = '\S' unless defined $device;
         my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
