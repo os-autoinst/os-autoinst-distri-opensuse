@@ -4,6 +4,10 @@ description:    >
     Extra qemu tests
 conditional_schedule:
     start:
+        ARCH:
+            's390x':
+                - installation/bootloader_start
+                - boot/boot_to_desktop
         BACKEND:
             'qemu':
                 - installation/bootloader_start
