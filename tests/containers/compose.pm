@@ -24,7 +24,6 @@ use registration;
 use utils;
 use containers::common;
 use version_utils qw(is_transactional);
-use transactional qw(trup_call check_reboot_changes);
 
 sub basic_test {
     my ($runtime, $rootless) = @_;
@@ -71,16 +70,7 @@ sub run {
 
     my $engine = $self->containers_factory($runtime);
 
-    my @pkgs = qw(docker-compose);
-
-    if (is_transactional) {
-        if (script_run("rpm -q @pkgs >/dev/null") != 0) {
-            trup_call("pkg install @pkgs");
-            check_reboot_changes;
-        }
-    } else {
-        zypper_call "in @pkgs";
-    }
+    install_packages('docker-compose');
 
     validate_script_output("$runtime compose version", qr/version 2/);
 

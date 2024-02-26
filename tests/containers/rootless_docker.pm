@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test rootless mode on docker.
@@ -22,8 +22,7 @@ use containers::common;
 use containers::docker;
 use containers::container_images;
 use Utils::Architectures;
-use version_utils qw(is_transactional get_os_release);
-use transactional qw(trup_call check_reboot_changes);
+use version_utils qw(get_os_release);
 use containers::common qw(install_docker_when_needed);
 
 sub run {
@@ -36,13 +35,7 @@ sub run {
 
     my $docker = containers::docker->new();
 
-    my $pkgs = qw(docker-rootless-extras);
-    if (is_transactional) {
-        trup_call("pkg install $pkgs");
-        check_reboot_changes;
-    } else {
-        zypper_call("in $pkgs");
-    }
+    install_packages('docker-rootless-extras');
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 

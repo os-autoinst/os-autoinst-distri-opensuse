@@ -67,12 +67,7 @@ sub run {
     my @pkgs = qw(aardvark-dns bats catatonit jq make netavark netcat-openbsd openssl python3-PyYAML socat sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
-    if (is_transactional) {
-        trup_call "-c pkg install -y @pkgs";
-        check_reboot_changes;
-    } else {
-        zypper_call "in @pkgs";
-    }
+    install_packages(@pkgs);
 
     # Workarounds for tests to work:
     # 1. Use netavark instead of cni
