@@ -142,6 +142,9 @@ our @test_run_report = ();
 # Get sle version "sle12" or "sle15"
 our $sle_version = '';
 
+# Stores current SCAP benchmark version
+our $benchmark_version = '';
+
 # Upload HTML report by default
 set_var('UPLOAD_REPORT_HTML', 1);
 
@@ -781,7 +784,7 @@ sub get_test_expected_results {
     my $sles_sp = (split('-', $version))[1];
 
     my $exp_fail_list_name = $sle_version . "-exp_fail_list";
-    my $expected_results_file_name = "openqa_tests_expected_results.yaml";
+    my $expected_results_file_name = "openqa_tests_expected_results_" . $benchmark_version . ".yaml";
     my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
     my @eval_match = ();
 
@@ -832,7 +835,7 @@ sub get_test_exclusions {
         my $sles_sp = (split('-', $version))[1];
 
         my $exclusions_list_name = $sle_version . "-exclusions_list";
-        my $exclusions_file_name = "openqa_tests_exclusions.yaml";
+        my $exclusions_file_name = "openqa_tests_exclusions_" . $benchmark_version . ".yaml";
         my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
         my @exclusions = ();
 
@@ -960,7 +963,8 @@ sub oscap_security_guide_setup {
     my $ver_grep_cmd = 'grep "version update=" ' . "$f_ssg_sle_xccdf";
     $out = script_output("$ver_grep_cmd", quiet => 1);
     my @lines = split /\<|\>/, $out;
-    push(@test_run_report, "benchmark_version = $lines[2]");
+    $benchmark_version = $lines[2];
+    push(@test_run_report, "benchmark_version = $benchmark_version");
 
     if ($remove_rules_missing_fixes == 1) {
         # Generate text file that contains rules that missing implimentation for profile
