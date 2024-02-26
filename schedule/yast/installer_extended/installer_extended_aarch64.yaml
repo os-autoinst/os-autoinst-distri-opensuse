@@ -20,7 +20,6 @@ schedule:
     - installation/bootloader_start
   product_selection:
     - installation/language_keyboard/switch_keyboard_layout
-    - installation/product_selection/install_SLES
   license_agreement:
     - installation/licensing/verify_license_translations
     - installation/licensing/verify_license_has_to_be_accepted
