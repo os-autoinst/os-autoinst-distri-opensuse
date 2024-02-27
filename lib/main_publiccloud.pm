@@ -24,7 +24,11 @@ sub load_maintenance_publiccloud_tests {
 
     loadtest "publiccloud/download_repos";
     loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest("publiccloud/registration", run_args => $args);
+    if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
+        loadtest("publiccloud/check_registercloudguest", run_args => $args);
+    } else {
+        loadtest("publiccloud/registration", run_args => $args);
+    }
     loadtest "publiccloud/transfer_repos", run_args => $args;
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
@@ -39,6 +43,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/ahb');
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
+    } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
+        loadtest("publiccloud/check_registercloudguest", run_args => $args);
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
