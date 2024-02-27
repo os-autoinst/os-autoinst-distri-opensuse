@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # check if in /var/tmp is at least 2048 MB of free disk space
-AVAILABLE_DISK_SPACE=$(df -m /var/tmp|awk '{print$4}'|grep [[:digit:]])
+AVAILABLE_DISK_SPACE=$(df -m --output=avail /var/tmp|grep -v [Aa]vail)
 if [ "$AVAILABLE_DISK_SPACE" -lt "2048"  ]; then
     echo "At leat 2G of disk space in /var/tmp is needed, free disk space or modify script"
     exit 1
 fi
 
-MD_DEVICE=/dev/md1054
+MD_DEVICE="/dev/md/1054"
 
 DEV_1=/dev/loop41
 DEV_2=/dev/loop42
