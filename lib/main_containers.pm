@@ -127,7 +127,7 @@ sub load_host_tests_podman {
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    load_buildah_tests($run_args) unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
@@ -161,7 +161,7 @@ sub load_host_tests_docker {
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
     }
-    load_buildah_tests($run_args) unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
