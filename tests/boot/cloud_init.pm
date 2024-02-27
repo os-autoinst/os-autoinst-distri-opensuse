@@ -9,10 +9,12 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Logging 'save_and_upload_log';
 
-sub upload_journal {
-    script_run("journalctl --no-pager -o short-precise > /tmp/journal_after_boot.log");
-    upload_logs "/tmp/journal_after_boot.log";
+sub post_boot_logs {
+    save_and_upload_log('journalctl --no-pager -o short-precise', 'journal_after_boot.log');
+    upload_logs('/etc/cloud/cloud.cfg');
+    upload_logs('/var/log/cloud-init.log');
 }
 
 sub run {
@@ -26,11 +28,16 @@ sub run {
     record_info('JOURNAL', script_output('journalctl --no-pager -u cloud-init'));
     validate_script_output('cat /tmp/cloud-message', sub { m/^cloud-init was here$/ });
 
-    upload_journal;
+    post_boot_logs;
+}
+
+sub post_run_hook {
+    post_boot_logs;
 }
 
 sub post_fail_hook {
-    upload_journal;
+    post_boot_logs;
 }
+
 
 1;
