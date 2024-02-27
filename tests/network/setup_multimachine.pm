@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
+use mmapi;
 use mm_network 'setup_static_mm_network';
 use utils qw(zypper_call permit_root_ssh set_hostname ping_size_check);
 use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
@@ -58,6 +59,7 @@ sub run {
         ping_size_check('server');
     }
     barrier_wait 'MM_SETUP_PING_CHECK_DONE';
+    wait_for_children if $is_server;
 }
 
 1;
