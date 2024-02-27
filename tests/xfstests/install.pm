@@ -31,6 +31,7 @@ my $IS_MARBLE = is_sle_micro && check_var('VERSION', '6.0');
 
 sub install_xfstests_from_repo {
     if (is_sle) {
+        zypper_ar('http://download.suse.de/ibs/home:/lansuse:/branches:/QA:/Head/SLE-15-SP6/', name => 'xfstests-repo', priority => 90, no_gpg_check => 1) if is_sle('15-SP6+');
         add_qa_head_repo(priority => 100);
     }
     elsif (is_tumbleweed) {
@@ -65,10 +66,11 @@ sub install_xfstests_from_repo {
     else {
         zypper_call('in xfstests fio');
     }
-    if (is_sle) {
+    # Link all possible xfstests dir to /opt/xfstests, following tests could all find xfstests in /opt
+    if (-d '/var/lib/xfstests/') {
         script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
     }
-    elsif (is_tumbleweed || is_leap) {
+    elsif (-d '/usr/lib/xfstests/') {
         script_run 'ln -s /usr/lib/xfstests/ /opt/xfstests';
     }
 }
