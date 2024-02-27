@@ -83,6 +83,7 @@ sub run {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
             select_console("installation");
+            script_run("clear");
             # If libyui REST API is used, we set it up in installation/setup_libyui
             enter_cmd("TERM=linux yast.ssh") unless get_var('YUI_REST_API');
         }
