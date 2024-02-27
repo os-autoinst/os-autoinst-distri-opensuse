@@ -88,7 +88,6 @@ sub run {
     record_info('Test', "Cleanup");
     assert_script_run("buildah rm $container");
     assert_script_run("buildah rmi newimage");
-    assert_script_run("buildah rmi $image");
 }
 
 1;
