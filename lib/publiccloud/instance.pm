@@ -605,6 +605,7 @@ sub measure_boottime() {
     $ret->{blame} = $systemd_blame;
     $ret->{type} = $type;
     # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
+    record_info("WARN", "High overall value:" . $ret->{analyze}->{overall}, result => 'fail') if ($ret->{analyze}->{overall} >= 3600.0);
 
     # Collect kernel version
     $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
@@ -686,12 +687,13 @@ sub systemd_time_to_second
 {
     my $str_time = trim(shift);
 
-    if ($str_time !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
+    if ($str_time !~ /^(?<check_hour>(?<hour>\d{1,2})\s*h\s*)?(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
         record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
         return -1;
     }
     my $sec = $+{sec} // $+{ms} / 1000;
     $sec += $+{min} * 60 if (defined($+{check_min}));
+    $sec += $+{hour} * 3600 if (defined($+{check_hour}));
     return $sec;
 }
 
