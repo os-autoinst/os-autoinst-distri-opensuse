@@ -29,6 +29,9 @@ sub check_addons {
     $myaddons //= get_var('SCC_ADDONS');
     my @addons = grep { $_ =~ /\w/ } split(/,/, $myaddons);
     my @unique_addons = uniq @addons;
+    bmwqemu::diag("all addons=@unique_addons");
+    script_run("zypper lr");
+    script_run("zypper lr | grep -i contain");
     foreach my $addon (@unique_addons) {
         my $name = get_addon_fullname($addon);
         record_info("$addon module fullname: ", $name);
