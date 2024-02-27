@@ -28,7 +28,7 @@ use Utils::Architectures qw(is_x86_64 is_aarch64);
 
 
 sub install_ovs_dpdk {
-    if (is_sle('>=15-sp5') || (is_leap('>=15.5') && !(check_var('FLAVOR', 'DVD-Updates')))) {
+    if (is_sle('=15-sp5') || (is_leap('=15.5') && !(check_var('FLAVOR', 'DVD-Updates')))) {
         zypper_call('in openvswitch3 dpdk22 dpdk22-tools', timeout => 300);
     }
     else {
