@@ -11,7 +11,6 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use mmapi;
 use mm_network 'setup_static_mm_network';
 use utils qw(zypper_call permit_root_ssh set_hostname ping_size_check);
 use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
@@ -40,7 +39,11 @@ sub run {
     disable_and_stop_service('apparmor', ignore_failure => 1);
 
     # Configure the internal network an  try it
-    setup_static_mm_network($is_server ? '10.0.2.101/24' : '10.0.2.102/24');
+    if ($is_server) {
+        setup_static_mm_network('10.0.2.101/24');
+    } else {
+        setup_static_mm_network('10.0.2.102/24');
+    }
 
     # Set the hostname to identify both minions
     set_hostname $hostname;
@@ -51,9 +54,10 @@ sub run {
     permit_root_ssh();
 
     barrier_wait 'MM_SETUP_DONE';
-    ping_size_check('server') unless $is_server;
+    if (!$is_server) {
+        ping_size_check('server');
+    }
     barrier_wait 'MM_SETUP_PING_CHECK_DONE';
-    wait_for_children if $is_server;
 }
 
 1;
