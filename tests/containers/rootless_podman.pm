@@ -27,6 +27,7 @@ use Utils::Architectures;
 use Utils::Logging 'save_and_upload_log';
 
 my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
+my $podman_version;
 
 sub run {
     my ($self) = @_;
@@ -35,6 +36,7 @@ sub run {
 
     my $podman = $self->containers_factory('podman');
 
+    $podman_version = get_podman_version();
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
     # bsc#1207673, bsc#1218023
@@ -150,7 +152,6 @@ sub verify_userid_on_container {
     # Check for bsc#1182428
     # podman 2.1.1 with keep-id option list unexpected capabilities
     # podman of the same version can still show the nsenter original issue
-    my $podman_version = get_podman_version();
     my $buggy_podman = (package_version_cmp($podman_version, '2.1.1') == 0);
 
     if ($buggy_podman && (is_aarch64 || is_s390x)) {
