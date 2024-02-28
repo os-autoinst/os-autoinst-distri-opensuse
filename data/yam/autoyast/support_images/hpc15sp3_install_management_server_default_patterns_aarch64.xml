@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall t="map">
+    <enable_firewall t="boolean">true</enable_firewall>
+    <start_firewall t="boolean">true</start_firewall>
+  </firewall>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <keyboard t="map">
+    <keyboard_values t="map">
+      <delay/>
+      <discaps t="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language t="map">
+    <languages>en_US</languages>
+  </language>
+  <networking t="map">
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <bridge>yes</bridge>
+        <bridge_forward_delay>15</bridge_forward_delay>
+        <bridge_ports>eth0</bridge_ports>
+        <bridge_stp>off</bridge_stp>
+        <name>br0</name>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <ntp-client t="map">
+    <ntp_policy>auto</ntp_policy>
+  </ntp-client>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/vda</device>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>apparmor</service>
+        <service>auditd</service>
+        <service>issue-generator</service>
+        <service>kbdsettings</service>
+        <service>wicked</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <packages t="list">
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sle-module-web-scripting-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-python2-release</package>
+      <package>sle-module-hpc-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-desktop-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>kexec-tools</package>
+      <package>grub2-arm64-efi</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2-installation</package>
+      <package>autoyast2</package>
+      <package>SLE_HPC-release</package>
+      <package>SLE_HPC-LTSS-release</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>file_server</pattern>
+      <pattern>hpc_compute_node</pattern>
+      <pattern>hpc_development_node</pattern>
+      <pattern>hpc_libraries</pattern>
+      <pattern>hpc_workload_server</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>ofed</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLE_HPC</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-hpc</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-development-tools</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-desktop-applications</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-web-scripting</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python2</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLE_HPC-LTSS</name>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE_HPC}}</reg_code>
+    <reg_server>https://scc.suse.com</reg_server>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <user_password>$6$W63cwf4fcYmijcnd$rYhp.y3f82u/LldYii856GphucSp9MOkgB.PdW8UMBv0S61UEcA92cvFH76NljywlgGni5EsKboag9WJNlBdb/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$qTmZUVUK/.CRKnng$eHA12NDmNBn5LBATG8ZvmrQnSA28kQTagD5dn.umcQZqmdl3ln53kYNHkbh0BEZOAp4bYw2oI1c2f5Aokwbw51</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report t="map">
+    <errors t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+</profile>
