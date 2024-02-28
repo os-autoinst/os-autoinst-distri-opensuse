@@ -76,10 +76,6 @@ variable "ipv6_address_count" {
   default = 0
 }
 
-variable "ssh_public_key" {
-  default = "/root/.ssh/id_ed25519.pub"
-}
-
 resource "random_id" "service" {
   count = var.instance_count
   keepers = {
@@ -90,7 +86,7 @@ resource "random_id" "service" {
 
 resource "aws_key_pair" "openqa-keypair" {
   key_name   = "openqa-${element(random_id.service.*.hex, 0)}"
-  public_key = file("${var.ssh_public_key}")
+  public_key = file("/root/.ssh/id_rsa.pub")
 }
 
 resource "aws_instance" "openqa" {
