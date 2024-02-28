@@ -24,8 +24,6 @@ has container => 'sle-images';
 has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 has storage_region => 'westeurope';
-# The ssh_key already exists in parrent class
-has ssh_key => '/root/.ssh/id_rsa';
 
 my $default_sku = 'gen2';
 
