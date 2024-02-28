@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened);
+use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_key_algorithm);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -31,7 +31,7 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
-has ssh_key => '/root/.ssh/id_ed25519';
+has ssh_key => get_ssh_key_file_name();
 
 =head1 METHODS
 

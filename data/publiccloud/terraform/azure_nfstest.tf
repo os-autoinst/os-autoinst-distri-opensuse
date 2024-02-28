@@ -62,7 +62,7 @@ variable "subnet_id" {
 }
 
 variable "ssh_public_key" {
-  default = "/root/.ssh/id_ed25519.pub"
+  default = "/root/.ssh/id_rsa.pub"
 }
 
 
