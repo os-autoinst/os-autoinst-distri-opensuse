@@ -31,7 +31,7 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
-has ssh_key => '/root/.ssh/id_rsa';
+has ssh_key => '/root/.ssh/id_ed25519';
 
 =head1 METHODS
 
@@ -155,11 +155,13 @@ Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
 =cut
 
 sub create_ssh_key {
-    my ($self, %args) = @_;
-    $args{ssh_private_key_file} //= '/root/.ssh/id_rsa';
-    if (script_run('test -f ' . $args{ssh_private_key_file}) != 0) {
-        assert_script_run('SSH_DIR=`dirname ' . $args{ssh_private_key_file} . '`; mkdir -p $SSH_DIR');
-        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -C "" -m pem -f ' . $args{ssh_private_key_file});
+    my ($self) = @_;
+    my $alg = $self->ssh_key;
+    $alg =~ s@[a-z0-9/-_~.]*id_@@;
+    record_info($alg, "The $alg key will be generated.");
+    if (script_run('test -f ' . $self->ssh_key) != 0) {
+        assert_script_run('SSH_DIR=`dirname ' . $self->ssh_key . '`; mkdir -p $SSH_DIR');
+        assert_script_run('ssh-keygen -t ' . $alg . ' -q -N "" -C "" -m pem -f ' . $self->ssh_key);
     }
 }
 
@@ -520,6 +522,7 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_NVIDIA')) {
         $cmd .= "-var gpu=true ";
     }
+    $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
