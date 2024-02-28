@@ -18,7 +18,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(get_os_release);
+use version_utils qw(get_os_release is_sle);
 use containers::common;
 
 sub run {
@@ -35,6 +35,9 @@ sub run {
     if ($runtime eq 'docker') {
         install_docker_when_needed($host_distri);
         zypper_call('install skopeo');
+
+        # temporarily necessary due to https://bugzilla.suse.com/show_bug.cgi?id=1220568
+        zypper_call('install cni-plugins') if (is_sle("=15-SP3"));
     }
     record_info('Version', script_output('buildah --version'));
 
