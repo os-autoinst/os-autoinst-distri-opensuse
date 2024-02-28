@@ -88,6 +88,11 @@ variable "vm_create_timeout" {
   default = "20m"
 }
 
+variable "ssh_public_key" {
+  default = "/root/.ssh/id_ed25519.pub"
+}
+
+
 resource "random_id" "service" {
   count = var.instance_count
   keepers = {
@@ -124,7 +129,7 @@ resource "google_compute_instance" "openqa" {
   }
 
   metadata = merge({
-    sshKeys             = "susetest:${file("/root/.ssh/id_rsa.pub")}"
+    sshKeys             = "susetest:${file("${var.ssh_public_key}")}"
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
     openqa_created_id   = element(random_id.service.*.hex, count.index)

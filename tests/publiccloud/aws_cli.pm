@@ -38,7 +38,7 @@ sub run {
     record_info("EC2 AMI", "EC2 AMI query: " . $image_id);
 
     my $ssh_key = "openqa-cli-test-key-$job_id";
-    assert_script_run("aws ec2 import-key-pair --key-name '$ssh_key' --public-key-material fileb://~/.ssh/id_rsa.pub");
+    assert_script_run("aws ec2 import-key-pair --key-name '$ssh_key' --public-key-material fileb://" . $provider->ssh_key . ".pub");
 
     my $machine_name = "openqa-cli-test-vm-$job_id";
     my $security_group_name = "openqa-cli-test-sg-$job_id";
