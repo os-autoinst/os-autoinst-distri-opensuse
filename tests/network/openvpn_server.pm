@@ -42,7 +42,7 @@ sub run {
     zypper_call('in openvpn easy-rsa');
     zypper_call("install openssl") if (script_run("which openssl") != 0);
     assert_script_run('cd /etc/openvpn');
-    assert_script_run('openvpn --genkey --secret static.key');
+    assert_script_run('openvpn --genkey secret static.key');
     mutex_create 'OPENVPN_STATIC_KEY';
 
     # Download the server config

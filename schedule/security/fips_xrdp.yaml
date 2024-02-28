@@ -1,0 +1,19 @@
+name: fips_xrdp
+description: >
+  XRDP FIPS tests server+win_client
+schedule:
+  - '{{server_client}}'
+conditional_schedule:
+  server_client:
+    REMOTE_DESKTOP_TYPE:
+      'xrdp_server':
+        - boot/boot_to_desktop
+        - console/consoletest_setup
+        - security/test_repo_setup
+        - fips/fips_setup
+        - x11/window_system
+        - x11/remote_desktop/xrdp_server
+      'win_client':
+        - x11/remote_desktop/windows_client_boot
+        - x11/remote_desktop/windows_network_setup
+        - x11/remote_desktop/windows_client_remotelogin

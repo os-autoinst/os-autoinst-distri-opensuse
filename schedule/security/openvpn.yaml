@@ -2,14 +2,19 @@ name: openVPN
 description: >
   Maintainer: pdostal.
   openVPN test
+schedule:
+  - boot/boot_to_desktop
+  - network/setup_multimachine
+  - '{{fips}}'
+  - '{{openvpn}}'
 conditional_schedule:
+  fips:
+    FIPS_ENABLED:
+      1:
+        - fips/fips_setup
   openvpn:
     HOSTNAME:
       'server':
         - network/openvpn_server
       'client':
         - network/openvpn_client
-schedule:
-  - boot/boot_to_desktop
-  - network/setup_multimachine
-  - '{{openvpn}}'
