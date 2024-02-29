@@ -8,3 +8,4 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - network/setup_multimachine
+    - network/conclude_multimachine
