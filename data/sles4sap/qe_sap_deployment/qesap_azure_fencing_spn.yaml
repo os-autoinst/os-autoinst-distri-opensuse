@@ -47,5 +47,6 @@ ansible:
     - sap-hana-system-replication.yaml
     - sap-hana-system-replication-hooks.yaml
     - sap-hana-cluster.yaml -e azure_identity_management=%AZURE_NATIVE_FENCING_AIM% -e spn_application_id=%AZURE_NATIVE_FENCING_APP_ID% -e spn_application_password=%AZURE_NATIVE_FENCING_APP_PASSWORD%
+    - post-sap-hana-cluster.yaml
   destroy:
     - deregister.yaml
