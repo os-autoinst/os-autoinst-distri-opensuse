@@ -1,0 +1,12 @@
+---
+name: stack_tests_php
+description: PHP tests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/php_version
+  - console/php_pcre
+  - console/php_mysql
+  - console/php_postgresql
+  - console/php_timezone
