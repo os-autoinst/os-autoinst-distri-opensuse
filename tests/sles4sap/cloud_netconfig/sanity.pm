@@ -64,6 +64,7 @@ sub run {
     record_info('TEST STEP', 'is-system-running OK');
 
     # Check that cloud-netconfig is installed
+    assert_script_run("$ssh_cmd sudo zypper ref");    # Needed in the PAYG images
     assert_script_run("$ssh_cmd zypper se -s -i cloud-netconfig");
     assert_script_run("$ssh_cmd cat /etc/default/cloud-netconfig");
     assert_script_run("$ssh_cmd sudo journalctl |grep -E 'cloud-netconfig\\['");
