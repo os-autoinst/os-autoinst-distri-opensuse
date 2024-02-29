@@ -128,7 +128,7 @@ sub run {
         '--admin-username cloudadmin',
         '--authentication-type ssh',
         '--generate-ssh-keys');
-    assert_script_run($az_cmd);
+    assert_script_run($az_cmd, timeout => 600);
 }
 
 sub test_flags {

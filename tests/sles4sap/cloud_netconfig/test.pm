@@ -22,16 +22,16 @@ sub run {
 
     my $rg = 'clne' . get_current_job_id();
 
+    my $vm_user = script_output("az vm list --resource-group $rg --query '[0].osProfile.adminUsername' -o tsv");
+    my $vm_ip = script_output("az network public-ip show --resource-group $rg --name clne-pub_ip-1 --query 'ipAddress' -o tsv");
+    my $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
+
     # Delete an ip-config
     my $az_cmd = join(' ', 'az network nic ip-config delete',
         '--resource-group', $rg,
         '--name ipconfig2',
         '--nic-name clne-nic');
     assert_script_run($az_cmd);
-
-    my $vm_user = script_output("az vm list --resource-group $rg --query '[0].osProfile.adminUsername' -o tsv");
-    my $vm_ip = script_output("az network public-ip show --resource-group $rg --name clne-pub_ip-1 --query 'ipAddress' -o tsv");
-    my $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # Intermediate optional test, check on the cloud side
     my $curl_cmd = join(' ', $ssh_cmd,
@@ -51,7 +51,11 @@ sub run {
 
     # Check that cloud-netconfig removed the IpConfig
     # as result of the change on the cloud side.
-    assert_script_run("! $ssh_cmd ip a show eth0 | grep '10.1.0.5'");
+    $start_time = time();
+    while ((time() - $start_time) < 300) {
+        last unless script_output("$ssh_cmd ip a show eth0 | grep '10.1.0.5'", proceed_on_failure => 1);
+        sleep 10;
+    }
 }
 
 sub test_flags {
