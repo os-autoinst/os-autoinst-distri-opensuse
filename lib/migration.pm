@@ -30,6 +30,7 @@ our @EXPORT = qw(
   set_scc_proxy_url
   set_zypp_single_rpmtrans
   remove_dropped_modules_packages
+  workaround_bsc_1220091
 );
 
 sub setup_sle {
@@ -249,6 +250,19 @@ sub set_zypp_single_rpmtrans {
 
     assert_script_run 'export ZYPP_SINGLE_RPMTRANS=1 ' if get_var('ZYPP_SINGLE_RPMTRANS');
 
+}
+
+=head2 workaround_bsc_1220091
+    workaround_bsc_1220091()
+
+This function is used for removing libopenssl-1_1-devel for bsc#1220091
+We need to remove package libopenssl-1_1-devel before migration.
+
+=cut
+
+sub workaround_bsc_1220091 {
+    my $pkg = 'libopenssl-1_1-devel';
+    zypper_call("rm $pkg") unless script_run("rpm -q $pkg");
 }
 
 1;
