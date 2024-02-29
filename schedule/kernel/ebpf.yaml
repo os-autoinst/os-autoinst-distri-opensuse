@@ -1,0 +1,7 @@
+name:          ebpf
+description:    >
+    Kernel eBPF testing.
+schedule:
+    - boot/boot_to_desktop
+    - kernel/ebpf
+    - shutdown/shutdown
