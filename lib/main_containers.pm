@@ -153,7 +153,7 @@ sub load_host_tests_docker {
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is only available on SLES < 15-SP6
-        loadtest 'containers/zypper_docker' if (is_sle("<15-SP6"));
+        loadtest 'containers/zypper_docker' if (is_sle("<15-SP6") || is_leap("<15.6"));
         loadtest 'containers/docker_runc';
     }
     unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro || is_staging) {
