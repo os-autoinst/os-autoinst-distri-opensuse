@@ -51,19 +51,7 @@ sub run
     assert_script_run("make -C $root/$suite", timeout => 1800);
 
     # set tests to skip
-    my $environment = {
-        product => get_var('DISTRI') . ':' . get_var('VERSION'),
-        revision => get_var('BUILD'),
-        flavor => get_var('FLAVOR'),
-        arch => get_var('ARCH'),
-        backend => get_var('BACKEND'),
-        kernel => script_output('uname -r'),
-        libc => '',
-        gcc => '',
-        harness => 'SUSE OpenQA',
-        ltp_version => ''
-    };
-
+    my $environment = LTP::utils::prepare_whitelist_environment();
     my $issues = get_var('KSELFTESTS_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
     my @skipped = $whitelist->list_skipped_tests($environment, 'kselftests');
