@@ -15,6 +15,7 @@
   <li>
     <ul>
       <li><a href="#set_zypp_single_rpmtrans-set_zypp_single_rpmtrans">set_zypp_single_rpmtrans set_zypp_single_rpmtrans();</a></li>
+      <li><a href="#workaround_bsc_1220091-workaround_bsc_1220091">workaround_bsc_1220091 workaround_bsc_1220091()</a></li>
     </ul>
   </li>
 </ul><h1>lib/migration.pm</h1>
@@ -24,6 +25,10 @@
 <p>This function is used for adding ZYPP_SINGLE_RPMTRANS if the test case has ZYPP_SINGLE_RPMTRANS setting. this feature will enhance the zypper performance.</p>
 
 <p>jira feature https://jira.suse.com/browse/SLE-21973 zypper single transaction performance enhancement (RFE)</p>
+
+<h2 id="workaround_bsc_1220091-workaround_bsc_1220091">workaround_bsc_1220091 workaround_bsc_1220091()</h2>
+
+<p>This function is used for removing libopenssl-1_1-devel for bsc#1220091 We need to remove package libopenssl-1_1-devel before migration.</p>
 
 
 </body>
