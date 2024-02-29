@@ -40,7 +40,7 @@ sub run {
     if (get_var('FLAVOR', '') =~ /Continuous-Migration/) {
         modify_kernel_multiversion("disable");
     }
-
+    workaround_bsc_1220091;
     cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;

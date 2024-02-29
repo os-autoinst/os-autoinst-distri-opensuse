@@ -127,6 +127,7 @@ sub patching_sle {
         modify_kernel_multiversion("disable");
     }
 
+    workaround_bsc_1220091;
     # Record the installed rpm list
     assert_script_run 'rpm -qa > /tmp/rpm-qa.txt';
     upload_logs '/tmp/rpm-qa.txt';
