@@ -138,6 +138,7 @@ sub load_host_tests_podman {
     load_secret_tests($run_args);
     load_volume_tests($run_args);
     load_compose_tests($run_args);
+    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
 }
 
 sub load_host_tests_docker {
@@ -168,6 +169,7 @@ sub load_host_tests_docker {
     }
     load_volume_tests($run_args);
     load_compose_tests($run_args);
+    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';

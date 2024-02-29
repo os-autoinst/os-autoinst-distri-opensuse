@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2013-2023 SUSE LLC
+# Copyright 2013-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker/podman engine
@@ -45,7 +45,6 @@ sub run {
     }
 
     my $engine = $self->containers_factory($self->{runtime});
-    test_seccomp() if ($self->{runtime} eq 'docker');
 
     # Test the connectivity of Docker containers
     check_containers_connectivity($engine);
