@@ -426,7 +426,6 @@
       <package>snapper</package>
       <package>sle-module-web-scripting-release</package>
       <package>sle-module-server-applications-release</package>
-      <package>sle-module-hpc-release</package>
       <package>sle-module-development-tools-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
