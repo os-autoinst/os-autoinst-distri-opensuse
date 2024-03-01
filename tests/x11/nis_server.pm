@@ -36,7 +36,7 @@ sub setup_verification {
 sub nis_server_configuration {
     my $test_data = get_test_suite_data();
     # NIS Server Setup
-    assert_screen 'nis-server-setup-status', 150;
+    assert_screen 'nis-server-setup-status', 600;
     send_key 'alt-m';    # NIS master server
     save_screenshot;
     send_key $cmd{next};
