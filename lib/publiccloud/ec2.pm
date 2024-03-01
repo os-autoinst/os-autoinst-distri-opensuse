@@ -15,6 +15,8 @@ use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 
+has ssh_key_file => undef;
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
@@ -45,6 +47,8 @@ sub get_default_instance_type {
 sub create_keypair {
     my ($self, $prefix, $out_file) = @_;
 
+    return $self->ssh_key_file if ($self->ssh_key_file);
+
     for my $i (0 .. 9) {
         my $key_name = $prefix . "_" . $i;
         my $cmd = "aws ec2 create-key-pair --key-name '" . $key_name
@@ -53,6 +57,7 @@ sub create_keypair {
         if (defined($ret) && $ret == 0) {
             assert_script_run('chmod 600 ' . $out_file);
             $self->ssh_key($key_name);
+            $self->ssh_key_file($out_file);
             return $key_name;
         }
     }
@@ -145,6 +150,7 @@ sub upload_img {
           . "--verbose "
           . "--regions '" . $self->provider_client->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
+          . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA upload image' "
           . "--wait-count 3 "
           . "--ec2-ami '" . $helper_ami_id . "' "
@@ -175,6 +181,7 @@ sub img_proof {
     $args{instance_type} //= 't2.large';
     $args{user} //= 'ec2-user';
     $args{provider} //= 'ec2';
+    $args{ssh_private_key_file} //= $self->ssh_key_file;
     $args{key_name} //= $self->ssh_key;
 
     return $self->run_img_proof(%args);

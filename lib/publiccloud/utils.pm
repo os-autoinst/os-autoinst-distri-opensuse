@@ -43,7 +43,7 @@ our @EXPORT = qw(
   register_openstack
   register_addons_in_pc
   gcloud_install
-  get_ssh_key_algorithm
+  get_ssh_private_key_path
   prepare_ssh_tunnel
   kill_packagekit
   allow_openqa_port_selinux
@@ -255,20 +255,17 @@ sub gcloud_install {
     record_info('GCE', script_output('gcloud version'));
 }
 
-sub get_ssh_key_file_name {
-    my $algorithm = '~/.ssh/id_ed25519';
-    $algorithm = '~/.ssh/id_rsa' if (is_azure() || get_var('PUBLIC_CLOUD_SLES4SAP'));
-    return $algorithm;
+sub get_ssh_private_key_path {
+    return (is_azure() || get_var('PUBLIC_CLOUD_SLES4SAP')) ? '~/.ssh/id_rsa' : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {
-    my ($instance, $ssh_key) = @_;
-    $ssh_key //= '~/.ssh/id_rsa';
+    my ($instance) = @_;
 
     # configure ssh client
     my $ssh_config_url = data_url('publiccloud/ssh_config');
     assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
-    file_content_replace("~/.ssh/config", "%SSH_KEY%" => $ssh_key);
+    file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
 
     # Create the ssh alias
     assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));

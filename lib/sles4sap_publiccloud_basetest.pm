@@ -15,7 +15,6 @@ use Exporter 'import';
 use testapi;
 use qesapdeployment;
 use sles4sap_publiccloud;
-use publiccloud::utils;
 
 our @EXPORT = qw(cleanup import_context);
 

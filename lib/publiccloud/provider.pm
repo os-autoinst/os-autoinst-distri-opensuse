@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_key_algorithm);
+use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_private_key_path);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -31,7 +31,7 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
-has ssh_key => get_ssh_key_file_name();
+has ssh_key => get_ssh_private_key_path();
 
 =head1 METHODS
 
@@ -197,9 +197,9 @@ sub run_img_proof {
     $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
     #TODO: this if is just dirty hack which needs to be replaced with something more sane ASAP.
     $cmd .= '--access-key-id $AWS_ACCESS_KEY_ID --secret-access-key $AWS_SECRET_ACCESS_KEY ' if (is_ec2());
-    $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
+    $cmd .= '--ssh-key-name $(realpath ' . $args{key_name} . ') ' if ($args{key_name});
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
-    $cmd .= '--ssh-private-key-file "' . $self->ssh_key . '" ';
+    $cmd .= '--ssh-private-key-file $(realpath ' . $self->ssh_key . ') ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
     $cmd .= "--beta " if ($beta);
     if ($exclude) {
