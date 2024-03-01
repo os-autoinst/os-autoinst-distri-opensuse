@@ -22,8 +22,7 @@ sub run {
     # Install runtime dependencies
     zypper_call("in wget");
 
-    # openvswitch is moved to legacy module, we need to test newer version on sle15sp5+
-    my $ovs_pkg = is_sle('>=15-sp5') ? 'openvswitch3' : 'openvswitch';
+    my $ovs_pkg = is_sle('=15-sp5') ? 'openvswitch3' : 'openvswitch';
     if (is_sle("<=12-SP5")) {
         zypper_call("in python python-base $ovs_pkg");
     } else {

@@ -27,8 +27,7 @@ use version_utils qw(is_sle is_leap);
 sub run {
     select_serial_terminal;
 
-    # openvswitch is moved to legacy module, we need to test newer version on sle15sp5+
-    my $pkg_name = (is_sle('>=15-sp5') or is_leap('>=15.5')) ? 'openvswitch3' : 'openvswitch';
+    my $pkg_name = (is_sle('=15-sp5') or is_leap('=15.5')) ? 'openvswitch3' : 'openvswitch';
     # package openvswitch-switch still exist for sle12-sp2
     $pkg_name = 'openvswitch-switch' if is_sle('=12-sp2');
 
