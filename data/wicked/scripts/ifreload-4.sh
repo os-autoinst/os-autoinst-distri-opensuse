@@ -29,7 +29,7 @@ unset only
 while test $# -gt 0 ; do
 	case $1 in
 	-p) pause=yes ;;
-	-d) wdebug='--debug all --log-level debug2 --log-target syslog::perror' ;;
+	-d) wdebug='--debug all --log-level debug2 --log-target syslog' ;;
 	-s) shift ; only="$1" ;;
 	-c) cprep=yes ;;
 	-*) exit 2 ;;
@@ -78,7 +78,7 @@ step1()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifup $cfg all
+	wicked $wdebug ifup $cfg all
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -128,7 +128,7 @@ step2()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg all
+	wicked $wdebug ifreload $cfg all
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -178,7 +178,7 @@ step3()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg all
+	wicked $wdebug ifreload $cfg all
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -228,7 +228,7 @@ step4()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg $bridge_name
+	wicked $wdebug ifreload $cfg $bridge_name
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -278,7 +278,7 @@ step5()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg $bridge_name
+	wicked $wdebug ifreload $cfg $bridge_name
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -328,7 +328,7 @@ step6()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg $bridge_port
+	wicked $wdebug ifreload $cfg $bridge_port
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -378,7 +378,7 @@ step7()
 	wicked show-config > "config-step-${step}.xml"
 	test "X$cprep" = X || return
 
-	wicked ifreload $cfg $bridge_port
+	wicked $wdebug ifreload $cfg $bridge_port
 
 	wicked ifstatus $cfg $bridge_name $bridge_port
 	ip a s dev $bridge_name
@@ -411,7 +411,7 @@ cleanup()
 	echo ""
 	echo "=== $step: cleanup"
 
-	wicked ifdown $bridge_name $bridge_port
+	wicked $wdebug ifdown $bridge_name $bridge_port
 	rm -f "${dir}/ifcfg-$bridge_name"
 	rm -f "${dir}/ifcfg-$bridge_port"
 	if test -d "/sys/class/net/$bridge_port" ; then
@@ -423,7 +423,7 @@ cleanup()
 	echo "-----------------------------------"
 	ps  ax | grep /usr/.*/wicked | grep -v grep
 	echo "-----------------------------------"
-	wicked ifstatus all
+	wicked ifstatus $cfg all
 	echo "-----------------------------------"
 	show_all_bridges
 	echo "-----------------------------------"

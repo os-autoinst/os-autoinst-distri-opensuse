@@ -23,7 +23,7 @@ unset only
 while test $# -gt 0 ; do
         case $1 in
         -p) pause=yes ;;
-        -d) wdebug='--debug all --log-level debug2 --log-target syslog::perror' ;;
+        -d) wdebug='--debug all --log-level debug2 --log-target syslog' ;;
 	-s) shift ; only="$1" ;;
 	-c) cprep=yes ;;
         -*) exit 2 ;;
@@ -132,11 +132,11 @@ step1()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  && ((err++))
+	ip a s dev ${bond_vlan1}  && ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -205,11 +205,11 @@ step2()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  || ((err++))
+	ip a s dev ${bond_vlan1}  || ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -271,11 +271,11 @@ step3()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  || ((err++))
+	ip a s dev ${bond_vlan1}  || ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -332,11 +332,11 @@ step4()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  && ((err++))
+	ip a s dev ${bond_vlan1}  && ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -405,11 +405,11 @@ step5()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  || ((err++))
+	ip a s dev ${bond_vlan1}  || ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -472,11 +472,11 @@ step5()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  && ((err++))
+	ip a s dev ${bond_vlan1}  && ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -556,11 +556,11 @@ step6()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  && ((err++))
+	ip a s dev ${bond_vlan1}  && ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -648,11 +648,11 @@ step7()
 
 	wicked ifstatus all
 	for dev in ${bond_slaves} ${bond_master} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
-	ip -d a s dev ${bond_vlan1}  && ((err++))
+	ip a s dev ${bond_vlan1}  && ((err++))
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
-		ip -d a s dev ${dev} || ((err++))
+		ip a s dev ${dev} || ((err++))
 	done
 	show_bridges
 
@@ -696,7 +696,7 @@ cleanup()
 	echo ""
 	echo "=== $step: cleanup"
 
-	wicked ifdown ${bridge1} ${bridge2} ${bond_vlan1} ${bond_vlan2} ${bond_master} ${bond_slaves} ${other1} ${other2}
+	wicked $wdebug ifdown ${bridge1} ${bridge2} ${bond_vlan1} ${bond_vlan2} ${bond_master} ${bond_slaves} ${other1} ${other2}
 	for dev in ${bridge1} ${bridge2} ${bond_vlan1} ${bond_vlan2} ${bond_master} ${other1} ${other2} ; do
 		ip link delete dev $dev
 	done
@@ -711,7 +711,7 @@ cleanup()
 	echo "-----------------------------------"
 	ps  ax | grep /usr/.*/wicked | grep -v grep
 	echo "-----------------------------------"
-	wicked ifstatus all
+	wicked ifstatus $cfg all
 	echo "-----------------------------------"
 	brctl show
 	echo "-----------------------------------"
