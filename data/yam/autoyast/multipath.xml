@@ -233,7 +233,7 @@ pre init scripts feature. See poo#20818.
           <partition_id config:type="integer">6878</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>256M</size>
+          <size>300M</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -250,7 +250,7 @@ pre init scripts feature. See poo#20818.
       </partitions>
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>
-  </drive>
+    </drive>
     <drive>
       <device>/dev/system</device>
       <initialize config:type="boolean">true</initialize>
