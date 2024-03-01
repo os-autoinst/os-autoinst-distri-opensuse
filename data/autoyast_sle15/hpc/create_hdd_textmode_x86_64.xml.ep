@@ -449,7 +449,9 @@
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>autoyast2</package>
+      % unless ($check_var->('VERSION', '15-SP6')) {
       <package>SLE_HPC-release</package>
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
