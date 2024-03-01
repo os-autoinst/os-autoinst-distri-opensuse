@@ -168,6 +168,20 @@ sub enter_o3_ipxe_boot_entry {
     }
 }
 
+sub init_sol_console {
+    for my $retry (0 .. 2) {
+        record_soft_failure('Sol console activation failed, retrying...')
+          if $retry;
+        select_console 'sol', await_console => 0;
+        return if wait_screen_change(sub { 0 }, 10);
+
+        # Console persistence must be disabled, otherwise reset does nothing
+        last if get_var('IPMI_SOL_PERSISTENT_CONSOLE', 1);
+        reset_consoles;
+    }
+
+    die 'Sol console activation failed';
+}
 
 sub run {
     my $self = shift;
@@ -180,8 +194,7 @@ sub run {
     set_pxe_boot;
 
     poweron_host;
-
-    select_console 'sol', await_console => 0;
+    init_sol_console;
 
     # Print screenshots for ipxe boot process
     if (get_var('VIRT_AUTOTEST')) {
