@@ -2523,7 +2523,7 @@ Leap16 will sync with Tumbleweed as well.
 =cut
 
 sub permit_root_ssh {
-    if (is_sle('<16') || is_leap('<16.0')) {
+    if (is_sle('<15-SP6') || is_leap('<16.0')) {
         my $results = script_run("grep 'PermitRootLogin yes' /etc/ssh/sshd_config");
         if (!$results) {
             assert_script_run("sed -i 's/^PermitRootLogin.*\$/PermitRootLogin yes/' /etc/ssh/sshd_config");
