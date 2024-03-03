@@ -22,6 +22,9 @@ sub run ($self) {
     # Stop firewall
     systemctl 'stop ' . $self->firewall;
 
+    # make sure root can access over ssh
+    permit_root_ssh();
+
     $self->provision_cluster();
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
