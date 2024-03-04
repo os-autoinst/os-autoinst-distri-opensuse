@@ -36,6 +36,7 @@ our @EXPORT = qw(
   add_ltp_repo
   get_default_pkg
   install_from_repo
+  prepare_whitelist_environment
 );
 
 sub loadtest_kernel {
@@ -247,18 +248,7 @@ sub schedule_tests {
         format => 'result_array:v2',
         environment => {},
         results => []};
-    my $environment = {
-        product => get_var('DISTRI') . ':' . get_var('VERSION'),
-        revision => get_var('BUILD'),
-        flavor => get_var('FLAVOR'),
-        arch => get_var('ARCH'),
-        backend => get_var('BACKEND'),
-        kernel => '',
-        libc => '',
-        gcc => '',
-        harness => 'SUSE OpenQA',
-        ltp_version => ''
-    };
+    my $environment = prepare_whitelist_environment();
 
     my $ver_linux_out = script_output("cat /tmp/ver_linux_before.txt");
     if ($ver_linux_out =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
@@ -430,6 +420,23 @@ sub install_from_repo {
           q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > )
           . get_ltp_openposix_test_list_file($want_32bit);
     }
+}
+
+sub prepare_whitelist_environment {
+    my $environment = {
+        product => get_var('DISTRI') . ':' . get_var('VERSION'),
+        revision => get_var('BUILD'),
+        flavor => get_var('FLAVOR'),
+        arch => get_var('ARCH'),
+        backend => get_var('BACKEND'),
+        kernel => '',
+        libc => '',
+        gcc => '',
+        harness => 'SUSE OpenQA',
+        ltp_version => ''
+    };
+
+    return $environment;
 }
 
 1;
