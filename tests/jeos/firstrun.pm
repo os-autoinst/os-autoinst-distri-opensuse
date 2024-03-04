@@ -240,7 +240,7 @@ sub run {
     # release console and reattach to be used again as serial output
     if (is_s390x && is_svirt) {
         # enable root ssh login, see poo#154309
-        if (is_alp || is_sle_micro('>=6.0')) {
+        if (is_alp || is_sle_micro('>=6.0') || is_sle('15-SP6+')) {
             record_info "enable root ssh login";
             enter_cmd "root";    # login to serial console at first
             wait_still_screen 1;
