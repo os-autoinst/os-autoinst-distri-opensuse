@@ -64,7 +64,7 @@ sub run {
 
     # Install the needed packages
     # At moment we have opnvswitch3* packages on sles 15 sp5 only
-    if (is_sle('>=15-SP5')) {
+    if (is_sle('=15-SP5')) {
         zypper_call('in openvswitch3-ipsec tcpdump openvswitch3-pki openvswitch3-vtep', timeout => 300);
     }
     else {

@@ -28,8 +28,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 
 sub run {
     select_serial_terminal;
-    # 'ovn' packages are moved to legacy module, we need to test newer version on sle15sp5+
-    my $ovn_ver = (is_sle('>=15-sp5') or is_leap('>=15.5')) ? 'ovn3' : 'ovn';
+    my $ovn_ver = (is_sle('=15-sp5') or is_leap('=15.5')) ? 'ovn3' : 'ovn';
     zypper_call("in $ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", timeout => 300);
 
     # Start the openvswitch and OVN daemons
