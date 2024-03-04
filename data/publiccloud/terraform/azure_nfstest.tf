@@ -61,6 +61,11 @@ variable "subnet_id" {
   default = ""
 }
 
+variable "ssh_public_key" {
+  default = "/root/.ssh/id_rsa.pub"
+}
+
+
 ## ---- data ---------------------------------------------------------------- ##
 
 // IP address of the client
@@ -185,7 +190,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = file("${var.ssh_public_key}")
   }
 
   os_disk {

@@ -12,8 +12,6 @@ use Mojo::Base 'publiccloud::provider';
 use testapi;
 use publiccloud::existing;
 
-has ssh_key => undef;
-has ssh_key_file => undef;
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'root') };
 
 sub init {
