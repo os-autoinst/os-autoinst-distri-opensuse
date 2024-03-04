@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed is_alp);
 use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils 'turn_off_gnome_screensaver';
 
-use base 'consoletest';
+use base "x11test";
 
 our @EXPORT = qw(
   $audit_log
@@ -556,10 +556,9 @@ sub adminer_setup {
     select_console 'x11';
 
     # Clean and Start Firefox
-    x11_start_program('xterm');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    enter_cmd("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* ");
-    enter_cmd("firefox http://localhost/adminer/$adminer_file &");
+    $self->prepare_firefox_autoconfig;
+    $self->start_firefox_with_profile("http://localhost/adminer/$adminer_file");
 
     my $ret;
     $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
