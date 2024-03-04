@@ -256,7 +256,7 @@ sub gcloud_install {
 }
 
 sub get_ssh_private_key_path {
-    return (is_azure() || get_var('PUBLIC_CLOUD_SLES4SAP')) ? '~/.ssh/id_rsa' : '~/.ssh/id_ed25519';
+    return (is_azure()) ? '~/.ssh/id_rsa' : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {

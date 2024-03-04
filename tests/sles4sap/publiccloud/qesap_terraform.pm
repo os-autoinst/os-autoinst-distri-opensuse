@@ -30,7 +30,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
-use publiccloud::utils qw(is_azure is_gce);
+use publiccloud::utils qw(is_azure is_gce get_ssh_private_key_path);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
@@ -98,6 +98,8 @@ sub run {
     record_info 'Resource Group', "Resource Group used for deployment: $deployment_name";
 
     my $provider = $self->provider_factory();
+    set_var('SLES4SAP_SSHKEY', get_ssh_private_key_path());
+
     # Needed to create the SAS URI token
     if (!is_azure()) {
         my $azure_client = publiccloud::azure_client->new();

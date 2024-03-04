@@ -14,7 +14,7 @@ terraform:
     aws_region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
-    public_key: '~/.ssh/id_rsa.pub'
+    public_key: '%SLES4SAP_SSHKEY%.pub'
     aws_credentials: '/root/amazon_credentials'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
 
