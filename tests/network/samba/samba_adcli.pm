@@ -55,6 +55,8 @@ sub samba_sssd_install {
     assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf';
 
     # Update the DNS configuration to use the Domain controller as primary source
+    assert_script_run("cp /etc/sysconfig/network/config{,.bak}");
+    assert_script_run("cp /etc/resolv.conf{,.bak}");
     assert_script_run("echo NETCONFIG_DNS_STATIC_SEARCHLIST='$AD_hostname' >> /etc/sysconfig/network/config");
     assert_script_run("echo NETCONFIG_DNS_STATIC_SERVERS='$AD_ip' >> /etc/sysconfig/network/config");
     assert_script_run('netconfig update -f');
@@ -165,6 +167,10 @@ sub run {
     # - smbclient //$AD_hostname/openQA as geekouser is permitted (read-only), but as berhard it is denied
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
+
+    # Restore the network config files, poo#156427
+    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
+    assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
 sub post_run_hook {
@@ -185,6 +191,9 @@ sub post_fail_hook {
     if ($domain_joined) {
         script_run("echo \"\$AD_DOMAIN_PASSWORD\" | net ads leave --domain '$AD_hostname' -U Administrator -i");
     }
+    # Restore the network config files
+    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
+    assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
 1;
