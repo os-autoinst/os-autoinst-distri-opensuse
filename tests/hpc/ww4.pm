@@ -43,7 +43,7 @@ sub run ($self) {
     $rt = (systemctl 'enable --now warewulfd') ? 1 : 0;
     test_case('systemd', 'ww4', $rt);
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
-    record_info "defaults.conf", script_output("cat /etc/warewulf/defaults.conf");
+    record_info "defaults.conf", script_output("cat /usr/share/warewulf/defaults.conf");
 
     my $hpc_container = get_required_var('HPC_WAREWULF_CONTAINER');
     $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container --setdefault", timeout => 320) ? 1 : 0;
@@ -60,10 +60,15 @@ sub run ($self) {
     my $compute_nodes = script_output "wwctl node list -a";
     record_info "nodes in conf", "$compute_nodes";
 
+    # Build container, mandatory since warewulf4 version 4.5
+    assert_script_run "wwctl container build warewulf-container";
+
     # I think running the configuration after the profile and the nodes are set
     # provides complete results of the scripts.
     $rt = (assert_script_run "echo yes | wwctl -v configure --all") ? 1 : 0;
     test_case('Service configuration', 'ww4', $rt);
+    # Build overlay, mandatory since warewulf4 version 4.5
+    assert_script_run "wwctl overlay build";
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
     mutex_unlock 'ww4_ready';
