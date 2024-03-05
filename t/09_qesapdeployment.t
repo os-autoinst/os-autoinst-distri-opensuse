@@ -1085,4 +1085,21 @@ subtest '[qesap_add_server_to_hosts]' => sub {
     ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
 };
 
+subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_file_find_string => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            #return 1 if $args{search_string} eq 'Missing sudo password';
+            return 0; });
+    $qesap->redefine(script_output => sub { return 'ALGA' });
+    $qesap->redefine(qesap_cluster_logs => sub { return; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL');
+    ok $ret == 1;
+};
+
 done_testing;
