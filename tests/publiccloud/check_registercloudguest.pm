@@ -23,14 +23,18 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self, $args) = @_;
+    my ($provider, $instance);
     select_host_console();
 
-    my $provider = $args->{my_provider};
-    my $instance = $args->{my_instance};
+    if (get_var('PUBLIC_CLOUD_QAM', 0)) {
+        $instance = $self->{my_instance} = $args->{my_instance};
+        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
+    } else {
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
+    }
 
     my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
-
-    select_host_console();    # select console on the host, not the PC instance
     my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
