@@ -43,7 +43,6 @@ sub run {
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
-    $variables{SSH_KEY_PRIV} = get_ssh_private_key_path();
     $variables{SSH_KEY_PUB} = get_ssh_private_key_path() . '.pub';
     $variables{REGISTRATION_PLAYBOOK} = get_var('QESAPDEPLOY_REGISTRATION_PLAYBOOK', 'registration');
     $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
