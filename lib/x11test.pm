@@ -1076,6 +1076,8 @@ sub firefox_print {
     # Specify the path and name of output file
     send_key "ctrl-a";
     type_string("/home/$username/ffprint/$file-output.pdf");
+    wait_still_screen 2;
+    save_screenshot;
 
     # Click save button on the save to destination page
     assert_and_click("firefox-print-output-save");
