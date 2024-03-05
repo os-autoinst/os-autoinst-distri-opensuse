@@ -21,6 +21,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 use db_utils qw(is_ok_url);
+use version_utils qw(is_openstack);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -522,7 +523,9 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_NVIDIA')) {
         $cmd .= "-var gpu=true ";
     }
-    $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+    unless (is_openstack) {
+        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+    }
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
