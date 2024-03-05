@@ -11,7 +11,7 @@ terraform:
     az_region: '%REGION%'
     deployment_name: '%DEPLOYMENTNAME%'
     os_image_uri: '%OS_URI%'
-    public_key: '%SSH_KEY_PUB%'
+    public_key: '%SLES4SAP_PUBSSHKEY%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 ansible:

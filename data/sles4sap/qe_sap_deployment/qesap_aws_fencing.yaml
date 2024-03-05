@@ -12,7 +12,7 @@ terraform:
     deployment_name: '%DEPLOYMENTNAME%'
     os_image: '%OS_VER%'
     os_owner: '%OS_OWNER%'
-    public_key: '%SSH_KEY_PUB%'
+    public_key: '%SLES4SAP_PUBSSHKEY%'
     aws_credentials: '/root/amazon_credentials'
     hana_instancetype: '%HANA_INSTANCE_TYPE%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
