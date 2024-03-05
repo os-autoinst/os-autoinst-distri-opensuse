@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack);
 use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
@@ -256,7 +256,8 @@ sub gcloud_install {
 }
 
 sub get_ssh_private_key_path {
-    return (is_azure()) ? '~/.ssh/id_rsa' : '~/.ssh/id_ed25519';
+    my $root_path = is_openstack ? '/root/' : '~/';
+    return (is_azure() || is_openstack) ? "${root_path}.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {
