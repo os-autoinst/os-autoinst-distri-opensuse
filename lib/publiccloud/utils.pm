@@ -256,8 +256,7 @@ sub gcloud_install {
 }
 
 sub get_ssh_private_key_path {
-    my $root_path = is_openstack ? '/root/' : '~/';
-    return (is_azure() || is_openstack) ? "${root_path}.ssh/id_rsa" : '~/.ssh/id_ed25519';
+    return (is_azure() || is_openstack) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {

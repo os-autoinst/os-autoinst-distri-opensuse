@@ -639,7 +639,6 @@ sub store_boottime_db() {
     my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
 
     return unless ($results && $data_push && $url);
-    return if is_openstack;
     unless ($token) {
         record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
         return 0;

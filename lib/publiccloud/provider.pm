@@ -334,7 +334,7 @@ sub create_instances {
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});
         # Performance data: boottime
-        if (is_ok_url($url)) {
+        if (!is_openstack && is_ok_url($url)) {
             local $@;
             eval {
                 my $btime = $instance->measure_boottime($instance, 'first');
