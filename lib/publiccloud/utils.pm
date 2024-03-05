@@ -256,7 +256,8 @@ sub gcloud_install {
 }
 
 sub get_ssh_private_key_path {
-    return (is_azure() || is_openstack) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
+    # Paramiko needs to be updated for ed25519 https://stackoverflow.com/a/60791079
+    return (is_azure() || is_openstack() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {
