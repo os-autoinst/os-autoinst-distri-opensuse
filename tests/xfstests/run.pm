@@ -431,7 +431,7 @@ sub test_run_without_heartbeat {
     my ($self, $test) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
-    my @status_num;
+    my $status_num = 1;
     if (check_var('XFSTESTS', 'nfs')) {
         $run_options = '-nfs';
     }
@@ -442,7 +442,8 @@ sub test_run_without_heartbeat {
     eval {
         $test_start = time();
         # Send kill signal 3 seconds after sending the default SIGTERM to avoid some tests refuse to stop after timeout
-        @status_num = script_output("timeout -k 3 " . ($TIMEOUT_NO_HEARTBEAT - 5) . " $TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]}", $TIMEOUT_NO_HEARTBEAT);
+        assert_script_run("timeout -k 3 " . ($TIMEOUT_NO_HEARTBEAT - 5) . " $TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $TIMEOUT_NO_HEARTBEAT);
+        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
         $test_duration = time() - $test_start;
     };
     if ($@) {
@@ -477,11 +478,11 @@ sub test_run_without_heartbeat {
         reload_loop_device if get_var('XFSTESTS_LOOP_DEVICE');
     }
     else {
-        $status_num[-1] =~ s/^\s+|\s+$//g;
-        if ($status_num[-1] == 0) {
+        $status_num =~ s/^\s+|\s+$//g;
+        if ($status_num == 0) {
             $test_status = 'PASSED';
         }
-        elsif ($status_num[-1] == 22) {
+        elsif ($status_num == 22) {
             $test_status = 'SKIPPED';
         }
         else {
