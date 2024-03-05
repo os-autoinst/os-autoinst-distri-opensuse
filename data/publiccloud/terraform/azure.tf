@@ -88,6 +88,11 @@ variable "ssh_public_key" {
   default = "/root/.ssh/id_rsa.pub"
 }
 
+locals {
+  # Create test's own subnet if none is provided
+  subnet_id = var.subnet_id == "" ? azurerm_subnet.openqa-subnet[0].id : var.subnet_id
+}
+
 resource "random_id" "service" {
   count = var.instance_count
   keepers = {
@@ -108,12 +113,53 @@ resource "azurerm_resource_group" "openqa-group" {
   }, var.tags)
 }
 
+resource "azurerm_virtual_network" "openqa-network" {
+  count               = var.subnet_id == "" ? 1 : 0
+  name                = "${azurerm_resource_group.openqa-group.name}-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = var.region
+  resource_group_name = azurerm_resource_group.openqa-group.name
+}
+
+resource "azurerm_subnet" "openqa-subnet" {
+  count                = var.subnet_id == "" ? 1 : 0
+  name                 = "${azurerm_resource_group.openqa-group.name}-subnet"
+  resource_group_name  = azurerm_resource_group.openqa-group.name
+  virtual_network_name = azurerm_virtual_network.openqa-network[0].name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
 resource "azurerm_public_ip" "openqa-publicip" {
   name                = "${var.name}-${element(random_id.service.*.hex, count.index)}-public-ip"
   location            = var.region
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Dynamic"
   count               = var.instance_count
+}
+
+resource "azurerm_network_security_group" "openqa-nsg" {
+  count               = var.subnet_id == "" ? 1 : 0
+  name                = "${azurerm_resource_group.openqa-group.name}-nsg"
+  location            = var.region
+  resource_group_name = azurerm_resource_group.openqa-group.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "openqa-net-sec-association" {
+  count                       = var.subnet_id == "" ? 1 : 0
+  subnet_id                   = azurerm_subnet.openqa-subnet[0].id
+  network_security_group_id   = azurerm_network_security_group.openqa-nsg[0].id
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -124,7 +170,7 @@ resource "azurerm_network_interface" "openqa-nic" {
 
   ip_configuration {
     name                          = "${element(random_id.service.*.hex, count.index)}-nic-config"
-    subnet_id                     = var.subnet_id
+    subnet_id                     = local.subnet_id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
   }

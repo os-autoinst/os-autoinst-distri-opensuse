@@ -497,7 +497,7 @@ sub terraform_apply {
             $cmd .= "-var 'ipv6_address_count=$ipv6_address_count' " if ($ipv6_address_count);
         } elsif (is_azure) {
             my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
-            $cmd .= "-var 'subnet_id=$subnet_id' " if ($subnet_id);
+            $cmd .= "-var 'subnet_id=$subnet_id' " if ($subnet_id && !check_var('PUBLIC_CLOUD_AZURE_CREATE_SUBNET', '1'));
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
