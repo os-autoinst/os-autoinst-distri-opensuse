@@ -17,6 +17,7 @@
       <li><a href="#expand_patterns">expand_patterns</a></li>
       <li><a href="#get_product_version">get_product_version</a></li>
       <li><a href="#expand_addons">expand_addons</a></li>
+      <li><a href="#expand_extra_repos">expand_extra_repos</a></li>
       <li><a href="#expand_template">expand_template</a></li>
       <li><a href="#init_autoyast_profile">init_autoyast_profile</a></li>
       <li><a href="#validate_autoyast_profile">validate_autoyast_profile</a></li>
@@ -65,6 +66,15 @@
 <pre><code>expand_addons();</code></pre>
 
 <p>Returns hash of all <code>SCC_ADDONS</code> with name, version and architecture.</p>
+
+<h2 id="expand_extra_repos">expand_extra_repos</h2>
+
+<pre><code>expand_extra_repo();</code></pre>
+
+<p>Returns array of hashes of all <code>EXTRA_CUSTOMER_REPOS</code> with repo name and url.</p>
+
+<pre><code>e.g. from EXTRA_CUSTOMER_REPOS
+15-SP4-TERADATA-Updates;http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-TERADATA/x86_64/update/</code></pre>
 
 <h2 id="expand_template">expand_template</h2>
 
