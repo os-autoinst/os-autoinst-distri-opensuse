@@ -1,5 +1,6 @@
 #!/bin/bash -e
-cre="${cre:-"podman"}"
+cre="${cre:-"$(command -v podman || command -v docker ||:)"}"
+cre="${cre:?"Need either 'podman' or 'docker'"}"
 out="${out:-$(mktemp)}"
 
 $cre run --pull=always --rm -it -v .:/opt/tests registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86-os-autoinst-distri-opensuse -d casedir=/opt/tests productdir=products/opensuse/ _exit_after_schedule=1  |& tee $out
