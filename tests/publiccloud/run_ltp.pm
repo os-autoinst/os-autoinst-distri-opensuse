@@ -147,16 +147,19 @@ sub run {
     assert_script_run($log_start_cmd);
 
     # LTP command line preparation
-    zypper_call("in -y python3-paramiko python3-scp");
+    # The python3-paramiko is too old (2.4 on 15-SP6)
+    # The python311-paramiko is from SLE-Module-Python3-15-SP5-Updates which we have in PC tools image
+    zypper_call("in python311-paramiko python311-scp");
+    $instance->run_ssh_command(cmd => 'sudo sshd -T');
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
-    $sut .= ':key_file=' . $instance->provider->ssh_key;
+    $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_command=\'' . $reset_cmd . '\'';
     $sut .= ':hostkey_policy=missing';
     $sut .= ':known_hosts=/dev/null';
 
-    my $cmd = 'python3 runltp-ng/runltp-ng ';
+    my $cmd = 'python3.11 runltp-ng/runltp-ng ';
     $cmd .= "--json-report=$root_dir/result.json ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
