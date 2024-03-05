@@ -16,6 +16,7 @@ use utils;
 use Utils::Backends;
 use strict;
 use warnings;
+use version_utils 'is_public_cloud';
 
 sub run {
     is_ipmi ? use_ssh_serial_console : select_console 'root-console';
@@ -29,7 +30,7 @@ sub run {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {milestone => 0, fatal => 1, no_rollback => 1} : {milestone => 1, fatal => 1};
+    return is_public_cloud() ? {milestone => 0, fatal => 1, no_rollback => 1} : {milestone => 1, fatal => 1};
 }
 
 1;

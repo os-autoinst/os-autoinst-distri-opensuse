@@ -18,6 +18,7 @@ use base 'Exporter';
 use Exporter;
 use testapi ':DEFAULT';
 use Utils::Architectures 'is_s390x';
+use version_utils 'is_public_cloud';
 
 use constant {
     BACKEND => [
@@ -121,7 +122,7 @@ Returns true if the current instance is using ttys
 =cut
 
 sub has_ttys {
-    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm|pvm_hmc/) && !get_var('S390_ZKVM') && !(check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))) && !get_var('PUBLIC_CLOUD'));
+    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm|pvm_hmc/) && !get_var('S390_ZKVM') && !(check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))) && !is_public_cloud());
 }
 
 =head2 has_serial_over_ssh

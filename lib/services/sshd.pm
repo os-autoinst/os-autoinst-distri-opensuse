@@ -19,7 +19,7 @@ our @EXPORT = qw(check_sshd_port check_sshd_service prepare_test_data ssh_basic_
 # The test disables the firewall, if true reenable afterwards.
 my $reenable_firewall = 0;
 my $ssh_testman = "sshboy";
-my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
+my $ssh_testman_passwd = is_public_cloud() ? random_string(8) : 'let3me2in1';
 my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
 
 sub check_sshd_port {
@@ -43,7 +43,7 @@ sub prepare_test_data {
     assert_script_run 'cp /etc/ssh/sshd_config{,_before}';
 
     # Allow password authentication for $ssh_testman
-    assert_script_run(qq(echo -e "Match User $ssh_testman\\n\\tPasswordAuthentication yes" >> /etc/ssh/sshd_config)) if (get_var('PUBLIC_CLOUD'));
+    assert_script_run(qq(echo -e "Match User $ssh_testman\\n\\tPasswordAuthentication yes" >> /etc/ssh/sshd_config)) if (is_public_cloud());
 
     if (script_run('rpm -q busybox-psmisc') == 0) {
         record_soft_failure("boo#1198137 - busybox-psmisc preferred by zypper");
