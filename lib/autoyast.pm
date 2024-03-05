@@ -170,6 +170,28 @@ sub expand_addons {
     return \%addons;
 }
 
+=head2 expand_extra_repos
+
+ expand_extra_repo();
+
+Returns array of hashes of all C<EXTRA_CUSTOMER_REPOS> with repo name and url.
+
+  e.g. from EXTRA_CUSTOMER_REPOS
+  15-SP4-TERADATA-Updates;http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-TERADATA/x86_64/update/
+
+=cut
+
+sub expand_extra_repos {
+    my @extra_repos;
+    my @name_repo = split(/,/, get_var('EXTRA_CUSTOMER_REPOS', ''));
+
+    for my $name_repo (@name_repo) {
+        my @part = split(/;/, $name_repo);
+        push @extra_repos, {name => $part[0], url => $part[1]};
+    }
+    return [@extra_repos];
+}
+
 =head2 expand_template
 
  expand_template($profile);
@@ -190,6 +212,7 @@ sub expand_template {
     my $vars = {
         addons => expand_addons,
         repos => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
+        extra_repos => expand_extra_repos,
         patterns => expand_patterns,
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,

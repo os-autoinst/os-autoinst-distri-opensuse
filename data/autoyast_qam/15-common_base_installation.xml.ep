@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  % unless ($get_var->('FLAVOR') =~ m/TERADATA/) {
   <suse_register>
     % unless ($check_var->('FLAVOR', 'Server-DVD-Updates-TERADATA') or $check_var->('FLAVOR', 'Server-DVD-Incidents-TERADATA')) {
     <do_registration config:type="boolean">true</do_registration>
@@ -33,8 +34,9 @@
       </addon>
       % }
     </addons>
-    %}
+    % }
   </suse_register>
+  % }
   <add-on>
     <add_on_products config:type="list">
       % for my $repo (@$repos) {
@@ -48,6 +50,15 @@
         <name>15-SP3-ERICSSON-Updates</name>
         <alias>15-SP3-ERICSSON-Updates</alias>
       </listentry>
+      % }
+      % if ($get_var->('FLAVOR') =~ m/TERADATA/) {
+        % for my $extra_repo (@$extra_repos) {
+      <listentry>
+        <name><%= $extra_repo->{name} %></name>
+        <alias><%= $extra_repo->{name} %></alias>
+        <media_url><%= $extra_repo->{url} %></media_url>
+      </listentry>
+        % }
       % }
     </add_on_products>
   </add-on>
