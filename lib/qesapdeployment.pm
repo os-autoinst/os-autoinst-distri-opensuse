@@ -2335,8 +2335,17 @@ sub qesap_terrafom_ansible_deploy_retry {
         record_info('ANSIBLE RETRY PASS');
     }
     else {
-        qesap_file_find_string(file => $args{error_log}, search_string => 'fatal:');
-        qesap_file_find_string(file => $args{error_log}, search_string => 'failed: [');
+        my $ansible_fatal = script_output("grep -A30 'fatal:' $args{error_log} | cut -c-200",
+            proceed_on_failure => 1);
+        my $ansible_failed = script_output("grep -A30 'failed: \\[' $args{error_log} | cut -c-200",
+            proceed_on_failure => 1);
+        record_info('ANSIBLE ISSUE',
+            join("\n",
+                'Ansible fatal:',
+                $ansible_fatal,
+                "\n---------",
+                "Ansible failed:",
+                $ansible_failed));
         qesap_cluster_logs();
         return 1;
     }
