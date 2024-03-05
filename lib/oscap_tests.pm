@@ -446,12 +446,20 @@ sub download_file_from_https_repo {
     my $url = $_[0];
     my $file_name = $_[1];
     my $full_url = "$url" . "$file_name";
+    my $result = -1;
 
     my $FULL_URL = get_var("FILE", "$full_url");
 
-    assert_script_run("wget --no-check-certificate $FULL_URL");
-    assert_script_run("chmod 774 $file_name");
-    record_info("Downloaded file", "Downloaded file $file_name from $FULL_URL");
+    if (script_run("wget --no-check-certificate $FULL_URL") != 0) {
+        record_info("FAILED to Downloaded file", "FAILED to downloaded file $file_name from $FULL_URL");
+        $result = 0;
+    }
+    else {
+        assert_script_run("chmod 774 $file_name");
+        record_info("Downloaded file", "Downloaded file $file_name from $FULL_URL");
+        $result = 1;
+    }
+    return $result;
 }
 
 sub display_oscap_information {
@@ -788,21 +796,34 @@ sub get_test_expected_results {
     my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
     my @eval_match = ();
 
-    download_file_from_https_repo($url, $expected_results_file_name);
-    upload_logs("$expected_results_file_name") if script_run "! [[ -e $expected_results_file_name ]]";
-    my $data = script_output("cat $expected_results_file_name", quiet => 1);
+    my $return = download_file_from_https_repo($url, $expected_results_file_name);
+    if ($return == 1) {
+        record_info("Downloded results", "Downloded expected results for benchmark version $benchmark_version");
+    }
+    # In case if expected_results are not defined for specific benchmark_version
+    else {
+        $expected_results_file_name = "openqa_tests_expected_results.yaml";
+        $return = download_file_from_https_repo($url, $expected_results_file_name);
+    }
+    if ($return == 1) {
+        upload_logs("$expected_results_file_name") if script_run "! [[ -e $expected_results_file_name ]]";
+        my $data = script_output("cat $expected_results_file_name", quiet => 1);
 
-    # Phrase the expected results
-    my $expected_results = YAML::PP::Load($data);
-    record_info("Looking expected results", "Looking expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp");
+        # Phrase the expected results
+        my $expected_results = YAML::PP::Load($data);
+        record_info("Looking expected results", "Looking expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp");
 
-    $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name}->{$sles_sp};
-    if (defined $eval_match) {
-        @eval_match = @$eval_match;
-        record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp\nList of expected to fail rules:\n" . (join "\n", @eval_match));
+        $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name}->{$sles_sp};
+        if (defined $eval_match) {
+            @eval_match = @$eval_match;
+            record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp\nBenchmark: $benchmark_version\nList of expected to fail rules:\n" . (join "\n", @eval_match));
+        }
+        else {
+            record_info("No expected results", "Expected results are not defined.");
+        }
     }
     else {
-        record_info("No expected results", "Expected results are not defined.");
+        record_info("No file for expected results", "Not able to download file with expected results.\nExpected results are not defined.");
     }
 
     $_[0] = \@eval_match;
@@ -815,6 +836,7 @@ sub get_test_exclusions {
     my $found = -1;
     my $type = "";
     my $arch = "";
+    my $return = -1;
 
     # If set in configuration to not use excusions
     if ($use_exclusions == 0) {
@@ -839,23 +861,36 @@ sub get_test_exclusions {
         my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
         my @exclusions = ();
 
-        download_file_from_https_repo($url, $exclusions_file_name);
-        upload_logs("$exclusions_file_name") if script_run "! [[ -e $exclusions_file_name ]]";
-        my $data = script_output("cat $exclusions_file_name", quiet => 1);
+        $return = download_file_from_https_repo($url, $exclusions_file_name);
+        if ($return == 1) {
+            record_info("Downloded exclusions", "Downloded exclusions for benchmark version $benchmark_version");
+        }
+        # In case if exclusions are not defined for specific benchmark_version
+        else {
+            $exclusions_file_name = "openqa_tests_exclusions.yaml";
+            $return = download_file_from_https_repo($url, $exclusions_file_name);
+        }
+        if ($return == 1) {
+            upload_logs("$exclusions_file_name") if script_run "! [[ -e $exclusions_file_name ]]";
+            my $data = script_output("cat $exclusions_file_name", quiet => 1);
 
-        # Phrase the expected results
-        my $exclusions_data = YAML::PP::Load($data);
-        record_info("Looking exclusions", "Looking exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp");
+            # Phrase the expected results
+            my $exclusions_data = YAML::PP::Load($data);
+            record_info("Looking exclusions", "Looking exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp");
 
-        $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name}->{$sles_sp};
-        # If results defined
-        if (defined $exclusions) {
-            @exclusions = @$exclusions;
-            $found = 1;
-            record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp\nList of excluded rules:\n" . (join "\n", @exclusions));
+            $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name}->{$sles_sp};
+            # If results defined
+            if (defined $exclusions) {
+                @exclusions = @$exclusions;
+                $found = 1;
+                record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp\nBenchmark: $benchmark_version\nList of excluded rules:\n" . (join "\n", @exclusions));
+            }
+            else {
+                record_info("No exclusions", "Exclusions are not defined.");
+            }
         }
         else {
-            record_info("No exclusions", "Exclusions are not defined.");
+            record_info("No file for exclusions", "Not able to download file with exclusions.\nExclusions are not defined.");
         }
 
         $_[0] = \@exclusions;
@@ -974,14 +1009,6 @@ sub oscap_security_guide_setup {
         my $ansible_rules_missing_fixes_ref;
         my $bash_rules_missing_fixes_ref;
         modify_ds_ansible_files($missing_rules_full_path, $bash_rules_missing_fixes_ref, $ansible_rules_missing_fixes_ref);
-        if ($ansible_remediation == 1) {
-            push(@test_run_report, "ansible_rules_missing_fixes = \"" . (join ",",
-                    @$ansible_rules_missing_fixes_ref) . "\"");
-        }
-        else {
-            push(@test_run_report, "bash_rules_missing_fixes = \"" . (join ",",
-                    @$bash_rules_missing_fixes_ref) . "\"");
-        }
     }
     else {
         record_info("Do not modify DS or Ansible files", "Do not modify DS or Ansible files because remove_rules_missing_fixes = $remove_rules_missing_fixes");
