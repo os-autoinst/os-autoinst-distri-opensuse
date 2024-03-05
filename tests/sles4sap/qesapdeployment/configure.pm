@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::azure_client;
+use publiccloud::utils qw(get_ssh_private_key_path);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment;
@@ -42,8 +43,8 @@ sub run {
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
-    $variables{SSH_KEY_PRIV} = $provider->ssh_key;
-    $variables{SSH_KEY_PUB} = $self->ssh_key . '.pub';
+    $variables{SSH_KEY_PRIV} = get_ssh_private_key_path();
+    $variables{SSH_KEY_PUB} = get_ssh_private_key_path() . '.pub';
     $variables{REGISTRATION_PLAYBOOK} = get_var('QESAPDEPLOY_REGISTRATION_PLAYBOOK', 'registration');
     $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
     $variables{SUSECONNECT} = get_var('QESAPDEPLOY_USE_SUSECONNECT', 'false');

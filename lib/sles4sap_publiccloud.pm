@@ -637,7 +637,7 @@ sub create_instance_data {
                 public_ip => $type_data->{$vm_label}->{ansible_host},
                 instance_id => $vm_label,
                 username => get_required_var('PUBLIC_CLOUD_USER'),
-                ssh_key => '~/.ssh/id_rsa',
+                ssh_key => get_ssh_private_key_path(),
                 provider => $provider,
                 region => $provider->provider_client->region,
                 type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
