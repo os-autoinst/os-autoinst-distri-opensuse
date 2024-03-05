@@ -26,7 +26,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
-use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse);
+use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse is_public_cloud);
 use services::sshd;
 use ssh_crypto_policy;
 
@@ -136,7 +136,7 @@ sub cleanup() {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 1};
+    return is_public_cloud() ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 1};
 }
 
 1;

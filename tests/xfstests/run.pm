@@ -30,6 +30,7 @@ use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
+use version_utils 'is_public_cloud';
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -494,7 +495,7 @@ sub test_run_without_heartbeat {
 
 sub run {
     my $self = shift;
-    get_var('PUBLIC_CLOUD') ? select_console('root-console') : select_serial_terminal();
+    is_public_cloud() ? select_console('root-console') : select_serial_terminal();
     return if get_var('XFSTESTS_NFS_SERVER');
     my $enable_heartbeat = 1;
     $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');

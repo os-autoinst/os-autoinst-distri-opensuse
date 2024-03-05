@@ -13,13 +13,14 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils;
 
 sub run {
     select_serial_terminal;
 
     assert_script_run '! rpm -q exim';
 
-    unless (get_var('PUBLIC_CLOUD')) {
+    unless (is_public_cloud()) {
         # check if postfix is installed, enabled and running
         assert_script_run 'rpm -q postfix';
         systemctl 'is-enabled postfix';
