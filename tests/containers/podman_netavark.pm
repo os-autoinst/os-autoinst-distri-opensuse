@@ -15,6 +15,8 @@ use containers::common qw(install_packages);
 use containers::utils qw(get_podman_version registry_url);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
+use main_common qw(is_updates_tests);
+use publiccloud::utils qw(is_gce);
 
 sub is_cni_in_tw {
     return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
@@ -189,7 +191,7 @@ sub run {
     my $cur_version = script_output('rpm -q --qf "%{VERSION}\n" netavark');
     # only for netavark v1.6+
     # JeOS's kernel-default-base is missing *macvlan* kernel module
-    if (!is_jeos && package_version_cmp($cur_version, '1.6.0') >= 0) {
+    if (!(is_jeos || (is_updates_tests && is_gce)) && package_version_cmp($cur_version, '1.6.0') >= 0) {
         record_info('TEST4', 'smoke test for netavark dhcp proxy + macvlan');
         $net1->{name} = 'test_macvlan';
         systemctl('enable --now netavark-dhcp-proxy.socket');
