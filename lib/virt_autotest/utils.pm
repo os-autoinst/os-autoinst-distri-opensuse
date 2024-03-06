@@ -29,7 +29,7 @@ use Carp;
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
   is_monolithic_libvirtd turn_on_libvirt_debugging_log
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
-  ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
+  ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
   check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons);
 
@@ -281,7 +281,7 @@ sub check_failures_in_journal {
     $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
     if (script_run($cmd) != 0) {
         $failures = "Fail to get journal logs from $machine";
-        record_info("Warning", "$failures in checking its health", result => 'softfail');
+        record_info("Warning", "$failures when checking its health", result => 'softfail');
         return $failures;
     }
 
@@ -1034,13 +1034,39 @@ sub restore_original_guests {
         if (script_run("ls $save_dir/$guest.xml") == 0) {
             restore_downloaded_guests($guest, $save_dir);
             record_info "Guest $guest is restored.";
+            assert_script_run "virsh start $guest";
+            wait_guest_online($guest);
         }
         else {
             record_info("Fail to restore guest!", "$guest", result => 'softfail');
         }
     }
     script_run("virsh list --all");
-    save_screenshot;
+}
+
+
+#save the guest configuration files into a folder
+#create a dir for storing changed guest configuration files only
+sub save_guests_xml_for_change {
+    my ($save_dir, @guests) = @_;
+    $save_dir //= "/tmp/download_vm_xml";
+    save_original_guest_xmls($save_dir, @guests);
+    my $changed_xml_dir = "$save_dir/changed_xml";
+    script_run("[ -d $changed_xml_dir ] && rm -rf $changed_xml_dir/*");
+    script_run("mkdir -p $changed_xml_dir");
+}
+
+#restore guest which xml configuration files were changed in a test
+sub restore_xml_changed_guests {
+    my $changed_xml_dir = shift;
+    $changed_xml_dir //= "/tmp/download_vm_xml/changed_xml";
+    my @changed_guests = split('\n', script_output("ls -1 $changed_xml_dir | cut -d '.' -f1"));
+    foreach my $guest (@changed_guests) {
+        remove_vm($guest);
+        restore_downloaded_guests($guest, $changed_xml_dir);
+        assert_script_run "virsh start $guest";
+        wait_guest_online($guest);
+    }
 }
 
 sub upload_virt_logs {
