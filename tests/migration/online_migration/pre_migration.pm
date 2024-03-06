@@ -8,6 +8,7 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use testapi;
@@ -44,7 +45,7 @@ sub remove_kgraft_patch {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     set_zypp_single_rpmtrans();
     check_or_install_packages unless is_leap_migration;

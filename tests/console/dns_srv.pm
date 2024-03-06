@@ -13,13 +13,14 @@
 use strict;
 use warnings;
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use Utils::Architectures;
 use utils qw(is_bridged_networking systemctl zypper_call);
 use Utils::Logging 'save_and_upload_log';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install bind
     zypper_call "-q in bind";

@@ -13,11 +13,11 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'consoletest';
+use serial_terminal qw(select_serial_terminal prepare_serial_console);
 use testapi;
 use utils;
 use zypper;
 use version_utils 'is_sle';
-use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
 use services::registered_addons 'full_registered_check';
@@ -28,7 +28,7 @@ use warnings;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
 
     ensure_serialdev_permissions;
 

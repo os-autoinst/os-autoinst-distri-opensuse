@@ -9,6 +9,7 @@
 # Tags: poo#52430, poo#52937, tc#1729313
 
 use base "consoletest";
+use serial_terminal;
 use strict;
 use warnings;
 use testapi;
@@ -88,7 +89,7 @@ sub dirmngr_setup {
 sub run {
 
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Setup Dirmngr
     $self->dirmngr_setup();

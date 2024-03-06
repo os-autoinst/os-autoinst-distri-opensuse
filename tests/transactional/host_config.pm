@@ -10,6 +10,7 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
@@ -17,7 +18,7 @@ use utils qw(ensure_ca_certificates_suse_installed zypper_call);
 use version_utils qw(is_alp is_bootloader_grub2 is_bootloader_sdboot);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Bootloader configuration
     my $extrabootparams = get_var('EXTRABOOTPARAMS');

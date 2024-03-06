@@ -7,6 +7,7 @@
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use testapi;
@@ -42,7 +43,7 @@ sub create_user {
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
     $self->create_user;
 
     my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
@@ -106,8 +107,7 @@ sub run {
     enter_cmd "exit";
     $console->reset;
 
-    # Back to root
-    select_console 'root-console';
+    select_serial_terminal;
 
     unless ($toolbox_image_to_test) {
         # This test doesn't make sense if we are testing a specific image

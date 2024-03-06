@@ -12,6 +12,7 @@
 # Tags: poo#44831, poo#65375, poo#101932, poo#111818
 
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use strict;
 use warnings;
@@ -19,7 +20,7 @@ use utils 'zypper_call';
 use version_utils qw(is_sle is_transactional);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # openssl pre-installed in SLE Micro
     zypper_call 'in openssl' unless is_transactional;

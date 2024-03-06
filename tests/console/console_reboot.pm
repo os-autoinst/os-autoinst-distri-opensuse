@@ -11,6 +11,7 @@
 use base "consoletest";
 use testapi;
 use Utils::Architectures;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use strict;
@@ -25,7 +26,7 @@ sub run {
     else {
         $self->wait_boot;
     }
-    select_console 'root-console';
+    select_serial_terminal;
     ensure_serialdev_permissions;
     check_console_font;
 }

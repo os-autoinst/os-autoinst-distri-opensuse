@@ -8,6 +8,7 @@
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
+use serial_terminal 'select_serial_terminal';
 use warnings;
 use strict;
 use testapi;
@@ -35,7 +36,7 @@ sub reboot_guest {
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
+    select_serial_terminal;
     my @guests = keys %virt_autotest::common::guests;
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);

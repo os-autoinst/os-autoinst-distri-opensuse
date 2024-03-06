@@ -9,6 +9,7 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use testapi;
@@ -16,7 +17,7 @@ use version_utils 'is_staging';
 use utils 'zypper_call';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     # Trying to switch to more scalable solution with updated rsync.pl
     if (my $urlprefix = get_var('MIRROR_PREFIX')) {
         my @repos_to_add = qw(OSS NON_OSS OSS_DEBUGINFO ALP LEAP_MICRO);

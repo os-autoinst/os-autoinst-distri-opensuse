@@ -35,6 +35,7 @@
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com> (nfsidmap)
 
 use base 'consoletest';
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
@@ -47,7 +48,7 @@ sub run {
     # autofs client needs mutex_wait
     mutex_wait 'barrier_setup_done';
 
-    select_console "root-console";
+    select_serial_terminal;
     my $nfs_server = "10.0.2.101";
     my $remote_mount = "/tmp/nfs/server";
     my $remote_mount_nfsidmap = "/home/tux";

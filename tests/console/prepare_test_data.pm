@@ -11,6 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use utils;
 use Utils::Backends;
@@ -18,7 +19,7 @@ use strict;
 use warnings;
 
 sub run {
-    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
+    is_ipmi ? use_ssh_serial_console : select_serial_terminal;
     ensure_serialdev_permissions;
 
     my $timeout = get_var('PREPARE_TEST_DATA_TIMEOUT', 300);

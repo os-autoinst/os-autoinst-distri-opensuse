@@ -18,6 +18,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_public_cloud);
 use publiccloud::utils qw(is_azure is_byos);
@@ -46,13 +47,13 @@ sub test_sudoers {
 
 sub run {
     my $test_password = 'Sud0_t3st';
-    select_console 'root-console';
+    select_serial_terminal;
     zypper_call 'in sudo expect';
     select_console 'user-console';
     # Defaults targetpw -> asks for root PW
     my $exp_user = (is_azure && is_sle('>=15-SP4')) ? 'bernhard is not in the sudoers file' : 'root';
     validate_script_output("expect -c 'spawn sudo id -un;expect password {send \"$testapi::password\\r\";interact}'", sub { qr/^$exp_user\$/ });
-    select_console 'root-console';
+    select_serial_terminal;
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
     # prepare sudoers and test user
@@ -104,7 +105,7 @@ sub run {
 }
 
 sub post_run_hook {
-    select_console 'root-console';
+    select_serial_terminal;
     # change sudoers back to default
     assert_script_run 'sed -i "s/^Defaults\[\[\:space\:\]\]*\!targetpw/Defaults\ targetpw/" /etc/sudoers';
     assert_script_run 'sed -i "s/^#ALL\[\[\:space\:\]\]*ALL/ALL ALL/" /etc/sudoers';

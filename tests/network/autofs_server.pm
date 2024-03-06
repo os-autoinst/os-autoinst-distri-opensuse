@@ -30,6 +30,7 @@
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com> (nfsidmap)
 
 use base 'consoletest';
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);
@@ -43,7 +44,7 @@ sub run {
     barrier_create('AUTOFS_FINISHED', 2);
     mutex_create 'barrier_setup_done';
 
-    select_console "root-console";
+    select_serial_terminal;
     my $test_share_dir = "/tmp/nfs/server";
     my $nfsidmap_share_dir = "/home/tux";
     if (is_opensuse) {

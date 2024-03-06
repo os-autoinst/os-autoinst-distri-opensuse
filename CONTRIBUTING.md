@@ -172,6 +172,9 @@ if (match_has_tag('yast2_missing_package')) {
   step as soft_fail, please use `record_info` with softfail tag:
   record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
 
+* For console-based test modules, consider using `select_serial_terminal`
+instead of `root-console` when applicable.
+
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
   set up your local environment, use `make tidy` before committing your changes,

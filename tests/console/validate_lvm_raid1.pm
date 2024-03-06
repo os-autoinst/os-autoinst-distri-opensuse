@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use base "y2_module_consoletest";
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use utils;
 use Test::Assert ':all';
@@ -19,7 +20,7 @@ use power_action_utils 'power_action';
 sub run {
     my $self = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     my $config = get_test_suite_data();
     my $expected_num_devs = scalar @{$config->{disks}};
@@ -75,7 +76,7 @@ sub _reboot {
 sub _check_raid_disks_after_reboot {
     my ($config, $expected_num_devs) = @_;
     record_info('get state after reboot');
-    select_console 'root-console';
+    select_serial_terminal;
 
     assert_script_run 'mdadm --detail ' . $config->{raid1}->{name};
     my $active_devs = script_output("mdadm --detail " . $config->{raid1}->{name} . " |grep \"Active Devices\" |awk '{ print \$4 }'");

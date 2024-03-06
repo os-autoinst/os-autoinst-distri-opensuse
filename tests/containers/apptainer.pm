@@ -12,6 +12,7 @@ use testapi;
 use utils qw(zypper_call);
 use containers::utils qw(registry_url);
 
+#TEST
 sub run {
     my ($self) = @_;
     # Not used of serial_terminal because causes some delays due to wait_serial
