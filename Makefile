@@ -106,7 +106,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors test-console-based-modules
 
 .PHONY: test
 ifeq ($(TESTS),compile)
@@ -160,3 +160,7 @@ test-code-style:
 .PHONY: test-isotovideo
 test-isotovideo:
 	tools/test_isotovideo
+
+.PHONY: test-console-based-modules
+test-console-based-modules:
+	@! git --no-pager grep --files-with-matches -E 'use base ("|\')consoletest' "*tests/*.pm" | xargs grep -q 'assert_screen'
