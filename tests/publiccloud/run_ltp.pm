@@ -150,7 +150,7 @@ sub run {
     # The python3-paramiko is too old (2.4 on 15-SP6)
     # The python311-paramiko is from SLE-Module-Python3-15-SP5-Updates which we have in PC tools image
     zypper_call("in python311-paramiko python311-scp");
-    $instance->run_ssh_command(cmd => 'sudo sshd -T');
+
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
     $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
