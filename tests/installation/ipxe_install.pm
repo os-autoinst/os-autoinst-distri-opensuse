@@ -239,7 +239,7 @@ sub run {
             if (check_var('VIDEOMODE', 'text') and is_sle('<=15-SP5')) {
                 enter_cmd_slow('DISPLAY= yast.ssh');
             }
-            else {
+            elsif (check_var('VIDEOMODE', 'text') or check_var('VIDEOMODE', 'ssh-x')) {
                 enter_cmd_slow("yast.ssh");
             }
             save_screenshot;
