@@ -10,6 +10,7 @@
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use base 'consoletest';
 use strict;
 use warnings;
 use utils 'zypper_call';
@@ -18,7 +19,7 @@ use version_utils qw(is_tumbleweed is_sle check_version);
 
 sub run {
     my ($self) = @_;
-    select_serial_terminal;
+    select_console 'root-console';
 
     if (script_run 'rpm -q perl-Bootloader') {
         zypper_call 'in perl-Bootloader';

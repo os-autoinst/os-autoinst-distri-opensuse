@@ -9,6 +9,7 @@
 use base "consoletest";
 use strict;
 use warnings;
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use Utils::Architectures;
 use utils;
@@ -85,7 +86,7 @@ sub check_buildid {
 }
 
 sub run {
-    select_console('root-console');
+    select_serial_terminal;
     assert_script_run('setterm -blank 0') unless (is_s390x);
 
     script_run('zypper lr | tee /tmp/zypperlr.txt', 200);
