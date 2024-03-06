@@ -57,4 +57,57 @@ Hosts/vmhana02/vhost="vmhana02"');
     ok((%$topology{vmhana01}->{sync_state} eq 'PRIM'), 'sync_state of vmhana01 is exactly PRIM');
 };
 
+subtest '[check_hana_topology] healthy cluster' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="online"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="online"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 1), 'healthy cluster leads to the return of 1');
+};
+
+subtest '[check_hana_topology] unhealthy cluster' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="NOT ONLINE AT ALL"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="online"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 0), 'unhealthy cluster leads to the return of 0');
+};
+
+subtest '[check_hana_topology] invalid input' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Balamb Garden');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 0), 'invalid input leads to the return of 0');
+};
+
 done_testing;
