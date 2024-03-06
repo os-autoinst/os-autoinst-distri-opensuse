@@ -24,6 +24,11 @@ sub run {
     my ($self) = shift;
 
     $self->libreoffice_start_program('oomath');
+
+    # Focus in LO 24.2 is by default in graphic window, no longer text window,
+    # See https://progress.opensuse.org/issues/156628
+    assert_and_click "oomath-textfield-ready";
+
     # be more resilient during the automatic evaluation of formulas to prevent
     # mistyping with slow typing and retrying.
     my $retries = 7;
