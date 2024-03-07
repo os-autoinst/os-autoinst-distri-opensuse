@@ -79,6 +79,9 @@ sub run_basic_tests() {
     my %test08 = t08_basic();
     push(@all_results, \%test08);
 
+    my %test09 = t09_basic();
+    push(@all_results, \%test09);
+
     return @all_results;
 }
 
@@ -206,6 +209,17 @@ sub t08_basic() {
             last;
         }
     }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t09_basic() {
+    my $name = 'Second slurm partition';
+    my $description = 'Run srun jobs against non-default partition';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+
+    my $result = script_run("srun --partition=minor -N $cluster_nodes date");
 
     my %results = generate_results($name, $description, $result);
     return %results;

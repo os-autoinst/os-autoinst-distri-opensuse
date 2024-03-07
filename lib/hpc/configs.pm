@@ -28,6 +28,9 @@ tie %slurm_config_NODES, 'Tie::IxHash';
 my (%slurm_config_PARTITION);
 tie %slurm_config_PARTITION, 'Tie::IxHash';
 
+my (%slurm_config_PARTITION_MINOR);
+tie %slurm_config_PARTITION_MINOR, 'Tie::IxHash';
+
 =head2
 
 Default slurm.conf always set to the latest supported version
@@ -101,7 +104,8 @@ Default slurm.conf always set to the latest supported version
     "\#AccountingStorageUser" => '',
     PropagateResourceLimitsExcept => 'MEMLOCK',
     NODES => undef,
-    PARTITION => undef
+    PARTITION => undef,
+    PARTITION_MINOR => undef
 );
 
 %slurm_config_NODES = (
@@ -120,8 +124,17 @@ Default slurm.conf always set to the latest supported version
     State => 'UP',
 );
 
+%slurm_config_PARTITION_MINOR = (
+    PartitionName => 'minor',
+    Nodes => '',
+    Default => 'NO',
+    MaxTime => '24:00:00',
+    State => 'UP',
+);
+
 $slurm_config{NODES} = \%slurm_config_NODES;
 $slurm_config{PARTITION} = \%slurm_config_PARTITION;
+$slurm_config{PARTITION_MINOR} = \%slurm_config_PARTITION_MINOR;
 
 my %slurmdb_config;
 tie %slurmdb_config, 'Tie::IxHash';
@@ -151,6 +164,7 @@ sub prepare_slurm_conf ($self) {
 
     $slurm_config{NODES}{NodeName} = "$cluster_ctl_nodes,$cluster_compute_nodes";
     $slurm_config{PARTITION}{Nodes} = "$cluster_ctl_nodes,$cluster_compute_nodes";
+    $slurm_config{PARTITION_MINOR}{Nodes} = "$cluster_ctl_nodes,$cluster_compute_nodes";
     $slurm_config{SlurmctldHost} = get_var('HOSTNAME');
     $slurm_config{SlurmctldDebug} = 'debug5';
 
@@ -173,8 +187,9 @@ sub prepare_slurm_conf ($self) {
     my @pairs = ();
     my $NODES = '';
     my $PARTITION = '';
+    my $PARTITION_MINOR = '';
     while (my ($key, $value) = each %slurm_config) {
-        push(@pairs, $key . '=' . $value) unless ($key eq 'NODES') or ($key eq 'PARTITION')
+        push(@pairs, $key . '=' . $value) unless ($key eq 'NODES') or ($key eq 'PARTITION') or ($key eq 'PARTITION_MINOR')
           or ($key eq 'SlurmctldHost') or ($key eq 'SlurmctldHost_tmp');
         if (($key eq 'SlurmctldHost') or ($key eq 'SlurmctldHost_tmp')) {
             my $tmp_key = '';
@@ -206,11 +221,19 @@ sub prepare_slurm_conf ($self) {
             }
             $PARTITION = join(' ', @pairs);
         }
+        if ($key eq 'PARTITION_MINOR') {
+            my @pairs = ();
+            while (my ($key, $value) = each %{$slurm_config{PARTITION_MINOR}}) {
+                push(@pairs, $key . '=' . $value);
+            }
+            $PARTITION_MINOR = join(' ', @pairs);
+        }
     }
     my $slurm_config_tmp = join('+', @pairs);
     script_run("echo $slurm_config_tmp | tee -a /etc/slurm/slurm.conf");
     script_run("echo $NODES | tee -a /etc/slurm/slurm.conf");
     script_run("echo $PARTITION | tee -a /etc/slurm/slurm.conf");
+    script_run("echo $PARTITION_MINOR | tee -a /etc/slurm/slurm.conf");
     script_run("tr '+' '\\n' < /etc/slurm/slurm.conf > /etc/slurm/slurm.conf_tmp");
     script_run("mv /etc/slurm/slurm.conf_tmp /etc/slurm/slurm.conf");
 }
