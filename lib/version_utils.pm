@@ -805,8 +805,7 @@ Returns true if the SUT uses Plasma 6.
 =cut
 
 sub is_plasma6 {
-    # Currently only krypton has it
-    return check_var('FLAVOR', 'Krypton-Live');
+    return is_krypton_argon || (is_tumbleweed && check_var('STAGING', 'L'));
 }
 
 
