@@ -32,6 +32,88 @@ use containers::common;
 use containers::utils;
 use containers::container_images;
 
+sub basic_container_tests {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    die "Undefined container runtime" unless $runtime;
+    my $image = "registry.opensuse.org/opensuse/tumbleweed";
+
+    ## Test search feature
+    validate_script_output("$runtime search --no-trunc --format 'table {{.Name}} {{.Description}}' tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 300);
+
+    # Test pulling and display of images
+    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
+    validate_script_output("$runtime image ls", qr/tumbleweed/);
+
+    ## Create test container
+    assert_script_run("$runtime create --name basic_test_container $image sleep infinity");
+    validate_script_output("$runtime container ls --all", qr/basic_test_container/);
+
+    ## Test start/stop/pause
+    assert_script_run("$runtime container start basic_test_container");
+    validate_script_output("$runtime ps", qr/basic_test_container/);
+    validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+    assert_script_run("$runtime pause basic_test_container");
+    # docker and podman differ here - in docker paused containers are still in State.Running = true, in podman not
+    if ($runtime eq 'docker') {
+        validate_script_output("$runtime ps", sub { $_ =~ m/.*(Paused).*basic_test_container.*/ });
+        validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+    } else {
+        validate_script_output("$runtime ps", sub { $_ !~ m/basic_test_container/ });
+        validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
+    }
+    assert_script_run("$runtime unpause basic_test_container");
+    validate_script_output("$runtime ps", qr/basic_test_container/);
+    validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+    assert_script_run("$runtime stop basic_test_container");
+    validate_script_output("$runtime ps", sub { $_ !~ m/basic_test_container/ });
+    validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
+    assert_script_run("$runtime container start basic_test_container");
+    validate_script_output("$runtime ps", qr/basic_test_container/);
+    validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+    assert_script_run("$runtime container restart basic_test_container");
+    validate_script_output("$runtime ps", qr/basic_test_container/);
+    validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+
+    ## Test logs
+    assert_script_run("$runtime run -d --name logs_test $image echo 'log test canary string'");
+    # retry because it could be that the log is not yet collected after the previous command completes
+    validate_script_output_retry("$runtime logs logs_test", qr/log test canary string/, retry => 3, delay => 60);
+    assert_script_run("$runtime container stop logs_test");
+    assert_script_run("$runtime container rm logs_test");
+
+    ## Test exec and image creation
+    assert_script_run("$runtime container exec basic_test_container touch /canary");
+    assert_script_run("$runtime container commit basic_test_container example.com/tw-commit_test");
+    validate_script_output("$runtime image ls --all", qr?example.com/tw-commit_test?);
+    assert_script_run("$runtime run --rm example.com/tw-commit_test stat /canary", fail_message => "canary file not present in generated container");
+    assert_script_run("$runtime image rm example.com/tw-commit_test");
+
+    ## Test connectivity inside the container
+    assert_script_run("$runtime container exec basic_test_container curl -sfI https://opensuse.org", fail_message => "cannot reach opensuse.org");
+
+    ## Test `--init`, i.e. the container process won't be PID 1 (to avoid zombie processes)
+    # expected output: the `ps` command is not running as PID 1.
+    validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ !~ m/ 1 .*ps.*/ });
+
+    ## Test prune
+    assert_script_run("$runtime container commit basic_test_container example.com/prune-test");
+    validate_script_output("$runtime image ls --all", qr?example.com/prune-test?);
+    assert_script_run("$runtime image prune -af");
+    validate_script_output("$runtime ps", sub { $_ !~ m?example.com/prune-test? });
+    validate_script_output("$runtime image ls", qr/tumbleweed/, fail_message => "Tumbleweed image removed, despite being in use");
+    assert_script_run("$runtime system prune -f");
+    validate_script_output("$runtime image ls", qr/tumbleweed/, fail_message => "Tumbleweed image removed, despite being in use");
+    assert_script_run("! $runtime rmi -a");    # should not be possible because image is in use
+
+    ## Removing containers
+    assert_script_run("$runtime container stop basic_test_container");
+    assert_script_run("$runtime container rm basic_test_container");
+    validate_script_output("$runtime container ls --all", sub { $_ !~ m/basic_test_container/ });
+
+    ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
+}
+
 sub run {
     my ($self, $args) = @_;
     die('You must define a engine') unless ($args->{runtime});
@@ -49,7 +131,6 @@ sub run {
     # Test the connectivity of Docker containers
     check_containers_connectivity($engine);
 
-    # Run basic runtime tests
     basic_container_tests(runtime => $self->{runtime});
     # Build an image from Dockerfile and run it
     build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
