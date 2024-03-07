@@ -173,7 +173,7 @@ sub find_sriov_ethernet_devices {
             # Any VFs can be passed through to guests
             # But only those VFs whose pv has physical network connection can get an IP from DHCP server
             my $nic = script_output "ls -l /sys/class/net |grep $_ | awk '{print \$9}'";
-            if (script_output("ip link show $nic up") =~ /$nic/) {
+            if (script_output("ip link show $nic up") =~ /$nic.* state UP/) {
                 push @sriov_devices, $_;
                 record_info("Find SR-IOV devices", "$_    $nic");
             }
@@ -182,6 +182,9 @@ sub find_sriov_ethernet_devices {
                 if (script_output("cat /sys/class/net/$nic/carrier") eq '1') {
                     push @sriov_devices, $_;
                     record_info("Find SR-IOV devices", "$_    $nic");
+                }
+                else {
+                    script_run("ip link set $nic down");
                 }
             }
         }
