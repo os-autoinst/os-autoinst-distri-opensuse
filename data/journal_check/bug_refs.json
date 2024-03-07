@@ -531,6 +531,13 @@
         },
         "type": "bug"
     },
+    "bsc#1220361": {
+        "description": "setroubleshoot.*SELinux is preventing agetty from using the checkpoint_restore capability.*",
+        "products": {
+            "sle-micro": ["5.5"]
+        },
+        "type": "bug"
+    },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
