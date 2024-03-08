@@ -552,7 +552,7 @@ sub reconnect_s390 {
         grub_select;
 
         type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
-        type_line_svirt "root", expect => m/Passwor[dt]/;
+        type_line_svirt "root", expect => qr/Passwor[dt]/;
         type_line_svirt "$testapi::password";
         type_line_svirt "systemctl is-active network", expect => 'active';
         if ($enable_root_ssh eq 1) {
