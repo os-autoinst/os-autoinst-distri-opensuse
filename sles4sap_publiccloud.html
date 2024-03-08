@@ -217,7 +217,7 @@ Displays most useful debugging info about cluster status, database status within
 
 <pre><code>$self-&gt;list_cluster_nodes()
 
-Returns list of hostnames that are part of a cluster using cmr shell command from one of the cluster nodes.</code></pre>
+Returns list of hostnames that are part of a cluster using crm shell command from one of the cluster nodes.</code></pre>
 
 <h2 id="get_hana_database_status">get_hana_database_status</h2>
 
@@ -258,7 +258,7 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 <h2 id="wait_for_zypper">wait_for_zypper</h2>
 
 <pre><code>The function attempts to run &#39;zypper ref&#39; to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
-Returns normally if Zypper is not locked, or dies after a maximum number of retries if Zypper remains locked.</code></pre>
+Returns normally if Zypper is not locked or dies after a maximum number of retries if Zypper remains locked.</code></pre>
 
 <dl>
 
@@ -275,6 +275,10 @@ Returns normally if Zypper is not locked, or dies after a maximum number of retr
 
 </dd>
 <dt id="TIMEOUT---The-number-of-seconds-to-wait-before-aborting-zypper-ref"><b>TIMEOUT</b> - The number of seconds to wait before aborting zypper ref</dt>
+<dd>
+
+</dd>
+<dt id="runas---If-runas-defined-command-will-be-executed-as-specified-user-otherwise-it-will-be-executed-as-cloudadmin"><b>runas</b> - If &#39;runas&#39; defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.</dt>
 <dd>
 
 </dd>
