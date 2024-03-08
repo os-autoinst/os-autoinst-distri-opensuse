@@ -85,13 +85,13 @@ sub run_cmd {
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
     my $cmd = defined($args{runas}) ? "su - $args{runas} -c '$args{cmd}'" : "$args{cmd}";
-
     # Without cleaning up variables SSH commands get executed under wrong user
     delete($args{cmd});
     delete($args{title});
     delete($args{timeout});
     delete($args{runas});
 
+    $self->{my_instance}->wait_for_ssh(timeout => $timeout);
     my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
     return $out;
@@ -280,6 +280,7 @@ sub stop_hana {
     record_info("Stopping HANA", "CMD:$cmd");
     if ($method eq "crash") {
         # Crash needs to be executed as root and wait for host reboot
+        $self->{my_instance}->wait_for_ssh(timeout => $timeout);
         $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
             timeout => "0",
@@ -849,7 +850,7 @@ sub display_full_status {
 
     $self->list_cluster_nodes()
 
-    Returns list of hostnames that are part of a cluster using cmr shell command from one of the cluster nodes.
+    Returns list of hostnames that are part of a cluster using crm shell command from one of the cluster nodes.
 
 =cut
 
@@ -1002,7 +1003,7 @@ sub saphanasr_showAttr_version {
 =head2 wait_for_zypper
 
     The function attempts to run 'zypper ref' to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
-    Returns normally if Zypper is not locked, or dies after a maximum number of retries if Zypper remains locked.
+    Returns normally if Zypper is not locked or dies after a maximum number of retries if Zypper remains locked.
 
 =over 4
 
@@ -1014,26 +1015,29 @@ sub saphanasr_showAttr_version {
 
 =item B<TIMEOUT> - The number of seconds to wait before aborting zypper ref
 
+=item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
+
 =back
 =cut
 
 sub wait_for_zypper {
     my ($self, %args) = @_;
     croak("Argument <instance> missing") unless ($args{instance});
-    $args{max_retries} //= 10;
-    $args{retry_delay} //= 20;
-    $args{timeout} //= 600;
-    my $retries = 0;
+    my $max_retries = $args{max_retries} // 10;
+    my $retry_delay = $args{retry_delay} // 20;
+    my $timeout = $args{timeout} // 600;
+    my $runas = $args{runas} // "cloudadmin";
+    my $retry = 0;
 
-    while ($retries < $args{max_retries}) {
-        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref', username => 'cloudadmin', proceed_on_failure => 1, rc_only => 1, quiet => 1, timeout => $args{timeout});
+    while ($retry < $max_retries) {
+        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref', username => $runas, proceed_on_failure => 1, rc_only => 1, quiet => 1, timeout => $timeout);
         if ($ret == 7) {
-            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retries/$args{max_retries}");
-            sleep $args{retry_delay};
-            $retries++;
+            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retry/$max_retries");
+            sleep $retry_delay;
+            $retry++;
         } else {
             if ($ret == 126) {
-                record_info("ZYPPER TIMEOUT", "zypper command timed out after $args{timeout}s - consider increasing the timeout.");
+                record_info("ZYPPER TIMEOUT", "zypper command timed out after $timeout - consider increasing the timeout.");
             }
             if ($ret != 0) {
                 record_info("ZYPPER PROBLEM", "Zypper is not locked, but it returned $ret");
@@ -1042,7 +1046,7 @@ sub wait_for_zypper {
         }
     }
 
-    die "Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)" if $retries >= $args{max_retries};
+    die "Zypper is still locked after $max_retries retries, aborting (rc: 7)" if $retry >= $max_retries;
 }
 
 1;
