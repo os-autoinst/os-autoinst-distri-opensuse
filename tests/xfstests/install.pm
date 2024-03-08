@@ -36,6 +36,7 @@ sub install_xfstests_from_repo {
     elsif (is_tumbleweed) {
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/oss/', name => 'repo-oss');
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/non-oss/', name => 'repo-non-oss');
+        zypper_ar('http://download.opensuse.org/repositories/home:/yosun:/branches:/filesystems/openSUSE_Tumbleweed/', name => 'xfstests-repo', priority => 90, no_gpg_check => 1);
     }
     elsif (is_alp) {
         my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/ALP-Standard-Core-1.0-Build/');
@@ -66,10 +67,10 @@ sub install_xfstests_from_repo {
         zypper_call('in xfstests fio');
     }
     if (is_sle) {
-        script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
+        script_run 'ln -s /var/lib/xfstests /opt/xfstests';
     }
     elsif (is_tumbleweed || is_leap) {
-        script_run 'ln -s /usr/lib/xfstests/ /opt/xfstests';
+        script_run 'ln -s /usr/lib/xfstests /opt/xfstests';
     }
 }
 
