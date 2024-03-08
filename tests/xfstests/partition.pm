@@ -354,10 +354,12 @@ sub install_dependencies_overlayfs {
     my @deps = qw(
       overlayfs-tools
       unionmount-testsuite
+      libcap-progs
     );
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
-        trup_install(join(' ', @deps));
+        # Excluding libcap-progs since install issue
+        trup_install(join(' ', @deps[0 .. $#deps - 1]));
         reboot_on_changes;
     }
     else {
