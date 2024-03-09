@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_alp is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
+use version_utils qw(is_alp is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -1489,7 +1489,7 @@ the session.
 =cut
 
 sub get_x11_console_tty {
-    my $new_sddm = !is_sle('<16') && !is_leap('<15.6');
+    my $new_sddm = (!is_sle('<16') && !is_leap('<15.6')) || is_krypton_argon;
     if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'lxqt')) {
         return $new_sddm ? 2 : 7;
     }
