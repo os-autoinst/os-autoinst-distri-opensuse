@@ -805,6 +805,7 @@ Returns true if the SUT uses Plasma 6.
 =cut
 
 sub is_plasma6 {
+    return 0 unless check_var('DESKTOP', 'kde');
     return is_krypton_argon || (is_tumbleweed && check_var('STAGING', 'L'));
 }
 
