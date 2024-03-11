@@ -92,9 +92,9 @@ sub basic_container_tests {
     ## Test connectivity inside the container
     assert_script_run("$runtime container exec basic_test_container curl -sfI https://opensuse.org", fail_message => "cannot reach opensuse.org");
 
-    ## Test `--init`, i.e. the container process won't be PID 1 (to avoid zombie processes)
-    # expected output: the `ps` command is not running as PID 1. The $runtime-init process shall be 1 instead.
-    validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/\s*1 .*${runtime}-init .*/ });
+    ## Test `--init` option, i.e. the container process won't be PID 1 (to avoid zombie processes)
+    # Ensure PID 1 has either the $runtime-init (e.g. podman-init) OR /init (e.g. `/dev/init) suffix
+    validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/\s*1 .*(${runtime}-|\/)init .*/ });
 
     ## Test prune
     assert_script_run("$runtime container commit basic_test_container example.com/prune-test");
