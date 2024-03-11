@@ -24,15 +24,10 @@ sub run {
     assert_script_run "echo \"BOOTPROTO='dhcp'\" > /etc/sysconfig/network/ifcfg-$interface";
     assert_script_run "echo \"STARTMODE='auto'\" >> /etc/sysconfig/network/ifcfg-$interface";
 
-    assert_script_run "ifup $interface";
-
-    # wait until interface is up
-    my $timeout = 20;
-    ($timeout-- && sleep 5) while (script_run "ip -4 addr show $interface | grep inet" && $timeout);
+    systemctl("restart wicked.service", 300);
 
     my $ping_peer = script_output "ip route show dev $interface | cut -d ' ' -f 7";
     assert_script_run "ping -I $interface -c 4 $ping_peer";
-    assert_script_run "ifdown $interface";
 }
 
 sub test_flags {
