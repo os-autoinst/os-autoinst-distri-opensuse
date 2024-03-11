@@ -1,0 +1,17 @@
+name: fips_xrdp
+description:    >
+    This is for the XRDP tests.
+schedule:
+    - '{{role_type}}'
+conditional_schedule:
+    role_type:
+        REMOTE_DESKTOP_TYPE:
+            'xrdp_server':
+                - boot/boot_to_desktop
+                - security/verify_fips_enabled
+                - x11/window_system
+                - security/fips_xrdp_server
+            'win_client':
+                - x11/remote_desktop/windows_client_boot
+                - x11/remote_desktop/windows_network_setup
+                - x11/remote_desktop/windows_client_remotelogin

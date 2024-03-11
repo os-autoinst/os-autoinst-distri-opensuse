@@ -4,13 +4,8 @@ description:    >
 schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
-    - '{{fips_setup}}'
+    - security/verify_fips_enabled
     - security/krb5/krb5_crypt_prepare
     - security/krb5/krb5_crypt_setup_server
     - security/krb5/krb5_crypt_ssh_server
     - security/krb5/krb5_crypt_nfs_server
-conditional_schedule:
-    fips_setup:
-        FIPS_ENABLED:
-            1:
-                - fips/fips_setup
