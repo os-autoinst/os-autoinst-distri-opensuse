@@ -37,7 +37,8 @@ sub run {
 
     # There are sporadic failures due to the command timing out, so we increase the timeout
     # and make use of retries to overcome a possible sporadic network issue.
-    script_retry("$cmd", retry => $retries, delay => $delay, timeout => 180);
+    my $output = script_output_retry("$cmd", retry => $retries, delay => $delay, timeout => 180);
+    die($output) if ($output =~ m/error|timeout|problem retrieving/i);
     process_reboot(trigger => 1) if is_transactional;
     # Check available extenstions (only present in sle)
     my $extensions = script_output_retry("$reg_cmd --list-extensions", retry => $retries, delay => $delay);
