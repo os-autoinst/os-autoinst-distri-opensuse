@@ -13,7 +13,6 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Logging 'export_logs_basic';
 
 sub run {
     my ($self) = @_;
@@ -22,7 +21,6 @@ sub run {
 
     my $lun = script_output 'lsscsi -t -v | awk -F" " \'/usb/ {split($2,a,/[\/]/); print a[6]}\'';
     my $device = "/dev/" . script_output "lsscsi -v | awk -F\"/\" \'/$lun/ {print \$3; exit}\'";
-
 
     # create filesystem, mountpoint and temporary file
     my $tmp = script_output 'mktemp -d';
@@ -36,7 +34,7 @@ sub run {
 
     assert_script_run "mount -t btrfs $device $mountpoint";
     assert_script_run "dd if=/dev/urandom of=$file bs=1M count=16";
-    assert_script_run "md5sum $file  > $md5";
+    assert_script_run "md5sum $file > $md5";
     assert_script_run "cp $file $file_copy";
 
     # sync, unmount and flush slab and page cache

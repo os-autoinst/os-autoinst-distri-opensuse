@@ -5,7 +5,7 @@
 
 # Package: usb_nic
 # Summary: Simple smoke test for testing USB NIC connected to system
-# Maintainer: LSG QE Kernel <kerneli-qa@suse.de>
+# Maintainer: LSG QE Kernel <kernel-qa@suse.de>
 
 use base 'opensusebasetest';
 use strict;
@@ -13,14 +13,11 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Logging 'export_logs_basic';
 
 sub run {
     my ($self) = @_;
 
     select_serial_terminal;
-
-    zypper_call('in -t package ethtool');
 
     my $interface = script_output 'basename $(readlink /sys/class/net/* | grep usb )';
 
