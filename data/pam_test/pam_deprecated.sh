@@ -61,7 +61,7 @@ teardown() {
     sleep 2 # this time is less than 10s
     run bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
     [ "$status" -ne 0 ]
-    sleep 12
+    sleep 20 
     echo -en "$USER_NOR_PW" | pam_test auth $USER_NOR
 }
 

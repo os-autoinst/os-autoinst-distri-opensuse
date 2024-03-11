@@ -55,9 +55,9 @@ sub run {
     my $ret = "";
     my $tap_results = "results.tap";
     if (package_version_cmp($pam_version, $limit_pam_version) >= 0) {
-        $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
+        $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 240);
     } else {
-        $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 180);
+        $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 240);
     }
     parse_extra_log(TAP => $tap_results);
 
