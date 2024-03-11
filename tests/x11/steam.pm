@@ -47,7 +47,10 @@ sub run {
         record_soft_failure 'bsc#1102525, steamAPI_Init failed';
     }
     wait_screen_change { send_key 'alt-f4' };
-    wait_still_screen(3);
+
+    # Make sure the focus is on xterm before closing it
+    # https://progress.opensuse.org/issues/156886
+    click_lastmatch if check_screen('steam_xterm_stuck', 10);
     script_run 'exit', 0;
 }
 
