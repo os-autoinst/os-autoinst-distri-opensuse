@@ -50,7 +50,9 @@ sub run {
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
             script_retry("yum update -q -y --nobest", timeout => $update_timeout);
-        } elsif ($host_distri eq 'rhel') {
+            # skip updates installation in RHEL7.9
+            # https://bugzilla.suse.com/show_bug.cgi?id=1221223
+        } elsif ($host_distri eq 'rhel' && $version ne '7') {
             script_retry("yum update -q -y", timeout => $update_timeout);
         }
     }
