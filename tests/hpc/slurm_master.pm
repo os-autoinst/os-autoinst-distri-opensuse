@@ -196,7 +196,7 @@ sub t07_basic() {
 }
 
 sub t08_basic() {
-    my $name = 'pdsh-slurm';
+    my $name = 'pdsh-slurm over ssh';
     my $description = 'Basic check of pdsh-slurm over ssh';
     my $result = 0;
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
