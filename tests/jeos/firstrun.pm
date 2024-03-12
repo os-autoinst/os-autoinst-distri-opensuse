@@ -277,6 +277,10 @@ sub run {
         assert_script_run "echo $username:$password | chpasswd";
     }
 
+    if (check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
+        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/permit-root-login.conf");
+    }
+
     ensure_serialdev_permissions;
 
     prepare_serial_console;
