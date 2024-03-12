@@ -35,9 +35,7 @@ sub run {
     $self->setup_pop($account);
     # Set up timezone via: Edit->Preference->calendor and task->uncheck "use
     # sYstem timezone", then select
-    send_key "alt-e";
-    send_key_until_needlematch "evolution-preference-highlight", "down";
-    send_key "ret";
+    send_key "ctrl-shift-s";
     assert_screen "evolution-preference";
     send_key_until_needlematch "evolution-calendorAtask", "down";
     send_key "alt-y";
