@@ -7,6 +7,7 @@ use warnings;
 use testapi;
 use Utils::Backends 'is_hyperv';
 use Exporter 'import';
+use version_utils 'is_public_cloud';
 our @EXPORT_OK = qw(yast2_console_exec);
 
 sub yast2_console_exec {
@@ -57,7 +58,7 @@ sub post_run_hook {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {fatal => 0};
+    return is_public_cloud() ? {no_rollback => 1, fatal => 0} : {fatal => 0};
 }
 
 1;
