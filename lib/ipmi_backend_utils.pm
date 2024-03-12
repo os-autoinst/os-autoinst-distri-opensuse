@@ -49,11 +49,11 @@ my $grub_ver = "grub2";
 
 sub get_dom0_serialdev {
     my $dom0_serialdev;
-    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")) {
         $dom0_serialdev = "hvc0";
     }
     else {
-        $dom0_serialdev = get_var("LINUX_CONSOLE_OVERRIDE", "ttyS1");
+        $dom0_serialdev = get_var('LINUX_CONSOLE_OVERRIDE', get_var("SERIALCONSOLE", "ttyS1"));
     }
     enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev.\"");
     return $dom0_serialdev;
