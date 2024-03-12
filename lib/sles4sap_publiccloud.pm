@@ -201,6 +201,7 @@ sub sles4sap_cleanup {
 
 sub get_hana_topology {
     my ($self) = @_;
+    $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => 120);
     my $cmd_out = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
     return calculate_hana_topology(input => $cmd_out);
 }
