@@ -188,7 +188,8 @@ sub qesap_create_ansible_section {
     my %paths = qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
 
-    assert_script_run("test -e $yaml_config_path", fail_message => "Yaml config file '$yaml_config_path' does not exist.");
+    assert_script_run("test -e $yaml_config_path",
+        fail_message => "Yaml config file '$yaml_config_path' does not exist.");
 
     my $raw_file = script_output("cat $yaml_config_path");
     my $yaml_data = $ypp->load_string($raw_file);
@@ -198,7 +199,10 @@ sub qesap_create_ansible_section {
     # write into file
     my $yaml_dumped = $ypp->dump_string($yaml_data);
     save_tmp_file($paths{qesap_conf_filename}, $yaml_dumped);
-    assert_script_run('curl -v -fL ' . autoinst_url . "/files/" . $paths{qesap_conf_filename} . ' -o ' . $paths{qesap_conf_trgt});
+    my $cmd = join(' ', 'curl', '-v',
+        '-fL', autoinst_url . "/files/" . $paths{qesap_conf_filename},
+        '-o', $paths{qesap_conf_trgt});
+    assert_script_run($cmd);
     return;
 }
 
@@ -387,7 +391,11 @@ sub qesap_get_roles_code {
         my $git_branch = get_var('QESAP_ROLES_INSTALL_GITHUB_BRANCH', 'main');
 
         my $git_repo = get_var('QESAP_ROLES_INSTALL_GITHUB_REPO', $official_repo);
-        my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{roles_dir};
+        my $git_clone_cmd = join(' ', 'git clone',
+            '--depth 1',
+            "--branch $git_branch",
+            'https://' . $git_repo,
+            $paths{roles_dir});
         assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $roles_git_clone_log", quiet => 1);
     }
 }
@@ -531,7 +539,10 @@ sub qesap_execute_conditional_retry {
     $args{logname} //= '';
     $args{retries} //= 1;
 
-    my @ret = qesap_execute(cmd => $args{cmd}, verbose => $args{verbose}, timeout => $args{timeout}, logname => $args{logname});
+    my @ret = qesap_execute(cmd => $args{cmd},
+        verbose => $args{verbose},
+        timeout => $args{timeout},
+        logname => $args{logname});
 
     while ($args{retries} > 0) {
         if ($ret[0]) {
@@ -736,7 +747,9 @@ sub qesap_prepare_env {
     push(@log_files, $paths{qesap_conf_trgt});
 
     record_info('QESAP conf', 'Generating all terraform and Ansible configuration files');
-    my $terraform_tfvars = join('/', qesap_get_terraform_dir(provider => $args{provider}), 'terraform.tfvars');
+    my $terraform_tfvars = join('/',
+        qesap_get_terraform_dir(provider => $args{provider}),
+        'terraform.tfvars');
     push(@log_files, $terraform_tfvars);
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
@@ -823,7 +836,9 @@ sub qesap_ansible_cmd {
         '-a', "\"$args{cmd}\"");
 
     $ansible_cmd = $args{host_keys_check} ?
-      join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
+      join(' ', $ansible_cmd,
+        '-e',
+        "'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
       $ansible_cmd;
 
     qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, failok => $args{failok});
@@ -1120,8 +1135,9 @@ sub qesap_wait_for_ssh {
     # Looping until reaching timeout or passing two conditions :
     # - SSH port 22 is reachable
     # - journalctl got message about reaching one of certain targets
+    my $cmd = join(' ', 'nc', '-vz', '-w', '1', $args{host}, $args{port});
     while ((my $duration = time() - $start_time) < $args{timeout}) {
-        return $duration if (script_run(join(' ', 'nc', '-vz', '-w', '1', $args{host}, $args{port}), quiet => 1) == 0);
+        return $duration if (script_run($cmd, quiet => 1) == 0);
         sleep 5;
     }
 
@@ -1325,7 +1341,9 @@ sub qesap_aws_get_vpc_id {
         '"Name=tag-key,Values=Workspace"',
         "\"Name=tag-value,Values=$args{resource_group}\"",
         '--query',
-        "'Reservations[0].Instances[0].VpcId'",    # the two 0 index result in select only the vpc of vmhana01 that is always equal to the one used by vmhana02
+        # the two 0 index result in select only the vpc of vmhana01
+        # that is always equal to the one used by vmhana02
+        "'Reservations[0].Instances[0].VpcId'",
         '--output text');
     return script_output($cmd);
 }
@@ -1369,7 +1387,8 @@ sub qesap_aws_get_transit_gateway_vpc_attachment {
     wait until Transit Gateway Attachment is available.
 
     Return 1 (true) if properly managed to create the transit-gateway-vpc-attachment
-    Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway does not become active before the timeout
+    Return 0 (false) if create-transit-gateway-vpc-attachment fails or
+                  the gateway does not become active before the timeout
 
 =over 5
 
@@ -1421,7 +1440,8 @@ sub qesap_aws_create_transit_gateway_vpc_attachment {
     wait until Transit Gateway Attachment is deleted.
 
     Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
-    Return 0 (false) if delete-transit-gateway-vpc-attachment fails or the gateway does not become inactive before the timeout
+    Return 0 (false) if delete-transit-gateway-vpc-attachment fails or
+         the gateway does not become inactive before the timeout
 
 =over 2
 
@@ -1665,7 +1685,8 @@ sub qesap_add_server_to_hosts {
 
 =over 1
 
-=item B<$test_id> - OpenQA test ID from a test previously run with "QESAP_DEPLOYMENT_IMPORT=1" and infrastructure still being up and running
+=item B<$test_id> - OpenQA test ID from a test previously run with "QESAP_DEPLOYMENT_IMPORT=1" and
+                    infrastructure still being up and running
 
 =back
 =cut
@@ -1706,7 +1727,8 @@ sub qesap_export_instances {
         '/root/.ssh/id_rsa.pub');
 
     upload_logs($_, log_name => basename($_)) for @upload_files;
-    record_info('EXPORT', "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
+    record_info('EXPORT',
+        "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
 }
 
 =head3 qesap_is_job_finished
@@ -1776,7 +1798,8 @@ sub qesap_az_get_resource_group {
     my (%args) = @_;
     my $substring = $args{substring} ? " | grep $args{substring}" : "";
     my $job_id = get_var('QESAP_DEPLOYMENT_IMPORT', get_current_job_id());    # in case existing deployment is used
-    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring, proceed_on_failure => 1);
+    my $cmd = "az group list --query \"[].name\" -o tsv | grep $job_id" . $substring;
+    my $result = script_output($cmd, proceed_on_failure => 1);
     record_info('QESAP RG', "result:$result");
     return $result;
 }
@@ -1839,23 +1862,48 @@ sub qesap_az_vnet_peering {
 
     my $vnet_show_cmd = 'az network vnet show --query id --output tsv';
 
-    my $source_vnet_id = script_output("$vnet_show_cmd --resource-group $args{source_group} --name $source_vnet");
-    record_info("[M] source vnet ID: $source_vnet_id\n");
+    my $source_vnet_id = script_output(join(' ',
+            $vnet_show_cmd,
+            '--resource-group', $args{source_group},
+            '--name', $source_vnet));
+    record_info("source vnet ID: $source_vnet_id");
 
-    my $target_vnet_id = script_output("$vnet_show_cmd --resource-group $args{target_group} --name $target_vnet");
-    record_info("[M] target vnet ID: $target_vnet_id\n");
+    my $target_vnet_id = script_output(join(' ',
+            $vnet_show_cmd,
+            '--resource-group', $args{target_group},
+            '--name', $target_vnet));
+    record_info("[M] target vnet ID: $target_vnet_id");
 
     my $peering_name = "$source_vnet-$target_vnet";
-    my $peering_cmd = "az network vnet peering create --name $peering_name --allow-vnet-access --output table";
+    my $peering_cmd = join(' ',
+        'az network vnet peering create',
+        '--name', $peering_name,
+        '--allow-vnet-access',
+        '--output table');
 
-    assert_script_run("$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id", timeout => $args{timeout});
-    record_info('PEERING SUCCESS (source)', "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
+    assert_script_run(join(' ',
+            $peering_cmd,
+            '--resource-group', $args{source_group},
+            '--vnet-name', $source_vnet,
+            '--remote-vnet', $target_vnet_id), timeout => $args{timeout});
+    record_info('PEERING SUCCESS (source)',
+        "Peering from $args{source_group}.$source_vnet server was successful");
 
-    assert_script_run("$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet --remote-vnet $source_vnet_id", timeout => $args{timeout});
-    record_info('PEERING SUCCESS (target)', "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
+    assert_script_run(join(' ',
+            $peering_cmd,
+            '--resource-group', $args{target_group},
+            '--vnet-name', $target_vnet,
+            '--remote-vnet', $source_vnet_id), timeout => $args{timeout});
+    record_info('PEERING SUCCESS (target)',
+        "Peering from $args{target_group}.$target_vnet server was successful");
 
     record_info('Checking peering status');
-    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
+    assert_script_run(join(' ',
+            'az network vnet peering show',
+            '--name', $peering_name,
+            '--resource-group', $args{target_group},
+            '--vnet-name', $target_vnet,
+            '--output table'));
     record_info('AZURE PEERING SUCCESS');
 }
 
@@ -1880,7 +1928,11 @@ sub qesap_az_simple_peering_delete {
     my (%args) = @_;
     foreach (qw(rg vnet_name peering_name)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{timeout} //= bmwqemu::scale_timeout(300);
-    my $peering_cmd = "az network vnet peering delete -n $args{peering_name} --resource-group $args{rg} --vnet-name $args{vnet_name}";
+    my $peering_cmd = join(' ',
+        'az network vnet peering delete',
+        '-n', $args{peering_name},
+        '--resource-group', $args{rg},
+        '--vnet-name', $args{vnet_name});
     return script_run($peering_cmd, timeout => $args{timeout});
 }
 
@@ -1912,7 +1964,8 @@ sub qesap_az_vnet_peering_delete {
 
     my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
-        record_info('NO PEERING', "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
+        record_info('NO PEERING',
+            "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
         return;
     }
 
@@ -1921,13 +1974,22 @@ sub qesap_az_vnet_peering_delete {
     record_info('Destroying job_resources->IBSM peering');
     if ($args{source_group}) {
         my $source_vnet = qesap_az_get_vnet($args{source_group});
-        $source_ret = qesap_az_simple_peering_delete(rg => $args{source_group}, vnet_name => $source_vnet, peering_name => $peering_name, timeout => $args{timeout});
+        $source_ret = qesap_az_simple_peering_delete(
+            rg => $args{source_group},
+            vnet_name => $source_vnet,
+            peering_name => $peering_name,
+            timeout => $args{timeout});
     }
     else {
-        record_info('NO PEERING', "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
+        record_info('NO PEERING',
+            "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
     }
     record_info('Destroying IBSM -> job_resources peering');
-    my $target_ret = qesap_az_simple_peering_delete(rg => $args{target_group}, vnet_name => $target_vnet, peering_name => $peering_name, timeout => $args{timeout});
+    my $target_ret = qesap_az_simple_peering_delete(
+        rg => $args{target_group},
+        vnet_name => $target_vnet,
+        peering_name => $peering_name,
+        timeout => $args{timeout});
 
     if ($source_ret == 0 && $target_ret == 0) {
         record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
@@ -1967,7 +2029,7 @@ sub qesap_az_get_peering_name {
 
 =head3 qesap_az_get_active_peerings
 
-    Get active peerings for Azure jobs
+    Get active peering for Azure jobs
 
 =over 2
 
@@ -1981,7 +2043,11 @@ sub qesap_az_get_peering_name {
 sub qesap_az_get_active_peerings {
     my (%args) = @_;
     foreach (qw(rg vnet)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    my $cmd = "az network vnet peering list -g $args{rg} --vnet-name $args{vnet} --output tsv --query \"[].name\"";
+    my $cmd = join(' ', 'az network vnet peering list',
+        '-g', $args{rg},
+        '--vnet-name', $args{vnet},
+        '--output tsv',
+        '--query "[].name"');
     my $output_str = script_output($cmd);
     my @output = split(/\n/, $output_str);
     my %result;
@@ -1996,7 +2062,7 @@ sub qesap_az_get_active_peerings {
 
 =head2 qesap_az_clean_old_peerings
 
-    Delete leftover peerings for Azure jobs that finished without cleaning up
+    Delete leftover peering for Azure jobs that finished without cleaning up
 
 =over 2
 
@@ -2041,7 +2107,8 @@ sub qesap_az_get_native_fencing_type {
     qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
         resource_group=>$resource_group);
 
-    Sets up managed identity (MSI) by enabling system assigned identity and role 'Virtual Machine Contributor'
+    Sets up managed identity (MSI) by enabling system assigned identity and
+    role 'Virtual Machine Contributor'
 
 =over 2
 
@@ -2144,7 +2211,8 @@ sub qesap_az_get_tenant_id {
 
     qesap_az_validate_uuid_pattern( uuid_string=>$uuid_string )
 
-    Function checks input string against uuid pattern which is commonly used as an identifier for azure resources.
+    Function checks input string against uuid pattern
+    which is commonly used as an identifier for azure resources.
     returns uuid (true) on match, 0 (false) on mismatch.
 
 =cut
@@ -2171,11 +2239,12 @@ Return the token string
 
 =item B<KEYNAME> - name of the access key within the storage account
 
-=item B<PERMISSION> - access permissions. Syntax is what documented in 'az storage container generate-sas --help'.
+=item B<PERMISSION> - access permissions. Syntax is what documented in
+                      'az storage container generate-sas --help'.
                       Some of them of interest: (a)dd (c)reate (d)elete (e)xecute (l)ist (m)ove (r)ead (w)rite.
                       Default is 'r'
 
-=item B<LIFETIME> - life time of the token in minutes, default is 10minute
+=item B<LIFETIME> - life time of the token in minutes, default is 10min
 
 =back
 =cut
@@ -2250,7 +2319,8 @@ sub qesap_az_diagnostic_log {
 sub qesap_terraform_clean_up_retry {
     my $command = 'terraform';
 
-    # Do not do 'ansible' cleanup as if 'Timed out waiting for last boot time check' happened the SSH will be disconnected
+    # Do not do 'ansible' cleanup as if 'Timed out waiting for last boot time check' happened
+    # the SSH will be disconnected
     # E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'
     # Terraform destroy can be executed in any case
     record_info('Cleanup', "Executing $command cleanup");
