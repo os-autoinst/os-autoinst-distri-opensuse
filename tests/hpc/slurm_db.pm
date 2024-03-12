@@ -69,6 +69,11 @@ EOF
     ## munge must start before other slurm daemons
     $self->enable_and_start('munge');
     systemctl('is-active munge');
+
+    # Install mrsh and mrsh-server to allow t10 basic
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
+
     $self->prepare_slurmdb_conf();
     record_info("slurmdbd conf", script_output("cat /etc/slurm/slurmdbd.conf"));
     $self->enable_and_start("slurmdbd");

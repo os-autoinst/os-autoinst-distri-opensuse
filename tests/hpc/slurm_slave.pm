@@ -55,6 +55,10 @@ sub run ($self) {
     # enable and start munge
     $self->enable_and_start('munge');
 
+    # Install mrsh and mrsh-server to allow t10 basic
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
+
     # enable and start slurmd
     $self->enable_and_start('slurmd');
     systemctl 'status slurmd';
