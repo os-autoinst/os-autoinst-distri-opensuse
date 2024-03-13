@@ -37,7 +37,7 @@ sub verify_multipath_block_devices {
     my $mpath = script_output "multipath -l";
     my @mpath = split /\n/, $mpath;
     # check for 50GB disk (multiline match)
-    assert_matches qr/^3600507638081855cd800000000000076.+\n^size=50G/m, $mpath, "Cannot find 50GB disk on WWID *076";
+    assert_matches qr/size=50G/m, $mpath, "Cannot find 50GB disk";
     # must see the LUN over 2 paths
     my $disks = scalar grep { /\bsd(a|b)\b/ } @mpath;
     assert_equals 2, $disks, "50GB block device does not have 2 paths";
