@@ -99,6 +99,13 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
         upload_logs('/tmp/journalctl_b.txt');
     }
+
+    if (is_hardened) {
+        # Upload SCAP profile used by img-proof
+        my $url = "https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.15.xml.gz";
+        assert_script_run("curl --fail -LO $url");
+        upload_logs("suse.linux.enterprise.15.xml.gz");
+    }
 }
 
 sub cleanup {
