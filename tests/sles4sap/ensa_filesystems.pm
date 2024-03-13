@@ -28,17 +28,17 @@ sub run {
 
     # Setup NFS directory structure on supportserver side
     if (check_var('SUPPORT_SERVER', '1')) {
+        mutex_lock 'support_server_ready';
         my $nfs_permissions = get_required_var("NFS_PERMISSIONS");
         record_info('NFS prep', 'Preparing SAP related exports');
 
         assert_script_run("mkdir -p $nfs_root/$sap_sid/{$create_directories}");
-        # assert_script_run("chmod -Rv 777 $nfs_root/$sap_sid");
-        # assert_script_run("chown -Rv $sidadm_uid:$sapsys_guid $nfs_root/$sap_sid/*");
         assert_script_run("echo $nfs_root *\($nfs_permissions\) >> /etc/exports");
         assert_script_run("exportfs -r");
         systemctl("restart nfs-server");
         systemctl("restart rpcbind");
         systemctl("is-active nfs-server -a rpcbind");
+        mutex_unlock 'support_server_ready';
         return;
     }
 
