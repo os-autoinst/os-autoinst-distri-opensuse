@@ -76,7 +76,9 @@ sub setup_console_in_grub {
         #grub2
         $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
         if (${virt_type} eq "xen") {
-            $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            # On some special beremetal machines, such as unreal2/3, their serial console:
+            # SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1"
+            $com_settings = get_var("XEN_SERIAL_CONSOLE", "console=com2,115200");
             $bootmethod = "module";
             $search_pattern = "vmlinuz";
 
@@ -87,7 +89,7 @@ sub setup_console_in_grub {
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $dom0_options console=com2,115200 loglvl=all guest_loglvl=all sync_console $com_settings/;}; "
+              . "/multiboot/ s/\$/ $dom0_options $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;

@@ -54,7 +54,9 @@
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>splash=silent quiet console=tty loglevel=5 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
-      <xen_kernel_append>console=com2,115200 vga=gfx-1024x768x16 loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <!-- For some special beremetal machines, such as unreal2/3, their serial console:
+      SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1" -->
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
       % } else {
       <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
