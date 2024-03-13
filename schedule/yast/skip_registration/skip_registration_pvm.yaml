@@ -15,6 +15,7 @@ schedule:
   add_on_product:
     - installation/add_on_product_installation/accept_add_on_installation
   system_role:
+    - installation/system_role/select_role_text_mode
     - installation/release_notes_from_url
   system_preparation:
     - console/system_prepare
