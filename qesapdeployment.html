@@ -727,7 +727,8 @@ Returns a HASH reference to the decoded JSON returned by the AWS command or unde
 wait until Transit Gateway Attachment is available.
 
 Return 1 (true) if properly managed to create the transit-gateway-vpc-attachment
-Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway does not become active before the timeout</code></pre>
+Return 0 (false) if create-transit-gateway-vpc-attachment fails or
+              the gateway does not become active before the timeout</code></pre>
 
 <dl>
 
@@ -759,7 +760,8 @@ Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway d
 wait until Transit Gateway Attachment is deleted.
 
 Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
-Return 0 (false) if delete-transit-gateway-vpc-attachment fails or the gateway does not become inactive before the timeout</code></pre>
+Return 0 (false) if delete-transit-gateway-vpc-attachment fails or
+     the gateway does not become inactive before the timeout</code></pre>
 
 <dl>
 
@@ -1012,7 +1014,7 @@ empty string if a peering doesn&#39;t exist</code></pre>
 
 <h3 id="qesap_az_get_active_peerings">qesap_az_get_active_peerings</h3>
 
-<pre><code>Get active peerings for Azure jobs</code></pre>
+<pre><code>Get active peering for Azure jobs</code></pre>
 
 <dl>
 
@@ -1028,7 +1030,7 @@ empty string if a peering doesn&#39;t exist</code></pre>
 
 <h2 id="qesap_az_clean_old_peerings">qesap_az_clean_old_peerings</h2>
 
-<pre><code>Delete leftover peerings for Azure jobs that finished without cleaning up</code></pre>
+<pre><code>Delete leftover peering for Azure jobs that finished without cleaning up</code></pre>
 
 <dl>
 
@@ -1051,7 +1053,8 @@ empty string if a peering doesn&#39;t exist</code></pre>
 <pre><code>qesap_az_setup_native_fencing_permissions(vmname=&gt;$vm_name,
     resource_group=&gt;$resource_group);
 
-Sets up managed identity (MSI) by enabling system assigned identity and role &#39;Virtual Machine Contributor&#39;</code></pre>
+Sets up managed identity (MSI) by enabling system assigned identity and
+role &#39;Virtual Machine Contributor&#39;</code></pre>
 
 <dl>
 
@@ -1104,7 +1107,8 @@ subscription_id - valid azure subscription</code></pre>
 
 <pre><code>qesap_az_validate_uuid_pattern( uuid_string=&gt;$uuid_string )
 
-Function checks input string against uuid pattern which is commonly used as an identifier for azure resources.
+Function checks input string against uuid pattern
+which is commonly used as an identifier for azure resources.
 returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 <h2 id="qesap_az_create_sas_token">qesap_az_create_sas_token</h2>
@@ -1131,7 +1135,7 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 <dd>
 
 </dd>
-<dt id="LIFETIME---life-time-of-the-token-in-minutes-default-is-10minute"><b>LIFETIME</b> - life time of the token in minutes, default is 10minute</dt>
+<dt id="LIFETIME---life-time-of-the-token-in-minutes-default-is-10min"><b>LIFETIME</b> - life time of the token in minutes, default is 10min</dt>
 <dd>
 
 </dd>
