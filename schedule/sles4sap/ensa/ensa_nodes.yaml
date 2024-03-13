@@ -1,5 +1,5 @@
 ---
-name: netweaver_cluster_node
+name: ensa_node
 description: >
   NetWeaver Cluster Test. Schedule for all nodes.
 
@@ -27,7 +27,6 @@ vars:
   BOOT_HDD_IMAGE: '1'
   USE_SUPPORT_SERVER: '1'
   HDD_SCC_REGISTERED: '1'
-  VIRTIO_CONSOLE: '0'
   HA_CLUSTER: '1'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
@@ -38,18 +37,18 @@ schedule:
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
-  - ha/ha_sle15_workarounds
   - ha/firewall_disable
   - ha/iscsi_client
   - ha/watchdog
   - sles4sap/patterns
   - '{{cluster_setup}}'
   - sles4sap/netweaver_network
-  - '{{ensa_filesystems}}'
-  - sles4sap/netweaver_swpm_installation
-  - sles4sap/netweaver_ensa2_cluster
-  - '{{setup_cluster_connector}}'
-  - '{{test_ensa_web_methods}}'
+  - sles4sap/netweaver_nfs_setup
+  - sles4sap/ensa/ensa_filesystems
+  - sles4sap/ensa/netweaver_swpm_installation
+  - sles4sap/ensa/netweaver_ensa2_cluster
+  - sles4sap/ensa/netweaver_ensa2_cluster_connector
+  - sles4sap/ensa/netweaver_ensa2_web_methods
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
@@ -58,15 +57,3 @@ conditional_schedule:
         - ha/ha_cluster_init
       no:
         - ha/ha_cluster_join
-  ensa_filesystems:
-    ENSA_SETUP:
-      1:
-        - sles4sap/ensa_filesystems
-  setup_cluster_connector:
-    ENSA_SETUP:
-      1:
-        - sles4sap/netweaver_ensa2_cluster_connector
-  test_ensa_web_methods:
-    ENSA_SETUP:
-      1:
-        - sles4sap/netweaver_ensa2_web_methods
