@@ -17,8 +17,12 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends;
 use version_utils qw(is_upgrade is_sles4sap is_sle is_alp is_sle_micro);
+use utils 'handle_gnome_memory_ge_4g';
 
 sub run {
+    # https://progress.opensuse.org/issues/153808
+    handle_gnome_memory_ge_4g(fatal_flag => 0);
+
     my ($self) = @_;
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
