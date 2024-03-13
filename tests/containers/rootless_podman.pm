@@ -49,7 +49,7 @@ sub run {
         my $cont_storage = '/etc/containers/storage.conf';
         if ($unresolved_config =~ m|$cont_storage|) {
             assert_script_run(sprintf('mv  %s.rpmnew %s', $cont_storage, $cont_storage));
-            assert_script_run('rm -rf /var/lib/containers/storage') if is_aarch64;
+            assert_script_run('rm -rf /var/lib/containers/storage');
             assert_script_run('podman system reset -f');
         }
     }
