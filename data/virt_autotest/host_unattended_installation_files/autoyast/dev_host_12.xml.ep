@@ -42,7 +42,7 @@
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
-      <xen_kernel_append>com2=115200,8n1 console=com2,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
       % } else {
       <append>loglevel=5 gfxpayload=1024x768 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
