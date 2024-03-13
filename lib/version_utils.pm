@@ -806,7 +806,9 @@ Returns true if the SUT uses Plasma 6.
 
 sub is_plasma6 {
     return 0 unless check_var('DESKTOP', 'kde');
-    return is_krypton_argon || (is_tumbleweed && check_var('STAGING', 'L'));
+    return 1 if is_krypton_argon;
+    return 0 if is_leap("<16");
+    return 1;
 }
 
 
