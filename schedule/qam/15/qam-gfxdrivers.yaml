@@ -13,7 +13,7 @@ schedule:
 - console/yast2_vnc
 - console/force_scheduled_tasks
 - autoyast/autoyast_reboot
-- kernel/update_kernel
+#- kernel/update_kernel
 - console/system_prepare
 - console/check_network
 - console/system_state

@@ -28,6 +28,11 @@ sub run {
 
     my $ping_peer = script_output "ip route show dev $interface | cut -d ' ' -f 7";
     assert_script_run "ping -I $interface -c 4 $ping_peer";
+
+    # DEBUG for bsc#1220838
+    script_run("supportconfig", 300);
+    assert_script_run("wget --quiet " . data_url("kernel/debug.sh") . " -O /usr/lib/systemd/system-shutdown/debug.sh");
+    assert_script_run("chmod +x /usr/lib/systemd/system-shutdown/debug.sh");
 }
 
 sub test_flags {
