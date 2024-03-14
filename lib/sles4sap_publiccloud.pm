@@ -65,6 +65,7 @@ our @EXPORT = qw(
   pacemaker_version
   saphanasr_showAttr_version
   get_hana_site_names
+  wait_for_cluster
   wait_for_zypper
 );
 
@@ -998,6 +999,48 @@ sub saphanasr_showAttr_version {
         return $1;
     } else {
         return '';
+    }
+}
+
+=head2 wait_for_cluster
+
+    Verifies that nodes are online, resources are started and DB is in sync
+
+=over 2
+
+=item B<WAIT_TIME> - time to wait before retry in seconds, default 10
+
+=item B<MAX_RETRIES> - maximum number of retries, default 7
+
+=back
+=cut
+
+sub wait_for_cluster {
+    my ($self, $wait_time, $max_retries) = @_;
+    $wait_time //= 10;
+    $max_retries //= 7;
+
+    while ($max_retries > 0) {
+        my $hanasr_output = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
+        my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
+
+        my $hanasr_ready = check_hana_topology(input => calculate_hana_topology(input => $hanasr_output));
+        my $crm_ok = check_crm_output(input => $crm_output);
+
+        if ($hanasr_ready && $crm_ok) {
+            record_info("OK", "Cluster is healthy: All nodes are online with one node in 'PRIM' and the other in 'SOK' state.");
+            return;
+        }
+
+        $max_retries--;
+        if ($max_retries > 0) {
+            sleep($wait_time);
+        } else {
+            record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
+            record_info('HANASR STATUS', $hanasr_output);
+            record_info('CRM STATUS', $crm_output);
+            die "Cluster is not ready after specified retries.";
+        }
     }
 }
 

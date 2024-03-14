@@ -18,6 +18,8 @@ use Carp qw(croak);
 
 our @EXPORT = qw(
   calculate_hana_topology
+  check_hana_topology
+  check_crm_output
 );
 
 =head1 SYNOPSIS
@@ -79,6 +81,73 @@ sub calculate_hana_topology {
     }
 
     return \%topology;
+}
+
+=head2 check_hana_topology
+    check_hana_topology([input => $saphanasr_showAttr_format_script_output]);
+
+    Expect the output of saputils::calculate_hana_topology as input.
+    Uses calculate_hana_topology to get a hash of hashes, and then
+    checks the output to make sure that the cluster is working and ready.
+
+    The checks performed are:
+    - All node_states are online
+    - All sync_states are either SOK or PRIM
+
+=cut
+
+
+sub check_hana_topology {
+    my (%args) = @_;
+    croak "Missing mandatory 'input' argument" unless $args{input};
+    my $topology = $args{input};
+
+    my $all_online = 1;
+    my $prim_count = 0;
+    my $sok_count = 0;
+
+    foreach my $host (keys %$topology) {
+        # Check node_state
+        if ($topology->{$host}->{node_state} ne 'online') {
+            $all_online = 0;
+            last;
+        }
+
+        # Check sync_state
+        if ($topology->{$host}->{sync_state} eq 'PRIM') {
+            $prim_count++;
+        } elsif ($topology->{$host}->{sync_state} eq 'SOK') {
+            $sok_count++;
+        }
+    }
+
+    # Final check for conditions
+    return ($all_online && $prim_count == 1 && $sok_count == (keys %$topology) - 1);
+}
+
+=head2 check_crm_output
+    check_crm_output([input => $crm_mon_output]);
+
+    input: the output of the command 'crm_mon -r -R -n -N -1'
+    output: whether the conditions are met (return 1) or not (return 0)
+
+    Conditions:
+    - No resources are in 'Starting' state
+    - No 'Failed Resource Actions' present   
+
+=cut
+
+sub check_crm_output {
+    my (%args) = @_;
+    croak "Missing mandatory 'input' argument" unless $args{input};
+    record_info("cmd_out", $args{input});
+    my $resource_started = 1;
+    my $failed_actions = 0;
+
+    $resource_started = !($args{input} =~ /:\s*Starting/);
+    $failed_actions = ($args{input} =~ /Failed Resource Actions:/);
+
+    return ($resource_started && !$failed_actions);
 }
 
 1;
