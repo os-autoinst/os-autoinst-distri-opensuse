@@ -32,8 +32,6 @@ sub run {
     }
     assert_script_run('az version');
 
-    set_var 'PUBLIC_CLOUD_PROVIDER' => 'AZURE';
-    set_var 'PUBLIC_CLOUD_REGION' => 'westeurope';
     my $provider = $self->provider_factory();
 
     my $resource_group = "openqa-cli-test-rg-$job_id";

@@ -183,8 +183,8 @@ sub load_publiccloud_cli_tools {
     if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
         loadtest 'publiccloud/azure_more_cli';
     } else {
-        loadtest 'publiccloud/azure_cli';
-        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/azure_cli' if (is_azure());
+        loadtest 'publiccloud/aws_cli' if (is_ec2());
     }
     loadtest 'shutdown/shutdown';
 }
