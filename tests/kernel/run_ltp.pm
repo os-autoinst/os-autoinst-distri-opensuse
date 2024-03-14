@@ -388,7 +388,9 @@ sub run_post_fail {
     $self->save_crashdump()
       if $self->{timed_out} && check_var_array('LTP_DEBUG', 'crashdump');
 
+    $self->get_new_serial_output();
     $self->fail_if_running();
+    $self->compute_test_execution_time();
 
     if ($self->{ltp_tinfo} and $self->{result} eq 'fail') {
         my $whitelist = LTP::WhiteList->new();
