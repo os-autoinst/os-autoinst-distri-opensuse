@@ -49,24 +49,20 @@ sub enable_fips {
     }
 }
 
-sub get_fips_pattern_name {
-    if (is_alp || is_sle_micro('>=6.0')) { return "alp_fips"; }
-    else { return "fips"; }
-}
-
 sub install_fips {
-    my $fips_pattern_name = get_fips_pattern_name();
+    # Environment variable mode
     if (get_var("FIPS_ENV_MODE")) {
-        zypper_call("in -t pattern $fips_pattern_name") if !is_alp;
+        zypper_call("in -t pattern fips") if !is_alp;
+        trup_call("pkg install -t pattern fips") if is_alp || is_sle_micro;
     }
-    # In kernel mode only, use the crypto-policies
+    # In kernel mode only, use the crypto-policies when possible
     else {
         zypper_call("in crypto-policies-scripts") if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed);
+        # No crypto-policies in older SLE
+        zypper_call("in -t pattern fips") if is_sle('<=15-SP3');
+        # crypto-policies script reports Cannot handle transactional systems.
+        trup_call("pkg install -t pattern fips") if (is_alp || is_sle_micro);
     }
-    # In ALP, use the same for kernel and environment mode
-    trup_call("pkg install -t pattern $fips_pattern_name") if is_alp || is_sle_micro;
-    # No crypto-policies in older SLE
-    zypper_call("in -t pattern $fips_pattern_name") if is_sle('<=15-SP3');
 }
 
 sub run {
