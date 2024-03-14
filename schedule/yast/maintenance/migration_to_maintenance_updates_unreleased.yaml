@@ -1,0 +1,30 @@
+---
+name: migration_to_mu_unreleased
+description: >
+  Performs a migration from system with released maintenance updates to a product with maintenance updates unreleased
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - migration/online_migration/register_system
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/add_update_test_repo
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/zypper_ref
