@@ -270,6 +270,22 @@ sub thetime {
     return clock_gettime(CLOCK_MONOTONIC);
 }
 
+sub save_crashdump {
+    my $self = shift;
+    my $old_console = current_console();
+
+    select_console('root-console');
+    script_run('rm -rf /var/crash/*');
+    send_key('alt-sysrq-s');
+    send_key('alt-sysrq-c');
+    reset_consoles;
+    $self->wait_boot;
+    select_console($old_console);
+    my $dump = script_output('ls /var/crash |tail -n1');
+    assert_script_run("tar cJf /root/crashdump.tar.xz /var/crash/$dump");
+    upload_logs('/root/crashdump.tar.xz');
+}
+
 sub upload_tcpdump {
     my $self = shift;
     my $pid = $self->{tcpdump_pid};
@@ -369,6 +385,8 @@ sub run_post_fail {
     my ($self, $msg) = @_;
 
     $self->upload_tcpdump() if defined($self->{tcpdump_pid});
+    $self->save_crashdump()
+      if $self->{timed_out} && check_var_array('LTP_DEBUG', 'crashdump');
 
     $self->fail_if_running();
 
@@ -454,6 +472,7 @@ E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 
 Comma separated list of debug features to enable during test run.
 C<tcpdump>: Capture all packets sent or received during each test.
+C<crashdump>: Save kernel crashdump on test timeout.
 
 =cut
 

@@ -17,6 +17,7 @@ use Utils::Backends;
 use LTP::utils;
 use version_utils qw(is_jeos is_sle);
 use utils 'assert_secureboot_status';
+use kdump_utils;
 
 sub run {
     my ($self) = @_;
@@ -41,6 +42,11 @@ sub run {
     }
 
     select_serial_terminal;
+
+    if (check_var_array('LTP_DEBUG', 'crashdump')) {
+        configure_service(yast_interface => 'cli');
+        select_serial_terminal;
+    }
 
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');

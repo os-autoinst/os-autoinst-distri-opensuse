@@ -28,6 +28,7 @@ use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends 'get_serial_console';
+use kdump_utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -305,6 +306,11 @@ sub run {
     enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
     select_serial_terminal;
+
+    if (get_var('LTP_COMMAND_FILE') && check_var_array('LTP_DEBUG', 'crashdump')) {
+        configure_service(yast_interface => 'cli');
+        select_serial_terminal;
+    }
 
     export_ltp_env;
 
