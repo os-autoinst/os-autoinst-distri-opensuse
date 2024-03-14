@@ -5,4 +5,8 @@ description: >
   Maintainer: <qa-c@suse.de>
 schedule:
   - boot/boot_to_desktop
+  - publiccloud/prepare_instance
+  - publiccloud/registration
+  - publiccloud/transfer_repos
+  - publiccloud/patch_and_reboot
   - publiccloud/slem_basic

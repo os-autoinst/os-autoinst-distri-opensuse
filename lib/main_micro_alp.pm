@@ -276,21 +276,14 @@ sub load_slem_on_pc_tests {
     if (get_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO')) {
         load_publiccloud_download_repos();
     } else {
+        # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
         loadtest("publiccloud/registration", run_args => $args);
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         loadtest("publiccloud/transfer_repos", run_args => $args);
         loadtest("publiccloud/patch_and_reboot", run_args => $args);
-
-        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
-        loadtest("publiccloud/instance_overview", run_args => $args);
-        loadtest("publiccloud/slem_prepare", run_args => $args);
-        loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
-        if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
-            load_container_tests() if is_container_test;
-        }
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+        loadtest("publiccloud/slem_basic", run_args => $args);
     }
 }
 

@@ -49,12 +49,21 @@ sub check_avc {
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    my $provider;
+    my $instance;
+    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
 
     select_serial_terminal();
-    my $provider = $self->provider_factory();
+
+    if ($qam) {
+        $instance = $self->{my_instance} = $args->{my_instance};
+        $provider = $self->{provider} = $args->{my_provider};
+    } else {
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => 0);
+    }
     $provider->{username} = 'suse';
-    my $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => 0);
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));
@@ -109,6 +118,10 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep enabled');
     $instance->run_ssh_command(cmd => 'sudo dmesg');
     $instance->run_ssh_command(cmd => 'sudo journalctl -p err');
+}
+
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 0};
 }
 
 1;
