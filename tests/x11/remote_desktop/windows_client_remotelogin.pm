@@ -27,9 +27,12 @@ sub run {
     type_string '10.0.2.17';
     assert_screen "remote-ip-filled";
     send_key 'ret';
-    assert_screen "verify-identity", 90;
-    send_key 'y';
-
+    if (check_screen "accept-custom-cert", 90) {
+        send_key 'y';
+    } else {
+        assert_screen "verify-identity", 90;
+        send_key 'y';
+    }
     assert_screen "xrdp-login-screen";
     type_string $username;    # input account name
     send_key "tab";
