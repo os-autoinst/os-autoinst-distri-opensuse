@@ -50,6 +50,7 @@
       <li><a href="#is_primary_node_online">is_primary_node_online</a></li>
       <li><a href="#pacemaker_version">pacemaker_version</a></li>
       <li><a href="#saphanasr_showAttr_version">saphanasr_showAttr_version</a></li>
+      <li><a href="#wait_for_cluster">wait_for_cluster</a></li>
       <li><a href="#wait_for_zypper">wait_for_zypper</a></li>
     </ul>
   </li>
@@ -254,6 +255,22 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 <h2 id="saphanasr_showAttr_version">saphanasr_showAttr_version</h2>
 
 <pre><code>Returns the SAPHanaSR-showattr version</code></pre>
+
+<h2 id="wait_for_cluster">wait_for_cluster</h2>
+
+<pre><code>Verifies that nodes are online, resources are started and DB is in sync</code></pre>
+
+<dl>
+
+<dt id="WAIT_TIME---time-to-wait-before-retry-in-seconds-default-10"><b>WAIT_TIME</b> - time to wait before retry in seconds, default 10</dt>
+<dd>
+
+</dd>
+<dt id="MAX_RETRIES---maximum-number-of-retries-default-7"><b>MAX_RETRIES</b> - maximum number of retries, default 7</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="wait_for_zypper">wait_for_zypper</h2>
 

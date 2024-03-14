@@ -15,6 +15,8 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</a></li>
+      <li><a href="#check_hana_topology-check_hana_topology-input-saphanasr_showAttr_format_script_output">check_hana_topology check_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</a></li>
+      <li><a href="#check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output([input =&gt; $crm_mon_output]);</a></li>
     </ul>
   </li>
 </ul><h1>lib/saputils.pm</h1>
@@ -50,6 +52,25 @@ result in
         vhost =&gt; &#39;vmhana02&#39;,
     },
 }</code></pre>
+
+<h2 id="check_hana_topology-check_hana_topology-input-saphanasr_showAttr_format_script_output">check_hana_topology check_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</h2>
+
+<pre><code>Expect the output of saputils::calculate_hana_topology as input.
+Uses calculate_hana_topology to get a hash of hashes, and then
+checks the output to make sure that the cluster is working and ready.
+
+The checks performed are:
+- All node_states are online
+- All sync_states are either SOK or PRIM</code></pre>
+
+<h2 id="check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output([input =&gt; $crm_mon_output]);</h2>
+
+<pre><code>input: the output of the command &#39;crm_mon -r -R -n -N -1&#39;
+output: whether the conditions are met (return 1) or not (return 0)
+
+Conditions:
+- No resources are in &#39;Starting&#39; state
+- No &#39;Failed Resource Actions&#39; present   </code></pre>
 
 
 </body>
