@@ -27,8 +27,13 @@ sub run {
         # First update package manager, then packages, then bsc#992773 (2x)
         while (1) {
             assert_and_click('updates_available-tray');
-            assert_and_click('updates_click-install');
-            assert_screen('pkit_installing_state');
+            assert_screen_change { assert_and_click('updates_click-install'); };
+            assert_screen [qw(updates_click-install pkit_installing_state)];
+            # Discover needs an additional confirmation
+            if (match_has_tag 'updates_click-install') {
+                click_lastmatch;
+                assert_screen('pkit_installing_state');
+            }
 
             # Wait until installation is done.
             my $start_time = time;
