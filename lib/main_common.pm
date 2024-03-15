@@ -246,6 +246,14 @@ sub is_kde_live {
     return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
 
+sub gnomestep_is_applicable {
+    return check_var("DESKTOP", "gnome");
+}
+
+sub kdestep_is_applicable {
+    return check_var("DESKTOP", "kde");
+}
+
 sub packagekit_available {
     return !check_var('FLAVOR', 'Rescue-CD');
 }
@@ -477,7 +485,12 @@ sub load_zdup_tests {
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
-    loadtest 'boot/boot_to_desktop';
+    if (get_var('ZDUP_IN_X')) {
+        loadtest 'x11/reboot_plasma5' if kdestep_is_applicable;
+        loadtest 'x11/reboot_gnome' if gnomestep_is_applicable;
+    } else {
+        loadtest 'boot/boot_to_desktop';
+    }
     loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
     loadtest 'console/check_upgraded_service' if !is_desktop;
 }
@@ -671,16 +684,8 @@ sub chromiumstep_is_applicable {
     return chromestep_is_applicable() || (is_opensuse && is_aarch64);
 }
 
-sub gnomestep_is_applicable {
-    return check_var("DESKTOP", "gnome");
-}
-
 sub installyaststep_is_applicable {
     return !get_var("NOINSTALL") && !get_var("RESCUECD") && !get_var("ZDUP");
-}
-
-sub kdestep_is_applicable {
-    return check_var("DESKTOP", "kde");
 }
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
