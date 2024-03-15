@@ -13,8 +13,6 @@ use testapi;
 use utils;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
-use version_utils "is_sle";
-use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
