@@ -91,7 +91,7 @@ sub run {
 	# so we use efibootmgr instead
 	record_info('efibootmgr output after dd iso to usb:', script_output('efibootmgr'));
 	save_screenshot;
-	my $usb_boot = script_output('efibootmgr | grep usb -i | grep "\*"');
+	my $usb_boot = script_output('efibootmgr | grep usb -i | grep -v generic -i | grep "\*"');
 	save_screenshot;
 	die "Only 1 bootable USB should be here. But we find in efibootmgr output: $usb_boot." if (!$usb_boot || $usb_boot =~ /\n/);
 	$usb_boot =~ /Boot([0-9A-F]+)\*/m;
