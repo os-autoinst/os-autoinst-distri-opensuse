@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use migration;
 use version_utils qw(is_jeos is_desktop_installed is_leap);
+use x11utils qw(turn_off_screensaver);
 use Utils::Backends 'is_pvm';
 
 sub run {
@@ -21,6 +22,8 @@ sub run {
 
     $self->wait_boot(textmode => !is_desktop_installed(), bootloader_time => 300, ready_time => 600) unless is_jeos;
     if (get_var('ZDUP_IN_X')) {
+        turn_off_screensaver;
+
         x11_start_program('xterm');
         become_root;
     }
