@@ -234,6 +234,7 @@ YUI_PARAMS | string | | libyui REST API params required to open YaST modules
 YUPDATE_GIT | string | | Github link used by yast help script yupdate, format is repo#branch such as yast/agama#main.
 TDUP | boolean | false | Prescribes zypper dup scenario (for transaction-update).
 ZDUP | boolean | false | Prescribes zypper dup scenario.
+ZDUP_IN_X | boolean | false | Prescribes zypper dup scenario, run in a graphical session.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)
 LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are booting an installed system from the installer medium (for example, a DVD) with the menu option "Boot Linux System" (not "boot From Hard Disk"). This option uses linuxrc.
