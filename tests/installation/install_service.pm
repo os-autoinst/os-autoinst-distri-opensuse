@@ -15,6 +15,14 @@ use version_utils qw(is_hyperv is_sle is_sles4sap);
 use main_common 'is_desktop';
 
 sub run {
+    return unless is_sle
+      && !is_desktop
+      && !is_sles4sap
+      && !is_hyperv
+      && !get_var('MEDIA_UPGRADE')
+      && !get_var('ZDUP')
+      && !get_var('INSTALLONLY');
+
     if (get_var('SEL_SERIAL_CONSOLE')) {
         select_serial_terminal();
     }
@@ -22,14 +30,7 @@ sub run {
         select_console 'root-console';
     }
 
-    install_services($default_services)
-      if is_sle
-      && !is_desktop
-      && !is_sles4sap
-      && !is_hyperv
-      && !get_var('MEDIA_UPGRADE')
-      && !get_var('ZDUP')
-      && !get_var('INSTALLONLY');
+    install_services($default_services);
 
     if ($srv_check_results{'before_migration'} eq 'FAIL') {
         record_info("Summary", "failed", result => 'fail');
