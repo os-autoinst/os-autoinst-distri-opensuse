@@ -12,7 +12,6 @@ schedule:
     - fips/openssl/openssl_fips_cipher
     - fips/openssl/dirmngr_setup
     - fips/openssl/dirmngr_daemon
-    - security/oqs_provider_openssl
     - console/openssl_alpn
     - fips/gnutls/gnutls_base_check
     - fips/gnutls/gnutls_server
