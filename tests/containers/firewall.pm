@@ -60,6 +60,12 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
 
+    if ($runtime eq "docker") {
+        systemctl('status docker.service', ignore_failure => 1);
+        script_run('journalctl -xeu docker.service');
+        systemctl('restart docker', ignore_failure => 1);
+    }
+
     # Stop the firewall if it was started by this test module
     if ($stop_firewall == 1) {
         systemctl('stop ' . $self->firewall());
