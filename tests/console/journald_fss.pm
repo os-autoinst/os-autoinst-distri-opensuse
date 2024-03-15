@@ -27,10 +27,10 @@ sub run {
     select_serial_terminal;
 
     # Enable FSS (Forward Secure Sealing)
-    my $path = (is_sle('>=15-SP6') || is_leap('>=15-SP6') || is_tumbleweed) ? "/etc/systemd/journald.conf.d" : "/etc/systemd";
+    my $path = (is_sle('>=15-SP6') || is_leap('>=15.6') || is_tumbleweed) ? "/etc/systemd/journald.conf.d" : "/etc/systemd";
     my $journald_conf = "$path/journald.conf";
 
-    assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' $journald_conf") if is_sle('<=15-SP5') || is_leap('<=15-SP5');
+    assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' $journald_conf") if is_sle('<=15-SP5') || is_leap('<=15.5');
     assert_script_run("echo -e \"Storage=persistent\nSeal=yes\" >> $journald_conf");
     assert_script_run("mkdir -p /var/log/journal");
     systemctl 'restart systemd-journald.service';

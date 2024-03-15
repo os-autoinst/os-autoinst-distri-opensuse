@@ -22,9 +22,9 @@ sub run {
     my $self = @_;
 
     my @java_versions = (17);
-    if (is_sle('<=15-SP5') || is_leap('<=15-SP5')) {
+    if (is_sle('<=15-SP5') || is_leap('<=15.5')) {
         push @java_versions, 11;
-    } elsif (is_sle('>=15-SP6') || is_leap('<=15-SP6') || is_tumbleweed) {
+    } elsif (is_sle('>=15-SP6') || is_leap('<=15.6') || is_tumbleweed) {
         push @java_versions, 21;
     } else {
         die "Unsupported SLE/openSUSE version for this test.";
