@@ -3,8 +3,6 @@
 # Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Testopia Case#1595207 - FIPS: x3270
-# Package: x3270 openssl
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
 # Maintainer: QE Security <none@suse.de>
@@ -40,30 +38,19 @@ sub run {
     my $key_file = '/tmp/server.key';
     my $tracelog_file = '/tmp/x3270-trace.log';
 
-    # Install x3270
     zypper_call "install x3270";
 
-    # SLE-16633: [post GA] Update x3270 package for SLES 15 SP1 to support noverifycert option
-    # Check x3270 version
-    # x3270 3.6ga version has been submitted to SLE15 SP1, SP2, and SP3
+    # x3270 3.6ga version has been submitted to >=15-sp1
     zypper_call('info x3270');
-    my $current_ver = script_output("rpm -q --qf '%{version}\n' x3270");
-    record_info("x3270_ver", "Current x3270 package version: $current_ver");
 
-    #Generate self-signed x509 certificate
-    type_string
-"openssl req -new -x509 -newkey rsa:2048 -keyout $key_file -days 3560 -out $cert_file -nodes -subj \"/C=CN/ST=BJ/L=BJ/O=SUSE/OU=QA/CN=suse/emailAddress=test\@suse.com\" 2>&1 | tee /dev/$serialdev\n";
-
-    wait_serial "writing new private", 60 || die "openssl req output doesn't match";
+    assert_script_run qq(openssl req -new -x509 -newkey rsa:2048 -keyout $key_file -days 3560 -out $cert_file -nodes -subj "/C=CN/ST=BJ/L=BJ/O=SUSE/OU=QA/CN=suse/emailAddress=test\@suse.com");
 
     #Workaround for avoiding missing charactors in following commands
     for (1 ... 3) {
         send_key "ret";
     }
 
-    #Setup openssl s_server
     enter_cmd "openssl s_server -accept 8443 -cert $cert_file -key $key_file 2>&1 | tee /dev/$serialdev";
-
     wait_serial "ACCEPT", 10 || die "openssl s_server output doesn't match";
 
     select_console 'x11';
@@ -71,13 +58,9 @@ sub run {
     x11_start_program('xterm');
     mouse_hide(1);
 
-    # Launch x3270
-    # Add noverifycert option if x3270 is or greater than v3.6ga
-    my $noverifycert = ($current_ver < 3.6 ? '' : '-noverifycert');
-
     # Run x3270 as background since backend code adjust warning policy
     # It introduces run error if the command is not quit
-    background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
+    background_script_run("x3270 -trace -noverifycert -tracefile $tracelog_file L:localhost:8443");
     wait_still_screen;
 
     # Exit and back to generic desktop
@@ -91,26 +74,16 @@ sub run {
     send_key "ctrl-c";
     clear_console;
 
-    # Check trace log
     record_info("SSL Trace", "x3270-trace.log contains passed SSL negotiation data");
-    assert_script_run("grep 'Cipher: TLS_AES_256_GCM_SHA384' /tmp/x3270-trace.log");
-    assert_script_run("grep 'SSL_connect trace: SSLOK  SSL negotiation finished successfully' /tmp/x3270-trace.log");
-
     enter_cmd "cat $tracelog_file | tee /dev/$serialdev";
 
-    if ($current_ver >= 3.6) {
-        wait_serial "SSL_connect trace: SSLOK  SSL negotiation finished successfully", 5 || die "x3270 output doesn't match";
-    }
-    else {
-        wait_serial "TLS/SSL tunneled connection complete", 5 || die "x3270 output doesn't match";
-    }
+    assert_script_run("grep -E 'Cipher:\\s+TLS_AES_256_GCM_SHA384' /tmp/x3270-trace.log");
+    assert_script_run("grep -E 'SSL_connect trace:\\s+SSLOK\\s+SSL\\s+negotiation\\s+finished\\s+successfully' /tmp/x3270-trace.log");
 
-    # Clean up
     script_run "rm -f $tracelog_file $cert_file $key_file";
     script_run 'pkill -9 x3270';
     enter_cmd 'killall xterm';
 
-    # Return to x11
     select_console 'x11';
 }
 
