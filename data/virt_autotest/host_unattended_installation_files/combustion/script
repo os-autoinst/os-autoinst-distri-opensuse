@@ -4,7 +4,7 @@ set -euxo pipefail
 grub2_config() {
     file=/etc/default/grub
     sed -i 's/^\s*GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=15/g' $file
-    sed -i 's/^\s*GRUB_TERMINAL=.*$/GRUB_TERMINAL="gfxterm console"/g' $file
+    sed -i -r 's/^(\s|#)*GRUB_TERMINAL=.*$/GRUB_TERMINAL="gfxterm console"/g' $file
     sed -i 's/console=tty0//g' $file
     echo "DEBUG: now $file is,"
     cat $file
