@@ -24,10 +24,15 @@ sub run {
     # whatever the default in the image is.
     systemctl('set-default --force graphical.target');
 
-    # switch to root-console (in case we are in X)
-    select_console 'root-console';
-    power_action('reboot', keepconsole => 1, textmode => 1);
-    reconnect_mgmt_console if is_pvm;
+    if (get_var('ZDUP_IN_X')) {
+        # For ZDUP_IN_X, let a DE specific module take care of the reboot.
+        send_key 'alt-f4';
+    } else {
+        # switch to root-console (in case we are in X)
+        select_console 'root-console';
+        power_action('reboot', keepconsole => 1, textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+    }
 }
 
 1;
