@@ -3,6 +3,7 @@ use warnings;
 use needle;
 use File::Basename;
 use scheduler 'load_yaml_schedule';
+use Carp;
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
@@ -52,11 +53,11 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     $incidents{OS} = get_var('OS_TEST_REPOS', get_var('INCIDENT_REPO'));
 
     if (exists $incidents{OS} && !$incidents{OS}) {
-        die '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty';
+        carp '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty!';
+    } else {
+        my $repos = join_incidents_to_repo(\%incidents);
+        set_var('MAINT_TEST_REPO', $repos);
     }
-
-    my $repos = join_incidents_to_repo(\%incidents);
-    set_var('MAINT_TEST_REPO', $repos);
 }
 
 testapi::set_distribution(DistributionProvider->provide());
