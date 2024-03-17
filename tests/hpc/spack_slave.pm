@@ -13,7 +13,7 @@ use utils;
 use Utils::Logging 'tar_and_upload_log';
 
 sub run ($self) {
-    my $mpi = $self->get_mpi();
+    my $mpi = get_required_var('MPI');
     my %exports_path = (bin => '/home/bernhard/bin');
 
     $self->mount_nfs_exports(\%exports_path);

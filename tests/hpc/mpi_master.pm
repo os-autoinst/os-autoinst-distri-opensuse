@@ -23,7 +23,7 @@ use POSIX 'strftime';
 
 sub run ($self) {
     select_serial_terminal();
-    my $mpi = $self->get_mpi();
+    my $mpi = get_required_var('MPI');
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
     my $mpi2load = '';
@@ -188,8 +188,7 @@ sub post_fail_hook ($self) {
 =over
 =item $mpi
 Stores the MPI implementation. This is usually whatever MPI job variable is
-given. It is changed when openmpi is used to get the corresponding version
-for products despite the MPI value. C<get_mpi> function needs to get improved
+given
 
 =item $mpi_compiler
 This is determined based on the source code which is used and comes together
