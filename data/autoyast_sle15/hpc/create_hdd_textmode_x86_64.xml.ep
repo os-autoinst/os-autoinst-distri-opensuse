@@ -87,10 +87,11 @@
     <do_registration config:type="boolean">true</do_registration>
     % if ($check_var->('FLAVOR', 'Server-DVD-HPC-Incidents')) {
     <install_updates config:type="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
     % } else {
     <install_updates config:type="boolean">false</install_updates>
-    % }
     <reg_code>{{SCC_REGCODE_HPC}}</reg_code>
+    % }
     <reg_server>{{SCC_URL}}</reg_server>
     <slp_discovery config:type="boolean">false</slp_discovery>
   </suse_register>
