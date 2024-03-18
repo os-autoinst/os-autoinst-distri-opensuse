@@ -481,6 +481,12 @@ sub softreboot {
     if ($tunneled) {
         select_console('tunnel-console', await_console => 0);
         ssh_interactive_leave();
+        my $i = 5;
+        for (1 .. 5) {
+            last if (script_run(sprintf('ssh -O check %s@%s', $args{username}, $self->public_ip)) != 0);
+            script_run(sprintf('ssh -O exit %s@%s', $args{username}, $self->public_ip));
+            sleep 5;
+        }
     }
 
     $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
