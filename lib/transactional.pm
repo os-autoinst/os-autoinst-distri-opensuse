@@ -42,7 +42,7 @@ our @EXPORT = qw(
 # Download files needed for transactional update tests
 sub get_utt_packages {
     # SLE and SUSE MicroOS need an additional repo for testing
-    if (is_sle || is_sle_micro || is_alp) {
+    if (is_sle || is_sle_micro) {
         assert_script_run 'curl -O ' . data_url("microos/utt.repo");
     } elsif (is_leap_micro) {
         assert_script_run 'curl -o utt.repo ' . data_url("microos/utt-leap.repo");

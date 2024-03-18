@@ -20,7 +20,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_alp);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -352,7 +352,7 @@ sub run {
 
     log_versions 1;
 
-    if (is_alp) {
+    if (is_transactional) {
         assert_script_run("transactional-update -n -c pkg install efivar", 90);
     } else {
         zypper_call('in efivar') if is_sle('12+') || is_opensuse;

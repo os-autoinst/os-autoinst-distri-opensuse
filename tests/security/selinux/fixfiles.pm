@@ -12,7 +12,6 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_alp);
 
 sub run {
     my ($self) = shift;

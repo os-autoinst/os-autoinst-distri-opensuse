@@ -10,7 +10,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);
-use version_utils qw(is_alp is_leap_micro is_sle_micro);
+use version_utils qw(is_leap_micro is_sle_micro);
 
 sub run {
     my ($self) = @_;
