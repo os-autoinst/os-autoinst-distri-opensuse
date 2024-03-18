@@ -53,16 +53,13 @@
       <li><a href="#script_output_retry_check">script_output_retry_check</a></li>
       <li><a href="#collect_sbd_delay_parameters">collect_sbd_delay_parameters</a></li>
       <li><a href="#calculate_sbd_start_delay">calculate_sbd_start_delay</a></li>
-      <li><a href="#setup_sbd_delay-setup_sbd_delay">setup_sbd_delay setup_sbd_delay()</a></li>
-      <li><a href="#set_sbd_service_timeout-set_sbd_service_timeout-service_timeout">set_sbd_service_timeout set_sbd_service_timeout($service_timeout)</a></li>
-      <li><a href="#check_iscsi_failure">check_iscsi_failure</a>
-        <ul>
-          <li><a href="#cluster_status_matches_regex">cluster_status_matches_regex</a></li>
-          <li><a href="#crm_maintenance_status">crm_maintenance_status</a></li>
-          <li><a href="#crm_wait_for_maintenance">crm_wait_for_maintenance</a></li>
-          <li><a href="#crm_check_resource_location">crm_check_resource_location</a></li>
-        </ul>
-      </li>
+      <li><a href="#setup_sbd_delay">setup_sbd_delay</a></li>
+      <li><a href="#set_sbd_service_timeout">set_sbd_service_timeout</a></li>
+      <li><a href="#check_iscsi_failure">check_iscsi_failure</a></li>
+      <li><a href="#cluster_status_matches_regex">cluster_status_matches_regex</a></li>
+      <li><a href="#crm_maintenance_status">crm_maintenance_status</a></li>
+      <li><a href="#crm_wait_for_maintenance">crm_wait_for_maintenance</a></li>
+      <li><a href="#crm_check_resource_location">crm_check_resource_location</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -85,6 +82,21 @@
 
 </li>
 <li><p><b>$crm_mon_cmd</b>: crm_mon (crm monitoring) command</p>
+
+</li>
+<li><p><b>$corosync_token</b>: command to filter the value of <code>runtime.config.totem.token</code> from the output of <code>corosync-cmapctl</code></p>
+
+</li>
+<li><p><b>$corosync_consensus</b>: command to filter the value of <code>runtime.config.totem.consensus</code> from the output of <code>corosync-cmapctl</code></p>
+
+</li>
+<li><p><b>$sbd_watchdog_timeout</b>: command to extract the value of <code>SBD_WATCHDOG_TIMEOUT</code> from <code>/etc/sysconfig/sbd</code></p>
+
+</li>
+<li><p><b>$sbd_delay_start</b>: command to extract the value of <code>SBD_DELAY_START</code> from <code>/etc/sysconfig/sbd</code></p>
+
+</li>
+<li><p><b>$pcmk_delay_max</b>: command to get the value of the <code>pcmd_delay_max</code> parameter from the STONITH resource in the cluster configuration.</p>
 
 </li>
 </ul>
@@ -243,9 +255,29 @@
 
 <pre><code>check_cluster_state( [ proceed_on_failure =&gt; 1 ] );</code></pre>
 
-<p>Check state of the cluster. This will call <b>$crm_mon_cmd</b> to check the current status of the cluster, check for inactive resources and for <span style="white-space: nowrap;">partition with quorum</span> in the output of <b>$crm_mon_cmd</b>, check the reported number of nodes in the output of <code>crm node list</code> and <b>$crm_mon_cmd</b> is the same and run <code>crm_verify -LV</code>.</p>
+<p>Checks the state of the cluster. Calls <b>$crm_mon_cmd</b> and inspects its output checking:</p>
 
-<p>With the named argument <b>proceed_on_failure</b> set to 1, the method will use <b>script_run()</b> and attempt to run all commands in SUT without checking for errors. Without it, the method uses <b>assert_script_run()</b> and will croak on failure.</p>
+<dl>
+
+<dt id="The-current-state-of-the-cluster">The current state of the cluster.</dt>
+<dd>
+
+</dd>
+<dt id="Inactive-resources">Inactive resources.</dt>
+<dd>
+
+</dd>
+<dt id="partition-with-quorum"><span style="white-space: nowrap;">partition with quorum</span></dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Checks that the reported number of nodes in the output of <code>crm node list</code> and <b>$crm_mon_cmd</b> is the same.</p>
+
+<p>And runs <code>crm_verify -LV</code>.</p>
+
+<p>With the named argument <b>proceed_on_failure</b> set to 1, the function will use <b>script_run()</b> and attempt to run all commands in SUT without checking for errors. Without it, the method uses <b>assert_script_run()</b> and will croak on failure.</p>
 
 <h2 id="wait_until_resources_stopped">wait_until_resources_stopped</h2>
 
@@ -263,7 +295,7 @@
 
 <pre><code>wait_for_idle_cluster( [ timeout =&gt; $timeout ] );</code></pre>
 
-<p>Use `cs_wait_for_idle` to wait until the cluster is idle before continuing the tests. Supply a timeout with the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. Croaks on timeout.</p>
+<p>Use <code>cs_wait_for_idle</code> to wait until the cluster is idle before continuing the tests. Supply a timeout with the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. Croaks on timeout.</p>
 
 <h2 id="get_lun">get_lun</h2>
 
@@ -305,31 +337,61 @@
 
 <pre><code>script_output_retry_check(cmd=&gt;$cmd, regex_string=&gt;$regex_sring, [retry=&gt;$retry, sleep=&gt;$sleep, ignore_failure=&gt;$ignore_failure]);</code></pre>
 
-<p>Executes command via &#39;script_output&#39; subroutine and makes a sanity check against a regular expression. Command output is returned after success, otherwise the command is retried defined number of times. Test dies after last unsuccessfull retry.</p>
+<p>Executes command via <code>script_output</code> subroutine and makes a sanity check against a regular expression. Command output is returned after success, otherwise the command is retried a defined number of times. Test dies after last unsuccessfull retry.</p>
 
-<p><code>$cmd</code> command being executed. <code>$regex_string</code> regular expression to check output against. <code>$retry</code> number of retries. Defaults to <code>5</code>. <code>$sleep</code> sleep time between retries. Defaults to <code>10s</code>. <code>$ignore_failure</code> do not kill the test upon failure.</p>
+<p><b>$cmd</b> command being executed.</p>
+
+<p><b>$regex_string</b> regular expression to check output against.</p>
+
+<p><b>$retry</b> number of retries. Defaults to <code>5</code>.</p>
+
+<p><b>$sleep</b> sleep time between retries. Defaults to <code>10s</code>.</p>
+
+<p><b>$ignore_failure</b> do not kill the test upon failure.</p>
 
 <pre><code>Example: script_output_retry_check(cmd=&gt;&#39;hostname&#39;, regex_string=&gt;&#39;^node01$&#39;, retry=&gt;&#39;100&#39;, sleep=&gt;&#39;60&#39;, ignore_failure=&gt;&#39;1&#39;);</code></pre>
 
 <h2 id="collect_sbd_delay_parameters">collect_sbd_delay_parameters</h2>
 
-<pre><code>script_output_retry_check();</code></pre>
+<pre><code>collect_sbd_delay_parameters();</code></pre>
 
-<p>Collects parameters required from SUT and returns them in HASH format.</p>
+<p>Collects a series of SBD parameters from the SUT and returns them in a HASH format. Commands are collected from <code>/etc/sysconfig/sbd</code> or by filtering the output of <code>corosync-cmapctl</code>. Due to possible race conditions, all these parameters are collected using the helper function <code>script_output_retry_check</code> also defined in this library.</p>
 
 <h2 id="calculate_sbd_start_delay">calculate_sbd_start_delay</h2>
 
 <pre><code>calculate_sbd_start_delay(\%sbd_parameters);</code></pre>
 
-<p>Calculates start time delay after node is fenced. Prevents cluster failure if fenced node restarts too quickly. Delay time is used either if specified in sbd config variable &quot;SBD_DELAY_START&quot; or calculated: &quot;corosync token timeout + consensus timeout + pcmk_delay_max + msgwait&quot; Variables &#39;corosync_token&#39; and &#39;corosync_consensus&#39; are converted to seconds. For diskless SBD pcmk_delay_max is set to static 30s.</p>
+<p>Calculates start time delay after node is fenced. This delay time is used as a wait time after a node fence to prevent cluster failures in cases where the fenced node restarts too quickly. Delay time is used either if specified in sbd config variable <b>SBD_DELAY_START</b> or calculated by the formula:</p>
 
-<p>%sbd_parameters = { &#39;corosync_token&#39; =&gt; &lt;runtime.config.totem.token&gt;, &#39;corosync_consensus&#39; =&gt; &lt;runtime.config.totem.consensus&gt;, &#39;sbd_watchdog_timeout&#39; =&gt; &lt;SBD_WATCHDOG_TIMEOUT&gt;, &#39;sbd_delay_start&#39; =&gt; &lt;SBD_DELAY_START&gt;, &#39;pcmk_delay_max&#39; =&gt; &lt;pcmk_delay_max&gt; }</p>
+<p>corosync token timeout + consensus timeout + pcmk_delay_max + msgwait</p>
 
-<p>If <code>%sbd_parameters</code> argument is omitted, then function will try to obtain the values from the configuration files.</p>
+<p>Variables <b>corosync_token</b> and <b>corosync_consensus</b> are converted to seconds. For diskless SBD pcmk_delay_max is set to static 30s.</p>
 
-<h2 id="setup_sbd_delay-setup_sbd_delay">setup_sbd_delay setup_sbd_delay()</h2>
+<pre><code>%sbd_parameters = {
+    &#39;corosync_token&#39; =&gt; &lt;runtime.config.totem.token&gt;,
+    &#39;corosync_consensus&#39; =&gt; &lt;runtime.config.totem.consensus&gt;,
+    &#39;sbd_watchdog_timeout&#39; =&gt; &lt;SBD_WATCHDOG_TIMEOUT&gt;,
+    &#39;sbd_delay_start&#39; =&gt; &lt;SBD_DELAY_START&gt;,
+    &#39;pcmk_delay_max&#39; =&gt; &lt;pcmk_delay_max&gt;
+}</code></pre>
 
-<h2 id="set_sbd_service_timeout-set_sbd_service_timeout-service_timeout">set_sbd_service_timeout set_sbd_service_timeout($service_timeout)</h2>
+<p>If <code>%sbd_parameters</code> argument is omitted, then function will try to obtain the values from the configuration files. See <code>collect_sbd_delay_parameters</code></p>
+
+<h2 id="setup_sbd_delay">setup_sbd_delay</h2>
+
+<pre><code>setup_sbd_delay()</code></pre>
+
+<p>This function configures in the SUT the <b>SBD_DELAY_START</b> parameter in <code>/etc/sysconfig/sbd</code> to whatever value is supplied in the setting <b>HA_SBD_START_DELAY</b>, and then call <code>calculate_sbd_start_delay</code> and <code>set_sbd_service_timeout</code> to set the service timeout for the SBD service in the SUT. It returns the calculated delay. Will croak if any of the commands sent to the SUT fail.</p>
+
+<h2 id="set_sbd_service_timeout">set_sbd_service_timeout</h2>
+
+<pre><code>set_sbd_service_timeout($service_timeout)</code></pre>
+
+<p>Set the service timeout for the SBD service in the SUT to the number of seconds passed as argument.</p>
+
+<p>This is accomplished by configuring a systemd override file for the SBD service.</p>
+
+<p>If the override file exists, the function will edit it and replace the timeout there, otherwise it creates the file from scratch.</p>
 
 <h2 id="check_iscsi_failure">check_iscsi_failure</h2>
 
@@ -337,7 +399,7 @@
 
 <p>Workaround for bsc#1129385, checks system log for iSCSI connection failures, if necessary restarts iscsi and pacemaker service</p>
 
-<h3 id="cluster_status_matches_regex">cluster_status_matches_regex</h3>
+<h2 id="cluster_status_matches_regex">cluster_status_matches_regex</h2>
 
 <p>Check crm status output against a hardcode regular expression in order to check the cluster health</p>
 
@@ -349,13 +411,13 @@
 </dd>
 </dl>
 
-<h3 id="crm_maintenance_status">crm_maintenance_status</h3>
+<h2 id="crm_maintenance_status">crm_maintenance_status</h2>
 
 <pre><code>crm_maintenance_status();</code></pre>
 
 <p>Check maintenance mode status. Returns true (maintenance active) or false (maintenance inactive). Croaks if unknown status is received.</p>
 
-<h3 id="crm_wait_for_maintenance">crm_wait_for_maintenance</h3>
+<h2 id="crm_wait_for_maintenance">crm_wait_for_maintenance</h2>
 
 <pre><code>crm_wait_for_maintenance(target_state=&gt;$target_state, [loop_sleep=&gt;$loop_sleep, timeout=&gt;$timeout]);</code></pre>
 
@@ -371,11 +433,11 @@
 
 </ul>
 
-<h3 id="crm_check_resource_location">crm_check_resource_location</h3>
+<h2 id="crm_check_resource_location">crm_check_resource_location</h2>
 
 <pre><code>crm_check_resource_location(resource=&gt;$resource, [wait_for_target=&gt;$wait_for_target, timeout=&gt;$timeout]);</code></pre>
 
-<p>Checks current resource location, returns physical hostname of the node. Can be used to wait for desired state Eg: after failover. Croaks upon timeout.</p>
+<p>Checks current resource location, returns hostname of the node. Can be used to wait for desired state Eg: after failover. Croaks upon timeout.</p>
 
 <ul>
 
