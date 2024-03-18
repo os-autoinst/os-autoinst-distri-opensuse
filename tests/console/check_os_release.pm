@@ -30,6 +30,7 @@ sub run {
         $product = 'sles_sap' if (is_sles4sap and is_sle('<15'));
         $product = 'sles' if (is_sles4sap and is_sle('>=15'));
         $product = 'sle_' . $product if is_rt or is_hpc;
+        $product = 'sles' if (is_sles4sap and check_var('SCC_REGCODE_SLES4SAP', 'invalid_key') and is_sle('=12-SP5'));
         $checker{NAME} = uc($product);
         $checker{NAME} = 'SLES' if ($product =~ /^sles/);
         $checker{VERSION_ID} =~ s/\-SP/./;

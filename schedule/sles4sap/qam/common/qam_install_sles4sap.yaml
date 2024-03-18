@@ -44,6 +44,10 @@ conditional_schedule:
       12-SP4:
         - installation/sles4sap_product_installation_mode
       12-SP5:
+        - '{{product_installation_mode}}'
+  product_installation_mode:
+    SLE_PRODUCT:
+      sles4sap:
         - installation/sles4sap_product_installation_mode
   update_test_repo:
     QAM_INCI:
@@ -57,6 +61,8 @@ conditional_schedule:
         - installation/system_role
       12-SP4:
         - installation/system_role
+      12-SP5:
+        - '{{qam_system_role}}'
       15:
         - installation/system_role
       15-SP1:
@@ -69,6 +75,10 @@ conditional_schedule:
         - installation/system_role
       15-SP5:
         - installation/system_role
+  qam_system_role:
+    HORIZONTAL_MIGRATION:
+      1:
+        - installation/system_role
   sles4sap_product_installation_mode:
     SYSTEM_ROLE:
       default:
@@ -80,6 +90,9 @@ conditional_schedule:
       12-SP3:
         - installation/user_settings
       12-SP4:
+        - installation/user_settings
+    HORIZONTAL_MIGRATION:
+      1:
         - installation/user_settings
   patch_and_reboot:
     FLAVOR:
