@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_alp is_sle_micro);
+use version_utils qw(is_sle_micro);
 use Utils::Backends 'is_pvm';
 
 sub run {
@@ -48,7 +48,7 @@ sub run {
     validate_script_output("semanage boolean -l | grep $test_boolean", sub { m/${test_boolean}.*(on.*,.*on).*Allow.*to.*/ });
 
     # test option "-C": to list boolean local customizations
-    if (is_alp || is_sle_micro('>=6.0')) {
+    if (is_sle_micro('>=6.0')) {
         validate_script_output(
             "semanage boolean -l -C",
             sub {

@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_leap is_tumbleweed is_alp is_sle_micro);
+use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro);
 use transactional qw(process_reboot trup_call);
 use Utils::Architectures;
 
@@ -52,8 +52,8 @@ sub install_pkgs {
 sub run {
     my ($self) = @_;
 
-    # on ALP selinux is enabled and set to enforcing by default
-    if (is_alp || is_sle_micro('>=6.0')) {
+    # on SLE Micro selinux is enabled and set to enforcing by default
+    if (is_sle_micro('>=6.0')) {
         validate_script_output('sestatus', sub { m/SELinux status: .*enabled/ && m/Current mode: .*enforcing/ }, fail_message => 'SELinux is NOT enabled and set to enforcing');
         trup_call('pkg install policycoreutils-python-utils');
         process_reboot(trigger => 1);

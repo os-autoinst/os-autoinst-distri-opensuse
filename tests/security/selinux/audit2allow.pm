@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_alp is_sle_micro is_sle);
+use version_utils qw(is_sle_micro is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
@@ -31,7 +31,7 @@ sub run {
     assert_script_run("systemctl restart auditd");
     assert_script_run("cp $original_audit $audit_log");
 
-    if (is_alp || is_sle_micro('>=6.0')) {
+    if (is_sle_micro('>=6.0')) {
         validate_script_output("audit2allow -a", sub { m/^\s*$/sx });
         record_info("Empty output", "Since there are no denies, audit2allow always returns an empty output.");
         return 0;
