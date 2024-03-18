@@ -307,7 +307,11 @@ sub upload_tcpdump {
     if ($self->{timed_out}) {
         $old_console = current_console();
         select_console('root-console');
-        return unless defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0));
+
+        unless (defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0))) {
+            select_console($old_console, await_console => 0);
+            return;
+        }
     }
     else {
         assert_script_run("kill -s INT $pid && wait $pid");
