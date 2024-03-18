@@ -41,12 +41,14 @@ sub run {
         $self->wait_boot(ready_time => 1800);
     }
 
-    select_serial_terminal;
-
     if (check_var_array('LTP_DEBUG', 'crashdump')) {
-        configure_service(yast_interface => 'cli');
         select_serial_terminal;
+        configure_service(yast_interface => 'cli');
     }
+
+    # Initialize VNC console now to avoid login attempts on frozen system
+    select_console('root-console') if get_var('LTP_DEBUG');
+    select_serial_terminal;
 
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
