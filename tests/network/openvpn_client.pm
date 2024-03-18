@@ -17,7 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use y2_module_guitest;
 use mm_network;
-use utils qw(systemctl zypper_call exec_and_insert_password script_retry);
+use utils qw(systemctl zypper_call exec_and_insert_password script_retry file_content_replace);
 use version_utils 'is_sle';
 use strict;
 use warnings;
@@ -41,7 +41,7 @@ sub run {
     assert_script_run('curl -o static.conf ' . data_url('openvpn/static_client.conf'));
 
     # Remove unsupported configuration options on older SLE versions
-    assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" static.conf') if (is_sle('<15-sp4'));
+    file_content_replace('static.conf', 'qr/^cipher.*$|^data-ciphers.*$/m' => '') if (is_sle('<15-sp4'));
 
     # Download key from the server
     exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@10.0.2.101:/etc/openvpn/static.key /etc/openvpn/static.key");
@@ -73,7 +73,7 @@ sub run {
     assert_script_run('curl -o ca.conf ' . data_url('openvpn/ca_client.conf'));
 
     # Remove unsupported configuration options on older SLE versions
-    assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" ca.conf') if (is_sle('<15-sp4'));
+    file_content_replace('ca.conf', 'qr/^cipher.*$|^data-ciphers.*$/m' => '') if (is_sle('<15-sp4'));
 
     # Download key from the server
     exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@10.0.2.101:/etc/openvpn/pki/ca.crt /etc/openvpn/ca.crt");

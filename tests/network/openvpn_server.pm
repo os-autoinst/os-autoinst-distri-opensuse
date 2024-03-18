@@ -18,7 +18,7 @@ use lockapi;
 use y2_module_guitest;
 use mm_network;
 use mmapi 'wait_for_children';
-use utils qw(systemctl zypper_call exec_and_insert_password script_retry);
+use utils qw(systemctl zypper_call exec_and_insert_password script_retry file_content_replace);
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'add_qa_head_repo';
 use strict;
@@ -49,7 +49,7 @@ sub run {
     assert_script_run('curl -o static.conf ' . data_url('openvpn/static_server.conf'));
 
     # Remove unsupported configuration options on older SLE versions
-    assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" static.conf') if (is_sle('<15-sp4'));
+    file_content_replace('static.conf', 'qr/^cipher.*$|^data-ciphers.*$/m' => '') if (is_sle('<15-sp4'));
 
     # Start the server
     systemctl('start openvpn@static');
@@ -84,7 +84,7 @@ sub run {
     assert_script_run('curl -o ca.conf ' . data_url('openvpn/ca_server.conf'));
 
     # Remove unsupported configuration options on older SLE versions
-    assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" ca.conf') if (is_sle('<15-sp4'));
+    file_content_replace('ca.conf', 'qr/^cipher.*$|^bdata-ciphers.*$/m' => '') if (is_sle('<15-sp4'));
 
     # Create the client config directory and the file for client
     assert_script_run("mkdir ccd");
