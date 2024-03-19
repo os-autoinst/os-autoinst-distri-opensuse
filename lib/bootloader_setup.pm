@@ -391,19 +391,49 @@ sub uefi_bootmenu_params {
         my $counter = 0;
         my $max_tries = 5;
         while (!check_screen('no-tty0-but-term-linux', 2) && $counter++ < $max_tries) {
+            # Re-enter grub edit by discarding changes for 2+ round
+            if ($counter > 1) {
+                send_key_until_needlematch('bootloader-grub2', 'esc', 3, 2);
+                send_key_until_needlematch('grub2-enter-edit-mode', 'e', 3, 2);
+            }
             record_info("Doing round $counter of grub editing...");
+
+            # Go to linux line
             # for efficiency
             send_key('down', wait_screen_change => 1) for (1 .. 3);
             # to mitigate sol unstability
-            send_key_until_needlematch('grub2-edit-linux-line', 'down', 10, 2);
+            my $_counter = 0;
+            my $_max = 5;
+            while (!check_screen('grub2-edit-linux-line', 2) && $_counter++ < $_max) {
+                send_key('down', wait_screen_change => 1);
+            }
+            next if (!check_screen('grub2-edit-linux-line', 2));
+            #send_key_until_needlematch('grub2-edit-linux-line', 'down', 10, 2);
+
+            # Move cursor to `console=tty0`
             send_key('right', wait_screen_change => 1) for (1 .. 73);
-            send_key_until_needlematch('on-linux-console=tty0', 'right', 15, 2);
+            $_counter = 0;
+            $_max = 10;
+            while (!check_screen('on-linux-console=tty0', 2) && $_counter++ < $_max) {
+                send_key('right', wait_screen_change => 1);
+            }
+            next if (!check_screen('on-linux-console=tty0', 2));
+            #send_key_until_needlematch('on-linux-console=tty0', 'right', 15, 2);
+
+            # Delete `console=tty0`
             send_key('delete', wait_screen_change => 1) for (1 .. 12);
-            send_key_until_needlematch('deleted-console=tty0', 'delete', 20, 2);
+            $_counter = 0;
+            $_max = 5;
+            while (!check_screen('deleted-console=tty0', 2) && $_counter++ < $_max) {
+                send_key('delete', wait_screen_change => 1);
+            }
+            next if (!check_screen('deleted-console=tty0', 2));
+            #send_key_until_needlematch('deleted-console=tty0', 'delete', 5, 2);
+
+            # Add term setting
             type_string_very_slow(" rd.kiwi.term=linux ");
             if (!check_screen("no-tty0-but-term-linux")) {
-                send_key_until_needlematch('bootloader-grub2', 'esc', 3, 2);
-                send_key_until_needlematch('grub2-enter-edit-mode', 'e', 3, 2);
+                next;
             } else {
                 record_info('Successfully finished grub2 editing.');
                 return;
