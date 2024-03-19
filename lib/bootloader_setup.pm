@@ -417,7 +417,7 @@ sub uefi_bootmenu_params {
             while (!check_screen('on-linux-console-ttyS0', 2) && $_counter++ < $_max) {
                 send_key('right', wait_screen_change => 1);
             }
-            next if (!check_screen('on-linux-console-tty0', 2));
+            next if (!check_screen('on-linux-console-ttyS0', 2));
 
             # Delete `ttyS0`
             send_key('delete', wait_screen_change => 1) for (1 .. 5);
@@ -430,10 +430,10 @@ sub uefi_bootmenu_params {
 
             #Add get_var('SERIALCONSOLE')
             type_string_very_slow(get_required_var('SERIALCONSOLE'));
-            next if (!check_screen("serial-console-exists"));
+            next if (!check_screen("serial-console-exists", 2));
 
             # Move cursor to `console=tty0`
-            send_key('right', wait_screen_change => 1) for (1 .. 13);
+            send_key('right', wait_screen_change => 1) for (1 .. 7);
             $_counter = 0;
             $_max = 5;
             while (!check_screen('on-linux-console=tty0', 2) && $_counter++ < $_max) {
@@ -454,7 +454,7 @@ sub uefi_bootmenu_params {
 
             # Add term setting
             type_string_very_slow(" rd.kiwi.term=linux ");
-            if (!check_screen("no-tty0-but-term-linux")) {
+            if (!check_screen("no-tty0-but-term-linux", 2)) {
                 next;
             } else {
                 record_info('Successfully finished grub2 editing.');
