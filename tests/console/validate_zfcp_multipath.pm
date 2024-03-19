@@ -31,13 +31,14 @@ sub verify_plain_scsi_block_devices {
     assert_equals 2, $disks, "Expected 2 SCSI block devices sized 53.6GB at LUN 0x0000000000000000 found $disks";
 }
 
-# Verify that the multipath device with WWID 3600507638081855cd800000000000076 corresponds to the 50G disk
+# Verify that the multipath device with dynamic WWID corresponds to the 50G disk
 # Verify that there are 2 block devices listed for each virtual multipath device
 sub verify_multipath_block_devices {
     my $mpath = script_output "multipath -l";
     my @mpath = split /\n/, $mpath;
+    my $wwid_first_disk = script_output "/usr/lib/udev/scsi_id --whitelisted --replace-whitespace --device=/dev/sda";
     # check for 50GB disk (multiline match)
-    assert_matches qr/^3600507638081855cd800000000000076.+\n^size=50G/m, $mpath, "Cannot find 50GB disk on WWID *076";
+    assert_matches qr/^$wwid_first_disk.+\n^size=50G/m, $mpath, "Cannot find 50GB disk on WWID *076";
     # must see the LUN over 2 paths
     my $disks = scalar grep { /\bsd(a|b)\b/ } @mpath;
     assert_equals 2, $disks, "50GB block device does not have 2 paths";
