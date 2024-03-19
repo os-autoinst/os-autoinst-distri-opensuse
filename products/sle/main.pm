@@ -638,6 +638,12 @@ sub load_virt_feature_tests {
     }
 }
 
+sub load_xfstests_tests {
+    loadtest 'xfstests/partition';
+    loadtest 'xfstests/run';
+    loadtest 'xfstests/generate_report';
+}
+
 testapi::set_distribution(DistributionProvider->provide());
 
 # set failures
@@ -781,31 +787,23 @@ elsif (get_var('XFSTESTS')) {
         loadtest 'kernel/change_kernel';
     }
     prepare_target;
-    if (is_pvm || check_var('ARCH', 's390x')) {
+    if (get_var('XFSTESTS_SKIP_INSTALL', 0) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';
         }
-        loadtest 'xfstests/partition';
-        loadtest 'xfstests/run';
-        loadtest 'xfstests/generate_report';
-    }
-    else {
+        if (get_var('XFSTEST_KLP')) {
+            loadtest 'kernel/install_klp_product';
+        }
         if (check_var('XFSTESTS', 'installation')) {
-            loadtest 'xfstests/install';
-            unless (check_var('NO_KDUMP', '1')) {
-                loadtest 'xfstests/enable_kdump';
-            }
-            if (get_var('XFSTEST_KLP')) {
-                loadtest 'kernel/install_klp_product';
-            }
             loadtest 'shutdown/shutdown';
         }
         else {
-            loadtest 'xfstests/partition';
-            loadtest 'xfstests/run';
-            loadtest 'xfstests/generate_report';
+            load_xfstests_tests();
         }
+    }
+    else {
+        load_xfstests_tests();
     }
 }
 elsif (get_var("BTRFS_PROGS")) {
