@@ -414,10 +414,10 @@ sub uefi_bootmenu_params {
             send_key('right', wait_screen_change => 1) for (1 .. 60);
             $_counter = 0;
             $_max = 10;
-            while (!check_screen('on-linux-console=ttyS0', 2) && $_counter++ < $_max) {
+            while (!check_screen('on-linux-console-ttyS0', 2) && $_counter++ < $_max) {
                 send_key('right', wait_screen_change => 1);
             }
-            next if (!check_screen('on-linux-console=tty0', 2));
+            next if (!check_screen('on-linux-console-tty0', 2));
 
             # Delete `ttyS0`
             send_key('delete', wait_screen_change => 1) for (1 .. 5);
