@@ -439,7 +439,7 @@ sub uefi_bootmenu_params {
                 return;
             }
         }
-        die "Failed to edit grub2 after $max_tries.";
+        die "Failed to edit grub2 after $max_tries tries.";
 	}
 
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
