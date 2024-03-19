@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2021 SUSE LLC
+# Copyright 2018-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: perl-base ltp
@@ -15,8 +15,6 @@ use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
-use Mojo::File;
-use Mojo::JSON;
 use publiccloud::utils qw(is_byos registercloudguest register_openstack);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
@@ -47,21 +45,20 @@ sub instance_log_args
 
 sub upload_ltp_logs
 {
-    my ($self) = @_;
     record_info('LTP Logs', 'upload');
-    assert_script_run("test -f $root_dir/result.json || echo No result log");
-    parse_extra_log('LTP', "$root_dir/result.json");
-    # debug file in the standart LTP log-dir. structure:
-    assert_script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
-    upload_logs("/tmp/runltp.\$USER/latest/debug.log", failok => 1);
+    assert_script_run("test -f /tmp/kirk.\$USER/latest/debug.log || echo No debug log");
+    upload_logs("/tmp/kirk.\$USER/latest/debug.log", log_name => 'debug.log.txt', failok => 1);
 
-    die $@ if $@;
+    assert_script_run("test -f /tmp/kirk.\$USER/latest/results.json || echo No results file");
+    parse_extra_log('LTP', "/tmp/kirk.\$USER/latest/results.json");
 }
 
 sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
+    my $ltp_command = get_required_var('LTP_COMMAND_FILE');
+    my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
     my $provider;
     my $instance;
@@ -94,22 +91,28 @@ sub run {
     $self->{ltp_env} = $ltp_env;
 
     # Use lib/LTP/WhiteList module to exclude tests
-    if (get_var('LTP_KNOWN_ISSUES')) {
-        my $whitelist = LTP::WhiteList->new();
-        my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
-        my @skipped_tests = $whitelist->list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
-        if (@skipped_tests) {
-            $exclude .= '|' if (length($exclude) > 0);
-            $exclude .= '^(' . join('|', @skipped_tests) . ')$';
-            set_var('LTP_COMMAND_EXCLUDE', $exclude);
+    my $issues = get_var('LTP_KNOWN_ISSUES', '');
+    my $skip_tests;
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my @skipped = $whitelist->list_skipped_tests($ltp_env, $ltp_command);
+        if (@skipped) {
+            $skip_tests = '^(' . join("|", @skipped) . ')$';
+            record_info(
+                "Exclude",
+                "Excluding tests: $skip_tests",
+                result => 'softfail'
+            );
         }
     }
+    $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
 
-    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/runltp-ng.git");
-    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
-    record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
+    record_info("Full Exclude", "Excluding tests: $skip_tests");
 
-    assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
+    my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
+    my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
+    assert_script_run("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
@@ -121,31 +124,33 @@ sub run {
 
     assert_script_run($log_start_cmd);
 
-    # LTP command line preparation
-    # The python3-paramiko is too old (2.4 on 15-SP6)
-    # The python311-paramiko is from SLE-Module-Python3-15-SP5-Updates which we have in PC tools image
-    zypper_call("in python311-paramiko python311-scp");
+    assert_script_run("cd kirk");
+    assert_script_run("python3.11 -m venv env311");
+    assert_script_run("source env311/bin/activate");
+    assert_script_run("pip3.11 install asyncssh msgpack");
 
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
     $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
-    $sut .= ':reset_command=\'' . $reset_cmd . '\'';
+    $sut .= ':reset_cmd=\'' . $reset_cmd . '\'';
     $sut .= ':hostkey_policy=missing';
     $sut .= ':known_hosts=/dev/null';
 
-    my $cmd = 'python3.11 runltp-ng/runltp-ng ';
-    $cmd .= "--json-report=$root_dir/result.json ";
+    my $cmd = 'python3.11 kirk ';
+    $cmd .= "--framework ltp ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
     $cmd .= '--suite-timeout=5400 ';
-    $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-    $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
+    $cmd .= '--run-suite ' . $ltp_command . ' ';
+    $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
     $cmd .= '--sut=ssh' . $sut . ' ';
     $cmd .= '--env ' . $env . ' ' if ($env);
+
     record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
+
 }
 
 
@@ -172,6 +177,7 @@ sub gen_ltp_env {
         backend => get_required_var('BACKEND'),
         flavor => get_required_var('FLAVOR'),
         ltp_version => $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg)),
+        harness => 'SUSE OpenQA',
     };
 
     record_info("LTP Environment", Dumper($environment));
@@ -184,4 +190,4 @@ sub gen_ltp_env {
 =head1 Discussion
 
 Test module to run LTP test on publiccloud. The test run on a local qemu instance
-and connect to the CSP instance using SSH. This is done via the run_ltp_ssh.pl script.
+and connect to the CSP instance using SSH. This is done via the kirk.
