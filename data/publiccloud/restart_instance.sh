@@ -16,9 +16,8 @@ wait_for_power_off()
         tries=$((tries - 1))
         [ "$tries" -lt 1 ] && return 1;
         echo "waiting for power off"
-        sleep 1;
+        sleep 1
     done
-    return 0;
 }
 
 wait_for_power_on()
@@ -32,7 +31,6 @@ wait_for_power_on()
         echo "waiting for power on"
         sleep 1;
     done
-    return 0;
 }
 
 if [ $# -lt 3 ]; then
@@ -71,6 +69,7 @@ esac
 wait_for_power_off "$HOST" "$CNT"
 wait_for_power_on "$HOST" "$CNT"
 echo "Instance $INSTANCE_ID restarted";
+sleep 5 # need pause for slow SUT to fully initialize sshd
 ## Not needed, because the log_instance.sh does not depend on the running instance
 ## Leaving it here in case we need to revert it. If no issues arise, this can be
 ## removed after some time.
