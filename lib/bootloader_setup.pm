@@ -410,10 +410,32 @@ sub uefi_bootmenu_params {
             next if (!check_screen('grub2-edit-linux-line', 2));
             #send_key_until_needlematch('grub2-edit-linux-line', 'down', 10, 2);
 
-            # Move cursor to `console=tty0`
-            send_key('right', wait_screen_change => 1) for (1 .. 73);
+            # Move cursor to `console=ttyS0` 
+            send_key('right', wait_screen_change => 1) for (1 .. 60);
             $_counter = 0;
             $_max = 10;
+            while (!check_screen('on-linux-console=ttyS0', 2) && $_counter++ < $_max) {
+                send_key('right', wait_screen_change => 1);
+            }
+            next if (!check_screen('on-linux-console=tty0', 2));
+
+            # Delete `ttyS0`
+            send_key('delete', wait_screen_change => 1) for (1 .. 5);
+            $_counter = 0;
+            $_max = 3;
+            while (!check_screen('deleted-ttyS0', 2) && $_counter++ < $_max) {
+                send_key('delete', wait_screen_change => 1);
+            }
+            next if (!check_screen('deleted-ttyS0', 2));
+
+            #Add get_var('SERIALCONSOLE')
+            type_string_very_slow(get_required_var('SERIALCONSOLE'));
+            next if (!check_screen("serial-console-exists"));
+
+            # Move cursor to `console=tty0`
+            send_key('right', wait_screen_change => 1) for (1 .. 13);
+            $_counter = 0;
+            $_max = 5;
             while (!check_screen('on-linux-console=tty0', 2) && $_counter++ < $_max) {
                 send_key('right', wait_screen_change => 1);
             }
