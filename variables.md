@@ -422,6 +422,7 @@ Variable        | Type      | Default value | Details
 XFSTESTS_REPO | string | | repo to install xfstests package
 DEPENDENCY_REPO | string | | ibs/obs repo to install related test package to solve dependency issues. e.g. fio
 XFSTESTS_DEVICE | string | | manually set a test disk for both TEST_DEV and SCRATCH_DEV
+XFSTESTS_SKIP_INSTALL | boolean | 0 | Skipping the install step including xfstests package and dependency package installation.
 
 
 Filesystem specific setting:
