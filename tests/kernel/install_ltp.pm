@@ -305,13 +305,14 @@ sub run {
 
     enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
-    select_serial_terminal;
-
     if (get_var('LTP_COMMAND_FILE') && check_var_array('LTP_DEBUG', 'crashdump')) {
-        configure_service(yast_interface => 'cli');
         select_serial_terminal;
+        configure_service(yast_interface => 'cli');
     }
 
+    # Initialize VNC console now to avoid login attempts on frozen system
+    select_console('root-console') if get_var('LTP_DEBUG');
+    select_serial_terminal;
     export_ltp_env;
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {

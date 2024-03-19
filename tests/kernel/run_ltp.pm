@@ -286,6 +286,17 @@ sub save_crashdump {
     upload_logs('/root/crashdump.tar.xz');
 }
 
+sub dump_tasktrace {
+    my $old_console = current_console();
+
+    select_console('root-console', await_console => 0);
+    send_key('alt-sysrq-t');
+    send_key('alt-sysrq-w');
+    wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
+    send_key('ret');
+    select_console($old_console, await_console => 0);
+}
+
 sub upload_tcpdump {
     my $self = shift;
     my $pid = $self->{tcpdump_pid};
@@ -296,7 +307,11 @@ sub upload_tcpdump {
     if ($self->{timed_out}) {
         $old_console = current_console();
         select_console('root-console');
-        return unless defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0));
+
+        unless (defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0))) {
+            select_console($old_console, await_console => 0);
+            return;
+        }
     }
     else {
         assert_script_run("kill -s INT $pid && wait $pid");
@@ -385,6 +400,7 @@ sub run_post_fail {
     my ($self, $msg) = @_;
 
     $self->upload_tcpdump() if defined($self->{tcpdump_pid});
+    $self->dump_tasktrace() if check_var_array('LTP_DEBUG', 'tasktrace');
     $self->save_crashdump()
       if $self->{timed_out} && check_var_array('LTP_DEBUG', 'crashdump');
 
@@ -475,6 +491,7 @@ E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 Comma separated list of debug features to enable during test run.
 C<tcpdump>: Capture all packets sent or received during each test.
 C<crashdump>: Save kernel crashdump on test timeout.
+C<tasktrace>: Print backtrace of all processes and show blocked tasks
 
 =cut
 
