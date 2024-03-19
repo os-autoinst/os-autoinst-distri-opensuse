@@ -91,7 +91,11 @@ sub run {
 	# so we use efibootmgr instead
 	record_info('efibootmgr output after dd iso to usb:', script_output('efibootmgr'));
 	save_screenshot;
-	my $usb_boot = script_output('efibootmgr | grep usb -i | grep -v generic -i | grep "\*"');
+    # Some machines are problematic which show faulty boot entries as active boot.
+    # Add workaround USB_BOOT_DEV_KEYWORD to filter correct boot.
+    my $cmd = 'efibootmgr | grep usb -i | grep -v generic -i | grep "\*"';
+    $cmd .= get_var('USB_BOOT_DEV_KEYWORD')? ' | grep ' . get_var('USB_BOOT_DEV_KEYWORD') : '';
+	my $usb_boot = script_output("$cmd");
 	save_screenshot;
 	die "Only 1 bootable USB should be here. But we find in efibootmgr output: $usb_boot." if (!$usb_boot || $usb_boot =~ /\n/);
 	$usb_boot =~ /Boot([0-9A-F]+)\*/m;
@@ -107,6 +111,7 @@ sub run {
     ipmitool("chassis power reset");
 
     select_console 'sol', await_console => 0;
+    #switch_from_ssh_to_sol_console(reset_console_flag => 'on');
     #assert_screen('press-t-for-boot-menu', 180);
     #send_key('t');
 }

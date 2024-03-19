@@ -50,8 +50,12 @@ use Utils::Backends qw(is_ipmi);
 sub run {
     my ($self) = @_;
 
+    #TODO:REMOVE
+    #select_console 'sol', await_console => 0;
+
     # Press key 't' to let grub2 boot menu show up in serial console
     if (is_ipmi && is_selfinstall && get_var('IPXE_UEFI')) {
+        #TODO: REMOVE
         assert_screen('press-t-for-boot-menu', 180);
         send_key('t');
     }
@@ -140,19 +144,20 @@ sub run {
         }
     }
 
-    # ipmi backend sol console is not reliable enough to change bootmenu params,
-    # so skip uefi_bootmenu_params and bootmenu_default_params.
+    uefi_bootmenu_params;
+
+    # Ipmi backend sol console is not reliable enough to change bootmenu params,
+    # so skip bootmenu_default_params which is not necessary now.
     # However, serial console and AGAMA_AUTO settings are actually useful.
     # If agama provides support for installation via ssh connection or others,
     # we will then consider adding them back.
     if (is_ipmi && is_selfinstall) {
         # directly start installation
-        send_key 'ret';
+        send_key "f10";
         wait_still_screen;
         return;
     }
 
-    uefi_bootmenu_params;
     bootmenu_default_params;
     unless (is_selfinstall) {
         bootmenu_remote_target;

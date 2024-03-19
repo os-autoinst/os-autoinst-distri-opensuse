@@ -30,6 +30,7 @@ sub microos_login {
         send_key_until_needlematch 'tty2-selected', $key, 11, 30;
     }
 
+    reset_consoles if is_ipmi;
     select_console 'root-console';
 
     # Don't match linux-login-microos twice

@@ -381,6 +381,37 @@ sub uefi_bootmenu_params {
     # in grub2 it's tricky to set the screen resolution
     send_key 'e';
     assert_screen("grub2-enter-edit-mode", 30) if (is_jeos || get_var('USB_BOOT'));
+
+    # Workaround for sle micro 6 baremetal installation with SelfInstall ISO on USB.
+    # See details in https://bugzilla.suse.com/show_bug.cgi?id=1218095#c69.
+    # - remove from kernel command line `console=tty0`, to let installation shown in sol
+    # - add in kernel command line `rd.kiwi.term=linux`, to let installation dialog 
+    #   have proper background color
+    if (is_ipmi && is_selfinstall && get_var('USB_BOOT')) {
+        my $counter = 0;
+        my $max_tries = 5;
+        while (!check_screen('no-tty0-but-term-linux', 2) && $counter++ < $max_tries) {
+            record_info("Doing round $counter of grub editing...");
+            # for efficiency
+            send_key('down', wait_screen_change => 1) for (1 .. 3);
+            # to mitigate sol unstability
+            send_key_until_needlematch('grub2-edit-linux-line', 'down', 10, 2);
+            send_key('right', wait_screen_change => 1) for (1 .. 73);
+            send_key_until_needlematch('on-linux-console=tty0', 'right', 15, 2);
+            send_key('delete', wait_screen_change => 1) for (1 .. 12);
+            send_key_until_needlematch('deleted-console=tty0', 'delete', 20, 2);
+            type_string_very_slow(" rd.kiwi.term=linux ");
+            if (!check_screen("no-tty0-but-term-linux")) {
+                send_key_until_needlematch('bootloader-grub2', 'esc', 3, 2);
+                send_key_until_needlematch('grub2-enter-edit-mode', 'e', 3, 2);
+            } else {
+                record_info('Successfully finished grub2 editing.');
+                return;
+            }
+        }
+        die "Failed to edit grub2 after $max_tries.";
+	}
+
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
     if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.1'))) {
