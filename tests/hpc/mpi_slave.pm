@@ -16,7 +16,7 @@ use POSIX 'strftime';
 
 sub run ($self) {
     select_serial_terminal();
-    my $mpi = $self->get_mpi();
+    my $mpi = get_required_var('MPI');
     my %exports_path = (
         bin => '/home/bernhard/bin'
     );

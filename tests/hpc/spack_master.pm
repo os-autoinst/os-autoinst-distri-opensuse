@@ -24,7 +24,7 @@ my $compile_rt = undef;
 my $rt = undef;
 
 sub run ($self) {
-    my $mpi = $self->get_mpi();
+    my $mpi = get_required_var('MPI');
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
     my @cluster_nodes = $self->cluster_names();
