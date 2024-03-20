@@ -58,6 +58,8 @@ sub run {
       . " -o /mnt/combustion/script";
     script_retry($cmd, retry => 2, delay => 5, timeout => 60, die => 1);
     save_screenshot;
+    my $SERIALCONSOLE = get_required_var('SERIALCONSOLE');
+    assert_script_run("sed -i 's/SERIALCONSOLE/$SERIALCONSOLE/g' /mnt/combustion/script");
     assert_script_run("chmod a+x /mnt/combustion/script");
     assert_script_run("ls -l /mnt/combustion/script && cat /mnt/combustion/script");
     save_screenshot;
