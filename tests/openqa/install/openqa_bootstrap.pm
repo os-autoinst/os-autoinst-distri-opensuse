@@ -20,9 +20,18 @@ sub run {
         record_info('No nested virt', 'No /dev/kvm found');
     }
 
-    zypper_call('in openQA-bootstrap');
+    my $script_path;
+    if (get_var('BETA')) {
+        assert_script_run('wget https://raw.githubusercontent.com/os-autoinst/openQA/master/script/openqa-bootstrap');
+        $script_path = 'bash -e openqa-bootstrap';
+    }
+    else {
+        zypper_call('in openQA-bootstrap');
+        $script_path = '/usr/share/openqa/script/openqa-bootstrap';
+    }
+
     my $proxy_var = get_var('OPENQA_WEB_PROXY') ? 'setup_web_proxy=' . get_var('OPENQA_WEB_PROXY') . ' ' : '';
-    assert_script_run($proxy_var . "/usr/share/openqa/script/openqa-bootstrap", 4000);
+    assert_script_run($proxy_var . $script_path, 4000);
 }
 
 sub test_flags {
