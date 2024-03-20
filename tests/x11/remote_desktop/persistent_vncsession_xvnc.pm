@@ -47,6 +47,11 @@ sub run {
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
 
+    # Make sure the client gets the IP address
+    x11_start_program('xterm');
+    assert_script_run('nmcli connection up eth0');
+    send_key 'alt-f4';
+
     # First time login and configure the visibility
     $self->start_vncviewer;
     handle_login;
