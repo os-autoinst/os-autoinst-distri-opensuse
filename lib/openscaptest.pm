@@ -59,7 +59,7 @@ sub validate_result {
         assert_script_run "xmllint --noout $xml_args $result_file";
     }
 
-    validate_script_output "cat $result_file", sub { $match }, timeout => 300;
+    validate_script_output "cat $result_file", $match, timeout => 300;
     upload_logs($result_file);
 }
 

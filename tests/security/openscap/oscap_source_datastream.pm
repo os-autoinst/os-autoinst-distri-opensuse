@@ -16,7 +16,7 @@ sub run {
 
     my $xccdf_12 = 'xccdf-1.2.xml';
 
-    my $source_ds_match = 'm/
+    my $source_ds_match = qr/
         <ds:data-stream-collection.*
         <ds:component\s+id=.*xml.*
         <ns0:definition.*oval:no_direct_root_logins:def:1.*class.*compliance.*
@@ -25,10 +25,10 @@ sub run {
         <Benchmark.*xccdf_com.suse_benchmark_test.*
         <Profile.*xccdf_com.suse_profile_standard.*
         <Rule.*xccdf_com.suse_rule_no_direct_root_logins.*selected.*false.*
-        <Rule.*xccdf_com.suse_rule_rule_misc_sysrq.*selected.*false/sxx';
+        <Rule.*xccdf_com.suse_rule_rule_misc_sysrq.*selected.*false/sxx;
 
 
-    my $source_ds_result_match = 'm/
+    my $source_ds_result_match = qr/
         version="[0-9]+\.[0-9]+"\s+encoding="UTF-8".*
         <Benchmark.*<Profile\s+id="xccdf_com\.suse_profile_standard".*
         select.*xccdf_com\.suse_rule_no_direct_root_logins".*selected="true".*
@@ -37,7 +37,7 @@ sub run {
         Rule.*xccdf_com\.suse_rule_rule_misc_sysrq".*selected="false".*
         <TestResult.*<benchmark.*id="xccdf_com\.suse_benchmark_test".*
         rule-result.*xccdf_com\.suse_rule_no_direct_root_logins".*notselected.*
-        rule-result.*xccdf_com\.suse_rule_rule_misc_sysrq.*notselected/sxx';
+        rule-result.*xccdf_com\.suse_rule_rule_misc_sysrq.*notselected/sxx;
 
     # Convert to XCCDF version 1.2 and validate
     assert_script_run "xsltproc --stringparam reverse_DNS com.suse /usr/share/openscap/xsl/xccdf_1.1_to_1.2.xsl xccdf.xml > $xccdf_12";

@@ -19,31 +19,31 @@ sub run {
     my $oval_report = "oval_report.html";
     my $xccdf_oval_report = "xccdf_oval_report.html";
 
-    my $xccdf_guide_match = 'm/
+    my $xccdf_guide_match = qr/
             Checklist.*
             contains 2 rules.*
             Restrict Root Logins.*
             Direct root Logins Not Allowed.*
-            sysctl kernel.sysrq must be 0.*/sxx';
+            sysctl kernel.sysrq must be 0.*/sxx;
 
-    my $xccdf_report_match = 'm/
+    my $xccdf_report_match = qr/
             with profile.*Standard System Security Profile.*
             The target system did not satisfy the conditions of 2 rules.*
             Hardening SUSE Linux Enterprise.*2x fail.*
             Restrict Root Logins.*1x fail.*
             Direct root Logins Not Allowed.*
-            sysctl kernel.sysrq must be 0/sxx';
+            sysctl kernel.sysrq must be 0/sxx;
 
-    my $oval_report_match = 'm/
+    my $oval_report_match = qr/
             OVAL Results Generator Information.*
             OVAL Definition Generator Information.*
             System Information.*
             cpe:\/a:open-scap:oscap.*
             OVAL Definition Results.*
             oval:rule_misc_sysrq:def:1.*false.*
-            oval:no_direct_root_logins:def:1.*false/sxx';
+            oval:no_direct_root_logins:def:1.*false/sxx;
 
-    my $xccdf_oval_report_match = 'm/
+    my $xccdf_oval_report_match = qr/
             with profile.*Standard System Security Profile.*
             Evaluation Characteristics.*
             CPE Platforms.*cpe:\/o:suse.*
@@ -53,7 +53,7 @@ sub run {
             Severity of failed rules.*1 other.*
             Score.*
             Rule Overview.*
-    ';
+    /;
 
     ensure_generated_file($oval_result);
     ensure_generated_file($xccdf_result);

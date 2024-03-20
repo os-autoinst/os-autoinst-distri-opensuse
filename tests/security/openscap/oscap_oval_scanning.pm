@@ -15,12 +15,12 @@ use openscaptest;
 
 sub run {
 
-    my $scanning_match = 'm/
+    my $scanning_match = qr/
         Definition\ oval:rule_misc_sysrq:def:[0-9]:\ false.*
         Definition\ oval:no_direct_root_logins:def:[0-9]:\ false.*
-        Evaluation\ done/sxx';
+        Evaluation\ done/sxx;
 
-    my $result_match = 'm/
+    my $result_match = qr/
         encoding="UTF-8".*
         <oval_results\ xmlns:xsi.*XMLSchema-instance.*
         xmlns:oval=.*oval-common-5.*xmlns=.*oval-results-5.*
@@ -38,24 +38,24 @@ sub run {
         definition_id="oval:rule_misc_sysrq:def:1".*
         result="false".*
         definition_id="oval:no_direct_root_logins:def:1".*
-        result="false"/sxx';
+        result="false"/sxx;
 
-    my $scanning_match_single = 'm/
+    my $scanning_match_single = qr/
         Definition\ oval:rule_misc_sysrq:def:[0-9]:\ false.*
-        Evaluation\ done/sxx';
+        Evaluation\ done/sxx;
 
-    my $result_match_single = 'm/
+    my $result_match_single = qr/
         encoding="UTF-8".*
         <results.*<system.*<definitions.*
         definition_id="oval:rule_misc_sysrq:def:1".*
         result="false".*
         definition_id="oval:no_direct_root_logins:def:1".*
-        result="not\ evaluated"/sxx';
+        result="not\ evaluated"/sxx;
 
-    validate_script_output "oscap oval eval --results $oval_result oval.xml", sub { $scanning_match };
+    validate_script_output "oscap oval eval --results $oval_result oval.xml", $scanning_match;
     validate_result($oval_result, $result_match);
 
-    validate_script_output "oscap oval eval --id oval:rule_misc_sysrq:def:1 --results $oval_result_single oval.xml", sub { $scanning_match_single };
+    validate_script_output "oscap oval eval --id oval:rule_misc_sysrq:def:1 --results $oval_result_single oval.xml", $scanning_match_single;
     validate_result($oval_result_single, $result_match_single);
 }
 
