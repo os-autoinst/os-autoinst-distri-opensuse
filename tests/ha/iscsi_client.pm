@@ -11,12 +11,19 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use Utils::Backends qw(is_remote_backend);
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl ping_size_check);
 use testapi;
 use hacluster;
 use version_utils qw(is_sle);
 
 sub run {
+    my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
+
+    # Perform a ping size check to several hosts which need to be accessible while
+    # running this module
+    ping_size_check(testapi::host_ip());
+    ping_size_check($iscsi_server);
+
     # Some remote backends connect to the root-console via sshXtermVt or ipmiXtermVt,
     # which set DISPLAY and cause yast2 to show its graphical version. This unsets
     # DISPLAY so the terminal version is shown instead when testing in textmode
@@ -63,7 +70,6 @@ sub run {
     assert_screen 'iscsi-client-discovery';
     send_key 'alt-i';    # Ip address
     wait_still_screen 3;
-    my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
     type_string $iscsi_server;
     wait_still_screen 3;
     send_key 'alt-n';    # Next
