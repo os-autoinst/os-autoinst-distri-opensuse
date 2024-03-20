@@ -10,7 +10,7 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use utils 'zypper_call';
+use utils 'zypper_call', 'write_sut_file';
 use testapi;
 use lockapi;
 use hacluster;
@@ -86,26 +86,38 @@ sub run {
 
     if (is_node(1)) {
         # Create the Filesystem resource
-        assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device='$fs_lun' directory='/srv/$fs_rsc' fstype='$fs_type''\" crm configure edit", $default_timeout;
-
+        my $clean_flag = undef;
+        my $edit_crm_config_script = "#!/bin/sh
+EDITOR='sed -ie \"\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device=\'$fs_lun\' directory=\'/srv/$fs_rsc\' fstype=\'$fs_type\'\"' crm configure edit
+";
         # Only OCFS2 can be cloned
         if ($fs_type eq 'ocfs2') {
-            assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $fs_rsc/'\" crm configure edit", $default_timeout;
+            $edit_crm_config_script .= "
+EDITOR='sed -ie \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
+";
         }
         else {
             if ($resource eq 'drbd_passive') {
-                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master'\" crm configure edit", $default_timeout;
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start'\" crm configure edit", $default_timeout;
+                $edit_crm_config_script .= "
+EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master\"' crm configure edit
+EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start\"' crm configure edit
+";
             }
             else {
-                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource'\" crm configure edit", $default_timeout;
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit", $default_timeout;
+                $edit_crm_config_script .= "
+EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource\"' crm configure edit
+EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' crm configure edit
+";
             }
-
-            # Sometimes we need to cleanup the resource
-            rsc_cleanup $fs_rsc;
+            $clean_flag = "cleanup";
         }
+
+        # run bash script to edit crm configure
+        write_sut_file '/root/crm_edit_config.sh', $edit_crm_config_script;
+        assert_script_run 'bash -ex /root/crm_edit_config.sh', $default_timeout;
+
+        # Sometimes we need to cleanup the resource
+        rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag == 'cleanup';
 
         # Wait to get Filesystem running on all nodes (if applicable)
         sleep 5;
