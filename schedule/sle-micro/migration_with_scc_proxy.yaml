@@ -26,4 +26,5 @@ schedule:
   - microos/services_enabled
   - microos/toolbox
   - console/journal_check
+  - microos/rollback
   - shutdown/shutdown
