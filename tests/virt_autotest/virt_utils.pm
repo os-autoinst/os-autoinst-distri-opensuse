@@ -77,7 +77,12 @@ sub locate_sourcefile {
     if (!is_s390x) {
         $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60, proceed_on_failure => 1);
         print "Julie debug: \$location=$location\n";
-        $location ? $location =~ s/[\r\n]+$// : 'de';
+        if ($location) {
+            $location =~ s/[\r\n]+$//;
+        }
+        else {
+            $location = 'de';
+        }
         print "Julie debug: \$location=$location\n";
         $location = 'de'; #to continue test to check if it is ok
     }
