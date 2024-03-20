@@ -350,7 +350,7 @@ echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45
 
 cat >> /root/.ssh/config << EOF
 StrictHostKeyChecking no
-HostKeyAlgorithms ssh-rsa
+HostKeyAlgorithms ssh-rsa,ssh-ed25519
 PreferredAuthentications publickey
 #ControlMaster auto
 #ControlPersist 86400

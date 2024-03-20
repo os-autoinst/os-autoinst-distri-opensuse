@@ -231,6 +231,9 @@
       <package>dhcp-client</package>
       <package>nmap</package>
       <package>guestfs-tools</package>
+      % if ($get_var->('VERSION') gt '15-SP5') {
+      <package>libvirt-daemon-proxy</package>
+      % }
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>
@@ -401,7 +404,7 @@ echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45
 
 cat >> /root/.ssh/config << EOF
 StrictHostKeyChecking no
-HostKeyAlgorithms ssh-rsa
+HostKeyAlgorithms ssh-rsa,ssh-ed25519
 PreferredAuthentications publickey
 #ControlMaster auto
 #ControlPersist 86400
