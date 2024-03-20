@@ -1161,7 +1161,8 @@ sub upload_virt_logs {
     my ($log_dir, $compressed_log_name) = @_;
 
     my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
-    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
+    script_run("tar -czf $full_compressed_log_name $log_dir", 60);
+    script_run("for log in $log_dir; do if [ -d \$log ]; then cd \$log && rm -r *; else rm -r \$log; fi; done");
     save_screenshot;
     upload_logs "$full_compressed_log_name";
     save_screenshot;
