@@ -11,7 +11,7 @@ use lockapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'export_logs';
-use testapi qw(record_info);
+use testapi;
 use POSIX 'strftime';
 
 sub run ($self) {
