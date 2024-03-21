@@ -108,6 +108,11 @@ sub enter_netboot_parameters {
     my $repo = get_required_var('REPO_0');
     my $mirror = get_netboot_mirror;
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
+    if (my $ppc64le_grub_http = get_var('PPC64LE_GRUB_HTTP')) {
+        # Enable grub http protocol to load file from OSD: (http,10.145.10.207)/assets/repo/$repo/boot/ppc64le
+        $mntpoint = "$ppc64le_grub_http/assets/repo/$repo/boot/ppc64le";
+        record_info("Updated boot path for PPC64LE_GRUB_HTTP defined", $mntpoint);
+    }
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
     bootmenu_default_params;
