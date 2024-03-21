@@ -1,0 +1,82 @@
+# SUSE's openQA tests
+#
+# Copyright 2024 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Initialize barriers used in HA cluster tests
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
+
+use base 'opensusebasetest';
+use strict;
+use warnings;
+use testapi;
+use lockapi;
+use mmapi;
+
+sub num_nodes {
+    my $cluster_infos = get_required_var('CLUSTER_INFOS');
+    my ($cluster_name, $num_nodes) = split(/:/, $_);
+    return $num_nodes;
+}
+
+sub cluster_name {
+    my $cluster_infos = get_required_var('CLUSTER_INFOS');
+    my ($cluster_name, $num_nodes) = split(/:/, $_);
+    return $cluster_name;
+}
+
+
+sub create_general_ha_barriers {
+    barrier_create "BARRIER_HA_" . cluster_name(), num_nodes() + 1;
+    barrier_create "CLUSTER_INITIALIZED_" . cluster_name(), num_nodes();
+    barrier_create "NODE_JOINED_" . cluster_name(), num_nodes();
+    barrier_create "NW_CLUSTER_HOSTS_." . cluster_name(), num_nodes();
+    barrier_create "LOGS_CHECKED_" . cluster_name(), num_nodes();
+}
+
+# Creates the barriers that are specific to the ENSA2 test sequence
+sub create_ensa_only_barriers {
+    # Netweaver stack installation barriers
+    # Installation flow:
+    # ASCS: |--install progress-->
+    # ERS:  |___wait for ASCS____|--install progress-->
+    # DB:   |____________waits for ASCS (ERS)__________|--install progress-->
+    # PAS   |___________________waits for DB_________________________________|--install progress-->
+    # AAS   |___________________waits for PAS______________________________________________________|--install progress-->
+
+    if (get_var('SAP_INSTANCES')) {
+        my @instances = split(',', get_var('SAP_INSTANCES'));
+        my $no_of_instances = @instances;
+        record_info('Instances no', $no_of_instances);
+        my %wait_times = (
+            ASCS => $no_of_instances,    # everything waits for ASCS
+            ERS => $no_of_instances - 1,    # everything but ASCS waits for ERS
+            HDB => grep('ERS', @instances) == 1 ? $no_of_instances - 2 : $no_of_instances - 1,    # Everything but ASCS (optionally ERS) waits for HDB
+        );
+        $wait_times{PAS} = $wait_times{HDB} - 1;    # PAS waits for HDB = same time -1. Only AAS waits for PAS
+
+        for my $instance_type (@instances) {
+            next() if ($wait_times{$instance_type} <= 1);    # Do not raise barrier for single instance
+            barrier_create("SAPINST_$instance_type", $wait_times{$instance_type});
+        }
+        barrier_create('SAPINST_INSTALLATION_FINISHED', $no_of_instances);
+        barrier_create('SAPINST_SYNC_NODES', $no_of_instances);
+        barrier_create('ENSA_CLUSTER_SETUP', $no_of_instances);
+        barrier_create('ENSA_CLUSTER_CONNECTOR_SETUP_DONE', $no_of_instances);
+        barrier_create('ENSA_TEST_END', $no_of_instances);
+        barrier_create('ENSA_FAILOVER_DONE', '2');
+        barrier_create('ENSA_ORIGINAL_STATE', '2');
+        barrier_create('ISCSI_LUN_PREPARE', '2');    #only ASCS/ERS need that
+    }
+}
+
+sub run {
+    die 'The module requires at least two nodes.' if (num_nodes() lt '2');
+    if (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER')) {
+        die 'The module is currently only able to run on a supportserver';
+    }
+    create_general_ha_barriers;
+    create_ensa_only_barriers;
+}
+
+1;
