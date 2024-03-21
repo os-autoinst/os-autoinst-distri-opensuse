@@ -385,11 +385,21 @@ sub select_serial_terminal {
         $console = 'root-ssh';
     } elsif (($backend eq 'generalhw' && !has_serial_over_ssh) || $backend eq 's390x') {
         $console = $root ? 'root-console' : 'user-console';
+    } elsif (check_pvm){
+        if (check_var('VIRTIO_CONSOLE', 0)) {
+            $console = $root ? 'root-console' : 'user-console';
+        } else {
+            $console = $root ? 'root-virtio-terminal' : 'user-virtio-terminal';
+        }
     }
 
     die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
     $testapi::distri->{serial_term_prompt} = $prompt;
     select_console($console);
+}
+
+sub check_pvm {
+    return (is_pvm_hmc || is_spvm)
 }
 
 =head2 select_user_serial_terminal
