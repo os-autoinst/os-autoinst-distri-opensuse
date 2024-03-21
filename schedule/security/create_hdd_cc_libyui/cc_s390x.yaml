@@ -1,0 +1,23 @@
+---
+name: create_hdd_common_criteria
+description: >
+  Installation using the Common Criteria role and full disk
+  encryption on beta SLES.
+schedule:
+  system_role:
+    - installation/system_role/select_common_criteria_role
+    - installation/common_criteria_configuration/common_criteria_encryption_pwd
+  suggested_partitioning:
+    - installation/partitioning/new_partitioning_gpt
+  grub:
+    - installation/boot_encrypt
+    - installation/handle_reboot
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - security/cc/ensure_crypto_checks_enabled
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - shutdown/svirt_upload_assets

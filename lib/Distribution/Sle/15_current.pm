@@ -31,6 +31,7 @@ use Installation::ModuleRegistration::SeparateRegCodesController;
 use YaST::DNSServer::Sle::DNSServerController;
 use YaST::DNSServer::Sle::DNSServerSetupController;
 use Installation::NTPConfiguration::NTPConfigurationPage;
+use Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationController;
 
 =head2 get_license_agreement
 
@@ -101,6 +102,10 @@ sub get_dns_server_setup {
 
 sub get_ntp_configuration {
     return Installation::NTPConfiguration::NTPConfigurationPage->new();
+}
+
+sub get_common_criteria_configuration {
+    return Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationController->new();
 }
 
 1;

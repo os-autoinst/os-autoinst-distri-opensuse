@@ -21,7 +21,8 @@ sub init {
         text_mode => 'Text Mode',
         minimal => 'Minimal',
         transactional_server => 'Transactional Server',
-        HA_node => 'HA node'
+        HA_node => 'HA node',
+        common_criteria => 'Common Criteria evaluated configuration'
     };
     return $self;
 }
