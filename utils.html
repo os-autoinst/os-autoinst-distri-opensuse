@@ -104,6 +104,8 @@
       <li><a href="#define_secret_variable-define_secret_variable-var_name-var_value-define_secret_variable-sets-a-hidden-environment-variable-without-exposing-it-to-openQA.-This-function-is-useful-to-hide-secrets-from-openQA-by-setting-them-as-an-accessible-environment-variable-but-without-any-traces-in-the-output-terminals.-e.g.-define_secret_variable-SECRET-get_var-_SECRET_VARIABLE-would-store-the-openQA-variable-_SECRET_VARIABLE-into-the-SECRET-environment-variable-which-can-be-used-afterwards-by-using-SECRET">define_secret_variable define_secret_variable($var_name, $var_value); define_secret_variable sets a hidden environment variable without exposing it to openQA. This function is useful to hide secrets from openQA by setting them as an accessible environment variable, but without any traces in the output terminals. e.g. define_secret_variable(&#39;SECRET&#39;, get_var(&#39;_SECRET_VARIABLE&#39;)) would store the openQA variable &#39;_SECRET_VARIABLE&#39; into the &#39;$SECRET&#39; environment variable, which can be used afterwards by using $SECRET.</a></li>
       <li><a href="#ping_size_check-ping_size_check-target-size-ping_size_check-will-ping-the-defined-target-with-different-and-increasing-sizes-with-disabled-packet-fragmentation.-If-a-size-is-specified-it-will-do-single-ping-check-with-one-size">ping_size_check ping_size_check($target, $size); ping_size_check will ping the defined target with different and increasing sizes with disabled packet fragmentation. If a size is specified, it will do single ping check with one size.</a></li>
       <li><a href="#write_sut_file">write_sut_file</a></li>
+      <li><a href="#is_ipxe_boot">is_ipxe_boot</a></li>
+      <li><a href="#is_uefi_boot">is_uefi_boot</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -785,6 +787,14 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>write_sut_file($path, $contents)</code></pre>
 
 <p>Write <code>$contents</code> to a file <code>$path</code> on the SUT. The directories in <code>$path</code> must already exist.</p>
+
+<h2 id="is_ipxe_boot">is_ipxe_boot</h2>
+
+<p>Returns true if the current instance is in IPXE boot mode</p>
+
+<h2 id="is_uefi_boot">is_uefi_boot</h2>
+
+<p>Returns true if the current instance is in UEFI boot mode</p>
 
 
 </body>

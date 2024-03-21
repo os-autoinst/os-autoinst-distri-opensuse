@@ -14,21 +14,147 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#reveal_myself">reveal_myself</a></li>
+      <li><a href="#create">create</a></li>
+      <li><a href="#initialize_guest_params">initialize_guest_params</a></li>
+      <li><a href="#config_guest_params">config_guest_params</a></li>
+      <li><a href="#revise_guest_version_and_build">revise_guest_version_and_build</a></li>
+      <li><a href="#print_guest_params">print_guest_params</a></li>
+      <li><a href="#prepare_common_environment">prepare_common_environment</a></li>
+      <li><a href="#prepare_ssh_key">prepare_ssh_key</a></li>
       <li><a href="#prepare_non_transactional_environment">prepare_non_transactional_environment</a></li>
+      <li><a href="#clean_up_all_guests">clean_up_all_guests</a></li>
+      <li><a href="#prepare_guest_environment">prepare_guest_environment</a></li>
+      <li><a href="#config_guest_name">config_guest_name</a></li>
+      <li><a href="#config_guest_metadata">config_guest_metadata</a></li>
+      <li><a href="#config_guest_vcpus">config_guest_vcpus</a></li>
       <li><a href="#config_guest_memory">config_guest_memory</a></li>
+      <li><a href="#config_guest_virtualization">config_guest_virtualization</a></li>
+      <li><a href="#config_guest_platform">config_guest_platform</a></li>
+      <li><a href="#config_guest_os_variant">config_guest_os_variant</a></li>
+      <li><a href="#config_guest_graphics_and_video">config_guest_graphics_and_video</a></li>
+      <li><a href="#config_guest_channels">config_guest_channels</a></li>
+      <li><a href="#config_guest_consoles">config_guest_consoles</a></li>
+      <li><a href="#config_guest_features">config_guest_features</a></li>
+      <li><a href="#config_guest_events">config_guest_events</a></li>
+      <li><a href="#config_guest_boot_settings">config_guest_boot_settings</a></li>
+      <li><a href="#config_guest_power_management">config_guest_power_management</a></li>
+      <li><a href="#config_guest_xpath">config_guest_xpath</a></li>
+      <li><a href="#config_guest_qemu_command">config_guest_qemu_command</a></li>
       <li><a href="#config_guest_security">config_guest_security</a></li>
       <li><a href="#config_guest_controller">config_guest_controller</a></li>
+      <li><a href="#config_guest_tpm">config_guest_tpm</a></li>
       <li><a href="#config_guest_rng">config_guest_rng</a></li>
+      <li><a href="#config_guest_sysinfo">config_guest_sysinfo</a></li>
+      <li><a href="#config_guest_storage">config_guest_storage</a></li>
+      <li><a href="#config_guest_network_selection">config_guest_network_selection</a></li>
+      <li><a href="#config_guest_macaddr">config_guest_macaddr</a></li>
+      <li><a href="#config_guest_network_vnet">config_guest_network_vnet</a></li>
+      <li><a href="#config_guest_network_vnet_services">config_guest_network_vnet_services</a></li>
+      <li><a href="#config_guest_network_vnet_policy">config_guest_network_vnet_policy</a></li>
+      <li><a href="#config_guest_network_bridge">config_guest_network_bridge</a></li>
       <li><a href="#write_guest_network_bridge_device_config">write_guest_network_bridge_device_config</a></li>
       <li><a href="#write_guest_network_bridge_device_ifcfg">write_guest_network_bridge_device_ifcfg</a></li>
       <li><a href="#write_guest_network_bridge_device_nmconnection">write_guest_network_bridge_device_nmconnection</a></li>
       <li><a href="#activate_guest_network_bridge_device">activate_guest_network_bridge_device</a></li>
+      <li><a href="#config_guest_network_bridge_device">config_guest_network_bridge_device</a></li>
+      <li><a href="#config_guest_network_bridge_services">config_guest_network_bridge_services</a></li>
+      <li><a href="#config_guest_network_bridge_policy">config_guest_network_bridge_policy</a></li>
       <li><a href="#schedule_tasks_on_boot">schedule_tasks_on_boot</a></li>
       <li><a href="#schedule_tasks_on_boot_crontab">schedule_tasks_on_boot_crontab</a></li>
       <li><a href="#schedule_tasks_on_boot_systemd">schedule_tasks_on_boot_systemd</a></li>
+      <li><a href="#config_guest_installation_method">config_guest_installation_method</a></li>
+      <li><a href="#config_guest_installation_media">config_guest_installation_media</a></li>
+      <li><a href="#config_guest_installation_extra_args">config_guest_installation_extra_args</a></li>
+      <li><a href="#config_guest_installation_automation_registration">config_guest_installation_automation_registration</a></li>
+      <li><a href="#config_guest_firstboot_provision">config_guest_firstboot_provision</a></li>
+      <li><a href="#config_guest_provision_ignition">config_guest_provision_ignition</a></li>
+      <li><a href="#config_guest_provision_ignition_luks">config_guest_provision_ignition_luks</a></li>
+      <li><a href="#config_guest_provision_combustion">config_guest_provision_combustion</a></li>
+      <li><a href="#config_guest_provision_disk">config_guest_provision_disk</a></li>
+      <li><a href="#config_guest_installation_automation">config_guest_installation_automation</a></li>
+      <li><a href="#config_guest_unattended_installation">config_guest_unattended_installation</a></li>
+      <li><a href="#validate_guest_installation_automation_file">validate_guest_installation_automation_file</a></li>
+      <li><a href="#guest_installation_run">guest_installation_run</a></li>
+      <li><a href="#prepare_guest_installation">prepare_guest_installation</a></li>
+      <li><a href="#start_guest_installation">start_guest_installation</a></li>
+      <li><a href="#get_guest_installation_session">get_guest_installation_session</a></li>
+      <li><a href="#terminate_guest_installation_session">terminate_guest_installation_session</a></li>
+      <li><a href="#get_guest_ipaddr">get_guest_ipaddr</a></li>
+      <li><a href="#monitor_guest_installation">monitor_guest_installation</a></li>
+      <li><a href="#check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</a></li>
+      <li><a href="#attach_guest_installation_screen">attach_guest_installation_screen</a></li>
+      <li><a href="#do_attach_guest_installation_screen">do_attach_guest_installation_screen</a></li>
+      <li><a href="#do_attach_guest_installation_screen_with_session">do_attach_guest_installation_screen_with_session</a></li>
+      <li><a href="#do_attach_guest_installation_screen_without_session">do_attach_guest_installation_screen_without_session</a></li>
+      <li><a href="#detach_guest_installation_screen">detach_guest_installation_screen</a></li>
+      <li><a href="#do_detach_guest_installation_screen">do_detach_guest_installation_screen</a></li>
+      <li><a href="#has_autoconsole_for_sure">has_autoconsole_for_sure</a></li>
+      <li><a href="#has_noautoconsole_for_sure">has_noautoconsole_for_sure</a></li>
+      <li><a href="#record_guest_installation_result">record_guest_installation_result</a></li>
+      <li><a href="#collect_guest_installation_logs_via_ssh">collect_guest_installation_logs_via_ssh</a></li>
+      <li><a href="#upload_guest_installation_logs">upload_guest_installation_logs</a></li>
+      <li><a href="#detach_all_nfs_mounts">detach_all_nfs_mounts</a></li>
+      <li><a href="#power_cycle_guest">power_cycle_guest</a></li>
+      <li><a href="#modify_guest_params">modify_guest_params</a></li>
+      <li><a href="#add_guest_device">add_guest_device</a></li>
+      <li><a href="#remove_guest_device">remove_guest_device</a></li>
+      <li><a href="#AUTOLOAD">AUTOLOAD</a></li>
+      <li><a href="#post_fail_hook">post_fail_hook</a></li>
     </ul>
   </li>
 </ul><h1>lib/guest_installation_and_configuration_base.pm</h1>
+
+<h2 id="reveal_myself">reveal_myself</h2>
+
+<pre><code>reveal_myself($self)
+  </code></pre>
+
+<p>Any subroutine calls this subroutine announces its identity and it is being executed.</p>
+
+<h2 id="create">create</h2>
+
+<pre><code>create($self)
+  </code></pre>
+
+<p>Create guest instance by assigning values to its parameters but do no install it.</p>
+
+<h2 id="initialize_guest_params">initialize_guest_params</h2>
+
+<pre><code>initialize_guest_params($self)
+  </code></pre>
+
+<p>Initialize all guest parameters to avoid uninitialized parameters.</p>
+
+<h2 id="config_guest_params">config_guest_params</h2>
+
+<pre><code>config_guest_params($self, %_guest_params)</code></pre>
+
+<p>Assign real values to guest instance parameters. Reset [guest_name] to guest name used in [guest_metadata] if they are different. The subroutine can be called mainly in two different ways: Firstly, config_guest_params can be called in another subroutine, for example, create which takes a hash/dictionary as argument. my %testhash = (&#39;key1&#39; =&gt; &#39;value1&#39;, &#39;key2&#39; =&gt; &#39;value2&#39;, &#39;key3&#39; =&gt; &#39;value3&#39;), $self-&gt;create(%testhash) which calls $self-&gt;config_guest_params(@_). Secondly, config_guest_params can also be called direcly, for example, $self-&gt;config_guest_params(%testhash). Call revise_guest_version_and_build to correct guest version and build parameters to avoid mismatch if necessary.</p>
+
+<h2 id="revise_guest_version_and_build">revise_guest_version_and_build</h2>
+
+<pre><code>revise_guest_version_and_build($self, %_guest_params)</code></pre>
+
+<p>Correct [guest_version], [guest_version_major], [guest_version_minor] and [guest_build] if they are not set correctly or mismatch with each other. Set [guest_version] to the developing product version if it is not given. Set [guest_version_major] and [guest_version_minor] from [guest_version] it they do not match with [guest_version]. Set [guest_build] to get_required_var(&#39;BUILD&#39;) if it is empty and developing [guest_version], or &#39;GM&#39; if non-developing [guest_version]. This subroutine help make things better and life easier but the end user should always pay attention and use meaningful and correct guest parameter and profile.</p>
+
+<h2 id="print_guest_params">print_guest_params</h2>
+
+<pre><code>print_guest_params($self)</code></pre>
+
+<p>Print out guest instance parameters.</p>
+
+<h2 id="prepare_common_environment">prepare_common_environment</h2>
+
+<pre><code>prepare_common_environment($self)</code></pre>
+
+<p>Install necessary packages, patterns, setup ssh config, create [common_log_folder]. These are common environment affairs which will be used for all guest instances.</p>
+
+<h2 id="prepare_ssh_key">prepare_ssh_key</h2>
+
+<pre><code>prepare_ssh_key($self)</code></pre>
+
+<p>Prepare ssh key [ssh_public_key] and [ssh_private_key] for passwordless ssh login from host to guest. [ssh_command] stores options and username to be used with ssh login.</p>
 
 <h2 id="prepare_non_transactional_environment">prepare_non_transactional_environment</h2>
 
@@ -36,12 +162,113 @@
 
 <p>Do preparation on non-transactional server.</p>
 
+<h2 id="clean_up_all_guests">clean_up_all_guests</h2>
+
+<pre><code>clean_up_all_guests($self)</code></pre>
+
+<p>Remove all existing guests and affecting storage files.</p>
+
+<h2 id="prepare_guest_environment">prepare_guest_environment</h2>
+
+<pre><code>prepare_guest_environment($self)</code></pre>
+
+<p>Create individual guest log folder using its name and remove existing entry in /etc/hosts.</p>
+
+<h2 id="config_guest_name">config_guest_name</h2>
+
+<pre><code>config_guest_name($self, @_)</code></pre>
+
+<p>Configure [guest_domain_name] and [guest_name_options].User can still change [guest_name] and [guest_domain_name] by passing non-empty arguments using hash.</p>
+
+<h2 id="config_guest_metadata">config_guest_metadata</h2>
+
+<pre><code>config_guest_metadata($self[, guest_metadata =&gt; &#39;metadata&#39;])</code></pre>
+
+<p>Configure [guest_metadata_options]. User can still change [guest_metadata] by assing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_metadata] using already modified [guest_metadata_options].</p>
+
+<h2 id="config_guest_vcpus">config_guest_vcpus</h2>
+
+<pre><code>config_guest_vcpus($self[, guest_vcpus =&gt; &#39;vcpus&#39;])</code></pre>
+
+<p>Configure [guest_vcpus_options].User can still change [guest_vcpus] by passing non-empty arguments using hash. If installations already passes,modify_guest_params will be called to modify [guest_vcpus] using already modified [guest_vcpus_options].</p>
+
 <h2 id="config_guest_memory">config_guest_memory</h2>
 
-<pre><code>config_guest_memory($self [, guest_memory =&gt; &#39;memory&#39;] [, guest_memballoon =&gt; &#39;memballoon&#39;]
-[, guest_memdev =&gt; &#39;memdev&#39;] [, guest_memtune =&gt; &#39;memtune&#39;] [, guest_memorybacking =&gt; &#39;memorybacking&#39;])</code></pre>
+<pre><code>config_guest_memory($self[, guest_memory =&gt; &#39;memory&#39;])</code></pre>
 
-<p>Configure [guest_memory_options]. User can still change [guest_memory],[guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] using already modified [guest_memory_options].</p>
+<p>Configure [guest_memory_options]. User can still change [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] using already modified [guest_memory_options].</p>
+
+<h2 id="config_guest_virtualization">config_guest_virtualization</h2>
+
+<pre><code>config_guest_virtualization($self[, host_hypervisor_uri =&gt; &#39;uri&#39;, host_virt_type =&gt; &#39;type&#39;])</code></pre>
+
+<p>Configure [guest_virt_options].User can still change [host_hypervisor_uri], [host_virt_type] and [guest_virt_options] by passing non-empty arguments using hash.</p>
+
+<h2 id="config_guest_platform">config_guest_platform</h2>
+
+<pre><code>config_guest_platform($self[, guest_arch =&gt; &#39;arch&#39;, guest_machine_type =&gt; &#39;type&#39;])</code></pre>
+
+<p>Configure [guest_platform_options].User can still change [guest_arch] and [guest_machine_type] by passing non-empty arguments using hash.</p>
+
+<h2 id="config_guest_os_variant">config_guest_os_variant</h2>
+
+<pre><code>config_guest_os_variant($self[, guest_os_variant =&gt; &#39;os&#39;])</code></pre>
+
+<p>Configure [guest_os_variant_options]. User can still change [guest_os_variant] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_os_variant] using already modified [guest_os_variant_options].</p>
+
+<h2 id="config_guest_graphics_and_video">config_guest_graphics_and_video</h2>
+
+<pre><code>config_guest_graphics_and_video($self[, guest_video =&gt; &#39;video&#39;, guest_graphics =&gt; &#39;graphics&#39;])</code></pre>
+
+<p>Configure [guest_graphics_and_video_options]. User can still change [guest_video] and [guest_graphics] by passing non-empty arguments using hash. If installations already passes,modify_guest_params will be called to modify [guest_video] and [guest_graphics] using already modified [guest_graphics_and_video_options].</p>
+
+<h2 id="config_guest_channels">config_guest_channels</h2>
+
+<pre><code>config_guest_channels($self[, guest_channel =&gt; &#39;channel&#39;])</code></pre>
+
+<p>Configure [guest_channel_options]. User can still change [guest_channel] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_channel] using already modified [guest_channel_options]. Multiple channels are allowd for a single guest, they should be passed in with hash symbol &#39;#&#39; as separator, for example, &#39;type=unix#spicevmc&#39;.</p>
+
+<h2 id="config_guest_consoles">config_guest_consoles</h2>
+
+<pre><code>config_guest_consoles($self[, guest_console =&gt; &#39;console&#39;, guest_serial =&gt; &#39;serial&#39;])</code></pre>
+
+<p>Configure [guest_console_options] and [guest_serial_options]. User can still change [guest_console] and [guest_serial] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_console] and [guest_serial] using already modified [guest_console_options] and [guest_serial_options].</p>
+
+<h2 id="config_guest_features">config_guest_features</h2>
+
+<pre><code>config_guest_features($self[, guest_features =&gt; &#39;features&#39;])</code></pre>
+
+<p>Configure [guest_features_options]. User can still change [guest_features] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_features] using already modified [guest_features_options].</p>
+
+<h2 id="config_guest_events">config_guest_events</h2>
+
+<pre><code>config_guest_events($self[, guest_events =&gt; &#39;events&#39;])</code></pre>
+
+<p>Configure [guest_events_options]. User can still change [guest_events] by passing non-empty arguments using hash. If installations already passes,modify_guest_params will be called to modify [guest_events] using already modified [guest_events_options].</p>
+
+<h2 id="config_guest_boot_settings">config_guest_boot_settings</h2>
+
+<pre><code>config_guest_boot_settings($self[, guest_boot_settings =&gt; &#39;settings&#39;])</code></pre>
+
+<p>Configure [guest_boot_options]. User can still change [guest_boot_settings] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_boot_settings] using already modified [guest_boot_options].</p>
+
+<h2 id="config_guest_power_management">config_guest_power_management</h2>
+
+<pre><code>config_guest_power_management($self[, guest_power_management =&gt; &#39;power&#39;])</code></pre>
+
+<p>Configure [guest_power_management_options]. User can still change [guest_power_management] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_power_management] using already modified [guest_power_management_options].</p>
+
+<h2 id="config_guest_xpath">config_guest_xpath</h2>
+
+<pre><code>config_guest_xpath($self[, guest_xpath =&gt; &#39;xpath&#39;])</code></pre>
+
+<p>Configure [guest_xpath_options]. User can still change [guest_xpath] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_xpath] using already modified [guest_xpath_options].</p>
+
+<h2 id="config_guest_qemu_command">config_guest_qemu_command</h2>
+
+<pre><code>config_guest_qemu_command($self[, guest_qemu_command =&gt; &#39;command&#39;])</code></pre>
+
+<p>Configure [guest_qemu_command_options]. User can still change [guest_qemu_command] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_qemu_command] using already modified [guest_qemu_command_options].</p>
 
 <h2 id="config_guest_security">config_guest_security</h2>
 
@@ -53,13 +280,68 @@
 
 <pre><code>config_guest_controller($self [, guest_controller =&gt; &#39;controller&#39;])</code></pre>
 
-<p>Configure [guest_controller_options]. User can still change [guest_controller] by passing non-empty arguments using hash. [guest_controller] can have more than one type controller which should be separated by hash symbol, for example, &quot;controller1 _config#controller2_config#controller3_config&quot;. Then it will be splitted and passed to individual &quot;--controller&quot; argument to form [guest_controller_options] = &quot;--controller controller1_config --controller controller2_config --controller controller3_config&quot;. If installation already passes, modify_guest_params will be called to modify [guest_controller] using already modified [guest_controller_options].</p>
+<p>Configure [guest_controller_options]. User can still change [guest_controller] by passing non-empty arguments using hash. [guest_controller] can have more than one type controller which should be separated by hash symbol, for example, &#39;controller1 _config#controller2_config#controller3_config&#39;. Then it will be splitted and passed to individual &#39;--controller&#39; argument to form [guest_controller_options] = &#39;--controller controller1_config --controller controller2_config --controller controller3_config&#39;. If installation already passes, modify_guest_params will be called to modify [guest_controller] using already modified [guest_controller_options].</p>
+
+<h2 id="config_guest_tpm">config_guest_tpm</h2>
+
+<pre><code>config_guest_tpm($self [, guest_tpm =&gt; &#39;tpm&#39;])</code></pre>
+
+<p>Configure [guest_tpm_options]. User can still change [guest_tpm] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_tpm] using already modified [guest_tpm_options].</p>
 
 <h2 id="config_guest_rng">config_guest_rng</h2>
 
 <pre><code>config_guest_rng($self [, guest_rng =&gt; &#39;rng&#39;])</code></pre>
 
 <p>Configure [guest_rng_options]. User can still change [guest_rng] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_rng] using already modified [guest_rng_options].</p>
+
+<h2 id="config_guest_sysinfo">config_guest_sysinfo</h2>
+
+<pre><code>config_guest_sysinfo($self[, guest_sysinfo =&gt; &#39;sysinfo&#39;])</code></pre>
+
+<p>Configure [guest_sysinfo_options]. User can still change [guest_sysinfo] by passing non-empty arguments using hash. Multiple sysinfos are allowd for a single guest, they should be passed in with hash symbol &#39;#&#39; as separator, for example, &#39;sysinfo1# sysinfo2&#39;. If installation already passes, modify_guest_params will be called to modify [guest_sysinfo] using already modified [guest_sysinfo_options].</p>
+
+<h2 id="config_guest_storage">config_guest_storage</h2>
+
+<pre><code>config_guest_rng($self [, key-value pairs of guest storage arguments])</code></pre>
+
+<p>Configure [guest_storage_options]. User can still change [guest_storage_type], [guest_storage_size], [guest_storage_format], [guest_storage_label], [guest_storage_path] and [guest_storage_others] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_storage_type], [guest_storage_size], [guest_storage_format], [guest_storage_path] and [guest_storage_others] using already modified [guest_storage_options].</p>
+
+<h2 id="config_guest_network_selection">config_guest_network_selection</h2>
+
+<pre><code>config_guest_network_selection($self [, key-value pairs of guest network arguments])</code></pre>
+
+<p>Create network, type of which is either vnet or bridge, to be used with guest. In order to make network configuration consistent, global structure guest_network_matrix in module guest_installation_and_configuration_metadata.pm will be used for fetching network configuration. It covers almost all types of network configuration, including nat/forward/bridge/default mode in vnet and bridge/host mode in bridge networks. [guest_network_type] and [guest_network_mode] will be used for specifying desired network configuration, although customized network device name and address can still be specified by [guest_network_device] and [guest_netaddr]. For guest using static ip address, address info is derived from [guest_ipaddr] only.</p>
+
+<h2 id="config_guest_macaddr">config_guest_macaddr</h2>
+
+<pre><code>config_guest_macaddr($self)</code></pre>
+
+<p>Generate nearly random mac address.</p>
+
+<h2 id="config_guest_network_vnet">config_guest_network_vnet</h2>
+
+<pre><code>config_guest_network_vent($self[, _device =&gt; &#39;device&#39;, _ipaddr =&gt; &#39;ip&#39;, 
+_netmask =&gt; &#39;mask&#39;, _startaddr =&gt; &#39;start&#39;, _endaddr =&gt; &#39;end&#39;])</code></pre>
+
+<p>Create virtual network to be used with guest based on [guest_network_device] and passed in arguments, $_ipaddr, $_netmask, $_startaddr and $_endaddr. Skip creating already existing and active virtual network.</p>
+
+<h2 id="config_guest_network_vnet_services">config_guest_network_vnet_services</h2>
+
+<pre><code>config_guest_network_vent_services($self[, )</code></pre>
+
+<p>Make sure virtual network provides services as expected by adding ip address of [guest_network_device] as nameserver and [guest_domain_name] as search domain in /etc/resolv.conf.</p>
+
+<h2 id="config_guest_network_vnet_policy">config_guest_network_vnet_policy</h2>
+
+<pre><code>config_guest_network_vent_policy($self)</code></pre>
+
+<p>Loosen iptables rules for [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly.</p>
+
+<h2 id="config_guest_network_bridge">config_guest_network_bridge</h2>
+
+<pre><code>config_guest_network_bridge($self)</code></pre>
+
+<p>Calls virt_autotest::utils::parse_subnet_address_ipv4 to parse detailed subnet information from [guest_netaddr].Create [guest_network_device] with parsed detailed subnet information by calling config_guest_network_bridge_device.Start DHCP and DNS services with parsed detailed subnet information by calling config_guest_network_bridge_services. If [guest_network_mode] is equal to &#39;host&#39;, guest chooses to use host network which is public facing. So there is no need to do subnet address parsing.</p>
 
 <h2 id="write_guest_network_bridge_device_config">write_guest_network_bridge_device_config</h2>
 
@@ -68,7 +350,7 @@ _ipaddr =&gt; $_ipaddr, _bootproto =&gt; $_bootproto, _startmode =&gt; $_startmo
 _zone =&gt; $_zone, _bridge_type =&gt; $_bridge_type, _bridge_ports =&gt; $_bridge_ports, 
 _bridge_stp =&gt; $_bridge_stp, _bridge_forwarddelay =&gt; $_bridge_forwarddelay])</code></pre>
 
-<p>Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or /etc/NetworkManager/system-connections/*.nmconnection depends on whether system network is managed by NetworkManager or not. The supported arguments are listed out as below: $_ipaddr: IP address/mask length pair of the interface $_name: Identifier of the interface $_bootproto: DHCP automatic or manual configuration, &#39;static&#39;, &#39;dhcp&#39; or &#39;none&#39; $_startmode: Auto start up or connection: &#39;auto&#39;, &#39;manual&#39; or &#39;off&#39; $_zone: The trust level of this network connection $_bridge_type: &#39;master&#39; or &#39;slave&#39; to indicate master or slave interface $_bridge_port: Specify interface&#39;s master or slave interface name $_bridge_stp: &#39;on&#39; or &#39;off&#39; to turn stp on or off $_bridge_forwarddelay: The stp forwarding delay in seconds If $_ipaddr given is empty, it means there is no associated specific ip address to this interface which might be attached to another bridge interface or will not be assigned one ip address from dhcp, so set $_ipaddr to &#39;0.0.0.0&#39;.If $_ipaddr given is non-empty but not in ip address format,for example, &#39;host-default&#39;,it means the interface will not use a ip address from pre-defined subnet and will automically accept dhcp ip address from public facing host network.</p>
+<p>Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or /etc/NetworkManager/system-connections/*.nmconnection depends on whether system network is managed by NetworkManager or not. The supported arguments are listed out as below: $_ipaddr: IP address/mask length pair of the interface $_name: Identifier of the interface $_bootproto: DHCP automatic or manual configuration, &#39;static&#39;, &#39;dhcp&#39; or &#39;none&#39; $_startmode: Auto start up or connection: &#39;auto&#39;, &#39;manual&#39; or &#39;off&#39; $_zone: The trust level of this network connection $_bridge_type: &#39;master&#39; or &#39;slave&#39; to indicate master or slave interface $_bridge_port: Specify interface&#39;s master or slave interface name $_bridge_stp: &#39;on&#39; or &#39;off&#39; to turn stp on or off $_bridge_forwarddelay: The stp forwarding delay in seconds If $_ipaddr given is empty, it means there is no associated specific ip address to this interface which might be attached to another bridge interface or will not be assigned one ip address from dhcp, so set $_ipaddr to &#39;0.0.0.0&#39;.If $_ipaddr given is non-empty but not in ip address format,for example, &#39;host&#39;,it means the interface will not use a ip address from pre-defined subnet and will automically accept dhcp ip address from public facing host network.</p>
 
 <h2 id="write_guest_network_bridge_device_ifcfg">write_guest_network_bridge_device_ifcfg</h2>
 
@@ -92,27 +374,277 @@ _bridge_forwarddelay =&gt; $_bridge_forwarddelay])</code></pre>
 
 <h2 id="activate_guest_network_bridge_device">activate_guest_network_bridge_device</h2>
 
-<pre><code>activate_guest_network_bridge_device($self, _bridge_name =&gt; $_bridge_name)</code></pre>
+<pre><code>activate_guest_network_bridge_device($self, _host_device =&gt; $_host_device,
+_bridge_device =&gt; $_bridge_device)</code></pre>
 
 <p>Activate guest network bridge device by using wicked or NetworkManager depends on system configuration. And also validate whether activation is successful or not.</p>
 
+<h2 id="config_guest_network_bridge_device">config_guest_network_bridge_device</h2>
+
+<pre><code>config_guest_network_bridge_device($self, $_bridge_network,
+$_bridge_network_in_route, $_bridge_device)</code></pre>
+
+<p>Create [guest_network_device] by writing device information into ifcfg file in /etc/sysconfig/network. Mark guest installation as FAILED if [guest_network_device] can not be successfully started up. If [guest_network_device] or [guest_netaddr] already exists and active on host judging by &#39;ip route show&#39;, both of them will not be created anyway.</p>
+
+<h2 id="config_guest_network_bridge_services">config_guest_network_bridge_services</h2>
+
+<pre><code>config_guest_network_bridge_services($self, $_guest_network_device,
+$_guest_network_ipaddr_gw, $_guest_network_mask, $_guest_network_ipaddr_start,
+$_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
+
+<p>Start DHCP and DNS services by using dnsmasq command line. Add parsed subnet gateway ip address and [guest_domain_name] into /etc/resolv.conf. Empty NETCONFIG_DNS_POLICY in /etc/sysconfig/network/config. Mark guest installation as FAILED if dnsmasq command line can not be successfully fired up. Additionally, write dnsmasq command line used into crontab to start DHCP and DNS services automatically on reboot if host reboots somehow unexpectedly.</p>
+
+<h2 id="config_guest_network_bridge_policy">config_guest_network_bridge_policy</h2>
+
+<pre><code>config_guest_network_bridge_policy($self, $_guest_network_device)</code></pre>
+
+<p>Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and on all default route devices and [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly.</p>
+
 <h2 id="schedule_tasks_on_boot">schedule_tasks_on_boot</h2>
 
-<pre><code>schedule_tasks_on_boot($self, _task =&gt; $task)</code></pre>
+<pre><code>schedule_tasks_on_boot($self, _task =&gt; $_task)</code></pre>
 
-<p>Schedule tasks to be executed on system boot up, please refer to these documents: https://docs.oracle.com/en/learn/oracle-linux-crontab/ for using crontab utility and https://linuxconfig.org/how-to-schedule-tasks-with-systemd-timers-in-linux for for using systemd service and timer. In order to schedule a task successfully, the _task argument should not be empty.</p>
+<p>Schedule tasks to be executed on system boot up, please refer to these documents: https://docs.oracle.com/en/learn/oracle-linux-crontab/ for using crontab utility and https://linuxconfig.org/how-to-schedule-tasks-with-systemd-timers-in-linux for using systemd service and timer. In order to schedule a task successfully, the _task argument should not be empty.</p>
 
 <h2 id="schedule_tasks_on_boot_crontab">schedule_tasks_on_boot_crontab</h2>
 
-<pre><code>schedule_tasks_on_boot_crontab($self, _task =&gt; $task)</code></pre>
+<pre><code>schedule_tasks_on_boot_crontab($self, _task =&gt; $_task)</code></pre>
 
 <p>Schedule tasks on system boot up by using crontab utility.</p>
 
 <h2 id="schedule_tasks_on_boot_systemd">schedule_tasks_on_boot_systemd</h2>
 
-<pre><code>schedule_tasks_on_boot_systemd($self, _task =&gt; $task)</code></pre>
+<pre><code>schedule_tasks_on_boot_systemd($self, _task =&gt; $_task)</code></pre>
 
 <p>Schedule tasks on system boot up by using systemd service and timer.</p>
+
+<h2 id="config_guest_installation_method">config_guest_installation_method</h2>
+
+<pre><code>config_guest_installation_method($self[, key-value pairs of guest installation arguments])</code></pre>
+
+<p>Configure [guest_installation_method_options]. User can still change [guest_installation_method], [guest_installation_media], [guest_build], [guest_version], [guest_version_major], [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct installation media.</p>
+
+<h2 id="config_guest_installation_media">config_guest_installation_media</h2>
+
+<pre><code>config_guest_installation_media($self)</code></pre>
+
+<p>Set [guest_installation_media] to the current major and minor version if it does not match with [guest_version]. This subroutine also help mount nfs share if guest chooses to or has to use iso installation media, for example oracle linux guest uses iso installation media from https://yum.oracle.com/oracle-linux-isos.html. For guest using pre-built virtual disk image which will be downloaded and saved to [guest_storage_backing_path]. Although this subroutine can help correct installation media major and minor version if necessary, it is just auxiliary functionality and end user should always pay attendtion and use the meaningful and correct guest parameters and profile.</p>
+
+<h2 id="config_guest_installation_extra_args">config_guest_installation_extra_args</h2>
+
+<pre><code>config_guest_installation_extra_args($self[, key-value pairs of extra arguments])</code></pre>
+
+<p>Configure [guest_installation_extra_args_options]. User can still change [guest_installation_extra_args], [guest_ipaddr] and [guest_ipaddr_static] by passing non-empty arguments using hash.</p>
+
+<h2 id="config_guest_installation_automation_registration">config_guest_installation_automation_registration</h2>
+
+<pre><code>config_guest_installation_automation_registration($self)</code></pre>
+
+<p>Configure registration/subscription/activation information in guest unattended installation file using guest parameters, including guest_do_registration, guest_registration_server, guest_registration_username, guest_registration_password, guest_registration_code, guest_registration_extensions and guest_registration_extensions_codes].</p>
+
+<h2 id="config_guest_firstboot_provision">config_guest_firstboot_provision</h2>
+
+<pre><code>config_guest_firstboot_provision($self)</code></pre>
+
+<p>Configure guest to use provisioning tool to configure system according to desired sepcification on first boot. The well-known provisioning tools are ignition and combustion which are specified by [guest_installation_automation_method]. Use flavors of supported platform from igntion as [guest_installation_automation_platform]. If provisioning config is passed in to [guest_sysinfo], user does not need to specify [guest_sysinfo] in guest profile. Instead only [guest_installation_automation_file] needs to be specified, all the others are taken care by this subroutine. Please refer to documentation: https://coreos.github.io/ignition/ and https://github.com/openSUSE/combustion.</p>
+
+<h2 id="config_guest_provision_ignition">config_guest_provision_ignition</h2>
+
+<pre><code>config_guest_provision_ignition($self)</code></pre>
+
+<p>Configure ignition config file based on template specified by [guest_installation_automation_file]. If [guest_installation_automation_file] is empty, default ones will be used. If [guest_installation_automation_method] is &#39;ignition+combustion&#39;, their respective configuration files will be specified and joined with &#39;#&#39;, for example, &#39;ignition_config #combustion_config&#39;, and their names should be prefixed with &#39;ignition&#39; or &#39;combustion&#39; respectively. Based on [guest_installation_automation_platform], for example, &#39;qemu&#39; or &#39;metal&#39;, different ways of generating the final [guest_installation_automation_options] will be adopted. If [guest_installation_automation_platform] is &#39;qemu&#39;, ignition config file will be passed in via &#39;--sysinfo&#39; directly. If [guest_installation_automation_platform] is &#39;metal&#39;, ignition config file will be placed in the secondary disk vdb which is created by calling config_guest_provision_disk.</p>
+
+<h2 id="config_guest_provision_ignition_luks">config_guest_provision_ignition_luks</h2>
+
+<pre><code>config_guest_provision_ignition_luks($self[, _ignition_config =&gt; &#39;config&#39;])</code></pre>
+
+<p>This subroutine is responsible for configuring luks devices in ignition config file. For details of luks devices in ignition, please refer to https://coreos.github.io/ignition/configuration-v3_2/.</p>
+
+<h2 id="config_guest_provision_combustion">config_guest_provision_combustion</h2>
+
+<pre><code>config_guest_provision_combustion($self)</code></pre>
+
+<p>If [guest_installation_automation_method] is &#39;ignition+combustion&#39;, configuring combustion will be done after ignition. Combustion only is not supported, because &#39;ignition&#39; or &#39;ignition+combustion&#39; can already cover all scenarios. If [guest_installation_automation_file] is empty, default ones will be used. If [guest_installation_automation_method] is &#39;ignition+combustion&#39;, their respective configuration files will be specified and joined with &#39;#&#39;, for example, &#39;ignition_config #combustion_config&#39;, and their names should be prefixed with &#39;ignition&#39; or &#39;combustion&#39; respectively. Based on [guest_installation_automation_platform], for example, &#39;qemu&#39; or &#39;metal&#39;, different ways of generating the final [guest_installation_automation_options] will be adopted. If [guest_installation_automation_platform] is &#39;qemu&#39;, ignition config file will be passed in via &#39;--sysinfo&#39; directly. If [guest_installation_automation_platform] is &#39;metal&#39;, ignition config file will be placed in the secondary disk vdb which is created by calling config_guest_provision_disk.</p>
+
+<h2 id="config_guest_provision_disk">config_guest_provision_disk</h2>
+
+<pre><code>config_guest_provision_disk($self[, _provision_tool =&gt; &#39;tool&#39;])</code></pre>
+
+<p>If [guest_installation_automation_platform] is &#39;metal&#39;, both ignition and combustion configurations will be placed in respective folders in the secondary disk vdb which is labeled as &#39;ignition&quot;&#39;. Because only &#39;ignition&#39; or &#39;ignition+combustion&#39; is supported, config_guest_provision_ignition will create a new ignition disk and config_guest_provision_combustion will only open an existing ignition disk to place combustion configuration in it.</p>
+
+<h2 id="config_guest_installation_automation">config_guest_installation_automation</h2>
+
+<pre><code>config_guest_installation_automation($self[, key-value of automated installation arguments])</code></pre>
+
+<p>Configure guest automatic installation. Based on [guest_installation_automation_method], either calling config_guest_firstboot_provision or config_guest_unattended_installation. The former is responsible for generating configuration for automatic firstboot provision which is used by booting from virtual disk image directly. The latter is responsible for generating unattended installation configuration for a fresh installation from installation media.</p>
+
+<h2 id="config_guest_unattended_installation">config_guest_unattended_installation</h2>
+
+<pre><code>config_guest_unattended_installation($self)</code></pre>
+
+<p>Configure [guest_installation_automation_options]. Fill in unattended installation file with [guest_installation_media], [guest_secure_boot], [guest_boot_settings], [guest_storage_label], [guest_domain_name], [guest_name] and host public rsa key. User can also change [guest_do_registration], [guest_registration_server], [guest_registration_username], [guest_registration_password], [guest_registration_code], [guest_registration_extensions] and [guest_registration_extensions_codes] which are used in configuring guest installation automation registration. Subroutine config_guest_installation_automation_registration is called to perform this task. Start HTTP server using python3 modules in unattended automation file folder to serve unattended guest installation.Mark guest installation as FAILED if HTTP server can not be started up or unattended installation file is not accessible. Common varaibles are used in guest unattended installation file and to be replaced with actual values.They are common variables that are relevant to guest itself or its attributes, so they can be used in any unattended installation files regardless of autoyast or kickstart or others.For example, if you want to set guest ethernet interface mac address somewhere in your customized unattended installation file, put ##Device-MacAddr## there then it will be replaced with the real mac address. The actual kind of automation used matters less here than variables used in the unattended installation file, so keep using standardized common varialbes in unattened installation file will make it come alive automatically regardless of the actual kind of automation being used. Currently the following common variables are supported:[Module-Basesystem, Module-Desktop-Applications, Module-Development-Tools, Module-Legacy, Module-Server-Applications, Module-Web-Scripting, Product-SLES, Authorized-Keys, Secure-Boot, Boot-Loader-Type, Disk-Label, Domain-Name, Host-Name, Device-MacAddr, Logging-HostName, Logging-HostPort, Do-Registration, Registration-Server, Registration-UserName, Registration-Password and Registration-Code].</p>
+
+<h2 id="validate_guest_installation_automation_file">validate_guest_installation_automation_file</h2>
+
+<pre><code>validate_guest_installation_automation_file($self)</code></pre>
+
+<p>Validate autoyast file using xmllint and yast2-schema. This is only for reference purpose if guest and host oses have different release major version. Output kickstart file content directly because its content can not be validated on SLES or opensuse host by using ksvalidator.</p>
+
+<h2 id="guest_installation_run">guest_installation_run</h2>
+
+<pre><code>guest_installation_run($self, @_)</code></pre>
+
+<p>Calls prepare_guest_installation to do guest configuration. Call start_guest_installation to start guest installation. This subroutine also accepts hash/dictionary argument to be passed to prepare_guest_installation to further customize guest object if necessary.</p>
+
+<h2 id="prepare_guest_installation">prepare_guest_installation</h2>
+
+<pre><code>prepare_guest_installation($self, @_)</code></pre>
+
+<p>Configure and prepare guest before installation starts. This subroutine also accepts hash/dictionary argument to be passed to config_guest_params to further customize guest object if necessary.</p>
+
+<h2 id="start_guest_installation">start_guest_installation</h2>
+
+<pre><code>start_guest_installation($self)</code></pre>
+
+<p>If [virt_install_command_line_dryrun] succeeds, start real guest installation using screen and virt_install_command_line.</p>
+
+<h2 id="get_guest_installation_session">get_guest_installation_session</h2>
+
+<pre><code>get_guest_installation_session($self)</code></pre>
+
+<p>Get guest installation screen process information and store it in [guest_installation_session] which is in the form of 3401.pts-1.vh017.</p>
+
+<h2 id="terminate_guest_installation_session">terminate_guest_installation_session</h2>
+
+<pre><code>terminate_guest_installation_session($self)</code></pre>
+
+<p>Kill all guest installation screen processes stored in [guest_installation_session] after test finishes.</p>
+
+<h2 id="get_guest_ipaddr">get_guest_ipaddr</h2>
+
+<pre><code>get_guest_ipaddr($self, @subnets_in_route)</code></pre>
+
+<p>Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr].</p>
+
+<h2 id="monitor_guest_installation">monitor_guest_installation</h2>
+
+<pre><code>monitor_guest_installation($self)</code></pre>
+
+<p>Monitor guest installation progress: If needle &#39;guest_installation_failures&#39; is detected,mark it as FAILED. If needle &#39;text-login&#39; is detected,this means guest installations finishes. Mark it as PASSED if ssh connection is good,otherwise mark it as FAILED. If needle &#39;grub2&#39; is detected,this means guest is rebooting. Will check its result in the next round. If needle &#39;text-logged-in-root&#39; is detected,this means installation screen is disconnected, terminated or broken.Will try to re-attach and check its result in the next round. If needle &#39;guest_installation_in_progress&#39; is detected,this means installation is still in progress. Will check its result in the next round. If none of above needles is detected, makr it as PASSED if ssh connection to it is good, otherwise mark it as FAILED by calling check_guest_installation_result_via_ssh.</p>
+
+<h2 id="check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</h2>
+
+<pre><code>check_guest_installation_result_via_ssh($self)</code></pre>
+
+<p>Get guest ip address and check whether it is already up and running by using ip address and name sequentially. Use very common linux command &#39;hostname&#39; to do the actual checking because it is almost available on any linux flavor and release.</p>
+
+<h2 id="attach_guest_installation_screen">attach_guest_installation_screen</h2>
+
+<pre><code>attach_guest_installation_screen($self)</code></pre>
+
+<p>Attach guest installation screen before monitoring guest installation progress: If [guest_installation_session] is not available and no [guest_autoconsole], call do_attach_guest_installation_screen_without_sesssion. If [guest_installation_session] is not available and has [guest_autoconsole], call get_guest_installation_session, then attach based on whether installation session is available. If [guest_installation_session] is already available,call do_attach_guest_installation_screen directly.</p>
+
+<h2 id="do_attach_guest_installation_screen">do_attach_guest_installation_screen</h2>
+
+<pre><code>do_attach_guest_installation_screen($self)</code></pre>
+
+<p>Call do_attach_guest_installation_screen_with_session anyway. Mark [guest_installation_attached] as true if needle &#39;text-logged-in-root&#39; can not be detected. If fails to attach guest installation screen, [guest_installation_session] may terminate at reboot/shutoff or be in mysterious state or just broken somehow, call do_attach_guest_installation_screen_without_sesssion to re-attach.</p>
+
+<h2 id="do_attach_guest_installation_screen_with_session">do_attach_guest_installation_screen_with_session</h2>
+
+<pre><code>do_attach_guest_installation_screen_with_session($self)</code></pre>
+
+<p>Retry attach [guest_installation_session] and detect needle &#39;text-logged-in-root&#39;.</p>
+
+<h2 id="do_attach_guest_installation_screen_without_session">do_attach_guest_installation_screen_without_session</h2>
+
+<pre><code>do_attach_guest_installation_screen_without_session($self)</code></pre>
+
+<p>If [guest_installation_session] is already terminated at reboot/shutoff or somehow, power it on and retry attaching using [guest_installation_session_command] and detect needle &#39;text-logged-in-root&#39;.Mark it as FAILED if needle &#39;text-logged-in-root&#39; can still be detected and poweron can not bring it back.</p>
+
+<h2 id="detach_guest_installation_screen">detach_guest_installation_screen</h2>
+
+<pre><code>detach_guest_installation_screen($self)</code></pre>
+
+<p>Detach guest installation screen by calling do_detach_guest_installation_screen. Try to get guest installation screen information if [guest_installation_session] is not available.</p>
+
+<h2 id="do_detach_guest_installation_screen">do_detach_guest_installation_screen</h2>
+
+<pre><code>do_detach_guest_installation_screen($self)</code></pre>
+
+<p>Retry doing real guest installation screen detach using send_key(&#39;ctrl-a-d&#39;) and detecting needle &#39;text-logged-in-root&#39;. If either of the needles is detected, this means successful detach. If neither of the needle can be detected, recover ssh console by select_console(&#39;root-ssh&#39;).</p>
+
+<h2 id="has_autoconsole_for_sure">has_autoconsole_for_sure</h2>
+
+<pre><code>has_autoconsole_for_sure($self)</code></pre>
+
+<p>Return true if guest has [guest_autoconsole] and [guest_noautoconsole] that are not equal to &#39;none&#39;, &#39;true&#39; or empty which indicates guest definitely has autoconsole. Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.</p>
+
+<h2 id="has_noautoconsole_for_sure">has_noautoconsole_for_sure</h2>
+
+<pre><code>has_noautoconsole_for_sure($self)</code></pre>
+
+<p>Return true if guest has [guest_autoconsole] or [guest_noautoconsole] that are equal to &#39;none&#39; or &#39;true&#39; which indicates guest definitely has no autoconsole. Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.</p>
+
+<h2 id="record_guest_installation_result">record_guest_installation_result</h2>
+
+<pre><code>record_guest_installation_result($self, $_guest_installation_result)</code></pre>
+
+<p>Record final guest installation result in [guest_installation_result] and set [stop_run] and [stop_timestamp].</p>
+
+<h2 id="collect_guest_installation_logs_via_ssh">collect_guest_installation_logs_via_ssh</h2>
+
+<pre><code>collect_guest_installation_logs_via_ssh($self)</code></pre>
+
+<p>Collect guest y2logs via ssh and save guest config xml file.</p>
+
+<h2 id="upload_guest_installation_logs">upload_guest_installation_logs</h2>
+
+<pre><code>upload_guest_installation_logs($self)</code></pre>
+
+<p>Upload logs collect by collect_guest_installation_logs_via_ssh.</p>
+
+<h2 id="detach_all_nfs_mounts">detach_all_nfs_mounts</h2>
+
+<pre><code>detach_all_nfs_mounts($self)</code></pre>
+
+<p>Unmount all mounted nfs shares to avoid unnecessary logs to be collected by supportconfig or sosreport which may take extremely long time.</p>
+
+<h2 id="power_cycle_guest">power_cycle_guest</h2>
+
+<pre><code>power_cycle_guest($self, _power_cycle_style =&gt; $_power_cycle_style)</code></pre>
+
+<p>Power cycle guest by force:virsh destroy, grace:virsh shutdown, reboot:virsh reboot and poweron:virsh start.</p>
+
+<h2 id="modify_guest_params">modify_guest_params</h2>
+
+<pre><code>modify_guest_params($self, $_guest_name, $_guest_option, $_modify_operation)</code></pre>
+
+<p>Modify guest parameters after guest installation passes using virt-xml.</p>
+
+<h2 id="add_guest_device">add_guest_device</h2>
+
+<pre><code>add_guest_device()</code></pre>
+
+<p>Add device to guest after guest installation passes using virt-xml.</p>
+
+<h2 id="remove_guest_device">remove_guest_device</h2>
+
+<pre><code>remove_guest_device()</code></pre>
+
+<p>Remove device from guest after guest installation passes using virt-xml.</p>
+
+<h2 id="AUTOLOAD">AUTOLOAD</h2>
+
+<pre><code>AUTOLOAD($self)</code></pre>
+
+<p>AUTOLOAD to be called if called subroutine does not exist.</p>
+
+<h2 id="post_fail_hook">post_fail_hook</h2>
+
+<pre><code>post_fail_hook($self)</code></pre>
+
+<p>Collect logs and gues extra log &#39;/root&#39; by using virt_utils::collect_host_and_guest_logs. &#39;Root&#39; directory on guest contains very valuable content that is generated automatically after guest installation finishes.</p>
 
 
 </body>
