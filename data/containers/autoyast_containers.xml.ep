@@ -7,7 +7,11 @@
     <install_updates config:type="boolean">true</install_updates>
     % }
     <email/>
+    % if ($get_var->('SCC_REGCODE_LTSS')) {
+    <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+    % } else {
     <reg_code>{{SCC_REGCODE}}</reg_code>
+    % }
     <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
       % if ($get_var->('VERSION') =~ /^15/) {
