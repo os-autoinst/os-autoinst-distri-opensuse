@@ -50,11 +50,18 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    qesap_cluster_logs();
     qesap_upload_logs();
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300) unless (script_run("test -e $inventory"));
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my ($self) = shift;
+    qesap_cluster_logs();
+    $self->SUPER::post_run_hook;
 }
 
 1;

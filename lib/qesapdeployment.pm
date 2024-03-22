@@ -566,7 +566,6 @@ sub qesap_execute_conditional_retry {
     }
 
     if ($ret[0]) {
-        qesap_cluster_logs();
         die "'qesap.py (after retry) $args{cmd}' return: $ret[0]";
     }
 
@@ -1165,7 +1164,13 @@ sub qesap_upload_crm_report {
     $args{failok} //= 0;
 
     my $log_filename = "$args{host}-crm_report";
+
+    if ($log_filename =~ /hana\[(\d+)\]/) {
+        my $number = $1 + 1;
+        $log_filename = "vmhana0${number}-crm_report";
+    }
     $log_filename =~ s/[\[\]"]//g;
+
     my $crm_log = "/var/log/$log_filename";
     my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
     qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
@@ -2367,7 +2372,6 @@ sub qesap_terrafom_ansible_deploy_retry {
             timeout => 3600);
         if ($ret[0])
         {
-            qesap_cluster_logs();
             die "'qesap.py ansible' return: $ret[0]";
         }
         record_info('ANSIBLE RETRY PASS');
@@ -2399,7 +2403,6 @@ sub qesap_terrafom_ansible_deploy_retry {
             timeout => 3600
         );
         if ($ret[0]) {
-            qesap_cluster_logs();
             die "'qesap.py ansible' return: $ret[0]";
         }
         record_info('ANSIBLE RETRY PASS');
@@ -2416,7 +2419,6 @@ sub qesap_terrafom_ansible_deploy_retry {
                 "\n---------",
                 "Ansible failed:",
                 $ansible_failed));
-        qesap_cluster_logs();
         return 1;
     }
     return 0;
