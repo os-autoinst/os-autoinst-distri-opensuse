@@ -45,6 +45,13 @@ sub run ($self) {
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
     record_info "defaults.conf", script_output("cat /usr/share/warewulf/defaults.conf");
 
+    # Authentication support
+    my $warewulf_oci_username = get_var('HPC_WAREWULF_CONTAINER_USERNAME');
+    if ($warewulf_oci_username) {
+        assert_script_run('export WAREWULF_OCI_USERNAME=' . $warewulf_oci_username);
+        assert_script_run('export WAREWULF_OCI_PASSWORD=' . get_var('_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD', get_required_var('SCC_REGCODE_HPC')), quiet => 1);
+        record_info('authentication', 'container authentication is enabled');
+    }
     my $hpc_container = get_required_var('HPC_WAREWULF_CONTAINER');
     $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container --setdefault", timeout => 320) ? 1 : 0;
     test_case('Container pull', 'ww4', $rt);
