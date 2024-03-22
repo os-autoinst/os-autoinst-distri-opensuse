@@ -1,0 +1,28 @@
+name: schedule/yast/maintenance/migration_offline.xml
+description: |
+  This is for offline migraiton tests with unreleased maintenance updates
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - autoyast/prepare_profile
+  - migration/version_switch_origin_system
+  - installation/bootloader
+  - boot/boot_to_desktop
+  - console/check_system_info
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_os_release
+  - console/check_system_info
+  - console/hostname
