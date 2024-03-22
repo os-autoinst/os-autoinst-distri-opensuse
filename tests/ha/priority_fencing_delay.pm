@@ -23,7 +23,7 @@ sub stonith_iptables {
         if (is_node(1)) {
             # Wait for the stonith match, then flush the rules for the next test
             script_run "until grep -qi offline <($crm_mon_cmd) ; do sleep 1; done", 60;
-            assert_script_run "iptables -F; iptables -X";
+            assert_script_run "iptables -F && iptables -X";
         }
 
         # Node 2 should reboot
