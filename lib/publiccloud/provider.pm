@@ -614,8 +614,10 @@ sub terraform_destroy {
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
+        $cmd = 'terraform destroy -no-color -auto-approve ';
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
+        $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
+        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
         # Add image_id, offer and sku on Azure runs, if defined.
         if (is_azure) {
             my $image = $self->get_image_id();
@@ -623,15 +625,15 @@ sub terraform_destroy {
             my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-            $cmd .= " -var 'image_id=$image'" if ($image);
-            $cmd .= " -var 'image_uri=${image_uri}'" if ($image_uri);
-            $cmd .= " -var 'offer=$offer'" if ($offer);
-            $cmd .= " -var 'sku=$sku'" if ($sku);
-            $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);
+            $cmd .= "-var 'image_id=$image' " if ($image);
+            $cmd .= "-var 'image_uri=${image_uri}' " if ($image_uri);
+            $cmd .= "-var 'offer=$offer' " if ($offer);
+            $cmd .= "-var 'sku=$sku' " if ($sku);
+            $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
         }
     }
     # Ignore lock to avoid "Error acquiring the state lock"
-    $cmd .= " -lock=false";
+    $cmd .= "-lock=false ";
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
     my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
