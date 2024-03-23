@@ -15,6 +15,10 @@ conditional_schedule:
     ARCH:
       x86_64:
         - hpc/cpuid
+  scientific_libs:
+    HDF5:
+      RUN:
+        - hpc/mpi_hdf5
   hpctest:
     HPC:
       slurm_master:
@@ -29,6 +33,7 @@ conditional_schedule:
         - hpc/slurm_master_backup_db
       mpi_master:
         - hpc/mpi_master
+        - '{{scientific_libs}}'
       mpi_slave:
         - hpc/mpi_slave
       ganglia_server:

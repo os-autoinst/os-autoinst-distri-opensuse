@@ -33,6 +33,8 @@ sub run ($self) {
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('IMB_TEST_DONE');
     record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
+    barrier_wait('HDF5_RUN_TEST');
+    record_info('HDF5_RUN_TEST)', strftime("\%H:\%M:\%S", localtime));
 }
 
 sub test_flags ($self) {

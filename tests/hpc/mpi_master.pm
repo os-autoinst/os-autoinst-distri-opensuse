@@ -166,7 +166,7 @@ sub run ($self) {
     } else {
         record_info 'testing IMB', 'Run all IMB-MPI1 components';
         # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
+	assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
     barrier_wait('IMB_TEST_DONE');
     record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
