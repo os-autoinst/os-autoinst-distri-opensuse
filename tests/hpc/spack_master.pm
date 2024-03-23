@@ -64,6 +64,7 @@ sub run ($self) {
     sleep 3;
     type_string("$testapi::password\n");
     record_info('ssh', 'check sshd service before continue');
+    sleep(999999999);
     systemctl 'status sshd';
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
