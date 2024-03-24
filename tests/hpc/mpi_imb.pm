@@ -1,11 +1,9 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Basic MPI integration test. Checking for installability and
-#     usability of MPI implementations, or HPC libraries. Using mpirun locally and across
-#     available nodes. Test meant to be run in VMs, so thus using ethernet
+# Summary: Basic MPI integration test using IMB.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
@@ -37,21 +35,15 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel");
+    zypper_call("in imb-gnu-$mpi-hpc");
 
     my $need_restart = $self->setup_scientific_module();
-    $self->relogin_root if $need_restart;
-    $self->setup_nfs_server(\%exports_path);
 
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
     $mpi2load = ($mpi =~ /openmpi2|openmpi3|openmpi4/) ? 'openmpi' : $mpi;
 
-    barrier_wait('CLUSTER_PROVISIONED');
-    record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
-    ## all nodes should be able to ssh to each other, as MPIs requires so
-    $self->generate_and_distribute_ssh($testapi::username);
     $self->check_nodes_availability();
 
     record_info('INFO', script_output('cat /proc/cpuinfo'));
@@ -71,79 +63,34 @@ sub run ($self) {
     select_user_serial_terminal($prompt);
     # load mpi after all the relogins
     my @load_modules = $mpi2load;
-    push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
-    push @load_modules, 'papi' if check_var('HPC_LIB', 'papi');
-    push @load_modules, 'openblas' if check_var('HPC_LIB', 'openblas');
     assert_script_run "module load gnu @load_modules";
     script_run "module av";
 
-    barrier_wait('MPI_SETUP_READY');
-    record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
-    if (get_var('HPC_LIB') eq 'papi') {
-        my $papi_version = script_output("module whatis papi | grep Version");
-        $papi_version = (split(/: /, $papi_version))[2];
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/$papi_version/include/ -L/usr/lib/hpc/papi/$papi_version/lib64/ -lpapi") if $mpi_compiler;
-    } elsif (get_var('HPC_LIB') eq 'openblas') {
-        my $version = script_output("module whatis openblas | grep Version");
-        $version = (split(/: /, $version))[2];
-        assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/openblas/$version/include -Iexports_path{'hpc'}/gnu7/openblas/$version/lib64 -lopenblas");
-    } else {
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
-    }
+    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
 
-    # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
-    # invoked return source code (ex: sample_scipy.py).
-    $mpi_bin = ($mpi_compiler) ? $mpi_bin : $mpi_c;
-    barrier_wait('MPI_BINARIES_READY');
-    record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
-    my $mpirun_s = hpc::formatter->new();
-
-    unless ($mpi_c eq 'sample_cplusplus.cpp') {    # because calls expects minimum 2 nodes
-        record_info('INFO', 'Run MPI over single machine');
-        if ($mpi eq 'mvapich2') {
-            # mvapich2/2.2 known issue
-            my $return = script_run("set -o pipefail;" . $mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin |& tee /tmp/mpi_bin.log"), timeout => 120);
-            if (script_run('grep \'invalid error code ffffffff\' /tmp/mpi_bin.log') == 0) {
-                record_soft_failure('bsc#1199811 known problem on single core on mvapich2/2.2');
-            }
-        } else {
-            assert_script_run($mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
-        }
-    }
-
-    record_info('INFO', 'Run MPI over several nodes');
     if ($mpi eq 'mvapich2') {
-        # we do not support ethernet with mvapich2
-        my $return = script_run("set -o pipefail;" . $mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin |& tee /tmp/mpi_bin.log"), timeout => 120);
-        if ($return == 143) {
-            record_info("mvapich2 info", "echo $return - No IB device found", result => 'softfail');
-        } elsif ($return == 139 || $return == 255) {
-            # process running (on master return 139, on slave return 255)
-            if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/mpi_bin.log') == 0) {
-                record_soft_failure('bsc#1144000 MVAPICH2: segfault while executing without ib_uverbs loaded');
-            }
-        } elsif ($return == 136) {
+        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
+        if ($return == 136) {
             if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
             }
+        } elsif ($return == 1 || $return == 139 || $return == 255) {
+            if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/mpi_bin.log') == 0) {
+                record_soft_failure('bsc#1144000 MVAPICH2: segfault while executing without ib_uverbs loaded');
+            } elsif (script_run('grep \'failure occurred while posting a receive for message data\' /tmp/mpi_bin.log') == 0) {
+                record_soft_failure('bsc#1209130 MPI Benchmarks unable to run on 15SP1 with imb-gnu-mvapich2-hpc');
+            }
         } else {
             ##TODO: consider more robust handling of various errors
-            die("echo $return - not expected errorcode");
+            die("echo $return - not expected errorcode") unless $return == 0;
         }
     } else {
-        if ($mpi_c eq 'sample_cplusplus.cpp') {
-            assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
-            assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
-        } else {
-            # Skipping papi test on compute nodes as for some reason
-            # module is not getting loaded for the c test execution
-            unless (get_var('HPC_LIB') eq 'papi') {
-                assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
-            }
-        }
+        record_info 'testing IMB', 'Run all IMB-MPI1 components';
+        # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
+	assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
-    barrier_wait('MPI_RUN_TEST');
-    record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
+    barrier_wait('IMB_TEST_DONE');
+    record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
