@@ -3,8 +3,8 @@
 # Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Initialize barriers used in HA cluster tests
-# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
+# Summary: Initialize barriers used in ENSA cluster tests
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;
@@ -12,26 +12,17 @@ use warnings;
 use testapi;
 use lockapi;
 use mmapi;
-
-sub num_nodes {
-    my $cluster_infos = get_required_var('CLUSTER_INFOS');
-    my ($cluster_name, $num_nodes) = split(/:/, $_);
-    return $num_nodes;
-}
-
-sub cluster_name {
-    my $cluster_infos = get_required_var('CLUSTER_INFOS');
-    my ($cluster_name, $num_nodes) = split(/:/, $_);
-    return $cluster_name;
-}
+use hacluster;
 
 
 sub create_general_ha_barriers {
-    barrier_create "BARRIER_HA_" . cluster_name(), num_nodes() + 1;
-    barrier_create "CLUSTER_INITIALIZED_" . cluster_name(), num_nodes();
-    barrier_create "NODE_JOINED_" . cluster_name(), num_nodes();
-    barrier_create "NW_CLUSTER_HOSTS_." . cluster_name(), num_nodes();
-    barrier_create "LOGS_CHECKED_" . cluster_name(), num_nodes();
+    my $cluster_name = get_cluster_info()->{cluster_name};
+    my $num_nodes = get_cluster_info()->{num_nodes};
+    barrier_create "BARRIER_HA_$cluster_name", $num_nodes + 1;
+    barrier_create "CLUSTER_INITIALIZED_$cluster_name", $num_nodes;
+    barrier_create "NODE_JOINED_$cluster_name", $num_nodes;
+    barrier_create "NW_CLUSTER_HOSTS_$cluster_name", $cluster_name, $num_nodes;
+    barrier_create "LOGS_CHECKED_$cluster_name", $num_nodes;
 }
 
 # Creates the barriers that are specific to the ENSA2 test sequence
@@ -75,8 +66,13 @@ sub run {
     if (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER')) {
         die 'The module is currently only able to run on a supportserver';
     }
+    
     create_general_ha_barriers;
     create_ensa_only_barriers;
+    
+    # Wait for all children to start
+    # Children are server/test suites that use the PARALLEL_WITH variable
+    wait_for_children_to_start;
 }
 
 1;
