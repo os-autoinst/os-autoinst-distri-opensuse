@@ -81,6 +81,7 @@ our @EXPORT = qw(
   cluster_status_matches_regex
   crm_wait_for_maintenance
   crm_check_resource_location
+  prepare_isci_information
 );
 
 =head1 SYNOPSIS
@@ -1406,4 +1407,35 @@ sub crm_check_resource_location {
     croak "Test timed out while waiting for resource '$args{resource}' to move to '$wait_for_target'";
 }
 
+=head2 prepare_isci_information
+
+    prepare_isci_information()
+
+This functions is run on the supportserver to provide the nodes with the information required to use the iSCSI server.
+
+=back
+
+=cut
+
+sub prepare_isci_information{
+    # For getting informations from iSCSI server
+    my $target_iqn = script_output 'lio_node --listtargetnames 2>/dev/null';
+    my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
+    my $dev_by_path = '/dev/disk/by-path';
+    my $index = get_var('ISCSI_LUN_INDEX', 0);
+
+    my $cluster_infos = get_cluster_info;
+    my $cluster_name = $cluster_infos->{cluster_name};
+    my $num_luns = $cluster_infos->{num_luns};
+    # Export LUN name if needed
+    if (defined $num_luns) {
+        # Create a file that contains the list of LUN for each cluster
+        my $lun_list_file = "/tmp/$cluster_name-lun.list";
+        foreach (0 .. ($num_luns - 1)) {
+            my $lun_id = $_ + $index;
+            script_run "echo '${dev_by_path}/ip-${target_ip_port}-iscsi-${target_iqn}-lun-${lun_id}' >> $lun_list_file";
+        }
+        $index += $num_luns;
+    }
+}
 1;
