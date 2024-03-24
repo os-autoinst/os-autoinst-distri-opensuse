@@ -31,8 +31,12 @@ sub run ($self) {
     record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
-    barrier_wait('HDF5_RUN_TEST');
-    barrier_wait('IMB_TEST_DONE');
+    if (check_var('HDF5', 'RUN')) {
+        barrier_wait('HDF5_RUN_TEST');
+    }
+    if (check_var('IMB', 'RUN')) {
+        barrier_wait('IMB_TEST_DONE');
+    }
 }
 
 sub test_flags ($self) {
