@@ -34,6 +34,7 @@ our @EXPORT = qw(
   $pcmk_delay_max
   exec_csync
   add_file_in_csync
+  get_cluster_info
   get_cluster_name
   get_hostname
   get_ip
@@ -184,7 +185,18 @@ sub add_file_in_csync {
 
     return 1;
 }
+=head2 get_cluster_info
+ get_cluster_info
 
+ Returns a hashref containing the info parsed from the CLUSTER_INFOS variable. This does not reflect the current state of the cluster but the intended steady state once the LUNs are configured and the nodes have joined.
+
+=cut
+
+sub get_cluster_info{
+        my $cluster_infos = get_required_var('CLUSTER_INFOS');
+    my ($cluster_name, $num_nodes, $num_luns) = split(/:/, $_);
+    return \{cluster_name => $cluster_name, num_nodes => $num_nodes, num_luns => $num_luns};
+}
 =head2 get_cluster_name
 
  get_cluster_name();
