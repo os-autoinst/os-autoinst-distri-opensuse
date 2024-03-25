@@ -16,6 +16,7 @@ use lockapi;
 use testapi;
 use utils qw(systemctl zypper_call exec_and_insert_password);
 use hacluster;
+use version_utils qw(package_version_cmp);
 
 sub run {
     my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
@@ -34,6 +35,12 @@ sub run {
 
     zypper_call 'in pacemaker-cts';
     save_screenshot;
+    # Get package version
+    my $pacemaker_cts_package_version = script_output("rpm -q --qf '%{VERSION}\n' pacemaker-cts");
+    # Compare package version
+    if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
+        $cts_bin = '/usr/share/pacemaker/tests/cts-lab';
+    }
 
     # Pacemaker cts software must be started from the client server
     if (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) {
@@ -45,14 +52,19 @@ sub run {
 
         # Don't do stonith test since this one reboots a node randomly
         # and it's very difficult to handle in MM scenario.
-        assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
+        if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
+            assert_script_run "sed -i '/StonithdTest,/ s/^/#/' \$(rpm -ql pacemaker-cts|grep tests/__init__.py)";
+        }
+        else {
+            assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
+        }
 
         # Start pacemaker cts cluster exerciser
         my $cts_start_time = time;
-        my $cmd = join(' ', $cts_bin, '--nodes', "'$node_01 $node_02'",
-            '--stonith-type', $stonith_type, '--stonith-args', $stonith_args,
-            '--test-ip-base', $test_ip, '--no-loop-tests', '--no-unsafe-tests',
-            '--at-boot 1', '--outputfile', $log, '--once');
+        my $cmd = join(' ',
+            $cts_bin, '--nodes', "'$node_01 $node_02'", '--stonith-type', $stonith_type,
+            '--stonith-args', $stonith_args, '--test-ip-base', $test_ip, '--no-loop-tests',
+            '--no-unsafe-tests', '--at-boot 1', '--outputfile', $log, '--once');
         my $retval = script_run $cmd, $timeout;
         record_info 'CTS failed', "$cts_bin exited with retval=[$retval]" if ($retval);
         my $cts_end_time = time;
