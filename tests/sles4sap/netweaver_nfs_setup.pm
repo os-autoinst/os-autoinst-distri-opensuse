@@ -5,8 +5,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Set up NFS server and clients for NetWeaver tests
-# This is not done with the generic supportserver module, because
-# the sles4sap class methods are required.
+# This is not done with the generic supportserver module, because the sles4sap
+# class methods are required. It is important that this module is behind a
+# barrier like BARRIER_HA_$cluster.
 #
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
@@ -22,8 +23,7 @@ use lockapi;
 sub run {
     my ($self) = @_;
     select_serial_terminal;
-    my $cluster_infos = get_required_var 'CLUSTER_INFOS';
-    my ($cluster_name, $num_nodes) = split /:/, $_;
+    my ($cluster_name, $num_nodes) = (get_cluster_info()->{cluster_name}, get_cluster_info()->{num_nodes});
     my $nfs_root = get_required_var 'NFS_MOUNT';
     my $nw_install_data = $self->netweaver_installation_data();
     my $create_directories = join ',', 'sapmnt', 'SYS';
@@ -31,13 +31,8 @@ sub run {
     my $sap_dir = $nw_install_data->{sap_directory};
 
     if (check_var('SUPPORT_SERVER', '1')) {
-        # The supportserver will host the NFS server and then wait for all nodes
-        # to mount the client filesystems.
-
-        # We create the barrier here to avoid race conditions. The supportserver
-        # will also wait at the barrier later.
-        barrier_create 'NFS_MOUNTS_READY', $num_nodes + 1;
-
+        # The supportserver will host the NFS server and the nodes will use it as clients
+        # I
         # NFS Server config
         systemctl 'stop nfs-server';
         systemctl 'start rpcbind';
@@ -51,11 +46,6 @@ sub run {
         systemctl 'restart rpcbind';
         systemctl 'is-active nfs-server -a rpcbind';
 
-        # NFS Server is ready to accept clients. Tell the nodes to continue.
-        mutex_create 'NFS_SERVER_READY';
-
-        # Wait for the nodes to mount the NFS locally.
-        barrier_wait 'NFS_MOUNTS_READY';
     } else {
         # On the node side, wait for the supportserver to set the NFS server up,
         # add then mount the NFS on the client nodes.

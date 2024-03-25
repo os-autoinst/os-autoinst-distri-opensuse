@@ -193,10 +193,9 @@ sub add_file_in_csync {
 
 =cut
 
-sub get_cluster_info{
-        my $cluster_infos = get_required_var('CLUSTER_INFOS');
-    my ($cluster_name, $num_nodes, $num_luns) = split(/:/, $_);
-    return \{cluster_name => $cluster_name, num_nodes => $num_nodes, num_luns => $num_luns};
+sub get_cluster_info {
+    my ($cluster_name, $num_nodes, $num_luns) = split(/:/, get_required_var('CLUSTER_INFOS'));
+    return {cluster_name => $cluster_name, num_nodes => $num_nodes, num_luns => $num_luns};
 }
 =head2 get_cluster_name
 
@@ -1417,7 +1416,7 @@ This generates the information that the not nodes need to use iSCSI. This is sto
 
 =cut
 
-sub prepare_isci_information{
+sub prepare_isci_information {
     my $target_iqn = script_output 'lio_node --listtargetnames 2>/dev/null';
     my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
     my $dev_by_path = '/dev/disk/by-path';

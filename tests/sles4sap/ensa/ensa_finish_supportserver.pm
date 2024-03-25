@@ -12,13 +12,14 @@ use warnings;
 
 use serial_terminal;
 use testapi;
-use mmapi;
+use lockapi qw(barrier_wait);
 use hacluster qw(get_cluster_name prepare_isci_information);
 
-sub run{
+sub run {
     select_serial_terminal;
     prepare_isci_information;
     # Signal to the nodes that are already waiting at the barrier that the supportserver configuration is done.
-    barrier_wait("BARRIER_HA".get_cluster_name);
+    my $name = get_cluster_name;
+    barrier_wait("BARRIER_HA_$name");
 }
 1;

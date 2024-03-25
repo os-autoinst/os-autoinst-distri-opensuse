@@ -12,8 +12,8 @@ use warnings;
 use testapi;
 use lockapi;
 use mmapi;
-use hacluster;
-
+use hacluster qw(get_cluster_info);
+use Data::Printer;
 
 sub create_general_ha_barriers {
     my $cluster_name = get_cluster_info()->{cluster_name};
@@ -62,14 +62,16 @@ sub create_ensa_only_barriers {
 }
 
 sub run {
-    die 'The module requires at least two nodes.' if (num_nodes() lt '2');
+    my $cluster_info = get_cluster_info;
+    p $cluster_info;
+    die 'The module requires at least two nodes.' if (get_cluster_info()->{num_nodes} < 2);
     if (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER')) {
         die 'The module is currently only able to run on a supportserver';
     }
-    
+
     create_general_ha_barriers;
     create_ensa_only_barriers;
-    
+
     # Wait for all children to start
     # Children are server/test suites that use the PARALLEL_WITH variable
     wait_for_children_to_start;
