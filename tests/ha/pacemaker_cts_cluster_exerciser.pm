@@ -18,7 +18,7 @@ use utils qw(systemctl zypper_call exec_and_insert_password);
 use hacluster;
 
 sub run {
-    my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
+    my $cts_bin = '/usr/share/pacemaker/tests/cts-lab';    #'/usr/share/pacemaker/tests/cts/CTSlab.py';
     my $log = '/tmp/cts_cluster_exerciser.log';
     my $cluster_name = get_cluster_name;
     my $results_file = '/tmp/cts_cluster_exerciser.results';
@@ -45,7 +45,8 @@ sub run {
 
         # Don't do stonith test since this one reboots a node randomly
         # and it's very difficult to handle in MM scenario.
-        assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
+        #assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
+        assert_script_run "sed -i '/StonithdTest,/ s/^/#/' \$(rpm -ql pacemaker-cts|grep tests/__init__.py)";
 
         # Start pacemaker cts cluster exerciser
         my $cts_start_time = time;
