@@ -11,12 +11,14 @@ use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 
+use constant DEPLOY_PREFIX => 'clne';
+
 sub run {
     my ($self) = @_;
 
     die 'Azure is the only CSP supported for the moment' unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     my $os_ver = get_required_var('CLUSTER_OS_VER');
 
     select_serial_terminal;
@@ -33,8 +35,8 @@ sub run {
     assert_script_run($az_cmd);
 
     # Create a virtual network with a subnet
-    my $vnet = 'clne-vnet';
-    my $subnet = 'clne-snet';
+    my $vnet = DEPLOY_PREFIX . '-vnet';
+    my $subnet = DEPLOY_PREFIX . '-snet';
     $az_cmd = join(' ', 'az network vnet create',
         '--resource-group', $rg,
         '--location', $provider->provider_client->region,
@@ -45,7 +47,7 @@ sub run {
     assert_script_run($az_cmd);
 
     # Create two Public IP
-    my $pub_ip_prefix = 'clne-pub_ip-';
+    my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip-';
     foreach (1 .. 2) {
         $az_cmd = join(' ', 'az network public-ip create',
             '--resource-group', $rg,
@@ -57,7 +59,7 @@ sub run {
     }
 
     # Create security rule to allow ssh
-    my $nsg = 'clne-nsg';
+    my $nsg = DEPLOY_PREFIX . '-nsg';
     $az_cmd = join(' ', 'az network nsg create',
         '--resource-group', $rg,
         '--name', $nsg);
@@ -80,7 +82,7 @@ sub run {
     # Create one NIC, by default it also create a ip configuration
     # Associate the first public IP to this default first IpConfig
     # No private IP associated to this first IpConfig: DHCP
-    my $nic = 'clne-nic';
+    my $nic = DEPLOY_PREFIX . '-nic';
     $az_cmd = join(' ', 'az network nic create',
         '--resource-group', $rg,
         '--name', $nic,
@@ -119,7 +121,7 @@ sub run {
     assert_script_run($az_cmd);
 
     # Create one VM and add the NIC to it
-    my $vm = 'clne-vm';
+    my $vm = DEPLOY_PREFIX . '-vm';
     $az_cmd = join(' ', 'az vm create',
         '--resource-group', $rg,
         '--name', $vm,
@@ -137,7 +139,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     script_run("az group delete --name $rg -y", timeout => 600);
     $self->SUPER::post_fail_hook;
 }

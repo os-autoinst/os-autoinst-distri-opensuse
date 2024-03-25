@@ -12,21 +12,36 @@ use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 
+use constant DEPLOY_PREFIX => 'clne';
+
 sub run {
     my ($self) = @_;
 
-    die 'Azure is the only CSP supported for the moment' unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    die('Azure is the only CSP supported for the moment')
+      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
 
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     my $az_cmd;
 
     # Check that the resource group exist
-    assert_script_run("az group list --query \"[].name\" -o tsv | grep $rg");
+    $az_cmd = join(' ',
+        'az group list',
+        '--query "[].name"',
+        '-o tsv',
+        "| grep $rg");
+    assert_script_run($az_cmd);
 
     # Check that the VM is running (from the point of view of the CSP)
-    assert_script_run("az vm list --resource-group $rg -d --query \"[?powerState=='VM running'].name\" -o tsv | grep clne-vm");
+    $az_cmd = join(' ',
+        'az vm list',
+        "--resource-group $rg",
+        '-d',
+        "--query \"[?powerState=='VM running'].name\"",
+        '-o tsv',
+        '| grep', DEPLOY_PREFIX . '-vm');
+    assert_script_run($az_cmd);
 
     # get the username
     my $vm_user = script_output("az vm list --resource-group $rg --query '[0].osProfile.adminUsername' -o tsv");
@@ -37,7 +52,13 @@ sub run {
     my $ret;
     # check that the VM is reachable using both public IP addresses
     foreach (1 .. 2) {
-        $vm_ip = script_output("az network public-ip show --resource-group $rg --name clne-pub_ip-$_ --query 'ipAddress' -o tsv");
+        $az_cmd = join(' ',
+            'az network public-ip show',
+            "--resource-group $rg",
+            '--name', DEPLOY_PREFIX . "-pub_ip-$_",
+            '--query "ipAddress"',
+            '-o tsv');
+        $vm_ip = script_output($az_cmd);
         $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
         my $start_time = time();
@@ -97,7 +118,8 @@ sub run {
     foreach my $ip_address (@{$res->[0]->{ipv4}->{ipAddress}}) {
         $num_ip_configs++;
     }
-    die "The number of IpConfigs is $num_ip_configs and not 3" unless 3 == $num_ip_configs;
+    die("The number of IpConfigs is $num_ip_configs and not 3")
+      unless 3 == $num_ip_configs;
     record_info('TEST STEP', 'Cloud API OK');
 }
 
@@ -107,7 +129,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     script_run("az group delete --name $rg -y", timeout => 600);
     $self->SUPER::post_fail_hook;
 }
