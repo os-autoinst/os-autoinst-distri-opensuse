@@ -659,15 +659,18 @@ sub grub_select {
     elsif (!get_var('S390_ZKVM')) {
         # confirm default choice
         send_key 'ret';
-        if (get_var('USE_SUPPORT_SERVER') && is_aarch64 && is_opensuse)
-        {
-            # On remote installations of openSUSE distris on aarch64, first key
-            # press doesn't always reach the SUT, so introducing the workaround
-            wait_still_screen;
-            if (check_screen('grub2')) {
-                record_info 'WARN', 'Return key did not reach the system, re-trying';
-                send_key 'ret';
-            }
+    }
+
+    if (((is_ppc64le && is_qemu) || (!get_var('S390_ZKVM') && is_aarch64 && is_opensuse)) && get_var('USE_SUPPORT_SERVER')) {
+        # First key press doesn't always reach the SUT on all the remote installations.
+        # It happens on some specific machine types:
+        # - on aarch64 using openSUSE distris
+        # - on ppc64le at second boot in short time
+        # so introducing the workaround
+        wait_still_screen;
+        if (check_screen('grub2')) {
+            record_info 'WARN', 'Return key did not reach the system, re-trying';
+            send_key 'ret';
         }
     }
 }
