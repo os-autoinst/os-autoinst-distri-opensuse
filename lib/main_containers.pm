@@ -56,6 +56,12 @@ sub load_container_engine_test {
     loadtest('containers/container_engine', run_args => $run_args, name => $run_args->{runtime});
 }
 
+sub load_rt_workload {
+    my ($args) = @_;
+    loadtest('containers/realtime', run_args => $args, name => $args->{runtime} . '_realtime');
+
+}
+
 sub load_container_helm {
     my ($run_args, $backend) = @_;
     loadtest('containers/helm', run_args => $run_args, name => $run_args->{runtime} . "_" . $backend);
@@ -117,6 +123,7 @@ sub load_host_tests_podman {
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud || is_alp;
     load_3rd_party_image_test($run_args);
+    load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
@@ -147,6 +154,7 @@ sub load_host_tests_docker {
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud || is_alp;
     load_3rd_party_image_test($run_args);
+    load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
