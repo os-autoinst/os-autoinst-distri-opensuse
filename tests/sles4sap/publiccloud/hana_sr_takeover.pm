@@ -81,7 +81,7 @@ sub run {
     $self->check_takeover;
 
     record_info('Replication', join(' ', ('Enabling replication on', ucfirst($site_name), '(DEMOTED)')));
-    $self->enable_replication($site_name);
+    $self->enable_replication(site_name => $site_name);
 
     record_info(ucfirst($site_name) . ' start');
     $self->cleanup_resource();

@@ -76,12 +76,18 @@ our @EXPORT = qw(
     All commands are executed through C<sudo>.
     If 'runas' defined, command will be executed as specified user,
     otherwise it will be executed as root.
+
+=over 1
+
+=item B<CMD> - command string to be executed remotely
+
+=back
 =cut
 
 sub run_cmd {
     my ($self, %args) = @_;
-    croak("Argument <cmd> missing") unless ($args{cmd});
-    croak("\$self->{my_instance} is not defined. Check module Description for details") unless $self->{my_instance};
+    croak "Argument <cmd> missing" unless $args{cmd};
+    croak "\$self->{my_instance} is not defined. Check module Description for details" unless $self->{my_instance};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
@@ -129,23 +135,28 @@ sub get_promoted_hostname {
 
     Clean up Network peering and qesap deployment
 
+=over 3
+
+=item B<CLEANUP_CALLED> - flag to indicate cleanup status
+=item B<NETWORK_PEERING_PRESENT> - flag to indicate network peering presence
+=item B<ANSIBLE_PRESENT> - flag to indicate ansible has need executed as part of the deployment
+
+=back
 =cut
 
 sub sles4sap_cleanup {
     my ($self, %args) = @_;
-
+    $args{cleanup_called} //= 'undefined';
+    $args{network_peering_present} //= 'undefined';
+    $args{ansible_present} //= 'undefined';
     # If there's an open ssh connection to the VMs, return to host console first
     select_host_console(force => 1);
     record_info(
         'Cleanup',
         join(' ',
-            'cleanup_called:',
-            $args{cleanup_called} // 'undefined',
-            'network_peering_present:',
-            $args{network_peering_present} // 'undefined',
-            'ansible_present:',
-            $args{ansible_present} // 'undefined')
-    );
+            'cleanup_called:', $args{cleanup_called},
+            'network_peering_present:', $args{network_peering_present},
+            'ansible_present:', $args{ansible_present}));
 
     qesap_upload_logs();
     if ($args{network_peering_present}) {
@@ -210,12 +221,18 @@ sub get_hana_topology {
 =head2 is_hana_online
     is_hana_online([timeout => 120, wait_for_start => 'false']);
 
-    Check if hana DB is online. Define 'wait_for_start' to wait for DB to start.
+    Check if hana DB is online.
+
+=over 1
+
+=item B<WAIT_FOR_START> - Define 'wait_for_start' to wait for DB to start.
+
+=back
 =cut
 
 sub is_hana_online {
     my ($self, %args) = @_;
-    my $wait_for_start = $args{wait_for_start} // 0;
+    $args{wait_for_start} //= 0;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
     my $start_time = time;
     my $consecutive_passes = 0;
@@ -223,7 +240,7 @@ sub is_hana_online {
 
     while ($consecutive_passes < 3) {
         $db_status = $self->get_replication_info()->{online} eq "true" ? 1 : 0;
-        return $db_status unless $wait_for_start;
+        return $db_status unless $args{wait_for_start};
 
         # Reset pass counter in case of fail.
         $consecutive_passes = $db_status ? ++$consecutive_passes : 0;
@@ -261,26 +278,32 @@ sub is_hana_resource_running {
     "stop" - stops database using "HDB stop" command.
     "kill" - kills database processes using "HDB -kill" command.
     "crash" - crashes entire os using "/proc-sysrq-trigger" method.
+
+=over 1
+
+=item B<METHOD> - Allow to specify a specific stop method
+
+=back
 =cut
 
 sub stop_hana {
     my ($self, %args) = @_;
+    $args{method} //= 'stop';
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
-    my $method = $args{method} // 'stop';
     my %commands = (
         stop => "HDB stop",
         kill => "HDB kill -x",
         crash => "echo b > /proc/sysrq-trigger &"
     );
+    croak "HANA stop method '$args{method}' unknown." unless $commands{$args{method}};
 
-    croak("HANA stop method '$args{method}' unknown.") unless $commands{$method};
-    my $cmd = $commands{$method};
+    my $cmd = $commands{$args{method}};
 
     # Wait for data sync before stopping DB
     $self->wait_for_sync();
 
     record_info("Stopping HANA", "CMD:$cmd");
-    if ($method eq "crash") {
+    if ($args{method} eq "crash") {
         # Crash needs to be executed as root and wait for host reboot
         $self->{my_instance}->wait_for_ssh(timeout => $timeout);
         $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
@@ -295,7 +318,7 @@ sub stop_hana {
         record_info("Wait ssh disappear end", "$out") if (defined $out);
         sleep 10;
         $self->{my_instance}->wait_for_ssh();
-        return ();
+        return;
     }
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
@@ -318,6 +341,12 @@ sub start_hana {
     cleanup_resource([timeout => 60]);
 
     Cleanup resource 'msl_SAPHana_*', wait for DB start automatically.
+
+=over 1
+
+=item B<TIMEOUT> - timeout for waiting resource to start
+
+=back
 =cut
 
 sub cleanup_resource {
@@ -373,13 +402,20 @@ sub check_takeover {
 }
 
 =head2 enable_replication
-    enable_replication();
+    enable_replication([site_name => 'site_a']);
 
     Enables replication on fenced database. Database needs to be offline.
+
+=over 1
+
+=item B<SITE_NAME> - site name of the site to register
+
+=back
 =cut
 
 sub enable_replication {
-    my ($self, $site_name) = @_;
+    my ($self, %args) = @_;
+    croak "Argument <site_name> missing" unless $args{site_name};
     my $hostname = $self->{my_instance}->{instance_id};
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
@@ -388,7 +424,7 @@ sub enable_replication {
     foreach (qw(vhost remoteHost srmode op_mode)) { die "Missing '$_' field in topology output" unless defined(%$topology{$hostname}->{$_}); }
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
-        '--name=' . $site_name,
+        '--name=' . $args{site_name},
         '--remoteHost=' . %$topology{$hostname}->{remoteHost},
         '--remoteInstance=00',
         '--replicationMode=' . %$topology{$hostname}->{srmode},
@@ -487,12 +523,17 @@ sub wait_for_sync {
 
     Checks status of pacemaker via systemd 'is-active' command an waits for startup.
 
+=over 1
+
+=item B<TIMEOUT> - timeout for waiting for pacemaker service
+
+=back
 =cut
 
 sub wait_for_pacemaker {
     my ($self, %args) = @_;
-    my $start_time = time;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $start_time = time;
     my $systemd_cmd = "systemctl --no-pager is-active pacemaker";
     my $pacemaker_state = "";
 
@@ -508,16 +549,22 @@ sub wait_for_pacemaker {
 }
 
 =head2 change_sbd_service_timeout
-     $self->change_sbd_service_timeout(timeout => $timeout);
+     $self->change_sbd_service_timeout(service_timeout => '30');
 
      Overrides timeout for sbd systemd service to a value provided by argument.
      This is done by creating or changing file "/etc/systemd/system/sbd.service.d/sbd_delay_start.conf"
 
+=over 1
+
+=item B<SERVICE_TIMEOUT> - value for the TimeoutSec setting
+
+=back
 =cut
 
 sub change_sbd_service_timeout() {
-    my ($self, $service_timeout) = @_;
-    die if !defined($service_timeout);
+    my ($self, %args) = @_;
+    croak "Argument <service_timeout> missing" unless $args{service_timeout};
+
     my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
     my $service_override_filename = "sbd_delay_start.conf";
     my $service_override_path = $service_override_dir . $service_override_filename;
@@ -527,17 +574,17 @@ sub change_sbd_service_timeout() {
 
     # bash return code has inverted value: 0 = file exists
     if (!$file_exists) {
-        $self->cloud_file_content_replace($service_override_path,
-            '^TimeoutSec=.*',
-            "TimeoutSec=$service_timeout");
+        $self->cloud_file_content_replace(filename => $service_override_path,
+            search_pattern => '^TimeoutSec=.*',
+            replace_with => "TimeoutSec=$args{service_timeout}");
     }
     else {
-        my @content = ('[Service]', "TimeoutSec=$service_timeout");
+        my @content = ('[Service]', "TimeoutSec=$args{service_timeout}");
 
         $self->run_cmd(cmd => join(" ", "mkdir", "-p", $service_override_dir), quiet => 1);
         $self->run_cmd(cmd => join(" ", "bash", "-c", "\"echo", "'$_'", ">>", $service_override_path, "\""), quiet => 1) foreach @content;
     }
-    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
+    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$args{service_timeout}'");
 }
 
 =head2 setup_sbd_delay_publiccloud
@@ -565,16 +612,15 @@ sub setup_sbd_delay_publiccloud() {
         record_info('SBD delay', 'Skipping, parameter without value');
         # Ensure service timeout is higher than sbd delay time
         $delay = $self->sbd_delay_formula();
-        $self->change_sbd_service_timeout($delay + 30);
+        $self->change_sbd_service_timeout(service_timeout => $delay + 30);
     }
     else {
         $delay =~ s/(?<![ye])s//g;
-        croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
+        croak "<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay"
           unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
-
-        $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
+        $self->cloud_file_content_replace(filename => '/etc/sysconfig/sbd', search_pattern => '^SBD_DELAY_START=.*', replace_with => "SBD_DELAY_START=$delay");
         # service timeout must be higher that startup delay
-        $self->change_sbd_service_timeout($self->sbd_delay_formula() + 30);
+        $self->change_sbd_service_timeout(service_timeout => $self->sbd_delay_formula() + 30);
         record_info('SBD delay', "SBD delay set to: $delay");
     }
 
@@ -583,7 +629,6 @@ sub setup_sbd_delay_publiccloud() {
 
 =head2 sbd_delay_formula
     $self->sbd_delay_formula();
-
 
 =cut
 
@@ -604,16 +649,25 @@ sub sbd_delay_formula() {
 }
 
 =head2 cloud_file_content_replace
-    cloud_file_content_replace($filename, $search_pattern, $replace_with);
+    cloud_file_content_replace(filename => $filename, search_pattern => $search_pattern, replace_with => $replace_with);
 
     Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()
+
+=over 3
+
+=item B<FILENAME> - file location
+
+=item B<SEARCH_PATTERN> - search pattern
+
+=item B<REPLACE_WITH> - string to replace
+
+=back
 =cut
 
 sub cloud_file_content_replace() {
-    my ($self, $filename, $search_pattern, $replace_with) = @_;
-    die("Missing input variable") if (!$filename || !$search_pattern || !$replace_with);
-    $self->run_cmd(cmd => sprintf("sed -E 's/%s/%s/g' -i %s", $search_pattern, $replace_with, $filename), quiet => 1);
-    return 1;
+    my ($self, %args) = @_;
+    foreach (qw(filename search_pattern replace_with)) { croak "Argument < $_ > missing" unless $args{$_}; }
+    $self->run_cmd(cmd => sprintf("sed -E 's/%s/%s/g' -i %s", $args{search_pattern}, $args{replace_with}, $args{filename}), quiet => 1);
 }
 
 =head2 create_instance_data
@@ -621,12 +675,18 @@ sub cloud_file_content_replace() {
     Create and populate a list of publiccloud::instance and publiccloud::provider compatible
     class instances.
 
+=over 1
+
+=item B<PROVIDER> - Instance of PC object "provider", the one usually created by provider_factory()
+
+=back
 =cut
 
 sub create_instance_data {
-    my $provider = shift;
-    my $class = ref($provider);
-    die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
+    my (%args) = @_;
+    croak "Argument <provider> missing" unless $args{provider};
+    my $class_type = ref($args{provider});
+    croak "Unexpected class type [$class_type]" unless $class_type =~ /^publiccloud::(azure|ec2|gce)/;
     my @instances = ();
     my $inventory_file = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $ypp = YAML::PP->new;
@@ -641,10 +701,10 @@ sub create_instance_data {
                 instance_id => $vm_label,
                 username => get_required_var('PUBLIC_CLOUD_USER'),
                 ssh_key => get_ssh_private_key_path(),
-                provider => $provider,
-                region => $provider->provider_client->region,
+                provider => $args{provider},
+                region => $args{provider}->provider_client->region,
                 type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-                image_id => $provider->get_image_id());
+                image_id => $args{provider}->get_image_id());
             push @instances, $instance;
         }
     }
@@ -876,11 +936,19 @@ sub list_cluster_nodes {
     Run a query to the hana database, parses "hdbsql" command output and check if the connection still is alive.
     Returns 1 if the response from hana database is online, 0 otherwise
 
+=over 2
+
+=item B<PASSWORD_DB> - password
+
+=item B<INSTANCE_ID> - instance id
+
+=back
 =cut
 
 sub get_hana_database_status {
-    my ($self, $password_db, $instance_id) = @_;
-    my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
+    my ($self, %args) = @_;
+    foreach (qw(password_db instance_id)) { croak "Argument < $_ > missing" unless $args{$_}; }
+    my $hdb_cmd = "hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} 'SELECT * FROM SYS.M_DATABASES;'";
     my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var("SAP_SIDADM"), proceed_on_failure => 1);
 
     if ($output_cmd =~ /Connection failed/) {
@@ -918,7 +986,7 @@ sub is_hana_database_online {
     my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
 
     while ($consecutive_passes < $args{total_consecutive_passes}) {
-        $db_status = $self->get_hana_database_status($password_db, $instance_id);
+        $db_status = $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
         if (time - $start_time > $timeout) {
             record_info("Hana database after timeout", $self->run_cmd(cmd => $hdb_cmd));
             die("Hana database is still online");
@@ -937,6 +1005,11 @@ sub is_hana_database_online {
     Check if primary node in a hana cluster is offline.
     Returns if primary node status is offline with 0 and 1 online
 
+=over 1
+
+=item B<TIMEOUT> - default 300
+
+=back
 =cut
 
 sub is_primary_node_online {
@@ -1016,11 +1089,12 @@ sub saphanasr_showAttr_version {
 =cut
 
 sub wait_for_cluster {
-    my ($self, $wait_time, $max_retries) = @_;
-    $wait_time //= 10;
-    $max_retries //= 7;
+    my ($self, %args) = @_;
 
-    while ($max_retries > 0) {
+    $args{wait_time} //= 10;
+    $args{max_retries} //= 7;
+
+    while ($args{max_retries} > 0) {
         my $hanasr_output = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
 
@@ -1032,15 +1106,14 @@ sub wait_for_cluster {
             return;
         }
 
-        $max_retries--;
-        if ($max_retries > 0) {
-            sleep($wait_time);
-        } else {
+        $args{max_retries}--;
+        if ($args{max_retries} <= 0) {
             record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
             record_info('HANASR STATUS', $hanasr_output);
             record_info('CRM STATUS', $crm_output);
             die "Cluster is not ready after specified retries.";
         }
+        sleep($args{wait_time});
     }
 }
 
@@ -1049,7 +1122,7 @@ sub wait_for_cluster {
     The function attempts to run 'zypper ref' to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
     Returns normally if Zypper is not locked or dies after a maximum number of retries if Zypper remains locked.
 
-=over 4
+=over 5
 
 =item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
 
@@ -1059,38 +1132,39 @@ sub wait_for_cluster {
 
 =item B<TIMEOUT> - The number of seconds to wait before aborting zypper ref
 
-=item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
+=item B<RUNAS> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
 
 =back
 =cut
 
 sub wait_for_zypper {
     my ($self, %args) = @_;
-    croak("Argument <instance> missing") unless ($args{instance});
-    my $max_retries = $args{max_retries} // 10;
-    my $retry_delay = $args{retry_delay} // 20;
-    my $timeout = $args{timeout} // 600;
-    my $runas = $args{runas} // "cloudadmin";
+    croak "Argument <instance> missing" unless $args{instance};
+    $args{max_retries} //= 10;
+    $args{retry_delay} //= 20;
+    $args{timeout} //= 600;
+    $args{runas} //= "cloudadmin";
     my $retry = 0;
 
-    while ($retry < $max_retries) {
-        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref', username => $runas, proceed_on_failure => 1, rc_only => 1, quiet => 1, timeout => $timeout);
+    while ($retry < $args{max_retries}) {
+        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref',
+            username => $args{runas},
+            proceed_on_failure => 1,
+            rc_only => 1,
+            quiet => 1,
+            timeout => $args{timeout});
         if ($ret == 7) {
-            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retry/$max_retries");
-            sleep $retry_delay;
+            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retry/$args{max_retries}");
+            sleep $args{retry_delay};
             $retry++;
         } else {
-            if ($ret == 126) {
-                record_info("ZYPPER TIMEOUT", "zypper command timed out after $timeout - consider increasing the timeout.");
-            }
-            if ($ret != 0) {
-                record_info("ZYPPER PROBLEM", "Zypper is not locked, but it returned $ret");
-            }
+            record_info("ZYPPER TIMEOUT", "zypper command timed out after $args{timeout} - consider increasing the timeout.") if ($ret == 126);
+            record_info("ZYPPER PROBLEM", "Zypper is not locked, but it returned $ret") if ($ret != 0);
             last;
         }
     }
 
-    die "Zypper is still locked after $max_retries retries, aborting (rc: 7)" if $retry >= $max_retries;
+    die "Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)" if $retry >= $args{max_retries};
 }
 
 1;
