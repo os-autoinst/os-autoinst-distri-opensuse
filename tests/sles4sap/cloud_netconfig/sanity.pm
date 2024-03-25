@@ -50,39 +50,18 @@ sub run {
     my $vm_ip;
     my $ssh_cmd;
     my $ret;
-    # check that the VM is reachable using both public IP addresses
-    foreach (1 .. 2) {
-        $az_cmd = join(' ',
-            'az network public-ip show',
-            "--resource-group $rg",
-            '--name', DEPLOY_PREFIX . "-pub_ip-$_",
-            '--query "ipAddress"',
-            '-o tsv');
-        $vm_ip = script_output($az_cmd);
-        $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
-
-        my $start_time = time();
-        # Looping until SSH port 22 is reachable or timeout.
-        while ((time() - $start_time) < 300) {
-            $ret = script_run("nc -vz -w 1 $vm_ip 22", quiet => 1);
-            last if defined($ret) and $ret == 0;
-            sleep 10;
-        }
-        assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
-    }
-    record_info('TEST STEP', 'VM reachable with SSH');
-
-    # Looping until is-system-running or timeout.
-    my $start_time = time();
-    while ((time() - $start_time) < 300) {
-        $ret = script_run("$ssh_cmd sudo systemctl is-system-running");
-        last unless $ret;
-        sleep 10;
-    }
+    $az_cmd = join(' ',
+        'az network public-ip show',
+        "--resource-group $rg",
+        '--name', DEPLOY_PREFIX . "-pub_ip-1",
+        '--query "ipAddress"',
+        '-o tsv');
+    $vm_ip = script_output($az_cmd);
+    $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # print (no check for the moment) the OS release description
     assert_script_run("$ssh_cmd cat /etc/os-release");
-    record_info('TEST STEP', 'is-system-running OK');
+    record_info('TEST STEP', 'machine is ssh reachable OK');
 
     # Check that cloud-netconfig is installed
     assert_script_run("$ssh_cmd sudo zypper ref");    # Needed in the PAYG images

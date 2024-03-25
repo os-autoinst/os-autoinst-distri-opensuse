@@ -43,7 +43,7 @@ sub run {
     my $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # Delete an ip-config
-    my $az_cmd = join(' ', 'az network nic ip-config delete',
+    $az_cmd = join(' ', 'az network nic ip-config delete',
         '--resource-group', $rg,
         '--name ipconfig2',
         '--nic-name', DEPLOY_PREFIX . '-nic');

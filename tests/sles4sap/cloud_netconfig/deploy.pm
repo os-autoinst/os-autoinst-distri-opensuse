@@ -25,7 +25,6 @@ sub run {
 
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
-
     my $az_cmd;
 
     # Create a resource group to contain all
@@ -131,6 +130,49 @@ sub run {
         '--authentication-type ssh',
         '--generate-ssh-keys');
     assert_script_run($az_cmd, timeout => 600);
+
+    my $vm_ip;
+    my $ssh_cmd;
+    my $ret;
+    # check that the VM is reachable using both public IP addresses
+    foreach (1 .. 2) {
+        $az_cmd = join(' ',
+            'az network public-ip show',
+            "--resource-group $rg",
+            '--name', DEPLOY_PREFIX . "-pub_ip-$_",
+            '--query "ipAddress"',
+            '-o tsv');
+        $vm_ip = script_output($az_cmd);
+        $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
+
+        my $start_time = time();
+        # Looping until SSH port 22 is reachable or timeout.
+        while ((time() - $start_time) < 300) {
+            $ret = script_run("nc -vz -w 1 $vm_ip 22", quiet => 1);
+            last if defined($ret) and $ret == 0;
+            sleep 10;
+        }
+        assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
+    }
+    record_info('TEST STEP', 'VM reachable with SSH');
+
+    # Looping until is-system-running or timeout.
+    my $start_time = time();
+    while ((time() - $start_time) < 300) {
+        $ret = script_run("$ssh_cmd sudo systemctl is-system-running");
+        last unless $ret;
+        sleep 10;
+    }
+
+    if (my $reg_code = get_var('SCC_REGCODE_SLES4SAP')) {
+        assert_script_run(join(' ',
+                $ssh_cmd,
+                'sudo', 'registercloudguest',
+                '--force-new',
+                '-r', "\"$reg_code\"",
+                '-e "testing@suse.com"'));
+        assert_script_run(join(' ', $ssh_cmd, 'sudo', 'SUSEConnect -s'));
+    }
 }
 
 sub test_flags {
