@@ -12,7 +12,7 @@
 
 
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
-  <li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
       <li><a href="#run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</a></li>
       <li><a href="#get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</a></li>
@@ -24,23 +24,20 @@
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
       <li><a href="#check_takeover-check_takeover">check_takeover check_takeover();</a></li>
-      <li><a href="#enable_replication-enable_replication">enable_replication enable_replication();</a></li>
+      <li><a href="#enable_replication-enable_replication-site_name-site_a">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;]);</a></li>
       <li><a href="#get_replication_info-get_replication_info">get_replication_info get_replication_info();</a></li>
       <li><a href="#get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</a></li>
       <li><a href="#wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</a></li>
       <li><a href="#wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</a></li>
-      <li><a href="#change_sbd_service_timeout-self-change_sbd_service_timeout-timeout-timeout">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(timeout =&gt; $timeout);</a></li>
+      <li><a href="#change_sbd_service_timeout-self-change_sbd_service_timeout-service_timeout-30">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(service_timeout =&gt; &#39;30&#39;);</a></li>
       <li><a href="#setup_sbd_delay_publiccloud-self-setup_sbd_delay_publiccloud">setup_sbd_delay_publiccloud $self-&gt;setup_sbd_delay_publiccloud();</a></li>
       <li><a href="#sbd_delay_formula-self-sbd_delay_formula">sbd_delay_formula $self-&gt;sbd_delay_formula();</a></li>
-      <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</a></li>
+      <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-filename-search_pattern-search_pattern-replace_with-replace_with">cloud_file_content_replace cloud_file_content_replace(filename =&gt; $filename, search_pattern =&gt; $search_pattern, replace_with =&gt; $replace_with);</a></li>
       <li><a href="#create_instance_data">create_instance_data</a></li>
       <li><a href="#deployment_name">deployment_name</a></li>
       <li><a href="#delete_network_peering">delete_network_peering</a></li>
-      <li><a href="#create_ansible_playbook_list">create_ansible_playbook_list</a>
-        <ul>
-          <li><a href="#azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</a></li>
-        </ul>
-      </li>
+      <li><a href="#create_ansible_playbook_list">create_ansible_playbook_list</a></li>
+      <li><a href="#azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</a></li>
       <li><a href="#get_hana_site_names">get_hana_site_names</a></li>
       <li><a href="#create_hana_vars_section">create_hana_vars_section</a></li>
       <li><a href="#display_full_status">display_full_status</a></li>
@@ -56,12 +53,40 @@
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
 
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<pre><code>Package with common methods and default or constant  values for sles4sap tests in the cloud</code></pre>
+
 <h2 id="run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</h2>
 
 <pre><code>Runs a command C&lt;cmd&gt; via ssh in the given VM and log the output.
 All commands are executed through C&lt;sudo&gt;.
 If &#39;runas&#39; defined, command will be executed as specified user,
 otherwise it will be executed as root.</code></pre>
+
+<dl>
+
+<dt id="cmd---command-string-to-be-executed-remotely"><b>cmd</b> - command string to be executed remotely</dt>
+<dd>
+
+</dd>
+<dt id="timeout---command-execution-timeout"><b>timeout</b> - command execution timeout</dt>
+<dd>
+
+</dd>
+<dt id="title---used-in-record_info"><b>title</b> - used in record_info</dt>
+<dd>
+
+</dd>
+<dt id="runas---pre-pend-the-command-with-su-to-execute-it-as-specific-user"><b>runas</b> - pre-pend the command with su to execute it as specific user</dt>
+<dd>
+
+</dd>
+<dt id="pass-through-all-other-arguments-supported-by-run_ssh_command"><b>...</b> - pass through all other arguments supported by run_ssh_command</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</h2>
 
@@ -71,11 +96,39 @@ otherwise it will be executed as root.</code></pre>
 
 <pre><code>Clean up Network peering and qesap deployment</code></pre>
 
+<dl>
+
+<dt id="cleanup_called---flag-to-indicate-cleanup-status"><b>cleanup_called</b> - flag to indicate cleanup status</dt>
+<dd>
+
+</dd>
+<dt id="network_peering_present---flag-to-indicate-network-peering-presence"><b>network_peering_present</b> - flag to indicate network peering presence</dt>
+<dd>
+
+</dd>
+<dt id="ansible_present---flag-to-indicate-ansible-has-need-executed-as-part-of-the-deployment"><b>ansible_present</b> - flag to indicate ansible has need executed as part of the deployment</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</h2>
 
 <h2 id="is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</h2>
 
-<pre><code>Check if hana DB is online. Define &#39;wait_for_start&#39; to wait for DB to start.</code></pre>
+<pre><code>Check if hana DB is online.</code></pre>
+
+<dl>
+
+<dt id="wait_for_start---Define-wait_for_start-to-wait-for-DB-to-start"><b>wait_for_start</b> - Define &#39;wait_for_start&#39; to wait for DB to start.</dt>
+<dd>
+
+</dd>
+<dt id="timeout---timeout-for-the-wait-of-the-online-state"><b>timeout</b> - timeout for the wait of the online state</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</h2>
 
@@ -88,6 +141,18 @@ otherwise it will be executed as root.</code></pre>
 &quot;kill&quot; - kills database processes using &quot;HDB -kill&quot; command.
 &quot;crash&quot; - crashes entire os using &quot;/proc-sysrq-trigger&quot; method.</code></pre>
 
+<dl>
+
+<dt id="method---Allow-to-specify-a-specific-stop-method"><b>method</b> - Allow to specify a specific stop method</dt>
+<dd>
+
+</dd>
+<dt id="timeout---only-used-for-stop-and-kill"><b>timeout</b> - only used for stop and kill</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</h2>
 
 <pre><code>Start HANA DB using &quot;HDB start&quot; command</code></pre>
@@ -96,13 +161,29 @@ otherwise it will be executed as root.</code></pre>
 
 <pre><code>Cleanup resource &#39;msl_SAPHana_*&#39;, wait for DB start automatically.</code></pre>
 
+<dl>
+
+<dt id="timeout---timeout-for-waiting-resource-to-start"><b>timeout</b> - timeout for waiting resource to start</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="check_takeover-check_takeover">check_takeover check_takeover();</h2>
 
 <pre><code>Checks takeover status and waits for finish until successful or reaches timeout.</code></pre>
 
-<h2 id="enable_replication-enable_replication">enable_replication enable_replication();</h2>
+<h2 id="enable_replication-enable_replication-site_name-site_a">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;]);</h2>
 
 <pre><code>Enables replication on fenced database. Database needs to be offline.</code></pre>
+
+<dl>
+
+<dt id="site_name---site-name-of-the-site-to-register"><b>site_name</b> - site name of the site to register</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="get_replication_info-get_replication_info">get_replication_info get_replication_info();</h2>
 
@@ -119,14 +200,38 @@ Returns hash of found values converted to lowercase and replaces spaces to under
 Checks &quot;SAPHanaSR-showAttr&quot; output and ensures replica site has &quot;sync_state&quot; &quot;SOK &amp;&amp; PRIM&quot; and no SFAIL.
 Continue after expected output matched three times continually to make sure cluster is synced.</code></pre>
 
+<dl>
+
+<dt id="timeout---timeout-for-waiting-sync-state"><b>timeout</b> - timeout for waiting sync state</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</h2>
 
 <pre><code>Checks status of pacemaker via systemd &#39;is-active&#39; command an waits for startup.</code></pre>
 
-<h2 id="change_sbd_service_timeout-self-change_sbd_service_timeout-timeout-timeout">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(timeout =&gt; $timeout);</h2>
+<dl>
+
+<dt id="timeout---timeout-for-waiting-for-pacemaker-service"><b>timeout</b> - timeout for waiting for pacemaker service</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="change_sbd_service_timeout-self-change_sbd_service_timeout-service_timeout-30">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(service_timeout =&gt; &#39;30&#39;);</h2>
 
 <pre><code>Overrides timeout for sbd systemd service to a value provided by argument.
 This is done by creating or changing file &quot;/etc/systemd/system/sbd.service.d/sbd_delay_start.conf&quot;</code></pre>
+
+<dl>
+
+<dt id="service_timeout---value-for-the-TimeoutSec-setting"><b>service_timeout</b> - value for the TimeoutSec setting</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="setup_sbd_delay_publiccloud-self-setup_sbd_delay_publiccloud">setup_sbd_delay_publiccloud $self-&gt;setup_sbd_delay_publiccloud();</h2>
 
@@ -144,14 +249,40 @@ Returns integer representing wait time.</code></pre>
 
 <h2 id="sbd_delay_formula-self-sbd_delay_formula">sbd_delay_formula $self-&gt;sbd_delay_formula();</h2>
 
-<h2 id="cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</h2>
+<pre><code>return calculated sbd delay</code></pre>
+
+<h2 id="cloud_file_content_replace-cloud_file_content_replace-filename-filename-search_pattern-search_pattern-replace_with-replace_with">cloud_file_content_replace cloud_file_content_replace(filename =&gt; $filename, search_pattern =&gt; $search_pattern, replace_with =&gt; $replace_with);</h2>
 
 <pre><code>Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()</code></pre>
+
+<dl>
+
+<dt id="filename---file-location"><b>filename</b> - file location</dt>
+<dd>
+
+</dd>
+<dt id="search_pattern---search-pattern"><b>search_pattern</b> - search pattern</dt>
+<dd>
+
+</dd>
+<dt id="replace_with---string-to-replace"><b>replace_with</b> - string to replace</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="create_instance_data">create_instance_data</h2>
 
 <pre><code>Create and populate a list of publiccloud::instance and publiccloud::provider compatible
 class instances.</code></pre>
+
+<dl>
+
+<dt id="provider---Instance-of-PC-object-provider-the-one-usually-created-by-provider_factory"><b>provider</b> - Instance of PC object &quot;provider&quot;, the one usually created by provider_factory()</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="deployment_name">deployment_name</h2>
 
@@ -170,21 +301,21 @@ in the &quot;ansible: create:&quot; section of config.yaml file.</code></pre>
 
 <dl>
 
-<dt id="HA_ENABLED---Enable-the-installation-of-HANA-and-the-cluster-configuration"><b>HA_ENABLED</b> - Enable the installation of HANA and the cluster configuration</dt>
+<dt id="ha_enabled---Enable-the-installation-of-HANA-and-the-cluster-configuration"><b>ha_enabled</b> - Enable the installation of HANA and the cluster configuration</dt>
 <dd>
 
 </dd>
-<dt id="REGISTRATION---select-registration-mode-possible-values-are-registercloudguest-default-suseconnect-noreg-QESAP_SCC_NO_REGISTER-skips-scc-registration-via-ansible"><b>REGISTRATION</b> - select registration mode, possible values are * registercloudguest (default) * suseconnect * noreg &quot;QESAP_SCC_NO_REGISTER&quot; skips scc registration via ansible</dt>
+<dt id="registration---select-registration-mode-possible-values-are-registercloudguest-default-suseconnect-noreg-QESAP_SCC_NO_REGISTER-skips-scc-registration-via-ansible"><b>registration</b> - select registration mode, possible values are * registercloudguest (default) * suseconnect * noreg &quot;QESAP_SCC_NO_REGISTER&quot; skips scc registration via ansible</dt>
 <dd>
 
 </dd>
-<dt id="FENCING---select-fencing-mechanism"><b>FENCING</b> - select fencing mechanism</dt>
+<dt id="fencing---select-fencing-mechanism"><b>fencing</b> - select fencing mechanism</dt>
 <dd>
 
 </dd>
 </dl>
 
-<h3 id="azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</h3>
+<h2 id="azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</h2>
 
 <pre><code>azure_fencing_agents_playbook_args(
     spn_application_id=&gt;$spn_application_id,
@@ -225,6 +356,18 @@ Returns list of hostnames that are part of a cluster using crm shell command fro
 <pre><code>Run a query to the hana database, parses &quot;hdbsql&quot; command output and check if the connection still is alive.
 Returns 1 if the response from hana database is online, 0 otherwise</code></pre>
 
+<dl>
+
+<dt id="password_db---password"><b>password_db</b> - password</dt>
+<dd>
+
+</dd>
+<dt id="instance_id---instance-id"><b>instance_id</b> - instance id</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="is_hana_database_online">is_hana_database_online</h2>
 
 <pre><code>Setup a timeout and check the hana database status is offline and there is not connection.
@@ -233,11 +376,11 @@ Returns 1 if the output of the hana database is online, 0 means that hana databa
 
 <dl>
 
-<dt id="TIMEOUT---default-900"><b>TIMEOUT</b> - default 900</dt>
+<dt id="timeout---default-900"><b>timeout</b> - default 900</dt>
 <dd>
 
 </dd>
-<dt id="TOTAL_CONSECUTIVE_PASSES---default-5"><b>TOTAL_CONSECUTIVE_PASSES</b> - default 5</dt>
+<dt id="total_consecutive_passes---default-5"><b>total_consecutive_passes</b> - default 5</dt>
 <dd>
 
 </dd>
@@ -247,6 +390,14 @@ Returns 1 if the output of the hana database is online, 0 means that hana databa
 
 <pre><code>Check if primary node in a hana cluster is offline.
 Returns if primary node status is offline with 0 and 1 online</code></pre>
+
+<dl>
+
+<dt id="timeout---default-300"><b>timeout</b> - default 300</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="pacemaker_version">pacemaker_version</h2>
 
@@ -262,11 +413,11 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 
 <dl>
 
-<dt id="WAIT_TIME---time-to-wait-before-retry-in-seconds-default-10"><b>WAIT_TIME</b> - time to wait before retry in seconds, default 10</dt>
+<dt id="wait_time---time-to-wait-before-retry-in-seconds-default-10"><b>wait_time</b> - time to wait before retry in seconds, default 10</dt>
 <dd>
 
 </dd>
-<dt id="MAX_RETRIES---maximum-number-of-retries-default-7"><b>MAX_RETRIES</b> - maximum number of retries, default 7</dt>
+<dt id="max_retries---maximum-number-of-retries-default-7"><b>max_retries</b> - maximum number of retries, default 7</dt>
 <dd>
 
 </dd>
@@ -283,15 +434,15 @@ Returns normally if Zypper is not locked or dies after a maximum number of retri
 <dd>
 
 </dd>
-<dt id="MAX_RETRIES---The-maximum-number-of-times-the-function-will-retry-checking-if-Zypper-is-locked.-Default-is-10"><b>MAX_RETRIES</b> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.</dt>
+<dt id="max_retries---The-maximum-number-of-times-the-function-will-retry-checking-if-Zypper-is-locked.-Default-is-10"><b>max_retries</b> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.</dt>
 <dd>
 
 </dd>
-<dt id="RETRY_DELAY---The-number-of-seconds-to-wait-between-retries.-Default-is-20-seconds"><b>RETRY_DELAY</b> - The number of seconds to wait between retries. Default is 20 seconds.</dt>
+<dt id="retry_delay---The-number-of-seconds-to-wait-between-retries.-Default-is-20-seconds"><b>retry_delay</b> - The number of seconds to wait between retries. Default is 20 seconds.</dt>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---The-number-of-seconds-to-wait-before-aborting-zypper-ref"><b>TIMEOUT</b> - The number of seconds to wait before aborting zypper ref</dt>
+<dt id="timeout---The-number-of-seconds-to-wait-before-aborting-zypper-ref"><b>timeout</b> - The number of seconds to wait before aborting zypper ref</dt>
 <dd>
 
 </dd>
