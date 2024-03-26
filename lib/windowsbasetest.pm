@@ -131,7 +131,10 @@ sub wait_boot_windows {
     assert_screen 'windows-screensaver', 900;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
-    send_key 'ret';    # press shutdown button
+    send_key 'ret';
+    # Once a month Windows passwords expire, although we try to set it to never
+    # expire.
+    $self->password_expired if check_screen 'win-passwd-expired';
     if ($is_firstboot) {
         record_info('Windows firstboot', 'Starting Windows for the first time');
         wait_still_screen stilltime => 60, timeout => 300;
@@ -159,6 +162,8 @@ sub wait_boot_windows {
         assert_and_click 'windows-lock-screen-background';
         assert_and_click 'windows-select-picture';
         assert_and_click 'windows-close-lockscreen';
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+
         # These commands disable notifications that Windows shows randomly and
         # make our windows lose focus
         $self->open_powershell_as_admin;
@@ -237,4 +242,14 @@ sub power_configuration {
     );
 }
 
+sub password_expired {
+    # There's need to type the old password and the new one twice and then press
+    # enter an additional time for acknowledging.
+    send_key 'ret';    # Ok message for starting the process
+    for (0 .. 2) {
+        type_password;
+        send_key 'ret';
+    }
+    send_key 'ret';    # Ok to "Password has been changed"
+}
 1;
