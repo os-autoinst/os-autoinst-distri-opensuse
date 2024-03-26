@@ -1,0 +1,9 @@
+name: register_image_for_migration_mu_jobs
+description:    >
+  Boot an image and register it for migration MU jobs.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - migration/online_migration/register_system
+  - shutdown/grub_set_bootargs
+  - shutdown/shutdown
