@@ -54,6 +54,7 @@ use constant {
           check_version
           get_os_release
           check_os_release
+          verify_os_version
           package_version_cmp
           get_version_id
           php_version
@@ -742,6 +743,21 @@ sub check_os_release {
     $os_release_file //= '/etc/os-release';
     my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
     return ($os_like_name =~ /$distri_name/i);
+}
+
+=head2 verify_os_version
+
+Returns 1 (true) if os release version matches the one passed as arguement.
+If no arguements are given, the function will compare the os release version
+in /etc/os-release file with "VERSION" var.
+
+=cut
+
+sub verify_os_version {
+    my ($version, $os_release_file) = @_;
+    $version //= get_var("VERSION");
+    $os_release_file //= '/etc/os-release';
+    return script_output("grep VERSION= $os_release_file | grep $version");
 }
 
 =head2 is_public_cloud

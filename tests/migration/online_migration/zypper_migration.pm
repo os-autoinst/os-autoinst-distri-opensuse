@@ -14,21 +14,17 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
+use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro verify_os_version);
 use Utils::Backends 'is_pvm';
 use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
 
-sub check_migrated_version {
-    # check if the migration success or not by checking the /etc/os-release file with the VERSION
-    my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
-    assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
-}
-
 sub run {
     my $self = shift;
     select_console 'root-console';
-
+    # This multi-naming of the same var should be addressed in poo#157873
+    my $version_to_verify = is_sle_micro ? get_var("FROM_VERSION") : get_var(("HDDVERSION"), get_required_var("ORIGIN_SYSTEM_VERSION"));
+    verify_os_version($version_to_verify);
     # precompile regexes
     my $zypper_continue = qr/^Continue\? \[y/m;
     my $zypper_migration_target = qr/\[num\/q\]/m;
@@ -162,7 +158,6 @@ sub run {
     # during restart of the X/GDM stack
     if (is_sle_micro) {
         check_reboot_changes;
-        check_migrated_version;
     } else {
         power_action('reboot', textmode => 1);
         reconnect_mgmt_console if is_pvm;
@@ -173,6 +168,7 @@ sub run {
         # sometimes reboot takes longer time after online migration, give more time
         $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 500, ready_time => 600, nologin => is_sles4sap);
     }
+    verify_os_version;
 }
 
 sub post_fail_hook {
