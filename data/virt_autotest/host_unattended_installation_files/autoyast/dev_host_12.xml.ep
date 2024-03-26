@@ -101,16 +101,18 @@
     <interfaces config:type="list">
       <interface>
         <device>br0</device>
-        <bootproto>dhcp</bootproto>
+        <bootproto>dhcp4</bootproto>
         <bridge>yes</bridge>
         <bridge_forwarddelay>15</bridge_forwarddelay>
         <!-- Use specified interface instead of a list to avoid ip lease inconsistency. Please refer to poo#135641. -->
         % if ($check_var->('SUT_NETDEVICE', 'eth1') or $check_var->('SUT_NETDEVICE', 'em1')) {
         <bridge_ports><%= $get_var->('SUT_NETDEVICE') %></bridge_ports>
+	% } if ($check_var->('SUT_IP', 'amd-zen3-gpu-sut1-1.qe.nue2.suse.org')) {
+        <bridge_ports>em1</bridge_ports>
         % } else {
         <bridge_ports>eth0 eth1 em1 em2</bridge_ports>
         % }
-        <bridge_stp>on</bridge_stp>
+        <bridge_stp>off</bridge_stp>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
