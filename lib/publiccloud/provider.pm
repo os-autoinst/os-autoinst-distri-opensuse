@@ -606,15 +606,13 @@ sub terraform_destroy {
 
     select_host_console(force => 1);
 
-    my $cmd;
+    my $cmd = 'terraform destroy -no-color -auto-approve ';
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
-        $cmd = 'terraform destroy -no-color -auto-approve';
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
-        $cmd = 'terraform destroy -no-color -auto-approve ';
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
         $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
