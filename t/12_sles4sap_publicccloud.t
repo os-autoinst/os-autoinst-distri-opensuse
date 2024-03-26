@@ -5,7 +5,7 @@ use Test::Exception;
 use Test::More;
 use Test::Mock::Time;
 use testapi;
-use List::Util qw(any none);
+use List::Util qw(any none sum);
 
 use publiccloud::instance;
 use sles4sap_publiccloud;
@@ -219,6 +219,7 @@ subtest '[get_hana_topology]' => sub {
             push @calls, $args{cmd};
             return "Output does no matter as calculate_hana_topology is redefined.";
     });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
 
     my $topology = $self->get_hana_topology();
 
@@ -244,6 +245,7 @@ subtest '[get_hana_topology] bad output' => sub {
             push @calls, $args{cmd};
             return "Output does no matter as calculate_hana_topology is redefined.";
     });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
 
     my $topology = $self->get_hana_topology();
 
@@ -270,6 +272,7 @@ subtest '[check_takeover]' => sub {
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -294,6 +297,7 @@ subtest '[check_takeover] fail in showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -316,6 +320,7 @@ subtest '[check_takeover] missing fields in SAPHanaSR-showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my $showAttr;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -349,6 +354,7 @@ subtest '[check_takeover] fail if DB online' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 1 });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
 
     dies_ok { $self->check_takeover() } "Takeover failed if sles4sap_publiccloud return 1";
 };
@@ -358,6 +364,7 @@ subtest '[check_takeover] fail if primary online' => sub {
     my $self = sles4sap_publiccloud->new();
     $self->{my_instance}->{instance_id} = 'Yondu';
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
@@ -538,6 +545,47 @@ subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
     });
 
     dies_ok { $self->wait_for_zypper(instance => $instance, max_retries => 3) } 'Zypper remained locked after max retries';
+};
+
+subtest '[wait_for_idle] command passes at first try' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 0; });
+    $sles4sap_publiccloud->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_));
+    });
+
+    lives_ok { $self->wait_for_idle() } 'Cluster was idle, command succeeded without retries';
+
+    my $count_cs_wait_for_idle = sum(map { /cs_wait_for_idle/ ? 1 : 0 } @calls);
+    ok($count_cs_wait_for_idle == 1, "'cs_wait_for_idle' appears exactly once");
+};
+
+subtest '[wait_for_idle] command fails with rc 124, passes at second try' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $failed = 0;
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            if ($failed) {
+                return 0;
+            }
+            else {
+                return 124;
+                $failed = 1;
+            }
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_));
+    });
+
+    lives_ok { $self->wait_for_idle() } 'Cluster was not idle the first time but succeeded the second';
+    ok((any { qr/cs_clusterstate/ } @calls), 'function calls cs_clusterstate');
+    ok((any { qr/crm_mon -r -R -n -N -1/ } @calls), 'function calls crm_mon -r -R -n -N -1');
+    ok((any { qr/SAPHanaSR-showAttr/ } @calls), 'function calls SAPHanaSR-showAttr');
 };
 
 done_testing;
