@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap check_version is_tumbleweed);
+use version_utils qw(is_sle is_leap check_version is_tumbleweed is_jeos);
 use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
@@ -42,7 +42,7 @@ sub setup_apache2 {
     push @packages, get_var('APACHE2_PKG', "apache2");
 
     # For gensslcert
-    push @packages, 'apache2-utils', 'openssl' if is_tumbleweed;
+    push @packages, 'apache2-utils', 'openssl' if (is_tumbleweed || is_jeos);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
