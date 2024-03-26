@@ -326,7 +326,11 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>58</Order>
-					<Path>powershell.exe Set-LocalUser -Name "Bernhard M. Wiedeman" -PasswordNeverExpires 1</Path>
+					<Path>powershell.exe wmic UserAccount set PasswordExpires=False</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>59</Order>
+					<Path>powershell.exe Set-ItemProperty -Path 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.SkyDrive.Desktop\' -Name Enabled -Value 0</Path>
 				</RunSynchronousCommand>
 			</RunSynchronous>
 		</component>
