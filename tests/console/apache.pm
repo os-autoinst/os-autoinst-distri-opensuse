@@ -125,16 +125,19 @@ sub run {
         else {
             # Create directory for the new instance and prepare config
             assert_script_run 'mkdir -p /tmp/prefork';
-            assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' /usr/share/doc/packages/$apache2/httpd.conf.default > /tmp/prefork/httpd.conf";
+            assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' /usr/share/doc/packages/apache2/conf/extra/httpd-default.conf > /tmp/prefork/httpd.conf";
 
             # httpd.default.conf contains wrong service userid and groupid
             assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
             assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
 
             # Run and test this new environment
-            assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
-            assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd2-prefork pid; done';
-            assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
+            assert_script_run 'echo "Listen 8080" >> /tmp/prefork/httpd.conf';
+            assert_script_run 'echo "User wwwrun" >> /tmp/prefork/httpd.conf';
+            assert_script_run 'echo "Group www" >> /tmp/prefork/httpd.conf';
+            assert_script_run 'httpd-prefork -f /tmp/prefork/httpd.conf';
+            assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd-prefork pid; done';
+            assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd-prefork';
 
             # Run and test the old environment too
             script_run 'rm /var/run/httpd.pid';
@@ -147,7 +150,7 @@ sub run {
 
             # Stop both instances
             # binary killall is not present in JeOS
-            assert_script_run('kill -TERM $(ps aux| grep [h]ttpd2-prefork| awk \'{print $2}\')');
+            assert_script_run('kill -TERM $(ps aux| grep [h]ttpd-prefork| awk \'{print $2}\')');
             systemctl 'stop apache2';
 
             # Test everything is stopped properly
