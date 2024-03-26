@@ -540,4 +540,27 @@ subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
     dies_ok { $self->wait_for_zypper(instance => $instance, max_retries => 3) } 'Zypper remained locked after max retries';
 };
 
+subtest '[wait_for_sync]' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %test_topology = (
+        vmhana01 => {
+            vhost => 'vmhana01',
+            remoteHost => 'vmhana02',
+            srmode => 'LeeAdama',
+            op_mode => 'ZakAdama',
+        },
+        vmhana02 => {
+            vhost => 'vmhana02',
+            remoteHost => 'vmhana01',
+            srmode => 'LeeAdama',
+            op_mode => 'ZakAdama',
+        }
+    );
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
+    my $self = sles4sap_publiccloud->new();
+    $self->wait_for_sync();
+    ok 1;
+};
+
 done_testing;

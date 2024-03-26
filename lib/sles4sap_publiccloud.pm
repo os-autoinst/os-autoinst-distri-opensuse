@@ -447,7 +447,15 @@ sub get_promoted_instance {
 
     Wait for replica site to sync data with primary.
     Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK && PRIM" and no SFAIL.
-    Continue after expected output matched three times continually to make sure cluster is synced.
+     Continue after expected output matched N times continually to make sure cluster is synced.
+
+    Expected confitions:
+     - Both primary and replica must be online.
+     - primary must have sync_state 'PRIM'
+     - primary must have clone_state 'PROMOTED'
+     - replica must have sync_state 'SOK'  - this means data is in sync
+     - replica must have clone_state 'DEMOTED'
+     - site order does not matte
 =cut
 
 sub wait_for_sync {
@@ -460,16 +468,17 @@ sub wait_for_sync {
 
     # Check sync status periodically until ok or timeout
     my $start_time = time;
+    my $topology;
 
     while ($count--) {
         die 'HANA replication: node did not sync in time' if $count == 1;
         die 'HANA replication: node is stuck at SFAIL' if $output_fail == 10;
         sleep 30;
-        my $ret = $self->run_cmd(cmd => 'SAPHanaSR-showAttr | grep online', proceed_on_failure => 1);
-        $output_pass++ if $ret =~ /SOK/ && $ret =~ /PRIM/ && $ret !~ /SFAIL/;
-        $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
-        $output_fail++ if $ret =~ /SFAIL/;
-        $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
+        $topology = $self->get_hana_topology();
+        $output_pass++ if $topology =~ /SOK/ && $topology =~ /PRIM/ && $topology !~ /SFAIL/;
+        $output_pass-- if $output_pass == 1 && $topology !~ /SOK/ && $topology !~ /PRIM/ && $topology =~ /SFAIL/;
+        $output_fail++ if $topology =~ /SFAIL/;
+        $output_fail-- if $output_fail >= 1 && $topology !~ /SFAIL/;
         next if $output_pass < 5;
         last if $output_pass == 5;
         if (time - $start_time > $timeout) {
