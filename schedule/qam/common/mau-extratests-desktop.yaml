@@ -20,10 +20,13 @@ conditional_schedule:
     VERSION:
       15-SP5:
         - texlive/latexdiff
+        - texlive/latex2html
       15-SP4:
         - texlive/latexdiff
+        - texlive/latex2html
       15-SP3:
         - texlive/latexdiff
+        - texlive/latex2html
       15-SP2:
         - texlive/latexdiff
       15-SP1:
