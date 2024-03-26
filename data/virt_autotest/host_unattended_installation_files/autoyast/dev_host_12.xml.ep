@@ -109,8 +109,9 @@
         <bridge_ports><%= $get_var->('SUT_NETDEVICE') %></bridge_ports>
         % } else {
         <bridge_ports>eth0 eth1 em1 em2</bridge_ports>
-        % }
-        <bridge_stp>on</bridge_stp>
+	% }
+        <!-- Turn bridge_stp off to unblock autoyast installation. Please refer to bsc#1222105 -->
+        <bridge_stp>off</bridge_stp>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
