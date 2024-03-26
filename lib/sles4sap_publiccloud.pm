@@ -69,6 +69,10 @@ our @EXPORT = qw(
   wait_for_zypper
 );
 
+=head1 DESCRIPTION
+
+    Package with common methods and default or constant  values for sles4sap tests in the cloud
+
 =head2 run_cmd
     run_cmd(cmd => 'command', [runas => 'user', timeout => 60]);
 
@@ -77,17 +81,26 @@ our @EXPORT = qw(
     If 'runas' defined, command will be executed as specified user,
     otherwise it will be executed as root.
 
-=over 1
+=over 5
 
-=item B<CMD> - command string to be executed remotely
+=item B<cmd> - command string to be executed remotely
+
+=item B<timeout> - command execution timeout
+
+=item B<title> - used in record_info
+
+=item B<runas> - pre-pend the command with su to execute it as specific user
+
+=item B<...> - pass through all other arguments supported by run_ssh_command
 
 =back
 =cut
 
 sub run_cmd {
     my ($self, %args) = @_;
-    croak "Argument <cmd> missing" unless $args{cmd};
-    croak "\$self->{my_instance} is not defined. Check module Description for details" unless $self->{my_instance};
+    croak("Argument <cmd> missing") unless $args{cmd};
+    croak("\$self->{my_instance} is not defined. Check module Description for details")
+      unless $self->{my_instance};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
@@ -137,9 +150,11 @@ sub get_promoted_hostname {
 
 =over 3
 
-=item B<CLEANUP_CALLED> - flag to indicate cleanup status
-=item B<NETWORK_PEERING_PRESENT> - flag to indicate network peering presence
-=item B<ANSIBLE_PRESENT> - flag to indicate ansible has need executed as part of the deployment
+=item B<cleanup_called> - flag to indicate cleanup status
+
+=item B<network_peering_present> - flag to indicate network peering presence
+
+=item B<ansible_present> - flag to indicate ansible has need executed as part of the deployment
 
 =back
 =cut
@@ -223,9 +238,11 @@ sub get_hana_topology {
 
     Check if hana DB is online.
 
-=over 1
+=over 2
 
-=item B<WAIT_FOR_START> - Define 'wait_for_start' to wait for DB to start.
+=item B<wait_for_start> - Define 'wait_for_start' to wait for DB to start.
+
+=item B<timeout> - timeout for the wait of the online state
 
 =back
 =cut
@@ -281,7 +298,9 @@ sub is_hana_resource_running {
 
 =over 1
 
-=item B<METHOD> - Allow to specify a specific stop method
+=item B<method> - Allow to specify a specific stop method
+
+=item B<timeout> - only used for stop and kill
 
 =back
 =cut
@@ -295,7 +314,7 @@ sub stop_hana {
         kill => "HDB kill -x",
         crash => "echo b > /proc/sysrq-trigger &"
     );
-    croak "HANA stop method '$args{method}' unknown." unless $commands{$args{method}};
+    croak("HANA stop method '$args{method}' unknown.") unless $commands{$args{method}};
 
     my $cmd = $commands{$args{method}};
 
@@ -344,7 +363,7 @@ sub start_hana {
 
 =over 1
 
-=item B<TIMEOUT> - timeout for waiting resource to start
+=item B<timeout> - timeout for waiting resource to start
 
 =back
 =cut
@@ -383,7 +402,8 @@ sub check_takeover {
         my $topology = $self->get_hana_topology();
         $retry_count++;
         while (my ($entry, $host_entry) = each %$topology) {
-            foreach (qw(vhost sync_state)) { die "Missing '$_' field in topology output" unless defined(%$host_entry{$_}); }
+            foreach (qw(vhost sync_state)) {
+                die("Missing '$_' field in topology output") unless defined(%$host_entry{$_}); }
             my $vhost = %$host_entry{vhost};
             my $sync_state = %$host_entry{sync_state};
             record_info("Cluster Host", join("\n",
@@ -394,7 +414,7 @@ sub check_takeover {
                 last TAKEOVER_LOOP;
             }
         }
-        die "Test failed: takeover failed to complete." if ($retry_count > 40);
+        die("Test failed: takeover failed to complete.") if ($retry_count > 40);
         sleep 30;
     }
 
@@ -408,14 +428,14 @@ sub check_takeover {
 
 =over 1
 
-=item B<SITE_NAME> - site name of the site to register
+=item B<site_name> - site name of the site to register
 
 =back
 =cut
 
 sub enable_replication {
     my ($self, %args) = @_;
-    croak "Argument <site_name> missing" unless $args{site_name};
+    croak("Argument <site_name> missing") unless $args{site_name};
     my $hostname = $self->{my_instance}->{instance_id};
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
@@ -484,6 +504,12 @@ sub get_promoted_instance {
     Wait for replica site to sync data with primary.
     Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK && PRIM" and no SFAIL.
     Continue after expected output matched three times continually to make sure cluster is synced.
+
+=over 1
+
+=item B<timeout> - timeout for waiting sync state
+
+=back
 =cut
 
 sub wait_for_sync {
@@ -525,7 +551,7 @@ sub wait_for_sync {
 
 =over 1
 
-=item B<TIMEOUT> - timeout for waiting for pacemaker service
+=item B<timeout> - timeout for waiting for pacemaker service
 
 =back
 =cut
@@ -556,14 +582,14 @@ sub wait_for_pacemaker {
 
 =over 1
 
-=item B<SERVICE_TIMEOUT> - value for the TimeoutSec setting
+=item B<service_timeout> - value for the TimeoutSec setting
 
 =back
 =cut
 
 sub change_sbd_service_timeout() {
     my ($self, %args) = @_;
-    croak "Argument <service_timeout> missing" unless $args{service_timeout};
+    croak("Argument <service_timeout> missing") unless $args{service_timeout};
 
     my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
     my $service_override_filename = "sbd_delay_start.conf";
@@ -616,7 +642,7 @@ sub setup_sbd_delay_publiccloud() {
     }
     else {
         $delay =~ s/(?<![ye])s//g;
-        croak "<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay"
+        croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
           unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
         $self->cloud_file_content_replace(filename => '/etc/sysconfig/sbd', search_pattern => '^SBD_DELAY_START=.*', replace_with => "SBD_DELAY_START=$delay");
         # service timeout must be higher that startup delay
@@ -630,11 +656,14 @@ sub setup_sbd_delay_publiccloud() {
 =head2 sbd_delay_formula
     $self->sbd_delay_formula();
 
+    return calculated sbd delay
+
 =cut
 
 sub sbd_delay_formula() {
     my ($self) = @_;
-    # all commands below ($corosync_token, $corosync_consensus...) are defined and imported from lib/hacluster.pm
+    # all commands below ($corosync_token, $corosync_consensus...)
+    # are defined and imported from lib/hacluster.pm
     my %params = (
         'corosync_token' => $self->run_cmd(cmd => $corosync_token),
         'corosync_consensus' => $self->run_cmd(cmd => $corosync_consensus),
@@ -655,18 +684,19 @@ sub sbd_delay_formula() {
 
 =over 3
 
-=item B<FILENAME> - file location
+=item B<filename> - file location
 
-=item B<SEARCH_PATTERN> - search pattern
+=item B<search_pattern> - search pattern
 
-=item B<REPLACE_WITH> - string to replace
+=item B<replace_with> - string to replace
 
 =back
 =cut
 
 sub cloud_file_content_replace() {
     my ($self, %args) = @_;
-    foreach (qw(filename search_pattern replace_with)) { croak "Argument < $_ > missing" unless $args{$_}; }
+    foreach (qw(filename search_pattern replace_with)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
     $self->run_cmd(cmd => sprintf("sed -E 's/%s/%s/g' -i %s", $args{search_pattern}, $args{replace_with}, $args{filename}), quiet => 1);
 }
 
@@ -677,16 +707,16 @@ sub cloud_file_content_replace() {
 
 =over 1
 
-=item B<PROVIDER> - Instance of PC object "provider", the one usually created by provider_factory()
+=item B<provider> - Instance of PC object "provider", the one usually created by provider_factory()
 
 =back
 =cut
 
 sub create_instance_data {
     my (%args) = @_;
-    croak "Argument <provider> missing" unless $args{provider};
+    croak("Argument <provider> missing") unless $args{provider};
     my $class_type = ref($args{provider});
-    croak "Unexpected class type [$class_type]" unless $class_type =~ /^publiccloud::(azure|ec2|gce)/;
+    croak("Unexpected class type [$class_type]") unless $class_type =~ /^publiccloud::(azure|ec2|gce)/;
     my @instances = ();
     my $inventory_file = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $ypp = YAML::PP->new;
@@ -754,14 +784,14 @@ sub delete_network_peering {
 
 =over 3
 
-=item B<HA_ENABLED> - Enable the installation of HANA and the cluster configuration
+=item B<ha_enabled> - Enable the installation of HANA and the cluster configuration
 
-=item B<REGISTRATION> - select registration mode, possible values are
+=item B<registration> - select registration mode, possible values are
                           * registercloudguest (default)
                           * suseconnect
                           * noreg "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
 
-=item B<FENCING> - select fencing mechanism
+=item B<fencing> - select fencing mechanism
 
 =back
 =cut
@@ -816,7 +846,7 @@ sub create_playbook_section_list {
     return (\@playbook_list);
 }
 
-=head3 azure_fencing_agents_playbook_args
+=head2 azure_fencing_agents_playbook_args
 
     azure_fencing_agents_playbook_args(
         spn_application_id=>$spn_application_id,
@@ -833,13 +863,13 @@ sub azure_fencing_agents_playbook_args {
     my (%args) = @_;
 
     my $fence_agent_openqa_var = get_var('AZURE_FENCE_AGENT_CONFIGURATION') // 'msi';
-    croak "AZURE_FENCE_AGENT_CONFIGURATION contains dubious value: '$fence_agent_openqa_var'" unless
-      !$fence_agent_openqa_var or $fence_agent_openqa_var =~ /msi|spn/;
+    croak("AZURE_FENCE_AGENT_CONFIGURATION contains dubious value: '$fence_agent_openqa_var'")
+      unless !$fence_agent_openqa_var or $fence_agent_openqa_var =~ /msi|spn/;
     my $fence_agent_configuration = $fence_agent_openqa_var eq 'spn' ? $fence_agent_openqa_var : 'msi';
 
     if ($fence_agent_configuration eq 'spn') {
         foreach ('spn_application_id', 'spn_application_password') {
-            croak "Missing '$_' argument" unless defined($args{$_});
+            croak("Missing '$_' argument") unless defined($args{$_});
         }
     }
 
@@ -938,16 +968,16 @@ sub list_cluster_nodes {
 
 =over 2
 
-=item B<PASSWORD_DB> - password
+=item B<password_db> - password
 
-=item B<INSTANCE_ID> - instance id
+=item B<instance_id> - instance id
 
 =back
 =cut
 
 sub get_hana_database_status {
     my ($self, %args) = @_;
-    foreach (qw(password_db instance_id)) { croak "Argument < $_ > missing" unless $args{$_}; }
+    foreach (qw(password_db instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
     my $hdb_cmd = "hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} 'SELECT * FROM SYS.M_DATABASES;'";
     my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var("SAP_SIDADM"), proceed_on_failure => 1);
 
@@ -966,9 +996,9 @@ sub get_hana_database_status {
 
 =over 2
 
-=item B<TIMEOUT> - default 900
+=item B<timeout> - default 900
 
-=item B<TOTAL_CONSECUTIVE_PASSES> - default 5
+=item B<total_consecutive_passes> - default 5
 
 =back
 =cut
@@ -1007,7 +1037,7 @@ sub is_hana_database_online {
 
 =over 1
 
-=item B<TIMEOUT> - default 300
+=item B<timeout> - default 300
 
 =back
 =cut
@@ -1081,9 +1111,9 @@ sub saphanasr_showAttr_version {
 
 =over 2
 
-=item B<WAIT_TIME> - time to wait before retry in seconds, default 10
+=item B<wait_time> - time to wait before retry in seconds, default 10
 
-=item B<MAX_RETRIES> - maximum number of retries, default 7
+=item B<max_retries> - maximum number of retries, default 7
 
 =back
 =cut
@@ -1126,20 +1156,20 @@ sub wait_for_cluster {
 
 =item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
 
-=item B<MAX_RETRIES> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.
+=item B<max_retries> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.
 
-=item B<RETRY_DELAY> - The number of seconds to wait between retries. Default is 20 seconds.
+=item B<retry_delay> - The number of seconds to wait between retries. Default is 20 seconds.
 
-=item B<TIMEOUT> - The number of seconds to wait before aborting zypper ref
+=item B<timeout> - The number of seconds to wait before aborting zypper ref
 
-=item B<RUNAS> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
+=item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
 
 =back
 =cut
 
 sub wait_for_zypper {
     my ($self, %args) = @_;
-    croak "Argument <instance> missing" unless $args{instance};
+    croak("Argument <instance> missing") unless $args{instance};
     $args{max_retries} //= 10;
     $args{retry_delay} //= 20;
     $args{timeout} //= 600;
