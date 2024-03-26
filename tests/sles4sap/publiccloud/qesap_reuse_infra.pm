@@ -38,7 +38,7 @@ sub run {
     qesap_import_instances($test_id);
 
     my $provider = $self->provider_factory();
-    my $instances = create_instance_data($provider);
+    my $instances = create_instance_data(provider => $provider);
     $self->{instances} = $run_args->{instances} = $instances;
 
     record_info('IMPORT OK', 'Instance data imported.');

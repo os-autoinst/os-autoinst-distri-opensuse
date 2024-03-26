@@ -47,7 +47,7 @@ sub run {
 
             # Recreate instances data as the redeployment of terraform + ansible changes the instances
             my $provider_instance = $self->provider_factory();
-            my $instances = create_instance_data($provider_instance);
+            my $instances = create_instance_data(provider => $provider_instance);
             foreach my $instance (@$instances) {
                 record_info 'New Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
                 if (get_var('FENCING_MECHANISM') eq 'native' && $provider eq 'AZURE') {

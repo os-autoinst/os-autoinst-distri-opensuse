@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::MockModule;
+use Test::MockObject;
 use Test::Exception;
 use Test::More;
 use Test::Mock::Time;
@@ -9,6 +10,139 @@ use List::Util qw(any none);
 
 use publiccloud::instance;
 use sles4sap_publiccloud;
+
+subtest "[run_cmd] missing cmd" => sub {
+    my $self = sles4sap_publiccloud->new();
+    dies_ok { $self->run_cmd() } 'Expected failure: missing mandatory argument cmd';
+};
+
+subtest "[run_cmd]" => sub {
+    my $self = sles4sap_publiccloud->new();
+
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    my @calls;
+    $mock_pc->mock('run_ssh_command', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'BABUUUUUUUUM' });
+    $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{instance_id} = 'Yondu';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = $self->run_cmd(cmd => 'babum');
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+    ok $ret eq 'BABUUUUUUUUM';
+};
+
+subtest "[sles4sap_cleanup] no argument ret 0" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $self = sles4sap_publiccloud->new();
+    my $ret = $self->sles4sap_cleanup();
+    ok $ret eq 0;
+};
+
+subtest "[is_hana_online]" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return <<END;
+Performing Final Memory Release with 8 threads.
+Finished Final Memory Release successfuly.
+online: true
+mode: sync
+operation mode: logreplay
+site id: 2
+site name: site_b
+is source system: false
+is secondary/consumer system: true
+has secondaries/consumers attached: false
+is a takeover active: false
+is primary suspended: false
+is timetravel enabled: false
+replay mode: auto
+active primary site: 1
+primary masters: vmhana01
+Tier of site_a: 1
+Tier of site_b: 2
+Replication mode of site_a: primary
+Replication mode of site_b: sync
+Operation mode of site_a: primary
+Operation mode of site_b: logreplay
+Mapping: site_a -> site_b
+Hint based routing site:
+END
+    });
+
+    my $self = sles4sap_publiccloud->new();
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    my $ret = $self->is_hana_online();
+    set_var('SAP_SIDADM', undef);
+    ok $ret eq 1;
+};
+
+subtest "[stop_hana]" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return; }
+    );
+    my $self = sles4sap_publiccloud->new();
+
+    set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
+    $self->stop_hana();
+    set_var('INSTANCE_SID', undef);
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+
+    ok((any { qr/HDB stop/ } @calls), 'function calls HDB stop');
+};
+
+subtest "[stop_hana] crash" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
+
+    my $self = sles4sap_publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    my @calls;
+    $mock_pc->mock('run_ssh_command', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'BABUUUUUUUUM' });
+    $self->{my_instance} = $mock_pc;
+
+    $self->stop_hana(method => 'crash');
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+    ok((any { qr/echo b.*sysrq-trigger/ } @calls), 'function calls HDB stop');
+};
+
+subtest "[setup_sbd_delay_publiccloud]" => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { return; });
+    $sles4sap_publiccloud->redefine(sbd_delay_formula => sub { return 30; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'BABUUUUUUUUM'; }
+    );
+    my $returned_delay = $self->setup_sbd_delay_publiccloud();
+    note("\n  C -->  " . join("\n  -->  ", @calls));
+    ok((any { qr/echo.*>>.*sbd_delay_start\.conf/ } @calls), 'write sbd_delay_start.conf');
+};
 
 subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
     my $self = sles4sap_publiccloud->new();
@@ -115,6 +249,7 @@ subtest '[list_cluster_nodes]' => sub {
     );
 
     my $node_list = $self->list_cluster_nodes();
+    note("\n  C -->  " . join("\n  -->  ", @calls));
 
     is ref($node_list), 'ARRAY', 'Func,tion returns array ref.';
     is @$node_list, @instances, 'Test expected result.';
@@ -136,6 +271,7 @@ subtest '[list_cluster_nodes] failure' => sub {
     );
 
     dies_ok { $self->list_cluster_nodes() } 'Expected failure: missing mandatory arg';
+    note("\n  C -->  " . join("\n  -->  ", @calls));
 };
 
 
@@ -460,7 +596,7 @@ subtest '[enable_replication]' => sub {
 
     set_var('SAP_SIDADM', 'YONDUR');
 
-    $self->enable_replication('WilliamAdama');
+    $self->enable_replication(site_name => 'WilliamAdama');
 
     set_var('SAP_SIDADM', undef);
 

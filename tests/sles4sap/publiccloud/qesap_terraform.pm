@@ -159,7 +159,7 @@ sub run {
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
 
     $provider->terraform_applied(1);
-    my $instances = create_instance_data($provider);
+    my $instances = create_instance_data(provider => $provider);
     foreach my $instance (@$instances) {
         record_info 'Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
         $self->{my_instance} = $instance;
