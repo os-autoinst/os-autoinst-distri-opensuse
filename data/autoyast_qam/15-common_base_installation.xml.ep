@@ -258,9 +258,14 @@
       <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
+    % if ($check_var->('MULTIPATH', '1')) {
+    <storage>
+      <start_multipath config:type="boolean">true</start_multipath>
+    </storage>
+    % }
   </general>
   <partitioning config:type="list">
-  <drive>
+    <drive>
     <initialize config:type="boolean">true</initialize>
     <use>all</use>
     </drive>
@@ -354,6 +359,9 @@
       % }
       <package>openssh</package>
       <package>firewalld</package>
+      % if ($check_var->('MULTIPATH', '1')) {
+      <package>multipath-tools</package>
+      % }
     </packages>
     % }
     <patterns config:type="list">
@@ -373,6 +381,9 @@
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        % if ($check_var->('MULTIPATH', '1')) {
+        <service>multipathd</service>
+        % }
       </enable>
     </services>
   </services-manager>

@@ -18,6 +18,7 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     select_serial_terminal;
+    validate_script_output('lsblk', sub { m/mpath/ }) if get_var('MULTIPATH');
     if (kdump_utils::configure_service(test_type => 'function') == 16) {
         record_info 'Not supported', 'Kdump is not supported in a PV DomU';
         return;

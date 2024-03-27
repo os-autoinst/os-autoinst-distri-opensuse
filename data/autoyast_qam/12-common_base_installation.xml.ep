@@ -255,6 +255,11 @@
       <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
+    % if ($check_var->('MULTIPATH', '1')) {
+    <storage config:type="map">
+      <start_multipath config:type="boolean">true</start_multipath>
+    </storage>
+    % }
   </general>
   % if ($check_var->('ARCH', 'aarch64')) {
   <partitioning config:type="list">
@@ -389,6 +394,9 @@
     <pesize/>
     <type config:type="symbol">CT_DISK</type>
     % }
+    % if ($check_var->('MULTIPATH', '1')) {
+    <device>/dev/mapper/0QEMU_QEMU_HARDDISK_hd0</device>
+    % }
   <use>all</use>
   </drive>
   </partitioning>
@@ -461,6 +469,11 @@
       <pattern><%= $pattern %></pattern>
       % }
     </patterns>
+    % if ($check_var->('MULTIPATH', '1')) {
+    <packages config:type="list">
+      <package>multipath-tools</package>
+    </packages>
+    % }
   </software>
   <services-manager>
     % if ($check_var->('DESKTOP', 'gnome')) {
@@ -473,6 +486,9 @@
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        % if ($check_var->('MULTIPATH', '1')) {
+        <service>multipathd</service>
+        % }
       </enable>
     </services>
   </services-manager>
