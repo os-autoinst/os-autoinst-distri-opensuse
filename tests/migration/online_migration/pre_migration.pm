@@ -52,6 +52,8 @@ sub run {
     # set scc proxy url here to perform online migration via scc proxy
     set_scc_proxy_url;
 
+    # import gpg key
+    script_run("rpm --import /usr/lib/rpm/gnupg/keys/gpg-pubkey-*.asc");
     # according to comment 19 of bsc#985647, uninstall all kgraft-patch* packages prior to migration as a workaround to
     # solve conflict during online migration with live patching addon
     remove_kgraft_patch if is_sle('<15');
