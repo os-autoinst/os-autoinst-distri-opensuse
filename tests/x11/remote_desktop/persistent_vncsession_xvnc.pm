@@ -104,7 +104,7 @@ sub run {
     send_key_until_needlematch('vncviewer-minimize', 'tab');
     release_key 'alt';
     assert_screen 'gnome-terminal-launched';
-    assert_and_click 'system-indicator';
+    assert_and_click 'vnc-system-indicator';
     assert_and_click 'user-logout-sector';
     assert_and_click 'logout-system';
     assert_screen 'logout-dialogue';
