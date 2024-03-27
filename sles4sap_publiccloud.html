@@ -49,6 +49,7 @@
       <li><a href="#saphanasr_showAttr_version">saphanasr_showAttr_version</a></li>
       <li><a href="#wait_for_cluster">wait_for_cluster</a></li>
       <li><a href="#wait_for_zypper">wait_for_zypper</a></li>
+      <li><a href="#wait_for_idle">wait_for_idle</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -447,6 +448,19 @@ Returns normally if Zypper is not locked or dies after a maximum number of retri
 
 </dd>
 <dt id="runas---If-runas-defined-command-will-be-executed-as-specified-user-otherwise-it-will-be-executed-as-cloudadmin"><b>runas</b> - If &#39;runas&#39; defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="wait_for_idle">wait_for_idle</h2>
+
+<pre><code>The function wraps the `cs_wait_for_idle` command, and restarts in case of timeout (once, this
+time fatal) after displaying cluster information.</code></pre>
+
+<dl>
+
+<dt id="timeout---The-timeout-in-seconds-for-the-command"><b>$timeout</b> - The timeout (in seconds) for the command.</dt>
 <dd>
 
 </dd>
