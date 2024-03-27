@@ -100,7 +100,7 @@ our %images_list = (
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP4' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.4' },
+            released => sub { 'registry.suse.com/suse/ltss/sle15.4/bci-base:15.4' },
             totest => sub {
                 'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4';
             },
@@ -212,7 +212,7 @@ our %images_list = (
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP4' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.4' },
+            released => sub { 'registry.suse.com/suse/ltss/sle15.4/bci-base:15.4' },
             totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
