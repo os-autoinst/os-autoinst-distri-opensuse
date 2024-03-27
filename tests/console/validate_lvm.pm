@@ -11,7 +11,6 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use version_utils 'is_alp';
 use Test::Assert ':all';
 use Mojo::JSON 'decode_json';
 use List::Util 'sum';
@@ -85,7 +84,7 @@ sub run {
         die "LVM usage stats do not differ!";
     }
 
-    unless (get_var('MULTIPATH') || (is_alp)) {
+    unless (get_var('MULTIPATH')) {
         record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
         my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
         my $drives = extract_drives_from_json($lsblk_output_json);
@@ -117,4 +116,3 @@ sub get_children {
 }
 
 1;
-

@@ -27,7 +27,7 @@ use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
 use registration;
-use version_utils qw(is_alp is_transactional);
+use version_utils qw(is_transactional);
 use transactional;
 
 my $INST_DIR = '/opt/xfstests';

@@ -21,7 +21,7 @@ use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
-use version_utils qw(is_tumbleweed is_alp);
+use version_utils qw(is_tumbleweed);
 
 sub run {
     my ($self) = @_;
@@ -41,7 +41,7 @@ sub run {
     assert_script_run 'slptool -v';
     assert_script_run 'slptool findsrvs service:service-agent | grep service-agent';
 
-    unless (is_tumbleweed || is_alp) {
+    unless (is_tumbleweed) {
         assert_script_run 'slptool findsrvs service:ssh | grep "ssh://\|:22,"';
 
         # List all available services
@@ -90,4 +90,3 @@ sub post_fail_hook {
 }
 
 1;
-

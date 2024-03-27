@@ -13,7 +13,7 @@ use testapi;
 use transactional;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);
-use version_utils qw(is_microos is_sle_micro is_leap_micro is_alp);
+use version_utils qw(is_microos is_sle_micro is_leap_micro);
 use serial_terminal;
 
 sub run {
@@ -35,7 +35,7 @@ sub run {
             push @pkgs, 'cockpit-networkmanager';
         }
     } else {
-        if (is_microos || is_alp || is_leap_micro('5.3+') || is_sle_micro('5.3+')) {
+        if (is_microos || is_leap_micro('5.3+') || is_sle_micro('5.3+')) {
             die sprintf('NetworkManager should be used by %s %s', get_var('DISTRI'), get_var('VERSION'));
         }
         if (script_run('rpm -q cockpit-wicked') != 0) {
@@ -44,14 +44,12 @@ sub run {
     }
 
 
-    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2') || is_alp) {
+    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2')) {
         push @pkgs, qw(cockpit-machines cockpit-tukit);
     }
 
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
-        # In ALP, we need to refresh the metadata. poo#122029
-        assert_script_run('zypper ref') if is_alp;
 
         my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 480);
         # No reboot needed if no package update

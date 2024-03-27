@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: module loader for MicroOS, SLE Micro, Leap Micro and ALP.
+# Summary: module loader for MicroOS, SLE Micro and Leap Micro.
 # Maintainer: qa-c@suse.de
 
 package main_micro_alp;
@@ -178,11 +178,10 @@ sub load_common_tests {
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
-    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER') || is_alp;
+    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
-    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro || is_alp);
-    # SLE Micro is not 2038-proof, so it doesn't apply here, but it does for ALP.
+    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
     # On s390x zvm setups we need more time to wait for system to boot up.
     # Skip this test with sd-boot. The reason is not what you'd think though:
     # With sd-boot, host_config does not perform a reboot and a snapshot is made while the serial terminal
@@ -207,7 +206,6 @@ sub load_network_tests {
     loadtest 'microos/networking';
     loadtest 'microos/networkmanager';
     loadtest 'microos/libzypp_config';
-    # This method is only loaded in ALP
     loadtest 'console/firewalld';
 }
 
@@ -240,9 +238,8 @@ sub load_fips_tests {
 sub load_selinux_tests {
     loadtest 'security/selinux/selinux_setup';
     loadtest 'security/selinux/sestatus';
-    # ALP has selinux enabled and in enforcing mode by default
-    loadtest 'security/selinux/selinux_smoke' unless is_alp;
-    loadtest 'security/selinux/enforcing_mode_setup' unless is_alp;
+    loadtest 'security/selinux/selinux_smoke';
+    loadtest 'security/selinux/enforcing_mode_setup';
     loadtest 'security/selinux/semanage_fcontext';
     loadtest 'security/selinux/semanage_boolean';
     loadtest 'security/selinux/fixfiles';
