@@ -781,20 +781,22 @@ elsif (get_var('XFSTESTS')) {
         loadtest 'kernel/change_kernel';
     }
     prepare_target;
-    if (get_var('XFSTESTS_INSTALL', 0) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
+    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
-    }
-    else {
-        set_var('NO_KDUMP', '1') if !get_var('NO_KDUMP');
-    }
-    unless (check_var('NO_KDUMP', '1')) {
-        loadtest 'xfstests/enable_kdump';
-    }
-    if (get_var('XFSTEST_KLP')) {
-        loadtest 'kernel/install_klp_product';
-    }
-    if (check_var('XFSTESTS', 'installation')) {
-        loadtest 'shutdown/shutdown';
+        unless (check_var('NO_KDUMP', '1')) {
+            loadtest 'xfstests/enable_kdump';
+        }
+        if (get_var('XFSTEST_KLP')) {
+            loadtest 'kernel/install_klp_product';
+        }
+        if (check_var('XFSTESTS', 'installation')) {
+            loadtest 'shutdown/shutdown';
+        }
+        else {
+            loadtest 'xfstests/partition';
+            loadtest 'xfstests/run';
+            loadtest 'xfstests/generate_report';
+        }
     }
     else {
         loadtest 'xfstests/partition';
