@@ -217,7 +217,12 @@ sub run {
     }
 
     # migration_sle will show yast2_migration-license-agreement after alt-m
-    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 600;
+    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement yast2_migration-import-gpgkey)], 600;
+    if (match_has_tag 'yast2_migration-import-gpgkey') {
+        send_key 'alt-t';
+        assert_screen 'yast2_migration-license-agreement', 60;
+        yast2_migration_handle_license_agreement;
+    }
     if (match_has_tag 'yast2-migration-installupdate') {    # Not all cases have install update message.
         send_key 'alt-y';
         assert_screen 'yast2_migration-license-agreement', 60;
