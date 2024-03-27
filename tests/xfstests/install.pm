@@ -90,6 +90,8 @@ sub collect_version {
 
 sub run {
     select_serial_terminal;
+    # Return if xfstests installed
+    script_run("zypper se -i xfstests") != 0 || return;
 
     # Disable PackageKit
     quit_packagekit;
