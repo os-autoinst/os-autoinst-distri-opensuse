@@ -380,7 +380,89 @@ sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     send_key 'e';
-    assert_screen("grub2-enter-edit-mode", 30) if is_jeos;
+    assert_screen("grub2-enter-edit-mode", 30) if (is_jeos || is_usb_boot);
+
+    # Workaround for sle micro 6 baremetal installation with SelfInstall ISO on USB.
+    # See details in https://bugzilla.suse.com/show_bug.cgi?id=1218095#c69.
+    # - remove from kernel command line `console=tty0`, to let installation shown in sol
+    # - add in kernel command line `rd.kiwi.term=linux`, to let installation dialog
+    #   have proper background color
+    # - set serial console in kernel command line
+    if (is_ipmi && is_selfinstall && is_usb_boot) {
+        my $counter = 0;
+        my $max_tries = 5;
+        while (!check_screen('no-tty0-but-term-linux', 2) && $counter++ < $max_tries) {
+            # Re-enter grub edit by discarding changes for 2+ round
+            if ($counter > 1) {
+                send_key_until_needlematch('bootloader-grub2', 'esc', 3, 2);
+                send_key_until_needlematch('grub2-enter-edit-mode', 'e', 3, 2);
+            }
+            record_info("Doing round $counter of grub editing...");
+
+            # Go to linux line
+            # For efficiency, use send_key with wait_screen_change
+            send_key('down', wait_screen_change => 1) for (1 .. 3);
+            # To mitigate sol unstability, use below while loop.
+            # Can't use send_key_until_needlematch because it will die.
+            my $_counter = 0;
+            my $_max = 5;
+            while (!check_screen('grub2-edit-linux-line', 2) && $_counter++ < $_max) {
+                send_key('down', wait_screen_change => 1);
+            }
+            next if (!check_screen('grub2-edit-linux-line', 2));
+
+            # Move cursor to `console=ttyS0`
+            send_key('right', wait_screen_change => 1) for (1 .. 60);
+            $_counter = 0;
+            $_max = 10;
+            while (!check_screen('on-linux-console-ttyS0', 2) && $_counter++ < $_max) {
+                send_key('right', wait_screen_change => 1);
+            }
+            next if (!check_screen('on-linux-console-ttyS0', 2));
+
+            # Delete `ttyS0`
+            send_key('delete', wait_screen_change => 1) for (1 .. 5);
+            $_counter = 0;
+            $_max = 3;
+            while (!check_screen('deleted-ttyS0', 2) && $_counter++ < $_max) {
+                send_key('delete', wait_screen_change => 1);
+            }
+            next if (!check_screen('deleted-ttyS0', 2));
+
+            # Add serial console
+            type_string_very_slow(get_required_var('SERIALCONSOLE'));
+            next if (!check_screen("serial-console-exists", 2));
+
+            # Move cursor to `console=tty0`
+            send_key('right', wait_screen_change => 1) for (1 .. 7);
+            $_counter = 0;
+            $_max = 5;
+            while (!check_screen('on-linux-console=tty0', 2) && $_counter++ < $_max) {
+                send_key('right', wait_screen_change => 1);
+            }
+            next if (!check_screen('on-linux-console=tty0', 2));
+
+            # Delete `console=tty0`
+            send_key('delete', wait_screen_change => 1) for (1 .. 12);
+            $_counter = 0;
+            $_max = 5;
+            while (!check_screen('deleted-console=tty0', 2) && $_counter++ < $_max) {
+                send_key('delete', wait_screen_change => 1);
+            }
+            next if (!check_screen('deleted-console=tty0', 2));
+
+            # Add term setting
+            type_string_very_slow(" rd.kiwi.term=linux ");
+            if (!check_screen("no-tty0-but-term-linux", 2)) {
+                next;
+            } else {
+                record_info('Successfully finished grub2 editing.');
+                return;
+            }
+        }
+        die "Failed to edit grub2 after $max_tries tries.";
+    }
+
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
     if (is_jeos && (!is_sle('=12-SP5') || is_opensuse)) {
