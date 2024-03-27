@@ -24,9 +24,8 @@ my $python3_version;
 my $python_sub_version;
 
 sub run {
-    return if (is_sle('<15-sp6') || is_leap('<15.6'));
-
     select_serial_terminal;
+    return if (is_sle('<15-sp6') || is_leap('<15.6'));
 
     # Install libgit2
     if (is_sle) {
