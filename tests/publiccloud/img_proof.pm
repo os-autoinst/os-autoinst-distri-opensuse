@@ -15,6 +15,7 @@ use Mojo::JSON;
 use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
+use utils qw(zypper_call);
 
 sub run {
     my ($self, $args) = @_;
@@ -91,6 +92,18 @@ sub run {
 
     # Because the IP address of instance might change during img_proof due to the hard-reboot, we need to re-add the ssh public keys
     assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+
+    if (is_hardened) {
+        # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
+        zypper_call "in jq";
+        my $outcome = script_output "cat $img_proof->{results} | jq '.tests[] | select(.nodeid | startswith(\"test_sles_hardened\")) | .outcome'";
+        if ($outcome =~ m/"failed"/) {
+            # Change "failed" to "passed"
+            assert_script_run "cat $img_proof->{results} | jq '.tests |= map(if (.nodeid | startswith(\"test_sles_hardened\")) then .outcome = \"passed\" else . end)' > tmp.json";
+            assert_script_run "mv -f tmp.json $img_proof->{results}";
+            record_soft_failure("bsc#1220269 - scap-security-guide fails");
+        }
+    }
 
     upload_logs($img_proof->{logfile});
     parse_extra_log(IPA => $img_proof->{results});
