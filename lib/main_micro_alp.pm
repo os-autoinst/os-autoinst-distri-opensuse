@@ -275,6 +275,9 @@ sub load_slem_on_pc_tests {
     my $args = OpenQA::Test::RunArgs->new();
     if (get_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO')) {
         load_publiccloud_download_repos();
+    } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
+        loadtest("boot/boot_to_desktop");
+        loadtest("publiccloud/upload_image");
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
