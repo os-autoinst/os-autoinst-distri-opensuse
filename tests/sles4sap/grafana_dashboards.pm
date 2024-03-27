@@ -13,6 +13,7 @@ use warnings;
 use hacluster qw(get_my_ip);
 use registration;
 use utils qw(zypper_call systemctl);
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -57,6 +58,10 @@ sub run {
     send_key 'tab';
     send_key 'ret';
     assert_and_click "grafana-home", timeout => $timeout;
+    if (is_sle('>=15-SP6')) {
+        assert_and_click "select_grafana_left_sidebar", timeout => $timeout;
+        assert_and_click "select_dashboard_in_left_sidebar", timeout => $timeout;
+    }
     assert_and_click "select_suse-dashboard", timeout => $timeout;
     assert_screen "check_suse-dashboard", $timeout;
 
