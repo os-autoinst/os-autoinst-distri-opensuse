@@ -63,7 +63,7 @@ sub run {
 
     # DB availability check
     unless (check_postgres_db) {
-        record_info("DB is not available!", result => 'softfail');
+        record_info('DB check', 'DB is not available!', result => 'softfail');
         return 1;
     }
 
