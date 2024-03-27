@@ -96,10 +96,10 @@
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200 <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></xen_append>
+      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
       <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % } else {
-      <append>splash=silent <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></append>
+      <append>splash=silent</append>
       % }
     </global>
     <loader_type>grub2</loader_type>
