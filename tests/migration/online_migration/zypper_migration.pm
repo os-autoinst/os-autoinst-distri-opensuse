@@ -73,7 +73,7 @@ sub run {
         if ($out =~ $zypper_migration_target) {
             my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
             $target_version =~ s/-/ /;
-            if ($out =~ /(\d+)\s+\|\s?SUSE Linux Enterprise.*?$target_version/m) {
+            if ($out =~ /(\d+)\s+\|\s?SUSE Linux.*?$target_version/m) {
                 send_key "$1";
             }
             else {
