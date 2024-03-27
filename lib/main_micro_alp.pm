@@ -50,6 +50,8 @@ sub load_boot_from_disk_tests {
         loadtest 'jeos/firstrun';
     } elsif (is_s390x()) {
         loadtest 'boot/boot_to_desktop';
+    } elsif (is_generalhw && is_aarch64) {
+        loadtest 'microos/prepare_firstboot';
     } else {
         loadtest 'microos/disk_boot';
     }
