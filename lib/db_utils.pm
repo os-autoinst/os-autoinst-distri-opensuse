@@ -184,7 +184,7 @@ sub push_image_data_to_db {
         # return to the caller that conflict has been found
         # caller should exit the test case module immediately
     } else {
-        record_info("There has been a problem pushing data to the $table. RC => " . $res->code, result => 'softfail');
+        record_info('DB error', "There has been a problem pushing data to the $table. RC => " . $res->code, result => 'softfail');
     }
 
     return $res->code;
