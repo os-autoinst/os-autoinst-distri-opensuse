@@ -151,7 +151,7 @@ sub prepare_host {
     zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
 
     #check IOMMU based on VT-d is supported in Intel x86_64 machines
-    if (script_run("grep Intel /proc/cpuinfo") == 0) {
+    if (is_kvm_host && script_run("grep Intel /proc/cpuinfo") == 0) {
         assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
 

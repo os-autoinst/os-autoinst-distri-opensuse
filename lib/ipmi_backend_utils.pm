@@ -83,14 +83,10 @@ sub setup_console_in_grub {
             $bootmethod = "module";
             $search_pattern = "vmlinuz";
 
-            my $dom0_options = "";
-            if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH")) {
-                $dom0_options = "iommu=on";
-            }
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $dom0_options $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
+              . "/multiboot/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
@@ -113,7 +109,7 @@ sub setup_console_in_grub {
 
         #enable Intel VT-d for SR-IOV test running on intel SUTs
         my $intel_option = "";
-        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+        if (${virt_type} eq "kvm" && get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
             $intel_option = "intel_iommu=on";
         }
 
