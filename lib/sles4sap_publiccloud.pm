@@ -67,6 +67,7 @@ our @EXPORT = qw(
   get_hana_site_names
   wait_for_cluster
   wait_for_zypper
+  wait_for_idle
 );
 
 =head1 DESCRIPTION
@@ -228,7 +229,7 @@ sub sles4sap_cleanup {
 
 sub get_hana_topology {
     my ($self) = @_;
-    $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => 120);
+    $self->wait_for_idle(timeout => 240);
     my $cmd_out = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
     return calculate_hana_topology(input => $cmd_out);
 }
@@ -1195,6 +1196,38 @@ sub wait_for_zypper {
     }
 
     die "Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)" if $retry >= $args{max_retries};
+}
+
+=head2 wait_for_idle
+
+    The function wraps the `cs_wait_for_idle` command, and restarts in case of timeout (once, this
+    time fatal) after displaying cluster information.
+
+=over 1
+
+=item B<$timeout> - The timeout (in seconds) for the command.
+
+=back
+=cut
+
+sub wait_for_idle {
+    my ($self, %args) = @_;
+    my $timeout = $args{timeout} // 240;
+
+    my $rc = $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1, proceed_on_failure => 1);
+    if ($rc == 124) {
+        record_info("cs_wait_for_idle", "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
+        $self->run_cmd(cmd => 'cs_clusterstate', proceed_on_failure => 1);
+        $self->run_cmd(cmd => 'crm_mon -r -R -n -N -1', proceed_on_failure => 1);
+        $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1);
+        # Run again, but allow to fail this time
+        $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout);
+    } elsif ($rc != 0) {
+        die "Command 'cs_wait_for_idle --sleep 5' failed with return code $rc";
+    }
+    else {
+        record_info("cs_wait_for_idle", "cs_wait_for_idle completed successfully");
+    }
 }
 
 1;
