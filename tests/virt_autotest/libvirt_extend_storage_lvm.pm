@@ -81,6 +81,7 @@ sub prepare_lvm_storage_pool_source {
         wipe_hard_disk($lvm_disk_name);
         ## About LVM volumes management
         # Create a Volume Group (VG) with LVM named 'lvm_vg'
+        remove_volume_group(disk => "${lvm_disk_name}1", vg => "${lvm_vg_name}");
         create_volume_group($lvm_disk_name);
         return ($lvm_disk_name);
     }
@@ -102,6 +103,26 @@ sub get_hard_disk_size {
 sub wipe_hard_disk {
     my $hard_disk_name = shift;
     assert_script_run("dd if=/dev/zero of=$hard_disk_name count=1M", timeout => 1500, fail_message => "Failed to wipe hard disk clean on $hard_disk_name");
+}
+
+# Reomve volume group associated with a disk partition
+sub remove_volume_group {
+    my %args = @_;
+    $args{disk} //= '';
+    $args{vg} //= '';
+    die("Neither disk nor vg should be empty") unless ($args{disk} and $args{vg});
+
+    my $timeout = 180;
+    record_info("Reomve vg $args{vg} forcibly");
+    script_run("vgremove -f -y $args{vg}", timeout => $timeout);
+
+    record_info("Remove physical volume $args{disk} forcibly");
+    script_run("pvremove -f -y $args{disk}", timeout => $timeout);
+
+    if (script_run("vgdisplay $args{vg}", timeout => $timeout) == 0 or script_run("pvdisplay $args{disk}", timeout => $timeout) == 0) {
+        die("Either vg $args{vg} or pv $args{disk} still exists after removing");
+    }
+    save_screenshot;
 }
 
 # Create a Volume Group with LVM
