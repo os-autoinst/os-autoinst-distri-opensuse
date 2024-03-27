@@ -13,7 +13,7 @@ schedule:
 - console/yast2_vnc
 - console/force_scheduled_tasks
 - autoyast/autoyast_reboot
-- kernel/update_kernel
+#- kernel/update_kernel
 - console/system_prepare
 - console/check_network
 - console/system_state
@@ -25,5 +25,7 @@ schedule:
 - console/consoletest_finish
 - locale/keymap_or_locale_x11
 - x11/glxgears
+- kernel/usb_nic
+- kernel/usb_drive
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
