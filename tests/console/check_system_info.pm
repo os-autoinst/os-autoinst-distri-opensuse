@@ -113,6 +113,7 @@ sub run {
 
         # For hpc, system doesn't include legacy module
         $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
+        $myaddons =~ s/ltss,?//g;
         check_addons($myaddons);
         check_product("after");
         check_buildid;
