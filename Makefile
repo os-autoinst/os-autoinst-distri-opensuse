@@ -111,6 +111,8 @@ test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
+else ifeq ($(TESTS),compile-changed)
+test: test-compile-changed
 else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)
