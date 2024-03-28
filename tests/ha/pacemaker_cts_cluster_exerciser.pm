@@ -14,7 +14,7 @@ use warnings;
 use Mojo::JSON 'encode_json';
 use lockapi;
 use testapi;
-use utils qw(systemctl zypper_call exec_and_insert_password);
+use utils qw(systemctl zypper_call zypper_ar exec_and_insert_password);
 use hacluster;
 use version_utils qw(package_version_cmp);
 
@@ -32,8 +32,11 @@ sub run {
 
     # Wait until Pacemaker cts test is initialized
     barrier_wait("PACEMAKER_CTS_INIT_$cluster_name");
-
+    zypper_ar('http://download.suse.de/ibs/home:/fbui:/systemd:/SLE-15-SP6-bsc1221906/SLE_15_SP6_GA/home:fbui:systemd:SLE-15-SP6-bsc1221906.repo', priority => 1, no_gpg_check => 1);
+    zypper_call('--gpg-auto-import-keys ref');
+    zypper_call('up --auto-agree-with-licenses --force-resolution --allow-vendor-change');
     zypper_call 'in pacemaker-cts';
+    zypper_call('se -s systemd'); 
     save_screenshot;
     # Get package version
     my $pacemaker_cts_package_version = script_output("rpm -q --qf '%{VERSION}\n' pacemaker-cts");
