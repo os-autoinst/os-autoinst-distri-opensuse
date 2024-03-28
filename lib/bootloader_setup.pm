@@ -123,8 +123,11 @@ sub add_custom_grub_entries {
     elsif (is_alp()) {
         $distro = "ALP";
     }
-    elsif (is_sle_micro()) {
+    elsif (is_sle_micro('<6.0')) {
         $distro = "SLE Micro";
+    }
+    elsif (is_sle_micro()) {
+        $distro = "SL Micro";
     }
     elsif (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
