@@ -135,10 +135,9 @@ sub run {
     # Check the version of ansible-community from where we use the zypper module
     # (this command may not be available for older ansible versions )
     assert_script_run('ansible-community --version') if (script_run('which ansible-community') == 0);
-    my $skip_tags = '--skip-tags zypper';
 
     # Check the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
+    assert_script_run "ansible-playbook -i hosts main.yaml --check", timeout => 300;
 
     # Run the ansible sanity test
     script_run 'ansible-test --help';
@@ -150,7 +149,7 @@ sub run {
     assert_script_run 'ansible -i hosts all --list-hosts';
 
     # Run the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml $skip_tags", timeout => 600;
+    assert_script_run "ansible-playbook -i hosts main.yaml", timeout => 600;
 
     # Test that /tmp/ansible/uname.txt created by ansible has desired content
     my $uname = script_output 'uname -r';
