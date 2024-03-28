@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_alp is_transactional);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional);
 use mm_network;
 use Utils::Backends;
 
@@ -119,9 +119,6 @@ sub add_custom_grub_entries {
     # LTSS is supported only on aarch64 HPC 12-SP4
     if (check_var('VERSION', '12-SP4') && is_aarch64) {
         $distro = 'SLE-HPC' . ' \\?' . get_required_var('VERSION');
-    }
-    elsif (is_alp()) {
-        $distro = "ALP";
     }
     elsif (is_sle_micro('<6.0')) {
         $distro = "SLE Micro";

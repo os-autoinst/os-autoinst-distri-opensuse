@@ -30,7 +30,6 @@ use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
-use version_utils 'is_alp';
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
