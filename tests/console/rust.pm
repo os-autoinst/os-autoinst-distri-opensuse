@@ -28,4 +28,19 @@ sub run {
         sub { m/Hello, world!/ }, timeout => $timeout);
 }
 
+sub post_run_hook {
+    # Remove testproject directory
+    select_console('user-console');
+    assert_script_run('rm -rf testproject');
+
+    # Uninstall Cargo
+    select_console('root-console');
+    zypper_call('rm --clean-deps cargo');
+}
+
+sub post_fail_hook {
+    select_console 'log-console';
+    assert_script_run 'save_y2logs /tmp/rust_y2logs.tar.bz2';
+    upload_logs '/tmp/rust_y2logs.tar.bz2';
+}
 1;
