@@ -15,7 +15,22 @@ use Mojo::JSON;
 use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
-use utils qw(zypper_call);
+
+sub patch_json {
+    my ($file) = @_;
+    my $data = Mojo::JSON::decode_json(script_output("cat $file"));
+
+    foreach my $i (0 .. $#{$data->{tests}}) {
+        # Change "failed" to "passed"
+        if ($data->{tests}[$i]{nodeid} =~ /^test_sles_hardened/ && $data->{tests}[$i]{outcome} eq 'failed') {
+            $data->{tests}[$i]{outcome} = 'passed';
+            record_soft_failure("bsc#1220269 - scap-security-guide fails");
+            my $json = Mojo::JSON::encode_json($data);
+            assert_script_run "echo '$json' > $file";
+            return;
+        }
+    }
+}
 
 sub run {
     my ($self, $args) = @_;
@@ -95,14 +110,7 @@ sub run {
 
     if (is_hardened) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
-        zypper_call "in jq";
-        my $outcome = script_output "cat $img_proof->{results} | jq '.tests[] | select(.nodeid | startswith(\"test_sles_hardened\")) | .outcome'";
-        if ($outcome =~ m/"failed"/) {
-            # Change "failed" to "passed"
-            assert_script_run "cat $img_proof->{results} | jq '.tests |= map(if (.nodeid | startswith(\"test_sles_hardened\")) then .outcome = \"passed\" else . end)' > tmp.json";
-            assert_script_run "mv -f tmp.json $img_proof->{results}";
-            record_soft_failure("bsc#1220269 - scap-security-guide fails");
-        }
+        patch_json $img_proof->{results};
     }
 
     upload_logs($img_proof->{logfile});
