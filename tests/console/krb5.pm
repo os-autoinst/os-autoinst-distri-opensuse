@@ -26,7 +26,7 @@ sub logout_and_verify_shell_availability {
     script_run 'logout', 0;
     # verify shell is ready with simple command
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-    # re-connecct serial console on aarch64, see poo#157960
+    # re-connect serial console on aarch64, see poo#157960
     if (is_aarch64) {
         sleep 3;
         select_serial_terminal;
