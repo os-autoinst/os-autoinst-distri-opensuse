@@ -31,7 +31,7 @@ my $JUNIT_FILE = '/opt/output.xml';
 
 sub log_end {
     my $file = shift;
-    my $cmd = "echo '\nTest run complete' >> $file";
+    my $cmd = "echo 'Test run complete' >> $file";
     send_key 'ret';
     script_run($cmd, proceed_on_failure => 1);
 }
