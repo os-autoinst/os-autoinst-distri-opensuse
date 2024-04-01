@@ -22,11 +22,7 @@ use POSIX 'strftime';
 sub run ($self) {
     select_serial_terminal();
     my $mpi = get_required_var('MPI');
-    #my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
-    #my $mpi_bin = 'mpi_bin';
     my $mpi2load = '';
-    #my @cluster_nodes = $self->cluster_names();
-    #my $cluster_nodes = join(',', @cluster_nodes);
     my %exports_path = (
         bin => '/home/bernhard/bin',
         hpc_lib => '/usr/lib/hpc',
@@ -37,8 +33,6 @@ sub run ($self) {
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
     zypper_call("in imb-gnu-$mpi-hpc");
 
-    #my $need_restart = $self->setup_scientific_module();
-
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
@@ -46,17 +40,6 @@ sub run ($self) {
 
     $self->check_nodes_availability();
 
-    #record_info('INFO', script_output('cat /proc/cpuinfo'));
-    #my $hostname = get_var('HOSTNAME', 'susetest');
-    #record_info "hostname", "$hostname";
-    #assert_script_run "hostnamectl status | grep $hostname";
-    #assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path{'bin'}/$mpi_c");
-
-    # I need to restart the nfs-server for some reason otherwise the compute nodes
-    # cannot mount directories
-    #record_info 'NFS', 'setup NFS';
-    #select_console('root-console');
-    #systemctl 'restart nfs-server';
     # And login as normal user to run the tests
     # NOTE: This behaves weird. Need another solution apparently
     type_string('pkill -u root') unless $user_virtio_fixed;
@@ -90,7 +73,7 @@ sub run ($self) {
 	assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
     barrier_wait('IMB_TEST_DONE');
-    record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
+    record_info('IMB_TEST_DONE'), strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
@@ -111,20 +94,6 @@ sub post_fail_hook ($self) {
 Stores the MPI implementation. This is usually whatever MPI job variable is
 given
 
-=item $mpi_compiler
-This is determined based on the source code which is used and comes together
-with C<mpi_c>
-
-=item $mpi_c
-The source code to compile and run. The source codes are located in
- L<data|data/hpc>
-
-=item $mpi_bin
-Holds the name of the compiled source code
-
-=item $cluster_nodes
-A str representation of all the nodes of the cluster, including master node.
-
 =item %exports_path
 Holds the common paths which nodes locate libraries and source code.
 
@@ -139,13 +108,6 @@ Used by C<select_user_serial_terminal> to get a user terminal
 differentiates the openmpi name to be used in lmod loading. C<lmod> can load
 only one mpi. In case of openmpi2, openmpi3, openmpi4 which is stored in C<mpi>,
 it takes their place as all are found as I<openmpi>
-
-=item $hostname
-It just holds the I<hostname> to avoid recall C<get_var> again and again
-
-=item $mpirun_s
-Holds an object which implements wrappers for B<mpirun>. Implementation can be
-found at L<formatter|lib/hpc/formatter.pm>
 
 =item $imb_version
 Stores the version of the imb installed package. It is used to determine the
