@@ -110,6 +110,12 @@ sub test_network_interface {
     my $isolated = $args{isolated} // 0;
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short google.com");
+    # Expect $target is an IP address
+    if ($target !~ /^[\d\.]+/) {
+        record_info("Incorrect remote target to test your network connection", $target, result => 'fail');
+        $target = script_output("dig +short libvirt.org");
+        $target =~ /^[\d\.]+/ ? record_info("One more try succeed!") : die "Unable to test network connections!";
+    }
 
     record_info("Network test", "testing $mac");
     check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
@@ -128,11 +134,7 @@ sub test_network_interface {
 
         # Restart the network - the SSH connection may drop here, so no return code is checked.
         if ($is_sriov_test ne "true") {
-            if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
-                script_run("ssh root\@$guest service network restart", 300);
-            } else {
-                script_run("ssh root\@$guest systemctl restart network", 300);
-            }
+            script_run("ssh root\@$guest systemctl restart network", 300);
         }
         # Exit the SSH master socket if open
         script_run("ssh -O exit root\@$guest");
