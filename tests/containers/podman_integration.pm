@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::utils qw(get_podman_version);
 use utils qw(zypper_call script_retry ensure_serialdev_permissions);
-use version_utils qw(get_os_release is_transactional is_sle is_sle_micro is_tumbleweed);
+use version_utils qw(get_os_release is_transactional is_sle is_sle_micro is_tumbleweed is_microos is_leap is_leap_micro);
 use transactional qw(trup_call check_reboot_changes);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
@@ -67,6 +67,8 @@ sub run {
     my @pkgs = qw(aardvark-dns bats catatonit jq make netavark netcat-openbsd openssl python3-PyYAML socat sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
+    # NOTE: passt should be pulled in as a dependency on podman 5.0+
+    push @pkgs, qw(passt) if (is_tumbleweed || is_microos || is_sle('>=15-SP6') || is_leap('>=15.6') || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
     install_packages(@pkgs);
 
     # Workarounds for tests to work:
