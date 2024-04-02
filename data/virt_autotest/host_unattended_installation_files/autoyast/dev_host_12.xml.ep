@@ -282,7 +282,7 @@
     </user>
   </users>
   <scripts>
-    <post-scripts config:type="list">
+    <init-scripts config:type="list">
       % if ($check_var->('SYSTEM_ROLE', 'xen') && $check_var->('XEN_DEFAULT_BOOT_IS_SET', 1)) {
       <script>
         <filename>default_xen_boot.sh</filename>
@@ -294,6 +294,6 @@ grub2-set-default 2
       </script>
       % }
       <script/>
-    </post-scripts>
+    </init-scripts>
   </scripts>
 </profile>
