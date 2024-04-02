@@ -42,7 +42,7 @@ set -e
 if [ "$output" == "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
-	du --apparent-size -h $image_to_flash
+	du --apparent-size -h -L $image_to_flash
 	image_to_flash_extension="${image_to_flash##*.}"
 	if [ "$image_to_flash_extension" == "qcow2" ] ; then
 		qemu-img info $image_to_flash
