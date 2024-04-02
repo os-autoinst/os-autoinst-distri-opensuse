@@ -9,11 +9,17 @@
 use base 'x11test';
 use strict;
 use warnings;
+use version_utils 'is_sle';
 use testapi;
 
 sub run {
-    select_console 'x11';
 
+    if (is_sle) {
+        record_info 'Qt6', 'Qt6 is not available on SLE';
+        return;
+    }
+
+    select_console 'x11';
     x11_start_program('xterm');
     assert_script_run 'cd data/toolkits';
 
