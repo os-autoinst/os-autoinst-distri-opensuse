@@ -17,8 +17,11 @@ use registration qw(add_suseconnect_product register_product);
 sub run {
     select_console 'root-console';
 
+    my $qt5_devel = 'libQt5Core-devel libQt5Gui-devel libQt5Widgets-devel';
+    my $qt6_devel = 'qt6-core-devel qt6-gui-devel qt6-widgets-devel';    # devel packages for Qt6 are not L3 supported in SLES
+
     if (is_sle) {
-        # enable sdk
+        $qt6_devel = '';    # devel packages for Qt6 are not L3 supported in SLES - See https://bugzilla.suse.com/show_bug.cgi?id=1217337
         assert_script_run 'source /etc/os-release';
         if (get_var 'ADDONURL_SDK') {
             zypper_call('ar ' . get_var('ADDONURL_SDK') . ' sdk-repo');
@@ -34,10 +37,7 @@ sub run {
         }
     }
 
-    my $qt5_devel = 'libQt5Core-devel libQt5Gui-devel libQt5Widgets-devel';
-    my $qt6_devel = 'qt6-core-devel qt6-gui-devel qt6-widgets-devel';
-
-    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
+    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk3-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
 
     if (is_opensuse) {
         # make sure to use latest java (that matches the java compiler that was just installed)
