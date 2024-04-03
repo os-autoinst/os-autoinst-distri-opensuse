@@ -1492,7 +1492,7 @@ the session.
 =cut
 
 sub get_x11_console_tty {
-    my $new_sddm = (!is_sle('<16') && !is_leap('<15.6')) || is_krypton_argon;
+    my $new_sddm = (!is_sle('<15-SP6') && !is_leap('<15.6')) || is_krypton_argon;
     if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'lxqt')) {
         return $new_sddm ? 2 : 7;
     }
