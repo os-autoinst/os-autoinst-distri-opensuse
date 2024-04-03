@@ -94,7 +94,7 @@ sub set_bootscript {
 
     # Support passing both EXTRA_PXE_CMDLINE to bootscripts
     $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE') . ' ' if get_var('EXTRA_PXE_CMDLINE');
-    $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if (check_var('IPXE_UEFI', '1') and !is_usb_boot);
+    $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if (check_var('IPXE_UEFI', '1'));
 
     if ($autoyast ne '') {
         $cmdline_extra .= " autoyast=$autoyast sshd=1 sshpassword=$testapi::password ";
