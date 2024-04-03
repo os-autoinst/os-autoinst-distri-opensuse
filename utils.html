@@ -106,6 +106,7 @@
       <li><a href="#write_sut_file">write_sut_file</a></li>
       <li><a href="#is_ipxe_boot">is_ipxe_boot</a></li>
       <li><a href="#is_uefi_boot">is_uefi_boot</a></li>
+      <li><a href="#is_usb_boot">is_usb_boot</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -795,6 +796,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <h2 id="is_uefi_boot">is_uefi_boot</h2>
 
 <p>Returns true if the current instance is in UEFI boot mode</p>
+
+<h2 id="is_usb_boot">is_usb_boot</h2>
+
+<pre><code>is_usb_boot();</code></pre>
+
+<p>This will return <code>1</code> if the env variables suggest that it boots from USB.</p>
 
 
 </body>
