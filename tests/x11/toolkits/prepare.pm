@@ -37,7 +37,7 @@ sub run {
         }
     }
 
-    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk3-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
+    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
 
     if (is_opensuse) {
         # make sure to use latest java (that matches the java compiler that was just installed)
