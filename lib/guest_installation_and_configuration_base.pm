@@ -166,7 +166,7 @@ sub revise_guest_version_and_build {
         record_info("Guest $self->{guest_name} does not have guest_version set.Set it to test suite setting VERSION", "Please pay attention ! It is now $self->{guest_version}");
     }
 
-    if ($self->{guest_os_name} =~ /sles|oraclelinux|slem/im) {
+    if ($self->{guest_os_name} =~ /sles|oraclelinux|slem|slm/im) {
         if (($self->{guest_version_major} eq '') or (!($self->{guest_version} =~ /^(r)?$self->{guest_version_major}((-|\.)?(sp|u)?(\d*))?$/im))) {
             ($self->{guest_version_major}) = $self->{guest_version} =~ /(\d+)[-|\.]?.*$/im;
             record_info("Guest $self->{guest_name} does not have guest_version_major set or it does not match with guest_version.Set it from guest_version", "Please pay attention ! It is now $self->{guest_version_major}");
@@ -250,16 +250,16 @@ sub prepare_common_environment {
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
         script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
-        $guest_installation_and_configuration_metadata::host_ipaddr = get_required_var('SUT_IP');
-        $guest_installation_and_configuration_metadata::host_name = script_output("hostname");
+        $guest_installation_and_configuration_metadata::host_params{host_ipaddr} = get_required_var('SUT_IP');
+        $guest_installation_and_configuration_metadata::host_params{host_name} = script_output("hostname");
         # For SUTs with multiple interfaces, `dnsdomainname` sometimes does not work
-        $guest_installation_and_configuration_metadata::host_domain_name = script_output("dnsdomainname", proceed_on_failure => 1);
-        ($guest_installation_and_configuration_metadata::host_version_major,
-            $guest_installation_and_configuration_metadata::host_version_minor,
-            $guest_installation_and_configuration_metadata::host_version_id) = get_os_release;
-        record_info("Host running $guest_installation_and_configuration_metadata::host_version_major "
-              . "with version major $guest_installation_and_configuration_metadata::host_version_minor "
-              . "minor $guest_installation_and_configuration_metadata::host_version_id", script_output("cat /etc/os-release"));
+        $guest_installation_and_configuration_metadata::host_params{host_domain_name} = script_output("dnsdomainname", proceed_on_failure => 1);
+        ($guest_installation_and_configuration_metadata::host_params{host_version_major},
+            $guest_installation_and_configuration_metadata::host_params{host_version_minor},
+            $guest_installation_and_configuration_metadata::host_params{host_version_id}) = get_os_release;
+        record_info("Host running $guest_installation_and_configuration_metadata::host_params{host_version_id} "
+              . "with version major $guest_installation_and_configuration_metadata::host_params{host_version_major} "
+              . "minor $guest_installation_and_configuration_metadata::host_params{host_version_minor}", script_output("cat /etc/os-release"));
         $self->prepare_ssh_key;
         $self->prepare_non_transactional_environment;
         $common_environment_prepared = 'true';
@@ -290,17 +290,17 @@ sub prepare_ssh_key {
         assert_script_run("ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P \"\" <<<y");
         assert_script_run("cp /root/.ssh/id_rsa.pub /root/.ssh/id_rsa.pub.bak");
     }
-    $guest_installation_and_configuration_metadata::ssh_public_key = script_output("cat /root/.ssh/id_rsa.pub");
-    $guest_installation_and_configuration_metadata::ssh_private_key = script_output("cat /root/.ssh/id_rsa");
-    $guest_installation_and_configuration_metadata::ssh_command = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
-    if ($guest_installation_and_configuration_metadata::host_version_id eq 'sles' and
-        is_sle("<=15-sp5", "$guest_installation_and_configuration_metadata::host_version_major-SP$guest_installation_and_configuration_metadata::host_version_minor")) {
-        $guest_installation_and_configuration_metadata::ssh_command .= "-o PubkeyAcceptedKeyTypes=+ssh-rsa ";
+    $guest_installation_and_configuration_metadata::host_params{ssh_public_key} = script_output("cat /root/.ssh/id_rsa.pub");
+    $guest_installation_and_configuration_metadata::host_params{ssh_private_key} = script_output("cat /root/.ssh/id_rsa");
+    $guest_installation_and_configuration_metadata::host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
+    if ($guest_installation_and_configuration_metadata::host_params{host_version_id} eq 'sles' and
+        is_sle("<=15-sp5", "$guest_installation_and_configuration_metadata::host_params{host_version_major}-SP$guest_installation_and_configuration_metadata::host_params{host_version_minor}")) {
+        $guest_installation_and_configuration_metadata::host_params{ssh_command} .= "-o PubkeyAcceptedKeyTypes=+ssh-rsa ";
     }
     else {
-        $guest_installation_and_configuration_metadata::ssh_command .= "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
+        $guest_installation_and_configuration_metadata::host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
     }
-    $guest_installation_and_configuration_metadata::ssh_command .= "-i /root/.ssh/id_rsa root";
+    $guest_installation_and_configuration_metadata::host_params{ssh_command} .= "-i /root/.ssh/id_rsa root";
     return $self;
 }
 
@@ -345,7 +345,7 @@ sub clean_up_all_guests {
     my @_guests_to_clean_up = split(/\n/, script_output("virsh list --all --name | grep -v Domain-0", proceed_on_failure => 1));
     # Clean up all guests
     if (scalar(@_guests_to_clean_up) gt 0) {
-        diag("Going to clean up all guests on $guest_installation_and_configuration_metadata::host_name");
+        diag("Going to clean up all guests on $guest_installation_and_configuration_metadata::host_params{host_name}");
         foreach (@_guests_to_clean_up) {
             script_run("virsh destroy $_");
             script_run("virsh undefine $_ --nvram") if (script_run("virsh undefine $_") ne 0);
@@ -354,7 +354,7 @@ sub clean_up_all_guests {
         record_info("Cleaned all existing vms.");
     }
     else {
-        diag("No guests reside on this host $guest_installation_and_configuration_metadata::host_name");
+        diag("No guests reside on this host $guest_installation_and_configuration_metadata::host_params{host_name}");
     }
 
     # Clean up all guest images
@@ -405,7 +405,7 @@ sub config_guest_name {
     if ($self->{guest_installation_result} eq '') {
         $self->{guest_domain_name} = 'testvirt.net' if ($self->{guest_domain_name} eq '');
         if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
-            $self->{guest_domain_name} = $guest_installation_and_configuration_metadata::host_domain_name;
+            $self->{guest_domain_name} = $guest_installation_and_configuration_metadata::host_params{host_domain_name};
         }
         $self->{guest_name_options} = "--name $self->{guest_name}";
     }
@@ -2064,7 +2064,7 @@ sub config_guest_provision_ignition {
     }
     assert_script_run("curl -s -o $self->{guest_log_folder}/config.ign " . data_url("virt_autotest/guest_unattended_installation_files/$_ignition_config"));
     $_ignition_config = $self->{guest_log_folder} . '/config.ign';
-    my $_ssh_public_key = $guest_installation_and_configuration_metadata::ssh_public_key;
+    my $_ssh_public_key = $guest_installation_and_configuration_metadata::host_params{ssh_public_key};
     $_ssh_public_key =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Authorized-Keys##/$_ssh_public_key/g\' $_ignition_config");
     assert_script_run("sed -i \'s/##FQDN##/$self->{guest_name}\\.$self->{guest_domain_name}/g\' $_ignition_config");
@@ -2103,7 +2103,7 @@ sub config_guest_provision_ignition_luks {
     assert_script_run("dd bs=512 count=4 if=/dev/random of=$self->{guest_log_folder}/ignition_config_luks_random_keyfile iflag=fullblock");
     my $_keyfile_sha512_hash = script_output("sha512sum $self->{guest_log_folder}/ignition_config_luks_random_keyfile");
     $_keyfile_sha512_hash = (split(' ', $_keyfile_sha512_hash))[0];
-    my $_http_server_command = "python3 -m http.server 8666 --bind $guest_installation_and_configuration_metadata::host_ipaddr";
+    my $_http_server_command = "python3 -m http.server 8666 --bind $guest_installation_and_configuration_metadata::host_params{host_ipaddr}";
     my $_retry_counter = 5;
     #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
     while (($_retry_counter gt 0) and (script_output("ps ax | grep -i \"$_http_server_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '')) {
@@ -2121,7 +2121,7 @@ sub config_guest_provision_ignition_luks {
     }
     else {
         record_info("HTTP server already started successfully and serves lusk keyfile", "The command used is ((nohup $_http_server_command &>$common_log_folder/http_server_log) &)");
-        my $_luks_keyfile_url = "http://$guest_installation_and_configuration_metadata::host_ipaddr:8666/$self->{guest_name}/ignition_config_luks_random_keyfile";
+        my $_luks_keyfile_url = "http://$guest_installation_and_configuration_metadata::host_params{host_ipaddr}:8666/$self->{guest_name}/ignition_config_luks_random_keyfile";
         $_luks_keyfile_url =~ s/\//PLACEHOLDER/img;
         $_keyfile_sha512_hash =~ s/\//PLACEHOLDER/img;
         assert_script_run("sed -i \'s/##LUKS-KEYFILE-URL##/$_luks_keyfile_url/g\' $_args{_ignition_config}");
@@ -2313,7 +2313,7 @@ sub config_guest_unattended_installation {
             assert_script_run("sed -ri \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
         }
 
-        my $_authorized_key = $guest_installation_and_configuration_metadata::ssh_public_key;
+        my $_authorized_key = $guest_installation_and_configuration_metadata::host_params{ssh_public_key};
         $_authorized_key =~ s/\//PLACEHOLDER/img;
         assert_script_run("sed -ri \'s/##Authorized-Keys##/$_authorized_key/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
@@ -2330,12 +2330,12 @@ sub config_guest_unattended_installation {
         assert_script_run("sed -ri \'s/##Domain-Name##/$self->{guest_domain_name}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Host-Name##/$self->{guest_name}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Device-MacAddr##/$self->{guest_macaddr}/g;\' $self->{guest_installation_automation_file}");
-        assert_script_run("sed -ri \'s/##Logging-HostName##/$guest_installation_and_configuration_metadata::host_name.$guest_installation_and_configuration_metadata::host_domain_name/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Logging-HostName##/$guest_installation_and_configuration_metadata::host_params{host_name}.$guest_installation_and_configuration_metadata::host_params{host_domain_name}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Logging-HostPort##/514/g;\' $self->{guest_installation_automation_file}");
         $self->config_guest_installation_automation_registration;
         $self->validate_guest_installation_automation_file;
 
-        my $_http_server_command = "python3 -m http.server 8666 --bind $guest_installation_and_configuration_metadata::host_ipaddr";
+        my $_http_server_command = "python3 -m http.server 8666 --bind $guest_installation_and_configuration_metadata::host_params{host_ipaddr}";
         my $_retry_counter = 5;
         #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
         while (($_retry_counter gt 0) and (script_output("ps ax | grep -i \"$_http_server_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '')) {
@@ -2354,7 +2354,7 @@ sub config_guest_unattended_installation {
         else {
             record_info("HTTP server already started successfully and serves unattended installation file", "The command used is ((nohup $_http_server_command &>$common_log_folder/http_server_log) &)");
         }
-        $self->{guest_installation_automation_file} = "http://$guest_installation_and_configuration_metadata::host_ipaddr:8666/" . basename($self->{guest_installation_automation_file});
+        $self->{guest_installation_automation_file} = "http://$guest_installation_and_configuration_metadata::host_params{host_ipaddr}:8666/" . basename($self->{guest_installation_automation_file});
         if ($self->{guest_installation_automation_method} eq 'autoyast') {
             $self->{guest_installation_automation_options} = "--extra-args \"autoyast=$self->{guest_installation_automation_file}\"";
         }
@@ -2555,7 +2555,7 @@ sub get_guest_installation_session {
     my $installation_tty = script_output("tty | awk -F\"/\" 'BEGIN { OFS=\"-\" } {print \$3,\$4}\'", proceed_on_failure => 1);
     #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
     my $installation_pid = script_output("ps ax | grep -i \"SCREEN -t $self->{guest_name}\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1);
-    $self->{guest_installation_session} = ($installation_pid eq '' ? '' : $installation_pid . ".$installation_tty." . (split(/\./, $guest_installation_and_configuration_metadata::host_name))[0]);
+    $self->{guest_installation_session} = ($installation_pid eq '' ? '' : $installation_pid . ".$installation_tty." . (split(/\./, $guest_installation_and_configuration_metadata::host_params{host_name}))[0]);
     record_info("Guest $self->{guest_name} installation screen process info", "$self->{guest_name} $self->{guest_installation_session}");
     return $self;
 }
@@ -2718,7 +2718,7 @@ sub check_guest_installation_result_via_ssh {
     $self->get_guest_ipaddr if (is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
-        $_guest_transient_hostname = script_output("timeout --kill-after=3 --signal=9 30 " . $guest_installation_and_configuration_metadata::ssh_command . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
+        $_guest_transient_hostname = script_output("timeout --kill-after=3 --signal=9 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
         save_screenshot;
         if ($_guest_transient_hostname ne '') {
             record_info("Guest $self->{guest_name} can be connected via ssh using ip $self->{guest_ipaddr} directly", "So far so good.");
@@ -2726,7 +2726,7 @@ sub check_guest_installation_result_via_ssh {
                 virt_autotest::utils::add_alias_in_ssh_config('/root/.ssh/config', $_guest_transient_hostname, $self->{guest_domain_name}, $self->{guest_name});
             }
             save_screenshot;
-            $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::ssh_command . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
+            $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
             save_screenshot;
             if ($_guest_transient_hostname ne '') {
                 record_info("Installation succeeded with good ssh connection for guest $self->{guest_name}", "Well done ! Mark it as PASSED");
@@ -2734,7 +2734,7 @@ sub check_guest_installation_result_via_ssh {
             }
             else {
                 virt_autotest::utils::add_guest_to_hosts($self->{guest_name}, $self->{guest_ipaddr});
-                $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::ssh_command . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
+                $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
                 if ($_guest_transient_hostname ne '') {
                     record_info("Installation succeeded with good ssh connection for guest $self->{guest_name} using /etc/hosts", "Although querying guest with FQDN failed, still mark installation as PASSED", result => 'fail');
                     $self->record_guest_installation_result('PASSED');
@@ -3075,7 +3075,7 @@ sub collect_guest_installation_logs_via_ssh {
     $self->get_guest_ipaddr;
     if ((script_run("nmap $self->{guest_ipaddr} -PN -p ssh | grep -i open") eq 0) and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) {
         record_info("Guest $self->{guest_name} has ssh port open on ip address $self->{guest_ipaddr}.", "Try to collect logs via ssh but may fail.Open ssh port does not mean good ssh connection.");
-        script_run($guest_installation_and_configuration_metadata::ssh_command . "\@$self->{guest_ipaddr} \"save_y2logs /tmp/$self->{guest_name}_y2logs.tar.gz\"");
+        script_run($guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_ipaddr} \"save_y2logs /tmp/$self->{guest_name}_y2logs.tar.gz\"");
         script_run("scp -r -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$self->{guest_ipaddr}:/tmp/$self->{guest_name}_y2logs.tar.gz $self->{guest_log_folder}");
     }
     else {

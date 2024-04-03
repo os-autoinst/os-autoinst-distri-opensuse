@@ -235,24 +235,20 @@ our %guest_params = (
     'stop_run' => ''    # Guest creation finish time
 );
 
-# This is get_required_var('SUT_IP')
-our $host_ipaddr;
-# This is script_output('hostname')
-our $host_name;
-# This is script_output('dnsdomainname')
-our $host_domain_name;
-# Major version of host os release from /etc/os-release on host
-our $host_version_major;
-# Minor version of host os release from /etc/os-release on host
-our $host_version_minor;
-# Version ID of host os release from /etc/os-release on host
-our $host_version_id;
-# Public key used for ssh login to guest
-our $ssh_public_key;
-# Private key used for ssh login to guest
-our $ssh_private_key;
-# SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
-our $ssh_command;
+# Global data structure %host_params contains all parameters not pertinent to
+# any specific guest and only relating to operations on host. All parameters
+# in this structure are only initialized once in a single test run.
+our %host_params = (
+    'host_ipaddr' => '',    # This is get_required_var('SUT_IP')
+    'host_name' => '',    # This is script_output('hostname')
+    'host_domain_name' => '',    # This is script_output('dnsdomainname')
+    'host_version_major' => '',    # Major version of host os release from /etc/os-release on host
+    'host_version_minor' => '',    # Minor version of host os release from /etc/os-release on host
+    'host_version_id' => '',    # Version ID of host os release from /etc/os-release on host
+    'ssh_public_key' => '',    # Public key used for ssh login to guest
+    'ssh_private_key' => '',    # Private key used for ssh login to guest
+    'ssh_command' => ''    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+);
 
 # Global data structure %guest_network_matrix to specify network devices to be
 # used for guest configuring and installing. Virtual networks, including nat,
