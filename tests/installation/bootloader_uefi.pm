@@ -147,9 +147,13 @@ sub run {
     # However, serial console and AGAMA_AUTO settings are actually useful.
     # If agama provides support for installation via ssh connection or others,
     # we will then consider adding them back.
-    if (is_ipmi && is_selfinstall) {
-        # directly start installation
-        send_key "f10";
+    if (is_ipmi && is_uefi_boot && is_selfinstall) {
+        # Directly start installation
+        if (check_var("CTRL_X_TO_BOOT", "1")) {
+            send_key "ctrl-x";
+        } else {
+            send_key "f10";
+        }
         wait_still_screen;
         return;
     }
