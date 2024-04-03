@@ -13,15 +13,17 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
+use package_utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_tumbleweed is_sle check_version);
+use version_utils qw(is_sle check_version is_transactional);
+use transactional;
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
     if (script_run 'rpm -q perl-Bootloader') {
-        zypper_call 'in perl-Bootloader';
+        install_package 'perl-Bootloader';
     }
 
     # version older than 1.1 does not support option default-settings
@@ -39,11 +41,20 @@ sub run {
             validate_script_output 'cat /etc/sysconfig/bootloader', qr/LOADER_TYPE="grub2"/;
         }
     }
-    assert_script_run 'pbl --install';
-    assert_script_run 'pbl --config';
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
-    select_serial_terminal;
+
+    if (is_transactional) {
+        trup_call 'run pbl --install';
+        check_reboot_changes;
+        trup_call 'run pbl --config';
+        check_reboot_changes;
+    }
+    else {
+        assert_script_run 'pbl --install';
+        assert_script_run 'pbl --config';
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+        select_serial_terminal;
+    }
 
     # Add new option and check if it exists
     assert_script_run 'pbl --add-option TEST_OPTION="test_value"';
