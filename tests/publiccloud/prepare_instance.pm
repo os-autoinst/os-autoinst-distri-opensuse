@@ -55,10 +55,8 @@ sub run {
         $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
     }
 
-    # For maintenance test runs, the testapi user (typically 'bernhard') is expected to be allowed to run sudo commands
-    if (check_var('PUBLIC_CLOUD_QAM', '1')) {
-        $instance->ssh_assert_script_run("echo \"$testapi::username ALL=(ALL) ALL\" | sudo tee /etc/sudoers.d/010_openqa");
-    }
+    # We expect that the testapi user (typically 'bernhard') is allowed to run sudo commands
+    $instance->ssh_assert_script_run("echo \"$testapi::username ALL=(ALL) ALL\" | sudo tee /etc/sudoers.d/010_openqa");
 }
 
 sub test_flags {
