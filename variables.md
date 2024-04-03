@@ -314,6 +314,7 @@ PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg 
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
 PUBLIC_CLOUD_EC2_BOOT_MODE | string | "uefi-preferred" | The `--boot-mode` parameter for `ec2uploadimg` script. Available values: `legacy-bios`, `uefi`, `uefi-preferred` Currently unused variable. Use `git blame` to get context.
 PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT | string | 0 | How many IPv6 addresses should the instance have
+PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
 PUBLIC_CLOUD_FIO | boolean | false | If set, storage_perf test module is added to the job.
 PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
 PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.

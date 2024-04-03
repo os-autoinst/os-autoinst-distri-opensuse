@@ -13,6 +13,7 @@ use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var set_var);
+use publiccloud::utils 'is_gce';
 use Utils::Architectures;
 use Utils::Backends;
 use strict;
@@ -130,6 +131,7 @@ sub load_host_tests_podman {
     loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
+    loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
