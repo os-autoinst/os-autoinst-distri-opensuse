@@ -1,0 +1,456 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/azure_cli.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#az_group_create">az_group_create</a></li>
+      <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
+      <li><a href="#az_network_nsg_create">az_network_nsg_create</a></li>
+      <li><a href="#az_network_nsg_rule_create">az_network_nsg_rule_create</a></li>
+      <li><a href="#az_network_publicip_create">az_network_publicip_create</a></li>
+      <li><a href="#az_network_lb_create">az_network_lb_create</a></li>
+      <li><a href="#az_vm_as_create">az_vm_as_create</a></li>
+      <li><a href="#az_vm_create">az_vm_create</a></li>
+      <li><a href="#az_vm_openport">az_vm_openport</a></li>
+      <li><a href="#az_vm_wait_cloudinit">az_vm_wait_cloudinit</a></li>
+      <li><a href="#az_nic_id_get">az_nic_id_get</a></li>
+      <li><a href="#az_nic_get">az_nic_get</a></li>
+      <li><a href="#az_nic_name_get">az_nic_name_get</a></li>
+      <li><a href="#az_ipconfig_name_get">az_ipconfig_name_get</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/azure_cli.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library to compose and run Azure cli commands</p>
+
+<h2 id="az_group_create">az_group_create</h2>
+
+<pre><code>az_group_create( name =&gt; &#39;openqa-rg&#39;, region =&gt; &#39;westeurope&#39;);</code></pre>
+
+<dl>
+
+<dt id="name---full-name-of-the-resource-group"><b>name</b> - full name of the resource group</dt>
+<dd>
+
+</dd>
+<dt id="region---Azure-region"><b>region</b> - Azure region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_vnet_create">az_network_vnet_create</h2>
+
+<pre><code>az_network_vnet_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    region =&gt; &#39;westeurope&#39;,
+    vnet =&gt; &#39;openqa-vnet&#39;,
+    snet =&gt; &#39;openqa-subnet&#39;,
+    address_prefixes =&gt; &#39;10.0.1.0/16&#39;,
+    subnet_prefixes =&gt; &#39;10.0.1.0/24&#39;)
+
+Create a virtual network</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-network"><b>resource_group</b> - existing resource group where to create the network</dt>
+<dd>
+
+</dd>
+<dt id="region---Azure-region1"><b>region</b> - Azure region</dt>
+<dd>
+
+</dd>
+<dt id="vnet---name-of-the-virtual-network"><b>vnet</b> - name of the virtual network</dt>
+<dd>
+
+</dd>
+<dt id="snet---name-of-the-subnet"><b>snet</b> - name of the subnet</dt>
+<dd>
+
+</dd>
+<dt id="address_prefixes---virtual-network-ip-address-space.-Default-192.168.0.0-16"><b>address_prefixes</b> - virtual network ip address space. Default 192.168.0.0/16</dt>
+<dd>
+
+</dd>
+<dt id="subnet_prefixes---subnet-ip-address-space.-Default-192.168.0.0-24"><b>subnet_prefixes</b> - subnet ip address space. Default 192.168.0.0/24</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_nsg_create">az_network_nsg_create</h2>
+
+<pre><code>az_network_nsg_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-nsg&#39;)
+
+Create a network security group</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-NSG"><b>resource_group</b> - existing resource group where to create the NSG</dt>
+<dd>
+
+</dd>
+<dt id="name---security-group-name"><b>name</b> - security group name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_nsg_rule_create">az_network_nsg_rule_create</h2>
+
+<pre><code>az_network_nsg_rule_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    nsg =&gt; &#39;openqa-nsg&#39;,
+    name =&gt; &#39;openqa-nsg-rule-ssh&#39;,
+    port =&gt; 22)
+
+Create a rule for an existing network security group</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-NSG1"><b>resource_group</b> - existing resource group where to create the NSG</dt>
+<dd>
+
+</dd>
+<dt id="nsg---existing-security-group-name"><b>nsg</b> - existing security group name</dt>
+<dd>
+
+</dd>
+<dt id="name---security-rule-name"><b>name</b> - security rule name</dt>
+<dd>
+
+</dd>
+<dt id="port---allowed-port"><b>port</b> - allowed port</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_publicip_create">az_network_publicip_create</h2>
+
+<pre><code>az_network_publicip_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-pip&#39;,
+    zone =&gt; &#39;1 2 3&#39;)
+
+Create an IPv4 public IP resource</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-PubIP"><b>resource_group</b> - existing resource group where to create the PubIP</dt>
+<dd>
+
+</dd>
+<dt id="name---public-IP-resource-name"><b>name</b> - public IP resource name</dt>
+<dd>
+
+</dd>
+<dt id="sku---default-Standard"><b>sku</b> - default Standard</dt>
+<dd>
+
+</dd>
+<dt id="allocation_method---optionally-add---allocation-method"><b>allocation_method</b> - optionally add --allocation-method</dt>
+<dd>
+
+</dd>
+<dt id="zone---optionally-add---zone"><b>zone</b> - optionally add --zone</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_lb_create">az_network_lb_create</h2>
+
+<pre><code>az_network_lb_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-lb&#39;,
+    vnet =&gt; &#39;openqa-vnet&#39;,
+    snet =&gt; &#39;openqa-subnet&#39;,
+    backend =&gt; &#39;openqa-be&#39;,
+    frontend_ip =&gt; &#39;openqa-feip&#39;,
+    sku =&gt; &#39;Standard&#39;)
+
+Create a load balancer entity.
+LB is mostly &quot;just&quot; a &quot;group&quot; definition
+to link back-end and front-end resources (usually an IP)
+# SKU Standard (and not Basic) is needed to get some Metrics</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-lb"><b>resource_group</b> - existing resource group where to create lb</dt>
+<dd>
+
+</dd>
+<dt id="name---load-balancer-name"><b>name</b> - load balancer name</dt>
+<dd>
+
+</dd>
+<dt id="vnet---existing-Virtual-network-name-where-to-create-LB-in"><b>vnet</b> - existing Virtual network name where to create LB in</dt>
+<dd>
+
+</dd>
+<dt id="snet---existing-Subnet-network-name-where-to-create-LB-in"><b>snet</b> - existing Subnet network name where to create LB in</dt>
+<dd>
+
+</dd>
+<dt id="backend---name-to-assign-to-created-backend-pool"><b>backend</b> - name to assign to created backend pool</dt>
+<dd>
+
+</dd>
+<dt id="frontend_ip---name-to-assign-to-created-frontend-ip-will-be-reused-in-az-network-lb-rule-create"><b>frontend_ip</b> - name to assign to created frontend ip, will be reused in &quot;az network lb rule create&quot;</dt>
+<dd>
+
+</dd>
+<dt id="sku---default-Basic"><b>sku</b> - default Basic</dt>
+<dd>
+
+</dd>
+<dt id="fip---optionally-add---private-ip-address"><b>fip</b> - optionally add --private-ip-address</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_as_create">az_vm_as_create</h2>
+
+<pre><code>az_vm_as_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-as&#39;,
+    region =&gt; &#39;westeurope&#39;,
+    fault_count =&gt; 2)
+
+Create an availability set. Later on VM can be assigned to it.</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dd>
+
+</dd>
+<dt id="region---region-where-to-create-the-Availability-set"><b>region</b> - region where to create the Availability set</dt>
+<dd>
+
+</dd>
+<dt id="name---availability-set-name"><b>name</b> - availability set name</dt>
+<dd>
+
+</dd>
+<dt id="fault_count---value-for---platform-fault-domain-count"><b>fault_count</b> - value for --platform-fault-domain-count</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_create">az_vm_create</h2>
+
+<pre><code>az_vm_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;,
+    region =&gt; &#39;westeurope&#39;,
+    image =&gt; &#39;SUSE:sles-sap-15-sp5:gen2:latest&#39;)
+
+Create a virtual machine</code></pre>
+
+<dl>
+
+<dt id="name---virtual-machine-name"><b>name</b> - virtual machine name</dt>
+<dd>
+
+</dd>
+<dt id="resource_group---existing-resource-group-where-to-create-the-VM"><b>resource_group</b> - existing resource group where to create the VM</dt>
+<dd>
+
+</dd>
+<dt id="image---OS-image-name"><b>image</b> - OS image name</dt>
+<dd>
+
+</dd>
+<dt id="vnet---optional-name-of-the-Virtual-Network-where-to-place-the-VM"><b>vnet</b> - optional name of the Virtual Network where to place the VM</dt>
+<dd>
+
+</dd>
+<dt id="snet---optional-name-of-the-SubNet-where-to-connect-the-VM"><b>snet</b> - optional name of the SubNet where to connect the VM</dt>
+<dd>
+
+</dd>
+<dt id="size---VM-size-default-Standard_B1s"><b>size</b> - VM size, default Standard_B1s</dt>
+<dd>
+
+</dd>
+<dt id="region---optional-region-where-to-create-the-VM"><b>region</b> - optional region where to create the VM</dt>
+<dd>
+
+</dd>
+<dt id="availability_set---optional-inclusion-in-an-availability-set"><b>availability_set</b> - optional inclusion in an availability set</dt>
+<dd>
+
+</dd>
+<dt id="username---optional-admin-username"><b>username</b> - optional admin username</dt>
+<dd>
+
+</dd>
+<dt id="nsg---optional-inclusion-in-an-network-security-group"><b>nsg</b> - optional inclusion in an network security group</dt>
+<dd>
+
+</dd>
+<dt id="nic---optional-add-to-the-VM-a-NIC-created-separately-with-az-network-nic-create"><b>nic</b> - optional add to the VM a NIC created separately with &#39;az network nic create&#39;</dt>
+<dd>
+
+</dd>
+<dt id="public_ip---optional-add-to-the-VM-a-public-IP.-Value-like-is-a-valid-one-and-is-not-the-same-as-not-including-the-argument-at-all"><b>public_ip</b> - optional add to the VM a public IP. Value like &quot;&quot; is a valid one and is not the same as not including the argument at all.</dt>
+<dd>
+
+</dd>
+<dt id="custom_data---optional-provide-a-cloud-init-script-file"><b>custom_data</b> - optional provide a cloud-init script file</dt>
+<dd>
+
+</dd>
+<dt id="ssh_pubkey---optional-inclusion-in-an-availability-set-if-missing-the-command-is-configured-to-generate-one"><b>ssh_pubkey</b> - optional inclusion in an availability set, if missing the command is configured to generate one</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_openport">az_vm_openport</h2>
+
+<pre><code>az_vm_openport(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;,
+    port =&gt; 80)
+
+Open a port on an existing VM</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set1"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-an-existing-VM"><b>name</b> - name of an existing VM</dt>
+<dd>
+
+</dd>
+<dt id="port---port-to-open"><b>port</b> - port to open</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_wait_cloudinit">az_vm_wait_cloudinit</h2>
+
+<pre><code>az_vm_wait_cloudinit(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;)
+
+Wait cloud-init completition on a running VM</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set2"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-an-existing-VM1"><b>name</b> - name of an existing VM</dt>
+<dd>
+
+</dd>
+<dt id="username---username-default-cloudadmin"><b>username</b> - username default cloudadmin</dt>
+<dd>
+
+</dd>
+<dt id="timeout---max-wait-time-in-seconds.-Default-3600"><b>timeout</b> - max wait time in seconds. Default 3600.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_nic_id_get">az_nic_id_get</h2>
+
+<pre><code>my $nic_id = az_nic_id_get(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;)
+
+get the NIC ID of the first NIC of a given VM</code></pre>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set3"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-an-existing-VM2"><b>name</b> - name of an existing VM</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_nic_get">az_nic_get</h2>
+
+<pre><code>get the NIC data from NIC ID</code></pre>
+
+<dl>
+
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dd>
+
+</dd>
+<dt id="filter---query-filter"><b>filter</b> - query filter</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_nic_name_get">az_nic_name_get</h2>
+
+<pre><code>my $nic_name = az_nic_name_get(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;)
+
+get the NIC name from NIC ID</code></pre>
+
+<dl>
+
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get1"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_ipconfig_name_get">az_ipconfig_name_get</h2>
+
+<pre><code>my $ipconfig_name = az_ipconfig_name_get(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;)
+
+get the name of the first IpConfig of a NIC from a NIC ID</code></pre>
+
+<dl>
+
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get2"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+
