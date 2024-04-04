@@ -60,6 +60,9 @@ use Data::Dumper qw(Dumper);
 my @conflicting_packages = (
     'libwx_base-suse-nostl-devel', 'wxWidgets-3_2-nostl-devel',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
+    # can't be installed in parallel, Conflicts: otherproviders(waagent-config) see python-azure-agent.spec
+    'python-azure-agent-config-server', 'python-azure-agent-config-micro',
+    'python-azure-agent-config-hpc', 'python-azure-agent-config-default',
     'kernel-default-base', 'kernel-default-extra'
 );
 
@@ -359,13 +362,13 @@ sub run {
             zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
-        if (scalar @new_binaries_conflicts) {
-            record_info 'New conflicts', "New packages with conflict: @new_binaries_conflicts";
+        foreach (@new_binaries_conflicts) {
+            record_info 'New conflict', "Single conflicting package: $_";
             if (get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN')) {
-                sle12_zypp_resolve("zypper -v in -l @new_binaries_conflicts", "new_${patch}_conflicts.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN', 2));
+                sle12_zypp_resolve("zypper -v in -l $_", "new_${_}_conflicts.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN', 2));
             }
             else {
-                zypper_call("in -l $solver_focus @new_binaries_conflicts", exitcode => [0, 102, 103], log => "new_${patch}_conflicts.log", timeout => 1500);
+                zypper_call("in -l $solver_focus $_", exitcode => [0, 102, 103], log => "new_${_}_conflicts.log", timeout => 1500);
             }
         }
 
