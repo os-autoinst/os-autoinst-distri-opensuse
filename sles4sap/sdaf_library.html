@@ -1,0 +1,229 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/sdaf_library.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#homedir">homedir</a></li>
+      <li><a href="#deployment_dir">deployment_dir</a></li>
+      <li><a href="#log_dir">log_dir</a></li>
+      <li><a href="#variable_file">variable_file</a></li>
+      <li><a href="#az_login">az_login</a></li>
+      <li><a href="#create_sdaf_os_var_file">create_sdaf_os_var_file</a></li>
+      <li><a href="#sdaf_get_deployer_ip">sdaf_get_deployer_ip</a></li>
+      <li><a href="#sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</a></li>
+      <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
+      <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
+      <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
+      <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
+      <li><a href="#prepare_sdaf_repo">prepare_sdaf_repo</a></li>
+      <li><a href="#cleanup_sdaf_files">cleanup_sdaf_files</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/sdaf_library.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library with common functions for Microsoft SDAF deployment automation. Documentation can be found on the <a href="https://learn.microsoft.com/en-us/azure/sap/automation/get-started">projects official website</a></p>
+
+<p>Github repositories: <a href="https://github.com/Azure/sap-automation/tree/main">Automation scripts</a> <a href="https://github.com/Azure/SAP-automation-samples/tree/main">Sample configurations</a></p>
+
+<p>Basic terminology:</p>
+
+<p><b>SDAF</b>: SAP deployment automation framework</p>
+
+<p><b>Control plane</b>: Common term for Resource groups <b>Deployer</b> and <b>Library</b>. Generally it is part of a permanent infrastructure in the cloud.</p>
+
+<p><b>Deployer</b>: Resource group providing services such as keyvault, Deployer VM and associated resources.</p>
+
+<p><b>Deployer VM</b>: Central point that contains SDAF installation and where the deployment is executed from. Since SUT VMs have no public IPs, this is also serving as a jumphost to reach them via SSH.</p>
+
+<p><b>Library</b>: Resource group providing storage for terraform state files, SAP media and private DNS zone.</p>
+
+<p><b>Workload zone</b>: Resource group that provides services similar to support server.</p>
+
+<p><b>SAP Systems</b>: Resource group containing SAP SUTs and related resources.</p>
+
+<h2 id="homedir">homedir</h2>
+
+<pre><code>homedir();</code></pre>
+
+<p>Returns home directory path for current user from env variable $HOME.</p>
+
+<h2 id="deployment_dir">deployment_dir</h2>
+
+<pre><code>deployment_dir([create=&gt;1]);</code></pre>
+
+<p><b>create</b>: Create directory if it does not exist.</p>
+
+<p>Returns deployment directory path with job ID appended as unique identifier. Optionally it can create directory if it does not exists.</p>
+
+<h2 id="log_dir">log_dir</h2>
+
+<pre><code>log_dir([create=&gt;1]);</code></pre>
+
+<p><b>create</b>: Create directory if it does not exist.</p>
+
+<p>Returns logging directory path with job ID appended as unique identifier. Optionally creates the directory.</p>
+
+<h2 id="variable_file">variable_file</h2>
+
+<pre><code>variable_file();</code></pre>
+
+<p>Returns full path to a file containing all required SDAF OS env variables. Sourcing this file is essential for running SDAF.</p>
+
+<h2 id="az_login">az_login</h2>
+
+<pre><code>az_login();</code></pre>
+
+<p>Logins into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables. To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.</p>
+
+<p>SPN credentials are defined by secret OpenQA parameters:</p>
+
+<p><b>_SECRET_AZURE_SDAF_APP_ID</b></p>
+
+<p><b>_SECRET_AZURE_SDAF_APP_PASSWORD</b></p>
+
+<p><b>_SECRET_AZURE_SDAF_TENANT_ID</b></p>
+
+<p>SDAF needs SPN credentials with special permissions. Check link below for details. https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials</p>
+
+<h2 id="create_sdaf_os_var_file">create_sdaf_os_var_file</h2>
+
+<pre><code>create_sdaf_os_var_file($entries);</code></pre>
+
+<p><b>$entries</b>: ARRAYREF of entries to be appended to variable source file</p>
+
+<p>Creates a simple file with bash env variables and uploads it to the target host without revealing content in serial console. File is sourced afterwards. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
+
+<h2 id="sdaf_get_deployer_ip">sdaf_get_deployer_ip</h2>
+
+<pre><code>sdaf_get_deployer_ip(deployer_resource_group=&gt;$deployer_resource_group);</code></pre>
+
+<p><b>deployer_resource_group</b>: Deployer key vault name</p>
+
+<p>Retrieves public IP of the deployer VM.</p>
+
+<h2 id="sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</h2>
+
+<pre><code>sdaf_prepare_ssh_keys(deployer_key_vault=&gt;$deployer_key_vault);</code></pre>
+
+<p><b>deployer_key_vault</b>: Deployer key vault name</p>
+
+<p>Retrieves public and private ssh key from DEPLOYER keyvault and sets up permissions.</p>
+
+<h2 id="az_get_ssh_key">az_get_ssh_key</h2>
+
+<pre><code>az_get_ssh_key(deployer_key_vault=$deployer_key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);</code></pre>
+
+<p><b>deployer_key_vault</b>: Deployer key vault name</p>
+
+<p><b>ssh_key_name</b>: SSH key name residing on keyvault</p>
+
+<p><b>ssh_key_filename</b>: Target filename for SSH key</p>
+
+<p>Retrieves SSH key from DEPLOYER keyvault.</p>
+
+<h2 id="serial_console_diag_banner">serial_console_diag_banner</h2>
+
+<pre><code>serial_console_diag_banner($input_text);</code></pre>
+
+<p><b>input_text</b>: string that will be printed in uppercase surrounded by &#39;#&#39; to make it more visible in output</p>
+
+<p>Prints a simple line in serial console that highlights a point in output to make it more readable. Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.</p>
+
+<h2 id="set_common_sdaf_os_env">set_common_sdaf_os_env</h2>
+
+<pre><code>set_os_env(
+    subscription_id=&gt;$subscription_id
+    [, env_code=&gt;$env_code]
+    [, deployer_vnet_code=&gt;$deployer_vnet_code]
+    [, workload_vnet_code=&gt;$workload_vnet_code]
+    [, region_code=&gt;$region_code]
+    [, sap_sid=&gt;$sap_sid]
+    [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
+    [, sdaf_key_vault=&gt;$sdaf_key_vault]
+);</code></pre>
+
+<p><b>subscription_id</b>: Azure subscription ID</p>
+
+<p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
+
+<p><b>deployer_vnet_code</b>: Deployer virtual network code. Default &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
+
+<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
+
+<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
+
+<p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
+
+<p><b>sdaf_tfstate_storage_account</b>: Storage account residing in library resource group. Location for stored tfstate files. Default &#39;SDAF_TFSTATE_STORAGE_ACCOUNT&#39;</p>
+
+<p><b>sdaf_key_vault</b>: Key vault name inside Deployer resource group. Default &#39;SDAF_KEY_VAULT&#39;</p>
+
+<p>Sets up common OS env variables required by SDAF in .bashrc and loads them. OS env variables are core of how to execute SDAF and many are used even internally by SDAF code. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
+
+<h2 id="get_tfvars_path">get_tfvars_path</h2>
+
+<pre><code>get_tfvars_path(
+    deployment_type=&gt;$deployment_type,
+    env_code=&gt;$env_code,
+    region_code=&gt;$region_code,
+    [vnet_code=&gt;$vnet_code,
+    sap_sid=&gt;$sap_sid]);</code></pre>
+
+<p>Returns full tfvars filepath respective to deployment type.</p>
+
+<p><b>deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
+
+<p><b>region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
+
+<p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
+
+<p><b>sap_sid</b>: SDAF parameter for sap system ID</p>
+
+<h2 id="prepare_sdaf_repo">prepare_sdaf_repo</h2>
+
+<pre><code>prepare_sdaf_repo(
+     [, env_code=&gt;$env_code]
+     [, region_code=&gt;$region_code]
+     [, workload_vnet_code=&gt;$workload_vnet_code]
+     [, deployervnet_code=&gt;$workload_vnet_code]
+     [, sap_sid=&gt;$sap_sid]);</code></pre>
+
+<p>Prepares directory structure and Clones git repository for SDAF samples and automation code.</p>
+
+<p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
+
+<p><b>deployer_vnet_code</b>: Deployer virtual network code. Default &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
+
+<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
+
+<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
+
+<p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
+
+<h2 id="cleanup_sdaf_files">cleanup_sdaf_files</h2>
+
+<pre><code>cleanup_sdaf_files();</code></pre>
+
+<p>Cleans up all SDAF deployment files belonging to the running test.</p>
+
+
+</body>
+
+</html>
+
+
