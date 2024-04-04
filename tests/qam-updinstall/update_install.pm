@@ -60,6 +60,9 @@ use Data::Dumper qw(Dumper);
 my @conflicting_packages = (
     'libwx_base-suse-nostl-devel', 'wxWidgets-3_2-nostl-devel',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
+    # can't be installed in parallel, Conflicts: otherproviders(waagent-config) see python-azure-agent.spec
+    'python-azure-agent-config-server', 'python-azure-agent-config-micro',
+    'python-azure-agent-config-hpc', 'python-azure-agent-config-default',
     'kernel-default-base', 'kernel-default-extra'
 );
 
