@@ -25,7 +25,9 @@ sub run {
 
     # Cleanup SDAF files form Deployer VM
     connect_target_to_serial();
-    cleanup_sdaf_files();
+    load_os_env_variables();
+    az_login();
+    sdaf_cleanup();
     disconnect_target_from_serial();
 }
 
