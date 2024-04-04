@@ -107,6 +107,16 @@ sub run {
     # Check if sudo asks for the root password.
     # On Azure from SLE15 onwards, 'Defaults targetpw' is disabled. There sudo is expected to ask for the user password
     my $exp_user = (is_azure && is_sle(">=15")) ? "$testapi::username" : "root";
+    # Workaround for the the 15-SP2 images, where the change is not yet applied
+    # 15-SP2 will get this change eventually, but it is unknown when the images will be refreshed.
+    if (is_azure && is_sle("=15-SP2")) {
+        select_console 'root-console';
+        if (script_output("cat /etc/sudoers") =~ m/^Defaults targetpw/m) {
+            record_soft_failure("bsc#1207076 'Defaults targetpw' is still enabled on 15-SP2");
+            $exp_user = "root";
+        }
+        select_console 'user-console';
+    }
     validate_script_output("expect -c 'spawn sudo id -un;expect \"password for $exp_user\" {send \"$testapi::password\\r\";interact}'", sub { $_ =~ m/^root$/m });
 
     foreach my $num (0, 1) {
