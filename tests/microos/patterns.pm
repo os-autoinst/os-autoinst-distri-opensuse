@@ -23,8 +23,11 @@ sub run {
     my @available_patterns = split(/\n/, script_output "zypper -q se -t pattern -u");
     my @patterns = map { m/\|\s+(.*?)\s+\|.*pattern$/ } @available_patterns;
 
-    # install new patterns
+    # on slem6.0,no need to install 'alp_elemental_client', see bsc#1219200
     my @inst_patterns = @patterns;
+    @inst_patterns = grep (!/alp_elemental_client/, @patterns) if is_sle_micro('>=6.0');
+
+    # install new patterns
     trup_call('pkg install -t pattern ' . join(" ", @inst_patterns), timeout => 720);
     process_reboot(trigger => 1);
 
