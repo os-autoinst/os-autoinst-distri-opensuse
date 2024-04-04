@@ -336,7 +336,7 @@ sub stop_hana {
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
         record_info("Wait ssh disappear end", "$out") if (defined $out);
         sleep 10;
-        $self->{my_instance}->wait_for_ssh();
+        $self->{my_instance}->wait_for_ssh(timeout => 900);
         return;
     }
     else {
