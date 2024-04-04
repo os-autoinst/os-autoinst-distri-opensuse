@@ -10,6 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
+use sles4sap::azure_cli;
 
 use constant DEPLOY_PREFIX => 'clne';
 
@@ -25,44 +26,35 @@ sub run {
 
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
-    my $az_cmd;
 
-    # Create a resource group to contain all
-    $az_cmd = join(' ', 'az group create',
-        '--name', $rg,
-        '--location', $provider->provider_client->region);
-    assert_script_run($az_cmd);
+    az_group_create(name => $rg, region => $provider->provider_client->region);
 
     # Create a virtual network with a subnet
     my $vnet = DEPLOY_PREFIX . '-vnet';
     my $subnet = DEPLOY_PREFIX . '-snet';
-    $az_cmd = join(' ', 'az network vnet create',
-        '--resource-group', $rg,
-        '--location', $provider->provider_client->region,
-        '--name', $vnet,
-        '--address-prefixes 10.1.0.0/16',
-        '--subnet-name', $subnet,
-        '--subnet-prefixes 10.1.0.0/24');
-    assert_script_run($az_cmd);
+    az_network_vnet_create(
+        resource_group => $rg,
+        region => $provider->provider_client->region,
+        vnet => $vnet,
+        address_prefixes => '10.1.0.0/16',
+        snet => $subnet,
+        subnet_prefixes => '10.1.0.0/24');
 
     # Create two Public IP
+    my $az_cmd;
     my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip-';
     foreach (1 .. 2) {
-        $az_cmd = join(' ', 'az network public-ip create',
-            '--resource-group', $rg,
-            '--name', $pub_ip_prefix . $_,
-            '--sku Standard',
-            '--version IPv4',
-            '--zone 1 2 3');
-        assert_script_run($az_cmd);
+        az_network_publicip_create(
+            resource_group => $rg,
+            name => $pub_ip_prefix . $_,
+            zone => '1 2 3');
     }
 
     # Create security rule to allow ssh
     my $nsg = DEPLOY_PREFIX . '-nsg';
-    $az_cmd = join(' ', 'az network nsg create',
-        '--resource-group', $rg,
-        '--name', $nsg);
-    assert_script_run($az_cmd);
+    az_network_nsg_create(
+        resource_group => $rg,
+        name => $nsg);
 
     $az_cmd = join(' ', 'az network nsg rule create',
         '--resource-group', $rg,
@@ -121,15 +113,12 @@ sub run {
 
     # Create one VM and add the NIC to it
     my $vm = DEPLOY_PREFIX . '-vm';
-    $az_cmd = join(' ', 'az vm create',
-        '--resource-group', $rg,
-        '--name', $vm,
-        '--nics', $nic,
-        '--image', $os_ver,
-        '--admin-username cloudadmin',
-        '--authentication-type ssh',
-        '--generate-ssh-keys');
-    assert_script_run($az_cmd, timeout => 600);
+    az_vm_create(
+        resource_group => $rg,
+        name => $vm,
+        nic => $nic,
+        image => $os_ver,
+        username => 'cloudadmin');
 
     my $vm_ip;
     my $ssh_cmd;
