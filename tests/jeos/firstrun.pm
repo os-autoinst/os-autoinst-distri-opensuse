@@ -184,13 +184,15 @@ sub run {
     }
 
     if (is_bootloader_sdboot) {
-        assert_screen 'jeos-root-as-enc-pass';
+        send_key_until_needlematch 'jeos-fde-option-enroll-root-pw', 'down' unless check_screen('jeos-fde-option-enroll-root-pw', 1);
         send_key 'ret';
 
         if (get_var('QEMUTPM')) {
-            assert_screen 'jeos-fde-tpm-enroll';
+            send_key_until_needlematch 'jeos-fde-option-enroll-tpm', 'down' unless check_screen('jeos-fde-option-enroll-tpm', 1);
             send_key 'ret';
         }
+
+        # All options used up, so no need to press 'Done' explicitly anymore.
 
         wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
