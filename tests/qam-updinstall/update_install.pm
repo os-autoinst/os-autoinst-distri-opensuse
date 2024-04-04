@@ -113,10 +113,12 @@ sub sle12_zypp_resolve {
         spawn $cmd;
         expect {
             \"Choose from\" {
+                sleep 1
                 send $solution\\r
                 exp_continue
             }
             \"Continue\" {
+                sleep 1
                 send y\\r
                 exp_continue
             }
