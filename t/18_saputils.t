@@ -78,7 +78,70 @@ Hosts/vmhana02/vhost="vmhana02"');
     ok(($topology_ready == 1), 'healthy cluster leads to the return of 1');
 };
 
-subtest '[check_hana_topology] unhealthy cluster' => sub {
+subtest '[check_hana_topology] healthy cluster with custom node_state_match' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="PAPERINO"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="PAPERINO"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology, node_state_match => 'PAPERINO');
+
+    ok(($topology_ready == 1), 'healthy cluster leads to the return of 1');
+};
+
+subtest '[check_hana_topology] healthy cluster with custom node_state_match pacemaker 2.1.7' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="1234"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="5678"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology, node_state_match => '\d');
+
+    ok(($topology_ready == 1), 'healthy cluster leads to the return of 1');
+};
+
+subtest '[check_hana_topology] healthy cluster with custom node_state_match pacemaker 2.1.7' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="1234"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="0"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology, node_state_match => '[1-9]');
+
+    ok(($topology_ready == 0), 'unhealthy cluster leads to the return of 0');
+};
+
+subtest '[check_hana_topology] unhealthy cluster not online' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -92,6 +155,69 @@ Hosts/vmhana01/vhost="vmhana01"
 Hosts/vmhana02/remoteHost="vmhana01"
 Hosts/vmhana02/node_state="online"
 Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 0), 'unhealthy cluster leads to the return of 0');
+};
+
+subtest '[check_hana_topology] unhealthy cluster no PRIM' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="online"
+Hosts/vmhana01/sync_state="SOK"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="online"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 0), 'unhealthy cluster leads to the return of 0');
+};
+
+
+subtest '[check_hana_topology] unhealthy cluster SFAIL' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="online"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="online"
+Hosts/vmhana02/sync_state="SFAIL"
+Hosts/vmhana02/vhost="vmhana02"');
+
+    my $topology_ready = check_hana_topology(input => $topology);
+
+    ok(($topology_ready == 0), 'unhealthy cluster leads to the return of 0');
+};
+
+subtest '[check_hana_topology] unhealthy cluster missing field' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
+Global/global/maintenance="false"
+Sites/site_b/b="SOK"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/node_state="online"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/node_state="online"
 Hosts/vmhana02/vhost="vmhana02"');
 
     my $topology_ready = check_hana_topology(input => $topology);
