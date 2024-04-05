@@ -11,7 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call is_efi_boot);
-use version_utils qw(is_leap is_opensuse is_sle is_jeos);
+use version_utils qw(is_leap is_opensuse is_sle is_jeos is_vmware);
 use Utils::Architectures;
 use jeos qw(reboot_image set_grub_gfxmode);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
@@ -106,6 +106,7 @@ sub check_efi_state {
 }
 
 sub check_mok {
+    return if is_vmware;
     my $state = !get_var('DISABLE_SECUREBOOT', 0) ? qr/^SecureBoot\senabled$/ : qr/^SecureBoot\sdisabled$/;
     # check SecureBoot according to MOK
     diag('Expected regex used to verify SecureBoot: ' . $state);
