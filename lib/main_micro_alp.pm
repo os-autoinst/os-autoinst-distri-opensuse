@@ -53,14 +53,20 @@ sub load_boot_from_disk_tests {
         loadtest 'installation/bootloader_uefi';
     }
 
+    # read FIRST_BOOT_CONFIG in order to know how the image will be configured
+    # ignition|combustion|ignition+combustion is considered as default path
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         loadtest 'jeos/firstrun';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         loadtest 'boot/cloud_init';
-    } elsif (is_s390x()) {
-        loadtest 'boot/boot_to_desktop';
     } else {
-        loadtest 'microos/disk_boot';
+        if (is_s390x()) {
+            loadtest 'boot/boot_to_desktop';
+        } elsif (is_vmware) {
+            ;
+        } else {
+            loadtest 'microos/disk_boot';
+        }
     }
 
     loadtest 'installation/system_workarounds' if (is_aarch64 && is_microos);

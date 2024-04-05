@@ -485,7 +485,7 @@ sub uefi_bootmenu_params {
         }
     }
     else {
-        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
+        if ((is_sle_micro || is_microos) && get_var('BOOT_HDD_IMAGE')) {
             # skip healthchecker lines
             for (1 .. 5) { send_key "down"; }
         }
@@ -575,10 +575,10 @@ sub bootmenu_default_params {
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
-        push @params, "Y2DEBUG=1" unless is_jeos || is_microos || is_selfinstall;
+        push @params, "Y2DEBUG=1" unless is_jeos || is_microos || is_selfinstall || (is_sle_micro && get_var('BOOT_HDD_IMAGE'));
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_microos && !is_selfinstall && (is_i586 || is_x86_64)) {
+        if (!(is_sle_micro && get_var('BOOT_HDD_IMAGE')) && !is_jeos && !is_microos && !is_selfinstall && (is_i586 || is_x86_64)) {
             push @params, "vga=791";
             my $video = 'video=1024x768';
             $video .= '-16' if check_var('QEMUVGA', 'cirrus');
@@ -595,7 +595,7 @@ sub bootmenu_default_params {
         if (is_microos || is_selfinstall) {
             push @params, get_bootmenu_console_params $args{baud_rate};
         }
-        elsif (!is_jeos) {
+        elsif (!is_jeos && !(is_sle_micro && get_var('BOOT_HDD_IMAGE'))) {
             # make plymouth go graphical
             push @params, "plymouth.ignore-serial-consoles" unless $args{pxe};
             push @params, get_bootmenu_console_params $args{baud_rate};
