@@ -45,15 +45,23 @@ sub load_config_tests {
 }
 
 sub load_boot_from_disk_tests {
-    loadtest 'installation/bootloader_start' if is_s390x();
+    # add additional image handling module for svirt workers
+    if (is_s390x()) {
+        loadtest 'installation/bootloader_start';
+    } elsif (is_vmware()) {
+        loadtest 'installation/bootloader_svirt';
+        loadtest 'installation/bootloader_uefi';
+    }
+
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         loadtest 'jeos/firstrun';
+    } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
+        loadtest 'boot/cloud_init';
     } elsif (is_s390x()) {
         loadtest 'boot/boot_to_desktop';
     } else {
         loadtest 'microos/disk_boot';
     }
-    loadtest 'boot/cloud_init' if (check_var('FIRST_BOOT_CONFIG', 'cloud-init'));
 
     loadtest 'installation/system_workarounds' if (is_aarch64 && is_microos);
     replace_opensuse_repos_tests if is_repo_replacement_required;
