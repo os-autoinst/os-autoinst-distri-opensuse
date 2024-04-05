@@ -69,8 +69,11 @@ sub post_execute_script_assertion {
 sub run {
     my $self = shift;
 
-    select_console 'sol', await_console => 0;
-    use_ssh_serial_console;
+    # Only for x86_64
+    if (is_x86_64) {
+        select_console 'sol', await_console => 0;
+        use_ssh_serial_console;
+    }
 
     # Add option to keep guest after successful installation
     # Only for x86_64 now
