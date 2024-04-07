@@ -27,19 +27,19 @@ sub run {
     select_serial_terminal;
     return if (is_sle('<15-sp6') || is_leap('<15.6'));
 
-    # Install libgit2
+    # Install libgit2 and gcc
     if (is_sle) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
         add_suseconnect_product('sle-module-python3');
     }
     my $pkg_ver = script_output("zypper se '/^libgit2-[0-9].*[0-9]\$/' | awk -F '|' '/libgit2-[0-9]/ {gsub(\" \", \"\"); print \$2}' | uniq");
-    zypper_call "in $pkg_ver libgit2-tools";
+    zypper_call "in $pkg_ver libgit2-tools libgit2-devel gcc";
     record_info("Installed libgit2 version", script_output("rpm -q --qf '%{VERSION}\n' $pkg_ver"));
 
     # Install the latest python3 package
     $python3_version = get_available_python_versions('1');
-    zypper_call "in $python3_version";
+    zypper_call "in $python3_version $python3_version-devel";
     $python_sub_version = substr($python3_version, 7);
 
     # Install pygit2
