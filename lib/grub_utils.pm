@@ -30,7 +30,7 @@ Handle grub menu after reboot
 =cut
 
 sub grub_test {
-    my $timeout = get_var('GRUB_TIMEOUT', 200);
+    my $timeout = get_var('GRUB_TIMEOUT', 600);
 
     reconnect_mgmt_console if is_pvm;
     handle_installer_medium_bootup();
