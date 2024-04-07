@@ -125,11 +125,11 @@ sub login_to_console {
     }
 
     my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
-    unless (is_tumbleweed or check_screen(@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    unless (is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
-        check_screen(@bootup_needles, 120);
+        check_screen(\@bootup_needles, 120);
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)
