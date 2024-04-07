@@ -79,24 +79,6 @@ sub run {
         $instance->ssh_assert_script_run('sudo systemctl restart sshd');
     }
 
-    if (is_hardened) {
-        # Workaround for https://github.com/OpenSCAP/openscap/issues/1796
-        my $swap_file = "/swapfile";
-        my $fstype = $instance->ssh_script_output(cmd => 'findmnt -no fstype /');
-        # Follow steps in https://btrfs.readthedocs.io/en/latest/Swapfile.html
-        my @cmds;
-        push(@cmds, "btrfs subvolume create $swap_file") if ($fstype eq "btrfs");
-        push(@cmds, "truncate -s 0 $swap_file");
-        push(@cmds, "chattr +C $swap_file") if ($fstype eq "btrfs");
-        push(@cmds, "fallocate -l 4G $swap_file");
-        push(@cmds, "chmod 600 $swap_file");
-        push(@cmds, "mkswap $swap_file");
-        push(@cmds, "swapon -v $swap_file");
-        foreach my $cmd (@cmds) {
-            $instance->ssh_assert_script_run("sudo $cmd");
-        }
-    }
-
     my $img_proof = $provider->img_proof(
         instance => $instance,
         tests => $tests,
