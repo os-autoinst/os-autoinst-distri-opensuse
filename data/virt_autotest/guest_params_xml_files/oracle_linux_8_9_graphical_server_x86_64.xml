@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>oraclelinux</guest_os_name>
-    <guest_version>r8-u6</guest_version>
+    <guest_version>r8-u9</guest_version>
     <guest_version_major>8</guest_version_major>
-    <guest_version_minor>6</guest_version_minor>
+    <guest_version_minor>9</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build/>
     <host_hypervisor_uri/>
@@ -25,7 +25,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#inst.noverifyssl#inst.waitfornet=60#inst.geoloc=provider_hostip#inst.geoloc-use-with-ks#inst.sshd#inst.debug#inst.notmux#inst.gpt#inst.cmdline</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>OracleLinux-R8-U6-Server-x86_64-dvd.iso</guest_installation_media>
+    <guest_installation_media>OracleLinux-R8-U9-x86_64-dvd.iso</guest_installation_media>
     <guest_installation_fine_grained/>
     <guest_boot_settings/>
     <guest_secure_boot/>
