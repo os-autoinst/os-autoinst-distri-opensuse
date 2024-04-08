@@ -32,6 +32,13 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
     </addons>
   </suse_register>
   <scripts>
