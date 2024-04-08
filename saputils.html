@@ -14,9 +14,9 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
-      <li><a href="#calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</a></li>
-      <li><a href="#check_hana_topology-check_hana_topology-input-saphanasr_showAttr_format_script_output">check_hana_topology check_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</a></li>
-      <li><a href="#check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output([input =&gt; $crm_mon_output]);</a></li>
+      <li><a href="#calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology(input =&gt; $saphanasr_showAttr_format_script_output);</a></li>
+      <li><a href="#check_hana_topology-check_hana_topology-input-calculate_hana_topology-saphanasr_showAttr_format_script_output-online_str-12345678">check_hana_topology check_hana_topology(input =&gt; calculate_hana_topology($saphanasr_showAttr_format_script_output) [, online_str =&gt; &#39;12345678&#39;]]);</a></li>
+      <li><a href="#check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output(input =&gt; $crm_mon_output);</a></li>
     </ul>
   </li>
 </ul><h1>lib/saputils.pm</h1>
@@ -27,7 +27,7 @@
 
 <p>This package is a stateless library. To keep this library as generic as possible avoid as much as possible any other dependency usage, like other baseclass or testapi. Avoid using get_var/set_var at this level.</p>
 
-<h2 id="calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</h2>
+<h2 id="calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology(input =&gt; $saphanasr_showAttr_format_script_output);</h2>
 
 <pre><code>Expect `SAPHanaSR-showAttr --format=script` as input.
 Parses this input, returns a hash of hashes containing values for each host.
@@ -53,7 +53,15 @@ result in
     },
 }</code></pre>
 
-<h2 id="check_hana_topology-check_hana_topology-input-saphanasr_showAttr_format_script_output">check_hana_topology check_hana_topology([input =&gt; $saphanasr_showAttr_format_script_output]);</h2>
+<dl>
+
+<dt id="input---stdout-of-SAPHanaSR-showAttr---format-script"><b>input</b> - stdout of &#39;SAPHanaSR-showAttr --format=script&#39;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="check_hana_topology-check_hana_topology-input-calculate_hana_topology-saphanasr_showAttr_format_script_output-online_str-12345678">check_hana_topology check_hana_topology(input =&gt; calculate_hana_topology($saphanasr_showAttr_format_script_output) [, online_str =&gt; &#39;12345678&#39;]]);</h2>
 
 <pre><code>Expect the output of saputils::calculate_hana_topology as input.
 Uses calculate_hana_topology to get a hash of hashes, and then
@@ -63,14 +71,34 @@ The checks performed are:
 - All node_states are online
 - All sync_states are either SOK or PRIM</code></pre>
 
-<h2 id="check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output([input =&gt; $crm_mon_output]);</h2>
+<dl>
+
+<dt id="input---return-value-of-calculate_hana_topology"><b>input</b> - return value of calculate_hana_topology</dt>
+<dd>
+
+</dd>
+<dt id="node_state_match---string-used-to-match-the-online-state-in-field-node_state.-Default-online"><b>node_state_match</b> - string used to match the online state in field node_state. Default &#39;online&#39;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output(input =&gt; $crm_mon_output);</h2>
 
 <pre><code>input: the output of the command &#39;crm_mon -r -R -n -N -1&#39;
 output: whether the conditions are met (return 1) or not (return 0)
 
 Conditions:
 - No resources are in &#39;Starting&#39; state
-- No &#39;Failed Resource Actions&#39; present   </code></pre>
+- No &#39;Failed Resource Actions&#39; present</code></pre>
+
+<dl>
+
+<dt id="input---stdout-of-crm_mon--R--r--n--N--1"><b>input</b> - stdout of &#39;crm_mon -R -r -n -N -1&#39;</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
