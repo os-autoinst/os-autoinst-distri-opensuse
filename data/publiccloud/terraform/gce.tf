@@ -92,6 +92,10 @@ variable "ssh_public_key" {
   default = "/root/.ssh/id_ed25519.pub"
 }
 
+variable "stack_type" {
+  default = "IPV4_ONLY"
+}
+
 
 resource "random_id" "service" {
   count = var.instance_count
@@ -139,8 +143,9 @@ resource "google_compute_instance" "openqa" {
     network    = "tf-network"
     subnetwork = "tf-subnetwork"
     access_config {}
-    stack_type = "IPV4_ONLY"
+    stack_type = var.stack_type
   }
+  can_ip_forward = true
 
   service_account {
     email  = data.external.gce_cred.result["client_email"]
