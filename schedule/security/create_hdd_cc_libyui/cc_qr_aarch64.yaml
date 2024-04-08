@@ -12,9 +12,9 @@ schedule:
     - installation/common_criteria_configuration/common_criteria_encryption_pwd
   suggested_partitioning:
     - installation/partitioning/new_partitioning_gpt
+  grub: []
   first_login:
-    - security/boot_encrypt_no_video_present
-    - installation/first_boot
+    - security/boot_disk
   system_preparation:
     - console/hostname
     - console/system_prepare

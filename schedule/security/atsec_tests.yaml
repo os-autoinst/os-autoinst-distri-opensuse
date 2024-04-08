@@ -2,8 +2,8 @@ name: atsec_tests
 description: >
     This is for ATSec tests
 schedule:
-    - '{{bootloader_zkvm}}'
-    - boot/boot_to_desktop
+    - installation/bootloader_start
+    - security/boot_disk
     - security/atsec/setup_atsec_env
     - '{{disable_root_ssh}}'
     - security/atsec/accessible_network_interface
@@ -18,10 +18,6 @@ schedule:
     - security/atsec/permission_settings
     - '{{check_processor_vulnerability_mitigations}}'
 conditional_schedule:
-    bootloader_zkvm:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
     check_processor_vulnerability_mitigations:
         ARCH:
             x86_64:

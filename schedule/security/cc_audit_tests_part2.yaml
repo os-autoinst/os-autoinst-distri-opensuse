@@ -3,7 +3,7 @@ description:    >
     This is for cc audit tests part2 in single node
 schedule:
     - '{{bootloader_zkvm}}'
-    - boot/boot_to_desktop
+    - security/boot_disk
     - security/cc/cc_audit_test_setup
     - '{{trustedprograms}}'
     - '{{disable_root_ssh}}'
@@ -24,6 +24,8 @@ conditional_schedule:
                 - security/cc/disable_root_ssh
     trustedprograms:
         VERSION:
+            15-SP6:
+                - security/cc/trustedprograms
             15-SP5:
                 - security/cc/trustedprograms
             15-SP4:

@@ -3,7 +3,7 @@ description:    >
     This is for cc audit test.
 schedule:
     - installation/bootloader_start
-    - boot/boot_to_desktop
+    - security/boot_disk
     - security/cc/cc_audit_test_setup
     - '{{disable_root_ssh}}'
     - security/cc/audit_tools
