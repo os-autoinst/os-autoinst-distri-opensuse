@@ -1209,7 +1209,8 @@ sub config_guest_network_vnet_services {
 
 Loosen iptables rules for [guest_network_device]. Additionally, write commands
 executed into crontab to re-execute them automatically on reboot if host reboots
-somehow unexpectedly.
+somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug
+bsc#1222229.
 
 =cut
 
@@ -1238,7 +1239,6 @@ systemctl disable dhcpd
 iptables --append FORWARD --in-interface $self->{guest_network_device} -j ACCEPT;
 sysctl -w net.ipv4.ip_forward=1
 sysctl -w net.ipv4.conf.all.forwarding=1
-sysctl -w net.ipv6.conf.all.forwarding=1
 iptables-save > $self->{guest_log_folder}/iptables_after_modification_by_$self->{guest_name}
 EOF
 ");
@@ -1638,7 +1638,8 @@ sub config_guest_network_bridge_services {
 Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and
 on all default route devices and [guest_network_device]. Additionally, write
 commands executed into crontab to re-execute them automatically on reboot if host
-reboots somehow unexpectedly.
+reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product
+bug bsc#1222229.
 
 =cut
 
@@ -1681,7 +1682,6 @@ $_iptables_default_route_devices
 iptables --append FORWARD --in-interface $_guest_network_device -j ACCEPT
 sysctl -w net.ipv4.ip_forward=1
 sysctl -w net.ipv4.conf.all.forwarding=1
-sysctl -w net.ipv6.conf.all.forwarding=1
 iptables-save > $self->{guest_log_folder}/iptables_after_modification_by_$self->{guest_name}
 EOF
 ");
