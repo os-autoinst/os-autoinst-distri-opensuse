@@ -86,7 +86,7 @@ sub generate_vnc_events {
     x11_start_program 'xterm';
     send_key 'super-left';
     enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
-    assert_screen 'vnc_password_dialog';
+    assert_screen 'vnc_password_dialog', 90;
     enter_cmd "$password";
     assert_screen 'vncviewer-xev';
     send_key 'super-left';
