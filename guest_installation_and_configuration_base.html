@@ -335,7 +335,7 @@ _netmask =&gt; &#39;mask&#39;, _startaddr =&gt; &#39;start&#39;, _endaddr =&gt; 
 
 <pre><code>config_guest_network_vent_policy($self)</code></pre>
 
-<p>Loosen iptables rules for [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly.</p>
+<p>Loosen iptables rules for [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229.</p>
 
 <h2 id="config_guest_network_bridge">config_guest_network_bridge</h2>
 
@@ -398,7 +398,7 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>config_guest_network_bridge_policy($self, $_guest_network_device)</code></pre>
 
-<p>Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and on all default route devices and [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly.</p>
+<p>Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and on all default route devices and [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229.</p>
 
 <h2 id="schedule_tasks_on_boot">schedule_tasks_on_boot</h2>
 
