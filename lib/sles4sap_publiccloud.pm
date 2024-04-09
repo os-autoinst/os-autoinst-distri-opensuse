@@ -162,17 +162,14 @@ sub get_promoted_hostname {
 
 sub sles4sap_cleanup {
     my ($self, %args) = @_;
-    $args{cleanup_called} //= 'undefined';
-    $args{network_peering_present} //= 'undefined';
-    $args{ansible_present} //= 'undefined';
     # If there's an open ssh connection to the VMs, return to host console first
     select_host_console(force => 1);
     record_info(
         'Cleanup',
         join(' ',
-            'cleanup_called:', $args{cleanup_called},
-            'network_peering_present:', $args{network_peering_present},
-            'ansible_present:', $args{ansible_present}));
+            'cleanup_called:', $args{cleanup_called} // 'undefined',
+            'network_peering_present:', $args{network_peering_present} // 'undefined',
+            'ansible_present:', $args{ansible_present} // 'undefined'));
 
     qesap_upload_logs();
     if ($args{network_peering_present}) {
@@ -183,7 +180,7 @@ sub sles4sap_cleanup {
     return 0 if ($args{cleanup_called});
     my @cmd_list;
 
-    # Only run the Ansible deregister if Ansible has been executed
+    # Only run the Ansible de-register if Ansible has been executed
     push(@cmd_list, 'ansible') if ($args{ansible_present});
 
     # Terraform destroy can be executed in any case
