@@ -233,6 +233,7 @@ subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
 subtest '[azure_fencing_agents_playbook_args] Check Mandatory args' => sub {
     # Create a list of mandatory arguments.
     my %mandatory_args = (
+        'fence_type' => 'LieutenantWilliamBligh,',
         'spn_application_id' => 'LongJohnSilver',
         'spn_application_password' => 'CaptainFlint');
     # Notice like they are mandatory only if fencing is SPN
@@ -250,15 +251,14 @@ subtest '[azure_fencing_agents_playbook_args] Check Mandatory args' => sub {
 };
 
 
-subtest '[azure_fencing_agents_playbook_args] Native fencing setup (default value)' => sub {
-    my $returned_value = azure_fencing_agents_playbook_args();
-    is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is not specified";
+subtest '[azure_fencing_agents_playbook_args] Invalid fencing type' => sub {
+    dies_ok { azure_fencing_agents_playbook_args(fence_type => 'Bounty') };
 };
 
 
 subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
-    my $returned_value = azure_fencing_agents_playbook_args();
+    my $returned_value = azure_fencing_agents_playbook_args(fence_type => 'msi');
     is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is 'msi'";
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
 };
@@ -266,7 +266,9 @@ subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
 
 subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
     my %mandatory_args =
-      ('spn_application_id' => 'GolDRodger', 'spn_application_password' => 'JackSparrow');
+      ('fence_type' => 'spn',
+        'spn_application_id' => 'GoldRodger',
+        'spn_application_password' => 'JackSparrow');
 
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn');
     my $returned_value = azure_fencing_agents_playbook_args(%mandatory_args);

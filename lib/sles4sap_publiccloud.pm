@@ -822,6 +822,7 @@ sub create_playbook_section_list {
     if ($args{fencing} eq 'native' and is_azure) {
         # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
         my $azure_native_fencing_args = azure_fencing_agents_playbook_args(
+            fence_type => get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi'),
             spn_application_id => get_var('_SECRET_AZURE_SPN_APPLICATION_ID'),
             spn_application_password => get_var('_SECRET_AZURE_SPN_APP_PASSWORD')
         );
@@ -848,34 +849,40 @@ sub create_playbook_section_list {
 =head2 azure_fencing_agents_playbook_args
 
     azure_fencing_agents_playbook_args(
+        fence_type => 'spn'
         spn_application_id=>$spn_application_id,
         spn_application_password=>$spn_application_password
     );
 
     Collects data and creates string of arguments that can be supplied to playbook.
-    spn_application_id - application ID that allows API access for STONITH device
-    spn_application_password - password provided for application ID above
 
+=over 3
+
+=item B<FENCE_TYPE> - Azure native fence type (spn|msi)
+
+=item B<SPN_APPLICATION_ID> - application ID that allows API access for STONITH device
+
+=item B<SPN_APPLICATION_PASSWORD> - password provided for application ID above
+
+=back
 =cut
 
 sub azure_fencing_agents_playbook_args {
     my (%args) = @_;
+    croak "Argument <fence_type> missing" unless $args{fence_type};
+    croak "fence_type contains dubious value: '$args{fence_type}'" unless
+      $args{fence_type} =~ /msi|spn/;
 
-    my $fence_agent_openqa_var = get_var('AZURE_FENCE_AGENT_CONFIGURATION') // 'msi';
-    croak("AZURE_FENCE_AGENT_CONFIGURATION contains dubious value: '$fence_agent_openqa_var'")
-      unless !$fence_agent_openqa_var or $fence_agent_openqa_var =~ /msi|spn/;
-    my $fence_agent_configuration = $fence_agent_openqa_var eq 'spn' ? $fence_agent_openqa_var : 'msi';
-
-    if ($fence_agent_configuration eq 'spn') {
+    if ($args{fence_type} eq 'spn') {
         foreach ('spn_application_id', 'spn_application_password') {
-            croak("Missing '$_' argument") unless defined($args{$_});
+            croak "Argument < $_ > missing" unless $args{$_};
         }
     }
 
-    my $playbook_opts = "-e azure_identity_management=$fence_agent_configuration";
+    my $playbook_opts = "-e azure_identity_management=$args{fence_type}";
     $playbook_opts = join(' ', $playbook_opts,
         "-e spn_application_id=$args{spn_application_id}",
-        "-e spn_application_password=$args{spn_application_password}") if $fence_agent_configuration eq 'spn';
+        "-e spn_application_password=$args{spn_application_password}") if $args{fence_type} eq 'spn';
 
     return ($playbook_opts);
 }
