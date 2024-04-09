@@ -327,13 +327,28 @@ in the &quot;ansible: create:&quot; section of config.yaml file.</code></pre>
 <h2 id="azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</h2>
 
 <pre><code>azure_fencing_agents_playbook_args(
+    fence_type =&gt; &#39;spn&#39;
     spn_application_id=&gt;$spn_application_id,
     spn_application_password=&gt;$spn_application_password
 );
 
-Collects data and creates string of arguments that can be supplied to playbook.
-spn_application_id - application ID that allows API access for STONITH device
-spn_application_password - password provided for application ID above</code></pre>
+Collects data and creates string of arguments that can be supplied to playbook.</code></pre>
+
+<dl>
+
+<dt id="FENCE_TYPE---Azure-native-fence-type-spn-msi"><b>FENCE_TYPE</b> - Azure native fence type (spn|msi)</dt>
+<dd>
+
+</dd>
+<dt id="SPN_APPLICATION_ID---application-ID-that-allows-API-access-for-STONITH-device"><b>SPN_APPLICATION_ID</b> - application ID that allows API access for STONITH device</dt>
+<dd>
+
+</dd>
+<dt id="SPN_APPLICATION_PASSWORD---password-provided-for-application-ID-above"><b>SPN_APPLICATION_PASSWORD</b> - password provided for application ID above</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="get_hana_site_names">get_hana_site_names</h2>
 
