@@ -199,7 +199,15 @@ Returns hash of found values converted to lowercase and replaces spaces to under
 
 <pre><code>Wait for replica site to sync data with primary.
 Checks &quot;SAPHanaSR-showAttr&quot; output and ensures replica site has &quot;sync_state&quot; &quot;SOK &amp;&amp; PRIM&quot; and no SFAIL.
-Continue after expected output matched three times continually to make sure cluster is synced.</code></pre>
+ Continue after expected output matched N times continually to make sure cluster is synced.
+
+Expected conditions:
+ - Both primary and replica must be online.
+ - primary must have sync_state &#39;PRIM&#39;
+ - primary must have clone_state &#39;PROMOTED&#39;
+ - replica must have sync_state &#39;SOK&#39;  - this means data is in sync
+ - replica must have clone_state &#39;DEMOTED&#39;
+ - site order does not matter</code></pre>
 
 <dl>
 
