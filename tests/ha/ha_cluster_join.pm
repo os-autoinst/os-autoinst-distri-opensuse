@@ -54,7 +54,7 @@ sub run {
     my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
     enter_cmd "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection";
     wait_for_password_prompt(needle => 'ha-cluster-join-password', timeout => $join_timeout);
-    type_password;
+    type_password($testapi::password, max_interval => 30);
     send_key 'ret';
     if (check_var('TWO_NODES', 'no') && wait_for_password_prompt(needle => 'ha-cluster-join-3nodes-password', timeout => 150, failok => 1)) {
         type_password;
