@@ -28,7 +28,8 @@ sub configure_ha_exporter {
     upload_logs("/usr/etc/$exporter_name", failok => 1);
 
     # Get the IP port and start exporter
-    my ($ha_exporter_port) = script_output("awk '/port:/ { print \$NF }' /etc/$exporter_name /usr/etc/$exporter_name 2>/dev/null", proceed_on_failure => 1) =~ /^(\d+)$/ ? $1 : 9664;
+    my ($ha_exporter_port)
+      = script_output("awk '/port:/ { print \$NF }' /etc/$exporter_name /usr/etc/$exporter_name 2>/dev/null", proceed_on_failure => 1) =~ /^(\d+)$/ ? $1 : 9664;
 
     systemctl "enable --now prometheus-$exporter_name";
     systemctl "status prometheus-$exporter_name";
@@ -53,7 +54,8 @@ sub configure_hanadb_exporter {
 
     # Modify the configuration file
     assert_script_run "cp $config_dir/config.json.example $hanadb_exporter_config";
-    file_content_replace("$hanadb_exporter_config",
+    file_content_replace(
+        "$hanadb_exporter_config",
         q(PASSWORD) => $sles4sap::instance_password,
         q(\./logging_config.ini) => "$config_dir/logging_config.ini",
         q(hanadb_exporter\.log) => "/var/log/${exporter_name}_$args{rsc_id}.log"
@@ -77,18 +79,20 @@ sub configure_hanadb_exporter {
         add_file_in_csync(value => "$hanadb_exporter_config");
 
         # Add the monitoring resource
-        assert_script_run(
-            'crm configure primitive ' . $hanadb_exp_rsc . " systemd:prometheus-$exporter_name@" . $args{rsc_id}
+        assert_script_run('crm configure primitive '
+              . $hanadb_exp_rsc
+              . " systemd:prometheus-$exporter_name@"
+              . $args{rsc_id}
               . ' op start interval=0 timeout=100'
               . ' op stop interval=0 timeout=100'
               . ' op monitor interval=10'
-              . ' meta target-role=Stopped'
-        );
+              . ' meta target-role=Stopped');
 
         assert_script_run "crm configure colocation col_exporter_$args{rsc_id} +inf: $hanadb_exp_rsc:Started $hanadb_msl:Master";
         assert_script_run "crm resource start $hanadb_exp_rsc";
         wait_until_resources_started;
-    } elsif (!get_var('HA_CLUSTER')) {
+    }
+    elsif (!get_var('HA_CLUSTER')) {
         $check_exporter = 'true';
         systemctl "enable --now prometheus-$exporter_name\@$args{rsc_id}";
     }
@@ -96,7 +100,24 @@ sub configure_hanadb_exporter {
     # Check that the exporter is running
     if ($check_exporter eq 'true') {
         systemctl "status prometheus-$exporter_name\@$args{rsc_id}";
-        assert_script_run "curl -o $metrics_file http://localhost:$hanadb_exporter_port";
+        my $retry = 0;
+        my $count = 10;
+        while ($retry < $count) {
+            my $ret = script_run("curl -o $metrics_file http://localhost:$hanadb_exporter_port");
+            if ($ret) {
+                sleep 5;
+                record_info("Retry port $hanadb_exporter_port", script_output("lsof -i :$hanadb_exporter_port", timeout => 120, proceed_on_failure => 1));
+            }
+            else {
+                last;
+            }
+            $retry++;
+            # if retry number is reached the test will fail
+            if ($retry == $count) {
+                record_info("Failed: retry $retry times but failed");
+                die;
+            }
+        }
 
         # Export metrics for later analysis
         upload_logs $metrics_file;
@@ -115,9 +136,7 @@ sub configure_sap_host_exporter {
 
     # Modify the configuration file
     assert_script_run "cp $default_config $exporter_config";
-    file_content_replace("$exporter_config",
-        q(:50013) => ":5$args{instance_id}13"
-    );
+    file_content_replace("$exporter_config", q(:50013) => ":5$args{instance_id}13");
 
     # Upload the config file
     upload_logs("$exporter_config", failok => 1);
@@ -137,13 +156,14 @@ sub configure_sap_host_exporter {
         add_file_in_csync(value => "$exporter_config");
 
         # Add the monitoring resource
-        assert_script_run(
-            'crm configure primitive ' . $exporter_rsc . " systemd:prometheus-$exporter_name@" . $args{rsc_id}
+        assert_script_run('crm configure primitive '
+              . $exporter_rsc
+              . " systemd:prometheus-$exporter_name@"
+              . $args{rsc_id}
               . ' op start interval=0 timeout=100'
               . ' op stop interval=0 timeout=100'
               . ' op monitor interval=10'
-              . ' meta target-role=Stopped'
-        );
+              . ' meta target-role=Stopped');
         assert_script_run "crm configure modgroup grp_$args{rsc_id} add $exporter_rsc";
         assert_script_run "crm resource start $exporter_rsc";
         wait_until_resources_started;
@@ -151,7 +171,8 @@ sub configure_sap_host_exporter {
 
         # Release the lock
         mutex_unlock 'support_server_ready';
-    } else {
+    }
+    else {
         # Start exporter
         systemctl "enable --now prometheus-$exporter_name\@$args{rsc_id}";
     }
