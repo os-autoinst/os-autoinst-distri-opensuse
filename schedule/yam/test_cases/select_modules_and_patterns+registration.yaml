@@ -23,6 +23,7 @@ schedule:
   system_preparation:
     - console/hostname
     - console/system_prepare
+    - autoyast/clone
     - console/force_scheduled_tasks
     - shutdown/grub_set_bootargs
   system_validation:

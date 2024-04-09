@@ -16,10 +16,12 @@ use testapi;
 use utils qw(zypper_call);
 
 sub run {
+    select_console 'root-console';
     my $self = shift;
     assert_script_run 'rm -f /root/autoinst.xml';
     zypper_call('in autoyast2', 300);
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses');
+    #my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses', args => 'modules target=compact');
     if (check_screen 'autoyast2-install-accept', 10) {
         send_key 'alt-i';    # confirm package installation
     }
