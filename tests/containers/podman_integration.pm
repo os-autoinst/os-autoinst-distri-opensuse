@@ -16,6 +16,7 @@ use version_utils qw(get_os_release is_transactional is_sle is_sle_micro is_tumb
 use transactional qw(trup_call check_reboot_changes);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
+use Utils::Architectures qw(is_x86_64 is_aarch64);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -69,6 +70,12 @@ sub run {
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
     # NOTE: passt should be pulled in as a dependency on podman 5.0+
     push @pkgs, qw(passt) if (is_tumbleweed || is_microos || is_sle('>=15-SP6') || is_leap('>=15.6') || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
+    # Needed for podman machine
+    if (is_x86_64) {
+        push @pkgs, "qemu-x86";
+    } elsif (is_aarch64) {
+        push @pkgs, "qemu-arm";
+    }
     install_packages(@pkgs);
 
     # Workarounds for tests to work:
