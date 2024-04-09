@@ -295,7 +295,7 @@ sub is_hana_resource_running {
     "kill" - kills database processes using "HDB -kill" command.
     "crash" - crashes entire os using "/proc-sysrq-trigger" method.
 
-=over 1
+=over 2
 
 =item B<method> - Allow to specify a specific stop method
 
@@ -333,7 +333,7 @@ sub stop_hana {
         # It is better to wait till ssh disappear
         record_info("Wait ssh disappear start");
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
-        record_info("Wait ssh disappear end", "$out") if (defined $out);
+        record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
         sleep 10;
         $self->{my_instance}->wait_for_ssh(timeout => 900);
         return;
