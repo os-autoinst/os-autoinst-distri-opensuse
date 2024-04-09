@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use security_boot_utils;
 use version_utils qw(is_sle_micro);
 use Utils::Backends 'is_pvm';
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
@@ -110,7 +111,11 @@ sub reboot_and_reconnect {
     my ($self, %args) = @_;
     power_action('reboot', textmode => $args{textmode});
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot(textmode => $args{textmode}, ready_time => 600, bootloader_time => 300);
+    if (boot_has_no_video) {
+        $self->boot_encrypt_no_video;
+    } else {
+        $self->wait_boot(textmode => $args{textmode}, ready_time => 600, bootloader_time => 300);
+    }
 }
 
 sub set_sestatus {
