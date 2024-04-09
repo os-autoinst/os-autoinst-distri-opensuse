@@ -780,6 +780,9 @@ elsif (get_var('XFSTESTS')) {
         get_var('ASSET_CHANGE_KERNEL_RPM')) {
         loadtest 'kernel/change_kernel';
     }
+    if (get_var('KOTD_REPO')) {
+        loadtest 'kernel/update_kernel';
+    }
     prepare_target;
     if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
