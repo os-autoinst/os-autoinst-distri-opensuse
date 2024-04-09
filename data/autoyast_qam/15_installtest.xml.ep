@@ -3,7 +3,7 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
-      % if ($check_var->('SLE_PRODUCT', 'sled') and $is_ltss){
+      % if ($check_var->('SLE_PRODUCT', 'sled') and $is_ltss) {
       <listentry>
         <name>SLED-LTSS:<%= $get_var->('VERSION') %>::update</name>
         <alias>SLED-LTSS:<%= $get_var->('VERSION') %>::update</alias>
@@ -11,14 +11,14 @@
       </listentry>
       % }
       % unless ($check_var->('SLE_PRODUCT', 'sled')) {
-      % if ($is_ltss) {
+        % if ($is_ltss) {
       <listentry>
         <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
         <alias>SLES-LTSS:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
-      % if (!($check_var->('VERSION', '15') and $check_var->('ARCH', 'aarch64'))) {
+        % }
+        % unless ($check_var->('HA_QAM', '1') and !$check_var->('SAP_QAM', '1')) {
       <listentry>
         <name>sle-module-containers:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-containers:<%= $get_var->('VERSION') %>::pool</alias>
@@ -29,7 +29,6 @@
         <alias>sle-module-containers:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
       <listentry>
         <name>sle-module-legacy:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-legacy:<%= $get_var->('VERSION') %>::pool</alias>
@@ -51,16 +50,6 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       <listentry>
-        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      <listentry>
         <name>sle-module-web-scripting:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-web-scripting:<%= $get_var->('VERSION') %>::pool</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
@@ -80,41 +69,16 @@
         <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
-      % if ($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3')) {
+        % }
       <listentry>
-        <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
       </listentry>
       <listentry>
-        <name>sle-module-python2:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
-      % if ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6')) {
-      <listentry>
-        <name>sle-module-python3:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-python3:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
-      % if ($check_var->('ARCH', 'x86_64')) {
-      <listentry>
-        <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-we:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-we:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-we:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
       <listentry>
@@ -137,6 +101,7 @@
         <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
+      % unless ($check_var->('HA_QAM', '1') and !$check_var->('SAP_QAM', '1')) {
       <listentry>
         <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</alias>
@@ -157,6 +122,43 @@
         <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
+      % }
+      % if (($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3')) and (!$check_var->('HA_QAM', '1') or $check_var->('SAP_QAM', '1'))) {
+      <listentry>
+        <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-python2:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if (($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6')) and (!$check_var->('HA_QAM', '1') or $check_var->('SAP_QAM', '1'))) {
+      <listentry>
+        <name>sle-module-python3:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-python3:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($check_var->('ARCH', 'x86_64') and !$check_var->('HA_QAM', '1')) {
+      <listentry>
+        <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-we:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-we:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-we:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       % if ($check_var->('HA_QAM', '1')) {
       <listentry>
         <name>sle-ha:<%= $get_var->('VERSION') %>::pool</name>
