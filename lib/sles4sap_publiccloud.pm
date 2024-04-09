@@ -17,16 +17,17 @@ use strict;
 use warnings FATAL => 'all';
 use Exporter 'import';
 use Scalar::Util 'looks_like_number';
+use List::MoreUtils qw(uniq);
+use Carp qw(croak);
+use YAML::PP;
+use testapi;
+use utils 'file_content_replace';
+use version_utils qw(check_version);
+use hacluster;
+use qesapdeployment;
 use publiccloud::utils;
 use publiccloud::provider;
 use publiccloud::ssh_interactive 'select_host_console';
-use testapi;
-use List::MoreUtils qw(uniq);
-use utils 'file_content_replace';
-use Carp qw(croak);
-use hacluster;
-use qesapdeployment;
-use YAML::PP;
 use publiccloud::instance;
 use sles4sap;
 use saputils;
@@ -504,7 +505,15 @@ sub get_promoted_instance {
 
     Wait for replica site to sync data with primary.
     Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK && PRIM" and no SFAIL.
-    Continue after expected output matched three times continually to make sure cluster is synced.
+     Continue after expected output matched N times continually to make sure cluster is synced.
+
+    Expected conditions:
+     - Both primary and replica must be online.
+     - primary must have sync_state 'PRIM'
+     - primary must have clone_state 'PROMOTED'
+     - replica must have sync_state 'SOK'  - this means data is in sync
+     - replica must have clone_state 'DEMOTED'
+     - site order does not matter
 
 =over 1
 
@@ -516,33 +525,25 @@ sub get_promoted_instance {
 sub wait_for_sync {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
-    my $count = 30;
+    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '[1-9]+' : 'online';
     my $output_pass = 0;
-    my $output_fail = 0;
-    record_info("Sync wait", "Waiting for data sync between nodes");
 
-    # Check sync status periodically until ok or timeout
+    record_info('Sync wait', "Waiting for data sync between nodes. online_str=$online_str timeout=$timeout");
+
+    # Check sync status periodically until ok for 5 times in a row or timeout
     my $start_time = time;
-
-    while ($count--) {
-        die 'HANA replication: node did not sync in time' if $count == 1;
-        die 'HANA replication: node is stuck at SFAIL' if $output_fail == 10;
-        sleep 30;
-        my $ret = $self->run_cmd(cmd => 'SAPHanaSR-showAttr | grep online', proceed_on_failure => 1);
-        $output_pass++ if $ret =~ /SOK/ && $ret =~ /PRIM/ && $ret !~ /SFAIL/;
-        $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
-        $output_fail++ if $ret =~ /SFAIL/;
-        $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
-        next if $output_pass < 5;
+    while (time - $start_time < $timeout) {
+        # call SAPHanaSR-showAttr to get current topology, validate the output, calculate the score.
+        # Not ok cluster result in score reset to zero
+        $output_pass = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $online_str) ? $output_pass + 1 : 0;
         last if $output_pass == 5;
-        if (time - $start_time > $timeout) {
-            record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
-            record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
-            die("Replication SYNC did not finish within defined timeout. ($timeout sec).");
-        }
+        sleep 30;
     }
-    record_info("Sync OK", $self->run_cmd(cmd => "SAPHanaSR-showAttr"));
-    return 1;
+    if ($output_pass < 5) {
+        record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
+        record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
+        die("Replication SYNC did not finish within defined timeout. ($timeout sec).");
+    }
 }
 
 =head2 wait_for_pacemaker

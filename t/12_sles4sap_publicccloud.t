@@ -724,4 +724,156 @@ subtest '[wait_for_idle] command fails with rc 124, passes at second try' => sub
     ok((any { qr/SAPHanaSR-showAttr/ } @calls), 'function calls SAPHanaSR-showAttr');
 };
 
+subtest '[wait_for_sync] all pass' => sub {
+    # SAPHanaSR-showAttr return the same for N times in a row
+    #
+    # $ SAPHanaSR-showAttr
+    #
+    # Global cib-time                 maintenance
+    # --------------------------------------------
+    # global Thu Apr  1 00:01:02 2024 false
+    #
+    # Resource              maintenance
+    # ----------------------------------
+    # msl_SAPHana_HDB_HA000 false
+    #
+    # Sites  b
+    # -----------
+    # site_b SOK
+    #
+    # Hosts    clone_state lpa_ha0_lpt node_state op_mode   remoteHost roles                            score site   srah srmode sync_state version     vhost
+   # -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    # vmhana01 PROMOTED    1712205541  online     logreplay vmhana02   4:P:master1:master:worker:master 150   site_a -    sync   PRIM       1.02.03.04 vmhana01
+    # vmhana02 DEMOTED     30          online     logreplay vmhana01   4:S:master1:master:worker:master 100   site_b -    sync   SOK        1.02.03.04 vmhana02
+    #
+    #
+    #  ... or to be more precise the tested lib function will use the `--format=script`
+    #
+    #
+    # $  SAPHanaSR-showAttr --format=script'
+    #
+    # Global/global/cib-time="Thu Apr  1 00:01:02 2024"
+    # Global/global/maintenance="false"
+    # Resource/msl_SAPHana_HDB_HA000/maintenance="false"
+    # Sites/site_b/b="SOK"
+    # Hosts/vmhana01/clone_state="PROMOTED"
+    # Hosts/vmhana01/lpa_ha0_lpt="123456789"
+    # Hosts/vmhana01/node_state="online"
+    # Hosts/vmhana01/op_mode="logreplay"
+    # Hosts/vmhana01/remoteHost="vmhana02"
+    # Hosts/vmhana01/roles="1:P:master1::worker:"
+    # Hosts/vmhana01/score="150"
+    # Hosts/vmhana01/site="site_a"
+    # Hosts/vmhana01/srah="-"
+    # Hosts/vmhana01/srmode="sync"
+    # Hosts/vmhana01/sync_state="PRIM"
+    # Hosts/vmhana01/version="1.02.03.04"
+    # Hosts/vmhana01/vhost="vmhana01"
+    # Hosts/vmhana02/clone_state="DEMOTED"
+    # Hosts/vmhana02/lpa_ha0_lpt="30"
+    # Hosts/vmhana02/node_state="online"
+    # Hosts/vmhana02/op_mode="logreplay"
+    # Hosts/vmhana02/remoteHost="vmhana01"
+    # Hosts/vmhana02/roles="4:S:master1:master:worker:master"
+    # Hosts/vmhana02/score="100"
+    # Hosts/vmhana02/site="site_b"
+    # Hosts/vmhana02/srah="-"
+    # Hosts/vmhana02/srmode="sync"
+    # Hosts/vmhana02/sync_state="SOK"
+    # Hosts/vmhana02/version="1.02.03.04"
+    # Hosts/vmhana02/vhost="vmhana02"
+
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $stability_counter = 0;
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
+    # return of get_hana_topology does no matter so much as we stub the check_hana_topology
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
+    $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 1; });
+    my $self = sles4sap_publiccloud->new();
+    $self->wait_for_sync();
+    ok($stability_counter >= 5, "stability_counter : $stability_counter should be greater or equal than 5");
+};
+
+subtest '[wait_for_sync] never ok' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $stability_counter = 0;
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
+    # return of get_hana_topology does no matter so much as we stub the check_hana_topology
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
+    $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 0; });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return "Marko Ramius"; });
+    my $self = sles4sap_publiccloud->new();
+    dies_ok { $self->wait_for_sync() };
+};
+
+subtest '[wait_for_sync] one not ok reset the counter' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $stability_counter = 0;
+    # return of get_hana_topology does no matter so much as we stub the check_hana_topology
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
+    # The trick here is to return a single cluster failure at run 4, the internal score variable in
+    # tested code will start counting back from zero
+    # so in total the tested code should look 4 + 5 = 9 times.
+    $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return $stability_counter == 4 ? 0 : 1; });
+    my $self = sles4sap_publiccloud->new();
+    $self->wait_for_sync();
+    ok($stability_counter >= 9, "stability_counter : $stability_counter should be more than 9.");
+};
+
+subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
+    # SAPHanaSR-showAttr no more return 'online' but an integer
+    #
+    # $ SAPHanaSR-showAttr
+    #
+    # Global cib-time                 maintenance
+    # --------------------------------------------
+    # global Thu Apr  1 00:01:02 2024 false
+    #
+    # Resource              maintenance
+    # ----------------------------------
+    # msl_SAPHana_HDB_HA000 false
+    #
+    # Sites  b
+    # -----------
+    # site_b SOK
+    #
+    # Hosts    clone_state lpa_ha0_lpt node_state op_mode   remoteHost roles                            score site   srah srmode sync_state version     vhost
+   # -----------------------------------------------------------------------------------------------------------------------------------------------------------
+ # vmhana01 PROMOTED    1712205541  1712205541     logreplay vmhana02   4:P:master1:master:worker:master 150   site_a -    sync   PRIM       1.02.03.04 vmhana01
+ # vmhana02 DEMOTED     30          1712205541     logreplay vmhana01   4:S:master1:master:worker:master 100   site_b -    sync   SOK        1.02.03.04 vmhana02
+    #
+    #
+    #  ... or to be more precise the tested lib function will use the `--format=script`
+    #
+    #
+    # $  SAPHanaSR-showAttr --format=script'
+    #
+    #...
+    # Hosts/vmhana01/node_state="1712205541"
+    # ...
+    # Hosts/vmhana02/node_state="1712205541"
+
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $stability_counter = 0;
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '2.1.9'; });
+    # return of get_hana_topology does no matter so much as we stub the check_hana_topology
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return 'Bart Mancuso'; });
+    my $node_state_match;
+    $sles4sap_publiccloud->redefine(check_hana_topology => sub {
+            my (%args) = @_;
+            note("check_hana_topology(node => , node_state_match => $args{node_state_match} )");
+            # store in a variable to be inspected later
+            $node_state_match = $args{node_state_match};
+            $stability_counter++;
+            return 1; });
+    my $self = sles4sap_publiccloud->new();
+    $self->wait_for_sync();
+    ok($node_state_match eq '[1-9]+', "node_state_match : $node_state_match should be '[1-9]+'");
+};
+
 done_testing;
