@@ -17,6 +17,7 @@ use mmapi 'get_current_job_id';
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
+use version_utils;
 use Data::Dumper;
 
 has resource_group => 'openqa-upload';
@@ -261,6 +262,7 @@ sub generate_azure_image_definition {
     return get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION') if (get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION'));
 
     my $distri = get_required_var('DISTRI');
+    $distri = 'sl-micro' if (is_sle_micro('>=6.0'));
     my $version = get_required_var('VERSION');
     my $flavor = get_required_var('FLAVOR');
     my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
