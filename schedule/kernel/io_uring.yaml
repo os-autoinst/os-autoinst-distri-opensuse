@@ -2,6 +2,13 @@ name:          io_uring
 description:    >
     Test module to run liburing testing suite.
 schedule:
+    - '{{boot}}'
     - boot/boot_to_desktop
     - kernel/io_uring
     - shutdown/shutdown
+
+conditional_schedule:
+    boot:
+        BACKEND:
+            spvm:
+                - installation/bootloader

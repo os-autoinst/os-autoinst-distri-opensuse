@@ -2,7 +2,14 @@ name:          bpftools
 description:    >
     Compile and attach eBPF probes with bpftrace and BCC tools
 schedule:
+    - '{{boot}}'
     - boot/boot_to_desktop
     - kernel/bpftrace
     - kernel/bcc
     - shutdown/shutdown
+
+conditional_schedule:
+    boot:
+        BACKEND:
+            spvm:
+                - installation/bootloader
