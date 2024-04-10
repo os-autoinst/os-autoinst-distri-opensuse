@@ -13,6 +13,7 @@ grub2_config() {
 }
 
 # Redirect output to the console
-exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
+# Comment off to workaround https://bugzilla.suse.com/show_bug.cgi?id=1222411#c9
+# exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
     grub2_config # Configure grub2 in the system
 
