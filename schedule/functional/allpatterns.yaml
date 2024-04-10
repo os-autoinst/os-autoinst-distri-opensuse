@@ -36,4 +36,3 @@ schedule:
     - installation/reboot_after_installation
     - installation/handle_reboot
     - installation/first_boot
-    - autoyast/clone
