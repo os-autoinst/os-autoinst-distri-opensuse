@@ -233,6 +233,20 @@
         },
         "type": "bug"
     },
+    "bsc#1211719": {
+        "description": "kernel: sclp_sd: Store Data request failed \\(eq=2, di=3, response=0x40f0, flags=0x00, status=0, rc=-5\\)",
+        "products": {
+            "sle": ["15-SP6", "15-SP5"]
+        },
+        "type": "ignore"
+    },
+    "bsc#1211721": {
+        "description": "kernel: The sched.sched_.* sysctl was moved to debugfs in kernel 5.13 for CPU scheduler debugging only. This sysctl will be removed in a future SLE release.",
+        "products": {
+            "sle": ["15-SP6", "15-SP5"]
+        },
+        "type": "bug"
+    }, 
     "bsc#1186742": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
         "products": {
