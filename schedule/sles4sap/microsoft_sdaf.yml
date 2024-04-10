@@ -6,4 +6,5 @@ schedule:
   - boot/boot_to_desktop
   - sles4sap/microsoft_sdaf/sdaf_redirect_console_to_deployer
   - sles4sap/microsoft_sdaf/sdaf_deployer_setup
+  - sles4sap/microsoft_sdaf/sdaf_deploy_workload_zone
   - sles4sap/microsoft_sdaf/sdaf_cleanup
