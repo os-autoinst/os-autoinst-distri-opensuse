@@ -29,7 +29,9 @@ sub run {
     assert_script_run("set -o pipefail");
 
     # Specify the two usb drives to use
-    my @usb = split('\n', script_output("ls /dev/disk/by-id/ -l | grep -i usb | grep -i -v -E \"generic|part\" | sed 's#^.*\\\/##'"));
+    my $cmd = "ls /dev/disk/by-id/ -l | grep -i usb | "
+      . "grep -i -v -E \"generic|part|Virtual\" | sed 's#^.*\\\/##'";
+    my @usb = split('\n', script_output($cmd));
     record_info("Disk info on the machine:", script_output("ls /dev/disk/by-id/ -l; fdisk -l"));
     die "No proper usb devices!" unless (scalar(@usb) == 2);
     my $medium_usb = "/dev/$usb[0]";
@@ -42,7 +44,7 @@ sub run {
     assert_script_run("mkdir  -p /mnt");
     assert_script_run("mount $provision_usb /mnt");
     assert_script_run("mkdir -p /mnt/ignition");
-    my $cmd = "curl -L "
+    $cmd = "curl -L "
       . data_url("virt_autotest/host_unattended_installation_files/ignition/config.ign")
       . " -o /mnt/ignition/config.ign";
     script_retry($cmd, retry => 2, delay => 5, timeout => 60, die => 1);
