@@ -346,7 +346,8 @@ PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for inst
 PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b). In `upload-img` for Azure Arm64 images, multiple comma-separated regions are supported (see `lib/publiccloud/azure.pm`)
 PUBLIC_CLOUD_RESOURCE_GROUP | string | "qesaposd" | Allows to specify resource group name on SLES4SAP PC tests.
 PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
-PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
+PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied. Note: nevertheless `zypper ref; zypper patch` would happen and already **released** updates will be installed.
+PUBLIC_CLOUD_SKIP_ALL_UPDATES | boolean | false | Debug variable used to fully skip `zypper ref; zypper patch` call during maintenance update testing. Should be used as extension of PUBLIC_CLOUD_SKIP_MU to simply run maintenance updates tests against clean image.
 PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
 PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
 PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
