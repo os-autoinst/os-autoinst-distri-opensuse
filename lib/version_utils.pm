@@ -771,12 +771,13 @@ sub is_public_cloud {
 
 =head2 is_openstack
 
-Returns true if JEOS_OPENSTACK is set to 1
+Returns true if the tests loads Cloud image in OpenStack environment
+NO_CLOUD variable is set in order to test the image in QEMU
 
 =cut
 
 sub is_openstack {
-    return get_var('JEOS_OPENSTACK');
+    return get_var('FLAVOR', '') =~ /JeOS-for-OpenStack-Cloud.*/ && check_var('NO_CLOUD', '0');
 }
 
 =head2 is_leap_migration

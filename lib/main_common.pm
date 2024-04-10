@@ -625,24 +625,29 @@ sub load_jeos_tests {
         loadtest "jeos/prepare_firstboot";
     }
 
-    load_boot_tests();
+    load_boot_tests() unless get_var('NO_CLOUD');
     if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
         loadtest 'microos/verify_setup';
         loadtest 'microos/image_checks';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
-        loadtest "boot/cloud_init";
+        loadtest "installation/first_boot";
+        loadtest 'jeos/verify_cloudinit';
     } else {
         loadtest "jeos/firstrun";
+        if (get_var('POSTGRES_IP')) {
+            loadtest "jeos/image_info";
+        }
+
     }
-    if (get_var('POSTGRES_IP')) {
-        loadtest "jeos/image_info";
-    }
+
     loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
     # this test case also disables grub timeout
     loadtest "jeos/grub2_gfxmode";
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
-        loadtest "jeos/diskusage" unless is_openstack;
+        # Cloud image is the only one based on XFS and not BTRFS
+        # jeos/diskusage as of now works only with BTRFS
+        loadtest "jeos/diskusage" unless get_var('FLAVOR') =~ /OpenStack-Cloud/;
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
@@ -1196,7 +1201,7 @@ sub load_consoletests {
         # zypper and sle12 doesn't do upgrade or installation snapshots
         # SLES4SAP default installation flow does not configure snapshots
         elsif (!get_var("ZDUP") and !check_var('VERSION', '12') and !is_sles4sap()) {
-            loadtest "console/installation_snapshots";
+            loadtest "console/installation_snapshots" unless get_var('FLAVOR') =~ /OpenStack-Cloud/;
         }
     }
     loadtest "console/zypper_lr";
