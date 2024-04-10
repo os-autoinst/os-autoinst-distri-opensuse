@@ -120,6 +120,7 @@ sub load_firewall_test {
 
 sub load_host_tests_podman {
     my ($run_args) = @_;
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
@@ -151,6 +152,7 @@ sub load_host_tests_podman {
 
 sub load_host_tests_docker {
     my ($run_args) = @_;
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
