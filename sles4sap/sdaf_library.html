@@ -17,17 +17,27 @@
       <li><a href="#homedir">homedir</a></li>
       <li><a href="#deployment_dir">deployment_dir</a></li>
       <li><a href="#log_dir">log_dir</a></li>
-      <li><a href="#variable_file">variable_file</a></li>
+      <li><a href="#env_variable_file">env_variable_file</a></li>
+      <li><a href="#log_command_output">log_command_output</a></li>
       <li><a href="#az_login">az_login</a></li>
       <li><a href="#create_sdaf_os_var_file">create_sdaf_os_var_file</a></li>
+      <li><a href="#set_os_variable">set_os_variable</a></li>
+      <li><a href="#get_os_variable">get_os_variable</a></li>
+      <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
+      <li><a href="#load_os_env_variables">load_os_env_variables</a></li>
       <li><a href="#sdaf_get_deployer_ip">sdaf_get_deployer_ip</a></li>
       <li><a href="#sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
-      <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
       <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
+      <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
+      <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
+      <li><a href="#sdaf_deploy_workload_zone">sdaf_deploy_workload_zone</a></li>
       <li><a href="#prepare_sdaf_repo">prepare_sdaf_repo</a></li>
-      <li><a href="#cleanup_sdaf_files">cleanup_sdaf_files</a></li>
+      <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
+      <li><a href="#resource_group_exists">resource_group_exists</a></li>
+      <li><a href="#sdaf_execute_remover">sdaf_execute_remover</a></li>
+      <li><a href="#sdaf_cleanup">sdaf_cleanup</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sdaf_library.pm</h1>
@@ -46,7 +56,7 @@
 
 <p><b>Deployer</b>: Resource group providing services such as keyvault, Deployer VM and associated resources.</p>
 
-<p><b>Deployer VM</b>: Central point that contains SDAF installation and where the deployment is executed from. Since SUT VMs have no public IPs, this is also serving as a jumphost to reach them via SSH.</p>
+<p><b>Deployer VM</b>: Central point that contains SDAF installation and where the deployment is executed from. Since SUT VMs have no public IPs, this is also serving as a jump-host to reach them via SSH.</p>
 
 <p><b>Library</b>: Resource group providing storage for terraform state files, SAP media and private DNS zone.</p>
 
@@ -76,17 +86,33 @@
 
 <p>Returns logging directory path with job ID appended as unique identifier. Optionally creates the directory.</p>
 
-<h2 id="variable_file">variable_file</h2>
+<h2 id="env_variable_file">env_variable_file</h2>
 
-<pre><code>variable_file();</code></pre>
+<pre><code>env_variable_file();</code></pre>
 
 <p>Returns full path to a file containing all required SDAF OS env variables. Sourcing this file is essential for running SDAF.</p>
+
+<h2 id="log_command_output">log_command_output</h2>
+
+<pre><code>log_command_output(command=&gt;$command, log_file=&gt;$log_file);</code></pre>
+
+<p><b>command</b>: Command which output should be logged into file.</p>
+
+<p><b>log_file</b>: Full log file path and filename to pipe command output into.</p>
+
+<p>Using <code>&#39;tee&#39;</code> to redirect command output into log does not return code for executed command, but execution of <code>&#39;tee&#39;</code> itself. This function transforms given command so the RC reflects exit code of the command itself instead of <code>&#39;tee&#39;</code>. Function returns only string with transformed command, nothing is being executed.</p>
+
+<p>Command structure: &quot;(command_to_execute 2&gt;$1 | tee /log/file.log; exit ${PIPESTATUS[0]})&quot;</p>
+
+<pre><code>&#39;exit ${PIPESTATUS[0]}&#39; - returns &#39;command_to_execute&#39; return code instead of one from &#39;tee&#39;
+(...) - puts everything into subshell to prevent &#39;exit&#39; logging out of current shell
+tee - writes output also into the log file</code></pre>
 
 <h2 id="az_login">az_login</h2>
 
 <pre><code>az_login();</code></pre>
 
-<p>Logins into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables. To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.</p>
+<p>Logs into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables. To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.</p>
 
 <p>SPN credentials are defined by secret OpenQA parameters:</p>
 
@@ -96,7 +122,7 @@
 
 <p><b>_SECRET_AZURE_SDAF_TENANT_ID</b></p>
 
-<p>SDAF needs SPN credentials with special permissions. Check link below for details. https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials</p>
+<p>SDAF needs SPN credentials with special permissions. Check link below for details. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials">https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials</a></p>
 
 <h2 id="create_sdaf_os_var_file">create_sdaf_os_var_file</h2>
 
@@ -105,6 +131,63 @@
 <p><b>$entries</b>: ARRAYREF of entries to be appended to variable source file</p>
 
 <p>Creates a simple file with bash env variables and uploads it to the target host without revealing content in serial console. File is sourced afterwards. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
+
+<h2 id="set_os_variable">set_os_variable</h2>
+
+<pre><code>set_os_variable($variable_name, $variable_value);</code></pre>
+
+<p><b>$variable_name</b>: Variable name</p>
+
+<p><b>$variable_value</b>: Variable value. Empty value is accepted as well.</p>
+
+<p>Adds or replaces existing OS env variable value in env variable file (see function &#39;set_common_sdaf_os_env()&#39;). File is sourced afterwards to load the value. Croaks with incorrect usage.</p>
+
+<p><b>WARNING</b>: This is executed via &#39;assert_script_run&#39; therefore output will be visible in logs</p>
+
+<h2 id="get_os_variable">get_os_variable</h2>
+
+<pre><code>get_os_variable($variable_name);</code></pre>
+
+<p><b>$variable_name</b>: Variable name</p>
+
+<p>Returns value of requested OS env variable name. Variable is acquired using <code>&#39;echo&#39;</code> command and is visible in serial terminal output. Keep in mind, this variable is only active until logout.</p>
+
+<h2 id="set_common_sdaf_os_env">set_common_sdaf_os_env</h2>
+
+<pre><code>set_common_sdaf_os_env(
+    subscription_id=&gt;$subscription_id
+    [, env_code=&gt;$env_code]
+    [, deployer_vnet_code=&gt;$deployer_vnet_code]
+    [, workload_vnet_code=&gt;$workload_vnet_code]
+    [, region_code=&gt;$region_code]
+    [, sap_sid=&gt;$sap_sid]
+    [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
+    [, sdaf_key_vault=&gt;$sdaf_key_vault]
+);</code></pre>
+
+<p><b>subscription_id</b>: Azure subscription ID</p>
+
+<p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
+
+<p><b>deployer_vnet_code</b>: Deployer virtual network code. Default: &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
+
+<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
+
+<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
+
+<p><b>sap_sid</b>: SAP system ID. Default: &#39;SAP_SID&#39;</p>
+
+<p><b>sdaf_tfstate_storage_account</b>: Storage account residing in library resource group. Location for stored tfstate files. Default &#39;SDAF_TFSTATE_STORAGE_ACCOUNT&#39;</p>
+
+<p><b>sdaf_key_vault</b>: Key vault name inside Deployer resource group. Default &#39;SDAF_KEY_VAULT&#39;</p>
+
+<p>Creates a file with common OS env variables required to run SDAF. File is sourced afterwards to make the values active. Keep in mind that values are lost after user logout (for example after disconnecting console redirection). You can load them back using <i>load_os_env_variables()</i> function OS env variables are core of how to execute SDAF and many are used even internally by SDAF code. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
+
+<h2 id="load_os_env_variables">load_os_env_variables</h2>
+
+<pre><code>load_os_env_variables();</code></pre>
+
+<p>Sources file containing OS env variables required for executing SDAF. Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing variables is not an option since tests would constantly overwrite variables between each other.</p>
 
 <h2 id="sdaf_get_deployer_ip">sdaf_get_deployer_ip</h2>
 
@@ -142,37 +225,6 @@
 
 <p>Prints a simple line in serial console that highlights a point in output to make it more readable. Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.</p>
 
-<h2 id="set_common_sdaf_os_env">set_common_sdaf_os_env</h2>
-
-<pre><code>set_os_env(
-    subscription_id=&gt;$subscription_id
-    [, env_code=&gt;$env_code]
-    [, deployer_vnet_code=&gt;$deployer_vnet_code]
-    [, workload_vnet_code=&gt;$workload_vnet_code]
-    [, region_code=&gt;$region_code]
-    [, sap_sid=&gt;$sap_sid]
-    [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
-    [, sdaf_key_vault=&gt;$sdaf_key_vault]
-);</code></pre>
-
-<p><b>subscription_id</b>: Azure subscription ID</p>
-
-<p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
-
-<p><b>deployer_vnet_code</b>: Deployer virtual network code. Default &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
-
-<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
-
-<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
-
-<p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
-
-<p><b>sdaf_tfstate_storage_account</b>: Storage account residing in library resource group. Location for stored tfstate files. Default &#39;SDAF_TFSTATE_STORAGE_ACCOUNT&#39;</p>
-
-<p><b>sdaf_key_vault</b>: Key vault name inside Deployer resource group. Default &#39;SDAF_KEY_VAULT&#39;</p>
-
-<p>Sets up common OS env variables required by SDAF in .bashrc and loads them. OS env variables are core of how to execute SDAF and many are used even internally by SDAF code. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
-
 <h2 id="get_tfvars_path">get_tfvars_path</h2>
 
 <pre><code>get_tfvars_path(
@@ -194,13 +246,35 @@
 
 <p><b>sap_sid</b>: SDAF parameter for sap system ID</p>
 
+<h2 id="prepare_tfvars_file">prepare_tfvars_file</h2>
+
+<pre><code>prepare_tfvars_file(deployment_type=&gt;$deployment_type);</code></pre>
+
+<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p>Downloads tfvars template files from openQA data dir and places them into correct place within SDAF repo structure. Returns full path of the tfvars file.</p>
+
+<h2 id="replace_tfvars_variables">replace_tfvars_variables</h2>
+
+<pre><code>replace_tfvars_variables();</code></pre>
+
+<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
+
+<h2 id="sdaf_deploy_workload_zone">sdaf_deploy_workload_zone</h2>
+
+<pre><code>sdaf_deploy_workload_zone();</code></pre>
+
+<p>Executes SDAF workload zone deployment. SDAF relies on OS env variables therefore those are passed as cmd args as well. Definitely keep <i>--spn-secret</i> set as a reference to OS variable <i>${ARM_CLIENT_SECRET}</i>, otherwise password will be shown in openQA output log in plaintext. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone">https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone</a></p>
+
 <h2 id="prepare_sdaf_repo">prepare_sdaf_repo</h2>
 
 <pre><code>prepare_sdaf_repo(
      [, env_code=&gt;$env_code]
      [, region_code=&gt;$region_code]
      [, workload_vnet_code=&gt;$workload_vnet_code]
-     [, deployervnet_code=&gt;$workload_vnet_code]
+     [, deployer_vnet_code=&gt;$workload_vnet_code]
      [, sap_sid=&gt;$sap_sid]);</code></pre>
 
 <p>Prepares directory structure and Clones git repository for SDAF samples and automation code.</p>
@@ -215,11 +289,35 @@
 
 <p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
 
-<h2 id="cleanup_sdaf_files">cleanup_sdaf_files</h2>
+<h2 id="generate_resource_group_name">generate_resource_group_name</h2>
 
-<pre><code>cleanup_sdaf_files();</code></pre>
+<pre><code>generate_resource_group_name(deployment_type=&gt;$deployment_type);</code></pre>
 
-<p>Cleans up all SDAF deployment files belonging to the running test.</p>
+<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p>Returns name of the resource group for the deployment type specified by <b>$deployment_type</b> . Resource group pattern: <i>SDAF-OpenQA-[deployment type]-[deployment id]-[OpenQA job id]</i></p>
+
+<h2 id="resource_group_exists">resource_group_exists</h2>
+
+<pre><code>resource_group_exists($resource_group);</code></pre>
+
+<p><b>$resource_group</b>: Resource group name to check</p>
+
+<p>Checks if resource group exists. Function accepts only full resource name. Croaks if command does not return true/false value.</p>
+
+<h2 id="sdaf_execute_remover">sdaf_execute_remover</h2>
+
+<pre><code>sdaf_execute_remover(deployment_type=&gt;$deployment_type);</code></pre>
+
+<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system)</p>
+
+<p>Uses remover.sh script which is part of the SDAF project. This script can be used only on workload zone or sap system. Control plane and library have separate removal script, but are currently part of permanent setup and should not be destroyed. Returns RC to allow additional cleanup tasks required even after script failure. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/bash/remover">https://learn.microsoft.com/en-us/azure/sap/automation/bash/remover</a></p>
+
+<h2 id="sdaf_cleanup">sdaf_cleanup</h2>
+
+<pre><code>sdaf_cleanup();</code></pre>
+
+<p>Performs full cleanup routine for <b>sap systems</b> and <b>workload zone</b> by executing SDAF remover.sh file. Deletes all files related to test run on deployer VM, even in case remover script fails. Resource groups need to be deleted manually in case of failure.</p>
 
 
 </body>
