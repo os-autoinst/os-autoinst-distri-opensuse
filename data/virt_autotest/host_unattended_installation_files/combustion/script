@@ -10,6 +10,9 @@ grub2_config() {
     echo "DEBUG: now $file is,"
     cat $file
     grub2-mkconfig -o /boot/grub2/grub.cfg
+    # Set boot to sl-secureboot entry -- newly installed SL Micro
+    bootnum=$(efibootmgr | grep sl-secureboot | grep -o "^Boot[^\s]*" | sed -e 's/Boot//' -e 's/\*//')
+    efibootmgr -o $bootnum
 }
 
 # Redirect output to the console
