@@ -27,6 +27,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use containers::k8s;
 
 sub run {
     select_serial_terminal;
@@ -42,6 +43,7 @@ sub run {
         }
     }
     elsif (check_var('CONTAINER_SUMA', 'chart')) {
+        install_helm();
         script_retry("helm pull $image", timeout => 300, delay => 60, retry => 3);
         assert_script_run("tar -tf proxy-*.tgz && rm proxy-*.tgz");
     } else {
