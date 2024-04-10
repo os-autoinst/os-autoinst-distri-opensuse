@@ -15,6 +15,7 @@ use Mojo::JSON;
 use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
+use File::Basename 'basename';
 
 sub patch_json {
     my ($file) = @_;
