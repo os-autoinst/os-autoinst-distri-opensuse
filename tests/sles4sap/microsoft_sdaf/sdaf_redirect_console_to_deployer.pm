@@ -19,6 +19,8 @@ sub test_flags {
 sub run {
 
     select_serial_terminal();
+    serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : start');
+
     # autossh is required for console redirection to work
     assert_script_run('zypper in -y autossh');
 
@@ -32,6 +34,7 @@ sub run {
     sdaf_prepare_ssh_keys(deployer_key_vault => get_required_var('SDAF_KEY_VAULT'));
 
     redirection_init();
+    serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : end');
 }
 
 1;

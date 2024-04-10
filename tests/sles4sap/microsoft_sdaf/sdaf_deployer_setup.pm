@@ -43,6 +43,7 @@ sub check_required_vars {
 }
 
 sub run {
+    serial_console_diag_banner('Module sdaf_deployer_setup.pm : start');
     select_serial_terminal();
 
     # From now on everything is executed on Deployer VM (residing on cloud).
@@ -52,11 +53,10 @@ sub run {
     set_common_sdaf_os_env(subscription_id => $subscription_id);
     prepare_sdaf_repo();
     record_info('Jumphost ready');
-    serial_console_diag_banner('end: sdaf_deployer_setup.pm');
 
     # Do not leave connection hanging around between modules.
     disconnect_target_from_serial();
-
+    serial_console_diag_banner('Module sdaf_deployer_setup.pm : end');
 }
 
 1;

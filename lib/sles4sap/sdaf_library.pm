@@ -58,7 +58,7 @@ our @EXPORT = qw(
   generate_resource_group_name
   set_os_variable
   prepare_tfvars_file
-  sdaf_deploy_workload_zone
+  sdaf_execute_deployment
   load_os_env_variables
   sdaf_cleanup
 );
@@ -110,6 +110,18 @@ sub log_dir {
     my $log_dir = deployment_dir() . '/openqa_logs';
     assert_script_run("mkdir -p $log_dir") if $args{create};
     return $log_dir;
+}
+
+=head2 sdaf_scripts_dir
+
+    sdaf_scripts_dir();
+
+Returns directory containing SDAF scripts.
+
+=cut
+
+sub sdaf_scripts_dir {
+    return deployment_dir() . '/sap-automation/deploy/scripts';
 }
 
 =head2 env_variable_file
@@ -609,46 +621,95 @@ sub replace_tfvars_variables {
     file_content_replace($tfvars_file, %to_replace);
 }
 
-=head2 sdaf_deploy_workload_zone
+=head2 sdaf_execute_deployment
 
-    sdaf_deploy_workload_zone();
+    sdaf_execute_deployment(deployment_type=>$deployment_type [, timeout=>$timeout]);
 
-Executes SDAF workload zone deployment. SDAF relies on OS env variables therefore those are passed as cmd args as well.
-Definitely keep I<--spn-secret> set as a reference to OS variable I<${ARM_CLIENT_SECRET}>, otherwise password will
-be shown in openQA output log in plaintext.
+B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+B<timeout>: Execution timeout. Default: 1800s.
+
+Executes SDAF deployment according to the type specified.
+Croaks with unsupported deployment type, dies upon command failure.
 L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone>
+L<https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure>
 
 =cut
 
-sub sdaf_deploy_workload_zone {
-    my ($tfvars_filename, $tfvars_path) = fileparse(get_os_variable('workload_zone_parameter_file'));
+sub sdaf_execute_deployment {
+    my (%args) = @_;
+    croak 'This function can be used only on sap system and workload zone deployment' unless
+      grep /^$args{deployment_type}$/, ('sap_system', 'workload_zone');
+
+    $args{timeout} //= 1800;
+    my $parameter_name = $args{deployment_type} eq 'workload_zone' ? 'workload_zone_parameter_file' : 'sap_system_parameter_file';
+    my ($tfvars_filename, $tfvars_path) = fileparse(get_os_variable($parameter_name));
+
     # Variable is specific to each deployment type and will be changed during the course of whole deployment process.
     # It is used by SDAF internally, so keep it set in OS env
     set_os_variable('parameterFile', $tfvars_filename);
 
     # SDAF has to be executed from the profile directory
     assert_script_run("cd $tfvars_path");
-    my $deploy_command = join(' ', deployment_dir() . '/sap-automation/deploy/scripts/install_workloadzone.sh',
-        '--parameterfile', $tfvars_filename,    # workload zone tfvars file
-        '--deployer_environment', '${deployer_env_code}',    # VNET code
-        '--deployer_tfstate_key', '${deployerState}',    # tfstate name. State file is stored in storage account.
-        '--keyvault', '${key_vault}',    # Deployer key vault containing credentials
-        '--storageaccountname', '${tfstate_storage_account}',    # storage account for tfstate
-        '--subscription', '${ARM_SUBSCRIPTION_ID}',
-        '--tenant_id', '${ARM_TENANT_ID}',
-        '--spn_id', '${ARM_CLIENT_ID}',
-        '--spn_secret', '${ARM_CLIENT_SECRET}',
-        '--auto-approve');    # avoid user interaction
+    my $deploy_command = get_sdaf_deployment_command(
+        deployment_type => $args{deployment_type}, tfvars_filename => $tfvars_filename);
 
     record_info('SDAF exe', "Executing workload zone deployment: $deploy_command");
 
-    my $output_log_file = log_dir() . "/deploy_workload_zone.log";
+    my $output_log_file = log_dir() . "/deploy_$args{deployment_type}.log";
     $deploy_command = log_command_output(command => $deploy_command, log_file => $output_log_file);
-    my $rc = script_run($deploy_command, timeout => 1800);
+    my $rc = script_run($deploy_command, timeout => $args{timeout});
 
-    upload_logs($output_log_file, log_name => 'deploy_workload_zone.log');    # upload logs before failing
+    upload_logs($output_log_file, log_name => $output_log_file);    # upload logs before failing
     die "Workload zone deployment failed with RC: $rc" if $rc;
     record_info('Deploy done');
+}
+
+
+=head2 get_sdaf_deployment_command
+
+    get_sdaf_deployment_command(deployment_type=>$deployment_type, tfvars_filename=>tfvars_filename);
+
+B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+B<tfvars_filename>: Filename of tfvars file
+
+Function composes SDAF deployment script command for B<sap_system> or B<workload_zone> according to official documentation.
+Although the documentation uses env OS variable references in the command, function replaces them with actual values.
+This is done for better debugging and logging transparency. Only sensitive values are hidden by using references.
+
+=cut
+
+sub get_sdaf_deployment_command {
+    my (%args) = @_;
+    my $cmd;
+
+    if ($args{deployment_type} eq 'workload_zone') {
+        $cmd = join(' ', sdaf_scripts_dir() . '/install_workloadzone.sh',
+            '--parameterfile', $args{tfvars_filename},    # workload zone tfvars file
+            '--deployer_environment', get_os_variable('deployer_env_code'),    # VNET code
+            '--deployer_tfstate_key', get_os_variable('deployerState'),    # tfstate name. State file is stored in storage account.
+            '--keyvault', get_os_variable('key_vault'),    # Deployer key vault containing credentials
+            '--storageaccountname', get_os_variable('tfstate_storage_account'),    # storage account for tfstate
+            '--subscription', get_os_variable('ARM_SUBSCRIPTION_ID'),
+            '--tenant_id', get_os_variable('ARM_TENANT_ID'),
+            '--spn_id', '${ARM_CLIENT_ID}',    # Keep secrets hidden in serial output
+            '--spn_secret', '${ARM_CLIENT_SECRET}',    #keep secrets hidden in serial output
+            '--auto-approve');    # avoid user interaction
+    }
+    elsif ($args{deployment_type} eq 'sap_system') {
+        $cmd = join(' ', sdaf_scripts_dir() . '/installer.sh',
+            '--parameterfile', $args{tfvars_filename},
+            '--type', 'sap_system',
+            '--storageaccountname', get_os_variable('tfstate_storage_account'),
+            '--state_subscription', get_os_variable('ARM_SUBSCRIPTION_ID'),
+            '--auto-approve');
+    }
+    else {
+        croak("Incorrect deployment type: '$args{deployment_type}'\nOnly 'workload_zone' and 'sap_system' is supported.");
+    }
+
+    return $cmd;
 }
 
 =head2 prepare_sdaf_repo
@@ -789,7 +850,7 @@ sub sdaf_execute_remover {
 
     my ($tfvars_filename, $tfvars_path) = fileparse($tfvars_file);
     my $remover_cmd = join(' ',
-        deployment_dir() . '/sap-automation/deploy/scripts/remover.sh',
+        sdaf_scripts_dir() . '/remover.sh',
         '--parameterfile', $tfvars_filename,
         '--type', $type_parameter,
         '--auto-approve');
