@@ -17,6 +17,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
+    zypper_call("in curl");
     my $file = "$selinuxtest::dir" . "$selinuxtest::policyfile_tar" . '/data/selinux/selinux-policy-targeted-*.noarch.rpm';
     $self->download_policy_pkgs();
     assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
