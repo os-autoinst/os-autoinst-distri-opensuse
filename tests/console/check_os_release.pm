@@ -61,6 +61,12 @@ sub run {
         $checker{ID} = "opensuse-tumbleweed";
         $checker{CPE_NAME} = "cpe:/o:opensuse:tumbleweed:$checker{VERSION}";
         $checker{PRETTY_NAME} = $checker{NAME};
+
+        # Return early if BUILD is os-autoinst/os-autoinst-distri-opensuse
+        if (get_var('BUILD') =~ m/os-autoinst-distri-opensuse/) {
+            record_info "PR/Verification run", "os-autoinst/os-autoinst-distri-opensuse detected, skipping check";
+            return;
+        }
     }
 
     my $release = script_output "cat /etc/os-release";
