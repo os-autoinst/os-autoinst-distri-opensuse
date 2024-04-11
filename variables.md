@@ -374,6 +374,9 @@ PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_mo
 PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
+PUBLIC_CLOUD_INFRA | boolean | false | Would trigger special flow in [check_registercloudguest.pm](tests/publiccloud/check_registercloudguest.pm) needed for run test against special test infra (DO NOT use the variable if you don't know what is about)
+PUBLIC_CLOUD_INFRA_RMT_V4 | string | "" | Defines IPv4 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
+PUBLIC_CLOUD_INFRA_RMT_V6 | string | "" | Defines IPv6 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
 
 
 ### Wicked testsuite specific variables

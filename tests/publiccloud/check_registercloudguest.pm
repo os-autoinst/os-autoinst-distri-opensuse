@@ -44,7 +44,23 @@ sub run {
         return;
     }
 
-    if (is_container_host()) {
+    # this is special use case needed by dev ops team within SUSE. Should not be used for any product testing.
+    # Use this variable ONLY if you really know what you are doing!
+    if (check_var('PUBLIC_CLOUD_INFRA', '1')) {
+        my $prefix = "PREPARATION PHASE.";
+        my $rmt_ipv4 = get_required_var("PUBLIC_CLOUD_INFRA_RMT_V4");
+        my $rmt_ipv6 = get_required_var("PUBLIC_CLOUD_INFRA_RMT_V6");
+        if (is_ondemand()) {
+            $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean", fail_message => "$prefix registercloudguest --clean failed");
+            $instance->ssh_script_run(cmd => 'sudo rm /var/log/cloudregister; sudo rm /etc/pki/trust/anchors/*.pem', fail_message => "$prefix Deletion of register log and/or certificates failed");
+        }
+        $instance->ssh_script_run(cmd => "sudo sed -i \"s/regionsrv.*\$/regionsrv = $rmt_ipv4,$rmt_ipv6/\" /etc/regionserverclnt.cfg");
+        $instance->ssh_assert_script_run(cmd => "sudo grep \"regionsrv = $rmt_ipv4,$rmt_ipv6\" /etc/regionserverclnt.cfg", fail_message => "$prefix regionserverclnt.cfg update failed");
+        $instance->ssh_assert_script_run(cmd => "sudo curl -k -O --output-dir /usr/lib/regionService/certs https://$rmt_ipv4/$rmt_ipv4.pem", fail_message => "$prefix Download of test cert failed");
+        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest $regcode_param");
+        $instance->ssh_assert_script_run(cmd => 'sudo update-ca-certificates', fail_message => "$prefix update-ca-certificates failed");
+        check_instance_registered($instance);
+    } elsif (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do
         # all BYOS related checks. So we just regestering system and going further
         registercloudguest($instance);
@@ -53,17 +69,9 @@ sub run {
             $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean", fail_message => 'Failed to deregister the previously registered BYOS system');
             $instance->ssh_script_run(cmd => 'sudo rm /etc/zypp/repos.d/*.repo');
         } else {
-            if ($instance->ssh_script_output(cmd => 'zypper lr', proceed_on_failure => 1) !~ /No repositories defined/gm) {
-                die 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".';
-            }
-
+            check_instance_unregistered($instance, 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".');
             if ($instance->ssh_script_output(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /disabled/) {
                 die('guestregister.service is not disabled');
-            }
-
-            if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
-                $instance->ssh_script_run(cmd => 'sudo ls -la /etc/zypp/credentials.d/');
-                die("/etc/zypp/credentials.d/ is not empty:\n" . $instance->ssh_script_output(cmd => 'sudo ls -la /etc/zypp/credentials.d/'));
             }
 
             if (is_azure() && $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer')) {
@@ -76,17 +84,9 @@ sub run {
             $instance->ssh_assert_script_run(cmd => '! sudo SUSEConnect -d', fail_message => 'SUSEConnect succeeds but it is not supported should fail on BYOS');
         }
     } else {
-        if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo" | wc -l', timeout => 300) < 3) {
-            record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
-            die 'The list of zypper repositories is too short.';
-        }
-
+        check_instance_registered($instance);
         if ($instance->ssh_script_output(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /enabled/) {
             die('guestregister.service is not enabled');
-        }
-
-        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
-            die('/etc/zypp/credentials.d/ is empty');
         }
 
         if ($instance->ssh_script_output(cmd => 'sudo stat --printf="%s" /var/log/cloudregister') == 0) {
@@ -97,16 +97,10 @@ sub run {
     $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
-        last if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo" | wc -l', timeout => 300) == 0);
+        last if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) == 0);
         sleep 15;
     }
-    if ($instance->ssh_script_output(cmd => 'zypper lr | grep "<repo" | wc -l', timeout => 300) > 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
-        die('The list of zypper repositories is not empty.');
-    }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
-        die('Directory /etc/zypp/credentials.d/ is not empty.');
-    }
+    check_instance_unregistered($instance, 'The list of zypper repositories is not empty.');
 
     # The SUSEConnect registration should still work on BYOS
     if (is_byos()) {
@@ -116,27 +110,37 @@ sub run {
     }
 
     $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param", timeout => 300, retry => 3, delay => 120);
-
-    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo" | wc -l', timeout => 300) == 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
-        die('The list of zypper repositories is empty.');
-    }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
-        die('Directory /etc/zypp/credentials.d/ is empty.');
-    }
+    check_instance_registered($instance);
 
     $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param --force-new", timeout => 300, retry => 3, delay => 120);
-    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo" | wc -l', timeout => 300) == 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
-        die('The list of zypper repositories is empty.');
-    }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
-        die('Directory /etc/zypp/credentials.d/ is empty.');
-    }
+    check_instance_registered($instance);
 
     register_addons_in_pc($instance);
 
     set_var('PUBLIC_CLOUD_CHECK_CLOUDREGISTER_EXECUTED', '1');
+}
+
+sub check_instance_registered {
+    my ($instance) = @_;
+    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) == 0) {
+        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
+        die('The list of zypper repositories is empty.');
+    }
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
+        die('Directory /etc/zypp/credentials.d/ is empty.');
+    }
+}
+
+sub check_instance_unregistered {
+    my ($instance, $error) = @_;
+    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) > 0) {
+        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
+        die($error);
+    }
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
+        my $creds_output = $instance->ssh_script_output(cmd => 'sudo ls -la /etc/zypp/credentials.d/');
+        die("/etc/zypp/credentials.d/ is not empty:\n" . $creds_output);
+    }
 }
 
 sub post_fail_hook {
