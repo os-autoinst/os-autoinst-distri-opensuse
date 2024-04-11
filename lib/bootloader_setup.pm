@@ -391,7 +391,7 @@ sub uefi_bootmenu_params {
     if (is_ipmi && is_selfinstall && is_usb_boot) {
         my $counter = 0;
         my $max_tries = 5;
-        while (!check_screen('no-tty0-but-term-linux', 2) && $counter++ < $max_tries) {
+        while (!check_screen('pass-bootparam-to-firstboot', 2) && $counter++ < $max_tries) {
             # Re-enter grub edit by discarding changes for 2+ round
             if ($counter > 1) {
                 send_key_until_needlematch('bootloader-grub2', 'esc', 3, 2);
@@ -453,7 +453,11 @@ sub uefi_bootmenu_params {
 
             # Add term setting
             type_string_very_slow(" rd.kiwi.term=linux ");
-            if (!check_screen("no-tty0-but-term-linux", 2)) {
+            next if (!check_screen("no-tty0-but-term-linux", 2));
+
+            # Pass bootparam to firstboot
+            type_string_very_slow(" rd.kiwi.install.pass.bootparam ");
+            if (!check_screen('pass-bootparam-to-firstboot', 2)) {
                 next;
             } else {
                 record_info('Successfully finished grub2 editing.');
