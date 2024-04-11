@@ -1,0 +1,63 @@
+---
+name: qam-minimal-RAID1
+vars:
+  RAIDLEVEL: 1
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/raid_gpt
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - qam-minimal/install_update
+  - qam-minimal/update_minimal
+  - qam-minimal/check_logs
+test_data:
+  <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
+  mds:
+    - raid_level: 1
+      name: md0
+      devices:
+        - vda2
+        - vdb2
+        - vdc2
+        - vdd2
+      partition:
+        role: operating-system
+        formatting_options:
+          should_format: 1
+        mounting_options:
+          should_mount: 1
+    - raid_level: 0
+      name: md1
+      chunk_size: '64 KiB'
+      devices:
+        - vda3
+        - vdb3
+        - vdc3
+        - vdd3
+      partition:
+        role: swap
+        formatting_options:
+          should_format: 1
+          filesystem: swap
+        mounting_options:
+          should_mount: 1
+...
