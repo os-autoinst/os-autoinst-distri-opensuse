@@ -40,6 +40,9 @@
         </services>
     </services-manager>
     <software>
+        <packages config:type="list">
+            <package>openssh</package>
+        </packages>
         <products config:type="list">
             <product>SLES</product>
         </products>
