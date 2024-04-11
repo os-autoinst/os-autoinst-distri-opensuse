@@ -17,7 +17,7 @@ use warnings;
 
 sub raise_barriers {
     my (%args) = @_;
-    my @instances = $args{instances};
+    my @instances = @{$args{instances}};
     my $instance_type = $args{instance_type};
     # ASCS needs to be installed before ERS, PAS, AAS. Hana DB can be installed in parallel.
     foreach (@instances) { barrier_wait('SAPINST_ASCS') if $instance_type ne 'ASCS'; }
@@ -29,7 +29,7 @@ sub raise_barriers {
 
 sub release_barrier {
     my (%args) = @_;
-    my @instances = $args{instances};
+    my @instances = @{$args{instances}};
     my $instance_type = $args{instance_type};
     barrier_wait('SAPINST_ASCS') if $instance_type eq 'ASCS';    # release ASCS barrier
     barrier_wait('SAPINST_ERS') if $instance_type eq 'ERS' and grep(/PAS/, @instances);    # release ERS barrier if PAS was part of setup
@@ -79,7 +79,7 @@ sub run {
 
     my @instances = keys %{$nw_install_data->{instances}};
     # Raises instance specific barrier to prevent dependencies from running
-    raise_barriers(instance_type => $instance_type, instances => @instances);
+    raise_barriers(instance_type => $instance_type, instances => \@instances);
 
     my $swpm_command = join(' ', $swpm_binary,
         "SAPINST_INPUT_PARAMETERS_URL=$sap_install_profile",
@@ -97,7 +97,7 @@ sub run {
         expected_state => 'started');
 
     # releases instance specific barrier to signal installation being done and let dependencies continue
-    release_barrier(instance_type => $instance_type, instances => @instances);
+    release_barrier(instance_type => $instance_type, instances => \@instances);
     # sync all nodes after installation done and show status info on SAP instances
     barrier_wait('SAPINST_INSTALLATION_FINISHED');
     $self->sap_show_status_info(netweaver => 1, instance_id => $instance_data->{instance_id})
