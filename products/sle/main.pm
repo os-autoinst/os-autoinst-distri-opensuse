@@ -1217,7 +1217,7 @@ else {
     }
     elsif (get_var("FADUMP")) {
         prepare_target();
-        loadtest "console/kdump_and_crash";
+        loadtest "kernel/kdump";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
