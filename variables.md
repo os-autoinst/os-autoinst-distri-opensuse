@@ -36,6 +36,8 @@ BCI_TIMEOUT | string | | Timeout given to the command to test each environment. 
 BCI_TARGET | string | ibs-cr | Container project to be tested. `ibs-cr` is the CR project, `ibs` is the released images project
 BCI_SKIP | boolean | false | Switch to disable BCI test runs. Necessary for fine-granular test disablement
 BOOTLOADER | string | grub2 | Which bootloader is used by the image (and in the future also: will be selected during installation)
+BOOT_CD_CMD | string |       | Specify the partition to attempt to boot using the device specified by address. The parameter requirements are specific to the devtype e.g. BOOT_FROM_DEVICE #cd/dvd <address> ,here address will be the location code of the device.
+BOOT_PARAMS | string | | append parameters during boot, for example choosing the source of the installation data or setting the network configuration.
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
 CASEDIR | string | | Path to the directory which contains tests.
@@ -94,6 +96,10 @@ HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test su
 HPC_WAREWULF_CONTAINER_NAME | string | The OS name which is expected to run from HPC_WAREWULF_CONTAINER.
 HPC_WAREWULF_CONTAINER_USERNAME | string | Defining username enables authentication for containers, needs valid HPC subscription on SCC for containers from registry.suse.com. If you want use default HPC subscription, just set same value as in SCC_EMAIL
 _SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC 
+_SECRET_VIOS_HOSTNAME | string | | vios server hostname
+_SECRET_VIOS_ISO_DIR | string | | Specify the path for iso file in vios server
+_SECRET_VIOS_PASSWORD | string | | vios server password 
+_SECRET_VIOS_USERNAME | string | | vios server username
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
@@ -101,6 +107,7 @@ INSTALLONLY | boolean | false | Indicates that test suite conducts only installa
 INSTLANG | string | en_US | Installation locale settings.
 IPERF_REPO | string | | Link to repository with iperf tool for network performance testing. Currently used in Public Cloud Azure test
 IPXE | boolean | false | Indicates ipxe boot.
+ISO_DIR | string | /var/lib/openqa/share/factory/iso | place the iso image file in iso path
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
 IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine job
@@ -216,6 +223,8 @@ VALIDATE_CHECKSUM | boolean | false | Validate checksum of the mediums. Also see
 VERSION | string | | Contains major version of the product. E.g. 15-SP1 or 15.1
 VIDEOMODE | string | | Indicates/defines video mode used for the installation. Empty value uses default, other possible values `text`, `ssh-x` for installation ncurses and x11 over ssh respectivelyю
 VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the svirt host (only relevant for the svirt backend).
+VIOS_DISK_NAME | string | | Provide the Virtual Optical disk Name  
+VTOPT_NAME | string | | Specify the virtual target device. e.g vtopt0
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.
