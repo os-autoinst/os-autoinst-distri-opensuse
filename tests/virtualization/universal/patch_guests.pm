@@ -22,11 +22,10 @@ sub reboot_guest {
     my $guest = shift;
     record_info("Rebooting $guest");
     if (get_var("KVM") || get_var("XEN")) {
-        script_run("rm /tmp/guests_ip/$guest");
         script_run("virsh shutdown $guest");
         script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
         script_run("virsh start $guest");
-        script_retry("test -f /tmp/guests_ip/$guest", retry => 5, delay => 60);
+        script_retry("nmap $guest -PN -p ssh | grep open", retry => 5, delay => 60);
     } else {
         script_run("ssh root\@$guest reboot || true", timeout => 10);
         wait_guest_online($guest);
