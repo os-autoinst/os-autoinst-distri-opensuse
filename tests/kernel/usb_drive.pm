@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: usb_nic
-# Summary: Simple smoke test for testing USB NIC connected to system
+# Summary: Simple smoke test for testing USB drive connected to system
 # Maintainer: LSG QE Kernel <kernel-qa@suse.de>
 
 use base 'opensusebasetest';
@@ -13,7 +13,6 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Logging 'export_logs_basic';
 
 sub run {
     my ($self) = @_;
@@ -37,7 +36,7 @@ sub run {
 
     assert_script_run "mount -t btrfs $device $mountpoint";
     assert_script_run "dd if=/dev/urandom of=$file bs=1M count=16";
-    assert_script_run "md5sum $file  > $md5";
+    assert_script_run "md5sum $file > $md5";
     assert_script_run "cp $file $file_copy";
 
     # unmount and flush slab and page cache
