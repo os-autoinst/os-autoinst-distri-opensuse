@@ -50,6 +50,10 @@ sub run {
     assert_script_run("virsh define $vm_name.xml");
     assert_script_run("virsh start $vm_name");
 
+    # On 15-SP6+ the binary is virtqemud and not libvirtd, so we need to add this additional export
+    my $virt_bin = is_sle('15-SP5+') ? 'virtqemud' : 'libvirtd';
+    assert_script_run("export VIRT_BINARY=$virt_bin");
+
     # Export AUDIT_TEST_REMOTE_VM
     assert_script_run("export AUDIT_TEST_REMOTE_VM=$vm_name");
     # Export AUGROK
