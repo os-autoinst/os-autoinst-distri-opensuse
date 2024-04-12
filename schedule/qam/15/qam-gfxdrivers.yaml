@@ -27,5 +27,4 @@ schedule:
 - x11/glxgears
 - kernel/usb_nic
 - kernel/usb_drive
-- shutdown/cleanup_before_shutdown
 - shutdown/shutdown
