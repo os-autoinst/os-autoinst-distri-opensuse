@@ -11,9 +11,10 @@ use strict;
 use warnings;
 use testapi;
 use migration 'record_disk_info';
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal();
 
     # The disk space usage info would be helpful to debug upgrade failure
     # with disk exhausted error
