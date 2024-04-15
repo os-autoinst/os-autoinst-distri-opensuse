@@ -1245,10 +1245,15 @@ sub zkvm_add_interface {
     my ($svirt) = shift;
     # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
     my $vtap = $svirt->instance + 4;
-    my $netdev = get_required_var('NETDEV');
+    my $netdev = get_var('NETDEV');
     my $mac = get_required_var('VIRSH_MAC');
+    my $virsh_network = get_var('VIRSH_NETWORK');
     # direct access to the tap device, use of $vtap temporarily
-    $svirt->add_interface({type => 'direct', source => {dev => $netdev, mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}, mac => {address => $mac}});
+    if ($netdev ne '') {
+        $svirt->add_interface({type => 'direct', source => {dev => $netdev, mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}, mac => {address => $mac}});
+    } elsif ($virsh_network ne '') {
+        $svirt->add_interface({type => 'network', source => {network => $virsh_network}, mac => {address => $mac}});
+    } else { die 'Neither NETDEV nor VIRSH_NETWORK set'; }
     my $mm_netdev = get_var('MM_NETDEV');
     my $mm_netmode = get_var('MM_NETMODE', 'bridge');
     if ($mm_netdev) {
