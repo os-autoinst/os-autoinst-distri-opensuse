@@ -231,7 +231,13 @@ sub run {
         # HANA PERF uses DELL R840 and R740, their UEFI IPXE boot need not set_bootscript_hdd
         return if (get_var('HANA_PERF') && get_var('IPXE_UEFI'));
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
-        sleep 120;
+        my $sleep = get_var('IPXE_FIXED_SLEEP_DURATION');
+        if ($sleep) {
+            sleep $sleep;
+        } else {
+            # give the needle a longer timeout in order to accomodate even the slowest server machines
+            assert_screen('IPXE_LOAD_KERNEL', 600);
+        }
         set_bootscript_hdd if get_var('IPXE_UEFI');
     }
     else {
