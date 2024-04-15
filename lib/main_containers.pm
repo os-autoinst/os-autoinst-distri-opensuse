@@ -176,6 +176,7 @@ sub load_host_tests_docker {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
+    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo");
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
