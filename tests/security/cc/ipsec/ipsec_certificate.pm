@@ -15,13 +15,14 @@ use utils;
 use atsec_test;
 use Utils::Architectures;
 use lockapi;
+use version_utils 'is_sle';
 use mmapi qw(wait_for_children get_children);
 
 my $test_cases = {
     example => 'pass',
     wrong_DN => 'fail',
     ecdsa => 'pass',
-    rsa768 => 'pass',
+    rsa768 => is_sle('15-SP6+') ? 'fail' : 'pass',
     self_signed => 'fail',
     expired => 'fail',
     wrong_signature => 'fail',
