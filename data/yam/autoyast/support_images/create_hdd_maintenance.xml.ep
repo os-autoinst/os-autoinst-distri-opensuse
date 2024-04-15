@@ -31,16 +31,13 @@
         %}
     </suse_register>
     <add-on>
-        <add_on_others config:type="list">
-            % for my $repo (@$repos) {
-            % my ($repo_id, $addon) = $repo =~ (/(\d+)\/(.*)\//);
-        <listentry>
-        <media_url><%= $repo %></media_url>
-            <name><%= $addon . "_" . $repo_id %></name>
-            <alias><%= $addon . "_" . $repo_id %></alias>
-        </listentry>
-        %}
-        </add_on_others>
+       <add_on_products config:type="list">
+         % for my $repo (@$repos) {
+         <listentry>
+           <media_url><%= $repo %></media_url>
+         </listentry>
+         % }
+       </add_on_products>
     </add-on>
     <bootloader>
         <global>
