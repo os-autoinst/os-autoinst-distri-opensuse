@@ -1,5 +1,5 @@
 ---
-name: ha_supportserver
+name: ensa_supportserver
 description: >
   SupportServer definition for HA tests.
 
@@ -24,11 +24,12 @@ vars:
   SUPPORT_SERVER: '1'
   SUPPORT_SERVER_ROLES: dhcp,dns,ntp,ssh,iscsi
   VIDEOMODE: text
-  VIRTIO_CONSOLE: '0'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: openqa_support_server_sles12sp3.%ARCH%.qcow2
 schedule:
+  - sles4sap/ensa/ensa_barriers.pm
   - support_server/login
   - support_server/setup
-  - ha/barrier_init
+  - sles4sap/netweaver_nfs_setup
+  - sles4sap/ensa/ensa_finish_supportserver.pm
   - support_server/wait_children
