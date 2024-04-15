@@ -50,6 +50,9 @@ conditional_schedule:
       15-SP5:
         - console/django
         - console/nginx
+      15-SP6:
+        - console/django
+        - console/nginx
       tumbleweed:
         - console/django
         - console/rails
