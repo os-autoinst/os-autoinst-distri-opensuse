@@ -36,7 +36,7 @@ sub run {
     zypper_call('in -t pattern devel_basis');
 
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
-    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl");
+    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd");
 
     # Workaround for restarting audit service
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
