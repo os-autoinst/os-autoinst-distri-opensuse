@@ -22,6 +22,10 @@ sub test_flags {
 
 sub run {
     serial_console_diag_banner('end: sdaf_cleanup.pm');
+    if (get_var('SDAF_NO_CLEANUP')) {
+        record_info('Cleanup OFF', 'OpenQA variable "SDAF_NO_CLEANUP" is active, skipping cleanup.');
+        return;
+    }
 
     # Cleanup SDAF files form Deployer VM
     connect_target_to_serial();

@@ -20,7 +20,7 @@ sub undef_variables {
     set_var($_, '') foreach @openqa_variables;
 }
 
-subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_repo()' => sub {
+subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_project()' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
@@ -32,8 +32,8 @@ subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_repo
     my %expected_results = (
         workload_zone => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/LANDSCAPE/LAB-SECE-SAP04-INFRASTRUCTURE/LAB-SECE-SAP04-INFRASTRUCTURE-0079.tfvars',
         sap_system => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS/LAB-SECE-SAP04-QAS-0079.tfvars',
-        library => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/LIBRARY/LAB-SECE-SAP_LIBRARY/LAB-SECE-SAP_LIBRARY.tfvars',
-        deployer => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE/LAB-SECE-DEP05-INFRASTRUCTURE.tfvars'
+        library => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/LIBRARY/LAB-SECE-SAP_LIBRARY/LAB-SECE-SAP_LIBRARY-0079.tfvars',
+        deployer => '/tmp/Azure_SAP_Automated_Deployment_0079/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE/LAB-SECE-DEP05-INFRASTRUCTURE-0079.tfvars'
     );
     my %get_tfvars_results;
     $ms_sdaf->redefine(record_info => sub { return; });
@@ -47,7 +47,7 @@ subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_repo
             return @_;
     });
 
-    prepare_sdaf_repo(%arguments);
+    prepare_sdaf_project(%arguments);
     foreach (keys(%expected_results)) {
         is $get_tfvars_results{$_}, $expected_results{$_}, "Pass with corrct tfvars path generated for: $_";
     }
@@ -94,7 +94,7 @@ subtest '[get_tfvars_path] Test unsupported deployment types - test using set_co
       "Check for unexpected failures within unit test.\n\t Unexpected messages found:" . join("\n", @unexpected_failures);
 };
 
-subtest '[prepare_sdaf_repo]' => sub {
+subtest '[prepare_sdaf_project]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
@@ -118,10 +118,10 @@ subtest '[prepare_sdaf_repo]' => sub {
             $vnet_checks{$args{deployment_type}} = $args{vnet_code};
             return '/some/useless/path'; });
 
-    prepare_sdaf_repo(%arguments);
+    prepare_sdaf_project(%arguments);
 
 
-    is $git_commands[0], 'git clone https://github.com/Azure/sap-automation.git sap-automation --quiet', 'Clone SDAF automation code repo';
+    is $git_commands[0], 'git clone -b experimental https://github.com/Azure/sap-automation.git sap-automation --quiet', 'Clone SDAF automation code repo';
     is $git_commands[1], 'git clone https://github.com/Azure/sap-automation-samples.git samples --quiet', 'Clone SDAF automation samples repo';
 
     # Check correct vnet codes
@@ -132,7 +132,7 @@ subtest '[prepare_sdaf_repo]' => sub {
 
 };
 
-subtest '[prepare_sdaf_repo] Check directory creation' => sub {
+subtest '[prepare_sdaf_project] Check directory creation' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
@@ -150,7 +150,7 @@ subtest '[prepare_sdaf_repo] Check directory creation' => sub {
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
 
-    prepare_sdaf_repo(%arguments);
+    prepare_sdaf_project(%arguments);
     is $mkdir_commands[0], 'mkdir -p /tmp/openqa_logs', 'Create logging directory';
     is $mkdir_commands[1], 'mkdir -p Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE',
       'Create workspace directory';
@@ -244,10 +244,10 @@ subtest '[serial_console_diag_banner] ' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my $printed_output;
     $ms_sdaf->redefine(script_run => sub { $printed_output = $_[0]; return 1; });
-    my $correct_output = "##########################    EXECUTING DEPLOYMENT    ##########################";
+    my $correct_output = "##########################    Executing deployment    ##########################";
 
-    serial_console_diag_banner('exeCuTing deploYment');
-    is $printed_output, $correct_output, "Print banner correctly in uppercase:\n$correct_output";
+    serial_console_diag_banner('Executing deployment');
+    is $printed_output, $correct_output, "Print banner correctly uppercase:\n$correct_output";
     dies_ok { serial_console_diag_banner() } 'Fail with missing test to be printed';
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
 };
@@ -521,6 +521,60 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     ok $sdaf_command_no_log =~ m/$_/, "Command for deploying workload zone must contain cmd option: '$_'" foreach @workload_zone_cmdline;
     sdaf_execute_deployment(deployment_type => 'sap_system');
     ok $sdaf_command_no_log =~ m/$_/, "Command for deploying sap systems must contain cmd option: '$_'" foreach @sap_system_cmdline;
+};
+
+subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
+    my $croak_message;
+    $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; die(); });
+
+    set_var('SDAF_ENV_CODE', 'LAB');
+    set_var('SDAF_WORKLOAD_VNET_CODE', 'SAP04');
+    set_var('SDAF_REGION_CODE', 'SECE');
+    set_var('SAP_SID', 'QES');
+
+    dies_ok {sdaf_execute_playbook()} 'Croak with missing mandatory argument "playbook_filename"';
+    ok $croak_message =~ m/playbook_filename/, 'Check if failure is triggered at correct place.';
+
+    undef_variables();
+};
+
+subtest '[sdaf_execute_playbook] Command execution' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
+    my $ansible_playbook_cmd;
+
+    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
+    $ms_sdaf->redefine(record_info => sub { return; });
+    #$ms_sdaf->redefine(get_config_root_path => sub { return '/tmp/SDAF/WORKSPACES/LANDSCAPE/LAB-SECE-SAP04-INFRASTRUCTURE/'; });
+    $ms_sdaf->redefine(script_run => sub {
+        $ansible_playbook_cmd = $_[0] if grep(/ansible-playbook/, $_[0]);
+        return 0;
+    });
+
+    set_var('SDAF_ENV_CODE', 'LAB');
+    set_var('SDAF_WORKLOAD_VNET_CODE', 'SAP04');
+    set_var('SDAF_REGION_CODE', 'SECE');
+    set_var('SAP_SID', 'QES');
+
+    $ms_sdaf->redefine(upload_logs => sub { return ; });
+
+    my $expected_result = join(' ', '(', 'ansible-playbook',
+        '--inventory-file="QAS_hosts.yaml"',
+        '--private-key=/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS/sshkey',
+        '--extra-vars=\'_workspace_directory=/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS\'',
+        '--extra-vars="@sap-parameters.yaml"',
+        '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"',
+        '/tmp/SDAF/sap-automation/deploy/ansible/playbook_01_os_base_config.yaml 2>&1',
+        '| tee /tmp/openqa_logs/playbook_01_os_base_config.log',
+        '; exit ${PIPESTATUS[0]})'
+    );
+
+    sdaf_execute_playbook(playbook_filename=>'playbook_01_os_base_config.yaml', sap_sid=>'QAS', vnet_code=>'SAP04');
+    is $ansible_playbook_cmd, $expected_result, "Execute correct ansible command:\n$ansible_playbook_cmd";
+
+    undef_variables();
 };
 
 done_testing;
