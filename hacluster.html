@@ -17,6 +17,7 @@
       <li><a href="#Global-Variables">Global Variables</a></li>
       <li><a href="#exec_csync">exec_csync</a></li>
       <li><a href="#add_file_in_csync">add_file_in_csync</a></li>
+      <li><a href="#get_cluster_info">get_cluster_info</a></li>
       <li><a href="#get_cluster_name">get_cluster_name</a></li>
       <li><a href="#get_hostname">get_hostname</a></li>
       <li><a href="#get_node_to_join">get_node_to_join</a></li>
@@ -60,6 +61,7 @@
       <li><a href="#crm_maintenance_status">crm_maintenance_status</a></li>
       <li><a href="#crm_wait_for_maintenance">crm_wait_for_maintenance</a></li>
       <li><a href="#crm_check_resource_location">crm_check_resource_location</a></li>
+      <li><a href="#generate_lun_list">generate_lun_list</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -112,6 +114,12 @@
 <pre><code>add_file_in_csync( value =&gt; &#39;/path/to/file&#39;, [ conf_file =&gt; &#39;/path/to/csync2.cfg&#39; ] );</code></pre>
 
 <p>Adds <i>/path/to/file</i> to a csync2 configuration file in SUT. Path to add must be passed with the named argument <b>value</b>, while csync2 configuration file can be passed on the named argument <b>conf_file</b> (defaults to <i>/etc/csync2/csync2.cfg</i>). Returns true on success or croaks if command execution fails in SUT.</p>
+
+<h2 id="get_cluster_info">get_cluster_info</h2>
+
+<p>get_cluster_info();</p>
+
+<p>Returns a hashref containing the info parsed from the CLUSTER_INFOS variable. This does not reflect the current state of the cluster but the intended steady state once the LUNs are configured and the nodes have joined.</p>
 
 <h2 id="get_cluster_name">get_cluster_name</h2>
 
@@ -448,6 +456,12 @@
 <p><b>timeout</b> Override default timeout value</p>
 
 </ul>
+
+<h2 id="generate_lun_list">generate_lun_list</h2>
+
+<pre><code>generate_lun_list()</code></pre>
+
+<p>This generates the information that nodes need to use iSCSI. This is stored in /tmp/$cluster_name-lun.list where nodes can get it using scp.</p>
 
 
 </body>
