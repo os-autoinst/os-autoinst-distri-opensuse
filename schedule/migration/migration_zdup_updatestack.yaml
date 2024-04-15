@@ -1,0 +1,19 @@
+---
+name: migration_zdup_updatestack
+description: >
+  update stack migration via zdup
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - console/check_system_info
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/setup_zdup
+  - installation/zdup
+  - installation/post_zdup
+  - installation/grub_test
+  - installation/first_boot
+  - console/consoletest_setup
+  - console/zypper_lr
