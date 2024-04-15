@@ -17,6 +17,7 @@
       <li><a href="#homedir">homedir</a></li>
       <li><a href="#deployment_dir">deployment_dir</a></li>
       <li><a href="#log_dir">log_dir</a></li>
+      <li><a href="#sdaf_scripts_dir">sdaf_scripts_dir</a></li>
       <li><a href="#env_variable_file">env_variable_file</a></li>
       <li><a href="#log_command_output">log_command_output</a></li>
       <li><a href="#az_login">az_login</a></li>
@@ -32,7 +33,8 @@
       <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
       <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
       <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
-      <li><a href="#sdaf_deploy_workload_zone">sdaf_deploy_workload_zone</a></li>
+      <li><a href="#sdaf_execute_deployment">sdaf_execute_deployment</a></li>
+      <li><a href="#get_sdaf_deployment_command">get_sdaf_deployment_command</a></li>
       <li><a href="#prepare_sdaf_repo">prepare_sdaf_repo</a></li>
       <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
       <li><a href="#resource_group_exists">resource_group_exists</a></li>
@@ -85,6 +87,12 @@
 <p><b>create</b>: Create directory if it does not exist.</p>
 
 <p>Returns logging directory path with job ID appended as unique identifier. Optionally creates the directory.</p>
+
+<h2 id="sdaf_scripts_dir">sdaf_scripts_dir</h2>
+
+<pre><code>sdaf_scripts_dir();</code></pre>
+
+<p>Returns directory containing SDAF scripts.</p>
 
 <h2 id="env_variable_file">env_variable_file</h2>
 
@@ -262,11 +270,25 @@ tee - writes output also into the log file</code></pre>
 
 <p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
 
-<h2 id="sdaf_deploy_workload_zone">sdaf_deploy_workload_zone</h2>
+<h2 id="sdaf_execute_deployment">sdaf_execute_deployment</h2>
 
-<pre><code>sdaf_deploy_workload_zone();</code></pre>
+<pre><code>sdaf_execute_deployment(deployment_type=&gt;$deployment_type [, timeout=&gt;$timeout]);</code></pre>
 
-<p>Executes SDAF workload zone deployment. SDAF relies on OS env variables therefore those are passed as cmd args as well. Definitely keep <i>--spn-secret</i> set as a reference to OS variable <i>${ARM_CLIENT_SECRET}</i>, otherwise password will be shown in openQA output log in plaintext. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone">https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone</a></p>
+<p><b>deployment_type</b>: Type of the deployment: workload_zone or sap_system</p>
+
+<p><b>timeout</b>: Execution timeout. Default: 1800s.</p>
+
+<p>Executes SDAF deployment according to the type specified. Croaks with unsupported deployment type, dies upon command failure. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone">https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone</a> <a href="https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure">https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure</a></p>
+
+<h2 id="get_sdaf_deployment_command">get_sdaf_deployment_command</h2>
+
+<pre><code>get_sdaf_deployment_command(deployment_type=&gt;$deployment_type, tfvars_filename=&gt;tfvars_filename);</code></pre>
+
+<p><b>deployment_type</b>: Type of the deployment: workload_zone or sap_system</p>
+
+<p><b>tfvars_filename</b>: Filename of tfvars file</p>
+
+<p>Function composes SDAF deployment script command for <b>sap_system</b> or <b>workload_zone</b> according to official documentation. Although the documentation uses env OS variable references in the command, function replaces them with actual values. This is done for better debugging and logging transparency. Only sensitive values are hidden by using references.</p>
 
 <h2 id="prepare_sdaf_repo">prepare_sdaf_repo</h2>
 
