@@ -215,7 +215,11 @@ sub connect_target_to_serial {
     croak "OpenQA variable BASE_VM_ID undefined. Run 'redirection_init()' first" unless get_var('BASE_VM_ID');
     croak "IP address '$args{destination_ip}' is not valid." unless grep(/^$RE{net}{IPv4}$/, $args{destination_ip});
     croak 'Global variable "$serialdev" undefined' unless $serialdev;
-    croak "Console is already redirected to:" . script_output('hostname', quiet => 1) if check_serial_redirection();
+
+    if (check_serial_redirection()) {
+        record_info('Redirect ON', "Console is already redirected to:" . script_output('hostname', quiet => 1));
+        return;
+    }
 
     # Save original value for 'AUTOINST_URL_HOSTNAME', and point requests to localhost
     # https://github.com/os-autoinst/os-autoinst/blob/master/doc/backend_vars.asciidoc
