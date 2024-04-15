@@ -17,6 +17,7 @@ use transactional qw(trup_call check_reboot_changes);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Systemd qw(systemctl);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -82,6 +83,16 @@ sub run {
     # 1. Use netavark instead of cni
     # 2. Avoid default mounts for containers
     # 3. Switch to cgroups v2
+
+    # Required modifications to make cgroups v2 work on SLES<15-SP6.
+    # See https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
+    if (is_sle('<15-SP6') || is_leap('<15.6')) {
+        assert_script_run "mkdir /etc/systemd/system/user@.service.d/";
+        assert_script_run 'echo -e "[Service]\nDelegate=pids memory" > /etc/systemd/system/user@.service.d/60-delegate.conf';
+        systemctl "daemon-reload";
+        systemctl "--user daemon-reexec";
+    }
+
     assert_script_run "podman system reset -f";
     if (is_transactional) {
         trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
