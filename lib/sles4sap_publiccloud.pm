@@ -335,8 +335,8 @@ sub stop_hana {
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
         record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
         sleep 10;
-        $self->{my_instance}->wait_for_ssh(timeout => 900);
-        return;
+        $out = $self->{my_instance}->wait_for_ssh(timeout => 900);
+        record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
     }
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
@@ -841,7 +841,6 @@ sub create_playbook_section_list {
           sap-hana-system-replication-hooks.yaml
         );
         push @playbook_list, $hana_cluster_playbook;
-        push @playbook_list, 'post-sap-hana-cluster.yaml';
     }
     return (\@playbook_list);
 }
