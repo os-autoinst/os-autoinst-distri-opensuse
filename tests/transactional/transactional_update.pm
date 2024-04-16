@@ -85,6 +85,8 @@ sub run {
         check_reboot_changes;
         check_package(stage => 'up');
 
+        # NOTE: This has a very small chance of failing
+        # See https://progress.opensuse.org/issues/159039
         record_info 'Update #2', 'System should be up to date - no changes expected';
         trup_call 'cleanup up';
         check_reboot_changes 0;
