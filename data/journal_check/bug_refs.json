@@ -633,5 +633,13 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "bsc#1221504": {
+        "description": "bluetoothd.*Failed to (reset Adv Monitors|clear UUIDs|add UUID): Failed",
+        "products": {
+            "opensuse": ["15.6"],
+            "sle": ["15-SP6"]
+        },
+        "type": "bug"
     }
 }
