@@ -41,7 +41,7 @@ sub run {
     die($output) if ($output =~ m/error|timeout|problem retrieving/i);
     process_reboot(trigger => 1) if is_transactional;
     # Check available extenstions (only present in sle)
-    my $extensions = script_output_retry("$reg_cmd --list-extensions", retry => $retries, delay => $delay);
+    my $extensions = script_output_retry("$reg_cmd --list-extensions", retry => $retries, delay => $delay, timeout => 180);
     record_info('Extensions', $extensions);
 
     die("None of the modules are Activated") if ($extensions !~ m/Activated/ && is_sle);
