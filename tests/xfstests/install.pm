@@ -43,7 +43,6 @@ sub install_xfstests_from_repo {
         zypper_ar($repo_url, name => 'xfstests-repo');
         zypper_ar($dep_url, name => 'dependency-repo');
     }
-    zypper_call('--gpg-auto-import-keys ref');
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
         script_run('id fsgqa &> /dev/null || useradd -d /home/fsgqa -k /etc/skel -ms /bin/bash -U fsgqa');
