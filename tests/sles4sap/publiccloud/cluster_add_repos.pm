@@ -24,8 +24,8 @@ sub run {
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
-        if ($maintrepo =~ /Development-Tools/) {
-            record_info("MISSING REPOS", "There are Development-Tools repos in this incident, that are not uploaded to IBSM. Later errors, if they occur, may be due to these.");
+        if ($maintrepo =~ /Development-Tools/ or $maintrepo =~ /Desktop-Applications/) {
+            record_info("MISSING REPOS", "There are repos in this incident, that are not uploaded to IBSM. ($maintrepo). Later errors, if they occur, may be due to these.");
             next;
         }
         foreach my $instance (@{$self->{instances}}) {

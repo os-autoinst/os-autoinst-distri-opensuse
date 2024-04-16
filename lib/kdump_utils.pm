@@ -13,7 +13,7 @@ use registration;
 use Utils::Backends;
 use Utils::Architectures;
 use power_action_utils 'power_action';
-use version_utils qw(is_alp is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional
+use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional
   is_leap_micro is_sle_micro);
 use utils 'ensure_serialdev_permissions';
 use virt_autotest::utils 'is_xen_host';
@@ -143,11 +143,11 @@ sub prepare_for_kdump {
         return;
     }
 
-    # handle alp and micro via REPO_TRANSACTIONAL_DEBUG or skip repo setup if not set
+    # handle micro via REPO_TRANSACTIONAL_DEBUG or skip repo setup if not set
     if (my $transactional_debuginfo_repo = get_var('REPO_TRANSACTIONAL_DEBUG')) {
         return install_kernel_debuginfo_via_repo($transactional_debuginfo_repo);
     }
-    return if is_alp || is_leap_micro || is_sle_micro;
+    return if is_leap_micro || is_sle_micro;
 
     my $opensuse_debug_repos = 'repo-debug';
     $opensuse_debug_repos .= ' repo-debug-update' unless is_tumbleweed;
@@ -260,6 +260,7 @@ sub determine_crash_memory {
 # Activate kdump using yast command line interface
 sub activate_kdump_cli {
     # Skip configuration, if is kdump already enabled and no special memory settings is required
+    # and always proceed with kdump configuration if fadump is requested
     # Yast cli may timeout on with XEN bsc#1206274, we need to check configuration directly
     my $status;
     if (is_xen_host) {
@@ -267,7 +268,7 @@ sub activate_kdump_cli {
     } else {
         $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
     }
-    return if ($status and !get_var('CRASH_MEMORY'));
+    return if ($status and !get_var('CRASH_MEMORY') and !get_var('FADUMP'));
 
     # Make sure fadump is disabled on PowerVM
     assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
@@ -406,6 +407,7 @@ sub check_function {
     return 1 unless kdump_is_active;
 
     do_kdump;
+
 
     if (get_var('FADUMP')) {
         reconnect_mgmt_console;

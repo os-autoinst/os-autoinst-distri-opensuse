@@ -19,7 +19,7 @@ use transactional;
 use utils;
 use version_utils;
 use Utils::Systemd;
-use Utils::Backends;
+use Utils::Backends qw(get_serial_console);
 use ipmi_backend_utils;
 use virt_autotest::utils;
 
@@ -34,7 +34,7 @@ sub prepare_in_trup_shell {
     my $self = shift;
 
     transactional::enter_trup_shell(global_options => '--drop-if-no-change');
-    #$self->prepare_extensions;
+    $self->prepare_extensions;
     $self->prepare_packages;
     $self->prepare_bootloader;
     transactional::exit_trup_shell_and_reboot();
@@ -49,15 +49,16 @@ sub prepare_on_active_system {
 sub prepare_extensions {
     my $self = shift;
 
-    #Subscribing packagehub that enables access to many useful software tools
-    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => 'PackageHub');
+    virt_autotest::utils::subscribe_extensions_and_modules;
 }
 
 sub prepare_packages {
     my $self = shift;
 
     # Install necessary virtualization client packages
-    zypper_call("--non-interactive install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools yast2-schema-micro");
+    my $zypper_install_package = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools";
+    $zypper_install_package .= " yast2-schema-micro" if is_sle_micro('<6.0');
+    zypper_call("$zypper_install_package");
     $self->install_additional_pkgs;
 }
 
@@ -79,19 +80,19 @@ sub install_additional_pkgs {
         foreach (@repos_to_install) {
             $repo_name = (split(/\//, $_))[-1] . "-" . bmwqemu::random_string(8);
             push(@repos_names, $repo_name);
-            zypper_call("--non-interactive --gpg-auto-import-keys ar --enable --refresh $_ $repo_name");
+            zypper_call("--gpg-auto-import-keys ar --enable --refresh $_ $repo_name");
             save_screenshot;
         }
-        zypper_call("--non-interactive --gpg-auto-import-keys refresh");
+        zypper_call("--gpg-auto-import-keys refresh");
         save_screenshot;
 
-        my $cmd = "--non-interactive install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
+        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
         $cmd = $cmd . " $_" foreach (split(/,/, get_required_var("INSTALL_OTHER_PACKAGES")));
         zypper_call($cmd);
         save_screenshot;
 
         # Remove additional repos from SLEM after packages installation finishes.
-        $cmd = "--non-interactive rr";
+        $cmd = "rr";
         $cmd = $cmd . " $_" foreach (@repos_names);
         zypper_call($cmd);
         save_screenshot;
@@ -102,8 +103,13 @@ sub prepare_bootloader {
     my $self = shift;
 
     my $serialconsole = get_serial_console();
-    ipmi_backend_utils::add_kernel_options(kernel_opts => "selinux=0 console=tty console=$serialconsole,115200");
-    ipmi_backend_utils::set_grub_terminal_and_timeout(terminals => "console serial", timeout => 30);
+    if (is_uefi_boot) {
+        ipmi_backend_utils::set_grub_terminal_and_timeout(grub_to_change => 3, terminals => "gfxterm console", timeout => 30);
+    }
+    else {
+        ipmi_backend_utils::set_grub_terminal_and_timeout(terminals => "console serial", timeout => 30);
+    }
+    ipmi_backend_utils::add_kernel_options(kernel_opts => "console=tty console=$serialconsole,115200");
 }
 
 sub prepare_services {

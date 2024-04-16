@@ -13,24 +13,40 @@ use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 
+use constant DEPLOY_PREFIX => 'clne';
+
 sub run {
     my ($self) = @_;
 
-    die 'Azure is the only CSP supported for the moment' unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    die('Azure is the only CSP supported for the moment')
+      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
 
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
+    my $az_cmd;
 
-    my $vm_user = script_output("az vm list --resource-group $rg --query '[0].osProfile.adminUsername' -o tsv");
-    my $vm_ip = script_output("az network public-ip show --resource-group $rg --name clne-pub_ip-1 --query 'ipAddress' -o tsv");
+    $az_cmd = join(' ',
+        'az vm list',
+        "--resource-group $rg",
+        '--query "[0].osProfile.adminUsername"',
+        '-o tsv');
+    my $vm_user = script_output($az_cmd);
+
+    $az_cmd = join(' ',
+        'az network public-ip show',
+        "--resource-group $rg",
+        '--name', DEPLOY_PREFIX . '-pub_ip-1',
+        '--query "ipAddress"',
+        '-o tsv');
+    my $vm_ip = script_output($az_cmd);
     my $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # Delete an ip-config
-    my $az_cmd = join(' ', 'az network nic ip-config delete',
+    $az_cmd = join(' ', 'az network nic ip-config delete',
         '--resource-group', $rg,
         '--name ipconfig2',
-        '--nic-name clne-nic');
+        '--nic-name', DEPLOY_PREFIX . '-nic');
     assert_script_run($az_cmd);
 
     # Intermediate optional test, check on the cloud side
@@ -64,7 +80,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     script_run("az group delete --name $rg -y", timeout => 600);
     $self->SUPER::post_fail_hook;
 }

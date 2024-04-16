@@ -245,7 +245,7 @@ sub run {
     my $timeout = 7200;
     my @tags = qw(
       yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error
-      yast2-migration-finish      yast2-migration-notifications
+      yast2-migration-finish      yast2-migration-notifications yast2-migration-sle-packageconflict
     );
     while (1) {
         assert_screen \@tags, $timeout;
@@ -269,8 +269,8 @@ sub run {
             send_key "alt-n";
             return;
         }
-        elsif (match_has_tag("yast2-migration-notifications")) {
-            # close notification window
+        elsif (match_has_tag("yast2-migration-notifications") || match_has_tag("yast2-migration-sle-packageconflict")) {
+            # close notification/packageconflict window
             send_key "alt-o";
             # wait a second after pressing close button
             wait_still_screen(1);

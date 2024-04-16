@@ -61,6 +61,8 @@ sub check_product {
             $product = $proname{leap};
         } elsif ($mypro eq "SLE_HPC") {
             $product = $proname{SLES};
+        } elsif (($mypro eq "SLES") && (check_var("CROSS_PRODUCT_MIGRATION", 'from_hpc'))) {
+            $product = $proname{SLE_HPC};
         } else {
             $product = $proname{$mypro};
         }

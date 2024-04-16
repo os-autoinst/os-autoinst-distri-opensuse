@@ -106,6 +106,11 @@ sub install_docker_when_needed {
         }
     }
 
+    # Disable docker's own rate-limit in the service file (3 restarts in 60s)
+    # Our tests might restart the docker service more frequently than that
+    assert_script_run 'mkdir -p /etc/systemd/system/docker.service.d';
+    assert_script_run 'echo -e "[Service]\nStartLimitInterval=0s\n" > /etc/systemd/system/docker.service.d/limits.conf';
+
     # docker daemon can be started
     systemctl('enable docker');
     systemctl('is-enabled docker');

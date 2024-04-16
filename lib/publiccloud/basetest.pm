@@ -143,6 +143,8 @@ sub _cleanup {
     } else {
         diag('Public Cloud _cleanup: Not ready for provider cleanup.');
     }
+
+    upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
 }
 
 sub post_fail_hook {

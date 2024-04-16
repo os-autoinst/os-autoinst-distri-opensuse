@@ -98,6 +98,30 @@ sub set_linux_security_to_none {
     assert_screen 'installation-settings-overview-loaded', 120;
 }
 
+sub disable_secureboot {
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key_until_needlematch [qw(secureboot-enable secureboot-disable)], 'down', 60;
+    } else {
+        send_key_until_needlematch [qw(secureboot-enable secureboot-disable)], 'tab', 60;
+    }
+    if (match_has_tag 'secureboot-enable') {
+        if (check_var('VIDEOMODE', 'text')) {
+            send_key 'alt-c';
+            assert_screen 'inst-overview-options';
+            send_key 'alt-b';
+            send_key 'alt-s';
+            assert_screen 'bootloader-secureboot-disable';
+            send_key 'alt-o';
+            assert_screen 'secureboot-disable';
+        }
+        else {
+            send_key_until_needlematch 'secureboot-enabled-selected', 'tab', 26;
+            send_key 'ret';
+            send_key_until_needlematch 'secureboot-disable', 'tab';
+        }
+    }
+}
+
 sub run {
     my ($self) = shift;
     # overview-generation
@@ -120,6 +144,7 @@ sub run {
         set_linux_security_to_none if (is_sle('>=15-SP4') && check_screen("apparmor-not-selected") && !(get_var('PATTERNS') =~ 'default|all|apparmor'));
         ensure_ssh_unblocked;
         $self->check_default_target();
+        $self->disable_secureboot() if (get_var('UEFI') && get_var('DISABLE_SECUREBOOT'));
     }
 }
 

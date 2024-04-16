@@ -85,7 +85,11 @@ sub run {
     send_key 'alt-s';    # SAP SID
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
     type_string $sid;
-    wait_screen_change { send_key 'alt-a' };    # SAP Password
+    if (is_sle('>=15-SP6')) {
+        wait_screen_change { send_key 'alt-p' };    # SAP Password
+    } else {
+        wait_screen_change { send_key 'alt-a' };    # SAP Password
+    }
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;

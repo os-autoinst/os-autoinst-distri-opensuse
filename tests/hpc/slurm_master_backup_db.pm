@@ -36,6 +36,11 @@ sub run ($self) {
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
     record_info('slurm conf', script_output('cat /etc/slurm/slurm.conf'));
     $self->enable_and_start('munge');
+
+    # Install mrsh and mrsh-server to allow t10 basic
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
+
     $self->enable_and_start('slurmctld');
     systemctl 'status slurmctld';
     $self->enable_and_start('slurmd');

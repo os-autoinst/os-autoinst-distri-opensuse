@@ -15,7 +15,7 @@ terraform:
     region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
-    public_key: '%SLES4SAP_PUBSSHKEY%'
+    public_key: '%SLES4SAP_SSHKEY%.pub'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     gcp_credentials_file: '/root/google_credentials.json'
 

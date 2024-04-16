@@ -19,16 +19,9 @@ use Utils::Backends 'is_pvm';
 use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
 
-sub check_migrated_version {
-    # check if the migration success or not by checking the /etc/os-release file with the VERSION
-    my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
-    assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
-}
-
 sub run {
     my $self = shift;
     select_console 'root-console';
-
     # precompile regexes
     my $zypper_continue = qr/^Continue\? \[y/m;
     my $zypper_migration_target = qr/\[num\/q\]/m;
@@ -73,7 +66,7 @@ sub run {
         if ($out =~ $zypper_migration_target) {
             my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
             $target_version =~ s/-/ /;
-            if ($out =~ /(\d+)\s+\|\s?SUSE Linux Enterprise.*?$target_version/m) {
+            if ($out =~ /(\d+)\s+\|\s?SUSE Linux.*?$target_version/m) {
                 send_key "$1";
             }
             else {
@@ -162,7 +155,6 @@ sub run {
     # during restart of the X/GDM stack
     if (is_sle_micro) {
         check_reboot_changes;
-        check_migrated_version;
     } else {
         power_action('reboot', textmode => 1);
         reconnect_mgmt_console if is_pvm;

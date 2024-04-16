@@ -34,6 +34,12 @@ sub run {
     # Otherwise YaST2 shows bootloader settings options
     $self->ncurses_filesystem_probing('test-yast2_bootloader-1');
 
+    # We may propose new configuration from scratch if some backend device changed
+    if (check_screen('bootloader_unsupported_config', 2)) {
+        send_key 'alt-p';
+        wait_still_screen 2;
+    }
+
     # OK => Close
     send_key "alt-o";
     # Our Hyper-V host & aarch64 is slow when initrd is being re-generated

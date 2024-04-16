@@ -18,6 +18,8 @@ use Carp qw(croak);
 
 our @EXPORT = qw(
   calculate_hana_topology
+  check_hana_topology
+  check_crm_output
 );
 
 =head1 SYNOPSIS
@@ -33,7 +35,7 @@ like other baseclass or testapi. Avoid using get_var/set_var at this level.
 
 
 =head2 calculate_hana_topology
-    calculate_hana_topology([input => $saphanasr_showAttr_format_script_output]);
+    calculate_hana_topology(input => $saphanasr_showAttr_format_script_output);
 
     Expect `SAPHanaSR-showAttr --format=script` as input.
     Parses this input, returns a hash of hashes containing values for each host.
@@ -58,13 +60,18 @@ like other baseclass or testapi. Avoid using get_var/set_var at this level.
             vhost => 'vmhana02',
         },
     }
+
+=over 1
+
+=item B<input> - stdout of 'SAPHanaSR-showAttr --format=script'
+
+=back
 =cut
 
 
 sub calculate_hana_topology {
     my (%args) = @_;
-    croak "Missing mandatory 'input' argument" unless $args{input};
-    record_info("cmd_out", $args{input});
+    croak("Argument <input> missing") unless $args{input};
     my %topology;
     my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $args{input});
     my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
@@ -79,6 +86,97 @@ sub calculate_hana_topology {
     }
 
     return \%topology;
+}
+
+=head2 check_hana_topology
+    check_hana_topology(input => calculate_hana_topology($saphanasr_showAttr_format_script_output) [, online_str => '12345678']]);
+
+    Expect the output of saputils::calculate_hana_topology as input.
+    Uses calculate_hana_topology to get a hash of hashes, and then
+    checks the output to make sure that the cluster is working and ready.
+
+    The checks performed are:
+    - All node_states are online
+    - All sync_states are either SOK or PRIM
+
+=over 2
+
+=item B<input> - return value of calculate_hana_topology
+
+=item B<node_state_match> - string used to match the online state in field node_state. Default 'online'
+
+=back
+=cut
+
+
+sub check_hana_topology {
+    my (%args) = @_;
+    croak("Argument <input> missing") unless $args{input};
+    my $topology = $args{input};
+    $args{node_state_match} //= 'online';
+
+    my $all_online = 1;
+    my $prim_count = 0;
+    my $sok_count = 0;
+
+    foreach my $host (keys %$topology) {
+        # first check presence of all fields needed in further tests.
+        # If something is missing the topology is considered invalid.
+        foreach (qw(node_state sync_state)) {
+            unless (defined($topology->{$host}->{$_})) {
+                record_info('check_hana_topology', "Missing '$_' field in topology output for host $host");
+                return 0;
+            }
+        }
+
+        # Check node_state
+        if ($topology->{$host}->{node_state} !~ $args{node_state_match}) {
+            record_info('check_hana_topology', "node_state: '$topology->{$host}->{node_state}' is not '$args{node_state_match}' for host $host");
+            $all_online = 0;
+            last;
+        }
+
+        # Check sync_state
+        if ($topology->{$host}->{sync_state} eq 'PRIM') {
+            $prim_count++;
+        } elsif ($topology->{$host}->{sync_state} eq 'SOK') {
+            $sok_count++;
+        }
+    }
+
+    # Final check for conditions
+    record_info('check_hana_topology', "all_online: $all_online prim_count: $prim_count sok_count: $sok_count");
+    return ($all_online && $prim_count == 1 && $sok_count == (keys %$topology) - 1);
+}
+
+=head2 check_crm_output
+    check_crm_output(input => $crm_mon_output);
+
+    input: the output of the command 'crm_mon -r -R -n -N -1'
+    output: whether the conditions are met (return 1) or not (return 0)
+
+    Conditions:
+    - No resources are in 'Starting' state
+    - No 'Failed Resource Actions' present
+
+=over 1
+
+=item B<input> - stdout of 'crm_mon -R -r -n -N -1'
+
+=back
+=cut
+
+sub check_crm_output {
+    my (%args) = @_;
+    croak("Argument <input> missing") unless $args{input};
+    my $resource_started = 1;
+    my $failed_actions = 0;
+
+    $resource_started = !($args{input} =~ /:\s*Starting/);
+    $failed_actions = ($args{input} =~ /Failed Resource Actions:/);
+
+    record_info('check_crm_output', "resource_started: $resource_started failed_actions: $failed_actions");
+    return ($resource_started && !$failed_actions);
 }
 
 1;

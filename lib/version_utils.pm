@@ -54,6 +54,7 @@ use constant {
           check_version
           get_os_release
           check_os_release
+          verify_os_version
           package_version_cmp
           get_version_id
           php_version
@@ -315,7 +316,7 @@ Returns true if called on tumbleweed
 sub is_tumbleweed {
     # Tumbleweed and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 1 if get_var('VERSION') =~ /Tumbleweed/;
+    return 1 if get_var('VERSION') =~ /Tumbleweed|Slowroll/;
     return 1 if is_gnome_next;
     return get_var('VERSION') =~ /^Staging:/;
 }
@@ -432,7 +433,7 @@ Returns true if called on a real time system
 =cut
 
 sub is_rt {
-    return (check_var('SLE_PRODUCT', 'rt') || get_var('FLAVOR') =~ /rt/i);
+    return (check_var('SLE_PRODUCT', 'rt') || get_var('FLAVOR') =~ /-rt/i);
 }
 
 =head2 is_hpc
@@ -744,6 +745,21 @@ sub check_os_release {
     return ($os_like_name =~ /$distri_name/i);
 }
 
+=head2 verify_os_version
+
+Returns 1 (true) if os release version matches the one passed as arguement.
+If no arguements are given, the function will compare the os release version
+in /etc/os-release file with "VERSION" var.
+
+=cut
+
+sub verify_os_version {
+    my ($version, $os_release_file) = @_;
+    $version //= get_var("VERSION");
+    $os_release_file //= '/etc/os-release';
+    return script_output("grep VERSION= $os_release_file | grep $version");
+}
+
 =head2 is_public_cloud
 
 Returns true if PUBLIC_CLOUD is set to 1
@@ -805,8 +821,10 @@ Returns true if the SUT uses Plasma 6.
 =cut
 
 sub is_plasma6 {
-    # Currently only krypton has it
-    return check_var('FLAVOR', 'Krypton-Live');
+    return 0 unless check_var('DESKTOP', 'kde');
+    return 1 if is_krypton_argon;
+    return 0 if is_leap("<16.0");
+    return 1;
 }
 
 

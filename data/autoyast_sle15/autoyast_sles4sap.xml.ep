@@ -160,7 +160,6 @@
       <pattern>sap_server</pattern>
       <pattern>sap-hana</pattern>
       <pattern>sap-nw</pattern>
-      <pattern>sap-b1</pattern>
     </patterns>
     <products config:type="list">
       <product>SLES_SAP</product>

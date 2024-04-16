@@ -10,10 +10,12 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);
-use version_utils qw(is_alp is_leap_micro is_sle_micro);
+use version_utils qw(is_leap_micro is_sle_micro);
+use utils;
 
 sub run {
     my ($self) = @_;
+
     assert_screen 'selfinstall-screen', 180;
     send_key 'down' unless check_screen 'selfinstall-select-drive';
     assert_screen 'selfinstall-select-drive';
@@ -39,7 +41,7 @@ sub run {
     } else {
         microos_login;
         # The installed system is definitely up now, so the CD can be ejected
-        eject_cd() unless $no_cd;
+        eject_cd() unless ($no_cd || is_usb_boot);
     }
 
 }

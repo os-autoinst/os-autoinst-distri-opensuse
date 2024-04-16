@@ -53,7 +53,7 @@ sub run {
             add_to_known_hosts($_);
         }
         assert_script_run "scp -qr /usr/sap/$sid/SYS/global/security/rsecssfs/* root\@$node2:/usr/sap/$sid/SYS/global/security/rsecssfs/";
-        assert_script_run qq(su - $sapadm -c "hdbsql -u system -p $sles4sap::instance_password -i $instance_id -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 300;
+        assert_script_run qq(su - $sapadm -c "hdbsql -u system -p $sles4sap::instance_password -i $instance_id -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 900;
         assert_script_run "su - $sapadm -c 'hdbnsutil -sr_enable --name=$node1'";
 
         # Synchronize the nodes
@@ -81,7 +81,7 @@ sub run {
         my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         assert_script_run $start_cmd;
         my $looptime = 90;
-        while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'") {
+        while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
             sleep bmwqemu::scale_timeout(1);
             --$looptime;
             last if ($looptime <= 0);

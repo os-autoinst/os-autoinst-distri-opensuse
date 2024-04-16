@@ -19,7 +19,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call('in wget gcc make');
+    zypper_call('in wget gcc make curl');
 
     my $code_path = get_required_var('CODE_PATH');
     my ($file_name) = $code_path =~ m|/([^/]+)\.tar$|;

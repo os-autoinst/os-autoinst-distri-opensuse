@@ -79,6 +79,12 @@ sub run_basic_tests() {
     my %test08 = t08_basic();
     push(@all_results, \%test08);
 
+    my %test09 = t09_basic();
+    push(@all_results, \%test09);
+
+    my %test10 = t10_basic();
+    push(@all_results, \%test10);
+
     return @all_results;
 }
 
@@ -190,7 +196,7 @@ sub t07_basic() {
 }
 
 sub t08_basic() {
-    my $name = 'pdsh-slurm';
+    my $name = 'pdsh-slurm over ssh';
     my $description = 'Basic check of pdsh-slurm over ssh';
     my $result = 0;
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
@@ -198,6 +204,37 @@ sub t08_basic() {
 
     my $sinfo_nodeaddr = script_output('sinfo -a --Format=nodeaddr -h');
     my $pdsh_nodes = script_output('pdsh -R ssh -P normal /usr/bin/hostname');
+    my @sinfo_nodeaddr = (split ' ', $sinfo_nodeaddr);
+
+    foreach my $i (@sinfo_nodeaddr) {
+        if (index($pdsh_nodes, $i) == -1) {
+            $result = 1;
+            last;
+        }
+    }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t09_basic() {
+    my $name = 'Second slurm partition';
+    my $description = 'Run srun jobs against non-default partition';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+
+    my $result = script_run("srun --partition=minor -N $cluster_nodes date");
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t10_basic() {
+    my $name = 'pdsh-slurm over mrsh';
+    my $description = 'Basic check of pdsh-slurm over mrsh';
+    my $result = 0;
+
+    my $sinfo_nodeaddr = script_output('sinfo -a --Format=nodeaddr -h');
+    my $pdsh_nodes = script_output("runuser -l nobody -c 'pdsh -R mrsh -P minor /usr/bin/hostname'");
     my @sinfo_nodeaddr = (split ' ', $sinfo_nodeaddr);
 
     foreach my $i (@sinfo_nodeaddr) {
@@ -452,6 +489,10 @@ sub run ($self) {
 
     $self->enable_and_start('munge');
     systemctl('is-active munge');
+
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
+
     barrier_wait('SLURM_SETUP_DBD');
 
     $self->enable_and_start('slurmctld');

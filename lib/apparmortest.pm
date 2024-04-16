@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed is_alp);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils 'turn_off_gnome_screensaver';
 
@@ -538,7 +538,7 @@ Set up Web environment for running Adminer by:
 =cut
 # Set up Web environment for running Adminer
 sub adminer_setup {
-    if (is_sle(">=15-SP4") || is_leap(">15.4") || is_tumbleweed() || is_alp()) {
+    if (is_sle(">=15-SP4") || is_leap(">15.4") || is_tumbleweed()) {
         assert_script_run("a2enmod php8");
     } else {
         assert_script_run("a2enmod php7");

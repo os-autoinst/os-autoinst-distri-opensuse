@@ -14,7 +14,8 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_sle_micro);
+use utils qw(is_ipxe_boot);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd);
 use IPC::Run;
@@ -123,11 +124,12 @@ sub login_to_console {
         }
     }
 
-    unless (is_tumbleweed or check_screen([qw(grub2 grub1 prague-pxe-menu)], get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
+    unless (is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
-        check_screen([qw(grub2 grub1 prague-pxe-menu)], 120);
+        check_screen(\@bootup_needles, 120);
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)
@@ -168,7 +170,19 @@ sub login_to_console {
             use_ssh_serial_console;
             save_screenshot;
             #start upgrade
-            enter_cmd("DISPLAY= yast.ssh");
+            if (check_var('VIDEOMODE', 'text')) {
+                if (lc(get_var('VERSION_TO_INSTALL', '')) eq '12-sp5' and lc(get_var('UPGRADE_PRODUCT', '')) eq 'sles-15-sp6') {
+                    #DIAPLAY= might be culprit that prevents host upgrade from proceeding at SCC registration. Please refer to bsc#1218798.
+                    record_soft_failure("bsc#1218798 - [SLES][15-SP6][x86_64][Build46.40] Unable to create repository due to valid metadata not found");
+                    enter_cmd("yast.ssh");
+                }
+                else {
+                    enter_cmd("DISPLAY= yast.ssh");
+                }
+            }
+            else {
+                enter_cmd("yast.ssh");
+            }
             save_screenshot;
             #wait upgrade finish
             assert_screen('rebootnow', 2700);

@@ -110,6 +110,12 @@ sub test_network_interface {
     my $isolated = $args{isolated} // 0;
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short google.com");
+    # Expect $target is an IP address
+    if ($target !~ /^[\d\.]+/) {
+        record_info("Incorrect remote target to test your network connection", $target, result => 'fail');
+        $target = script_output("dig +short libvirt.org");
+        $target =~ /^[\d\.]+/ ? record_info("One more try succeed!") : die "Unable to test network connections!";
+    }
 
     record_info("Network test", "testing $mac");
     check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
@@ -128,11 +134,7 @@ sub test_network_interface {
 
         # Restart the network - the SSH connection may drop here, so no return code is checked.
         if ($is_sriov_test ne "true") {
-            if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
-                script_run("ssh root\@$guest service network restart", 300);
-            } else {
-                script_run("ssh root\@$guest systemctl restart network", 300);
-            }
+            script_run("ssh root\@$guest systemctl restart network", 300);
         }
         # Exit the SSH master socket if open
         script_run("ssh -O exit root\@$guest");
@@ -147,8 +149,14 @@ sub test_network_interface {
 
     # Show the IP address of secondary (tested) interface
     assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1");
+    my $addr = "";
     my $test_timeout = ($net eq 'vnet_host_bridge') ? 360 : 90;
-    my $addr = script_output("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1", timeout => $test_timeout);
+    my $start_time = time();
+    while (time() - $start_time <= $test_timeout) {
+        $addr = script_output("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1", proceed_on_failure => 1);
+        last if ($addr ne "");
+        sleep 30;
+    }
     if ($addr eq "") {
         assert_script_run "ssh root\@$guest 'ip a'";
         die "No IP found for $nic in $guest";

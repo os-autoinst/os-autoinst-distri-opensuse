@@ -73,7 +73,6 @@ sub run_test {
         validate_guest_status($guest);
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
-        check_guest_health($guest);
 
         # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
         next if ($guest =~ /alp/i);

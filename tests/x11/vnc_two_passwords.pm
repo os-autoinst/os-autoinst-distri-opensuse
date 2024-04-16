@@ -25,7 +25,7 @@ use testapi;
 use x11utils 'ensure_unlocked_desktop';
 use version_utils qw(is_sle package_version_cmp);
 use utils;
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 
 # set global timeout, increased for aarch64
 my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
@@ -86,7 +86,13 @@ sub generate_vnc_events {
     x11_start_program 'xterm';
     send_key 'super-left';
     enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
-    assert_screen 'vnc_password_dialog';
+    assert_screen [qw(vnc_password_dialog vnc_password_dialog_incomplete)];
+    if (match_has_tag 'vnc_password_dialog_incomplete') {
+        # https://progress.opensuse.org/issues/158622
+        assert_and_click 'vnc_password_dialog_incomplete', button => 'right';
+        send_key 'esc';
+        assert_screen 'vnc_password_dialog';
+    }
     enter_cmd "$password";
     assert_screen 'vncviewer-xev';
     send_key 'super-left';
@@ -101,6 +107,7 @@ sub generate_vnc_events {
     send_key 'alt-f4';
     wait_serial('vncviewer-finished', $timeout) || die 'vncviewer not finished';
     enter_cmd 'exit';
+    wait_still_screen 2;
 }
 
 sub configure_vnc_server {
@@ -137,7 +144,7 @@ sub run {
         #     xev -display $display -root | tee /tmp/xev_log ; echo xev-finished >/dev/$serialdev
         # will not work
         # Parentheses are needed to not populate trap to following commands. Add delay time on aarch64 because xev takes longer to finish or even hangs
-        my $delay_time = (is_aarch64 && is_sle) ? 60 : 1;
+        my $delay_time = (is_aarch64 && is_sle) ? 60 : is_ppc64le ? 5 : 1;
         enter_cmd "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log); sleep $delay_time; ";
 
         # Repeat with RO/RW password
@@ -145,6 +152,7 @@ sub run {
 
         # Close xev, re-try if needed on aarch64, increase timeout on aarch64 for wait_serial, see poo#119416
         send_key 'ctrl-c';
+        wait_still_screen 2;
         # give a second chance to quit xev
         send_key 'ctrl-c' if (is_sle && is_aarch64) && ((check_screen 'need-to-close-again', $timeout) || (check_screen 'need-to-close-again-extra1', $timeout));
         my $message = 'xev not finished';

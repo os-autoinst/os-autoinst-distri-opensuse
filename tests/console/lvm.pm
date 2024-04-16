@@ -45,7 +45,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    if (is_s390x) {
+    if (is_zvm) {
         # bring dasd online
         # exit status 0 -> everything ok
         # exit status 8 -> unformatted but still usable (e.g. from previous testrun)

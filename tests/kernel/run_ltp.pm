@@ -270,6 +270,59 @@ sub thetime {
     return clock_gettime(CLOCK_MONOTONIC);
 }
 
+sub save_crashdump {
+    my $self = shift;
+    my $old_console = current_console();
+
+    select_console('root-console');
+    script_run('rm -rf /var/crash/*');
+    send_key('alt-sysrq-s');
+    send_key('alt-sysrq-c');
+    reset_consoles;
+    $self->wait_boot;
+    select_console($old_console);
+    my $dump = script_output('ls /var/crash |tail -n1');
+    assert_script_run("tar cJf /root/crashdump.tar.xz /var/crash/$dump");
+    upload_logs('/root/crashdump.tar.xz');
+}
+
+sub dump_tasktrace {
+    my $old_console = current_console();
+
+    select_console('root-console', await_console => 0);
+    send_key('alt-sysrq-t');
+    send_key('alt-sysrq-w');
+    wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
+    send_key('ret');
+    select_console($old_console, await_console => 0);
+}
+
+sub upload_tcpdump {
+    my $self = shift;
+    my $pid = $self->{tcpdump_pid};
+    my $old_console;
+
+    $self->{tcpdump_pid} = undef;
+
+    if ($self->{timed_out}) {
+        $old_console = current_console();
+        select_console('root-console');
+
+        unless (defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0))) {
+            select_console($old_console, await_console => 0);
+            return;
+        }
+    }
+    else {
+        assert_script_run("kill -s INT $pid && wait $pid");
+    }
+
+    assert_script_run("gzip -f9 /tmp/tcpdump.pcap");
+    upload_logs("/tmp/tcpdump.pcap.gz");
+    upload_logs("/tmp/tcpdump.log");
+    select_console($old_console) if defined($old_console);
+}
+
 sub pre_run_hook {
     my ($self) = @_;
     my @pattern_list;
@@ -306,6 +359,12 @@ sub run {
     my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
     my $start_time = thetime();
 
+    if (check_var_array('LTP_DEBUG', 'tcpdump')) {
+        $self->{tcpdump_pid} = background_script_run("tcpdump -i any -w /tmp/tcpdump.pcap &>/tmp/tcpdump.log");
+        # Wait for tcpdump to initialize before running the test
+        script_run('while [ ! -e /tmp/tcpdump.pcap ]; do usleep 100000; done');
+    }
+
     if (is_serial_terminal) {
         script_run($klog_stamp);
         wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
@@ -318,9 +377,11 @@ sub run {
     }
     my $test_log = wait_serial(qr/$fin_msg\d+\./, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+    $self->{timed_out} = $timed_out;
 
     if ($test_log =~ qr/$fin_msg(\d+)\.$/) {
         $env{retval} = $1;
+        $self->upload_tcpdump() if defined($self->{tcpdump_pid});
     }
 
     push(@{$test_result_export->{results}}, $result_export);
@@ -338,7 +399,14 @@ sub run {
 sub run_post_fail {
     my ($self, $msg) = @_;
 
+    $self->upload_tcpdump() if defined($self->{tcpdump_pid});
+    $self->dump_tasktrace() if check_var_array('LTP_DEBUG', 'tasktrace');
+    $self->save_crashdump()
+      if $self->{timed_out} && check_var_array('LTP_DEBUG', 'crashdump');
+
+    $self->get_new_serial_output();
     $self->fail_if_running();
+    $self->compute_test_execution_time();
 
     if ($self->{ltp_tinfo} and $self->{result} eq 'fail') {
         my $whitelist = LTP::WhiteList->new();
@@ -417,6 +485,13 @@ LTP test itself.
 
 Comma separated list of environment variables to be set for tests.
 E.g.: key=value,key2="value with spaces",key3='another value with spaces'
+
+=head2 LTP_DEBUG
+
+Comma separated list of debug features to enable during test run.
+C<tcpdump>: Capture all packets sent or received during each test.
+C<crashdump>: Save kernel crashdump on test timeout.
+C<tasktrace>: Print backtrace of all processes and show blocked tasks
 
 =cut
 

@@ -748,8 +748,8 @@ B<systemReplicationStatus.py> return codes are:
 sub check_replication_state {
     my ($self) = @_;
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
-    # Wait by default for 5 minutes
-    my $time_to_wait = 300;
+    # Wait by default for 10 minutes
+    my $time_to_wait = 600;
     my $cmd = "su - $sapadm -c 'python exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node

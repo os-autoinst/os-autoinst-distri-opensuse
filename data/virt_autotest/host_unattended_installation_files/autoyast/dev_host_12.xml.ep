@@ -41,10 +41,10 @@
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
-      <xen_kernel_append>com2=115200,8n1 console=com2,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
       % } else {
-      <append>loglevel=5 gfxpayload=1024x768 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>loglevel=5 gfxpayload=1024x768 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
     </global>
     <loader_type>default</loader_type>
@@ -109,14 +109,15 @@
         <bridge_ports><%= $get_var->('SUT_NETDEVICE') %></bridge_ports>
         % } else {
         <bridge_ports>eth0 eth1 em1 em2</bridge_ports>
-        % }
-        <bridge_stp>on</bridge_stp>
+	% }
+        <!-- Turn bridge_stp off to unblock autoyast installation. Please refer to bsc#1222105 -->
+        <bridge_stp>off</bridge_stp>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
   </networking>
   <partitioning config:type="list">
-  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie-1' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745', 'openqaipmi5' => 'wwn-0x5000c5008711f2fc', 'unreal2' => 'wwn-0x55cd2e415081e693', 'unreal3' => 'wwn-0x55cd2e4150817d43', 'ph052' => 'wwn-0x5000c500e28a91bb', 'ph053' => 'wwn-0x5000c500e28a68d7', 'vh001' => 'wwn-0x50014ee0042a24ed', 'vh012' => 'wwn-0x5000c500b905e133', 'vh013' => 'wwn-0x6d0946606f4e7f0026b540d30c0d64a7', 'vh014' => 'wwn-0x6d0946606f4e620026b62d9505faa64b', 'vh015' => 'wwn-0x50000f0a47804240', 'vh016' => 'wwn-0x50000f0a47803ea0', 'vh017' => 'wwn-0x50014ee0af3af7ce', 'vh080' => 'wwn-0x6f4ee08011680e002ae552c4140dfb15', 'vh081' => 'wwn-0x6f4ee0801168bc0029aa28da5a049c94', 'vh082' => 'wwn-0x5002538e117150d5'};
+  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745', 'openqaipmi5' => 'wwn-0x5000c5008711f2fc', 'unreal2' => 'wwn-0x55cd2e415081e693', 'unreal3' => 'wwn-0x55cd2e4150817d43', 'ph052' => 'wwn-0x5000c500e28a91bb', 'ph053' => 'wwn-0x5000c500e28a68d7', 'vh001' => 'wwn-0x50014ee0042a24ed', 'vh012' => 'wwn-0x5000c500b905e133', 'vh013' => 'wwn-0x6d0946606f4e7f0026b540d30c0d64a7', 'vh014' => 'wwn-0x6d0946606f4e620026b62d9505faa64b', 'vh015' => 'wwn-0x50000f0a47804240', 'vh016' => 'wwn-0x50000f0a47803ea0', 'vh017' => 'wwn-0x50014ee0af3af7ce', 'vh080' => 'wwn-0x6f4ee08011680e002ae552c4140dfb15', 'vh081' => 'wwn-0x6f4ee0801168bc0029aa28da5a049c94', 'vh082' => 'wwn-0x5002538e117150d5'};
   % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
   % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
     <drive>
@@ -281,7 +282,7 @@
     </user>
   </users>
   <scripts>
-    <post-scripts config:type="list">
+    <init-scripts config:type="list">
       % if ($check_var->('SYSTEM_ROLE', 'xen') && $check_var->('XEN_DEFAULT_BOOT_IS_SET', 1)) {
       <script>
         <filename>default_xen_boot.sh</filename>
@@ -293,6 +294,6 @@ grub2-set-default 2
       </script>
       % }
       <script/>
-    </post-scripts>
+    </init-scripts>
   </scripts>
 </profile>

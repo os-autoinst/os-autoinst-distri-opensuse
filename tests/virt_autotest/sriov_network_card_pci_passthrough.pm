@@ -29,6 +29,8 @@ use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
 
 our $log_dir = "/tmp/sriov_pcipassthru";
+our $vm_xml_save_dir = "/tmp/download_vm_xml";
+
 sub run_test {
     my $self = shift;
 
@@ -39,7 +41,7 @@ sub run_test {
     script_run "[ -d $log_dir ] && rm -rf $log_dir; mkdir -p $log_dir";
 
     #save original guest configuration file in case of restore in post_fail_hook()
-    save_original_guest_xmls();
+    save_guests_xml_for_change($vm_xml_save_dir);
 
     #get the SR-IOV device BDF and interface
     my @host_pfs;
@@ -95,7 +97,6 @@ sub run_test {
         #check the networking of the plugged interface
         #use br123 as ssh connection
         test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
-        check_guest_health($guest);
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
@@ -110,16 +111,12 @@ sub run_test {
             test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
             save_network_device_status_logs($guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
-        check_guest_health($guest);
 
         #reboot the guest
         record_info("VM reboot", "$guest");
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
         wait_guest_online($guest, 30);
         save_network_device_status_logs($guest, $passthru_vf_count + 3 . '-after_guest_reboot');
-
-        #check host and guest to make sure they work well
-        check_guest_health($guest);
 
         #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
@@ -137,16 +134,13 @@ sub run_test {
         script_run "lspci | grep Ethernet";
         save_screenshot;
 
-        #check host and guest to make sure they work well
-        check_guest_health($guest);
-
     }
 
     #upload network device related logs
     virt_autotest::utils::upload_virt_logs($log_dir, "logs");
 
     #redefine guest from their original configuration files
-    restore_original_guests();
+    restore_xml_changed_guests("$vm_xml_save_dir/changed_xml");
 }
 
 
@@ -157,7 +151,7 @@ sub prepare_host {
     zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
 
     #check IOMMU based on VT-d is supported in Intel x86_64 machines
-    if (script_run("grep Intel /proc/cpuinfo") == 0) {
+    if (is_kvm_host && script_run("grep Intel /proc/cpuinfo") == 0) {
         assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
 
@@ -179,7 +173,7 @@ sub find_sriov_ethernet_devices {
             # Any VFs can be passed through to guests
             # But only those VFs whose pv has physical network connection can get an IP from DHCP server
             my $nic = script_output "ls -l /sys/class/net |grep $_ | awk '{print \$9}'";
-            if (script_output("ip link show $nic up") =~ /$nic/) {
+            if (script_output("ip link show $nic up") =~ /$nic.* state UP/) {
                 push @sriov_devices, $_;
                 record_info("Find SR-IOV devices", "$_    $nic");
             }
@@ -188,6 +182,9 @@ sub find_sriov_ethernet_devices {
                 if (script_output("cat /sys/class/net/$nic/carrier") eq '1') {
                     push @sriov_devices, $_;
                     record_info("Find SR-IOV devices", "$_    $nic");
+                }
+                else {
+                    script_run("ip link set $nic down");
                 }
             }
         }
@@ -223,40 +220,45 @@ sub prepare_guest_for_sriov_passthrough {
     unless (is_kvm_host || is_sle('=12-SP5') && is_fv_guest($vm) && !is_guest_ballooned($vm)) {
 
         #don't not use 'virsh edit' to change domain.xml because 'virsh define' does some error checking
-        assert_script_run "virsh dumpxml --inactive $vm > $vm.xml";
+        my $changed_xml_dir = "$vm_xml_save_dir/changed_xml";
+        assert_script_run "virsh dumpxml --inactive $vm > $changed_xml_dir/$vm.xml";
         script_run "virsh destroy $vm";
 
         #disable memory ballooning for fv guest as it is not supported
         if (is_fv_guest($vm) && is_guest_ballooned($vm)) {
-            assert_script_run "sed -i '/<currentMemory/d' $vm.xml";
+            assert_script_run "sed -i '/<currentMemory/d' $changed_xml_dir/$vm.xml";
             record_info "Disable guest ballooning", "$vm";
         }
         #enable pci-passthrough on sles15sp2+
         #set e820_host for pv guest
         #refer to bug #1167217 and but #1185081 for the reason
         unless (is_fv_guest($vm) && is_sle('<15-SP2')) {
-            unless (script_run("xmlstarlet sel -t -c /domain/features $vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $vm.xml";
+            unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
+                assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
             }
-            unless (script_run("xmlstarlet sel -t -c /domain/features/xen $vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $vm.xml";
+            unless (script_run("xmlstarlet sel -t -c /domain/features/xen $changed_xml_dir/$vm.xml") == 0) {
+                assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $changed_xml_dir/$vm.xml";
             }
-            assert_script_run "xmlstarlet edit -L \\
+            if (is_sle('>=15-SP2') && script_run("xmlstarlet sel -t -c /domain/features/xen/passthrough $changed_xml_dir/$vm.xml") != 0) {
+                assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n passthrough -v '' \\
                                    -s ////passthrough -t attr -n state -v on \\
-                                   $vm.xml" unless is_sle('<15-SP2');
-            assert_script_run "xmlstarlet edit -L \\
+                                   $changed_xml_dir/$vm.xml";
+            }
+            if (is_pv_guest($vm) and script_run("xmlstarlet sel -t -c /domain/features/xen/e820_host $changed_xml_dir/$vm.xml") != 0) {
+                assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n e820_host -v '' \\
                                    -s ////e820_host -t attr -n state -v on \\
-                                   $vm.xml" if is_pv_guest($vm);
+                                   $changed_xml_dir/$vm.xml";
+            }
         }
 
         #try undefine with --keep-nvram if undefine fails on uefi guest
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
         assert_script_run(" ! virsh list --all | grep $vm");
-        assert_script_run "virsh define $vm.xml";
+        assert_script_run "virsh define $changed_xml_dir/$vm.xml";
         assert_script_run "virsh start $vm";
-        sleep 60;
+        wait_guest_online($vm);
     }
 
     #passwordless access to guest
@@ -274,8 +276,6 @@ sub prepare_guest_for_sriov_passthrough {
         script_run "ssh root\@$vm \"sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\\\$/Storage=persistent/};\\\${x;/^\\\$/{s//Storage=persistent/;H};x}' $journald_conf_file\"";
         script_run "ssh root\@$vm 'systemctl restart systemd-journald'";
     }
-
-    check_guest_health($vm);
 
 }
 
@@ -414,10 +414,11 @@ sub post_fail_hook {
     foreach (keys %virt_autotest::common::guests) {
         save_network_device_status_logs($_, "post_fail_hook");
         script_run("ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1", die_on_timeout => 0);
+        check_guest_health($_);
     }
     virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
-    restore_original_guests();
+    restore_original_guests($vm_xml_save_dir);
 
 }
 

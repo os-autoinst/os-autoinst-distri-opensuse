@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_alp is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
+use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -114,6 +114,9 @@ our @EXPORT = qw(
   write_sut_file
   @all_tests_results
   ping_size_check
+  is_ipxe_boot
+  is_uefi_boot
+  is_usb_boot
 );
 
 our @EXPORT_OK = qw(
@@ -1063,7 +1066,7 @@ without LVM configuration (cr_swap,cr_home etc).
 =cut
 
 sub need_unlock_after_bootloader {
-    my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || is_alp || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
+    my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
     return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     # MicroOS with sdboot supports automatic TPM based unlocking.
     return 0 if is_microos && is_bootloader_sdboot && get_var('QEMUTPM');
@@ -1489,7 +1492,7 @@ the session.
 =cut
 
 sub get_x11_console_tty {
-    my $new_sddm = !is_sle('<16') && !is_leap('<15.6');
+    my $new_sddm = (!is_sle('<15-SP6') && !is_leap('<15.6')) || is_krypton_argon;
     if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'lxqt')) {
         return $new_sddm ? 2 : 7;
     }
@@ -2925,6 +2928,48 @@ sub write_sut_file {
     save_tmp_file($path, $contents);
     my $url = join('/', (autoinst_url, 'files', $path));
     assert_script_run("curl -v -o $path $url");
+}
+
+=head2 is_ipxe_boot
+
+Returns true if the current instance is in IPXE boot mode
+
+=cut
+
+sub is_ipxe_boot {
+
+    if (check_var('IPXE', '1') or check_var('IPXE_UEFI', '1')) {
+        return 1;
+    }
+    return 0;
+}
+
+=head2 is_uefi_boot
+
+Returns true if the current instance is in UEFI boot mode
+
+=cut
+
+sub is_uefi_boot {
+
+    if (check_var('UEFI', '1') or check_var('IPXE_UEFI', '1')) {
+        return 1;
+    }
+    return 0;
+}
+
+=head2 is_usb_boot
+
+ is_usb_boot();
+
+This will return C<1> if the env variables suggest
+that it boots from USB.
+
+=cut
+
+sub is_usb_boot {
+    return 1 if get_var('USB_BOOT', '');
+    return 0;
 }
 
 1;

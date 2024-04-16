@@ -21,13 +21,12 @@ use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use repo_tools 'add_qa_head_repo';
-use version_utils qw(is_sle is_leap is_tumbleweed is_alp is_sle_micro is_transactional);
+use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro is_transactional);
 use File::Basename;
 use transactional;
 
 my $STATUS_LOG = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
-my $IS_MARBLE = is_sle_micro && check_var('VERSION', '6.0');
 
 sub install_xfstests_from_repo {
     if (is_sle) {
@@ -36,20 +35,14 @@ sub install_xfstests_from_repo {
     elsif (is_tumbleweed) {
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/oss/', name => 'repo-oss');
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/non-oss/', name => 'repo-non-oss');
+        zypper_ar('http://download.opensuse.org/repositories/home:/yosun:/branches:/filesystems/openSUSE_Tumbleweed/', name => 'xfstests-repo', priority => 90, no_gpg_check => 1);
     }
-    elsif (is_alp) {
-        my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/ALP-Standard-Core-1.0-Build/');
-        my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
-        zypper_ar($repo_url, name => 'xfstests-repo');
-        zypper_ar($dep_url, name => 'dependency-repo');
-    }
-    elsif ($IS_MARBLE) {
+    elsif (is_sle_micro('>=6.0')) {
         my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/SUSE_ALP_Products_Marble_6.0_standard/');
         my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
         zypper_ar($repo_url, name => 'xfstests-repo');
         zypper_ar($dep_url, name => 'dependency-repo');
     }
-    zypper_call('--gpg-auto-import-keys ref');
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
         script_run('id fsgqa &> /dev/null || useradd -d /home/fsgqa -k /etc/skel -ms /bin/bash -U fsgqa');
@@ -57,7 +50,7 @@ sub install_xfstests_from_repo {
         script_run('getent group sys >/dev/null || groupadd -r sys');
         script_run('id daemon &> /dev/null || useradd daemon -g sys');
         trup_call('pkg install xfstests');
-        unless (is_alp || $IS_MARBLE) {
+        unless (is_sle_micro('>=6.0')) {
             trup_call('--continue pkg install fio');
         }
         reboot_on_changes;
@@ -66,10 +59,10 @@ sub install_xfstests_from_repo {
         zypper_call('in xfstests fio');
     }
     if (is_sle) {
-        script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
+        script_run 'ln -s /var/lib/xfstests /opt/xfstests';
     }
     elsif (is_tumbleweed || is_leap) {
-        script_run 'ln -s /usr/lib/xfstests/ /opt/xfstests';
+        script_run 'ln -s /usr/lib/xfstests /opt/xfstests';
     }
 }
 
@@ -89,6 +82,8 @@ sub collect_version {
 
 sub run {
     select_serial_terminal;
+    # Return if xfstests installed
+    script_run("zypper se -i xfstests") != 0 || return;
 
     # Disable PackageKit
     quit_packagekit;

@@ -13,6 +13,7 @@ use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var set_var);
+use publiccloud::utils 'is_gce';
 use Utils::Architectures;
 use Utils::Backends;
 use strict;
@@ -54,6 +55,12 @@ sub load_3rd_party_image_test {
 sub load_container_engine_test {
     my ($run_args) = @_;
     loadtest('containers/container_engine', run_args => $run_args, name => $run_args->{runtime});
+}
+
+sub load_rt_workload {
+    my ($args) = @_;
+    loadtest('containers/realtime', run_args => $args, name => $args->{runtime} . '_realtime');
+
 }
 
 sub load_container_helm {
@@ -115,19 +122,20 @@ sub load_host_tests_podman {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
-    load_image_test($run_args) unless is_public_cloud || is_alp;
+    load_image_test($run_args) unless is_public_cloud;
     load_3rd_party_image_test($run_args);
+    load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
-    # Default for ALP is Netavark
-    loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
+    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
-    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos || is_alp);
+    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
+    loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
@@ -145,8 +153,9 @@ sub load_host_tests_docker {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
-    load_image_test($run_args) unless is_public_cloud || is_alp;
+    load_image_test($run_args) unless is_public_cloud;
     load_3rd_party_image_test($run_args);
+    load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
@@ -162,7 +171,7 @@ sub load_host_tests_docker {
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
     }
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
@@ -244,7 +253,7 @@ sub load_container_tests {
     }
 
     # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
-    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos || is_leap_micro || is_alp)) {
+    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         # On Public Cloud we're already booted in the SUT
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
@@ -296,7 +305,7 @@ sub load_container_tests {
                     # For Base image we also run traditional image.pm test
                     load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
                 }
-            } elsif (is_sle_micro || is_alp) {
+            } elsif (is_sle_micro) {
                 # Test toolbox image updates
                 loadtest 'microos/toolbox';
             } else {
@@ -319,5 +328,5 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
-    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || is_alp || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
+    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }

@@ -6,7 +6,7 @@
 # Summary: Do a basic examination to the host and guests after tests run
 # Maintainer: Julie CAO <JCao@suse.com>, qe-virt@suse.de
 
-use base "virt_feature_test_base";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -19,15 +19,7 @@ use virt_utils qw(collect_host_and_guest_logs);
 use alp_workloads::kvm_workload_utils;
 use version_utils qw(is_alp);
 
-sub prepare_run_test {
-    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
-        reconnect_when_ssh_console_broken;
-        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
-    }
-    script_run("history -c");
-}
-
-sub run_test {
+sub run {
     return unless is_x86_64 || is_alp;
 
     my $self = shift;
@@ -63,7 +55,6 @@ sub run_test {
 sub post_fail_hook {
     my $self = shift;
     diag("Module validate_system_health post fail hook starts.");
-    $self->junit_log_provision((caller(0))[3]);
     unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
         reconnect_when_ssh_console_broken;
         alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;

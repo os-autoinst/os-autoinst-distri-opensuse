@@ -667,8 +667,8 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
-    ok((any { /.*\/var\/log\/hana0\-crm_report/ } @calls), 'crm report file has the node name in it');
-    ok((any { /hana0\-crm_report\.tar\.gz/ } @fetch_filename), 'crm report fetch file is properly formatted');
+    ok((any { /.*\/var\/log\/vmhana01\-crm_report/ } @calls), 'crm report file has the node name in it');
+    ok((any { /vmhana01\-crm_report\.tar\.gz/ } @fetch_filename), 'crm report fetch file is properly formatted');
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {
@@ -1083,6 +1083,23 @@ subtest '[qesap_add_server_to_hosts]' => sub {
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
+};
+
+subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_file_find_string => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            #return 1 if $args{search_string} eq 'Missing sudo password';
+            return 0; });
+    $qesap->redefine(script_output => sub { return 'ALGA' });
+    $qesap->redefine(qesap_cluster_logs => sub { return; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL');
+    ok $ret == 1;
 };
 
 done_testing;

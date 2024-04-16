@@ -18,15 +18,14 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp is_sle is_jeos);
+use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_sle is_jeos);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
 # python3-yamllint needed by ansible-test
-my $pkgs = 'ansible git-core';
-$pkgs .= ' python3-yamllint' unless is_alp;
+my $pkgs = 'ansible git-core python3-yamllint';
 # https://bugzilla.suse.com/show_bug.cgi?id=1210876 Nothing provides 'python3-virtualenv'
 # https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
 $pkgs .= ' ansible-test';
@@ -137,12 +136,8 @@ sub run {
     # (this command may not be available for older ansible versions )
     assert_script_run('ansible-community --version') if (script_run('which ansible-community') == 0);
 
-    # Test the ansible.community.zypper module?
-    # bsc#1204544 - the ansible.community.zypper module does not yet work on ALP
-    my $skip_tags = (is_alp) ? '--skip-tags zypper' : '';
-
     # Check the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
+    assert_script_run "ansible-playbook -i hosts main.yaml --check", timeout => 300;
 
     # Run the ansible sanity test
     script_run 'ansible-test --help';
@@ -154,7 +149,7 @@ sub run {
     assert_script_run 'ansible -i hosts all --list-hosts';
 
     # Run the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml $skip_tags", timeout => 600;
+    assert_script_run "ansible-playbook -i hosts main.yaml", timeout => 600;
 
     # Test that /tmp/ansible/uname.txt created by ansible has desired content
     my $uname = script_output 'uname -r';
@@ -170,11 +165,10 @@ sub run {
     validate_script_output 'sudo -u johnd cat /home/johnd/README.txt', sub { m/my $arch dynamic kingdom/ };
 
     # Reboot into new snapshot if we test ansible.community.zypper on transactional system
-    #   we currently don't test ansible.community.zypper on ALP
-    check_reboot_changes if (is_transactional && !is_alp);
+    check_reboot_changes if (is_transactional);
 
     # Check that Ed - the command line text edit is installed
-    assert_script_run 'which ed' unless (is_alp);
+    assert_script_run 'which ed';
 
     # 6. Ansible Vault
 
@@ -208,7 +202,7 @@ sub cleanup {
     assert_script_run 'userdel -rf johnd';
 
     # Remove ansible, yamllint and git
-    $pkgs .= ' ed' unless (is_alp);
+    $pkgs .= ' ed';
     if (is_transactional) {
         trup_call("pkg remove $pkgs");
         check_reboot_changes;

@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euxo pipefail
+
+grub2_config() {
+    file=/etc/default/grub
+    sed -i 's/^\s*GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=15/g' $file
+    sed -i -r 's/^(\s|#)*GRUB_TERMINAL=.*$/GRUB_TERMINAL="gfxterm console"/g' $file
+    sed -i 's/console=tty0//g' $file
+    sed -i 's/console=tty[^ ]*/console=SERIALCONSOLE,115200/g' $file
+    echo "DEBUG: now $file is,"
+    cat $file
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+}
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
+    grub2_config # Configure grub2 in the system
+

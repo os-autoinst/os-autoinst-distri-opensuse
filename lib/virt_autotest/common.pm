@@ -30,46 +30,6 @@ if (get_var("VERSION")) {
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
-        sles12sp4PV => {
-            name => 'sles12sp4PV',
-            autoyast => 'autoyast_xen/sles12sp4PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',
-            macaddress => '52:54:00:78:73:a9',
-            ip => '192.168.122.104',
-            distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.104/24,192.168.122.1,192.168.122.1"',
-        },
-        sles12sp4HVM => {
-            name => 'sles12sp4HVM',
-            autoyast => 'autoyast_xen/sles12sp4HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',
-            macaddress => '52:54:00:78:73:aa',
-            ip => '192.168.122.103',
-            distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.103/24,192.168.122.1,192.168.122.1"',
-        },
-        sles15sp1HVM => {
-            name => 'sles15sp1HVM',
-            autoyast => 'autoyast_xen/sles15sp1HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',
-            macaddress => '52:54:00:78:73:ab',
-            ip => '192.168.122.111',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"',
-        },
-        sles15sp1PV => {
-            name => 'sles15sp1PV',
-            autoyast => 'autoyast_xen/sles15sp1PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',
-            macaddress => '52:54:00:78:73:ac',
-            ip => '192.168.122.112',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.112/24,192.168.122.1,192.168.122.1"',
-        },
         sles15sp2HVM => {
             name => 'sles15sp2HVM',
             autoyast => 'autoyast_xen/sles15sp2HVM_PRG.xml',
@@ -165,21 +125,29 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15_SP5',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.120/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp6PV => {
+            name => 'sles15sp6PV',
+            extra_params => '--os-variant sle15-unknown',
+            macaddress => '52:54:00:78:73:a9',
+            ip => '192.168.122.121',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.121/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp6HVM => {
+            name => 'sles15sp6HVM',
+            extra_params => '--os-variant sle15-unknown',
+            macaddress => '52:54:00:78:73:a0',
+            ip => '192.168.122.122',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-RC1-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.122/24,192.168.122.1,192.168.122.1"'
         }
     );
     # Filter out guests not allowed for the detected SLE version
     if (is_sle('=12-SP5')) {
-        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp1HVM sles15sp1PV sles15sp5HVM sles15sp5PV);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
-    } elsif (is_sle('=12-SP4')) {
-        my @allowed_guests = qw(sles12sp4HVM sles12sp4PV sles12sp5HVM sles12sp5PV);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
-    } elsif (is_sle('=15-SP1')) {
-        my @allowed_guests = qw(sles15sp1HVM sles15sp1PV sles15sp2HVM sles15sp2PV);
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp5HVM sles15sp5PV sles15sp6HVM sles15sp6PV);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
@@ -203,6 +171,11 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
+    } elsif (is_sle('=15-SP6')) {
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp5HVM sles15sp5PV sles15sp6HVM sles15sp6PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
     } else {
         %guests = ();
     }
@@ -219,26 +192,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_12_SP3',
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.102/24,192.168.122.1,192.168.122.1"',
-        },
-        sles12sp4 => {
-            name => 'sles12sp4',
-            autoyast => 'autoyast_kvm/sles12sp4_PRG.xml',
-            extra_params => '--os-variant sles12sp4',
-            macaddress => '52:54:00:78:73:aa',
-            ip => '192.168.122.103',
-            distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.103/24,192.168.122.1,192.168.122.1"',
-        },
-        sles15sp1 => {
-            name => 'sles15sp1',
-            autoyast => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            macaddress => '52:54:00:78:73:ab',
-            ip => '192.168.122.111',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp2 => {
             name => 'sles15sp2',
@@ -287,6 +240,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.109/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp6 => {
+            name => 'sles15sp6',
+            extra_params => '--os-variant sle15-unknown',
+            macaddress => '52:54:00:78:73:b8',
+            ip => '192.168.122.111',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-RC1-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"'
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -295,18 +257,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
-    } elsif (is_sle('=12-SP4')) {
-        my @allowed_guests = qw(sles12sp4 sles12sp5);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
     } elsif (is_sle('=12-SP5')) {
-        my @allowed_guests = qw(sles12sp5 sles15sp1 sles15sp5);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
-    } elsif (is_sle('=15-SP1')) {
-        my @allowed_guests = qw(sles15sp1 sles15sp2);
+        my @allowed_guests = qw(sles12sp5 sles15sp5 sles15sp6);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
@@ -330,6 +282,11 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
+    } elsif (is_sle('=15-SP6')) {
+        my @allowed_guests = qw(sles12sp5 sles15sp5 sles15sp6);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
     } else {
         %guests = ();
     }
@@ -340,14 +297,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles12sp3 => {
             name => 'sles12sp3',
         },
-        sles12sp4 => {
-            name => 'sles12sp4',
-        },
         sles12sp5 => {
             name => 'sles12sp5',
-        },
-        sles15sp1 => {
-            name => 'sles15sp1',
         },
         sles15sp2 => {
             name => 'sles15sp2',
@@ -364,6 +315,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp5 => {
             name => 'sles15sp5',
         },
+        sles15sp6 => {
+            name => 'sles15sp6',
+        },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};
 
@@ -372,14 +326,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles12sp3 => {
             vm_name => 'sles-12.3_openQA-virtualization-maintenance',
         },
-        sles12sp4 => {
-            vm_name => 'sles-12.4_openQA-virtualization-maintenance',
-        },
         sles12sp5 => {
             vm_name => 'sles-12.5_openQA-virtualization-maintenance',
-        },
-        sles15sp1 => {
-            vm_name => 'sles-15.1_openQA-virtualization-maintenance',
         },
         sles15sp2 => {
             vm_name => 'sles-15.2_openQA-virtualization-maintenance',
@@ -395,6 +343,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp5 => {
             vm_name => 'sles-15.5_openQA-virtualization-maintenance',
+        },
+        sles15sp6 => {
+            vm_name => 'sles-15.6_openQA-virtualization-maintenance',
         },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};

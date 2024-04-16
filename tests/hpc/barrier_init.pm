@@ -61,7 +61,9 @@ sub run ($self) {
         barrier_create('MPI_SETUP_READY', $nodes);
         barrier_create('MPI_BINARIES_READY', $nodes);
         barrier_create('MPI_RUN_TEST', $nodes);
-        barrier_create('IMB_TEST_DONE', $nodes);
+        if (check_var('IMB', 'RUN')) {
+            barrier_create('IMB_TEST_DONE', $nodes);
+        }
     }
     elsif (check_var('HPC', 'ww4_controller')) {
         barrier_create('WWCTL_READY', $nodes);

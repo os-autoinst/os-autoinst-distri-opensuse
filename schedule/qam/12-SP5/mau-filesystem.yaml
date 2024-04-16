@@ -4,6 +4,7 @@ description: Filesystem tests on Maintenance prepared image
 vars:
   COLLECT_COREDUMPS: '1'
 schedule:
+- '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup
@@ -25,6 +26,10 @@ schedule:
 - console/udisks2
 - console/coredump_collect
 conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
   nfs:
     ARCH:
       x86_64:

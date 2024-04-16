@@ -54,6 +54,9 @@ sub run {
     if (is_sle('<15') && is_azure) {
         $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
     }
+
+    # We expect that the testapi user (typically 'bernhard') is allowed to run sudo commands
+    $instance->ssh_assert_script_run("echo \"$testapi::username ALL=(ALL) ALL\" | sudo tee /etc/sudoers.d/010_openqa");
 }
 
 sub test_flags {

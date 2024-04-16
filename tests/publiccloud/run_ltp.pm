@@ -47,13 +47,14 @@ sub instance_log_args
 
 sub upload_ltp_logs
 {
-    my ($self) = @_;
-    my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
+    my $self = shift;
+    my $ltp_testsuite = $self->{ltp_command};
     my $log_file = Mojo::File::path('ulogs/result.json');
+
     record_info('LTP Logs', 'upload');
     upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
     # debug file in the standart LTP log-dir. structure:
-    assert_script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
+    script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
     upload_logs("/tmp/runltp.\$USER/latest/debug.log", failok => 1);
 
     return unless -e $log_file->to_string;
@@ -87,6 +88,9 @@ sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
+    my $ltp_command = get_required_var('LTP_COMMAND_FILE');
+    $self->{ltp_command} = $ltp_command;
+    my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
     my $provider;
     my $instance;
@@ -118,17 +122,23 @@ sub run {
     my $ltp_env = gen_ltp_env($instance, $ltp_pkg);
     $self->{ltp_env} = $ltp_env;
 
+
     # Use lib/LTP/WhiteList module to exclude tests
-    if (get_var('LTP_KNOWN_ISSUES')) {
-        my $whitelist = LTP::WhiteList->new();
-        my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
-        my @skipped_tests = $whitelist->list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
-        if (@skipped_tests) {
-            $exclude .= '|' if (length($exclude) > 0);
-            $exclude .= '^(' . join('|', @skipped_tests) . ')$';
-            set_var('LTP_COMMAND_EXCLUDE', $exclude);
+    my $issues = get_var('LTP_KNOWN_ISSUES', '');
+    my $skip_tests;
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my @skipped = $whitelist->list_skipped_tests($ltp_env, $ltp_command);
+        if (@skipped) {
+            $skip_tests = '^(' . join("|", @skipped) . ')$';
+            record_info(
+                "Exclude",
+                "Excluding tests: $skip_tests",
+            );
         }
     }
+    $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
+    record_info("Full Exclude", "Excluding tests: $skip_tests");
 
     my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
@@ -147,22 +157,25 @@ sub run {
     assert_script_run($log_start_cmd);
 
     # LTP command line preparation
-    zypper_call("in -y python3-paramiko python3-scp");
+    # The python3-paramiko is too old (2.4 on 15-SP6)
+    # The python311-paramiko is from SLE-Module-Python3-15-SP5-Updates which we have in PC tools image
+    zypper_call("in python311-paramiko python311-scp");
+
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
-    $sut .= ':key_file=' . $instance->provider->ssh_key;
+    $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_command=\'' . $reset_cmd . '\'';
     $sut .= ':hostkey_policy=missing';
     $sut .= ':known_hosts=/dev/null';
 
-    my $cmd = 'python3 runltp-ng/runltp-ng ';
+    my $cmd = 'python3.11 runltp-ng/runltp-ng ';
     $cmd .= "--json-report=$root_dir/result.json ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
     $cmd .= '--suite-timeout=5400 ';
     $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-    $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
+    $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
     $cmd .= '--sut=ssh' . $sut . ' ';
     $cmd .= '--env ' . $env . ' ' if ($env);
     record_info('LTP START', 'Command launch');
@@ -177,6 +190,7 @@ sub cleanup {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
+
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
@@ -194,6 +208,9 @@ sub gen_ltp_env {
         backend => get_required_var('BACKEND'),
         flavor => get_required_var('FLAVOR'),
         ltp_version => $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg)),
+        gcc => '',
+        libc => '',
+        harness => 'SUSE OpenQA',
     };
 
     record_info("LTP Environment", Dumper($environment));

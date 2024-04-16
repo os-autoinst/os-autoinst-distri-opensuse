@@ -37,6 +37,7 @@ sub run {
 
     # Install and start apache
     zypper_call "in $apache2";
+    zypper_call "in apache2-utils" if is_jeos;
     systemctl 'enable apache2';    # Note: The systemd service is always apache2, not apache2-tls13.
     systemctl 'restart apache2';    # apache2 could be already running from previous test runs
     systemctl 'status apache2';
@@ -123,8 +124,9 @@ sub run {
         }
         else {
             # Create directory for the new instance and prepare config
+            my $apache2_default_configuration = is_sle('<15-SP6') ? "/usr/share/doc/packages/$apache2/httpd.conf.default" : "/usr/share/doc/packages/$apache2/conf/httpd.conf";
             assert_script_run 'mkdir -p /tmp/prefork';
-            assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' /usr/share/doc/packages/$apache2/httpd.conf.default > /tmp/prefork/httpd.conf";
+            assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' $apache2_default_configuration > /tmp/prefork/httpd.conf";
 
             # httpd.default.conf contains wrong service userid and groupid
             assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};

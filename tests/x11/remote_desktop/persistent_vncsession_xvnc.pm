@@ -47,6 +47,11 @@ sub run {
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
 
+    # Make sure the client gets the IP address
+    x11_start_program('xterm');
+    assert_script_run('nmcli connection up eth0');
+    send_key 'alt-f4';
+
     # First time login and configure the visibility
     $self->start_vncviewer;
     handle_login;
@@ -99,7 +104,7 @@ sub run {
     send_key_until_needlematch('vncviewer-minimize', 'tab');
     release_key 'alt';
     assert_screen 'gnome-terminal-launched';
-    assert_and_click 'system-indicator';
+    assert_and_click 'vnc-system-indicator';
     assert_and_click 'user-logout-sector';
     assert_and_click 'logout-system';
     assert_screen 'logout-dialogue';

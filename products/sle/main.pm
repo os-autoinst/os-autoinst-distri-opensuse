@@ -780,25 +780,19 @@ elsif (get_var('XFSTESTS')) {
         get_var('ASSET_CHANGE_KERNEL_RPM')) {
         loadtest 'kernel/change_kernel';
     }
+    if (get_var('KOTD_REPO')) {
+        loadtest 'kernel/update_kernel';
+    }
     prepare_target;
-    if (is_pvm || check_var('ARCH', 's390x')) {
+    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';
         }
-        loadtest 'xfstests/partition';
-        loadtest 'xfstests/run';
-        loadtest 'xfstests/generate_report';
-    }
-    else {
+        if (get_var('XFSTEST_KLP')) {
+            loadtest 'kernel/install_klp_product';
+        }
         if (check_var('XFSTESTS', 'installation')) {
-            loadtest 'xfstests/install';
-            unless (check_var('NO_KDUMP', '1')) {
-                loadtest 'xfstests/enable_kdump';
-            }
-            if (get_var('XFSTEST_KLP')) {
-                loadtest 'kernel/install_klp_product';
-            }
             loadtest 'shutdown/shutdown';
         }
         else {
@@ -806,6 +800,11 @@ elsif (get_var('XFSTESTS')) {
             loadtest 'xfstests/run';
             loadtest 'xfstests/generate_report';
         }
+    }
+    else {
+        loadtest 'xfstests/partition';
+        loadtest 'xfstests/run';
+        loadtest 'xfstests/generate_report';
     }
 }
 elsif (get_var("BTRFS_PROGS")) {
@@ -1218,7 +1217,7 @@ else {
     }
     elsif (get_var("FADUMP")) {
         prepare_target();
-        loadtest "console/kdump_and_crash";
+        loadtest "kernel/kdump";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {

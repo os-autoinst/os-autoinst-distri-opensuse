@@ -29,7 +29,8 @@ sub init {
         desktop_with_Xfce => 'Desktop with Xfce',
         generic_desktop => 'Generic Desktop',
         server => 'Server',
-        transactional_server => 'Transactional Server'
+        transactional_server => 'Transactional Server',
+        common_criteria => 'Common Criteria evaluated configuration'
     };
     return $self;
 }

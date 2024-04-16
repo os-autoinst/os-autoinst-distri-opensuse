@@ -28,27 +28,15 @@ sub run {
         record_soft_failure('bsc#1193782 - SUSEConnect is not installed when system role is common criteria');
         zypper_call('in SUSEConnect');
     }
-    # Add needed modules
+
     add_suseconnect_product('sle-module-legacy');
     add_suseconnect_product('sle-module-desktop-applications');
     add_suseconnect_product('sle-module-development-tools');
 
-    # Install needed packages/paterns
     zypper_call('in -t pattern devel_basis');
+
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
-    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package");
-
-    # Install vsftpd
-    zypper_call('in vsftpd');
-
-    # Install audit packages
-    zypper_call('in audit audit-audispd-plugins');
-
-    # Install tool packages
-    zypper_call('in wget');
-
-    # Install command ping. It's used by ip+eb-tables test case and audit-remote
-    zypper_call('in iputils');
+    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd");
 
     # Workaround for restarting audit service
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');

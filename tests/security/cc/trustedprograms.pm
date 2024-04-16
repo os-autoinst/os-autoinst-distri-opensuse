@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use security_boot_utils;
 use audit_test qw(run_testcase compare_run_log);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils "power_action";
@@ -38,14 +39,15 @@ sub run {
     # The tests ([8] screen_locking and [9] screen_manage) require these settings in grub file.
     add_grub_cmdline_settings('no-scroll fbcon=scrollback:0', update_grub => 1);
     power_action('reboot', textmode => 1);
-    $self->wait_boot(textmode => 1);
+    if (boot_has_no_video) {
+        $self->boot_encrypt_no_video;
+    } else {
+        $self->wait_boot(textmode => 1);
+    }
 
     select_console 'root-console';
 
     run_testcase('trustedprograms', (make => 1, timeout => 1200));
-
-    # Add a reminder that https://progress.opensuse.org/issues/96438 is not yet fixed.
-    record_soft_failure("poo#96438 - basic_strongswan FAILS");
 
     # Compare current test results with baseline
     my $result = compare_run_log('trustedprograms');

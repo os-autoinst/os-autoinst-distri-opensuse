@@ -11,14 +11,17 @@ use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 
+use constant DEPLOY_PREFIX => 'clne';
+
 sub run {
     my ($self) = @_;
 
-    die 'Azure is the only CSP supported for the moment' unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    die('Azure is the only CSP supported for the moment')
+      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
 
-    my $rg = 'clne' . get_current_job_id();
+    my $rg = DEPLOY_PREFIX . get_current_job_id();
     assert_script_run("az group delete --name $rg -y", timeout => 600);
 }
 

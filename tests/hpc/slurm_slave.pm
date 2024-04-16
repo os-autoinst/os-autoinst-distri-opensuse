@@ -13,6 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 use hpc::utils 'get_slurm_version';
 
 sub run ($self) {
@@ -20,9 +21,16 @@ sub run ($self) {
     $self->prepare_user_and_group();
     my $slurm_pkg = get_slurm_version(get_var('SLURM_VERSION', ''));
 
-    # Install slurm
+    # If one wants to test unversioned slurm, one should not
+    # install slurm-node at all.
+    if ($slurm_pkg eq 'slurm' and is_sle('=12-sp5')) {
+        zypper_call("in $slurm_pkg");
+    } else {
+        zypper_call("in $slurm_pkg-node");
+    }
+
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
-    zypper_call("in $slurm_pkg-node $slurm_pkg-munge");
+    zypper_call("in $slurm_pkg-munge");
 
     if (get_required_var('EXT_HPC_TESTS')) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
@@ -46,6 +54,10 @@ sub run ($self) {
 
     # enable and start munge
     $self->enable_and_start('munge');
+
+    # Install mrsh and mrsh-server to allow t10 basic
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
 
     # enable and start slurmd
     $self->enable_and_start('slurmd');

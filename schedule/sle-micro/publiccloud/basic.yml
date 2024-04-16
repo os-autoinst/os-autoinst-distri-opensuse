@@ -1,8 +1,0 @@
----
-name: basic test
-description: >
-  Basic check of SLE Micro in Public Cloud
-  Maintainer: <qa-c@suse.de>
-schedule:
-  - boot/boot_to_desktop
-  - publiccloud/slem_basic

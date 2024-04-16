@@ -47,8 +47,9 @@ sub run {
     }
 
     # Help
-    send_key "alt-h";
+    hold_key "alt-h";
     wait_still_screen(2);
+    release_key "alt-h";
     send_key "a";
     assert_screen "evolution_about";
     send_key "esc";

@@ -14,7 +14,7 @@ schedule:
     - installation/system_role
     - installation/partitioning
     - '{{no_enlarge_swap}}'
-    - installation/partitioning_firstdisk
+    - '{{partitioning_firstdisk}}'
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
@@ -48,3 +48,9 @@ conditional_schedule:
         SYSTEM_ROLE:
             textmode:
                 - installation/partitioning/no_enlarge_swap
+    partitioning_firstdisk:
+        NUMDISKS:
+            2:
+                - installation/partitioning_firstdisk
+            3:
+                - installation/partitioning_firstdisk

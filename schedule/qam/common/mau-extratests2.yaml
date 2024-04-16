@@ -35,6 +35,17 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP6:
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - '{{arch_specific15_sp5+}}'
       15-SP5:
         - console/osinfo_db
         - console/ovn
@@ -45,7 +56,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
-        - '{{arch_specific15_sp5}}'
+        - '{{arch_specific15_sp5+}}'
       15-SP4:
         - console/osinfo_db
         - console/ovn
@@ -119,7 +130,7 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
-  arch_specific15_sp5:
+  arch_specific15_sp5+:
     ARCH:
       x86_64:
         - console/year_2038_detection

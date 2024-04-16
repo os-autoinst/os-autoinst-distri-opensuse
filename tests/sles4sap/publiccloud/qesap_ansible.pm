@@ -38,7 +38,6 @@ sub run {
         my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
         if ($ret[0]) {
             if (check_var('IS_MAINTENANCE', '1')) {
-                qesap_cluster_logs();
                 die("TEAM-9068 Ansible failed. Retry not supported for IBSM updates\n ret[0]: $ret[0]");
             }
             # Retry to deploy terraform + ansible
@@ -48,7 +47,7 @@ sub run {
 
             # Recreate instances data as the redeployment of terraform + ansible changes the instances
             my $provider_instance = $self->provider_factory();
-            my $instances = create_instance_data($provider_instance);
+            my $instances = create_instance_data(provider => $provider_instance);
             foreach my $instance (@$instances) {
                 record_info 'New Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
                 if (get_var('FENCING_MECHANISM') eq 'native' && $provider eq 'AZURE') {
@@ -76,6 +75,12 @@ sub run {
     get_var('QESAP_DEPLOYMENT_IMPORT')
       ? record_info('IMPORT OK', 'Importing infrastructure successfully.')
       : record_info('DEPLOY OK', 'Ansible deployment process finished successfully.');
+}
+
+sub post_run_hook {
+    my ($self) = shift;
+    qesap_cluster_logs();
+    $self->SUPER::post_run_hook;
 }
 
 1;

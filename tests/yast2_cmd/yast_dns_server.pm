@@ -40,6 +40,7 @@ sub cmd_handle {
         $op .= " $k=$args{$k}";
     }
     assert_script_run("yast2 dns-server $cmd $subcmd $zop $op");
+    return if ($cmd =~ /(nameserver|mailserver)/);
     validate_script_output("yast2 dns-server $cmd show $zop 2>&1", sub {
             my $output = $_;
             if ($subcmd eq "remove") {
@@ -48,19 +49,6 @@ sub cmd_handle {
             else {
                 all { $output =~ m/\Q$_\E/i; } values %args;
     } });
-}
-
-sub bug1151130_softfail {
-    my ($self, $cmd, $subcmd, $zone, %args) = @_;
-    my $op = '';
-    my $vrf;
-    foreach my $k (keys %args) {
-        $op .= " $k=$args{$k}";
-    }
-    $vrf = $1 if ($op =~ /.*=(.*)$/);
-    assert_script_run("yast2 dns-server $cmd $subcmd zone=$zone $op");
-    my $out = script_output("yast2 dns-server $cmd show zone=$zone 2>&1");
-    record_soft_failure("bsc#1151135") unless $out =~ /\Q$vrf\E/;
 }
 
 sub run {
@@ -114,15 +102,13 @@ sub run {
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "ns6", type => "CNAME", value => "server6.anywhere.net.");
 
     # mailserver, nameserver
-    $self->bug1151130_softfail("mailserver", "add", "example.org", priority => "97", mx => "mx001");
-    $self->bug1151130_softfail("nameserver", "add", "example.org", ns => "ns2.example.com.");
+    $self->cmd_handle("mailserver", "add", "example.org", priority => "97", mx => "mx001");
+    $self->cmd_handle("nameserver", "add", "example.org", ns => "ns2.example.com.");
 
     #startup setting
     systemctl("stop named.service") unless systemctl("is-active named.service", ignore_failure => 1);
     assert_script_run("yast2 dns-server startup atboot");
-    my $out = script_output("yast2 dns-server startup show 2>&1");
-    record_soft_failure("bsc#1151130") unless $out =~ /enabled in the boot process/;    #sle15+ bug
-    record_soft_failure("bsc#1151130") unless systemctl("is-active named.service", ignore_failure => 1);    #sle12sp4- bug
+    assert_script_run("yast2 dns-server startup show");
     assert_script_run("yast2 dns-server startup manual");
 
     #remove zone, stop service

@@ -18,20 +18,6 @@ use Exporter 'import';
 
 our @EXPORT = qw(get_slurm_version);
 
-sub get_mpi() {
-    my $mpi = get_required_var('MPI');
-
-    if ($mpi eq 'openmpi3') {
-        if (is_sle('<15')) {
-            $mpi = 'openmpi';
-        } elsif (is_sle('<15-SP2')) {
-            $mpi = 'openmpi2';
-        }
-    }
-
-    return $mpi;
-}
-
 =head2 get_slurm_version
 
  get_slurm_version();

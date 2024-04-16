@@ -98,6 +98,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
+    - console/man_pages
     - console/ping
     - console/orphaned_packages_check
     - console/zypper_lr_validate
@@ -166,4 +167,5 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
+    - console/libgit2
     - console/zypper_log_packages

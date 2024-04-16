@@ -115,7 +115,7 @@ sub deregister_dropped_modules {
     for my $name (grep($_, split(/,/, $droplist))) {
         record_info "deregister $name", "deregister $name module and remove it from SCC_ADDONS";
         if ($name eq 'ltss') {
-            if (check_var('SLE_PRODUCT', 'hpc')) {
+            if ((check_var('CROSS_PRODUCT_MIGRATION', 'from_hpc')) || (check_var('SLE_PRODUCT', 'hpc'))) {
                 remove_suseconnect_product('SLE_HPC-LTSS');
             } elsif ((is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) || (check_var('SLE_PRODUCT', 'sles4sap'))) {
                 remove_suseconnect_product('SLES-LTSS');    # sles4sap also uses SLES-LTSS as its ltss

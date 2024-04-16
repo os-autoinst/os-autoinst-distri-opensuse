@@ -32,21 +32,21 @@ sub run {
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
 
-    # permit root ssh login for CC test:
-    # in "Common Criteria" "System Role" system, root ssh login is disabled
-    # by default, we need enable it
+    # on a CC enabled system, root ssh login is disabled by default, but we need it enabled
     if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && is_s390x) {
+        my $vg_name = "vg-system";
+        my $lv_name = "lv-root";
+        my $crypt_name = "encrypted_disk";
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
-        my $root_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        my $root_hd = get_var('ENCRYPT') ? "/dev/$vg_name/$lv_name " : script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
         assert_script_run("mount $root_hd /mnt");
         assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
         assert_script_run('umount /mnt');
     }
 
-    # Due to bsc#1198190, in fips + encrypt mode, If this system
-    # has a separate boot partition, it is REQUIRED to add
-    # "boot=/dev/sda1" (use the correct path to your boot partition)
-    # or fips will fail and the system may not boot
+    # In FIPS + disk encrypted, if the system has a separate boot partition
+    # it is required to add it to the kernel parameters, or booting the
+    # system will likely fail (bsc#1198190)
     if (get_var('FIPS_INSTALLATION') && get_var('ENCRYPT') && get_var('UNENCRYPTED_BOOT')) {
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
         my $boot_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/boot\"' | grep name | awk -F \\\" '{print \$2}'");

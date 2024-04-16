@@ -79,6 +79,8 @@ sub ssh_interactive_leave {
     select_console('tunnel-console') unless ($prev_console =~ /tunnel-console/);
     unset_sshserial_dev();
     set_var('AUTOINST_URL_HOSTNAME', testapi::host_ip());
+    my $test = sub { my $ret; eval { $ret = script_run('true', timeout => 5) == 0 };
+        if ($@) { $ret = 0 }; return $ret };
 
     # While the tunnel console is active, the serial terminal sometimes swallows characters. To terminate the
     # ssh tunnel reliably, we repeat the process until it succeeds. A delay between retries is useful to let thinks
@@ -88,7 +90,7 @@ sub ssh_interactive_leave {
         send_key 'ctrl-c';
         send_key 'ctrl-c';
         send_key 'ret';
-        last if (script_run("true", timeout => 5, die_on_timeout => 0) == 0);
+        last if ($test->());
         sleep 5;    # some cool down after a failed attempt
     }
     die "tunnel-console is not functional" if ($retries <= 0);

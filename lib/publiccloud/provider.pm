@@ -21,6 +21,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 use db_utils qw(is_ok_url);
+use version_utils qw(is_openstack);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -333,7 +334,7 @@ sub create_instances {
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});
         # Performance data: boottime
-        if (is_ok_url($url)) {
+        if (!is_openstack && is_ok_url($url)) {
             local $@;
             eval {
                 my $btime = $instance->measure_boottime($instance, 'first');
@@ -500,6 +501,9 @@ sub terraform_apply {
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
+        } elsif (is_gce) {
+            my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
+            $cmd .= "-var 'stack_type=$stack_type' ";
         }
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
         $cmd .= "-var 'type=" . $instance_type . "' ";
@@ -522,7 +526,9 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_NVIDIA')) {
         $cmd .= "-var gpu=true ";
     }
-    $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+    unless (is_openstack) {
+        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+    }
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
@@ -603,16 +609,16 @@ sub terraform_destroy {
 
     select_host_console(force => 1);
 
-    my $cmd;
+    my $cmd = 'terraform destroy -no-color -auto-approve ';
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
-        $cmd = 'terraform destroy -no-color -auto-approve';
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
+        $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
+        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
         # Add image_id, offer and sku on Azure runs, if defined.
         if (is_azure) {
             my $image = $self->get_image_id();
@@ -620,15 +626,15 @@ sub terraform_destroy {
             my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-            $cmd .= " -var 'image_id=$image'" if ($image);
-            $cmd .= " -var 'image_uri=${image_uri}'" if ($image_uri);
-            $cmd .= " -var 'offer=$offer'" if ($offer);
-            $cmd .= " -var 'sku=$sku'" if ($sku);
-            $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);
+            $cmd .= "-var 'image_id=$image' " if ($image);
+            $cmd .= "-var 'image_uri=${image_uri}' " if ($image_uri);
+            $cmd .= "-var 'offer=$offer' " if ($offer);
+            $cmd .= "-var 'sku=$sku' " if ($sku);
+            $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
         }
     }
     # Ignore lock to avoid "Error acquiring the state lock"
-    $cmd .= " -lock=false";
+    $cmd .= "-lock=false ";
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
     my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);

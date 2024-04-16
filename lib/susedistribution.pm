@@ -70,10 +70,10 @@ sub handle_password_prompt {
         assert_screen("password-prompt", 60);
     }
     if ($console eq 'hyperv-intermediary') {
-        type_string get_required_var('VIRSH_GUEST_PASSWORD');
+        type_password get_required_var('VIRSH_GUEST_PASSWORD');
     }
     elsif ($console eq 'svirt') {
-        type_string(get_required_var(check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'HYPERV_PASSWORD' : 'VIRSH_PASSWORD'));
+        type_password get_required_var(check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'HYPERV_PASSWORD' : 'VIRSH_PASSWORD');
     }
     else {
         type_password;

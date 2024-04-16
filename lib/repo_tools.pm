@@ -426,7 +426,7 @@ sub prepare_source_repo {
         }
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
-        elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+        elsif (main_common::is_updates_tests) {
             zypper_call(q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')});
         }
         else {

@@ -75,8 +75,13 @@ sub get_version_for_daily_build_guest {
 sub locate_sourcefile {
     my $location = '';
     if (!is_s390x) {
-        $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
-        $location =~ s/[\r\n]+$//;
+        $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60, proceed_on_failure => 1);
+        if ($location) {
+            $location =~ s/[\r\n]+$//;
+        }
+        else {
+            $location = 'de';
+        }
     }
     else {
         #S390x LPAR just be only located at DE now.

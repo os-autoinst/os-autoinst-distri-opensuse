@@ -92,15 +92,20 @@ EOF
     assert_script_run("echo 'export KRB5CCNAME=/root/kcache' >> /etc/profile.d/krb5.sh");    # Make ticket permanent
     assert_script_run("source /etc/profile.d/krb5.sh");
 
+    my $algo = is_sle('<15-SP6') ? "aes256-cts-hmac-sha1-96" : "aes256-cts-hmac-sha384-192";
     my $krb5_conf = '/etc/krb5.conf';
     assert_script_run "cat $krb5_conf";
     assert_script_run(
         "echo \"\$(cat <<EOF
 [libdefaults]
+    fipslevel = 3
     dns_canonicalize_hostname = false
     rdns = false
     default_realm = EXAMPLE.COM
-    allow_week_crypto = true
+    allow_week_crypto = false
+    default_tgs_enctypes = $algo
+    default_tkt_enctypes = $algo
+    permitted_enctypes = $algo
     ignore_acceptor_hostname = true
 
 [realms]
@@ -127,6 +132,9 @@ EOF
         my $kdc_conf = "/var/lib/kerberos/krb5kdc/kdc.conf";
         assert_script_run "cat $kdc_conf";
         assert_script_run "sed -i 's/^#/ /g' $kdc_conf";
+        # The following two lines are needed for FIPS
+        assert_script_run "awk -i inplace '/max_renewable_life/ {match(\$0, /^ +/); spaces = substr(\$0, RSTART, RLENGTH); print \$0 \"\\n\" spaces \"master_key_type = $algo\"; next} 1' $kdc_conf";
+        assert_script_run "awk -i inplace '/master_key_type/ {match(\$0, /^ +/); spaces = substr(\$0, RSTART, RLENGTH); print \$0 \"\\n\" spaces \"supported_enctypes = $algo\"; next} 1' $kdc_conf";
         assert_script_run "cat $kdc_conf";
     }
 }

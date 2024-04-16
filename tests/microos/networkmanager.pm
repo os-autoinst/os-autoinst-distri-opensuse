@@ -10,7 +10,6 @@ use Mojo::Base "consoletest";
 use testapi;
 use utils;
 use transactional;
-use version_utils 'is_alp';
 
 # the below network confiration is used if we use qemu user net
 my $dhcp_server = '10.0.2.2';
@@ -51,7 +50,7 @@ sub run {
     # make sure 'sysconfig' and 'sysconfig-netconfig' are not installed by default
     my @pkgs = ('sysconfig', 'sysconfig-netconfig');
     foreach my $pkg (@pkgs) {
-        die "$pkg will not be installed by default on ALP" if (script_run("rpm -q $pkg") == 0);
+        die "$pkg will not be installed by default on SLE Micro" if (script_run("rpm -q $pkg") == 0);
     }
     my ($RcManager, $mode);
     $mac_addr = get_var('NICMAC');
@@ -90,19 +89,16 @@ true'
     die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
     ping_check;
     # systemd-resolved
-    # Due to bsc#1206352, we will skip this test coverage on ALP for the time being
-    if (!is_alp) {
-        assert_script_run('rm -rf /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
-        trup_call('pkg install systemd-network');
-        check_reboot_changes;
-        assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
-        systemctl('restart NetworkManager');
-        record_info('with systemd-resolved');
-        # DNS-Manager check
-        ($RcManager, $mode) = dns_mgr();
-        die 'wrong DNS-Manager is currently used for systemd-resolved' if ($RcManager !~ /unmanaged/ || $mode !~ /systemd-resolved/);
-        ping_check;
-    }
+    assert_script_run('rm -rf /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
+    trup_call('pkg install systemd-network');
+    check_reboot_changes;
+    assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
+    systemctl('restart NetworkManager');
+    record_info('with systemd-resolved');
+    # DNS-Manager check
+    ($RcManager, $mode) = dns_mgr();
+    die 'wrong DNS-Manager is currently used for systemd-resolved' if ($RcManager !~ /unmanaged/ || $mode !~ /systemd-resolved/);
+    ping_check;
 }
 
 sub test_flags {
@@ -110,4 +106,3 @@ sub test_flags {
 }
 
 1;
-

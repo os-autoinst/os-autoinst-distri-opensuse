@@ -60,6 +60,10 @@ sub run {
     my $rt = zypper_call('in rasdaemon');
     test_case('Installation', 'rasdaemon', $rt);
 
+    # Skip functional tests on ppc64le and Tumbleweed. It is not fully supported,
+    # we are interested in installation only
+    return if (is_ppc64le && is_tumbleweed);
+
     $rt = assert_script_run('! ras-mc-ctl --status');
     test_case('Check rasdaemon --status', 'drivers are not loaded', $rt);
 

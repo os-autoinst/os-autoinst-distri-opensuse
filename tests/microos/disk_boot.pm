@@ -10,7 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle_micro is_leap_micro is_alp);
+use version_utils qw(is_sle_micro is_leap_micro);
 use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";
 use transactional "record_kernel_audit_messages";
@@ -20,10 +20,10 @@ sub run {
     # default timeout in grub2 is set to 10s
     # osd's arm machines tend to stall when trying to match grub2
     # this leads to test failures because openQA does not assert grub2 properly
-    # SLEM updated GM images from https://openqa.suse.de/group_overview/377
+    # SLEM updated GM and BETA images from https://openqa.suse.de/group_overview/377
     # already have disabled grub timeout in order to install updates and reboot
     # therefore *aarch64* images would hang in GRUB2
-    if ((get_var('HDD_1') !~ /GM-Updated/ && (is_sle_micro || is_leap_micro || is_alp)) && is_aarch64 && get_var('BOOT_HDD_IMAGE')) {
+    if ((get_var('HDD_1') !~ /GM-Updated/ && get_var('HDD_1') !~ /Beta-Updated/ && (is_sle_micro || is_leap_micro)) && is_aarch64 && get_var('BOOT_HDD_IMAGE')) {
         shift->wait_boot_past_bootloader(textmode => 1);
     } else {
         shift->wait_boot(bootloader_time => 300);

@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack);
 use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
@@ -109,7 +109,7 @@ sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
     my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", (is_transactional) ? "transactional-update register" : "registercloudguest");
     my $cmd_time = time();
     # Check what version of registercloudguest binary we use
     $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
@@ -256,7 +256,8 @@ sub gcloud_install {
 }
 
 sub get_ssh_private_key_path {
-    return (is_azure()) ? '~/.ssh/id_rsa' : '~/.ssh/id_ed25519';
+    # Paramiko needs to be updated for ed25519 https://stackoverflow.com/a/60791079
+    return (is_azure() || is_openstack() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
 sub prepare_ssh_tunnel {

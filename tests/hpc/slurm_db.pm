@@ -25,10 +25,17 @@ sub run ($self) {
 
     $self->prepare_user_and_group();
 
-    # Install slurm
+    # If one wants to test unversioned slurm, one should not
+    # install slurm-node at all. Also slurm rpm does not
+    # provide mariadb as a dependency
+    if ($slurm_pkg eq 'slurm' and is_sle('=12-sp5')) {
+        zypper_call("in $slurm_pkg mariadb");
+    } else {
+        zypper_call("in $slurm_pkg $slurm_pkg-node");
+    }
+
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
-    zypper_call("in $slurm_pkg $slurm_pkg-munge $slurm_pkg-slurmdbd");
-    zypper_call("in $slurm_pkg-node");
+    zypper_call("in $slurm_pkg-munge $slurm_pkg-slurmdbd");
 
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
@@ -62,6 +69,11 @@ EOF
     ## munge must start before other slurm daemons
     $self->enable_and_start('munge');
     systemctl('is-active munge');
+
+    # Install mrsh and mrsh-server to allow t10 basic
+    zypper_call('in mrsh mrsh-server');
+    $self->enable_and_start('mrlogind.socket mrshd.socket');
+
     $self->prepare_slurmdb_conf();
     record_info("slurmdbd conf", script_output("cat /etc/slurm/slurmdbd.conf"));
     $self->enable_and_start("slurmdbd");

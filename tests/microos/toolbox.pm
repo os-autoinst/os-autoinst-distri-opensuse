@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run simple toolbox tests
-# Maintainer: Jose Lausuch <jalausuch@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base "consoletest";
 use strict;
@@ -40,6 +40,16 @@ sub create_user {
     assert_script_run "echo '$user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/50-$user";
 }
 
+sub toolbox_has_repos {
+    my $output = script_output 'toolbox -r -- zypper lr -u', timeout => 180, proceed_on_failure => 1;
+    if ($output =~ m/No repositories defined/ && is_sle_micro('=6.0')) {
+        record_soft_failure 'bsc#1220648 - Toolbox container for SLE Micro 6.0 has limited functionality given that there are no repositories available';
+        return 0;
+    }
+    # Toolbox container for SLE Micro <=5.5 and openSUSE should contain repos
+    return 1;
+}
+
 sub run {
     my ($self) = @_;
     select_console 'root-console';
@@ -56,7 +66,7 @@ sub run {
         (my $image = $toolbox_image_to_test) =~ s/^[^\/]*\///;
         assert_script_run "echo REGISTRY=$registry > /etc/toolboxrc";
         assert_script_run "echo IMAGE=$image >> /etc/toolboxrc";
-        record_info('toolboxrc', script_output('cat /etc/toolboxrc'));
+        record_info 'toolboxrc', script_output('cat /etc/toolboxrc');
     }
 
     # Display help
@@ -73,7 +83,7 @@ sub run {
     assert_script_run 'podman rm toolbox-root-test_tag';
 
     record_info 'Test', "Run toolbox with a given name";
-    assert_script_run('toolbox -c test_name id');
+    assert_script_run 'toolbox -c test_name id';
     validate_script_output 'podman ps -a', sub { m/test_name/ };
     assert_script_run 'podman rm test_name';
 
@@ -84,21 +94,26 @@ sub run {
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
     # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
-    background_script_run('sleep 3612');
-    validate_script_output('toolbox ps a', sub { m/sleep 3612/ });
+    background_script_run 'sleep 3612';
+    validate_script_output 'toolbox ps a', sub { m/sleep 3612/ };
 
     record_info 'Test', "Rootfull toolbox as $user";
     validate_script_output 'toolbox -r id', sub { m/uid=0\(root\)/ };
     assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
     assert_script_run 'podman ps -a';
 
-    record_info 'Test', "Update toolbox";
-    assert_script_run('set -o pipefail');
-    assert_script_run('toolbox -- zypper -n ref', timeout => 300);
-    # Test for bsc#1210587
-    if (script_run('toolbox -- zypper -n up 2>&1 > /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
-        upload_logs('/var/tmp/toolbox_zypper_up.txt');
-        die "zypper up failed within toolbox";
+    # toolbox will only inherit repos from the host when run as rootfull (or root)
+    # rootless user doesn't have access to /etc/zypp/credentials.d/SCCcredentials
+    record_info 'Test', "Update toolbox as rootfull user";
+    assert_script_run 'set -o pipefail';
+    assert_script_run 'zypper lr -u', timeout => 300;
+    my $toolbox_has_repos = toolbox_has_repos();
+    if ($toolbox_has_repos) {
+        assert_script_run 'toolbox -r -- zypper -n ref', timeout => 300;
+        if (script_run('toolbox -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
+            upload_logs('/var/tmp/toolbox_zypper_up.txt');
+            die "zypper up failed within toolbox";
+        }
     }
 
     clean_container_host(runtime => 'podman');
@@ -126,11 +141,11 @@ sub run {
 
     record_info 'Test', 'Zypper tests';
     assert_script_run 'toolbox create -r -c devel';
-    if (!validate_script_output 'toolbox list', sub { m/devel/ }, timeout => 180, proceed_on_failure => 1) {
-        record_info('ISSUE', 'https://github.com/kubic-project/microos-toolbox/issues/23');
+    validate_script_output 'toolbox list', sub { m/devel/ }, timeout => 180;
+    if ($toolbox_has_repos) {
+        assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
+        assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
     }
-    assert_script_run 'toolbox run -c devel -- zypper lr';
-    assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180 unless is_sle_micro;
     assert_script_run 'podman rm devel';
 
     cleanup;

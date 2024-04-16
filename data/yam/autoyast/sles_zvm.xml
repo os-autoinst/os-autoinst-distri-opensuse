@@ -166,7 +166,7 @@
         <bootproto>static</bootproto>
         <ipaddr>{{HostIP}}</ipaddr>
         <name>eth0</name>
-        <prefixlen>20</prefixlen>
+        <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
         <zone>public</zone>
       </interface>
@@ -186,15 +186,9 @@
       <ipv6_forward t="boolean">false</ipv6_forward>
       <routes t="list">
         <route t="map">
-          <destination>10.162.63.254</destination>
-          <device>eth0</device>
-          <gateway>-</gateway>
-          <netmask>255.255.255.255</netmask>
-        </route>
-        <route t="map">
           <destination>default</destination>
           <device>eth0</device>
-          <gateway>10.162.63.254</gateway>
+          <gateway>10.145.10.254</gateway>
           <netmask>-</netmask>
         </route>
       </routes>
@@ -202,7 +196,7 @@
     <s390-devices t="list">
       <listentry t="map">
         <chanids>0.0.0800:0.0.0801:0.0.0802</chanids>
-        <layer2 t="boolean">true</layer2>
+        <layer2 t="boolean">false</layer2>
         <type>qeth</type>
       </listentry>
     </s390-devices>
@@ -393,8 +387,10 @@
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
+      <pattern>dhcp_dns_server</pattern>
       <pattern>enhanced_base</pattern>
       <pattern>fonts</pattern>
+      <pattern>sw_management</pattern>
       <pattern>gnome_basic</pattern>
       <pattern>gnome_basis</pattern>
       <pattern>minimal_base</pattern>
@@ -432,6 +428,13 @@
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>

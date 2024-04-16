@@ -20,7 +20,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_alp);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -28,6 +28,7 @@ use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends 'get_serial_console';
+use kdump_utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -304,8 +305,14 @@ sub run {
 
     enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
-    select_serial_terminal;
+    if (get_var('LTP_COMMAND_FILE') && check_var_array('LTP_DEBUG', 'crashdump')) {
+        select_serial_terminal;
+        configure_service(yast_interface => 'cli');
+    }
 
+    # Initialize VNC console now to avoid login attempts on frozen system
+    select_console('root-console') if get_var('LTP_DEBUG');
+    select_serial_terminal;
     export_ltp_env;
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
@@ -345,11 +352,7 @@ sub run {
 
     log_versions 1;
 
-    if (is_alp) {
-        assert_script_run("transactional-update -n -c pkg install efivar", 90);
-    } else {
-        zypper_call('in efivar') if is_sle('12+') || is_opensuse;
-    }
+    zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 
     $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');

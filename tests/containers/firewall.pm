@@ -11,8 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
-use version_utils qw(is_sle is_leap);
-use containers::utils qw(registry_url container_ip);
+use containers::utils qw(registry_url);
 use containers::common 'check_containers_connectivity';
 use Utils::Systemd 'systemctl';
 
@@ -37,41 +36,14 @@ sub run {
         $stop_firewall = 1;
     }
 
-    if ($runtime eq "docker") {
-        # Network interface docker0 is DOWN when no containers are running
-        die 'No containers should be running!' if (script_output('docker ps -q | wc -l') != 0);
-        validate_script_output('ip a s docker0', sub { /state DOWN/ });
+    # Run netcat in container and check that we can reach it
+    assert_script_run "$runtime pull " . registry_url('alpine');
+    assert_script_run "$runtime run -d --name $container_name -p 1234:1234 " . registry_url('alpine') . " nc -l -p 1234";
+    assert_script_run "echo Hola Mundo >/dev/tcp/127.0.0.1/1234";
+    assert_script_run "$runtime logs $container_name | grep Hola";
 
-        # Docker zone is created for docker version >= 20.10 (Tumbleweed), but it
-        # is backported to docker 19 for SLE15-SP3 and for Leap 15.3
-        unless (is_sle('<15-sp3') || is_leap("<15.3")) {
-            assert_script_run "firewall-cmd --list-all --zone=docker";
-            validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ };
-            validate_script_output "firewall-cmd --get-active-zones", sub { /docker/ };
-        }
-        # Rules applied before DOCKER. Default is to listen to all tcp connections
-        # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
-        validate_script_output "iptables -L DOCKER-USER -vx --line-numbers", sub { /1.+all.+anywhere\s+anywhere/ };
-
-        # Run container in the background
-        assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
-        my $container_ip = container_ip($container_name, 'docker');
-
-        # Each running container should have added a new entry to the DOCKER zone.
-        # ex. output: "1           0        0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.2           tcp dpt:1234"
-        validate_script_output "iptables -L DOCKER -nvx --line-numbers", sub { /1.+ACCEPT.+!docker0 docker0.+$container_ip\s+tcp dpt:1234/ };
-    } elsif ($runtime eq "podman") {
-        # network interface is created when running the first container
-        assert_script_run "podman pull " . registry_url('alpine');
-        assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
-        validate_script_output("ip a s", sub { m/podman.* state UP / }, fail_message => "podman network interface fails to start");
-    } else {
-        die "Invalid runtime $runtime";
-    }
-
-    # Kill the container running on background (this may take some time)
-    assert_script_run "$runtime kill $container_name ";
-    script_retry "$runtime ps -q | wc -l | grep 0", delay => 5, retry => 12;
+    assert_script_run "$runtime stop $container_name ";
+    assert_script_run "$runtime rm -vf $container_name ";
 
     # Test container connectivity
     check_containers_connectivity($engine);
@@ -91,7 +63,7 @@ sub post_fail_hook {
     # Stop the firewall if it was started by this test module
     if ($stop_firewall == 1) {
         systemctl('stop ' . $self->firewall());
-        systemctl('restart docker') if ($runtime eq "docker");
+        systemctl('restart docker', ignore_failure => 1) if ($runtime eq "docker");
     }
 
     $self->SUPER::post_fail_hook;

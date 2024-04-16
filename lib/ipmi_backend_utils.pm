@@ -20,8 +20,9 @@ use Utils::Architectures;
 use Carp;
 use Socket;
 use virt_autotest::utils qw(is_xen_host check_port_state);
+use Utils::Backends;
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -49,11 +50,11 @@ my $grub_ver = "grub2";
 
 sub get_dom0_serialdev {
     my $dom0_serialdev;
-    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")) {
         $dom0_serialdev = "hvc0";
     }
     else {
-        $dom0_serialdev = get_var("LINUX_CONSOLE_OVERRIDE", "ttyS1");
+        $dom0_serialdev = get_var('LINUX_CONSOLE_OVERRIDE', get_var("SERIALCONSOLE", "ttyS1"));
     }
     enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev.\"");
     return $dom0_serialdev;
@@ -76,24 +77,16 @@ sub setup_console_in_grub {
         #grub2
         $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
         if (${virt_type} eq "xen") {
-            $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            # On some special beremetal machines, such as unreal2/3, their serial console:
+            # SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1"
+            $com_settings = get_var("XEN_SERIAL_CONSOLE", "console=com2,115200");
             $bootmethod = "module";
             $search_pattern = "vmlinuz";
 
-            # autoballoning is disabled since sles15sp1 beta2. we use default dom0_ram which is '10% of total ram + 1G'
-            # while for older release, bsc#1107572 "This dom0 memory amount works well with hosts having 4 to 8 Gigs of RAM"
-            # considering of one SUT in OSD with 4G ram only, we set dom0_mem=2G
-            my $dom0_options = "";
-            if (is_sle('<=12-SP4') || is_sle('=15')) {
-                $dom0_options = "dom0_mem=2048M,max:2048M";
-            }
-            if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH")) {
-                $dom0_options .= " iommu=on";
-            }
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $dom0_options console=com2,115200 loglvl=all guest_loglvl=all sync_console $com_settings/;}; "
+              . "/multiboot/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
@@ -116,7 +109,7 @@ sub setup_console_in_grub {
 
         #enable Intel VT-d for SR-IOV test running on intel SUTs
         my $intel_option = "";
-        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+        if (${virt_type} eq "kvm" && get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
             $intel_option = "intel_iommu=on";
         }
 
@@ -145,15 +138,6 @@ sub setup_console_in_grub {
         assert_script_run($cmd);
         save_screenshot;
         upload_logs($grub_default_file);
-    }
-    elsif ($grub_ver eq "grub1") {
-        $grub_cfg_file = "${root_dir}/boot/grub/menu.lst";
-        $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}; /kernel .*xen/{s/\$/ dom0_mem=2048M,max:2048M/;}' $grub_cfg_file";
-        assert_script_run($cmd);
-        save_screenshot;
-        $cmd = "sed -rn '/module \\\/boot\\\/vmlinuz/p' $grub_cfg_file";
-        assert_script_run($cmd);
     }
     else {
         die "Not supported grub version!";
@@ -464,7 +448,7 @@ sub add_kernel_options {
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         foreach (@options) {
-            $cmd = "sed -i -r \'s/\\b\\S*$_\\S*\\b//g; /GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\"\$/ $_\\\"/g\' $grub_default_file";
+            $cmd = "sed -i -r \'s/\\b$_\\S*\\b//g; /GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\"\$/ $_\\\"/g\' $grub_default_file";
             $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
             assert_script_run($cmd);
             save_screenshot;
@@ -531,6 +515,10 @@ sub set_grub_terminal_and_timeout {
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         assert_script_run($cmd);
         save_screenshot;
+        $cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
+        $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+        assert_script_run($cmd);
+        save_screenshot;
 
         $cmd = "cat $grub_default_file";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
@@ -578,4 +566,25 @@ sub set_ipxe_bootscript {
       unless $response->{success};
 }
 
+sub set_floppy_boot {
+    while (1) {
+        diag "setting boot device to floppy/primary removable media";
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        ipmitool("chassis bootdev floppy ${options}");
+        sleep(3);
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force Boot from Floppy/s;
+    }
+}
+
+sub set_disk_boot {
+    while (1) {
+        diag "setting boot device to default Hard-Drive";
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        ipmitool("chassis bootdev disk ${options}");
+        sleep(3);
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force Boot from default Hard-Drive/s;
+    }
+}
 1;

@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_sle is_leap);
 
 sub run {
     my $self = shift;
@@ -29,7 +29,7 @@ sub run {
     # Import pycairo script and sample svg file
     assert_script_run("curl -O " . data_url("python/pycairo_sample.py"));
 
-    my $sample_svg = is_tumbleweed ? "pycairo_sample_tumbleweed.svg" : "pycairo_sample.svg";
+    my $sample_svg = (is_leap('<15.6') || is_sle('<15-SP6')) ? "pycairo_sample.svg" : "pycairo_sample_new.svg";
     assert_script_run("curl -O " . data_url("python/$sample_svg"));
 
     # Execute pycairo script and generate the svg file

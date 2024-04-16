@@ -34,12 +34,17 @@ sub get_system_python_version() {
 
 =head2 get_available_python_versions
 
-returns an array of strings with all the available python versions in the repository
+returns an array of strings with all the available python versions in the repository,
+we can get the latest version with parameter defined
 =cut
 
-sub get_available_python_versions() {
+sub get_available_python_versions ($get_latest_version = undef) {
     my @python3_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}\$/' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
     record_info("Available versions", "All available new python3 versions are: @python3_versions");
+    if ($get_latest_version) {
+        record_info("The latest version is:", "$python3_versions[$#python3_versions]");
+        return $python3_versions[$#python3_versions];
+    }
     return @python3_versions;
 }
 

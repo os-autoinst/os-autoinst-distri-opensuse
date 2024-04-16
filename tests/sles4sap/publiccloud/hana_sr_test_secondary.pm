@@ -86,6 +86,10 @@ sub run {
     die("Site B '$site_b->{instance_id}' did NOT start in replication mode.")
       if $self->get_promoted_hostname() eq $site_b->{instance_id};
 
+    # Cleanup the resource and check cluster
+    $self->cleanup_resource();
+    $self->wait_for_cluster();
+
     record_info("Done", "Test finished");
 }
 

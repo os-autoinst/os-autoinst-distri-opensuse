@@ -2,8 +2,8 @@ name: cc_ipsec
 description: >
     This is for ipsec test in CC system role
 schedule:
-    - '{{bootloader_zkvm}}'
-    - boot/boot_to_desktop
+    - installation/bootloader_start
+    - security/boot_disk
     - '{{remove_bridge_network}}'
     - '{{setup_multimachine}}'
     - security/cc/cc_audit_test_setup
@@ -11,10 +11,6 @@ schedule:
     - '{{disable_root_ssh}}'
     - '{{cc_ipsec}}'
 conditional_schedule:
-    bootloader_zkvm:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
     remove_bridge_network:
         ARCH:
             aarch64:

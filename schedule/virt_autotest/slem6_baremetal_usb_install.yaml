@@ -1,0 +1,10 @@
+name: slem6_baremetal_usb_install.yaml
+description:    >
+    Maintainer: xlai@suse.com, qe-virt@suse.de
+    SLE Micro 6.0 bare metal machine installation with Self-Install iso schedule
+schedule:
+    - installation/ipxe_install
+    - installation/usb_install
+    - installation/bootloader_uefi
+    - microos/selfinstall
+    # system is now ready: ssh password login is ok, grub2 menu can show in sol
