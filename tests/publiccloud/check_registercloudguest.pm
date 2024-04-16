@@ -57,8 +57,8 @@ sub run {
         $instance->ssh_script_run(cmd => "sudo sed -i \"s/regionsrv.*\$/regionsrv = $rmt_ipv4,$rmt_ipv6/\" /etc/regionserverclnt.cfg");
         $instance->ssh_assert_script_run(cmd => "sudo grep \"regionsrv = $rmt_ipv4,$rmt_ipv6\" /etc/regionserverclnt.cfg", fail_message => "$prefix regionserverclnt.cfg update failed");
         $instance->ssh_assert_script_run(cmd => "sudo curl -k -O --output-dir /usr/lib/regionService/certs https://$rmt_ipv4/$rmt_ipv4.pem", fail_message => "$prefix Download of test cert failed");
-        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest $regcode_param");
         $instance->ssh_assert_script_run(cmd => 'sudo update-ca-certificates', fail_message => "$prefix update-ca-certificates failed");
+        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest $regcode_param");
         check_instance_registered($instance);
     } elsif (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do
