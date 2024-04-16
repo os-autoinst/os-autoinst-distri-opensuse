@@ -17,7 +17,12 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub prepare_repositories {
     # add workstation extension
-    add_suseconnect_product(get_addon_fullname('we'), undef, undef, "--auto-agree-with-licenses -r " . get_var('SCC_REGCODE_WE'), 300, 1);
+    my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+    my $ARCH = get_required_var('ARCH');
+    # on 15-SP{4,5}-QR the auto agree with licenses command is not there
+    my $EXTRA_CMD = (is_sle('<15-SP6') && (check_var('FLAVOR', 'Online-QR') || check_var('FLAVOR', 'Full-QR'))) ? "" : "--auto-agree-with-licenses";
+    assert_script_run("SUSEConnect -p sle-we/$OS_VERSION/$ARCH $EXTRA_CMD --gpg-auto-import-keys -r " . get_var('SCC_REGCODE_WE'), timeout => 300);
+
     # disable nvidia repository to avoid the 'doesn't contain public key data' error
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
 }
