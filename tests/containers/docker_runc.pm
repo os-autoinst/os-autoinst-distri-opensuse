@@ -24,43 +24,74 @@ sub run {
     select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker = $self->containers_factory('docker');
-    my @runtimes = ();
-    push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
+    my $runc = "runc";    # runc executable
 
-    record_info 'Setup', 'Setup the environment';
-    # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
+    # Runtime setup and installation
+    record_info 'Test #1', 'Installation and test preparation';
+    install_packages($runc);
+    record_info("$runc", script_output("$runc -v"));
+    # Create root filesystem for the test container. We need docker for this preparation step.
+    assert_script_run('rm -rf rootfs && mkdir rootfs');
+    my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
+    assert_script_run('docker export $(docker create ' . $tumbleweed . ') | tar -C rootfs -xvf -', fail_message => "Cannot export rootfs, see bsc#1152508");
 
-    # create the rootfs directory
-    assert_script_run('mkdir rootfs');
+    # create the OCI specification file and verify that the template has been created
+    record_info 'Test #2', 'Test: OCI Specification';
+    assert_script_run("$runc spec");
+    assert_script_run('stat config.json', fail_message => "OCI specification file has not been created");
+    script_run('cp config.json config_json.template');
 
-    # export alpine via Docker into the rootfs directory (see bsc#1152508)
-    my $registry = get_var('REGISTRY', 'docker.io');
-    my $alpine = "$registry/library/alpine:3.6";
-    assert_script_run('docker export $(docker create ' . $alpine . ') | tar -C rootfs -xvf -');
+    # Modify the configuration to run the container in background
+    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
+    assert_script_run("sed -i -e 's/\"sh\"/\"echo\", \"Kalimera\"/' config.json");
 
-    foreach my $runc (@runtimes) {
-        record_info "$runc", "Testing $runc";
+    # Run (create, start, and delete) the container after it exits
+    record_info 'Test #3', 'Test: Use the run command';
+    validate_script_output("$runc run test1", qr/Kalimera/);
 
-        # If not testing docker-runc but docker-runc is installed, uninstall it
-        if ($runc ne "docker-runc" && script_run("which docker-runc") == 0) {
-            zypper_call('rm docker-runc');
-        }
+    # Restore the default configuration
+    assert_script_run('cp config_json.template config.json');
 
-        test_container_runtime($runc);
+    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
+    assert_script_run("sed -i -e 's/\"sh\"/\"sleep\", \"120\"/' config.json");
 
-        # uninstall the tested container runtime
-        zypper_call("rm $runc") unless is_transactional;
-    }
+    # Container Lifecycle
+    record_info 'Test #4', 'Test: Create a container';
+    assert_script_run("$runc create test2");
+    validate_script_output("$runc state test2", sub { $_ =~ m/.*"status":.*"created".*/m });
+    record_info 'Test #5', 'Test: List containers';
+    validate_script_output("$runc list", qr/test2/);
+    record_info 'Test #6', 'Test: Start a container';
+    assert_script_run("$runc start test2");
+    validate_script_output("$runc state test2", qr/running/);
+    record_info 'Test #7', 'Test: Pause a container';
+    assert_script_run("$runc pause test2");
+    validate_script_output("$runc state test2", qr/paused/);
+    record_info 'Test #8', 'Test: Resume a container';
+    assert_script_run("$runc resume test2");
+    validate_script_output("$runc state test2", qr/running/);
+    record_info 'Test #9', 'Test: Stop a container';
+    assert_script_run("$runc kill test2 KILL");
+    validate_script_output_retry("$runc state test2", qr/stopped/, retry => 3, delay => 30);
+    record_info 'Test #10', 'Test: Delete a container';
+    assert_script_run("$runc delete test2");
+    assert_script_run("! $runc state test2");
+}
 
-    # cleanup
-    assert_script_run("rm -rf rootfs");
+sub cleanup {
+    my ($self) = @_;
+    # Remove temporary files
+    script_run("rm -rf rootfs config.json config_json.template");
+}
 
-    # install docker and docker-runc if needed
-    install_docker_when_needed($host_distri);
+sub post_run_hook {
+    my ($self) = @_;
+    $self->cleanup();
+}
 
-    # remove leftover containers and images
-    $docker->cleanup_system_host();
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->cleanup();
 }
 
 1;
