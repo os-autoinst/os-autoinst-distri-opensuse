@@ -98,7 +98,7 @@ sub run {
     record_info 'Resource Group', "Resource Group used for deployment: $deployment_name";
 
     my $provider = $self->provider_factory();
-    set_var('SLES4SAP_SSHKEY', get_ssh_private_key_path());
+    set_var('SLES4SAP_PUBSSHKEY', get_ssh_private_key_path() . '.pub');
 
     # Needed to create the SAS URI token
     if (!is_azure()) {

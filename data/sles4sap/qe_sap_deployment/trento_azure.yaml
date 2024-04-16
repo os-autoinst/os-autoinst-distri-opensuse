@@ -11,8 +11,7 @@ terraform:
     az_region: '%REGION%'
     deployment_name: '%DEPLOYMENTNAME%'
     os_image: '%TRENTO_CLUSTER_OS_VER%'
-    private_key: '%SSH_KEY_PRIV%'
-    public_key: '%SSH_KEY_PUB%'
+    public_key: '%SLES4SAP_PUBSSHKEY%'
     admin_user: '%CLUSTER_USER%'
 ansible:
   az_storage_account_name: '%HANA_ACCOUNT%'
