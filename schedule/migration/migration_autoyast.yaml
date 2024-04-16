@@ -3,7 +3,6 @@ schedule:
   - autoyast/prepare_profile
   - migration/version_switch_origin_system
   - boot/boot_to_desktop
-  - console/scc_cleanup_reregister
   - migration/record_disk_info
   - migration/reboot_to_upgrade
   - migration/version_switch_upgrade_target
