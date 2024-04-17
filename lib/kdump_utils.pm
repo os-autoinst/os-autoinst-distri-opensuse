@@ -399,7 +399,7 @@ sub configure_service {
 sub check_function {
     my %args = @_;
     $args{test_type} //= '';
-    my $boot_timeout = is_aarch64 || is_hyperv ? 240 : undef;
+    my $boot_timeout = is_aarch64 || is_hyperv ? 300 : undef;
 
     my $self = y2_module_consoletest->new();
 
