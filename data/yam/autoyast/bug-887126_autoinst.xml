@@ -394,8 +394,6 @@
   <software>
     <instsource/>
     <packages config:type="list">
-      <package>at-spi2-atk-common</package>
-      <package>at-spi2-atk-gtk2</package>
       <package>dconf</package>
       <package>grub2-snapper-plugin</package>
       <package>gsettings-backend-dconf</package>
