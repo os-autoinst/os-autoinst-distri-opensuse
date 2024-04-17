@@ -70,7 +70,7 @@ sub run {
     push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
     # NOTE: passt should be pulled in as a dependency on podman 5.0+
-    push @pkgs, qw(passt) if (is_tumbleweed || is_microos || is_sle('>=15-SP6') || is_leap('>=15.6') || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
+    push @pkgs, qw(passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
