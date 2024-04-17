@@ -337,7 +337,6 @@
       <package>wicked</package>
       <package>snapper</package>
       <package>sle-module-server-applications-release</package>
-      <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
       <package>kexec-tools</package>
@@ -374,13 +373,6 @@
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>
-        <reg_code/>
-        <release_type>nil</release_type>
-        <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>sle-module-desktop-applications</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
