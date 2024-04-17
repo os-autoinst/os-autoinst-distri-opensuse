@@ -43,17 +43,15 @@ sub run {
         $self->boot_from_pxe::run();
         return;
     }
-    if (is_s390x()) {
-        if (check_var("BACKEND", "s390x")) {
-            record_info('bootloader_s390x');
-            $self->bootloader_s390::run();
-            return;
-        }
-        else {
-            record_info('bootloader_zkvm');
-            $self->bootloader_zkvm::run();
-            return;
-        }
+    if (is_s390x() && check_var("BACKEND", "s390x")) {
+        record_info('bootloader_s390x');
+        $self->bootloader_s390::run();
+        return;
+    }
+    if (is_s390x() && check_var("BACKEND", "svirt")) {
+        record_info('bootloader_zkvm');
+        $self->bootloader_zkvm::run();
+        return;
     }
     if (is_svirt && is_x86_64()) {
         set_bridged_networking();
