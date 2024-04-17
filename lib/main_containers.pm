@@ -295,6 +295,17 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('FIPS_ENABLED')) {
+        loadtest "fips/fips_setup";
+        foreach (split(',\s*', $runtime)) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{runtime} = $_;
+            load_container_engine_test($run_args);
+            load_image_test($run_args);
+        }
+        return;
+    }
+
     foreach (split(',\s*', $runtime)) {
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{runtime} = $_;
