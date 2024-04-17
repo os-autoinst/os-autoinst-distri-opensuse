@@ -20,8 +20,8 @@ use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
-  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity
-  test_search_registry switch_cgroup_version install_packages);
+  install_buildah_when_needed activate_containers_module check_containers_connectivity
+  switch_cgroup_version install_packages);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -152,23 +152,6 @@ sub install_containerd_when_needed {
     record_info('containerd', script_output('containerd -h'));
 }
 
-sub test_search_registry {
-    my $engine = shift;
-    my @registries = qw(docker.io);
-    push @registries, qw(registry.opensuse.org registry.suse.com) if ($engine eq 'podman');
-
-    foreach my $rlink (@registries) {
-        record_info("URL", "Scanning: $rlink");
-        my $start = time;
-        assert_script_run(sprintf('%s --log-level=debug search %s/busybox --format="{{.Name}}"', $engine, $rlink), timeout => 200);
-        my $duration = time - $start;
-        record_info('Response', "Registry $rlink responded in $duration seconds");
-        if ($duration > 60) {
-            record_info('Softfail', 'Searching registry.suse.com is too slow (sdsc#SD-106252 https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
-        }
-    }
-}
-
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
     my %args = @_;
@@ -212,21 +195,6 @@ sub scc_apply_docker_image_credentials {
 
 sub scc_restore_docker_image_credentials {
     assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
-}
-
-sub test_rpm_db_backend {
-    my %args = @_;
-    my $image = $args{image};
-    my $runtime = $args{runtime};
-
-    die 'Argument $image not provided!' unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
-
-    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
-    # TW and SLE 15-SP3+ uses rpm-ndb in the image
-    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
-        validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
-    }
 }
 
 sub check_containers_connectivity {
