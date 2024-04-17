@@ -32,6 +32,23 @@ use containers::common;
 use containers::utils;
 use containers::container_images;
 
+sub test_search_registry {
+    my ($self, $engine) = @_;
+    my @registries = qw(docker.io);
+    push @registries, qw(registry.opensuse.org registry.suse.com) if ($engine eq 'podman');
+
+    foreach my $rlink (@registries) {
+        record_info("URL", "Scanning: $rlink");
+        my $start = time;
+        assert_script_run(sprintf('%s --log-level=debug search %s/busybox --format="{{.Name}}"', $engine, $rlink), timeout => 200);
+        my $duration = time - $start;
+        record_info('Response', "Registry $rlink responded in $duration seconds");
+        if ($duration > 60) {
+            record_info('Softfail', 'Searching registry.suse.com is too slow (sdsc#SD-106252 https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
+        }
+    }
+}
+
 sub basic_container_tests {
     my %args = @_;
     my $runtime = $args{runtime};
@@ -145,7 +162,7 @@ sub run {
     runtime_smoke_tests(runtime => $engine);
 
     # Smoke test for engine search
-    test_search_registry($engine);
+    $self->test_search_registry($engine);
 
     # Clean the container host
     $engine->cleanup_system_host();
