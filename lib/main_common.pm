@@ -1347,8 +1347,8 @@ sub load_x11tests {
         loadtest "x11/chromium";
     }
     if (xfcestep_is_applicable()) {
-        # Midori got dropped from TW
-        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
+        # Midori got dropped from TW and Leap 15.6
+        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<15.6"));
         # Tumbleweed and Leap 15.4+ no longer have ristretto on the Rescue CD
         loadtest "x11/ristretto" unless (check_var("FLAVOR", "Rescue-CD") && !is_leap("<=15.3"));
     }
