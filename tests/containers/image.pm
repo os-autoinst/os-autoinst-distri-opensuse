@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2023 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: podman
-# Summary: Test installation and running of the docker image from the registry for this snapshot
+# Package: podman & docker
+# Summary: Test installation and running of the container image from the registry for this snapshot
 # This module is unified to run independented the host os.
 # Maintainer: QE-C team <qa-c@suse.de>
 
@@ -17,6 +17,22 @@ use containers::container_images;
 use containers::urls qw(get_image_uri);
 use db_utils qw(push_image_data_to_db);
 use containers::utils qw(reset_container_network_if_needed);
+use version_utils qw(check_version get_os_release);
+
+sub test_rpm_db_backend {
+    my ($self, %args) = @_;
+    my $image = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!' unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    # TW and SLE 15-SP3+ uses rpm-ndb in the image
+    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
+        validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
+    }
+}
 
 sub run {
     my ($self, $args) = @_;
@@ -44,7 +60,7 @@ sub run {
 
         record_info "IMAGE", "Testing image: $image Version: $version";
         test_container_image(image => $image, runtime => $engine);
-        test_rpm_db_backend(image => $image, runtime => $engine);
+        $self->test_rpm_db_backend(image => $image, runtime => $engine);
         test_systemd_install(image => $image, runtime => $engine);
         my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
         test_opensuse_based_image(image => $image, runtime => $engine, version => $version, beta => $beta) unless ($image =~ /bci/);
