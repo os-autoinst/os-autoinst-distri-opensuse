@@ -18,6 +18,5 @@ schedule:
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/scc_deregistration
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
