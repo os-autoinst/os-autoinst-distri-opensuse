@@ -262,11 +262,19 @@ sub is_generalhw { check_var('BACKEND', 'generalhw'); }
 #The ssh connection timeout is counted as seconds
 sub set_ssh_console_timeout {
     my ($sshd_config_file, $sshd_timeout) = @_;
+    $sshd_config_file //= '/etc/ssh/sshd_config';
+    $sshd_timeout //= 28800;
     my $client_count_max = $sshd_timeout / 60;
     if (script_run("ls $sshd_config_file") == 0) {
         script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
-        script_run("grep -i Alive $sshd_config_file");
+        if (script_run("grep -i Alive $sshd_config_file") != 0) {
+            script_run("echo -e \"\nTCPKeepAlive yes\n\" >> $sshd_config_file");
+            script_run("echo -e \"ClientAliveInterval 60\n\" >> $sshd_config_file");
+            script_run("echo -e \"ClientAliveCountMax $client_count_max\n\" >> $sshd_config_file");
+            script_run("grep -i Alive $sshd_config_file");
+        }
         script_run("service sshd restart") if (script_run("systemctl restart sshd") ne '0');
+        save_screenshot;
         record_info("Keep ssh connection alive for long-time run test!");
     }
     else {

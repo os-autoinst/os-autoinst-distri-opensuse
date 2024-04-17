@@ -117,6 +117,8 @@ our @EXPORT = qw(
   is_ipxe_boot
   is_uefi_boot
   is_usb_boot
+  remove_efiboot_entry
+  empty_usb_disks
 );
 
 our @EXPORT_OK = qw(
@@ -2977,6 +2979,56 @@ that it boots from USB.
 sub is_usb_boot {
     return 1 if get_var('USB_BOOT', '');
     return 0;
+}
+
+=head2 remove_efiboot_entry
+
+ remove_efiboot_entry(boot_entry => 'entry');
+
+Remove provided efiboot entry name by its corresponding boot number.
+
+=cut
+
+sub remove_efiboot_entry {
+    my %args = @_;
+    $args{boot_entry} //= '';
+
+    if ($args{boot_entry}) {
+        if (script_run("efibootmgr | grep $args{boot_entry}") == 0) {
+            script_output("efibootmgr | grep $args{boot_entry}") =~ /Boot([0-9A-F]+)\*/m;
+            assert_script_run("efibootmgr -B -b $1");
+            save_screenshot;
+            record_info("efiboot entry $args{boot_entry} deleted", script_output('efibootmgr -v'));
+        }
+        else {
+            record_info("efiboot entry $args{boot_entry} does not exist", script_output('efibootmgr -v'));
+        }
+    }
+    else {
+        record_info("No efiboot entry provided", script_output('efibootmgr -v'));
+    }
+}
+
+=head2 empty_usb_disks
+
+ empty_usb_disks(usb_disks => 'disk1 disk2');
+
+Empty contents of all plugged-in usb disks by formatting them. Passed argument
+usb_disks takes value if the form of "usb_disk1 usb_disk2 usb_disk3". Remove all
+plugged-in usb disks if usb_disks is empty.
+
+=cut
+
+sub empty_usb_disks {
+    my %args = @_;
+    $args{usb_disks} //= '';
+
+    my @usb_disks = $args{usb_disks} ? split(' ', $args{usb_disks}) : split('\n', script_output("ls /dev/disk/by-id/ -l | grep -i usb | grep -i -v -E \"generic|part|Virtual\" | sed \'s#^.*\\\/##\'"));
+    record_info("USB disks to be emptied are @usb_disks", "All plugged-in usb disks are " . script_output("ls /dev/disk/by-id/ -l; fdisk -l"));
+    foreach (@usb_disks) {
+        assert_script_run("echo y | mkfs.ext4 /dev/$_", timeout => 120);
+        record_info("USB disk /dev/$_ emptied");
+    }
 }
 
 1;

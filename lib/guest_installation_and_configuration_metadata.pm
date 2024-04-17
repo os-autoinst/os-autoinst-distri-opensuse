@@ -239,7 +239,8 @@ our %guest_params = (
 # any specific guest and only relating to operations on host. All parameters
 # in this structure are only initialized once in a single test run.
 our %host_params = (
-    'host_ipaddr' => '',    # This is get_required_var('SUT_IP')
+    'host_sutip' => '',    # This is get_required_var('SUT_IP')
+    'host_ipaddr' => '',    # This is ip addr of default host network device
     'host_name' => '',    # This is script_output('hostname')
     'host_domain_name' => '',    # This is script_output('dnsdomainname')
     'host_version_major' => '',    # Major version of host os release from /etc/os-release on host

@@ -250,7 +250,10 @@ sub prepare_common_environment {
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
         script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
-        $guest_installation_and_configuration_metadata::host_params{host_ipaddr} = get_required_var('SUT_IP');
+        $guest_installation_and_configuration_metadata::host_params{host_sutip} = get_required_var('SUT_IP');
+        my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
+        my $_default_device = (!$_default_route) ? 'br0' : (split(' ', script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1")))[4];
+        $guest_installation_and_configuration_metadata::host_params{host_ipaddr} = (split('/', (split(' ', script_output("ip addr show dev $_default_device | grep \"inet \"")))[1]))[0];
         $guest_installation_and_configuration_metadata::host_params{host_name} = script_output("hostname");
         # For SUTs with multiple interfaces, `dnsdomainname` sometimes does not work
         $guest_installation_and_configuration_metadata::host_params{host_domain_name} = script_output("dnsdomainname", proceed_on_failure => 1);
