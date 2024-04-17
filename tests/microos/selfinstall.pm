@@ -12,6 +12,8 @@ use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);
 use version_utils qw(is_leap_micro is_sle_micro);
 use utils;
+use Utils::Backends qw(is_ipmi);
+use ipmi_backend_utils qw(ipmitool);
 
 sub run {
     my ($self) = @_;
@@ -44,6 +46,12 @@ sub run {
         eject_cd() unless ($no_cd || is_usb_boot);
     }
 
+    # Remove usb boot entry and empty usb disks to ensure installed system boots from hard disk
+    if (is_ipmi and is_uefi_boot and is_usb_boot) {
+        remove_efiboot_entry(boot_entry => 'OpenQA-added-UEFI-USB-BOOT');
+        empty_usb_disks;
+        ipmitool("chassis bootdev disk options=persistent,efiboot") for (0 .. 2);
+    }
 }
 
 sub test_flags {
