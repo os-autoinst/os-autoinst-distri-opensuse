@@ -19,6 +19,16 @@ use db_utils qw(push_image_data_to_db);
 use containers::utils qw(reset_container_network_if_needed);
 use version_utils qw(check_version get_os_release);
 
+sub scc_apply_docker_image_credentials {
+    my $regcode = get_var 'SCC_DOCKER_IMAGE';
+    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{,.bak}";
+    assert_script_run "echo -ne \"$regcode\" > /etc/zypp/credentials.d/SCCcredentials";
+}
+
+sub scc_restore_docker_image_credentials {
+    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
+}
+
 sub test_rpm_db_backend {
     my ($self, %args) = @_;
     my $image = $args{image};

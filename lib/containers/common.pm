@@ -19,7 +19,7 @@ use power_action_utils 'power_action';
 use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
+  test_container_runtime test_container_image
   install_buildah_when_needed activate_containers_module check_containers_connectivity
   switch_cgroup_version install_packages);
 
@@ -185,16 +185,6 @@ sub test_container_image {
         die "Heartbeat test failed for $image";
     }
     assert_script_run "rm -f $logfile";
-}
-
-sub scc_apply_docker_image_credentials {
-    my $regcode = get_var 'SCC_DOCKER_IMAGE';
-    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{,.bak}";
-    assert_script_run "echo -ne \"$regcode\" > /etc/zypp/credentials.d/SCCcredentials";
-}
-
-sub scc_restore_docker_image_credentials {
-    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
 }
 
 sub check_containers_connectivity {
