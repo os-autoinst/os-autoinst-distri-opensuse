@@ -18,7 +18,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::common;
 use btrfs_test qw(set_playground_disk);
-use containers::utils qw(get_docker_version check_runtime_version);
+use containers::utils qw(get_docker_version);
 use version_utils;
 use Utils::Systemd qw(systemctl);
 

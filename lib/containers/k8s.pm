@@ -21,7 +21,7 @@ use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_sle_m
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
-our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
 sub check_k3s {
     record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
@@ -167,19 +167,6 @@ Installs helm from our repositories
 sub install_helm {
     zypper_call("in helm");
     record_info('helm', script_output("helm version"));
-}
-
-=head2 install_oc
-Installs oc
-=cut
-
-sub install_oc {
-    my $url = get_required_var('CONTAINER_OC_BINARY_URL');
-    assert_script_run("wget --no-check-certificate $url");
-    $url =~ m|([^/]+)/?$|;
-    assert_script_run("tar zxvf $1");
-    assert_script_run('mv oc /usr/local/bin');
-    assert_script_run('oc');
 }
 
 =head2 apply_manifest

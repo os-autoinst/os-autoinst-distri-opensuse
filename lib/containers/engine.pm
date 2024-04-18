@@ -181,17 +181,6 @@ sub pull {
     return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
 }
 
-=head2 commit
-
-Save a existing container as a new image in the local registry
-
-=cut
-
-sub commit {
-    my ($self, $mycontainer, $new_image_name, %args) = @_;
-    $self->_engine_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
-}
-
 =head2 enum_images
 
 Return an array ref of the images
@@ -218,19 +207,6 @@ sub enum_containers {
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;
     return \@containers;
-}
-
-=head2 get_images_by_repo_name
-
-Returns an array ref with the names of the images.
-
-=cut
-
-sub get_images_by_repo_name {
-    my ($self) = @_;
-    my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 120);
-    my @images = split /[\n\t ]/, $repo_images;
-    return \@images;
 }
 
 =head2 info
@@ -279,17 +255,6 @@ C<filename> file the logs are written to.
 sub get_container_logs {
     my ($self, $container, $filename) = @_;
     $self->_engine_assert_script_run("container logs $container | tee $filename");
-}
-
-=head2 remove_image($image_name)
-
-Remove a image from the pool.
-
-=cut
-
-sub remove_image {
-    my ($self, $image_name) = @_;
-    $self->_engine_assert_script_run("rmi -f $image_name");
 }
 
 =head2 remove_container($container_name, [assert])

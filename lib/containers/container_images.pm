@@ -22,7 +22,7 @@ use containers::utils;
 use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
-  test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
+  test_opensuse_based_image ensure_container_rpm_updates build_and_run_image
   test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs test_systemd_install);
 
 =head2 build_and_run_image
@@ -221,12 +221,6 @@ sub test_zypper_on_container {
     assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
     assert_script_run("$runtime rm -f refreshed");
     script_retry("$runtime run -i --rm --entrypoint '' refreshed-image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
-}
-
-sub exec_on_container {
-    my ($image, $runtime, $command, $timeout) = @_;
-    $timeout //= 120;
-    $runtime->run_container($image, cmd => $command, daemon => 1, timeout => $timeout);
 }
 
 sub test_3rd_party_image {

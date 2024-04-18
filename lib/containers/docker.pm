@@ -9,7 +9,7 @@
 package containers::docker;
 use Mojo::Base 'containers::engine';
 use testapi;
-use containers::utils qw(registry_url get_docker_version check_runtime_version);
+use containers::utils qw(registry_url get_docker_version);
 use containers::common qw(install_docker_when_needed);
 use utils qw(systemctl file_content_replace);
 use version_utils qw(get_os_release);
