@@ -90,7 +90,7 @@ sub run {
         '-noguiserver');
 
     record_info('SAPINST EXEC', "Executing sapinst command:\n$swpm_command");
-    assert_script_run($swpm_command);
+    assert_script_run($swpm_command, timeout => 300);
 
     $self->sapcontrol_process_check(sidadm => $nw_install_data->{sidadm},
         instance_id => $instance_data->{instance_id},
