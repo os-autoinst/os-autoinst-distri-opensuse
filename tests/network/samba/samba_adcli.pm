@@ -64,8 +64,8 @@ sub samba_sssd_install {
 
     # Ensure DNS name resolution works for the AD host
     script_retry("ping -c 2 $AD_hostname", retry => 3, timeout => 60, die => 1, fail_message => "$AD_hostname is unreachable");
-    assert_script_run("dig srv _kerberos._tcp.$AD_hostname", fail_message => "failed to resolved the required kerberos host entry for AD controller");
-    assert_script_run("dig srv _ldap._tcp.$AD_hostname", fail_message => "failed to resolved the required LDAP SRV entry for AD controller");
+    script_retry("dig srv _kerberos._tcp.$AD_hostname", retry => 3, timeout => 10, die => 1, fail_message => "failed to resolved the required kerberos host entry for AD controller");
+    script_retry("dig srv _ldap._tcp.$AD_hostname", retry => 3, timeout => 10, die => 1, fail_message => "failed to resolved the required LDAP SRV entry for AD controller");
 }
 
 sub join_domain {
