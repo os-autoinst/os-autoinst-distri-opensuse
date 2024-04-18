@@ -220,19 +220,6 @@ sub enum_containers {
     return \@containers;
 }
 
-=head2 get_images_by_repo_name
-
-Returns an array ref with the names of the images.
-
-=cut
-
-sub get_images_by_repo_name {
-    my ($self) = @_;
-    my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 120);
-    my @images = split /[\n\t ]/, $repo_images;
-    return \@images;
-}
-
 =head2 info
 
 Assert a C<property> against given expected C<value> if C<value> is given.
