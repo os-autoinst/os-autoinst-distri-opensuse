@@ -20,13 +20,10 @@
       <li><a href="#build-dockerfile_path-image_tag-args">build($dockerfile_path, $image_tag, [%args])</a></li>
       <li><a href="#run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</a></li>
       <li><a href="#pull-image_name-args">pull($image_name, [%args])</a></li>
-      <li><a href="#commit">commit</a></li>
       <li><a href="#enum_images">enum_images</a></li>
       <li><a href="#enum_images1">enum_images</a></li>
-      <li><a href="#get_images_by_repo_name">get_images_by_repo_name</a></li>
       <li><a href="#info">info</a></li>
       <li><a href="#get_container_logs-container-filename">get_container_logs($container, $filename)</a></li>
-      <li><a href="#remove_image-image_name">remove_image($image_name)</a></li>
       <li><a href="#remove_container-container_name-assert">remove_container($container_name, [assert])</a></li>
       <li><a href="#check_image_in_host">check_image_in_host</a></li>
       <li><a href="#configure_insecure_registries">configure_insecure_registries</a></li>
@@ -59,10 +56,6 @@
 
 <p>Pull a container with the given <code>image_name</code> where <code>image_name</code> can be the name or id of the image. <code>args</code> passes parameters to <code>script_run</code></p>
 
-<h2 id="commit">commit</h2>
-
-<p>Save a existing container as a new image in the local registry</p>
-
 <h2 id="enum_images">enum_images</h2>
 
 <p>Return an array ref of the images</p>
@@ -71,10 +64,6 @@
 
 <p>Return an array ref of the containers</p>
 
-<h2 id="get_images_by_repo_name">get_images_by_repo_name</h2>
-
-<p>Returns an array ref with the names of the images.</p>
-
 <h2 id="info">info</h2>
 
 <p>Assert a <code>property</code> against given expected <code>value</code> if <code>value</code> is given. Otherwise it prints the output of info.</p>
@@ -82,10 +71,6 @@
 <h2 id="get_container_logs-container-filename">get_container_logs($container, $filename)</h2>
 
 <p>Request container&#39;s logs. <code>container</code> the running container. <code>filename</code> file the logs are written to.</p>
-
-<h2 id="remove_image-image_name">remove_image($image_name)</h2>
-
-<p>Remove a image from the pool.</p>
 
 <h2 id="remove_container-container_name-assert">remove_container($container_name, [assert])</h2>
 
