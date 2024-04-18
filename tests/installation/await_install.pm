@@ -36,6 +36,7 @@ use mmapi;
 use utils;
 use Utils::Architectures;
 use Utils::Backends;
+use Utils::Logging;
 use version_utils qw(:VERSION :BACKEND is_sle is_leap is_sle_micro);
 use ipmi_backend_utils;
 
@@ -212,13 +213,11 @@ sub ssh_password_possibility {
 
 sub post_fail_hook {
     my ($self) = shift;
-    # Collect y2log firstly for migration case since this is high priority
-    # since sometimes error happen during default post_fail_hook
-    if (get_var('FLAVOR') =~ /Migration/) {
-        select_console 'root-console';
-        assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
-        upload_logs '/tmp/y2logs.tar.bz2';
-    }
+    select_console 'root-console';
+    assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
+    upload_logs '/tmp/y2logs.tar.bz2', {failok => 1};
+    my $zypper_logs = script_output('cat /var/log/zypper.log /var/log/zypp/history');
+    save_ulog($zypper_logs, 'zypper.log');
     $self->SUPER::post_fail_hook;
 }
 
