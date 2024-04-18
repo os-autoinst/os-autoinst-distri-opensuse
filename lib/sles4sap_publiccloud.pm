@@ -267,13 +267,20 @@ sub is_hana_online {
 }
 
 =head2 is_hana_resource_running
-    is_hana_resource_running([timeout => 60]);
+    is_hana_resource_running([quiet => 0]);
 
     Checks if resource msl_SAPHana_* is running on given node.
+
+=over 1
+
+=item B<quiet> - if set, returns the value without recording info (default: 0)
+
+=back  
 =cut
 
 sub is_hana_resource_running {
-    my ($self) = @_;
+    my ($self, %args) = @_;
+    $args{quiet} //= 0;
     my $hostname = $self->{my_instance}->{instance_id};
     my $hana_resource = join("_",
         "msl",
@@ -282,9 +289,13 @@ sub is_hana_resource_running {
         get_required_var("INSTANCE_SID") . get_required_var("INSTANCE_ID"));
 
     my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
-    my $node_status = grep /is running on: $hostname/, $resource_output;
-    record_info("Node status", "$hostname: $node_status");
-    return $node_status;
+    if ($resource_output =~ /is running on: \Q$hostname\E/) {
+        record_info("Node status", "$hana_resource is running on $hostname") unless $args{quiet};
+        return 1;
+    } else {
+        record_info("Node status", "$hana_resource is NOT running on $hostname") unless $args{quiet};
+        return 0;
+    }
 }
 
 =head2 stop_hana

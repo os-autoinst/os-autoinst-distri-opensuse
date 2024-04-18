@@ -11,6 +11,7 @@ use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use sles4sap_publiccloud;
 use publiccloud::utils;
+use hacluster qw($crm_mon_cmd);
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
@@ -86,6 +87,8 @@ sub run {
     record_info(ucfirst($site_name) . ' start');
     $self->cleanup_resource();
 
+    die "Required hana resource is NOT running on $self->{my_instance}, aborting" unless $self->is_hana_resource_running();
+    $self->run_cmd(cmd => $crm_mon_cmd, timeout => 300);
     record_info('Done', 'Test finished');
 }
 
