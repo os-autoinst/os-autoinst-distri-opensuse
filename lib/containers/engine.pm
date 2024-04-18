@@ -281,17 +281,6 @@ sub get_container_logs {
     $self->_engine_assert_script_run("container logs $container | tee $filename");
 }
 
-=head2 remove_image($image_name)
-
-Remove a image from the pool.
-
-=cut
-
-sub remove_image {
-    my ($self, $image_name) = @_;
-    $self->_engine_assert_script_run("rmi -f $image_name");
-}
-
 =head2 remove_container($container_name, [assert])
 
 Remove a container from the pool.
