@@ -13,14 +13,12 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
-    </addons>
-    <addon t="map">
-        <arch>{{ARCH}}</arch>
+      <addon>
         <name>sle-module-python3</name>
-        <reg_code/>
-        <release_type>nil</release_type>
         <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
       </addon>
+    </addons>
   </suse_register>
   <bootloader>
     <global>
