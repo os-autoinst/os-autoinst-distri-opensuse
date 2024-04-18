@@ -34,6 +34,30 @@ sub test_rpm_db_backend {
     }
 }
 
+sub test_systemd_install {
+    my ($self, %args) = @_;
+    my $image = $args{image};
+    my $runtime = $args{runtime};
+    die 'Argument $image not provided!' unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+    # reference values:
+    my $leap_vmin = '15.4';
+    my $sle_vmin = '15-SP4';
+    my $bci_vmin = '15-SP5';
+    # release
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    # TW and starting with SLE 15-SP4/Leap15.4 systemd's dependency with udev has been dropped
+    if ($image_id eq 'opensuse-tumbleweed' ||
+        ($image_id eq 'opensuse-leap' && check_version('>=' . $leap_vmin, "$image_version.$image_sp", qr/\d{2}\.\d/)) ||
+        ($image_id eq 'sles' && check_version('>=' . $sle_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/))) {
+        # Skip run case:
+        return 0 if ($image_id eq 'sles' && check_version('<' . $bci_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/));
+        # lock to SLE_BCI repo for SLES versions not under LTSS (LTSS has no BCI repo anymore)
+        my $repo = ($image_id eq 'sles' && check_version('>=' . $bci_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/)) ? '-r SLE_BCI' : '';
+        assert_script_run("$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in $repo systemd'", timeout => 300);
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal();
@@ -41,7 +65,6 @@ sub run {
     my $runtime = $args->{runtime};
     my $engine = $self->containers_factory($runtime);
     reset_container_network_if_needed($runtime);
-
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && $runtime eq 'docker');
 
@@ -61,7 +84,7 @@ sub run {
         record_info "IMAGE", "Testing image: $image Version: $version";
         test_container_image(image => $image, runtime => $engine);
         $self->test_rpm_db_backend(image => $image, runtime => $engine);
-        test_systemd_install(image => $image, runtime => $engine);
+        $self->test_systemd_install(image => $image, runtime => $engine);
         my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
         test_opensuse_based_image(image => $image, runtime => $engine, version => $version, beta => $beta) unless ($image =~ /bci/);
     }

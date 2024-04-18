@@ -23,7 +23,7 @@ use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image ensure_container_rpm_updates build_and_run_image
-  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs test_systemd_install);
+  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
 =head2 build_and_run_image
 
@@ -239,30 +239,6 @@ sub upload_3rd_party_images_logs {
     } else {
         upload_logs("/tmp/$runtime-3rd_party_images_log.txt");
         script_run("rm /tmp/$runtime-3rd_party_images_log.txt");
-    }
-}
-
-sub test_systemd_install {
-    my %args = @_;
-    my $image = $args{image};
-    my $runtime = $args{runtime};
-    die 'Argument $image not provided!' unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
-    # reference values:
-    my $leap_vmin = '15.4';
-    my $sle_vmin = '15-SP4';
-    my $bci_vmin = '15-SP5';
-    # release
-    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
-    # TW and starting with SLE 15-SP4/Leap15.4 systemd's dependency with udev has been dropped
-    if ($image_id eq 'opensuse-tumbleweed' ||
-        ($image_id eq 'opensuse-leap' && check_version('>=' . $leap_vmin, "$image_version.$image_sp", qr/\d{2}\.\d/)) ||
-        ($image_id eq 'sles' && check_version('>=' . $sle_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/))) {
-        # Skip run case:
-        return 0 if ($image_id eq 'sles' && check_version('<' . $bci_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/));
-        # lock to SLE_BCI repo for SLES versions not under LTSS (LTSS has no BCI repo anymore)
-        my $repo = ($image_id eq 'sles' && check_version('>=' . $bci_vmin, "$image_version-SP$image_sp", qr/\d{2}-sp\d/)) ? '-r SLE_BCI' : '';
-        assert_script_run("$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in $repo systemd'", timeout => 300);
     }
 }
 
