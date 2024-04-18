@@ -19,7 +19,7 @@
       <li><a href="#sles4sap_cleanup">sles4sap_cleanup</a></li>
       <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
       <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
-      <li><a href="#is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</a></li>
+      <li><a href="#is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</a></li>
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
@@ -131,9 +131,17 @@ otherwise it will be executed as root.</code></pre>
 </dd>
 </dl>
 
-<h2 id="is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</h2>
+<h2 id="is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</h2>
 
 <pre><code>Checks if resource msl_SAPHana_* is running on given node.</code></pre>
+
+<dl>
+
+<dt id="quiet---if-set-returns-the-value-without-recording-info-default:-0"><b>quiet</b> - if set, returns the value without recording info (default: 0)</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</h2>
 
