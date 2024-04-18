@@ -114,6 +114,12 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n setup-selinux');
     $instance->softreboot();
 
+    record_info('timers', $instance->ssh_script_output(cmd => 'sudo systemctl list-timers --all'));
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-active snapper-timeline.timer');
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-enabled snapper-timeline.timer');
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-active snapper-cleanup.timer');
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-enabled snapper-cleanup.timer');
+
     # SElinux and logging tests
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep enabled');
     $instance->run_ssh_command(cmd => 'sudo dmesg');
