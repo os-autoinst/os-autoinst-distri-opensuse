@@ -21,7 +21,7 @@ use Utils::Architectures;
 use containers::utils;
 use containers::common qw(test_container_image is_unreleased_sle);
 
-our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
+our @EXPORT = qw(
   test_opensuse_based_image ensure_container_rpm_updates build_and_run_image
   test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
