@@ -21,7 +21,7 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(runtime_smoke_tests get_vars
-  can_build_sle_base get_docker_version get_podman_version check_runtime_version
+  can_build_sle_base get_docker_version get_podman_version
   check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
 );
 
@@ -36,11 +36,6 @@ sub get_docker_version {
 
 sub get_podman_version {
     return script_output "podman version | awk '/^Version:/ { print \$2 }'";
-}
-
-sub check_runtime_version {
-    my ($current, $other) = @_;
-    return check_version($other, $current, qr/\d{2}(?:\.\d+)/);
 }
 
 sub check_min_runtime_version {
