@@ -181,17 +181,6 @@ sub pull {
     return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
 }
 
-=head2 commit
-
-Save a existing container as a new image in the local registry
-
-=cut
-
-sub commit {
-    my ($self, $mycontainer, $new_image_name, %args) = @_;
-    $self->_engine_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
-}
-
 =head2 enum_images
 
 Return an array ref of the images
