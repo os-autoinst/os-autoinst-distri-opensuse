@@ -13,8 +13,8 @@ conditional_schedule:
             rke2-server:
                 - virt_autotest/kubevirt_barriers
     bootup_and_install:
-        WITH_HOST_INSTALL:
-            1:
+        RUN_TEST_ONLY:
+            0:
                 - '{{bootup}}'
                 - installation/welcome
                 - installation/scc_registration

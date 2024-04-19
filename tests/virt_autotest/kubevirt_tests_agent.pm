@@ -18,11 +18,13 @@ use version_utils qw(is_transactional);
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use virt_autotest::kubevirt_utils;
 
 sub run {
     my ($self) = shift;
 
-    if (get_required_var('WITH_HOST_INSTALL')) {
+    if (check_var('RUN_TEST_ONLY', 0)) {
+        use_ssh_serial_console;
         my $sut_ip = get_required_var('SUT_IP');
 
         set_var('AGENT_IP', $sut_ip);
@@ -36,6 +38,7 @@ sub run {
 
         $self->rke2_agent_setup($server_ip);
     } else {
+        reset_consoles;
         select_console 'sol', await_console => 0;
         use_ssh_serial_console;
     }
@@ -51,6 +54,9 @@ sub rke2_agent_setup {
         disable_and_stop_service('apparmor.service');
         disable_and_stop_service('firewalld.service');
     }
+    # Enable NTP service
+    systemctl('enable --now chronyd', timeout => 180);
+
     $self->setup_passwordless_ssh_login($server_ip);
 
     # rebootmgr has to be turned off as prerequisity for this to work
@@ -60,6 +66,8 @@ sub rke2_agent_setup {
 
     transactional::process_reboot(trigger => 1) if (is_transactional);
     record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
+    # Set long host name to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname $(hostname -s)');
 
     # Install kubevirt packages complete
     barrier_wait('kubevirt_packages_install_complete');
@@ -84,8 +92,18 @@ sub rke2_agent_setup {
     # Configure rke2-agent service
     my $server_node_token = script_output("ssh root\@$server_ip cat /var/lib/rancher/rke2/server/node-token");
     assert_script_run('mkdir -p /etc/rancher/rke2/');
-    assert_script_run("echo 'server: https://$server_ip:9345' > /etc/rancher/rke2/config.yaml");
-    assert_script_run("echo 'token: $server_node_token' >> /etc/rancher/rke2/config.yaml");
+    assert_script_run("cat > /etc/rancher/rke2/config.yaml <<__END
+server: https://$server_ip:9345
+token: $server_node_token
+kubelet-arg:
+  - cpu-manager-policy=static
+  - kube-reserved=cpu=500m
+  - system-reserved=cpu=500m
+__END
+(exit \$?)");
+
+    # Setup cnv-bridge containernetworking plugin
+    $self->install_cni_plugins();
 
     # Enable rke2-agent service
     systemctl('enable --now rke2-agent.service', timeout => 180);
