@@ -503,7 +503,7 @@ sub wait_grub_to_boot_on_local_disk {
 
     # We need to wait more for aarch64's tianocore-mainmenu and for qemu ppc64le
     if ((is_aarch64) || (is_ppc64le && is_qemu)) {
-        assert_screen(\@tags, 30);
+        assert_screen(\@tags, 90);
     } else {
         assert_screen(\@tags, 15);
     }

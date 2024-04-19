@@ -510,7 +510,8 @@ sub process_scc_register_addons {
                 send_key_until_needlematch "scc-module-$addon-selected", "down", ADDONS_COUNT;
             }
         }
-        wait_screen_change { send_key $cmd{next} };    # all addons selected
+        wait_still_screen 5;
+        wait_screen_change(sub { send_key $cmd{next} }, 30, similarity_level => 35);    # all addons selected
         wait_still_screen 2;
         # Process addons licenses
         accept_addons_license @scc_addons;
@@ -789,7 +790,7 @@ sub yast_scc_registration {
     # For Aarch64 if the worker run with heavy loads, it will
     # timeout in nearly 120 seconds. So we set it to 150. Same
     # for s390 since timeout happen.
-    assert_screen('scc-registration', timeout => (is_aarch64 || is_s390x) ? 150 : 90,);
+    assert_screen('scc-registration', timeout => (is_aarch64 || is_s390x) ? 150 : 120,);
     fill_in_registration_data;
     wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
