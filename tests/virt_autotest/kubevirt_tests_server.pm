@@ -21,6 +21,7 @@ use File::Basename;
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use virt_autotest::kubevirt_utils;
 
 our $if_case_fail;
 my @full_tests = (
@@ -69,7 +70,8 @@ my @core_tests = (
 sub run {
     my ($self) = shift;
 
-    if (get_required_var('WITH_HOST_INSTALL')) {
+    if (check_var('RUN_TEST_ONLY', 0)) {
+        use_ssh_serial_console;
         my $sut_ip = get_required_var('SUT_IP');
 
         set_var('SERVER_IP', $sut_ip);
@@ -84,6 +86,7 @@ sub run {
         $self->rke2_server_setup($agent_ip);
         $self->deploy_kubevirt_manifests();
     } else {
+        reset_consoles;
         select_console 'sol', await_console => 0;
         use_ssh_serial_console;
     }
@@ -101,6 +104,9 @@ sub rke2_server_setup {
         disable_and_stop_service('apparmor.service');
         disable_and_stop_service('firewalld.service');
     }
+    # Enable NTP service
+    systemctl('enable --now chronyd', timeout => 180);
+
     $self->setup_passwordless_ssh_login($agent_ip);
 
     # rebootmgr has to be turned off as prerequisity for this to work
@@ -110,6 +116,8 @@ sub rke2_server_setup {
 
     transactional::process_reboot(trigger => 1) if (is_transactional);
     record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
+    # Set long host name to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname $(hostname -s)');
 
     $self->install_kubevirt_packages();
 
@@ -129,6 +137,9 @@ sub rke2_server_setup {
 
     # For network multus backend testing
     assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' /etc/systemd/system/rke2-server.service");
+
+    # Setup cnv-bridge containernetworking plugin
+    $self->install_cni_plugins();
 
     # Enable rke2-server service
     systemctl('enable --now rke2-server.service', timeout => 180);
@@ -273,7 +284,7 @@ sub deploy_kubevirt_manifests {
     # Remove existing local disks
     record_info('Remove existing local disks', script_output('[ -d /tmp/hostImages -a -d /mnt/local-storage ] && rm -r /tmp/hostImages /mnt/local-storage', proceed_on_failure => 1));
 
-    assert_script_run("kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/rbac-for-testing.yaml");
+    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/rbac-for-testing.yaml");
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
 
     if ($kubevirt_ver lt "0.50.0") {
@@ -323,7 +334,7 @@ sub setup_longhorn_csi {
     assert_script_run("kubectl apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-sc.yaml");
 
     # Ensure only one default storage class exists
-    assert_script_run(qq(kubectl patch storageclass longhorn-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'));
+    assert_script_run(qq(kubectl patch storageclass longhorn-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'));
     assert_script_run("kubectl delete --ignore-not-found configmaps -n longhorn-system longhorn-storageclass");
     assert_script_run("kubectl delete --ignore-not-found storageclass longhorn");
 
@@ -407,7 +418,7 @@ EOF
     # bsc#1210906
     assert_script_run("sysctl -w vm.unprivileged_userfaultfd=1");
     # Installing Whereabouts plugin
-    assert_script_run("git clone https://github.com/k8snetworkplumbingwg/whereabouts && cd whereabouts", 600);
+    assert_script_run("git clone --depth 1 https://github.com/k8snetworkplumbingwg/whereabouts && cd whereabouts", 600);
     assert_script_run("kubectl apply -f doc/crds/daemonset-install.yaml " .
           "-f doc/crds/whereabouts.cni.cncf.io_ippools.yaml " .
           "-f doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml && cd");

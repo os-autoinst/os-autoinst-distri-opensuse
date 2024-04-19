@@ -1,0 +1,29 @@
+name:           slem-kubevirt-tests
+description:    >
+    Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
+    Kubevirt server & agent node installation and test modules
+vars: {}
+schedule:
+    - '{{barrier_setup}}'
+    - '{{bootup_and_install}}'
+    - '{{kubevirt_tests}}'
+conditional_schedule:
+    bootup_and_install:
+        RUN_TEST_ONLY:
+            0:
+                - installation/ipxe_install
+                - installation/usb_install
+                - installation/bootloader_uefi
+                - microos/selfinstall
+                - transactional/host_config
+                - console/suseconnect_scc
+    barrier_setup:
+        SERVICE:
+            rke2-server:
+                - virt_autotest/kubevirt_barriers
+    kubevirt_tests:
+        SERVICE:
+            rke2-server:
+                - virt_autotest/kubevirt_tests_server
+            rke2-agent:
+                - virt_autotest/kubevirt_tests_agent
