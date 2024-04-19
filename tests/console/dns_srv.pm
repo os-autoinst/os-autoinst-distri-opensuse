@@ -13,13 +13,14 @@
 use strict;
 use warnings;
 use base "consoletest";
+use serial_terminal 'select_serial_terminal';
 use testapi;
 use Utils::Architectures;
-use utils qw(is_bridged_networking systemctl zypper_call);
+use utils qw(is_bridged_networking systemctl zypper_call script_retry);
 use Utils::Logging 'save_and_upload_log';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install bind
     zypper_call "-q in bind";
@@ -34,7 +35,9 @@ sub run {
     systemctl 'show -p SubState named.service|grep SubState=running';
 
     # verify dns server responds to anything
-    if (script_run 'host localhost. localhost') {
+    my $retry_count = is_aarch64 ? 5 : 2;
+    my $time_out = is_aarch64 ? 10 : 5;
+    if (script_retry('host localhost. localhost', retry => $retry_count, delay => 30, timeout => $time_out, die => 0) != 0) {
         record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost' if is_s390x;
         record_info 'Skip the entire test on bridged networks (e.g. Xen, Hyper-V)' if (is_bridged_networking);
         return if (is_bridged_networking || is_s390x);
