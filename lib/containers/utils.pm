@@ -21,7 +21,7 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(runtime_smoke_tests get_vars
-  can_build_sle_base get_docker_version get_podman_version
+  get_docker_version get_podman_version
   check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
 );
 
@@ -153,22 +153,6 @@ sub runtime_smoke_tests {
 
     # Remove the image we pulled
     assert_script_run("$runtime rmi $image");
-}
-
-=head2 can_build_sle_base
-
-C<can_build_sle_base> should be used to identify if sle base image runs against a
-system that it does not support registration and SUSEConnect.
-In this case the build of the base image is not going to work as it lacks the repositories
-
-The call should return false if the test is run on a non-sle host.
-
-=cut
-
-sub can_build_sle_base {
-    # script_run returns 0 if true, but true is 1 on perl
-    my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
-    return check_os_release('sles', 'ID') && $has_sle_registration;
 }
 
 sub reset_container_network_if_needed {

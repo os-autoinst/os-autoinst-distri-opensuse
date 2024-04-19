@@ -11,7 +11,7 @@ use testapi;
 use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
-use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
+use containers::utils qw(registry_url container_ip container_route);
 use transactional qw(trup_call check_reboot_changes process_reboot);
 use bootloader_setup 'add_grub_cmdline_settings';
 use serial_terminal 'select_serial_terminal';
@@ -19,7 +19,7 @@ use power_action_utils 'power_action';
 use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
+  test_container_runtime test_container_image
   install_buildah_when_needed activate_containers_module check_containers_connectivity
   switch_cgroup_version install_packages);
 
@@ -185,16 +185,6 @@ sub test_container_image {
         die "Heartbeat test failed for $image";
     }
     assert_script_run "rm -f $logfile";
-}
-
-sub scc_apply_docker_image_credentials {
-    my $regcode = get_var 'SCC_DOCKER_IMAGE';
-    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{,.bak}";
-    assert_script_run "echo -ne \"$regcode\" > /etc/zypp/credentials.d/SCCcredentials";
-}
-
-sub scc_restore_docker_image_credentials {
-    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
 }
 
 sub check_containers_connectivity {
