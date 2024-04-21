@@ -34,6 +34,9 @@ sub run ($self) {
     if (check_var('IMB', 'RUN')) {
         barrier_wait('IMB_TEST_DONE');
     }
+    if (check_var('HDF5', 'RUN')) {
+        barrier_wait('HDF5_RUN_TEST');
+    }
 }
 
 sub test_flags ($self) {
