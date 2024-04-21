@@ -67,6 +67,9 @@ sub run ($self) {
         if (check_var('HDF5', 'RUN')) {
             barrier_create('HDF5_RUN_TEST', $nodes);
         }
+        if (check_var('SCIPY', 'RUN')) {
+            barrier_create('SCIPY_RUN_TEST', $nodes);
+        }
     }
     elsif (check_var('HPC', 'ww4_controller')) {
         barrier_create('WWCTL_READY', $nodes);

@@ -22,6 +22,9 @@ conditional_schedule:
     HDF5:
       RUN:
         - hpc/mpi_hdf5
+    SCIPY:
+      RUN:
+        - hpc/mpi_scipy
   hpctest:
     HPC:
       slurm_master:

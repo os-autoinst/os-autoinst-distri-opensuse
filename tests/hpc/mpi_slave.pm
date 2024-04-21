@@ -37,6 +37,9 @@ sub run ($self) {
     if (check_var('HDF5', 'RUN')) {
         barrier_wait('HDF5_RUN_TEST');
     }
+    if (check_var('SCIPY', 'RUN')) {
+        barrier_wait('SCIPY_RUN_TEST');
+    }
 }
 
 sub test_flags ($self) {
