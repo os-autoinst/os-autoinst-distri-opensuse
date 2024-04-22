@@ -35,7 +35,7 @@ sub run {
         record_soft_failure('jsc#SLE-19640: openssl version is outdated and need to be updated over 1.1.1+ for SLE15-SP4');
     }
 
-    # Seperate the diffrent openssl command usage between SLE12 and SLE15
+    # Seperate the diffrent openssl command usage between SLE12 and SLE 15-SP{0..5} and SLE 15-SP6+
     if (is_sle('<15')) {
         # List message digest algorithms in fips mode
         # only SHA1 and SHA2 (224, 256, 384, 512) are approved in fips mode
@@ -49,7 +49,7 @@ sub run {
         validate_script_output
 "echo -n 'Invalid Pubkey: '; openssl list-public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
           sub { m/^Invalid Pubkey: 0$/ };
-    } else {
+    } elsif (is_sle('<15-SP6')) {
         eval {
             validate_script_output
 "echo -n 'Invalid Hash: '; openssl list -digest-algorithms | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' -e '/SHA3-224/d' -e '/SHA3-256/d' -e '/SHA3-384/d' -e '/SHA3-512/d' -e '/SHAKE128/d' -e '/SHAKE256/d' | wc -l",
@@ -59,11 +59,20 @@ sub run {
 "echo -n 'Invalid Pubkey: '; openssl list -public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
               sub { m/^Invalid Pubkey: 0$/ };
         }
+    } else {
+        eval {
+            validate_script_output
+"echo -n 'Invalid Hash: '; openssl list -digest-algorithms | grep fips | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' -e '/SHA3-224/d' -e '/SHA3-256/d' -e '/SHA3-384/d' -e '/SHA3-512/d' -e '/SHAKE128/d' -e '/SHAKE256/d' -e '/KECCAK/d' | wc -l",
+              sub { m/^Invalid Hash: 0$/ };
+            validate_script_output
+"echo -n 'Invalid Pubkey: '; openssl list -public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
+              sub { m/^Invalid Pubkey: 0$/ };
+        }
     }
 }
 
 sub test_flags {
-    return {fatal => 0};
+    return {fatal => 1};
 }
 
 1;

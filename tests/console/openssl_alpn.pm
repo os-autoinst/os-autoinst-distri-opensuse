@@ -20,23 +20,23 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_transactional);
 
 sub run {
     select_console 'root-console';
 
-    zypper_call 'in openssl';
+    zypper_call 'in openssl' unless is_transactional;
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
 
     clear_console;
-    enter_cmd "openssl s_server -key domain.key -cert domain.crt -alpn http";
+    my $server_pid = background_script_run("openssl s_server -key domain.key -cert domain.crt -alpn http");
     assert_screen "openssl-s_server-alpn-accept-connections";
+    clear_console;
 
-    select_console 'user-console';
     validate_script_output 'openssl s_client -alpn http < /dev/null', sub { m/ALPN protocol: http/ };
 
-    # the openssl server is still running so do not expect a ready prompt
-    select_console 'root-console', await_console => 0;
-    send_key "ctrl-c";    # terminate `openssl s_server'
+    assert_script_run("kill $server_pid");
+
     save_screenshot;
 }
 
