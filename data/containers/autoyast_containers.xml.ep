@@ -210,8 +210,10 @@
       <package>acl</package>
       % if ($check_var->('INSTALL_RUNTIMES', '1')) {
       <package>docker</package>
-      % unless ($check_var->('ARCH', 'aarch64') and $get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
+      % if (!$check_var->('ARCH', 'aarch64') and $get_var->('VERSION') =~ /15-SP[1-5]$/) {
       <package>zypper-docker</package>
+      % }
+      % unless ($check_var->('ARCH', 'aarch64') and $get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
       <package>container-diff</package>
       % }
       % unless ($get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
