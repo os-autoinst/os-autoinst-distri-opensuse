@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman engine
-# Summary: Verify Podman nginx container is still running after upgrade
+# Summary: Verify Pod and containers within pods are still running after upgrade
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
@@ -18,8 +18,8 @@ use containers::container_images;
 
 sub run {
     my ($self) = @_;
-    my $unit_name = 'test_nginx';
-    my $container_name = 'nginx-Quadlet';
+    my $nginx_container = "nginx-container";
+    my $tumbleweed_container = "Tumbleweed-container";
     select_serial_terminal;
 
     my $podman = $self->containers_factory('podman');
@@ -28,11 +28,17 @@ sub run {
 
     # validate the container
     my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
-    validate_script_output("cat /etc/os-release", sub { m/VERSION="$target_version"/ });
-    validate_script_output("podman ps", qr/$container_name/);
-    validate_script_output("podman container inspect --format='{{.State.Running}}' $container_name", qr/true/);
-    systemctl("is-active $unit_name.service");
-    validate_script_output("curl -s http://localhost:80 | grep title", sub { m/Welcome to the nginx container!/ });
+    validate_script_output('podman pod ps', sub { m/test-pod0/ });
+    record_info('podman pod ps', script_output("podman pod ps"));
+    record_info('podman ps', script_output("podman ps"));
+
+    # Ensure the pod and containers are running
+    systemctl("is-active pod-test-pod0.service");
+    systemctl("is-active container-Tumbleweed-container.service");
+    systemctl("is-active container-nginx-container.service");
+
+    # Verify the connection between containers in a pod
+    validate_script_output("podman exec -it Tumbleweed-container curl -s http://localhost:80", sub { m/Welcome to the nginx container!/ });
 }
 
 1;
