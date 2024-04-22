@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -65,14 +65,14 @@ _EOF_
     check_unit_states('not-found');
 
     # start the generator and check whether the files are generated
-    assert_script_run("systemctl daemon-reload");
+    systemctl("daemon-reload");
     check_unit_states();
     systemctl("is-active sleeper.service", expect_false => 1);
     systemctl("is-active sleeper-volume.service", expect_false => 1);
 
     # start the container
-    assert_script_run("systemctl start sleeper-volume.service");
-    assert_script_run("systemctl start sleeper.service");
+    systemctl("start sleeper-volume.service");
+    systemctl("start sleeper.service");
     check_unit_states();
     systemctl("is-active sleeper.service");
     systemctl("is-active sleeper-volume.service");
@@ -80,15 +80,28 @@ _EOF_
     # container checks
     validate_script_output('podman container list', qr/systemd-sleeper/);
     validate_script_output('podman volume list', qr/systemd-sleeper/);
+
+    # disable service & remove units
+    systemctl("disable --now sleeper.service");
+    systemctl("disable --now sleeper-volume.service");
+    systemctl("is-active sleeper.service", expect_false => 1);
+    systemctl("is-active sleeper-volume.service", expect_false => 1);
+}
+
+sub cleanup {
+    script_run("rm -f /etc/containers/systemd/sleeper.container /etc/containers/systemd/sleeper.volume");
+    systemctl("daemon-reload");
 }
 
 sub post_run_hook {
     my $podman = shift->containers_factory('podman');
     $podman->cleanup_system_host();
+    cleanup();
 }
 sub post_fail_hook {
     my $podman = shift->containers_factory('podman');
     $podman->cleanup_system_host();
+    cleanup();
 }
 
 1;
