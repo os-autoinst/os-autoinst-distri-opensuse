@@ -1,0 +1,23 @@
+---
+name: create_hdd_textmode_intel_ipmi
+description:    >
+  Create an HDD on IPMI backend. This is used on development,
+  where access_beta is enabled.
+vars:
+  DESKTOP: textmode
+  YUI_REST_API: 1
+schedule:
+  installation_settings:
+    - installation/installation_settings/validate_ssh_service_enabled
+    - installation/installation_settings/open_ssh_port
+  installation:
+    - installation/launch_installation
+    - installation/confirm_installation
+    - installation/performing_installation/perform_installation
+  grub:
+    - installation/handle_reboot
+  system_preparation:
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
