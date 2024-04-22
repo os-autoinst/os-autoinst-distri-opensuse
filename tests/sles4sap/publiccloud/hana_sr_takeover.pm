@@ -63,15 +63,9 @@ sub run {
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     # SBD delay is active only after reboot
-    if ($takeover_action eq 'crash' and $sbd_delay != 0) {
-        record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
-        # test needs to wait a little more than sbd delay
-        sleep($sbd_delay + 30);
-        $self->wait_for_pacemaker();
-    }
-
-    # Add SBD delay for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
-    if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    if (($takeover_action eq 'crash' and $sbd_delay != 0) ||
+        # Add SBD delay for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
+        ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2'))) {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # test needs to wait a little more than sbd delay
         sleep($sbd_delay + 30);
@@ -83,12 +77,13 @@ sub run {
 
     record_info('Replication', join(' ', ('Enabling replication on', ucfirst($site_name), '(DEMOTED)')));
     $self->enable_replication(site_name => $site_name);
-
     record_info(ucfirst($site_name) . ' start');
-    $self->cleanup_resource();
 
+    $self->cleanup_resource();
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
     die "Required hana resource is NOT running on $self->{my_instance}, aborting" unless $self->is_hana_resource_running();
-    $self->run_cmd(cmd => $crm_mon_cmd, timeout => 300);
+    $self->display_full_status();
+
     record_info('Done', 'Test finished');
 }
 

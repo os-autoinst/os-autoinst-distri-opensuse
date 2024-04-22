@@ -947,10 +947,13 @@ sub create_hana_vars_section {
 sub display_full_status {
     my ($self) = @_;
     my $vm_name = $self->{my_instance}{instance_id};
-    my $crm_status = join("\n", "\n### CRM STATUS ###", $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1));
-    my $saphanasr_showattr = join("\n", "\n### HANA REPLICATION INFO ###", $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1));
+    my $final_message = join("\n", "### CRM STATUS ###",
+        $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1),
+        "### CRM MON ###",
+        $self->run_cmd(cmd => $crm_mon_cmd, proceed_on_failure => 1),
+        "### HANA REPLICATION INFO ###",
+        $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1));
 
-    my $final_message = join("\n", $crm_status, $saphanasr_showattr);
     record_info("STATUS $vm_name", $final_message);
 }
 
@@ -1141,10 +1144,9 @@ sub wait_for_cluster {
     $args{max_retries} //= 7;
 
     while ($args{max_retries} > 0) {
-        my $hanasr_output = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
 
-        my $hanasr_ready = check_hana_topology(input => calculate_hana_topology(input => $hanasr_output));
+        my $hanasr_ready = check_hana_topology(input => $self->get_hana_topology());
         my $crm_ok = check_crm_output(input => $crm_output);
 
         if ($hanasr_ready && $crm_ok) {
@@ -1155,8 +1157,7 @@ sub wait_for_cluster {
         $args{max_retries}--;
         if ($args{max_retries} <= 0) {
             record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
-            record_info('HANASR STATUS', $hanasr_output);
-            record_info('CRM STATUS', $crm_output);
+            $self->display_full_status();
             die "Cluster is not ready after specified retries.";
         }
         sleep($args{wait_time});
