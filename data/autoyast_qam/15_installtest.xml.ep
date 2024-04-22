@@ -69,7 +69,6 @@
         <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-        % }
       <listentry>
         <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
@@ -80,6 +79,7 @@
         <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
+        % }
       % }
       <listentry>
         <name><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::pool</name>
