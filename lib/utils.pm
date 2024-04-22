@@ -810,7 +810,11 @@ sub fully_patch_system {
         save_screenshot;
     }
 
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
+    if (($ret != 0) && ($ret != 102)) {
+        script_run "save_y2logs /tmp/y2logs.tar.bz2";
+        upload_logs "/tmp/y2logs.tar.bz2";
+        die "Zypper failed with $ret";
+   } 
 }
 
 =head2 ssh_fully_patch_system
