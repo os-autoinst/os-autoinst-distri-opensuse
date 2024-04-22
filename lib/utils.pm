@@ -2572,9 +2572,6 @@ sub cleanup_disk_space {
     my $avail = script_output('findmnt -n -D -r -o avail / | awk \'{print $1+0}\'', timeout => 120);
     diag "available space = $avail GB";
     return if ($avail > get_var("DISK_LOW_WATERMARK"));
-
-    record_soft_failure('bsc#1192331 - Low diskspace on Filesystem root');
-
     my $ret = script_run("snapper --help | grep disable-used-space");
     my $disable = $ret ? '' : '--disable-used-space';
     my @snap_lists = split /\n/, script_output("snapper list $disable | grep important= | grep -v single | awk \'{print \$1}\'");
