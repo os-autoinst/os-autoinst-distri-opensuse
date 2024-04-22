@@ -88,7 +88,8 @@ sub run {
 
     # Cleanup the resource and check cluster
     $self->cleanup_resource();
-    $self->wait_for_cluster();
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->display_full_status();
 
     record_info("Done", "Test finished");
 }
