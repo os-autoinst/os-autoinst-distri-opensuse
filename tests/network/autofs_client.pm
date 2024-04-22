@@ -39,7 +39,7 @@ use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
 use utils qw(systemctl script_retry);
-use version_utils 'is_opensuse';
+use version_utils qw(is_leap is_sle);
 use strict;
 use warnings;
 
@@ -65,7 +65,7 @@ sub run {
     validate_script_output("systemctl --no-pager status autofs", sub { m/Active:\s*active/ }, 180);
 
     # nfsidmap
-    is_opensuse ? assert_script_run("rpm -q libnfsidmap1") : assert_script_run("rpm -q nfsidmap");
+    (is_leap('<15.6') || is_sle('<15-SP6')) ? assert_script_run("rpm -q nfsidmap") : assert_script_run("rpm -q libnfsidmap1");
     # Allow failing, it's to clear the keyring if one exists
     assert_script_run("nfsidmap -c || true");
     assert_script_run("mkdir -p $test_mount_dir_nfsidmap");
