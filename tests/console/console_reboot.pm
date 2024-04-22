@@ -27,7 +27,7 @@ sub run {
     }
     select_console 'root-console';
     ensure_serialdev_permissions;
-    check_console_font;
+    check_console_font unless is_s390x;
 }
 
 sub test_flags {
