@@ -618,7 +618,9 @@ sub terraform_destroy {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
-        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+        unless (is_openstack) {
+            $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+        }
         # Add image_id, offer and sku on Azure runs, if defined.
         if (is_azure) {
             my $image = $self->get_image_id();
