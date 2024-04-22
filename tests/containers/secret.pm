@@ -68,8 +68,8 @@ sub run {
     record_info("Commit cont", "Commit container secret-test");
     assert_script_run("podman commit secret-test secret-test-image");
     assert_script_run("podman rm secret-test");
-    $output = script_output("podman run --name secret-test secret-test-image:latest 'cat /run/secrets/secret1 & printenv TOP_SECRET2'", proceed_on_failure => 1);
-    die("Secret commited") if ($output =~ m/T0p_S3cr3t1|T0p_S3cr3t2/);
+    $output = script_output("podman run --name secret-test secret-test-image:latest /bin/sh -c 'cat /run/secrets/secret1 & printenv TOP_SECRET2'", proceed_on_failure => 1);
+    die("Secret committed") if ($output =~ m/T0p_S3cr3t1|T0p_S3cr3t2/);
 
     # Remove secrets
     record_info("secret rm", "Remove all secrets created");
