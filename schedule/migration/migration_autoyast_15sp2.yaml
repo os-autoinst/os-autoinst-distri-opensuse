@@ -1,0 +1,23 @@
+---
+schedule:
+  - boot/boot_to_desktop
+  - migration/version_switch_origin_system
+  - migration/record_disk_info
+  - console/scc_cleanup_reregister
+  - migration/deregister_ltss
+  - migration/deregister_python2
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - autoyast/prepare_profile
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/zypper_lr
