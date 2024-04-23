@@ -41,7 +41,10 @@ sub run {
     elsif (is_sle('>=15')) {
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
-        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython';
+        zypper_call 'in git-core bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython';
+	# add PATH for 'krb5-config'
+        assert_script_run "echo 'export PATH=\$PATH:/usr/lib/mit/bin' >> /root/.bashrc";
+        assert_script_run('. /root/.bashrc');
     }
     # enable source repositories to get latest source packages
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
