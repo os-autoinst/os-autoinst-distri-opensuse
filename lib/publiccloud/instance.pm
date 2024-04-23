@@ -620,6 +620,7 @@ sub measure_boottime() {
     $Data::Dumper::Sortkeys = 1;
     record_info("RESULTS", Dumper($ret));
     my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
+    $instance->run_ssh_command(cmd => 'sudo chmod o+r ' . join(' ', map { "/var/log/$_" } @logs));
     $instance->upload_log("/var/log/" . $_, log_name => 'measure_boottime_' . $_ . '.txt', failok => 1) foreach (@logs);
     return $ret;
 }
