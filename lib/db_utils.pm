@@ -172,6 +172,7 @@ sub push_image_data_to_db {
 
     #my $data = encode_json(\%args);
     bmwqemu::diag("Collected image data: " . encode_json(\%args));
+    record_info("Image DB", "Destination DB: $url\nData: " . encode_json(\%args));
 
     my $res = $ua->post("$url" => {Authorization => "Bearer $token", Accept => "application/json",
             'Content-type' => "application/json"} => json => \%args)->result();
@@ -184,7 +185,7 @@ sub push_image_data_to_db {
         # return to the caller that conflict has been found
         # caller should exit the test case module immediately
     } else {
-        record_info('DB error', "There has been a problem pushing data to the $table. RC => " . $res->code, result => 'softfail');
+        record_info('DB error', "There has been a problem pushing data to the $table. RC => " . $res->code, result => 'fail');
     }
 
     return $res->code;
