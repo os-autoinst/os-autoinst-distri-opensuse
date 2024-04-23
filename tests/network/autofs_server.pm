@@ -33,7 +33,7 @@ use base 'consoletest';
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);
-use version_utils 'is_opensuse';
+use version_utils qw(is_leap is_sle);
 use strict;
 use warnings;
 
@@ -46,7 +46,7 @@ sub run {
     select_console "root-console";
     my $test_share_dir = "/tmp/nfs/server";
     my $nfsidmap_share_dir = "/home/tux";
-    if (is_opensuse) {
+    if (!is_sle) {
         zypper_call('modifyrepo -e 1');
         zypper_call('ref');
     }
@@ -61,7 +61,7 @@ sub run {
 
     # nfsidmap
     assert_script_run "echo N > /sys/module/nfsd/parameters/nfs4_disable_idmapping";
-    is_opensuse ? zypper_call('in libnfsidmap1') : zypper_call('in nfsidmap');
+    (is_leap('<15.6') || is_sle('<15-SP6')) ? zypper_call('in nfsidmap') : zypper_call('in libnfsidmap1');
     systemctl 'restart nfs-idmapd';
     assert_script_run "nfsidmap -c || true";
     assert_script_run "useradd -m tux";
