@@ -101,7 +101,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);
     # zypper_call("--gpg-auto-import-keys in docker libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
-    zypper_call("in libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
+    zypper_call("in libvirt-daemon libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
     #  systemctl("start docker.service libvirtd.service sshd.service");
     systemctl("start libvirtd.service sshd.service");
     create_image if (script_output('docker images') !~ m/libssh_image/);    #Skip building If image is already available. This is for Fips test
