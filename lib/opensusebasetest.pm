@@ -1047,7 +1047,7 @@ sub post_fail_hook {
 
 sub test_flags {
     # no_rollback is needed for ssh-tunnel and fatal must be explicitly defined
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {};
+    return is_public_cloud() ? {no_rollback => 1, fatal => 0} : {};
 }
 
 1;

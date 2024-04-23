@@ -537,7 +537,7 @@ sub is_server {
     return 1 if is_sles4sap();
     return 1 if is_sles4migration();
     return 1 if get_var('FLAVOR', '') =~ /^Server/;
-    return 1 if get_var('PUBLIC_CLOUD');
+    return 1 if is_public_cloud();
     # If unified installer, we need to check SLE_PRODUCT
     return 0 if get_var('FLAVOR', '') !~ /^Installer-|^Online|^Full/;
     return check_var('SLE_PRODUCT', 'sles');

@@ -16,7 +16,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6 is_public_cloud);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
 use Utils::Backends;
 
@@ -932,7 +932,7 @@ sub activate_console {
     # Both consoles and shells should be prevented from blanking
     if ((($type eq 'console') or ($type =~ /shell/)) and (get_var('BACKEND', '') =~ /qemu|svirt/)) {
         # On s390x 'setterm' binary is not present as there's no linux console
-        unless (is_s390x || get_var('PUBLIC_CLOUD')) {
+        unless (is_s390x || is_public_cloud()) {
             # Disable console screensaver
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
@@ -941,7 +941,7 @@ sub activate_console {
         die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
         # The verbose output is visible only at the tunnel-console - it doesn't interfere with tests as it isn't piped to /dev/sshserial
         $self->script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', 0);
-        ensure_user($user) unless (get_var('PUBLIC_CLOUD'));
+        ensure_user($user) unless (is_public_cloud());
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
 }

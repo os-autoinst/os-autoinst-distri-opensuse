@@ -37,7 +37,7 @@ our $result_module;
 sub reboot_wait {
     my ($self) = @_;
 
-    if (is_public_cloud) {
+    if (is_public_cloud()) {
         # Reboot on publiccloud needs to happen via their dedicated reboot routine
         my $instance = publiccloud::instances::get_instance();
         $instance->softreboot(timeout => 1200);
@@ -513,7 +513,7 @@ sub wrap_script_run {
             record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
         }
 
-        if (get_var('PUBLIC_CLOUD') && ($result == 'fail')) {
+        if (is_public_cloud() && ($result == 'fail')) {
             # Mark Public Cloud test cases as 'softfail' not 'fail' for not blocking 'bot' auto approval
             # as for 'saptune 3.1' current/old 'mr_test' do not fit cloud instances
             #   UserTasksMax

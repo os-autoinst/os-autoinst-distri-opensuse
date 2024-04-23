@@ -16,7 +16,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use Utils::Architectures;
-use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos);
+use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos is_public_cloud);
 use Utils::Backends;
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
@@ -265,7 +265,7 @@ sub is_ltp_test {
 }
 
 sub is_publiccloud_ltp_test {
-    return (get_var('LTP_COMMAND_FILE') && get_var('PUBLIC_CLOUD'));
+    return (get_var('LTP_COMMAND_FILE') && is_public_cloud());
 }
 
 sub is_kernel_test {
@@ -1538,7 +1538,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest "console/yast2_ftp";
     loadtest "console/yast2_tftp";
     # We cannot change network device settings as rely on ssh/vnc connection to the machine
-    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || get_var('PUBLIC_CLOUD'));
+    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || is_public_cloud());
 }
 
 sub load_extra_tests_texlive {
@@ -1688,7 +1688,7 @@ sub load_extra_tests_console {
     loadtest 'console/slp';
     loadtest 'console/pkcon';
     # Audio device is not supported on ppc64le, s390x, JeOS, Public Cloud and Xen PV
-    if (!get_var('PUBLIC_CLOUD') && !get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !is_s390x) {
+    if (!is_public_cloud() && !get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !is_s390x) {
         loadtest "console/aplay";
         loadtest "console/soundtouch" if is_opensuse || (is_sle('12-sp4+') && is_sle('<15'));
         # wavpack is available only sle12sp4 onwards
@@ -1719,7 +1719,7 @@ sub load_extra_tests_console {
     loadtest "console/perf" unless is_sle;
     loadtest "console/sysctl";
     loadtest "console/sysstat";
-    loadtest "console/curl_ipv6" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/curl_ipv6" unless is_public_cloud();
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
@@ -1742,10 +1742,10 @@ sub load_extra_tests_console {
         loadtest 'console/mutt';
     }
     loadtest 'console/supportutils' if (is_sle && !is_jeos);
-    loadtest 'console/mdadm' unless (is_jeos || get_var('PUBLIC_CLOUD'));
+    loadtest 'console/mdadm' unless (is_jeos || is_public_cloud());
     loadtest 'console/journalctl';
     loadtest 'console/quota' unless (is_jeos);
-    loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
+    loadtest 'console/vhostmd' unless is_public_cloud();
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || (is_sle('12-SP5+') && is_sle('<=15-SP3')));
@@ -1768,7 +1768,7 @@ sub load_extra_tests_console {
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
     loadtest "console/parsec" if is_tumbleweed;
-    loadtest "console/perl_bootloader" unless (get_var('PUBLIC_CLOUD') || is_bootloader_sdboot);
+    loadtest "console/perl_bootloader" unless (is_public_cloud() || is_bootloader_sdboot);
 }
 
 sub load_extra_tests_sdk {
@@ -2576,7 +2576,7 @@ sub load_transactional_role_tests {
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
     loadtest "terraform/create_image" if get_var('TERRAFORM');
-    load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !get_var('PUBLIC_CLOUD');
+    load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !is_public_cloud();
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/) && !get_var('INSTALLONLY');

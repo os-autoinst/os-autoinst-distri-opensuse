@@ -88,7 +88,7 @@ sub setup {
     # Remove "sap.conf" file to fix 12SP5 Public Cloud images Errors (see bsc#1218083 for more info):
     #   UserTasksMax                          [FAIL]  max == 12288
     #   UserTasksMax (sapconf DropIn)         [FAIL]  regular == missing
-    if (is_sle("=12-sp5") && get_var('PUBLIC_CLOUD')) {
+    if (is_sle("=12-sp5") && is_public_cloud()) {
         assert_script_run "rm -f /etc/systemd/logind.conf.d/sap.conf";
     }
 
