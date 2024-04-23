@@ -3,7 +3,7 @@
 # Copyright 2016-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Test NetworkManager
+# Summary: Test NetworkManager on SLE Micro/MicroOS environments
 # Maintainer: rfan1 <richard.fan@suse.com>
 
 use Mojo::Base "consoletest";
@@ -35,13 +35,15 @@ sub ping_check {
 
 # double check what DNS-Manager is currently used by NetworkManger
 sub dns_mgr {
-    my $RcManager
-      = script_output(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:RcManager'
-      );
-    my $mode = script_output(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:Mode
-        '
+    my $RcManager = script_output_retry(
+'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:RcManager',
+        delay => 5,
+        retry => 3
+    );
+    my $mode = script_output_retry(
+'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:Mode',
+        delay => 5,
+        retry => 3
     );
     return ($RcManager, $mode);
 }
@@ -90,8 +92,6 @@ true'
     ping_check;
     # systemd-resolved
     assert_script_run('rm -rf /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
-    trup_call('pkg install systemd-network');
-    check_reboot_changes;
     assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
     systemctl('restart NetworkManager');
     record_info('with systemd-resolved');
