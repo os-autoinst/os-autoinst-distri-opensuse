@@ -278,7 +278,7 @@ sub run {
       --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
     );
     push @hdblcm_args,
-      "--components=server,client",
+      "--components=" . get_var("HDBLCM_COMPONENTS", 'server'),
       "--sid=$sid",
       "--number=$instid",
       "--home=$mountpts{usr_sap}->{mountpt}",
@@ -289,6 +289,7 @@ sub run {
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
+    push @hdblcm_args, "--component_dirs=/sapinst/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
 
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;
