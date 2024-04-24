@@ -33,7 +33,14 @@ sub run {
     #    shutdown_guests();    # Shutdown SLES guests as they are not needed here
 
     import_guest $_, 'virt-install' foreach (values %virt_autotest::common::imports);
-    add_guest_to_hosts $_, $virt_autotest::common::imports{$_}->{ip} foreach (keys %virt_autotest::common::imports);
+
+    # Wait for Win2k19 boot, get IP via nmap, and add to hosts
+    sleep 60;
+    foreach (values %virt_autotest::common::imports) {
+        my $cmd = "nmap -sn 192.168.122.0/24 | grep $_->{macaddress} -B2 | head -1 | grep -oE '[0-9]+.[0-9]+.[0-9]+.[0-9]+'";
+        my $ip_address = script_output_retry $cmd, delay => 10, retry => 10;
+        add_guest_to_hosts $_->{name}, $ip_address;
+    }
 
     # Check if SSH is open because of that means that the guest is installed
     ensure_online $_, skip_ssh => 1 foreach (keys %virt_autotest::common::imports);
