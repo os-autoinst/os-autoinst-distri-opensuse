@@ -10,6 +10,7 @@
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use base 'consoletest';
 use strict;
 use warnings;
 use utils 'zypper_call';
@@ -20,7 +21,7 @@ use transactional;
 
 sub run {
     my ($self) = @_;
-    select_serial_terminal;
+    select_console 'root-console';
 
     if (script_run 'rpm -q perl-Bootloader') {
         install_package 'perl-Bootloader';
