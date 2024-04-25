@@ -45,6 +45,9 @@ sub run {
     record_info('Inspect', script_output("$engine inspect $image"));
 
     if ($build && $build ne 'UNKNOWN') {
+        ## HOTFIX for 12-SP5 s390x. Delete this after a proper fix is applied. This should not be necessary!
+        script_retry('zypper -n in jq', retry => 3) if (check_var('HOST_VERSION', '12-SP5'));
+
         my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
         # Note: Both lines are aligned, thus the additional space
         record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
