@@ -91,7 +91,7 @@ sub post_fail_hook {
             qesap_aws_delete_transit_gateway_vpc_attachment(name => qesap_calculate_deployment_name('qesapval') . '*');
         }
     }
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', timeout => 300);
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
 }

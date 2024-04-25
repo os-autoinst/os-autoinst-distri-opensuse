@@ -35,7 +35,7 @@ sub run {
     foreach my $host (@remote_ips) {
         die 'Timed out while waiting for ssh to be available in the CSP instances' if qesap_wait_for_ssh(host => $host) == -1;
     }
-    @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+    @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', timeout => 3600);
     if ($ret[0]) {
         # Retry to deploy terraform + ansible
         if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1])) {
@@ -53,7 +53,7 @@ sub post_fail_hook {
     qesap_cluster_logs();
     qesap_upload_logs();
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300) unless (script_run("test -e $inventory"));
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', timeout => 300) unless (script_run("test -e $inventory"));
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
 }

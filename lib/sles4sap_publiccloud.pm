@@ -191,12 +191,12 @@ sub sles4sap_cleanup {
 
         # 3 attempts for both terraform and ansible cleanup
         for (1 .. 3) {
-            my @cleanup_cmd_rc = qesap_execute(
-                verbose => '--verbose',
-                cmd => $command,
-                cmd_options => '-d',
-                timeout => 1200
-            );
+            my @cleanup_cmd_rc = eval { qesap_execute(
+                    cmd => $command,
+                    ($command eq 'ansible' ? () : (verbose => '--verbose')),
+                    cmd_options => '-d',
+                    timeout => 1200
+            ) unless };
             if ($cleanup_cmd_rc[0] == 0) {
                 diag(ucfirst($command) . " cleanup attempt # $_ PASSED.");
                 record_info("Clean $command",

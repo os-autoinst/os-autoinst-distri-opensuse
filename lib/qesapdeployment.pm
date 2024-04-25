@@ -540,7 +540,7 @@ sub qesap_execute_conditional_retry {
     $args{retries} //= 1;
 
     my @ret = qesap_execute(cmd => $args{cmd},
-        verbose => $args{verbose},
+        ($args{cmd} eq 'ansible' ? () : (verbose => '--verbose')),
         timeout => $args{timeout},
         logname => $args{logname});
 
@@ -2398,7 +2398,6 @@ sub qesap_terrafom_ansible_deploy_retry {
         die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
         @ret = qesap_execute(
             cmd => 'ansible',
-            verbose => 1,
             logname => 'qesap_ansible_retry.log.txt',
             timeout => 3600
         );
