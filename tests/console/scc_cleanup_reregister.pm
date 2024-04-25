@@ -16,7 +16,6 @@
 use strict;
 use warnings;
 use base "opensusebasetest";
-use migration 'deregister_dropped_modules';
 use testapi;
 use registration qw(cleanup_registration register_product register_addons_cmd);
 use scheduler 'get_test_suite_data';
@@ -27,7 +26,6 @@ sub run {
     register_product;
     my $addons = get_test_suite_data()->{addons};
     register_addons_cmd($addons);
-    deregister_dropped_modules;
 }
 
 1;
