@@ -287,6 +287,7 @@ sub run {
 
     prepare_serial_console;
 
+    sleep;
     my $console = select_console 'user-console';
     verify_user_info;
     enter_cmd "exit";
