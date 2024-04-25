@@ -22,6 +22,10 @@ sub install_service {
     zypper_call('in ntp');
 }
 
+sub remove_service {
+    zypper_call('rm ntp');
+}
+
 # This will be used by QAM ntp test.
 sub check_config {
     my $server_count = script_output 'ntpq -p | tail -n +3 | wc -l';
@@ -47,6 +51,10 @@ sub config_service {
 
 sub enable_service {
     common_service_action($service_name, $service_type, 'enable');
+}
+
+sub disable_service {
+    common_service_action($service_name, $service_type, 'disable');
 }
 
 sub start_service {
