@@ -52,24 +52,15 @@ sub run {
     my ($self, $args) = @_;
     my $provider;
     my $instance;
-    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
-
     select_serial_terminal();
 
-    if ($qam) {
-        $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider} = $args->{my_provider};
-    } else {
-        $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => 0);
-    }
-    $provider->{username} = 'suse';
+    $instance = $self->{my_instance} = $args->{my_instance};
+    $provider = $self->{provider} = $args->{my_provider};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));
 
     my $test_package = get_var('TEST_PACKAGE', 'jq');
-    registercloudguest($instance);
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
