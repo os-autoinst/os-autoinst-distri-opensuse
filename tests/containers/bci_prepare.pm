@@ -94,6 +94,9 @@ sub run {
     if ($host_distri eq 'ubuntu') {
         # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
         assert_script_run("dhclient -v");
+        # This command prevents a prompt that asks for services to be restarted
+        # causing a delay of 5min on each package install
+        script_run('export DEBIAN_FRONTEND=noninteractive');
         foreach my $pkg (@packages) {
             script_retry("apt-get -y install $pkg", timeout => 300);
         }
