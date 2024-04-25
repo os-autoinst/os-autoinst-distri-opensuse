@@ -47,6 +47,7 @@ sub run {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v");
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
+            script_retry("apt-get install -y jq");    # HOTFIX, should be removed ASAP.
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
             script_retry("yum update -q -y --nobest", timeout => $update_timeout);
