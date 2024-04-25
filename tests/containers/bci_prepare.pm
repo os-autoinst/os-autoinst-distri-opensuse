@@ -92,6 +92,8 @@ sub run {
     record_info('Install', 'Install needed packages');
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
+        # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
+        assert_script_run("dhclient -v");
         foreach my $pkg (@packages) {
             script_retry("apt-get -y install $pkg", timeout => 300);
         }
