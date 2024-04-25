@@ -28,6 +28,7 @@ schedule:
     - containers/install_updates
     - console/system_prepare
     - '{{fips}}'
+    - containers/bci_prepare
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'

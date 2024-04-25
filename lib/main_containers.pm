@@ -238,6 +238,7 @@ sub update_host_and_publish_hdd {
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
         loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIMES', 'openshift');
+        loadtest 'containers/bci_prepare';
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
@@ -263,7 +264,6 @@ sub load_container_tests {
         # Container Image tests common
         loadtest 'containers/host_configuration';
         if (get_var('BCI_TESTS') && !get_var('BCI_SKIP')) {
-            loadtest 'containers/bci_prepare';
             # bci_version_check required jq from bci_prepare.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
         }

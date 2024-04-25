@@ -63,6 +63,8 @@ my @conflicting_packages = (
     # can't be installed in parallel, Conflicts: otherproviders(waagent-config) see python-azure-agent.spec
     'python-azure-agent-config-server', 'python-azure-agent-config-micro',
     'python-azure-agent-config-hpc', 'python-azure-agent-config-default',
+    'libcontainers-openSUSE-policy',
+    'rmt-server-pubcloud',
     'kernel-default-base', 'kernel-default-extra'
 );
 
