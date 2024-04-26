@@ -53,6 +53,7 @@ sub packages_to_install {
             script_retry("SUSEConnect --auto-agree-with-licenses -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry('zypper -n in jq', retry => 3);
             push @packages, ('python36-devel', 'python36-pip');
         } elsif ($version =~ /15\.[1-3]/) {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
