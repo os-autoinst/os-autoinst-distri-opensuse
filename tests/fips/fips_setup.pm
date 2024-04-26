@@ -38,11 +38,12 @@ sub enable_fips {
         $self->reboot_and_select_serial_term;
         validate_script_output("fips-mode-setup --check", sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
     } else {
-        if (is_transactional) {
+        # on SL Micro 6.0+ we only need to reboot, no need to manually change grub.
+        if (is_sle_micro('<6.0')) {
             change_grub_config('=\"[^\"]*', '& fips=1 ', 'GRUB_CMDLINE_LINUX_DEFAULT');
             trup_call('--continue grub.cfg');
         } else {
-            add_grub_cmdline_settings('fips=1', update_grub => 1);
+            add_grub_cmdline_settings('fips=1', update_grub => 1) unless is_sle_micro;
         }
         $self->reboot_and_select_serial_term;
         assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
@@ -50,18 +51,12 @@ sub enable_fips {
 }
 
 sub install_fips {
-    # Environment variable mode
-    if (get_var("FIPS_ENV_MODE")) {
-        zypper_call("in -t pattern fips");
-        trup_call("pkg install -t pattern fips") if is_sle_micro;
-    }
-    # In kernel mode only, use the crypto-policies when possible
-    else {
-        zypper_call("in crypto-policies-scripts") if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed);
-        # No crypto-policies in older SLE
-        zypper_call("in -t pattern fips") if is_sle('<=15-SP3');
-        # crypto-policies script reports Cannot handle transactional systems.
-        trup_call("pkg install -t pattern fips") if is_sle_micro;
+    zypper_call("in crypto-policies-scripts") if (((is_sle('>=15-SP4') || is_jeos || is_tumbleweed)) && !get_var("FIPS_ENV_MODE"));
+    # No crypto-policies in older SLE
+    zypper_call("in -t pattern fips") if (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE"));
+    # crypto-policies script reports Cannot handle transactional systems.
+    if (is_sle_micro) {
+        is_sle_micro('<6.0') ? trup_call("pkg install -t pattern fips") : trup_call("setup-fips");
     }
 }
 
