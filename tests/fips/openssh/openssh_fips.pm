@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use version_utils qw(is_sle is_transactional);
+use version_utils qw(is_sle is_transactional is_sle_micro);
 
 sub run {
     select_serial_terminal;
@@ -40,10 +40,12 @@ sub run {
       sub { m/MD5 not allowed in FIPS 140-2 mode, using SHA|Server host key: .* SHA/ } unless is_transactional;
 
     # Verify ssh doesn't work with non-approved cipher in fips mode
-    validate_script_output('ssh -v -c blowfish localhost', sub { m/Unknown cipher type|no matching cipher found/ }, proceed_on_failure => 1);
+    my $cmd = is_sle_micro('>=6.0') ? 'ssh -v -c blowfish localhost' : 'expect -c "spawn ssh -v -c blowfish localhost; expect EOF; exit 0"';
+    validate_script_output("$cmd", sub { m/Unknown cipher type|no matching cipher found/ }, proceed_on_failure => 1);
 
     # Verify ssh doesn't work with non-approved hash in fips mode
-    validate_script_output('ssh -v -c aes256-ctr -m hmac-md5 localhost', sub { m/Unknown mac type|no matching MAC found/ }, proceed_on_failure => 1);
+    $cmd = is_sle_micro('>=6.0') ? 'ssh -v -c aes256-ctr -m hmac-md5 localhost' : 'expect -c "spawn ssh -v -c aes256-ctr -m hmac-md5 localhost; expect EOF; exit 0"';
+    validate_script_output("$cmd", sub { m/Unknown mac type|no matching MAC found/ }, proceed_on_failure => 1);
 
     # Verify ssh doesn't support DSA public key in fips mode
     validate_script_output('ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ }, proceed_on_failure => 1);
