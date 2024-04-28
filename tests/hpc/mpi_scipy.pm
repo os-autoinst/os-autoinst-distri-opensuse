@@ -15,7 +15,6 @@ use lockapi;
 use utils;
 use registration;
 use Utils::Logging 'export_logs';
-use hpc::formatter;
 
 sub run ($self) {
     select_serial_terminal();
@@ -28,7 +27,9 @@ sub run ($self) {
         hpc_lib => '/usr/lib/hpc',
     );
     my $mpi2load = '';
-    my $mpirun_s = hpc::formatter->new();
+    my @cluster_nodes = $self->cluster_names();
+    my $cluster_nodes = join(',', @cluster_nodes);
+
     my $user_virtio_fixed = isotovideo::get_version() >= 35;
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
@@ -51,7 +52,7 @@ sub run ($self) {
     assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 1200);
     script_run "module av";
 
-    assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+    assert_script_run("mpirun --host $cluster_nodes python3 $exports_path{'bin'}/$mpi_bin");
     barrier_wait('SCIPY_RUN_TEST');
 }
 
