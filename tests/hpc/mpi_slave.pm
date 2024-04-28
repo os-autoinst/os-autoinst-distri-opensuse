@@ -38,6 +38,7 @@ sub run ($self) {
         barrier_wait('HDF5_RUN_TEST');
     }
     if (check_var('SCIPY', 'RUN')) {
+        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 1200);
         barrier_wait('SCIPY_RUN_TEST');
     }
 }
