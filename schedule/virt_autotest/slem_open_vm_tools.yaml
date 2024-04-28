@@ -1,0 +1,15 @@
+name:           slem_open_vm_tools
+description:    >
+    Maintainer: nan.zhang@suse.com, qe-virt@suse.de
+    SLE-Micro vmdk image setups with integration services and open-vm-tools test modules
+schedule:
+    - installation/bootloader_svirt
+    - installation/bootloader_uefi
+    - jeos/firstrun
+    - transactional/host_config
+    - console/suseconnect_scc
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/integration_services
+    - virt_autotest/esxi_open_vm_tools
