@@ -38,7 +38,14 @@ sub run ($self) {
         barrier_wait('HDF5_RUN_TEST');
     }
     if (check_var('SCIPY', 'RUN')) {
+        zypper_call("in python3-scipy-gnu-hpc python3-devel $mpi-gnu-hpc-devel");
+
+        # Make sure that env is updated. This will run scripts like 'source /usr/share/lmod/lmod/init/bash'
+        $self->relogin_root;
+        my $mpi2load = ($mpi =~ /openmpi2|openmpi3|openmpi4/) ? 'openmpi' : $mpi;
+        assert_script_run "module load gnu $mpi2load python3-scipy";
         assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 1200);
+
         barrier_wait('SCIPY_RUN_TEST');
     }
 }
