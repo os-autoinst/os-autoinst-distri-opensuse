@@ -753,7 +753,7 @@ sub check_replication_state {
     my $cmd = "su - $sapadm -c 'python exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node
-    my $output = script_output($cmd, proceed_on_failure => 1);
+    my $output = script_output($cmd, proceed_on_failure => 1, timeout => 200);
     return if $output !~ /mode:[\r\n\s]+PRIMARY/;
 
     # Loop until ACTIVE state or timeout is reached
