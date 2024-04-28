@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Cleanup scc registration and reregister system and addon products.
-# The addons can be defined either by SCC_ADDONS variable or in test data:
+# The addons can be defined by SCC_ADDONS variable.
 #
 # test_data:
 #   addons: dev,phub
@@ -19,14 +19,12 @@ use base "opensusebasetest";
 use migration 'deregister_dropped_modules';
 use testapi;
 use registration qw(cleanup_registration register_product register_addons_cmd);
-use scheduler 'get_test_suite_data';
 
 sub run {
     select_console 'root-console';
     cleanup_registration;
     register_product;
-    my $addons = get_test_suite_data()->{addons};
-    register_addons_cmd($addons);
+    register_addons_cmd();
     deregister_dropped_modules;
 }
 
