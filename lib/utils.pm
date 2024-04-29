@@ -1146,6 +1146,16 @@ sub set_hostname {
     if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
         my $state = script_output 'nmcli networking connectivity check', proceed_on_failure => 1;
 
+        if (!($state =~ /full/)) {
+            systemctl('restart NetworkManager');
+
+            for (my $i = 0; $i < 10; $i++) {
+                $state = script_output 'nmcli -w 5 networking connectivity check';
+                last if $state =~ /full/;
+                sleep 1;
+            }
+        }
+
         if ($state =~ /full/) {
             my @devs = split("\n", script_output('nmcli device'));
 
