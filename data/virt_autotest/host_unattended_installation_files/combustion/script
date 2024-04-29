@@ -10,13 +10,10 @@ grub2_config() {
     echo "DEBUG: now $file is,"
     cat $file
     grub2-mkconfig -o /boot/grub2/grub.cfg
-    # Set boot to sl-secureboot entry -- newly installed SL Micro
-    bootnum=$(efibootmgr | grep sl-secureboot | grep -o "^Boot[^\s]*" | sed -e 's/Boot//' -e 's/\*//')
-    efibootmgr -o $bootnum
 }
 
 # Redirect output to the console
 # Comment off to workaround https://bugzilla.suse.com/show_bug.cgi?id=1222411#c9
-# exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
+ exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
     grub2_config # Configure grub2 in the system
 

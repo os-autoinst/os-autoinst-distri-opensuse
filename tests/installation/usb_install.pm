@@ -88,33 +88,40 @@ sub run {
         # so we use efibootmgr instead
         record_info('efibootmgr output after dd iso to usb:', script_output('efibootmgr -v'));
         save_screenshot;
-        my $UEFI_USB_BOOT_LABEL = "OpenQA-added-UEFI-USB-BOOT";
 
-        # Delete the sle micro usb boot entry if it exists already
-        # (old boot entry survives new installation)
+        my $UEFI_USB_BOOT_LABEL = "OpenQA-added-UEFI-USB-BOOT";
+        my $cmd = '';
         my $output = '';
         my $usb_boot_num = '';
-        my $cmd = "efibootmgr | grep $UEFI_USB_BOOT_LABEL";
-        if (script_run("$cmd") == 0) {
-            $output = script_output("$cmd");
-            save_screenshot;
-            $output =~ /Boot([0-9A-F]+)\*/m;
-            $usb_boot_num = $1;
-            assert_script_run("efibootmgr -B -b $usb_boot_num");
-            record_info("Existing UEFI boot for $UEFI_USB_BOOT_LABEL is deleted.", script_output('efibootmgr -v'));
-        }
+        if (get_var('SPECIFIED_USB_BOOT_ENTRY')) {
+            # Workaround for some machines, like vh081/82, which can not boot from user-added
+            # uefi boot entry, but BIOS auto-detected entry.
+            $UEFI_USB_BOOT_LABEL = get_required_var('SPECIFIED_USB_BOOT_ENTRY');
+        } else {
+            # Delete the sle micro usb boot entry if it exists already
+            # (old boot entry survives new installation)
+            $cmd = "efibootmgr | grep $UEFI_USB_BOOT_LABEL";
+            if (script_run("$cmd") == 0) {
+                $output = script_output("$cmd");
+                save_screenshot;
+                $output =~ /Boot([0-9A-F]+)\*/m;
+                $usb_boot_num = $1;
+                assert_script_run("efibootmgr -B -b $usb_boot_num");
+                record_info("Existing UEFI boot for $UEFI_USB_BOOT_LABEL is deleted.", script_output('efibootmgr -v'));
+            }
 
-        # Add new sle micro usb boot entry
-        $cmd = "efibootmgr -c -d $medium_usb -p 2 -L $UEFI_USB_BOOT_LABEL -l /EFI/BOOT/grub.efi";
-        assert_script_run("$cmd");
-        save_screenshot;
+            # Add new sle micro usb boot entry
+            $cmd = "efibootmgr -c -d $medium_usb -p 2 -L $UEFI_USB_BOOT_LABEL -l /EFI/BOOT/grub.efi";
+            assert_script_run("$cmd");
+            save_screenshot;
+        }
         $cmd = "efibootmgr | grep $UEFI_USB_BOOT_LABEL";
         $output = script_output("$cmd");
         $output =~ /Boot([0-9A-F]+)\*/m;
         $usb_boot_num = $1;
         assert_script_run("efibootmgr -n $usb_boot_num");
         save_screenshot;
-        record_info("UEFI boot for $UEFI_USB_BOOT_LABEL is added", script_output('efibootmgr -v'));
+        record_info("UEFI next boot is set to USB BOOT entry '$UEFI_USB_BOOT_LABEL'.", script_output('efibootmgr -v'));
     } else {
         set_floppy_boot;
     }

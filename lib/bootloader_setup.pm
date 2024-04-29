@@ -391,6 +391,7 @@ sub uefi_bootmenu_params {
     if (is_ipmi && is_selfinstall && is_usb_boot) {
         my $counter = 0;
         my $max_tries = 5;
+        my $delete_key = get_var('DELETE_KEY', '') ? get_var('DELETE_KEY') : 'delete';
         while (!check_screen('pass-bootparam-to-firstboot', 2) && $counter++ < $max_tries) {
             # Re-enter grub edit by discarding changes for 2+ round
             if ($counter > 1) {
@@ -421,11 +422,11 @@ sub uefi_bootmenu_params {
             next if (!check_screen('on-linux-console-ttyS0', 2));
 
             # Delete `ttyS0`
-            send_key('delete', wait_screen_change => 1) for (1 .. 5);
+            send_key($delete_key, wait_screen_change => 1) for (1 .. 5);
             $_counter = 0;
             $_max = 3;
             while (!check_screen('deleted-ttyS0', 2) && $_counter++ < $_max) {
-                send_key('delete', wait_screen_change => 1);
+                send_key($delete_key, wait_screen_change => 1);
             }
             next if (!check_screen('deleted-ttyS0', 2));
 
@@ -443,11 +444,11 @@ sub uefi_bootmenu_params {
             next if (!check_screen('on-linux-console=tty0', 2));
 
             # Delete `console=tty0`
-            send_key('delete', wait_screen_change => 1) for (1 .. 12);
+            send_key($delete_key, wait_screen_change => 1) for (1 .. 12);
             $_counter = 0;
             $_max = 5;
             while (!check_screen('deleted-console=tty0', 2) && $_counter++ < $_max) {
-                send_key('delete', wait_screen_change => 1);
+                send_key($delete_key, wait_screen_change => 1);
             }
             next if (!check_screen('deleted-console=tty0', 2));
 
