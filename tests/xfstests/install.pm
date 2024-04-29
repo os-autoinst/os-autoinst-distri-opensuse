@@ -27,6 +27,7 @@ use transactional;
 
 my $STATUS_LOG = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
+my @PACKAGES = (qw(xfstests fio), split(/ /, get_var('XFSTESTS_PACKAGES')));
 
 sub install_xfstests_from_repo {
     if (is_sle) {
@@ -56,7 +57,7 @@ sub install_xfstests_from_repo {
         reboot_on_changes;
     }
     else {
-        zypper_call('in xfstests fio fsverity-utils');
+        zypper_call('in ' . join(' ', @PACKAGES));
     }
     if (is_sle) {
         script_run 'ln -s /var/lib/xfstests /opt/xfstests';
