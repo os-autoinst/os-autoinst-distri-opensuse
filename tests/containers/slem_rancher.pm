@@ -21,7 +21,7 @@ sub run {
     my $image = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.suse.de/suse/sle-15-sp3/update/products/microos52/update/cr/totest/images/suse/sle-micro-rancher/5.2:latest');
 
     assert_script_run("podman pull $image");
-    assert_script_run("podman run --name slem_image -dt $image");
+    assert_script_run("podman run --name slem_image -dt $image /bin/bash");
 
     record_info('Kernel', 'Test that kernel files are present');
     validate_script_output("podman exec slem_image /bin/sh -c 'ls /boot'", sub { /initrd/ });
@@ -29,7 +29,9 @@ sub run {
 
     record_info('Firmware', 'Test that /lib/firmware directory is not empty');
     assert_script_run("podman exec slem_image /bin/sh -c 'test -d /lib/firmware'");
-    assert_script_run("podman exec slem_image /bin/sh -c '[[ -n \"`ls -A /lib/firmware`\" ]]'");
+    unless ($image =~ m/base/) {
+        assert_script_run("podman exec slem_image /bin/sh -c '[[ -n \"`ls -A /lib/firmware`\" ]]'");
+    }
 
     record_info('grub', "Test that /etc/default/grub exists and it's not empty");
     assert_script_run("podman exec slem_image /bin/sh -c 'test -s /etc/default/grub'");
