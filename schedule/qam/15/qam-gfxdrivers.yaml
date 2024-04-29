@@ -25,5 +25,6 @@ schedule:
 - console/consoletest_finish
 - locale/keymap_or_locale_x11
 - x11/glxgears
-- shutdown/cleanup_before_shutdown
+- kernel/usb_nic
+- kernel/usb_drive
 - shutdown/shutdown
