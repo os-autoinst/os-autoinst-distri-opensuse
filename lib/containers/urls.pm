@@ -188,6 +188,18 @@ our %images_list = (
                 }
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
+        },
+        '15.6' => {
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.6' },
+            totest => sub {
+                my $arch = shift;
+                if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
+                    'registry.opensuse.org/opensuse/leap/15.6/images/totest/containers/opensuse/leap:15.6';
+                } elsif ($arch eq 'arm') {
+                    'registry.opensuse.org/opensuse/leap/15.6/arm/images/totest/containers/opensuse/leap:15.6';
+                }
+            },
+            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
         }
     },
     'sle-micro' => {
