@@ -139,7 +139,7 @@ sub run {
 }
 
 sub cleanup() {
-    script_run("rm -f $test_dir/podman-$podman_version/");
+    script_run("rm -rf $test_dir/podman-$podman_version/");
 }
 
 sub post_fail_hook {
