@@ -53,7 +53,8 @@ sub run {
     # Press key 't' to let grub2 boot menu show up in serial console
     if (is_ipmi && current_console eq 'sol' && is_selfinstall && get_var('IPXE_UEFI')) {
         assert_screen('press-t-for-boot-menu', 180);
-        send_key('t');
+        sleep 5;
+        send_key('t', wait_screen_change => 1);
     }
 
     # Enabled boot menu for x86_64 uefi. In migration cases we set cdrom as boot index=0
