@@ -79,12 +79,15 @@ sub run {
     $instance->softreboot();
     $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
 
-    # cockpit test
-    $instance->run_ssh_command(cmd => '! curl localhost:9090');
-    $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
-    $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    # cockpit is absent in SLM 6.0
+    unless (is_sle_micro('=6.0')) {
+        # cockpit test
+        $instance->run_ssh_command(cmd => '! curl localhost:9090');
+        $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
+        $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
+        $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    }
 
     # additional tr-up tests
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
