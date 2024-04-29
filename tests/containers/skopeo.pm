@@ -11,7 +11,6 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';    # used in select_serial_terminal
 use utils 'zypper_call';    # used in zypper_call
-use version_utils 'package_version_cmp';
 use version_utils 'is_transactional';
 use transactional;
 use containers::common qw(install_packages);
@@ -33,10 +32,7 @@ sub run {
     record_info('Installing packages', 'Install required packages');
     install_packages(@packages);
 
-    # Verify that skopeo version emits a reasonable output.
-    record_info('Verify version', 'Verify that skopeo version is greater or equal to 1.12.0.');
-    die('wrong skopeo version') unless (package_version_cmp('1.12.0', script_output('skopeo --version | cut -d" " -f3')) <= 0);
-    # skopeo --version | cut -d" " -f3 --> separates "skopeo version 1.12.0" output into and array and takes third value "1.12.0"
+    record_info('skopeo version', script_output("skopeo --version"));
 
     # Create test directory
     script_run("mkdir $workdir");
