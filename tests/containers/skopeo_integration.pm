@@ -10,8 +10,9 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
-use utils qw(script_retry ensure_serialdev_permissions);
-use version_utils qw(is_sle);
+use utils qw(zypper_call script_retry ensure_serialdev_permissions);
+use transactional qw(trup_call);
+use version_utils qw(is_sle is_sle_micro);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
 
@@ -38,7 +39,16 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    if (is_sle) {
+    if (is_sle_micro) {
+        my $sle_version = "";
+        if (is_sle_micro('<6.0')) {
+            $sle_version = "15.5";
+        } else {
+            die "Unsupported SLEM";
+        }
+        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
+        zypper_call "--gpg-auto-import-keys ref";
+    } elsif (is_sle) {
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
