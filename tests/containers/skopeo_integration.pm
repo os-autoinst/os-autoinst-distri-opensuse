@@ -28,6 +28,10 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
     script_run "rm systemtest/$_.bats" foreach (@skip_tests);
 
+    # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
+    my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
+    assert_script_run "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
+
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
