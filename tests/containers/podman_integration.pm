@@ -94,12 +94,16 @@ sub run {
     }
 
     assert_script_run "podman system reset -f";
-    if (is_transactional) {
-        trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
-        check_reboot_changes;
-    } else {
-        script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+
+    if (script_run("test -f /etc/containers/mounts.conf -o -f /usr/share/containers/mounts.conf") == 0) {
+        if (is_transactional) {
+            trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+            check_reboot_changes;
+        } else {
+            script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+        }
     }
+
     switch_cgroup_version($self, 2);
 
     # Create user if not present
