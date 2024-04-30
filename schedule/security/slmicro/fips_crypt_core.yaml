@@ -1,8 +1,8 @@
 name: fips_crypt_core
 description:    >
-    This is for the crypt_core fips tests on SLEM.
+    This is for the crypt_core fips tests on SLE Micro.
 schedule:
-    - '{{slem_boot}}'
+    - '{{boot}}'
     - transactional/host_config
     - console/suseconnect_scc
     - security/selinux/selinux_setup
@@ -25,7 +25,7 @@ schedule:
     - console/journal_check
     - shutdown/shutdown
 conditional_schedule:
-    slem_boot:
+    boot:
         ENCRYPTED_IMAGE:
             0:
                 - microos/disk_boot
