@@ -48,9 +48,10 @@ sub run {
     select_serial_terminal;
 
     add_packagehub;
+    install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns bats catatonit jq make netavark netcat-openbsd openssl podman python3-PyYAML socat sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit jq make netavark netcat-openbsd openssl podman python3-PyYAML socat sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
     # NOTE: passt should be pulled in as a dependency on podman 5.0+

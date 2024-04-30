@@ -42,9 +42,10 @@ sub run {
     select_serial_terminal;
 
     add_packagehub;
+    install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils bats go jq openssl podman skopeo);
+    my @pkgs = qw(apache2-utils jq openssl podman skopeo);
     install_packages(@pkgs);
 
     remove_mounts_conf;

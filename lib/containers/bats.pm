@@ -21,7 +21,17 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 
-our @EXPORT = qw(add_packagehub remove_mounts_conf switch_to_user);
+our @EXPORT = qw(install_bats add_packagehub remove_mounts_conf switch_to_user);
+
+sub install_bats {
+    return if (script_run("which bats") == 0);
+
+    my $bats_version = get_var("BATS_VERSION", "1.11.0");
+
+    script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+    assert_script_run "cd bats-core-$bats_version";
+    assert_script_run "bash ./install.sh /usr/local";
+}
 
 sub add_packagehub {
     if (is_sle_micro) {
