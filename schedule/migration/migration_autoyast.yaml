@@ -1,11 +1,10 @@
 ---
 schedule:
   - boot/boot_to_desktop
-  - migration/version_switch_origin_system
   - migration/record_disk_info
-  - console/scc_cleanup_reregister
-  - migration/reboot_to_upgrade
-  - migration/version_switch_upgrade_target
+  - yam/migration/setup_registration
+  - yam/migration/setup_upgrade
+  - yam/migration/reboot_to_boot_screen
   - autoyast/prepare_profile
   - installation/bootloader
   - autoyast/installation
