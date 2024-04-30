@@ -1,6 +1,6 @@
-name: container_selinux
+name: selinux
 description: >
-    This is for container-selinux test on SLE Micro.
+    This is for SElinux test
 schedule:
     - '{{boot_s390}}'
     - '{{boot_non_s390}}'
@@ -8,8 +8,20 @@ schedule:
     - console/suseconnect_scc
     - security/selinux/selinux_setup
     - security/selinux/sestatus
-    - security/selinux/container_selinux
+    - security/selinux/semanage_fcontext
+    - security/selinux/semanage_boolean
+    - security/selinux/fixfiles
+    - security/selinux/print_se_context
+    - security/selinux/audit2allow
+    - security/selinux/semodule
+    - security/selinux/setsebool
+    - security/selinux/restorecon
+    - security/selinux/chcon
+    - security/selinux/chcat
+    - security/selinux/set_get_enforce
+    - security/selinux/selinuxexeccon
     - console/journal_check
+    - shutdown/shutdown
 conditional_schedule:
     boot_s390:
         ARCH:
