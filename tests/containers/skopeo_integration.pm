@@ -11,8 +11,8 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils qw(zypper_call script_retry ensure_serialdev_permissions);
-use transactional qw(trup_call);
-use version_utils qw(is_sle is_sle_micro);
+use transactional qw(trup_call check_reboot_changes);
+use version_utils qw(is_sle is_sle_micro is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
 
@@ -53,8 +53,17 @@ sub run {
     }
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils bats go jq podman skopeo);
+    my @pkgs = qw(apache2-utils bats go jq openssl podman skopeo);
     install_packages(@pkgs);
+
+    if (script_run("test -f /etc/containers/mounts.conf -o -f /usr/share/containers/mounts.conf") == 0) {
+        if (is_transactional) {
+            trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+            check_reboot_changes;
+        } else {
+            script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+        }
+    }
 
     # Create user if not present
     if (script_run("grep $testapi::username /etc/passwd") != 0) {
