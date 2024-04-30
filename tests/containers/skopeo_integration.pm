@@ -9,13 +9,11 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
-use utils qw(zypper_call script_retry ensure_serialdev_permissions);
-use transactional qw(trup_call check_reboot_changes);
-use version_utils qw(is_sle is_sle_micro is_transactional);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use serial_terminal qw(select_serial_terminal);
+use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
+use containers::bats qw(install_bats add_packagehub remove_mounts_conf switch_to_user);
 
 my $test_dir = "/var/tmp";
 my $skopeo_version = "";
@@ -43,42 +41,15 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    if (is_sle_micro) {
-        my $sle_version = "";
-        if (is_sle_micro('<6.0')) {
-            $sle_version = "15.5";
-        } else {
-            die "Unsupported SLEM";
-        }
-        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
-        zypper_call "--gpg-auto-import-keys ref";
-    } elsif (is_sle) {
-        add_suseconnect_product(get_addon_fullname('phub'));
-    }
+    add_packagehub;
 
     # Install tests dependencies
     my @pkgs = qw(apache2-utils bats go jq openssl podman skopeo);
     install_packages(@pkgs);
 
-    if (script_run("test -f /etc/containers/mounts.conf -o -f /usr/share/containers/mounts.conf") == 0) {
-        if (is_transactional) {
-            trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
-            check_reboot_changes;
-        } else {
-            script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
-        }
-    }
+    remove_mounts_conf;
 
-    # Create user if not present
-    if (script_run("grep $testapi::username /etc/passwd") != 0) {
-        my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
-        assert_script_run "useradd -m -G $serial_group $testapi::username";
-        assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
-        ensure_serialdev_permissions;
-        select_console "user-console";
-    } else {
-        select_user_serial_terminal();
-    }
+    switch_to_user;
 
     # Download skopeo sources
     my $test_dir = "/var/tmp";
