@@ -207,7 +207,7 @@
     "boo#1193426": {
         "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
         "products": {
-            "opensuse": ["Tumbleweed", "15.4", "15.5"]
+            "opensuse": ["Tumbleweed", "15.4", "15.5", "15.6"]
         },
         "type": "bug"
     },
