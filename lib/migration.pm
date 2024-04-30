@@ -31,6 +31,7 @@ our @EXPORT = qw(
   set_zypp_single_rpmtrans
   remove_dropped_modules_packages
   workaround_bsc_1220091
+  workaround_bsc_1211458
 );
 
 sub setup_sle {
@@ -265,4 +266,17 @@ sub workaround_bsc_1220091 {
     zypper_call("rm $pkg") unless script_run("rpm -q $pkg");
 }
 
+=head2 workaround_bsc_1211458
+    workaround_bsc_1211458()
+
+This function is used for removing python-ply for bsc#1220091
+We need to remove package python-ply before migration.
+
+=cut
+
+sub workaround_bsc_1211458 {
+    for my $pkg ('python-ply', 'python-packaging') {
+        zypper_call("rm $pkg") unless script_run("rpm -q $pkg");
+    }
+}
 1;
