@@ -11,10 +11,11 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils qw(zypper_call script_retry ensure_serialdev_permissions);
-use transactional qw(trup_call);
-use version_utils qw(is_sle is_sle_micro);
+use transactional qw(trup_call check_reboot_changes);
+use version_utils qw(is_sle is_sle_micro is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
+use Utils::Architectures qw(is_x86_64);
 
 my $test_dir = "/var/tmp";
 my $skopeo_version = "";
@@ -29,8 +30,11 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
     script_run "rm systemtest/$_.bats" foreach (@skip_tests);
 
+    # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
+    my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
+
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "SKOPEO_BINARY=/usr/bin/skopeo bats --tap systemtest | tee -a $log_file", 1200;
+    script_run "SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf systemtest";
 }
@@ -55,6 +59,15 @@ sub run {
     # Install tests dependencies
     my @pkgs = qw(apache2-utils bats go jq openssl podman skopeo);
     install_packages(@pkgs);
+
+    if (script_run("test -f /etc/containers/mounts.conf -o -f /usr/share/containers/mounts.conf") == 0) {
+        if (is_transactional) {
+            trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+            check_reboot_changes;
+        } else {
+            script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+        }
+    }
 
     # Create user if not present
     if (script_run("grep $testapi::username /etc/passwd") != 0) {
