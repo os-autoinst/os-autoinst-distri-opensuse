@@ -38,6 +38,11 @@ sub run {
 }
 
 sub run_tests ($python3_spec_release) {
+    if ($python3_spec_release eq 'python39' && check_var('VERSION', '15-SP5')) {
+        # python39-pip not availbale on 15sp5  https://progress.opensuse.org/issues/159777
+        record_info("Skip python39", 'https://jira.suse.com/browse/PED-8196');
+        return;
+    }
     zypper_call("install $python3_spec_release");
     record_info("pip3 version:", script_output("rpm -q $python3_spec_release-pip"));
     record_info("python3-setuptools:", script_output("rpm -q $python3_spec_release-setuptools"));
