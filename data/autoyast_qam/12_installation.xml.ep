@@ -44,11 +44,18 @@
         <alias>12-SP2-LTSS-ERICSSON-Updates</alias>
       </listentry>
       % }
-      % if ($check_var->('VERSION', '12-SP3')) {
+      % if ($check_var->('VERSION', '12-SP3') and $check_var->('FLAVOR', 'Server-DVD-Updates')) {
       <listentry>
         <media_url>http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url>
         <name>12-SP3-LTSS-TERADATA-Updates</name>
         <alias>12-SP3-LTSS-TERADATA-Updates</alias>
+      </listentry>
+      % }
+      % if ($check_var->('VERSION', '12-SP3') and $check_var->('FLAVOR', 'Server-DVD-Updates-TERADATA')) {
+      <listentry>
+        <media_url>http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-TERADATA/x86_64/update/</media_url>
+        <name>12-SP3-TERADATA-Updates</name>
+        <alias>12-SP3-TERADATA-Updates</alias>
       </listentry>
       % }
     </add_on_products>
@@ -222,6 +229,7 @@
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
   </general>
+  % }
   % if ($check_var->('ARCH', 'aarch64')) {
   <partitioning config:type="list">
     <drive>
@@ -266,7 +274,7 @@
     </drive>
   </partitioning>
   % }
-  % unless ($check_var->('ARCH', 'aarch64')) {
+  % if ($check_var->('ARCH', 'x86_64')) {
   <partitioning config:type="list">
     <drive>
     <initialize config:type="boolean">true</initialize>
@@ -274,6 +282,7 @@
     </drive>
   </partitioning>
   % }
+  % unless ($check_var->('ARCH', 's390x')) {
   <networking>
     <interfaces config:type="list">
       <interface>
@@ -284,6 +293,7 @@
       </interface>
     </interfaces>
   </networking>
+  % }
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
@@ -291,7 +301,6 @@
     <FW_DEV_EXT>eth0</FW_DEV_EXT>
     <FW_SERVICES_ACCEPT_EXT>0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
   </firewall>
-  % }
   <report>
     <errors>
       <log config:type="boolean">true</log>
