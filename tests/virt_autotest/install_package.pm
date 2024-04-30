@@ -15,8 +15,10 @@ use Utils::Architectures;
 use version_utils qw(is_sle);
 use virt_utils;
 use utils;
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends qw(is_remote_backend use_ssh_serial_console);
 use virt_autotest::utils qw(is_xen_host subscribe_extensions_and_modules);
+use ipmi_backend_utils;
+
 
 sub install_package {
 
@@ -107,7 +109,21 @@ sub install_package {
 }
 
 sub run {
+#            select_console 'sol', await_console => 0;
+#        use_ssh_serial_console;
+    script_run("date");
+    script_run("systemctl --no-pager status sshd");
+    script_run("zypper ar http://download.suse.de/ibs/home:/Julie_CAO/SLE_15_SP6 julie");
+    script_run("zypper --gpg-auto-import-keys ref -r julie");
+    script_run("zypper -n in -r julie qa_lib_keys");
+    script_run("zypper info qa_lib_keys");
+    script_run("zypper mr -d julie");
     install_package;
+    #julie
+    script_run("date");
+    script_run("systemctl --no-pager status sshd");
+    script_run("ls -l /root/.ssh/");
+    script_run("ls -l /etc/ssh/");
 }
 
 

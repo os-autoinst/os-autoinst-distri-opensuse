@@ -48,6 +48,7 @@ sub update_package {
 sub run {
     my $self = shift;
     #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
+    script_run("ls -l /root/.ssh/");  #julie
     $self->update_package() unless (!!get_var('AUTOYAST') || is_registered_sles && is_aarch64);
     if (!!get_var('AUTOYAST') || (is_registered_sles && is_aarch64)) {
         my @files_to_upload = ("/boot/grub2/grub.cfg", "/etc/default/grub");
@@ -75,6 +76,14 @@ sub run {
         }
         save_screenshot;
     }
+    #julie
+    script_run("ls -l /root/.ssh/");
+    script_run("ls -l /etc/ssh");
+    #    script_run("cp /etc/ssh/bak/ssh_host_rsa_key /etc/ssh/");
+    #    script_run("cp /etc/ssh/bak/ssh_host_rsa_key.pub /etc/ssh/");
+    #    script_run("systemctl restart sshd", die_on_timeout => 0);
+    #    sleep 5;
+    script_run("systemctl --no-pager status sshd", die_on_timeout => 0);
 
 }
 
