@@ -53,7 +53,7 @@ sub run {
     }
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils bats go jq podman skopeo);
+    my @pkgs = qw(apache2-utils bats go jq openssl podman skopeo);
     install_packages(@pkgs);
 
     # Create user if not present
