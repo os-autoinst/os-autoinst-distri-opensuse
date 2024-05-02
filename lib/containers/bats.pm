@@ -20,7 +20,7 @@ use version_utils qw(is_transactional);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 
-our @EXPORT = qw(install_bats add_packagehub remove_mounts_conf switch_to_user);
+our @EXPORT = qw(install_bats add_packagehub remove_mounts_conf switch_to_user delegate_controllers);
 
 sub install_bats {
     return if (script_run("which bats") == 0);
@@ -54,5 +54,15 @@ sub switch_to_user {
         select_console "user-console";
     } else {
         select_user_serial_terminal();
+    }
+}
+
+sub delegate_controllers {
+    if (script_run("test -f /etc/systemd/system/user@.service.d/60-delegate.conf") != 0) {
+        # Let user control cpu, io & memory control groups
+        # https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
+        script_run "mkdir /etc/systemd/system/user@.service.d/";
+        assert_script_run 'echo -e "[Service]\nDelegate=cpu io memory" > /etc/systemd/system/user@.service.d/60-delegate.conf';
+        systemctl "daemon-reload";
     }
 }
