@@ -387,7 +387,7 @@ however the newest spack updates contain C<spack_get_libs.sh>.
 sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
-    zypper_call "in spack", timeout => 1200;
+    zypper_call "in spack mpich mpich-devel", timeout => 1200;
     assert_script_run "echo source /usr/share/spack/setup-env.sh >> /home/$testapi::username/.bashrc";
     type_string('pkill -u root');    # this kills sshd
     select_serial_terminal(0);
