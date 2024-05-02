@@ -590,7 +590,7 @@
         "type": "bug"
     },
     "bsc#1217231": {
-        "description": "systemd-cryptsetup.*Failed to deactivate|systemd.*Timed out waiting for device",
+        "description": "systemd-cryptsetup.*Failed to deactivate|systemd.*Timed out waiting for device /UUID.*",
         "products": {
             "sle-micro": ["6.0"]
         },

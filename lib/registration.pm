@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
+use Utils::Backends qw(is_qemu);
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry wait_for_purge_kernels);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc);
 use constant ADDONS_COUNT => 50;
@@ -510,7 +511,7 @@ sub process_scc_register_addons {
                 send_key_until_needlematch "scc-module-$addon-selected", "down", ADDONS_COUNT;
             }
         }
-        wait_still_screen 5;
+        if (is_ppc64le && is_qemu) { wait_still_screen 5; }
         wait_screen_change(sub { send_key $cmd{next} }, 30, similarity_level => 35);    # all addons selected
         wait_still_screen 2;
         # Process addons licenses

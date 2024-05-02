@@ -3,11 +3,11 @@
 # Copyright 2018-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Package: zypper xfstests fio
+# Package: zypper xfstests fio fsverity-utils
 # Summary: Install xfstests
 # - Stop packagekit service
 # - Add qa-head repository
-# - Install qa_test_xfstests fio
+# - Install qa_test_xfstests fio fsverity-utils
 # - If XFSTESTS_REPO is set, install xfstests, filesystems
 # - Otherwise, run "/usr/share/qa/qa_test_xfstests/install.sh"
 # Maintainer: Yong Sun <yosun@suse.com>
@@ -27,6 +27,7 @@ use transactional;
 
 my $STATUS_LOG = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
+my @PACKAGES = (qw(xfstests fio), split(/ /, get_var('XFSTESTS_PACKAGES')));
 
 sub install_xfstests_from_repo {
     if (is_sle) {
@@ -56,7 +57,7 @@ sub install_xfstests_from_repo {
         reboot_on_changes;
     }
     else {
-        zypper_call('in xfstests fio');
+        zypper_call('in ' . join(' ', @PACKAGES));
     }
     if (is_sle) {
         script_run 'ln -s /var/lib/xfstests /opt/xfstests';

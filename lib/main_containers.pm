@@ -176,6 +176,7 @@ sub load_host_tests_docker {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
+    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15'));
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
@@ -291,6 +292,7 @@ sub load_container_tests {
     }
 
     if (get_var('PODMAN_BATS_SKIP')) {
+        loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle('>=15-SP4') || is_sle_micro('>=5.5'));
         loadtest 'containers/podman_integration';
         return;
     }

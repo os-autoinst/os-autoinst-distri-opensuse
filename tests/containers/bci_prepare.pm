@@ -53,6 +53,7 @@ sub packages_to_install {
             script_retry("SUSEConnect --auto-agree-with-licenses -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry('zypper -n in jq', retry => 3);
             push @packages, ('python36-devel', 'python36-pip');
         } elsif ($version =~ /15\.[1-3]/) {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
@@ -92,6 +93,11 @@ sub run {
     record_info('Install', 'Install needed packages');
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
+        # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
+        assert_script_run("dhclient -v");
+        # This command prevents a prompt that asks for services to be restarted
+        # causing a delay of 5min on each package install
+        script_run('export DEBIAN_FRONTEND=noninteractive');
         foreach my $pkg (@packages) {
             script_retry("apt-get -y install $pkg", timeout => 300);
         }
