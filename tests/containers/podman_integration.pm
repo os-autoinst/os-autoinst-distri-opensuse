@@ -16,7 +16,7 @@ use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos is_leap is_lea
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use Utils::Systemd qw(systemctl);
-use containers::bats qw(install_bats add_packagehub remove_mounts_conf switch_to_user);
+use containers::bats qw(install_bats remove_mounts_conf switch_to_user);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -47,15 +47,12 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    add_packagehub;
     install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit jq make netavark netcat-openbsd openssl podman python3-PyYAML socat sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah criu go gpg2) unless is_sle_micro;
+    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib python3-PyYAML socat sudo systemd-container);
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
-    # NOTE: passt should be pulled in as a dependency on podman 5.0+
-    push @pkgs, qw(passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
+    push @pkgs, qw(buildah criu passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
@@ -64,10 +61,12 @@ sub run {
     }
     install_packages(@pkgs);
 
+    assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
+    assert_script_run "chmod +x /usr/local/bin/htpasswd";
+
     # Workarounds for tests to work:
-    # 1. Use netavark instead of cni
-    # 2. Avoid default mounts for containers
-    # 3. Switch to cgroups v2
+    # - Avoid default mounts for containers
+    # - Switch to cgroups v2
 
     # Required modifications to make cgroups v2 work on SLES<15-SP6.
     # See https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions

@@ -16,8 +16,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils;
-use registration qw(add_suseconnect_product get_addon_fullname);
+use version_utils qw(is_transactional);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 
@@ -31,23 +30,6 @@ sub install_bats {
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd bats-core-$bats_version";
     assert_script_run "bash ./install.sh /usr/local";
-}
-
-sub add_packagehub {
-    if (is_sle_micro) {
-        my $sle_version = "";
-        if (is_sle_micro('<5.3')) {
-            $sle_version = "15.3";
-        } elsif (is_sle_micro('<5.5')) {
-            $sle_version = "15.4";
-        } elsif (is_sle_micro('<6.0')) {
-            $sle_version = "15.5";
-        }
-        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
-        zypper_call "--gpg-auto-import-keys ref";
-    } elsif (is_sle) {
-        add_suseconnect_product(get_addon_fullname('phub'));
-    }
 }
 
 sub remove_mounts_conf {
