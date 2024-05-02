@@ -225,7 +225,8 @@ sub switch_cgroup_version {
 
     my $setting = ($version == 1) ? 0 : 1;
 
-    return if (script_output("cat /proc/cmdline") =~ "systemd\.unified_cgroup_hierarchy=$setting");
+    my $rc = script_run("ls /sys/fs/cgroup/cgroup.controllers");
+    return if ($version == 2 && $rc == 0 || $version == 1 && $rc != 0);
 
     record_info "cgroup v$version", "Switching to cgroup v$version";
     if (is_transactional) {
