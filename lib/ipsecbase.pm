@@ -92,6 +92,9 @@ sub config_ipsec {
 }
 
 sub pre_run_hook {
+
+    mutex_wait 'support_server_ready';
+
     my ($self, $args) = @_;
     select_serial_terminal;
 
