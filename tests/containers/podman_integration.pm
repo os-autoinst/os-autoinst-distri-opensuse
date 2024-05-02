@@ -51,8 +51,9 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib python3-PyYAML socat sudo systemd-container);
+    push @pkgs, qw(buildah) unless is_sle_micro;
     push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
-    push @pkgs, qw(buildah criu passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
+    push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
@@ -70,7 +71,7 @@ sub run {
 
     # Required modifications to make cgroups v2 work on SLES<15-SP6.
     # See https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
-    if (is_sle('<15-SP6') || is_leap('<15.6')) {
+    if (is_sle('<15-SP6') || is_leap('<15.6') || is_sle_micro('<6.0')) {
         assert_script_run "mkdir /etc/systemd/system/user@.service.d/";
         assert_script_run 'echo -e "[Service]\nDelegate=pids memory" > /etc/systemd/system/user@.service.d/60-delegate.conf';
         systemctl "daemon-reload";
@@ -85,12 +86,13 @@ sub run {
 
     switch_to_user;
 
-    # Download podman sources
     my $test_dir = "/var/tmp";
-    $podman_version = get_podman_version();
     assert_script_run "cd $test_dir";
+
+    # Download podman sources
+    $podman_version = get_podman_version();
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd podman-$podman_version/";
+    assert_script_run("cd $test_dir/podman-$podman_version/");
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "cp -r test/system test/system.orig";
 
@@ -111,6 +113,7 @@ sub run {
 }
 
 sub cleanup() {
+    assert_script_run "cd ~";
     script_run("rm -rf $test_dir/podman-$podman_version/");
 }
 

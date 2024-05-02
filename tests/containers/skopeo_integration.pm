@@ -58,12 +58,13 @@ sub run {
 
     switch_to_user;
 
-    # Download skopeo sources
     my $test_dir = "/var/tmp";
-    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     assert_script_run "cd $test_dir";
+
+    # Download skopeo sources
+    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd skopeo-$skopeo_version/";
+    assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
     assert_script_run "cp -r systemtest systemtest.orig";
 
     run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
@@ -75,6 +76,7 @@ sub run {
 }
 
 sub cleanup() {
+    assert_script_run "cd ~";
     script_run("rm -rf $test_dir/skopeo-$skopeo_version/");
 }
 

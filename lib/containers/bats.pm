@@ -49,6 +49,8 @@ sub switch_to_user {
         assert_script_run "useradd -m -G $serial_group $testapi::username";
         assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
         ensure_serialdev_permissions;
+    }
+    if (is_transactional) {
         select_console "user-console";
     } else {
         select_user_serial_terminal();
