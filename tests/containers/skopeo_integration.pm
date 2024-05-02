@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats add_packagehub remove_mounts_conf switch_to_user);
+use containers::bats qw(install_bats remove_mounts_conf switch_to_user);
 
 my $test_dir = "/var/tmp";
 my $skopeo_version = "";
@@ -45,23 +45,26 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    add_packagehub;
     install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils jq openssl podman skopeo);
+    my @pkgs = qw(jq openssl podman python3-passlib skopeo);
     install_packages(@pkgs);
+
+    assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
+    assert_script_run "chmod +x /usr/local/bin/htpasswd";
 
     remove_mounts_conf;
 
     switch_to_user;
 
-    # Download skopeo sources
     my $test_dir = "/var/tmp";
-    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     assert_script_run "cd $test_dir";
+
+    # Download skopeo sources
+    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd skopeo-$skopeo_version/";
+    assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
     assert_script_run "cp -r systemtest systemtest.orig";
 
     run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
@@ -73,6 +76,7 @@ sub run {
 }
 
 sub cleanup() {
+    assert_script_run "cd ~";
     script_run("rm -rf $test_dir/skopeo-$skopeo_version/");
 }
 
