@@ -72,6 +72,8 @@ sub run {
 
     switch_cgroup_version($self, 2);
 
+    record_info("podman info", script_output("podman info"));
+
     switch_to_user;
 
     my $test_dir = "/var/tmp";
