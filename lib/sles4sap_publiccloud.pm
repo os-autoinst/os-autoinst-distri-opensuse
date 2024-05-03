@@ -1142,11 +1142,12 @@ sub wait_for_cluster {
 
     $args{wait_time} //= 10;
     $args{max_retries} //= 7;
+    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '[1-9]+' : 'online';
 
     while ($args{max_retries} > 0) {
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
 
-        my $hanasr_ready = check_hana_topology(input => $self->get_hana_topology());
+        my $hanasr_ready = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $online_str);
         my $crm_ok = check_crm_output(input => $crm_output);
 
         if ($hanasr_ready && $crm_ok) {

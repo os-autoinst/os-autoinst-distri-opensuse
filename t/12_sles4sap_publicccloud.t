@@ -32,7 +32,7 @@ subtest "[run_cmd]" => sub {
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = $self->run_cmd(cmd => 'babum');
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok $ret eq 'BABUUUUUUUUM';
 };
 
@@ -153,7 +153,7 @@ subtest "[stop_hana]" => sub {
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
     $self->stop_hana();
     set_var('INSTANCE_SID', undef);
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 
     ok((any { qr/HDB stop/ } @calls), 'function calls HDB stop');
 };
@@ -174,7 +174,7 @@ subtest "[stop_hana] crash" => sub {
     $self->{my_instance} = $mock_pc;
 
     $self->stop_hana(method => 'crash');
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/echo b.*sysrq-trigger/ } @calls), 'function calls HDB stop');
 };
 
@@ -190,7 +190,7 @@ subtest "[setup_sbd_delay_publiccloud]" => sub {
             return 'BABUUUUUUUUM'; }
     );
     my $returned_delay = $self->setup_sbd_delay_publiccloud();
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/echo.*>>.*sbd_delay_start\.conf/ } @calls), 'write sbd_delay_start.conf');
 };
 
@@ -301,7 +301,7 @@ subtest '[list_cluster_nodes]' => sub {
     );
 
     my $node_list = $self->list_cluster_nodes();
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 
     is ref($node_list), 'ARRAY', 'Func,tion returns array ref.';
     is @$node_list, @instances, 'Test expected result.';
@@ -323,7 +323,7 @@ subtest '[list_cluster_nodes] failure' => sub {
     );
 
     dies_ok { $self->list_cluster_nodes() } 'Expected failure: missing mandatory arg';
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 };
 
 
@@ -411,7 +411,7 @@ subtest '[get_hana_topology]' => sub {
 
     my $topology = $self->get_hana_topology();
 
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 
     ok((keys %$topology eq 2), "Two nodes returned by calculate_hana_topology");
     # how to access one inner value in one shot
@@ -437,7 +437,7 @@ subtest '[get_hana_topology] bad output' => sub {
 
     my $topology = $self->get_hana_topology();
 
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok keys %$topology eq 0;
 };
 
@@ -474,7 +474,7 @@ subtest '[check_takeover]' => sub {
     #  - at least one of them with name different from Yondu is in state PRIM
     ok $self->check_takeover();
 
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 };
 
 
@@ -497,7 +497,7 @@ subtest '[check_takeover] fail in showAttr' => sub {
 
     dies_ok { $self->check_takeover() } "check_takeover fails if SAPHanaSR-showAttr keep give bad respose";
 
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
 };
 
 
@@ -523,7 +523,7 @@ Hosts/vmhana01/sync_state="SOK"
 Hosts/vmhana02/vhost="vmhana02"
 END
     dies_ok { $self->check_takeover() } "check_takeover fails if sync_state is missing in SAPHanaSR-showAttr output";
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     @calls = ();
 
     $showAttr = <<END;
@@ -659,7 +659,7 @@ subtest '[enable_replication]' => sub {
 
     set_var('SAP_SIDADM', undef);
 
-    note("\n  C -->  " . join("\n  -->  ", @calls));
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/hdbnsutil -sr_register/ } @calls), 'hdbnsutil cmd correctly called');
     ok((any { qr/-name WilliamAdama/ } @calls), 'hdbnsutil cmd has right site name');
 };
@@ -926,6 +926,39 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
     my $self = sles4sap_publiccloud->new();
     $self->wait_for_sync();
     ok($node_state_match eq '[1-9]+', "node_state_match : $node_state_match should be '[1-9]+'");
+};
+
+subtest '[wait_for_cluster]' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            # Jack will not make check_crm_output unhappy
+            return 'Jack Aubrey'; }
+    );
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub {
+            # not functional to the test, just for a nice UT output
+            push @calls, 'SAPHanaSR-showAttr --format=script';
+            return 0; });
+    my @node_state_matches;
+    $sles4sap_publiccloud->redefine(check_hana_topology => sub {
+            my (%args) = @_;
+            push @node_state_matches, $args{node_state_match};
+            return 1; });
+    $sles4sap_publiccloud->redefine(check_crm_output => sub { return 1; });
+
+    my $self = sles4sap_publiccloud->new();
+
+    $self->wait_for_cluster();
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    note("\n  node_state_matches -->  " . join("\n  -->  ", @node_state_matches));
+
+    ok((any { qr/crm_mon -r -R -n -N -1/ } @calls), 'function calls crm_mon -r -R -n -N -1');
+    ok((any { qr/online/ } @node_state_matches), 'Pacemaker older than 2.1.7 match with online');
 };
 
 done_testing;
