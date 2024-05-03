@@ -18,6 +18,8 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
+
+    ipaddr2_destroy();
 }
 
 sub test_flags {

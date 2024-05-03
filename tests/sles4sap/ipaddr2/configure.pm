@@ -8,10 +8,8 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
-
-use constant DEPLOY_PREFIX => 'ip2t';
+use sles4sap::ipaddr2;
 
 sub run {
     my ($self) = @_;
@@ -19,10 +17,10 @@ sub run {
     die('Azure is the only CSP supported for the moment')
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
-    my $rg = DEPLOY_PREFIX . get_current_job_id();
-    my $os_ver = get_required_var('CLUSTER_OS_VER');
-
     select_serial_terminal;
+
+    # Prepare all the ssh connections within the 2 internal VMs
+    my $ssh_cmd = ipaddr2_ssh_cmd();
 }
 
 sub test_flags {
@@ -31,8 +29,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $rg = DEPLOY_PREFIX . get_current_job_id();
-    script_run("az group delete --name $rg -y", timeout => 600);
+    ipaddr2_destroy();
     $self->SUPER::post_fail_hook;
 }
 
