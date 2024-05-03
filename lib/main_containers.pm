@@ -294,6 +294,7 @@ sub load_container_tests {
     if (get_var('PODMAN_BATS_SKIP')) {
         loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle('>=15-SP4') || is_sle_micro('>=5.5'));
         loadtest 'containers/podman_integration';
+        loadtest 'containers/runc_integration' if (is_tumbleweed);
         return;
     }
 
