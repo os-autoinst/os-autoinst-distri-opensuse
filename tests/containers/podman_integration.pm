@@ -67,6 +67,7 @@ sub run {
     delegate_controllers;
 
     assert_script_run "podman system reset -f";
+    assert_script_run "modprobe ip6_tables";
 
     remove_mounts_conf;
 
