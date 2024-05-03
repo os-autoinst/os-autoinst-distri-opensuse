@@ -30,6 +30,8 @@ sub install_bats {
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd bats-core-$bats_version";
     assert_script_run "bash ./install.sh /usr/local";
+
+    assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
 }
 
 sub remove_mounts_conf {
