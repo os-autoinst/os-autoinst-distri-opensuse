@@ -30,6 +30,8 @@ sub install_bats {
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd bats-core-$bats_version";
     assert_script_run "bash ./install.sh /usr/local";
+
+    assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
 }
 
 sub remove_mounts_conf {
@@ -62,7 +64,7 @@ sub delegate_controllers {
         # Let user control cpu, io & memory control groups
         # https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
         script_run "mkdir /etc/systemd/system/user@.service.d/";
-        assert_script_run 'echo -e "[Service]\nDelegate=cpu io memory" > /etc/systemd/system/user@.service.d/60-delegate.conf';
+        assert_script_run 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
         systemctl "daemon-reload";
     }
 }
