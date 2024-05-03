@@ -335,18 +335,28 @@ sub stop_hana {
     if ($args{method} eq "crash") {
         # Crash needs to be executed as root and wait for host reboot
         $self->{my_instance}->wait_for_ssh(timeout => $timeout);
-        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
+        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => 0);
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
-            timeout => "0",
+            timeout => 0,
             # Try only extending ssh_opts
-            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
-            %args);
+            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR");
         # It is better to wait till ssh disappear
         record_info("Wait ssh disappear start");
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
         record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
-        sleep 10;
-        $out = $self->{my_instance}->wait_for_ssh(timeout => 900);
+
+        sleep 60;
+        my $start_time = time();
+        while ((time() - $start_time) < 60) {
+            $out = $self->{my_instance}->run_ssh_command(
+                cmd => "sudo systemctl is-system-running",
+                timeout => 5,
+                proceed_on_failure => 1);
+            last if ($out =~ m/running/);
+            sleep 10;
+        }
+
+        $out = $self->{my_instance}->wait_for_ssh(timeout => 10);
         record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
     }
     else {
