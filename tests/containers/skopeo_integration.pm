@@ -54,6 +54,8 @@ sub run {
     assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
     assert_script_run "chmod +x /usr/local/bin/htpasswd";
 
+    record_info("skopeo version", script_output("skopeo --version"));
+
     remove_mounts_conf;
 
     switch_to_user;
