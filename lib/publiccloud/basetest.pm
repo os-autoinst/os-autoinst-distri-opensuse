@@ -118,7 +118,11 @@ sub _cleanup {
 
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable and result == 'fail'
-    return if ($self->{result} && $self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
+    if ($self->{result} && $self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE')) {
+        upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+        upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
+        return;
+    }
     diag('Public Cloud _cleanup: 1st check passed.');
 
     # 2. Test module needs to have 'publiccloud_multi_module' and should not have 'fatal' flags and 'fail' result
