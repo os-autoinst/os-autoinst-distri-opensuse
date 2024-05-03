@@ -150,6 +150,8 @@ sub get_image_version {
     }
     record_info('REGION OK', 'The ' . $self->provider_client->region . ' is listed in the targetRegions(' . join(',', @regions_list) . ') of this image version.');
 
+    die("Image version $image Found in failed state") if (decode_azure_json($json)->{provisioningState} eq "Failed");
+
     return $image;
 }
 
