@@ -64,7 +64,7 @@ sub delegate_controllers {
         # Let user control cpu, io & memory control groups
         # https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
         script_run "mkdir /etc/systemd/system/user@.service.d/";
-        assert_script_run 'echo -e "[Service]\nDelegate=cpu io memory" > /etc/systemd/system/user@.service.d/60-delegate.conf';
+        assert_script_run 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
         systemctl "daemon-reload";
     }
 }
