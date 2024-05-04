@@ -14,6 +14,8 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#az_arch-Provides-architecture-tag-x64-or-Arm64-compatible-with-Azure-syntax-based-on-ARCH-job-settings">az_arch Provides architecture tag x64 or Arm64 compatible with Azure syntax, based on &#39;*ARCH&#39; job settings</a></li>
+      <li><a href="#az_sku-Centralized-sku-definition-and-default-value-based-on-PUBLIC_CLOUD_AZURE_SKU">az_sku Centralized sku definition and default value, based on PUBLIC_CLOUD_AZURE_SKU</a></li>
       <li><a href="#decode_azure_json">decode_azure_json</a></li>
       <li><a href="#resource_group_exist">resource_group_exist</a></li>
       <li><a href="#img_blob_exists">img_blob_exists</a></li>
@@ -30,6 +32,14 @@
     </ul>
   </li>
 </ul><h1>lib/publiccloud/azure.pm</h1>
+
+<h2 id="az_arch-Provides-architecture-tag-x64-or-Arm64-compatible-with-Azure-syntax-based-on-ARCH-job-settings">az_arch Provides architecture tag x64 or Arm64 compatible with Azure syntax, based on &#39;*ARCH&#39; job settings</h2>
+
+<h2 id="az_sku-Centralized-sku-definition-and-default-value-based-on-PUBLIC_CLOUD_AZURE_SKU">az_sku Centralized sku definition and default value, based on PUBLIC_CLOUD_AZURE_SKU</h2>
+
+<pre><code>Call: az_sku(&lt;default&gt;);
+    when PUBLIC_CLOUD_AZURE_SKU undefined, the default from input is used:
+    when &lt;default&gt; is undefined too, hardcoded string used; i.e. az_sku(), default = &#39;gen2&#39;; </code></pre>
 
 <h2 id="decode_azure_json">decode_azure_json</h2>
 
@@ -76,11 +86,13 @@
 
 <pre><code>my $definition = $self-&gt;generate_azure_image_definition();</code></pre>
 
-<p>Generated the Azure Image name from the job settings. If present, it takes the PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION setting. If not present it generated the image definition name based on distri, version, flavor and SKU.</p>
+<p>Generates the Azure Image name from the job settings. If PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION defined, its content is returned; otherwise, image definition name based on distri, version, flavor and SKU returned.</p>
 
-<p>Note: Image definitions needs to be distinct names and can only serve one architecture!</p>
+<p>Note: Image definitions shall be distinct names and can only serve one architecture!</p>
 
 <p>Example: &#39;SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2&#39;</p>
+
+<pre><code>B&lt;return&gt; a string with the image full name distri-version-flavor-arch-sku</code></pre>
 
 <h2 id="get_image_definition-Check-if-the-given-image-definition-identified-by-the-tuple-publisher-offer-and-sku-is-present-in-the-given-image-gallery-returns-the-name-of-the-found-image-definition-or-undef-if-not-found">get_image_definition Check if the given image definition, identified by the tuple (publisher, offer and sku) is present in the given image gallery returns the name of the found image definition or undef if not found</h2>
 
