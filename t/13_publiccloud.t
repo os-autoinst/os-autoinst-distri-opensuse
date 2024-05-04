@@ -66,7 +66,7 @@ subtest '[get_blob_uri]' => sub {
     set_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', undef);
 };
 
-subtest '[generate_azure_image_definition]' => sub {
+subtest '[generate_basename]' => sub {
     set_var('DISTRI', 'AAA');
     set_var('VERSION', 'BBB');
     set_var('FLAVOR', 'CCC');
@@ -74,7 +74,47 @@ subtest '[generate_azure_image_definition]' => sub {
 
     my $provider = publiccloud::azure->new();
 
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+
+    my $res = $provider->generate_basename();
+    is $res, 'AAA-BBB-CCC-x64';
+
+    set_var('PUBLIC_CLOUD_ARCH', 'ZZZ');
+
+    $res = $provider->generate_basename();
+    is $res, 'AAA-BBB-CCC-Arm64';
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    $res = $provider->generate_basename();
+    is $res, 'AAA-BBB-CCC-x86_64';
+
+    set_var('PUBLIC_CLOUD_ARCH', undef);
+    set_var('PUBLIC_CLOUD', undef);
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
+    set_var('FLAVOR', undef);
+    set_var('ARCH', undef);
+};
+
+subtest '[generate_azure_image_definition]' => sub {
+    set_var('DISTRI', 'AAA');
+    set_var('VERSION', 'BBB');
+    set_var('FLAVOR', 'CCC');
+    set_var('ARCH', 'x86_64');
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    set_var('PUBLIC_CLOUD_AZURE_SKU', 'gen1');
+
+    my $provider = publiccloud::azure->new();
+
     my $res = $provider->generate_azure_image_definition();
+    is $res, 'AAA-BBB-CCC-X64-GEN1';
+
+    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+
+    $res = $provider->generate_azure_image_definition();
     is $res, 'AAA-BBB-CCC-X64-GEN2';
 
     set_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION', 'ABC');
@@ -82,10 +122,67 @@ subtest '[generate_azure_image_definition]' => sub {
     $res = $provider->generate_azure_image_definition();
     is $res, 'ABC', 'PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION can be used to overwrite the full name';
 
+    set_var('PUBLIC_CLOUD', undef);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     set_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION', undef);
     set_var('DISTRI', undef);
     set_var('VERSION', undef);
     set_var('FLAVOR', undef);
+    set_var('ARCH', undef);
+};
+
+subtest '[az_sku]' => sub {
+    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+
+    my $provider = publiccloud::azure->new();
+
+    my $res = $provider->az_sku();
+    is $res, "gen2";
+
+    $res = $provider->az_sku("");
+    is $res, "";
+
+    $res = $provider->az_sku(0);
+    is $res, '0';
+
+    $res = $provider->az_sku("ALPHA");
+    is $res, 'ALPHA';
+
+    set_var('PUBLIC_CLOUD_AZURE_SKU', 'GEN1');
+
+    $res = $provider->az_sku();
+    is $res, "GEN1";
+
+    $res = $provider->az_sku("");
+    is $res, 'GEN1';
+
+    $res = $provider->az_sku("BETA");
+    is $res, 'GEN1';
+
+    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+};
+
+subtest '[az_arch]' => sub {
+    set_var('PUBLIC_CLOUD_ARCH', undef);
+    set_var('ARCH', 'x86_64');
+
+    my $provider = publiccloud::azure->new();
+
+    my $res = $provider->az_arch();
+    is $res, 'x64';
+
+    set_var('PUBLIC_CLOUD_ARCH', 'x86_64');
+    set_var('ARCH', 'ZZZZ');
+
+    $res = $provider->az_arch();
+    is $res, 'x64';
+
+    set_var('PUBLIC_CLOUD_ARCH', 'ARM');
+
+    $res = $provider->az_arch();
+    is $res, 'Arm64';
+
+    set_var('PUBLIC_CLOUD_ARCH', undef);
     set_var('ARCH', undef);
 };
 
