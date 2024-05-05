@@ -169,14 +169,11 @@ sub check_hana_topology {
 sub check_crm_output {
     my (%args) = @_;
     croak("Argument <input> missing") unless $args{input};
-    my $resource_started = 1;
-    my $failed_actions = 0;
+    my $resource_starting = ($args{input} =~ /:\s*Starting/) ? 1 : 0;
+    my $failed_actions = ($args{input} =~ /Failed Resource Actions:/) ? 1 : 0;
 
-    $resource_started = !($args{input} =~ /:\s*Starting/);
-    $failed_actions = ($args{input} =~ /Failed Resource Actions:/);
-
-    record_info('check_crm_output', "resource_started: $resource_started failed_actions: $failed_actions");
-    return ($resource_started && !$failed_actions);
+    record_info('check_crm_output', "resource_starting:$resource_starting failed_actions:$failed_actions");
+    return (($resource_starting != 1) && ($failed_actions != 1) ? 1 : 0);
 }
 
 1;

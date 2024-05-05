@@ -236,4 +236,24 @@ subtest '[check_hana_topology] invalid input' => sub {
     ok(($topology_ready == 0), 'invalid input leads to the return of 0');
 };
 
+subtest '[check_crm_output] input argument is mandatory' => sub {
+    dies_ok { check_crm_output() };
+};
+
+subtest '[check_crm_output] no starting no failed' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $ret = check_crm_output(input => 'PUFFI');
+    ok $ret eq 1, "Ret:$ret has to be 1";
+};
+
+subtest '[check_crm_output] starting and failed' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $ret = check_crm_output(input => '
+        :  Starting
+        Failed Resource Actions:');
+    ok $ret eq 0, "Ret:$ret has to be 0";
+};
+
 done_testing;
