@@ -14,12 +14,17 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#az_version">az_version</a></li>
       <li><a href="#az_group_create">az_group_create</a></li>
+      <li><a href="#az_group_name_get">az_group_name_get</a></li>
       <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
       <li><a href="#az_network_nsg_create">az_network_nsg_create</a></li>
       <li><a href="#az_network_nsg_rule_create">az_network_nsg_rule_create</a></li>
       <li><a href="#az_network_publicip_create">az_network_publicip_create</a></li>
+      <li><a href="#az_network_publicip_get">az_network_publicip_get</a></li>
       <li><a href="#az_network_lb_create">az_network_lb_create</a></li>
+      <li><a href="#az_network_lb_probe_create">az_network_lb_probe_create</a></li>
+      <li><a href="#az_network_lb_rule_create">az_network_lb_rule_create</a></li>
       <li><a href="#az_vm_as_create">az_vm_as_create</a></li>
       <li><a href="#az_vm_create">az_vm_create</a></li>
       <li><a href="#az_vm_openport">az_vm_openport</a></li>
@@ -28,6 +33,8 @@
       <li><a href="#az_nic_get">az_nic_get</a></li>
       <li><a href="#az_nic_name_get">az_nic_name_get</a></li>
       <li><a href="#az_ipconfig_name_get">az_ipconfig_name_get</a></li>
+      <li><a href="#az_ipconfig_update">az_ipconfig_update</a></li>
+      <li><a href="#az_ipconfig_pool_add">az_ipconfig_pool_add</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -36,9 +43,17 @@
 
 <p>Library to compose and run Azure cli commands</p>
 
+<h2 id="az_version">az_version</h2>
+
+<pre><code>az_version();</code></pre>
+
+<p>Print the version of the az cli available on system</p>
+
 <h2 id="az_group_create">az_group_create</h2>
 
 <pre><code>az_group_create( name =&gt; &#39;openqa-rg&#39;, region =&gt; &#39;westeurope&#39;);</code></pre>
+
+<p>Create an Azure resource group in a specific region</p>
 
 <dl>
 
@@ -52,6 +67,12 @@
 </dd>
 </dl>
 
+<h2 id="az_group_name_get">az_group_name_get</h2>
+
+<pre><code>az_group_name_get();</code></pre>
+
+<p>Get the name of all existing Resource groups in the current subscription</p>
+
 <h2 id="az_network_vnet_create">az_network_vnet_create</h2>
 
 <pre><code>az_network_vnet_create(
@@ -60,9 +81,9 @@
     vnet =&gt; &#39;openqa-vnet&#39;,
     snet =&gt; &#39;openqa-subnet&#39;,
     address_prefixes =&gt; &#39;10.0.1.0/16&#39;,
-    subnet_prefixes =&gt; &#39;10.0.1.0/24&#39;)
+    subnet_prefixes =&gt; &#39;10.0.1.0/24&#39;)</code></pre>
 
-Create a virtual network</code></pre>
+<p>Create a virtual network</p>
 
 <dl>
 
@@ -96,9 +117,9 @@ Create a virtual network</code></pre>
 
 <pre><code>az_network_nsg_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-nsg&#39;)
+    name =&gt; &#39;openqa-nsg&#39;)</code></pre>
 
-Create a network security group</code></pre>
+<p>Create a network security group</p>
 
 <dl>
 
@@ -118,9 +139,9 @@ Create a network security group</code></pre>
     resource_group =&gt; &#39;openqa-rg&#39;,
     nsg =&gt; &#39;openqa-nsg&#39;,
     name =&gt; &#39;openqa-nsg-rule-ssh&#39;,
-    port =&gt; 22)
+    port =&gt; 22)</code></pre>
 
-Create a rule for an existing network security group</code></pre>
+<p>Create a very specific type of inbound rule for an existing network security group Just few parameters are configurable here, like the port number</p>
 
 <dl>
 
@@ -147,9 +168,9 @@ Create a rule for an existing network security group</code></pre>
 <pre><code>az_network_publicip_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-pip&#39;,
-    zone =&gt; &#39;1 2 3&#39;)
+    zone =&gt; &#39;1 2 3&#39;)</code></pre>
 
-Create an IPv4 public IP resource</code></pre>
+<p>Create an IPv4 public IP resource</p>
 
 <dl>
 
@@ -175,6 +196,26 @@ Create an IPv4 public IP resource</code></pre>
 </dd>
 </dl>
 
+<h2 id="az_network_publicip_get">az_network_publicip_get</h2>
+
+<pre><code>az_network_publicip_get(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-pip&#39;)</code></pre>
+
+<p>Return an IPv4 public IP address from its name</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-including-the-PubIP"><b>resource_group</b> - existing resource group including the PubIP</dt>
+<dd>
+
+</dd>
+<dt id="name---existing-public-IP-resource-name"><b>name</b> - existing public IP resource name</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_network_lb_create">az_network_lb_create</h2>
 
 <pre><code>az_network_lb_create(
@@ -184,12 +225,11 @@ Create an IPv4 public IP resource</code></pre>
     snet =&gt; &#39;openqa-subnet&#39;,
     backend =&gt; &#39;openqa-be&#39;,
     frontend_ip =&gt; &#39;openqa-feip&#39;,
-    sku =&gt; &#39;Standard&#39;)
+    sku =&gt; &#39;Standard&#39;)</code></pre>
 
-Create a load balancer entity.
-LB is mostly &quot;just&quot; a &quot;group&quot; definition
-to link back-end and front-end resources (usually an IP)
-# SKU Standard (and not Basic) is needed to get some Metrics</code></pre>
+<p>Create a load balancer entity. LB is mostly &quot;just&quot; a &quot;group&quot; definition to link back-end and front-end resources (usually an IP)</p>
+
+<p>SKU Standard (and not Basic) is needed to get some Metrics</p>
 
 <dl>
 
@@ -227,15 +267,101 @@ to link back-end and front-end resources (usually an IP)
 </dd>
 </dl>
 
+<h2 id="az_network_lb_probe_create">az_network_lb_probe_create</h2>
+
+<pre><code>az_network_lb_probe_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    lb_name =&gt; &#39;openqa-lb&#39;,
+    name =&gt; &#39;openqa-lb-hp&#39;,
+    port =&gt; &#39;4242&#39;,
+    protocol =&gt; &#39;Udp&#39;,
+    )</code></pre>
+
+<p>Create a load balancer health probe.</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-lb1"><b>resource_group</b> - existing resource group where to create lb</dt>
+<dd>
+
+</dd>
+<dt id="lb_name---existing-load-balancer-name"><b>lb_name</b> - existing load balancer name</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-new-health-probe"><b>name</b> - name for the new health probe</dt>
+<dd>
+
+</dd>
+<dt id="port---port-number-monitored-by-the-health-probe"><b>port</b> - port number monitored by the health probe</dt>
+<dd>
+
+</dd>
+<dt id="protocol---protocol-for-the-health-probe.-Default-Tcp"><b>protocol</b> - protocol for the health probe. Default Tcp</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_lb_rule_create">az_network_lb_rule_create</h2>
+
+<pre><code>az_network_lb_rule_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    lb_name =&gt; &#39;openqa-lb&#39;,
+    hp_name =&gt; &#39;openqa-hb&#39;,
+    frontend_ip =&gt; &#39;openqa-fe&#39;,
+    backend =&gt; &#39;openqa-be&#39;,
+    name =&gt; &#39;openqa-lb-rule&#39;,
+    port =&gt; &#39;80&#39;
+    )</code></pre>
+
+<p>Configure the load balancer behavior.</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-lb2"><b>resource_group</b> - existing resource group where to create lb</dt>
+<dd>
+
+</dd>
+<dt id="lb_name---existing-load-balancer-name1"><b>lb_name</b> - existing load balancer name</dt>
+<dd>
+
+</dd>
+<dt id="hp_name---existing-load-balancer-health-probe-name"><b>hp_name</b> - existing load balancer health probe name</dt>
+<dd>
+
+</dd>
+<dt id="frontend_ip---existing-load-balancer-front-end-IP-name"><b>frontend_ip</b> - existing load balancer front end IP name</dt>
+<dd>
+
+</dd>
+<dt id="backend---existing-load-balancer-back-end-pool-name"><b>backend</b> - existing load balancer back end pool name</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-new-load-balancer-rule"><b>name</b> - name for the new load balancer rule</dt>
+<dd>
+
+</dd>
+<dt id="port---port-mapped-between-the-frontend-and-the-backend.-This-poor-Perl-wrapper-map-them-1:1"><b>port</b> - port mapped between the frontend and the backend. This poor Perl wrapper map them 1:1</dt>
+<dd>
+
+</dd>
+<dt id="protocol---protocol-for-the-load-balancer-rule.-Default-Tcp"><b>protocol</b> - protocol for the load balancer rule. Default Tcp</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_vm_as_create">az_vm_as_create</h2>
 
 <pre><code>az_vm_as_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-as&#39;,
     region =&gt; &#39;westeurope&#39;,
-    fault_count =&gt; 2)
+    fault_count =&gt; 2)</code></pre>
 
-Create an availability set. Later on VM can be assigned to it.</code></pre>
+<p>Create an availability set. Later on VM can be assigned to it.</p>
 
 <dl>
 
@@ -263,9 +389,9 @@ Create an availability set. Later on VM can be assigned to it.</code></pre>
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-vm&#39;,
     region =&gt; &#39;westeurope&#39;,
-    image =&gt; &#39;SUSE:sles-sap-15-sp5:gen2:latest&#39;)
+    image =&gt; &#39;SUSE:sles-sap-15-sp5:gen2:latest&#39;)</code></pre>
 
-Create a virtual machine</code></pre>
+<p>Create a virtual machine</p>
 
 <dl>
 
@@ -332,9 +458,9 @@ Create a virtual machine</code></pre>
 <pre><code>az_vm_openport(
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-vm&#39;,
-    port =&gt; 80)
+    port =&gt; 80)</code></pre>
 
-Open a port on an existing VM</code></pre>
+<p>Open a port on an existing VM</p>
 
 <dl>
 
@@ -356,9 +482,9 @@ Open a port on an existing VM</code></pre>
 
 <pre><code>az_vm_wait_cloudinit(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-vm&#39;)
+    name =&gt; &#39;openqa-vm&#39;)</code></pre>
 
-Wait cloud-init completition on a running VM</code></pre>
+<p>Wait cloud-init completion on a running VM</p>
 
 <dl>
 
@@ -384,9 +510,9 @@ Wait cloud-init completition on a running VM</code></pre>
 
 <pre><code>my $nic_id = az_nic_id_get(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-vm&#39;)
+    name =&gt; &#39;openqa-vm&#39;)</code></pre>
 
-get the NIC ID of the first NIC of a given VM</code></pre>
+<p>Get the NIC ID of the first NIC of a given VM</p>
 
 <dl>
 
@@ -402,7 +528,7 @@ get the NIC ID of the first NIC of a given VM</code></pre>
 
 <h2 id="az_nic_get">az_nic_get</h2>
 
-<pre><code>get the NIC data from NIC ID</code></pre>
+<p>Get the NIC data from NIC ID</p>
 
 <dl>
 
@@ -420,9 +546,9 @@ get the NIC ID of the first NIC of a given VM</code></pre>
 
 <pre><code>my $nic_name = az_nic_name_get(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-vm&#39;)
+    name =&gt; &#39;openqa-vm&#39;)</code></pre>
 
-get the NIC name from NIC ID</code></pre>
+<p>Get the NIC name from NIC ID</p>
 
 <dl>
 
@@ -436,13 +562,70 @@ get the NIC name from NIC ID</code></pre>
 
 <pre><code>my $ipconfig_name = az_ipconfig_name_get(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-vm&#39;)
+    name =&gt; &#39;openqa-vm&#39;)</code></pre>
 
-get the name of the first IpConfig of a NIC from a NIC ID</code></pre>
+<p>Get the name of the first IpConfig of a NIC from a NIC ID</p>
 
 <dl>
 
 <dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get2"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_ipconfig_update">az_ipconfig_update</h2>
+
+<pre><code>az_ipconfig_update(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    ipconfig_name =&gt; &#39;openqa-ipconfig&#39;,
+    nic_name =&gt; &#39;openqa-nic&#39;,
+    ip =&gt; &#39;192.168.0.42&#39;)</code></pre>
+
+<p>Change the IpConfig to use a static IP</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group"><b>resource_group</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="ipconfig_name---existing-IP-configuration-NAME-eg.-from-az_ipconfig_name_get"><b>ipconfig_name</b> - existing IP configuration NAME (eg. from az_ipconfig_name_get)</dt>
+<dd>
+
+</dd>
+<dt id="nic_name---existing-NIC-NAME-eg.-from-az_nic_name_get"><b>nic_name</b> - existing NIC NAME (eg. from az_nic_name_get)</dt>
+<dd>
+
+</dd>
+<dt id="ip---IPv4-address-to-assign-as-static-IP"><b>ip</b> - IPv4 address to assign as static IP</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_ipconfig_pool_add">az_ipconfig_pool_add</h2>
+
+<pre><code>az_ipconfig_pool_add(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    lb_name =&gt; &#39;openqa-lb&#39;,
+    address_pool =&gt; &#39;openqa-addr-pool&#39;,
+    ipconfig_name =&gt; &#39;openqa-ipconfig&#39;,
+    nic_name =&gt; &#39;openqa-nic&#39;)</code></pre>
+
+<p>Add the IpConfig to a LB address pool</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group1"><b>resource_group</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="lb_name---existing-Load-balancer-NAME"><b>lb_name</b> - existing Load balancer NAME</dt>
+<dd>
+
+</dd>
+<dt id="address_pool---existing-Load-balancer-address-pool-name"><b>address_pool</b> - existing Load balancer address pool name</dt>
 <dd>
 
 </dd>
