@@ -1,0 +1,13 @@
+---
+name: sles4sap_cloud_netconfig
+description: |
+  Peacemaker cluster IPaddr2 resource test in the cluster
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/ipaddr2/deploy
+    - sles4sap/ipaddr2/configure
+    - sles4sap/ipaddr2/sanity
+    - sles4sap/ipaddr2/test
+    - sles4sap/ipaddr2/destroy
