@@ -21,7 +21,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 use db_utils qw(is_ok_url);
-use version_utils qw(is_openstack is_sle_micro);
+use version_utils qw(is_openstack);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -41,27 +41,6 @@ has ssh_key => get_ssh_private_key_path();
 sub init {
     my ($self) = @_;
     $self->create_ssh_key();
-}
-
-=head2 generate_basename
-
-    Call: $self->generate_basename();
-
-    openqa test product name composition, based on basic product parameters values and eventual modifiers.
-
-    Returns a string-name containing distri, version, flavor, arch.
-
-=cut
-
-sub generate_basename {
-    my ($self, %args) = @_;
-
-    my $distri = (is_sle_micro('>=6.0')) ? 'sl-micro' : get_required_var('DISTRI');
-    my $version = get_required_var('VERSION');
-    my $flavor = get_required_var('FLAVOR');
-    my $arch = (is_azure) ? $self->az_arch() : get_required_var('ARCH');
-
-    return "$distri-$version-$flavor-$arch";
 }
 
 =head2 conv_openqa_tf_name

@@ -25,33 +25,13 @@ has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 has storage_region => 'westeurope';
 
+my $default_sku = 'gen2';
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->provider_client(publiccloud::azure_client->new());
     $self->provider_client->init();
-}
-
-=head2 az_arch
-    Provides architecture tag x64 or Arm64 compatible with Azure syntax, based on '*ARCH' job settings
-=cut
-
-sub az_arch {
-    return (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
-}
-
-=head2 az_sku
-    Centralized sku definition and default value, based on PUBLIC_CLOUD_AZURE_SKU
-
-    Call: az_sku(<default>);
-        when PUBLIC_CLOUD_AZURE_SKU undefined, the default from input is used:
-        when <default> is undefined too, hardcoded string used; i.e. az_sku(), default = 'gen2'; 
-=cut
-
-sub az_sku {
-    my ($self, $default) = @_;
-    $default //= "gen2";
-    return get_var('PUBLIC_CLOUD_AZURE_SKU', $default);
 }
 
 =head2 decode_azure_json
@@ -270,27 +250,25 @@ sub generate_tags {
 
     my $definition = $self->generate_azure_image_definition();
 
-Generates the Azure Image name from the job settings. 
-    If PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION defined, its content is returned;
-    otherwise, image definition name based on distri, version, flavor and SKU returned.
+Generated the Azure Image name from the job settings. If present, it takes the PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION setting.
+If not present it generated the image definition name based on distri, version, flavor and SKU.
 
-Note: Image definitions shall be distinct names and can only serve one architecture!
+Note: Image definitions needs to be distinct names and can only serve one architecture!
 
 Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2'
-
-    B<return> a string with the image full name distri-version-flavor-arch-sku
-
 =cut
 
 sub generate_azure_image_definition {
     my ($self) = @_;
-    my $def = get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION');
-    return $def if ($def);
+    return get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION') if (get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION'));
 
-    my $image = $self->generate_basename();
-    my $sku = az_sku();
-
-    return uc("$image-$sku");
+    my $distri = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
+    my $flavor = get_required_var('FLAVOR');
+    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
+    my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
+    my $image = uc("$distri-$version-$flavor-$arch-$sku");
+    return $image;
 }
 
 =head2 get_image_definition
@@ -408,14 +386,13 @@ sub create_image_definition {
     my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
     record_info("img-defs", "Existing image definitions:\n$images");
 
-    my $sku = az_sku();
-
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
     my $gen = ($sku =~ "gen2" ? "V2" : "V1");
     my $tags = generate_tags();
 
-    my $arch = az_arch();
+    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
-    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", $self->generate_basename());
+    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . $arch);
 
     my $definition = $self->get_image_definition($resource_group, $gallery);
     if (defined $definition) {
