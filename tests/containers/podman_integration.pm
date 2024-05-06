@@ -63,6 +63,11 @@ sub run {
     assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
     assert_script_run "chmod +x /usr/local/bin/htpasswd";
 
+    # Make sure to use netavark if CNI is installed
+    if (script_run("rpm -q cni") == 0) {
+        assert_script_run(q(echo -e '[Network]\nnetwork_backend="netavark"' >> /etc/containers/containers.conf));
+    }
+
     delegate_controllers;
 
     assert_script_run "podman system reset -f";
