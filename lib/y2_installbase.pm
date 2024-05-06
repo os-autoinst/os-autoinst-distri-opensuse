@@ -285,7 +285,7 @@ patterns.
 
 sub select_not_install_any_pattern {
     my ($self) = @_;
-
+    send_key_until_needlematch('minimal-system', 'down') if check_var_array('SCC_ADDONS', 'pcm');
     # Ensure mouse on certain pattern then right click
     assert_and_click("minimal-system", button => 'right');
     assert_screen 'selection-menu';
