@@ -107,6 +107,8 @@
       <li><a href="#is_ipxe_boot">is_ipxe_boot</a></li>
       <li><a href="#is_uefi_boot">is_uefi_boot</a></li>
       <li><a href="#is_usb_boot">is_usb_boot</a></li>
+      <li><a href="#remove_efiboot_entry">remove_efiboot_entry</a></li>
+      <li><a href="#empty_usb_disks">empty_usb_disks</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -802,6 +804,18 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>is_usb_boot();</code></pre>
 
 <p>This will return <code>1</code> if the env variables suggest that it boots from USB.</p>
+
+<h2 id="remove_efiboot_entry">remove_efiboot_entry</h2>
+
+<pre><code>remove_efiboot_entry(boot_entry =&gt; &#39;entry&#39;);</code></pre>
+
+<p>Remove provided efiboot entry name by its corresponding boot number.</p>
+
+<h2 id="empty_usb_disks">empty_usb_disks</h2>
+
+<pre><code>empty_usb_disks(usb_disks =&gt; &#39;disk1 disk2&#39;);</code></pre>
+
+<p>Empty contents of all plugged-in usb disks by formatting them. Passed argument usb_disks takes value if the form of &quot;usb_disk1 usb_disk2 usb_disk3&quot;. Remove all plugged-in usb disks if usb_disks is empty.</p>
 
 
 </body>
