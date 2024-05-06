@@ -193,7 +193,8 @@ sub test_opensuse_based_image {
         # that are not the same version as the host, so we skip this test.
         test_zypper_on_container($runtime, $image);
         build_and_run_image(base => $image, runtime => $runtime);
-        if (is_sle && $runtime->runtime eq 'docker') {
+        # zypper-docker package has been excluded from sle starting with 15-SP6
+        if (is_sle('<15-SP6') && $runtime->runtime eq 'docker') {
             build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
         }
     }
