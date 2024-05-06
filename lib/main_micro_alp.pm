@@ -144,9 +144,20 @@ sub load_autoyast_installation_tests {
     loadtest 'console/textinfo';
 }
 
+sub load_usb_installation_tests {
+    if (is_ipxe_boot) {
+        loadtest 'installation/ipxe_install';
+    }
+    else {
+        loadtest 'boot/boot_from_pxe';
+    }
+    loadtest 'installation/usb_install';
+}
+
 sub load_selfinstall_boot_tests {
     loadtest 'installation/bootloader_uefi';
     loadtest 'microos/selfinstall';
+    loadtest 'console/textinfo' if (is_ipmi);
 }
 
 sub load_remote_target_tests {
@@ -359,6 +370,7 @@ sub load_tests {
     if (get_var('BOOT_HDD_IMAGE')) {
         load_boot_from_disk_tests;
     } elsif (is_selfinstall) {
+        load_usb_installation_tests if (is_usb_boot);
         load_selfinstall_boot_tests;
     } elsif (get_var('AUTOYAST')) {
         load_autoyast_installation_tests;
