@@ -49,9 +49,8 @@ sub run {
     install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib python3-PyYAML socat sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman podman-remote python3-passlib python3-PyYAML skopeo socat sudo systemd-container);
     push @pkgs, qw(buildah) unless is_sle_micro;
-    push @pkgs, qw(podman-remote skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
     # Needed for podman machine
     if (is_x86_64) {
@@ -63,6 +62,11 @@ sub run {
 
     assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
     assert_script_run "chmod +x /usr/local/bin/htpasswd";
+
+    # Make sure to use netavark if CNI is installed
+    if (script_run("rpm -q cni") == 0) {
+        assert_script_run(q(echo -e '[Network]\nnetwork_backend="netavark"' >> /etc/containers/containers.conf));
+    }
 
     delegate_controllers;
 
