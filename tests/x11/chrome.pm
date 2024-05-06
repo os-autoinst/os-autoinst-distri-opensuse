@@ -35,7 +35,9 @@ sub preserve_privacy_of_non_human_openqa_workers {
 sub click_ad_privacy_feature {
     assert_and_click 'google-chrome-ad-privacy-feature-more';
     assert_and_click 'google-chrome-ad-privacy-feature-no';
-    assert_and_click 'google-chrome-ad-privacy-feature-more';
+    if (check_screen 'google-chrome-ad-privacy-feature-more', 5) {
+        assert_and_click 'google-chrome-ad-privacy-feature-more';
+    }
     assert_and_click 'google-chrome-ad-privacy-feature-ok';
 }
 
