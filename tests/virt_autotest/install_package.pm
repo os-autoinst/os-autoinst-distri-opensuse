@@ -112,14 +112,23 @@ sub run {
 #            select_console 'sol', await_console => 0;
 #        use_ssh_serial_console;
     script_run("date");
+    script_run("ls -l /root/.ssh/");
+    script_run("ls -l /etc/ssh/");
     script_run("systemctl --no-pager status sshd");
-    script_run("zypper ar http://download.suse.de/ibs/home:/Julie_CAO/SLE_15_SP6 julie");
+    script_run("zypper ar -p 80 http://download.suse.de/ibs/home:/Julie_CAO/SLE_15_SP6 julie");
     script_run("zypper --gpg-auto-import-keys ref -r julie");
-    script_run("zypper -n in -r julie qa_lib_keys");
-    script_run("zypper info qa_lib_keys");
-    script_run("zypper mr -d julie");
+    #    script_run("zypper -n in -r julie qa_lib_keys");
+    #    script_run("zypper info qa_lib_keys");
+    #    script_run("zypper mr -d julie");
+    script_run("zypper -n --gpg-auto-import-keys ar 'http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP6' server-repo");
+    script_run("zypper --gpg-auto-import-keys ref -r server-repo");
+    script_run("zypper -n in qa_lib_virtauto");
+    script_run("zypper info qa_lib_virtauto");
     install_package;
     #julie
+    script_run("zypper info qa_lib_virtauto");
+    script_run("zypper info qa_tools");
+    script_run("zypper info qa_lib_keys");
     script_run("date");
     script_run("systemctl --no-pager status sshd");
     script_run("ls -l /root/.ssh/");
