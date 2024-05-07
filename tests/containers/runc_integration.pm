@@ -63,8 +63,8 @@ sub run {
     assert_script_run "cd $test_dir/runc-$runc_version/";
     assert_script_run "cp -r tests/integration tests/integration.orig";
 
-    # Compile some stuff
-    assert_script_run "make recvtty sd-helper seccompagent fs-idmap memfd-bind pidfd-kill remap-rootfs";
+    # Compile helpers used by the tests
+    assert_script_run "make \$(ls contrib/cmd/)";
 
     run_tests(rootless => 1, skip_tests => get_var('RUNC_BATS_SKIP_USER', ''));
 
