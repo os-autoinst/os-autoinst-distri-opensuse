@@ -197,6 +197,12 @@ sub run {
         wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
+    # Skip ssh key enrollment (for now)
+    if (is_tumbleweed && check_var('STAGING', 'H')) {
+        assert_screen 'jeos-ssh-enroll-or-not';
+        send_key 'n';
+    }
+
     if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
