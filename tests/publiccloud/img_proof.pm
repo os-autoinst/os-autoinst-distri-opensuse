@@ -12,7 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Mojo::File 'path';
 use Mojo::JSON;
-use publiccloud::utils qw(is_ondemand is_hardened);
+use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
 use File::Basename 'basename';
@@ -58,6 +58,8 @@ sub run {
         # Avoid "pam_apparmor(sudo:session): Unknown error occurred changing to root hat: Operation not permitted"
         $instance->ssh_assert_script_run('sudo sed -i /pam_apparmor.so/d /etc/pam.d/*');
     }
+
+    collect_system_information();
 
     if ($tests eq "default") {
         record_info("Deprecated setting", "PUBLIC_CLOUD_IMG_PROOF_TESTS should not use 'default' anymore. Please use 'test_sles' instead.", result => 'softfail');

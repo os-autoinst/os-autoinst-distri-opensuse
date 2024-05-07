@@ -27,6 +27,7 @@ use maintenance_smelt qw(is_embargo_update);
 my $openqa_port_allowed = 0;
 
 our @EXPORT = qw(
+  collect_system_information
   deregister_addon
   define_secret_variable
   get_credentials
@@ -361,6 +362,20 @@ sub ssh_update_transactional_system {
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
     die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
+}
+
+
+sub collect_system_information {
+     # Collect various system information and pack them to instance_overview.tar
+    script_run('cd /var/tmp');
+    assert_script_run('mkdir -p instance_overview');
+    assert_script_run('rpm -qa | tee instance_overview/rpm.list.txt', timeout => 90);
+    assert_script_run('cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt');
+    assert_script_run('cat /proc/meminfo | tee instance_overview/meminfo.txt');
+    assert_script_run('uname -a | tee instance_overview/uname.txt');
+    tar_and_upload_log('instance_overview/", "instance_overview.tar.gz', {gzip => 1});
+    script_run('cd');
+    return 0;
 }
 
 1;

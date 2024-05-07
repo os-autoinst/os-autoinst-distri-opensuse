@@ -50,21 +50,7 @@ sub run {
 
     zypper_call("lr -d");
 
-    collect_system_information($self);
-}
-
-sub collect_system_information {
-    my ($self) = @_;
-
-    # Collect various system information and pack them to instance_overview.tar
-    script_run("cd /var/tmp");
-    assert_script_run("mkdir -p instance_overview");
-    assert_script_run("rpm -qa | tee instance_overview/rpm.list.txt", timeout => 90);
-    assert_script_run("cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt");
-    assert_script_run("cat /proc/meminfo | tee instance_overview/meminfo.txt");
-    assert_script_run("uname -a | tee instance_overview/uname.txt");
-    tar_and_upload_log("instance_overview/", "instance_overview.tar.gz", {gzip => 1});
-    script_run("cd");
+    collect_system_information();
 }
 
 sub test_flags {
