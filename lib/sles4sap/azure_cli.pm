@@ -3,14 +3,16 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
+# Summary: Library wrapper around some az cli commands.
 
 package sles4sap::azure_cli;
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
-use Regexp::Common qw(net);
+use Mojo::JSON qw(decode_json);
+
 
 =head1 SYNOPSIS
 
@@ -18,24 +20,46 @@ Library to compose and run Azure cli commands
 =cut
 
 our @EXPORT = qw(
+  az_version
   az_group_create
+  az_group_name_get
   az_network_vnet_create
   az_network_nsg_create
   az_network_nsg_rule_create
   az_network_publicip_create
+  az_network_publicip_get
   az_network_lb_create
+  az_network_lb_probe_create
+  az_network_lb_rule_create
   az_vm_as_create
   az_vm_create
   az_vm_openport
+  az_vm_wait_cloudinit
   az_nic_id_get
   az_nic_name_get
   az_ipconfig_name_get
+  az_ipconfig_update
+  az_ipconfig_pool_add
 );
+
+
+=head2 az_version
+
+    az_version();
+
+Print the version of the az cli available on system
+=cut
+
+sub az_version {
+    assert_script_run('az --version');
+}
 
 
 =head2 az_group_create
 
     az_group_create( name => 'openqa-rg', region => 'westeurope');
+
+Create an Azure resource group in a specific region
 
 =over 2
 
@@ -57,6 +81,24 @@ sub az_group_create {
     assert_script_run($az_cmd);
 }
 
+
+
+=head2 az_group_name_get
+
+    az_group_name_get();
+
+Get the name of all existing Resource groups in the current subscription
+
+=cut
+
+sub az_group_name_get {
+    my $az_cmd = join(' ',
+        'az group list',
+        '--query "[].name"',
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
 =head2 az_network_vnet_create
 
     az_network_vnet_create(
@@ -67,7 +109,7 @@ sub az_group_create {
         address_prefixes => '10.0.1.0/16',
         subnet_prefixes => '10.0.1.0/24')
 
-    Create a virtual network
+Create a virtual network
 
 =over 6
 
@@ -108,7 +150,7 @@ sub az_network_vnet_create {
         resource_group => 'openqa-rg',
         name => 'openqa-nsg')
 
-    Create a network security group
+Create a network security group
 
 =over 2
 
@@ -138,7 +180,8 @@ sub az_network_nsg_create {
         name => 'openqa-nsg-rule-ssh',
         port => 22)
 
-    Create a rule for an existing network security group
+Create a very specific type of inbound rule for an existing network security group
+Just few parameters are configurable here, like the port number
 
 =over 2
 
@@ -173,7 +216,6 @@ sub az_network_nsg_rule_create {
     assert_script_run($az_cmd);
 }
 
-
 =head2 az_network_publicip_create
 
     az_network_publicip_create(
@@ -181,7 +223,7 @@ sub az_network_nsg_rule_create {
         name => 'openqa-pip',
         zone => '1 2 3')
 
-    Create an IPv4 public IP resource
+Create an IPv4 public IP resource
 
 =over 5
 
@@ -215,6 +257,36 @@ sub az_network_publicip_create {
     assert_script_run($az_cmd);
 }
 
+
+=head2 az_network_publicip_get
+
+    az_network_publicip_get(
+        resource_group => 'openqa-rg',
+        name => 'openqa-pip')
+
+Return an IPv4 public IP address from its name
+
+=over 2
+
+=item B<resource_group> - existing resource group including the PubIP
+
+=item B<name> - existing public IP resource name
+
+=back
+=cut
+
+sub az_network_publicip_get {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ', 'az network public-ip show',
+        '--resource-group', $args{resource_group},
+        '--name', $args{name},
+        "--query 'ipAddress'",
+        '-o tsv');
+    return script_output($az_cmd);
+}
+
 =head2 az_network_lb_create
 
     az_network_lb_create(
@@ -226,10 +298,11 @@ sub az_network_publicip_create {
         frontend_ip => 'openqa-feip',
         sku => 'Standard')
 
-    Create a load balancer entity.
-    LB is mostly "just" a "group" definition
-    to link back-end and front-end resources (usually an IP)
-    # SKU Standard (and not Basic) is needed to get some Metrics
+Create a load balancer entity.
+LB is mostly "just" a "group" definition
+to link back-end and front-end resources (usually an IP)
+
+SKU Standard (and not Basic) is needed to get some Metrics
 
 =over 8
 
@@ -272,6 +345,106 @@ sub az_network_lb_create {
     assert_script_run($az_cmd);
 }
 
+=head2 az_network_lb_probe_create
+
+    az_network_lb_probe_create(
+        resource_group => 'openqa-rg',
+        lb_name => 'openqa-lb',
+        name => 'openqa-lb-hp',
+        port => '4242',
+        protocol => 'Udp',
+        )
+
+Create a load balancer health probe.
+
+=over 5
+
+=item B<resource_group> - existing resource group where to create lb
+
+=item B<lb_name> - existing load balancer name
+
+=item B<name> - name for the new health probe
+
+=item B<port> - port number monitored by the health probe
+
+=item B<protocol> - protocol for the health probe. Default Tcp
+
+=back
+=cut
+
+sub az_network_lb_probe_create {
+    my (%args) = @_;
+    foreach (qw(resource_group lb_name name port)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{protocol} //= 'Tcp';
+
+    my $az_cmd = join(' ', 'az network lb probe create',
+        '--resource-group', $args{resource_group},
+        '--lb-name', $args{lb_name},
+        '--name', $args{name},
+        '--port', $args{port},
+        '--protocol', $args{protocol},
+        '--interval 5',
+        '--probe-threshold 2');
+    assert_script_run($az_cmd);
+}
+
+=head2 az_network_lb_rule_create
+
+    az_network_lb_rule_create(
+        resource_group => 'openqa-rg',
+        lb_name => 'openqa-lb',
+        hp_name => 'openqa-hb',
+        frontend_ip => 'openqa-fe',
+        backend => 'openqa-be',
+        name => 'openqa-lb-rule',
+        port => '80'
+        )
+
+Configure the load balancer behavior.
+
+=over 8
+
+=item B<resource_group> - existing resource group where to create lb
+
+=item B<lb_name> - existing load balancer name
+
+=item B<hp_name> - existing load balancer health probe name
+
+=item B<frontend_ip> - existing load balancer front end IP name
+
+=item B<backend> - existing load balancer back end pool name
+
+=item B<name> - name for the new load balancer rule
+
+=item B<port> - port mapped between the frontend and the backend. This poor Perl wrapper map them 1:1
+
+=item B<protocol> - protocol for the load balancer rule. Default Tcp
+
+=back
+=cut
+
+sub az_network_lb_rule_create {
+    my (%args) = @_;
+    foreach (qw(resource_group lb_name hp_name frontend_ip backend name port)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{protocol} //= 'Tcp';
+
+    my $az_cmd = join(' ', 'az network lb rule create',
+        '--resource-group', $args{resource_group},
+        '--lb-name', $args{lb_name},
+        '--probe-name', $args{hp_name},
+        '--name', $args{name},
+        '--protocol', $args{protocol},
+        '--frontend-ip-name', $args{frontend_ip}, '--frontend-port', $args{port},
+        '--backend-pool-name', $args{backend}, '--backend-port', $args{port},
+        # These two are from qe-sap-deployment
+        #  - idle_timeout_in_minutes        = 30
+        #  - enable_floating_ip             = "true"
+        '--idle-timeout 30 --enable-floating-ip 1');
+    assert_script_run($az_cmd);
+}
+
 =head2 az_vm_as_create
 
     az_vm_as_create(
@@ -280,7 +453,7 @@ sub az_network_lb_create {
         region => 'westeurope',
         fault_count => 2)
 
-    Create an availability set. Later on VM can be assigned to it.
+Create an availability set. Later on VM can be assigned to it.
 
 =over 4
 
@@ -318,7 +491,7 @@ sub az_vm_as_create {
         region => 'westeurope',
         image => 'SUSE:sles-sap-15-sp5:gen2:latest')
 
-    Create a virtual machine
+Create a virtual machine
 
 =over 14
 
@@ -382,7 +555,6 @@ sub az_vm_create {
     assert_script_run($az_cmd, timeout => 600);
 }
 
-
 =head2 az_vm_openport
 
     az_vm_openport(
@@ -390,7 +562,7 @@ sub az_vm_create {
         name => 'openqa-vm',
         port => 80)
 
-    Open a port on an existing VM
+Open a port on an existing VM
 
 =over 3
 
@@ -415,14 +587,13 @@ sub az_vm_openport {
     assert_script_run($az_cmd);
 }
 
-
 =head2 az_vm_wait_cloudinit
 
     az_vm_wait_cloudinit(
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
-    Wait cloud-init completition on a running VM
+Wait cloud-init completion on a running VM
 
 =over 4
 
@@ -452,9 +623,8 @@ sub az_vm_wait_cloudinit {
         '--run-as-user', $args{username},
         '--timeout-in-seconds', $args{timeout},
         '--script "sudo cloud-init status --wait"');
-    assert_script_run($az_cmd);
+    assert_script_run($az_cmd, timeout => ($args{timeout} + 10));
 }
-
 
 =head2 az_nic_id_get
 
@@ -462,7 +632,7 @@ sub az_vm_wait_cloudinit {
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
-    get the NIC ID of the first NIC of a given VM
+Get the NIC ID of the first NIC of a given VM
 
 =over 2
 
@@ -472,7 +642,6 @@ sub az_vm_wait_cloudinit {
 
 =back
 =cut
-
 
 sub az_nic_id_get {
     my (%args) = @_;
@@ -489,7 +658,7 @@ sub az_nic_id_get {
 
 =head2 az_nic_get
 
-    get the NIC data from NIC ID
+Get the NIC data from NIC ID
 
 =over 2
 
@@ -518,9 +687,9 @@ sub az_nic_get {
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
-    get the NIC name from NIC ID
+Get the NIC name from NIC ID
 
-=over 2
+=over 1
 
 =item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
 
@@ -529,8 +698,7 @@ sub az_nic_get {
 
 sub az_nic_name_get {
     my (%args) = @_;
-    foreach (qw(nic_id)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
+    croak('Argument < nic_id > missing') unless $args{nic_id};
     return az_nic_get(nic_id => $args{nic_id}, filter => 'name');
 }
 
@@ -540,9 +708,9 @@ sub az_nic_name_get {
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
-    get the name of the first IpConfig of a NIC from a NIC ID
+Get the name of the first IpConfig of a NIC from a NIC ID
 
-=over 2
+=over 1
 
 =item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
 
@@ -551,8 +719,79 @@ sub az_nic_name_get {
 
 sub az_ipconfig_name_get {
     my (%args) = @_;
-    foreach (qw(nic_id)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
+    croak('Argument < nic_id > missing') unless $args{nic_id};
 
     return az_nic_get(nic_id => $args{nic_id}, filter => 'ipConfigurations[0].name');
+}
+
+=head2 az_ipconfig_update
+
+    az_ipconfig_update(
+        resource_group => 'openqa-rg',
+        ipconfig_name => 'openqa-ipconfig',
+        nic_name => 'openqa-nic',
+        ip => '192.168.0.42')
+
+Change the IpConfig to use a static IP
+
+=over 4
+
+=item B<resource_group> - existing resource group
+
+=item B<ipconfig_name> - existing IP configuration NAME (eg. from az_ipconfig_name_get)
+
+=item B<nic_name> - existing NIC NAME (eg. from az_nic_name_get)
+
+=item B<ip> - IPv4 address to assign as static IP
+
+=back
+=cut
+
+sub az_ipconfig_update {
+    my (%args) = @_;
+    foreach (qw(resource_group ipconfig_name nic_name ip)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network nic ip-config update',
+        '--resource-group', $args{resource_group},
+        '--name', $args{ipconfig_name},
+        '--nic-name', $args{nic_name},
+        '--private-ip-address', $args{ip});
+    assert_script_run($az_cmd, timeout => 900);
+}
+
+=head2 az_ipconfig_pool_add
+
+    az_ipconfig_pool_add(
+        resource_group => 'openqa-rg',
+        lb_name => 'openqa-lb',
+        address_pool => 'openqa-addr-pool',
+        ipconfig_name => 'openqa-ipconfig',
+        nic_name => 'openqa-nic')
+
+Add the IpConfig to a LB address pool
+
+=over 3
+
+=item B<resource_group> - existing resource group
+
+=item B<lb_name> - existing Load balancer NAME
+
+=item B<address_pool> - existing Load balancer address pool name
+
+=back
+=cut
+
+sub az_ipconfig_pool_add {
+    my (%args) = @_;
+    foreach (qw(resource_group lb_name address_pool ipconfig_name nic_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network nic ip-config address-pool add',
+        '--resource-group', $args{resource_group},
+        '--lb-name', $args{lb_name},
+        '--address-pool', $args{address_pool},
+        '--ip-config-name', $args{ipconfig_name},
+        '--nic-name', $args{nic_name});
+    assert_script_run($az_cmd);
 }

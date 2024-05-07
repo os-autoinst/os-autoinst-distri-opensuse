@@ -25,6 +25,7 @@ sub run {
     upload_logs('/tmp/file_copy_100.log');
     assert_script_run("time ./file_copy -j 20 -i 5 -s 500 | tee /tmp/file_copy_500.log", timeout => 1200);
     upload_logs('/tmp/file_copy_500.log');
+    return record_soft_failure 'poo#154417, very poor performance on RPi, it fails even if timeout increases to 2400' if check_var('FLAVOR', 'JeOS-for-RaspberryPi');
     assert_script_run("time ./file_copy -j 4 -i 5 -s 5000 | tee /tmp/file_copy_5000.log", timeout => 1200);
     upload_logs('/tmp/file_copy_5000.log');
 }

@@ -24,6 +24,7 @@ use services::registered_addons 'full_registered_check';
 use List::MoreUtils 'uniq';
 use migration 'modify_kernel_multiversion';
 use strict;
+use Utils::Architectures 'is_ppc64le';
 use warnings;
 
 sub run {
@@ -47,6 +48,7 @@ sub run {
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
             add_suseconnect_product(get_addon_fullname('serverapp'), undef, undef, undef, 300, 1);
+            add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef, 300, 1) if is_sle('=12-sp5', get_var('ORIGIN_SYSTEM_VERSION')) && is_ppc64le;
         }
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled')) {
             add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);

@@ -21,9 +21,13 @@ use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
+    my ($sshd_config_file, $sshd_timeout) = @_;
+    $sshd_config_file //= '/etc/ssh/sshd_config';
+    $sshd_timeout //= 28800;
+
     reset_consoles;
     select_console('root-console');
-    set_ssh_console_timeout('/etc/ssh/sshd_config', '28800');
+    set_ssh_console_timeout($sshd_config_file, $sshd_timeout);
     reset_consoles;
     select_console 'sol', await_console => 0;
     send_key 'ret';
@@ -235,7 +239,15 @@ sub login_to_console {
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
     # For TW hosts, sshd configurations have been created in its autoyast profiles
-    set_ssh_console_timeout_before_use if (is_sle and is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', ''));
+    if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', '')) {
+        if (is_sle) {
+            set_ssh_console_timeout_before_use;
+        }
+        elsif (is_sle_micro('>=6.0')) {
+            set_ssh_console_timeout_before_use('/etc/ssh/sshd_config.d/sshd_config.conf', 28800);
+        }
+    }
+
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 

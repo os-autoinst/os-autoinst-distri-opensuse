@@ -78,7 +78,6 @@ conditional_schedule:
         - console/hostname
         - console/zypper_lr
         - console/zypper_ref
-        - console/check_system_info
         - console/firewall_enabled
         - console/zypper_lifecycle
         - console/orphaned_packages_check

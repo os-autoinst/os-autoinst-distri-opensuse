@@ -1,0 +1,8 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - nginx
+runcmd:
+  - 'echo "I am $(hostname)" > /srv/www/htdocs/index.html'
+  - sudo systemctl enable nginx.service
+  - sudo systemctl start nginx.service

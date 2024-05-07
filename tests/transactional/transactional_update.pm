@@ -72,7 +72,7 @@ sub run {
     check_package(stage => 'in');
 
     # Find snapshot number for rollback
-    my $snap = script_output "snapper list | tail -1 | cut -d'|' -f1 | tr -d ' *'";
+    my $snap = script_output "snapper list --columns number | tail -1 | tr -d ' *'";
 
     # Don't use tests requiring repos in staging
     unless (is_opensuse && is_staging) {

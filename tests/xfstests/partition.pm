@@ -251,6 +251,7 @@ sub post_env_info {
     # record version info
     my $ver_log = get_var('VERSION_LOG', '/opt/version.log');
     record_info('Version', script_output("cat $ver_log"));
+    record_info('Kernel config', script_output('cat /boot/config-$(uname -r)'));
 
     # record partition size info
     my $size_info = get_var('XFSTESTS_TEST_DEV') . "    " . shift(@size) . "\n";
