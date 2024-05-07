@@ -15,6 +15,7 @@ use testapi;
 use lockapi;
 use hacluster;
 use utils qw(zypper_call exec_and_insert_password);
+use version_utils 'is_sle';
 
 sub handle_diskless_sbd_scenario_cluster_node {
     my $cluster_name = get_cluster_name;
@@ -34,7 +35,10 @@ sub qdevice_status {
     $num_nodes-- if ($expected_status eq 'stopped');
 
     # We have to enable ssh passwordless between qnetd server and node2
-    exec_and_insert_password($qnetd_status_cmd) if is_node(2);
+    # But from 15-SP6 Build83.1 the qdevice "Add all nodes' keys to qnetd authorized_keys"
+    if (is_sle('<15-SP6')) {
+        exec_and_insert_password($qnetd_status_cmd) if is_node(2);
+    }
 
     # Check qdevice status
     $output = script_output "$qnetd_status_cmd" if ($expected_status ne 'stopped');
