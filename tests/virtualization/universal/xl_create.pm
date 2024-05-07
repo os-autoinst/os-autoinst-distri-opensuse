@@ -11,12 +11,21 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 
 sub run {
     record_info "XML", "Export the XML from virsh and convert it into Xen config file";
     assert_script_run "virsh dumpxml $_ > $_.xml" foreach (keys %virt_autotest::common::guests);
+    # SLES version is greater than 15-SP5, remove network from dumpxml file more information bsc#1222584
+    if (is_sle('>15-SP5')) {
+        assert_script_run "sed -i '/<interface type/,/<\\/interface>/d' $_.xml" foreach (keys %virt_autotest::common::guests);
+    }
     assert_script_run "virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
-
+    # Add network configuration to xen-xl cfg files
+    if (is_sle('>15-SP5')) {
+        record_info "Name", "Add network to xen-xl cfg";
+        assert_script_run "echo 'vif = [ \"mac=$_->{macaddress},bridge=virbr0,script=vif-bridge\" ]' >> $_->{name}.xml.cfg" foreach (values %virt_autotest::common::guests);
+    }
     record_info "Name", "Change the name by adding suffix _xl";
     assert_script_run "sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat $_.xml.cfg | grep name" foreach (keys %virt_autotest::common::guests);
