@@ -160,7 +160,8 @@ sub verify_userid_on_container {
             record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
         }
     } else {
-        validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
+        my $exp_user = $testapi::username;
+        validate_script_output "podman top $cid user huser", sub { /$exp_user\s+$exp_user/ };
         my $output = script_output "podman top $cid capeff";
 
         if ($output !~ /none/) {

@@ -32,10 +32,10 @@ sub run {
     $instance->ssh_opts("");
     # helper VM settings
     assert_script_run(sprintf(q(echo -e 'Host %s\n  Hostname %s' >> ~/.ssh/config), $args->{instance_host_alias}, $instance->public_ip));
-    assert_script_run "install -m 666 /dev/null $args->{ssh_log_file}";
-    assert_script_run 'mkdir /home/bernhard/.ssh/';
+    assert_script_run("install -m 666 /dev/null $args->{ssh_log_file}");
+    assert_script_run("mkdir /home/$testapi::username/.ssh/");
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
-    assert_script_run 'cat /home/bernhard/.ssh/id_rsa';
+    assert_script_run("cat /home/$testapi::username/.ssh/id_rsa");
 }
 
 sub test_flags {
