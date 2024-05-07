@@ -264,6 +264,31 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
+=head2 upload_check_logs_tar
+
+    upload_check_logs_tar(@files);
+
+Check remote log files status and upload tar.gz of only ok logs, to oqa UI.
+
+Input: C<@files> full-path-files array;
+
+Return C<1> true explicit, as stateless and never impact calling code.
+
+=cut
+
+sub upload_check_logs_tar {
+    my ($self, @files) = @_;
+    my $remote_tar = $autotest::current_test->{name};
+    $remote_tar = "/tmp/" . $remote_tar . "_logs.tar.gz";
+    my $res = $self->ssh_script_output(cmd => 'sudo ls ' . join(' ', @files) . ' 2>/dev/null', proceed_on_failure => 1);
+    return 1 unless ($res);
+
+    # Upload existing logs to openqa  UI
+    $res = $self->ssh_script_run(cmd => "sudo tar -czvf $remote_tar $res", proceed_on_failure => 1);
+    $self->upload_log("$remote_tar", log_name => basename($remote_tar), failok => 1) if ($res);
+    return 1;
+}
+
 =head2 wait_for_guestregister
 
     wait_for_guestregister([timeout => 300]);
@@ -616,12 +641,12 @@ sub measure_boottime() {
     $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
     $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v', proceed_on_failure => 1);
 
-    # Do logging to openqa UI
     $Data::Dumper::Sortkeys = 1;
-    record_info("RESULTS", Dumper($ret));
+    my $dir = "/var/log";
     my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
-    $instance->run_ssh_command(cmd => 'sudo chmod a+r ' . join(' ', map { "/var/log/$_" } @logs));
-    $instance->upload_log("/var/log/" . $_, log_name => 'measure_boottime_' . $_ . '.txt', failok => 1) foreach (@logs);
+    $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
+
+    record_info("RESULTS", Dumper($ret));
     return $ret;
 }
 
