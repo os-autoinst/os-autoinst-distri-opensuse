@@ -19,8 +19,9 @@ use warnings;
 use version_utils qw(is_transactional);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
+use registration qw(add_suseconnect_product get_addon_fullname);
 
-our @EXPORT = qw(install_bats add_packagehub remove_mounts_conf switch_to_user delegate_controllers);
+our @EXPORT = qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 sub install_bats {
     return if (script_run("which bats") == 0);
@@ -67,4 +68,10 @@ sub delegate_controllers {
         assert_script_run 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
         systemctl "daemon-reload";
     }
+}
+
+sub enable_modules {
+    add_suseconnect_product(get_addon_fullname('desktop'));
+    add_suseconnect_product(get_addon_fullname('sdk'));
+    add_suseconnect_product(get_addon_fullname('python3'));
 }

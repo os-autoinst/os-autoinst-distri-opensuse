@@ -12,10 +12,10 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::utils qw(get_podman_version);
 use utils qw(script_retry);
-use version_utils qw(is_sle_micro is_tumbleweed is_microos);
+use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats remove_mounts_conf switch_to_user delegate_controllers);
+use containers::bats qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -47,6 +47,7 @@ sub run {
     select_serial_terminal;
 
     install_bats;
+    enable_modules if is_sle;
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib skopeo socat sudo systemd-container);

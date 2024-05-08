@@ -13,7 +13,8 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats remove_mounts_conf switch_to_user);
+use containers::bats qw(install_bats remove_mounts_conf switch_to_user enable_modules);
+use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp";
 my $skopeo_version = "";
@@ -46,6 +47,7 @@ sub run {
     select_serial_terminal;
 
     install_bats;
+    enable_modules if is_sle;
 
     # Install tests dependencies
     my @pkgs = qw(jq openssl podman python3-passlib skopeo);
