@@ -1,0 +1,6 @@
+---
+description: 'NetworkManager test suite for Micro-os'
+name: 'microos_networkmanager@x86_64'
+schedule:
+    - microos/disk_boot
+    - microos/networkmanager
