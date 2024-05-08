@@ -198,7 +198,7 @@ sub run {
     }
 
     # Skip ssh key enrollment (for now)
-    if (is_tumbleweed && check_var('STAGING', 'H')) {
+    unless (is_sle || is_sle_micro || is_leap) {
         assert_screen 'jeos-ssh-enroll-or-not';
         send_key 'n';
     }
