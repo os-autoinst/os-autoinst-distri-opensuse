@@ -294,7 +294,20 @@ grub2-set-default 2
         </source>
       </script>
       % }
-      <script/>
+      <!-- configure ssh client -->
+      <script>
+        <filename>ssh_config.sh</filename>
+        <source><![CDATA[
+ssh_config_file="/etc/ssh/ssh_config"
+if [ ! -f $ssh_config_file ]; then
+    echo -e "\StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > $ssh_config_file
+else
+    sed -i 's/#\?\([ \t]\+\)\(StrictHostKeyChecking\)\(.\+\)/\1\2 no/' $ssh_config_file
+    sed -i 's!#\?\([ \t]\+\)\(UserKnownHostsFile\)\(.\+\)!\1\2 /dev/null!' $ssh_config_file
+fi
+]]>
+        </source>
+      </script>
     </init-scripts>
   </scripts>
 </profile>
