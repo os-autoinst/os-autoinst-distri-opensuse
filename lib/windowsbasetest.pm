@@ -132,9 +132,6 @@ sub wait_boot_windows {
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';
-    # Once a month Windows passwords expire, although we try to set it to never
-    # expire.
-    $self->password_expired if check_screen 'win-passwd-expired';
     if ($is_firstboot) {
         record_info('Windows firstboot', 'Starting Windows for the first time');
         wait_still_screen stilltime => 60, timeout => 300;
@@ -170,6 +167,8 @@ sub wait_boot_windows {
         $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows" /v Explorer');
         $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1');
         $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0');
+        # Prevent password from expiring:
+        $self->run_in_powershell(cmd => 'wmic UserAccount set PasswordExpires=False');
         record_info 'Port close', 'Closing serial port...';
         $self->run_in_powershell(cmd => '$port.close()', code => sub { });
         $self->run_in_powershell(cmd => 'exit', code => sub { });
@@ -242,14 +241,4 @@ sub power_configuration {
     );
 }
 
-sub password_expired {
-    # There's need to type the old password and the new one twice and then press
-    # enter an additional time for acknowledging.
-    send_key 'ret';    # Ok message for starting the process
-    for (0 .. 2) {
-        type_password;
-        send_key 'ret';
-    }
-    send_key 'ret';    # Ok to "Password has been changed"
-}
 1;
