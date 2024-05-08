@@ -22,6 +22,8 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
+    return if ($skip_tests eq "all");
+
     my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
 
     assert_script_run "cp -r tests/integration.orig tests/integration";

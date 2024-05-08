@@ -24,6 +24,8 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $remote, $skip_tests) = ($params{rootless}, $params{remote}, $params{skip_tests});
 
+    return if ($skip_tests eq "all");
+
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
