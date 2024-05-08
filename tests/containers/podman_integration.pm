@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::utils qw(get_podman_version);
 use utils qw(script_retry);
-use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos is_leap is_leap_micro);
+use version_utils qw(is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats qw(install_bats remove_mounts_conf switch_to_user delegate_controllers);
@@ -49,9 +49,12 @@ sub run {
     install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman podman-remote python3-passlib python3-PyYAML skopeo socat sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib skopeo socat sudo systemd-container);
     push @pkgs, qw(buildah) unless is_sle_micro;
-    push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos || is_sle_micro('>=6.0') || is_leap_micro('>=6.0'));
+    # podman-remote is not yet available & python3-PyYAML was dropped in SLM 6.0
+    push @pkgs, qw(podman-remote python3-PyYAML) unless is_sle_micro('>=6.0');
+    # passt requires podman 5.0
+    push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos);
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
