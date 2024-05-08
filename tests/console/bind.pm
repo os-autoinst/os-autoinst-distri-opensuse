@@ -1,22 +1,24 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2021 SUSE LLC
+# Copyright 2018-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6
-# bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython
+# bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6
+# perl-Net-DNS python3-dnspython git-core python3-pytest python3-hypothesis
+# jemalloc-devel libcmocka-devel
 # Summary: bind upstream testsuite
 #          prepare, build, fix broken tests and execute testsuite
-# - Register and add correct products by calling "handle_bind_source_dependencies.sh"
+# - Add PHUB module for pytyhon3-* packages like python3-pytest"
 # - Install required packages for the test, depending on SLES version
 # - Enable source repositories and install bind src.rpm
-# - Change to /usr/src/packages and rebuild bind package by calling "rpmbuild
-# -bc SPECS/bind.spec"
+# - Build bind package from spec "rpmbuild -bc SPECS/bind.spec"
 # - Replace bind from build with system binaries on "conf.sh"
 # - Upload "conf.sh" as reference
 # - Setup loopback interfaces
 # - Run "runall.sh" testsuite
-# - In case of failure, upload "systests.output" log
+# - Upload "systests.output" or "test-suite.log" on newer version
+#
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'consoletest';
@@ -26,13 +28,12 @@ use strict;
 use warnings;
 use utils 'zypper_call';
 use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname);
+use version_utils qw(package_version_cmp);
 
 sub run {
     select_serial_terminal;
-
-    # script to add missing dependency repos and in second run remove only added products/repos
-    assert_script_run 'curl -v -o /tmp/script.sh ' . data_url('qam/handle_bind_source_dependencies.sh');
-    assert_script_run 'bash /tmp/script.sh', 200;
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP4+');
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
         # perl-IO-Socket-INET6 for reclimit test
@@ -41,15 +42,19 @@ sub run {
     elsif (is_sle('>=15')) {
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
-        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython';
+        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython git-core python3-pytest python3-hypothesis jemalloc-devel libcmocka-devel';
     }
     # enable source repositories to get latest source packages
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
     # install bind sources to build and run testsuite
     zypper_call 'si bind';
-    assert_script_run 'rpm -q bind';
+    my $bind_version = script_output("rpm -q --qf '%{version}' bind");
     # disable previously enabled source repositories
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -d --no-refresh $r;done';
+    # reconnect to regenerate PATH
+    enter_cmd 'exit';
+    reset_consoles;
+    select_serial_terminal;
     assert_script_run 'cd /usr/src/packages';
     # build the bind package with tests
     assert_script_run 'rpmbuild -bc SPECS/bind.spec', 2000;
@@ -60,11 +65,8 @@ sub run {
     assert_script_run 'sed -i \'s/$TOP\/bin\/named\/named/\/usr\/sbin\/named/\' conf.sh';
     assert_script_run 'sed -i \'s/$TOP\/bin\/dig\/dig/\/usr\/bin\/dig/\' conf.sh';
     upload_logs 'conf.sh';
-    # add missing $ and replace $dig with exported $DIG
-    assert_script_run 'sed -i \'s/^DIG/$DIG/\' nsupdate/tests.sh' if is_sle('<=12-SP3');
-    assert_script_run 'sed -i \'s/$dig/$DIG/\' nsupdate/tests.sh' if is_sle('<=12-SP3');
-    # no idea what is with rpz on SLE 12 SP3, remove it for now
-    assert_script_run 'rm -rf rpz' if is_sle('<=12-SP3');
+    # temporary disable logfileconf poo#159465
+    assert_script_run 'sed -i \'/\\s*logfileconfig\\s*\\\/d\' Makefile' if is_sle('=15-SP6');
     # fix permissions and executables to run the testsuite
     assert_script_run 'chown bernhard:root -R .';
     assert_script_run 'chmod +x *.sh *.pl';
@@ -80,8 +82,14 @@ sub run {
         for (1 .. 3) {
             eval {
                 record_info 'Retry: poo#71329';
-                assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
-                assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
+                if (package_version_cmp($bind_version, '9.18.24') < 0) {
+                    assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
+                    assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
+                }
+                else {
+                    assert_script_run 'TFAIL=$(awk \'/^FAIL:/ {print$2}\' test-suite.log)';
+                    assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
+                }
             };
             last unless ($@);
             record_info 'Retry', "Failed bind test retry: $_ of 3";
@@ -93,9 +101,25 @@ sub run {
 }
 
 sub post_fail_hook {
+    my $bind_version = script_output("rpm -q --qf '%{version}' bind");
     # print out what tests failed
-    assert_script_run 'grep -E "^A|^R" systests.output|grep -B1 FAIL';
-    upload_logs 'systests.output';
+    if (package_version_cmp($bind_version, '9.18.24') < 0) {
+        script_run 'grep -E "^A|^R" systests.output|grep -B1 FAIL';
+        upload_logs 'systests.output';
+    }
+    else {
+        upload_logs "/usr/src/packages/BUILD/bind-$bind_version/bin/tests/system/test-suite.log";
+    }
+}
+
+sub post_run_hook {
+    my $bind_version = script_output("rpm -q --qf '%{version}' bind");
+    if (package_version_cmp($bind_version, '9.18.24') < 0) {
+        upload_logs 'systests.output';
+    }
+    else {
+        upload_logs "/usr/src/packages/BUILD/bind-$bind_version/bin/tests/system/test-suite.log";
+    }
 }
 
 1;
