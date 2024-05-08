@@ -12,8 +12,8 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats switch_to_user delegate_controllers);
-use version_utils qw(is_tumbleweed);
+use containers::bats qw(install_bats switch_to_user delegate_controllers enable_modules);
+use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
 my $runc_version = "";
@@ -39,6 +39,7 @@ sub run {
     select_serial_terminal;
 
     install_bats;
+    enable_modules if is_sle;
 
     # Install tests dependencies
     my @pkgs = qw(git-core glibc-devel-static go iptables jq libseccomp-devel make runc);
