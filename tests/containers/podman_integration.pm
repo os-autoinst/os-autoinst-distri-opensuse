@@ -94,7 +94,7 @@ sub run {
     run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
 
     # user / remote
-    run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', '')) unless (is_sle_micro('<5.5'));
+    run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', '')) if (script_run('which podman-remote') == 0);
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/podman-$podman_version/");
@@ -103,7 +103,7 @@ sub run {
     run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
 
     # root / remote
-    run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', '')) unless (is_sle_micro('<5.5'));
+    run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', '')) if (script_run('which podman-remote') == 0);
 }
 
 sub cleanup() {
