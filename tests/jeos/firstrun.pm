@@ -194,7 +194,7 @@ sub run {
 
         # All options used up, so no need to press 'Done' explicitly anymore.
 
-        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
+        # Continues below to verify that /etc/issue shows the recovery key
     }
 
     # Skip ssh key enrollment (for now)
@@ -227,6 +227,11 @@ sub run {
         send_key "ret";
         # Disk encryption is gonna take time. Once this is done we can proceed with login.
         wait_still_screen 5;
+    }
+
+    if (is_bootloader_sdboot) {
+        # Verify that /etc/issue shows the recovery key
+        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
