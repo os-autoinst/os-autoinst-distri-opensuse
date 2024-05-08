@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats qw(install_bats switch_to_user delegate_controllers);
-use version_utils qw(is_tumbleweed);
+use version_utils qw(is_tumbleweed is_sle_micro);
 
 my $test_dir = "/var/tmp";
 my $runc_version = "";
@@ -41,7 +41,8 @@ sub run {
     install_bats;
 
     # Install tests dependencies
-    my @pkgs = qw(git-core glibc-devel-static go iptables jq libseccomp-devel make runc);
+    my @pkgs = qw(git-core iptables jq runc);
+    push @pkgs, "glibc-devel-static go libseccomp-devel make" unless is_sle_micro;
     push @pkgs, "criu" if is_tumbleweed;
     install_packages(@pkgs);
 
@@ -64,7 +65,7 @@ sub run {
     assert_script_run "cp -r tests/integration tests/integration.orig";
 
     # Compile helpers used by the tests
-    assert_script_run "make \$(ls contrib/cmd/)";
+    assert_script_run("make \$(ls contrib/cmd/)") unless is_sle_micro;
 
     run_tests(rootless => 1, skip_tests => get_var('RUNC_BATS_SKIP_USER', ''));
 

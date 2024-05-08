@@ -299,7 +299,7 @@ sub load_container_tests {
             loadtest 'containers/podman_integration';
         }
         if (!check_var('RUNC_BATS_SKIP', 'all')) {
-            loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4'));
+            loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4') || is_sle_micro('>=5.5'));
         }
         return;
     }
