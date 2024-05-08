@@ -207,7 +207,7 @@
         <startmode>nfsroot</startmode>
         <usercontrol>no</usercontrol>
       </interface>
-  </interfaces>
+    </interfaces>
     <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
@@ -245,7 +245,7 @@
     <global>
       <timeout config:type="integer">-1</timeout>
     </global>
-    % if ($check_var->('UEFI', '1') and $check_var->('ARCH', 'x86_64')) {
+    % if ($check_var->('UEFI', '1')) {
     <loader_type>grub2-efi</loader_type>
     % }
   </bootloader>
@@ -268,6 +268,7 @@
     </storage>
     % }
   </general>
+  % }
   % if ($check_var->('ARCH', 'aarch64')) {
   <partitioning config:type="list">
     <drive>
@@ -312,11 +313,11 @@
     </drive>
   </partitioning>
   % }
-  % unless ($check_var->('ARCH', 'aarch64')) {
+  % if ($check_var->('ARCH', 'x86_64')) {
   <partitioning config:type="list">
     <drive>
     <initialize config:type="boolean">true</initialize>
-    % if ($check_var->('UEFI', '1') and $check_var->('ARCH', 'x86_64')) {
+    % if ($check_var->('UEFI', '1')) {
     <device>/dev/vda</device>
     <disklabel>gpt</disklabel>
     <enable_snapshots config:type="boolean">true</enable_snapshots>
@@ -408,6 +409,7 @@
   </drive>
   </partitioning>
   % }
+  % unless ($check_var->('ARCH', 's390x')) {
   <networking>
     <interfaces config:type="list">
       <interface>
@@ -418,14 +420,17 @@
       </interface>
     </interfaces>
   </networking>
+  % }
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
+    <FW_CONFIGURATIONS_DMZ>sshd vnc-server</FW_CONFIGURATIONS_DMZ>
+    <FW_CONFIGURATIONS_EXT>sshd vnc-server</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_INT>sshd vnc-server</FW_CONFIGURATIONS_INT>
     <FW_ALLOW_PING_FW>yes</FW_ALLOW_PING_FW>
     <FW_DEV_EXT>eth0</FW_DEV_EXT>
     <FW_SERVICES_ACCEPT_EXT>0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
   </firewall>
-  % }
   <report>
     <errors>
       <log config:type="boolean">true</log>
@@ -493,6 +498,8 @@
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        <service>SuSEfirewall2</service>
+        <service>SuSEfirewall2_init</service>
         % if ($check_var->('MULTIPATH', '1')) {
         <service>multipathd</service>
         % }
