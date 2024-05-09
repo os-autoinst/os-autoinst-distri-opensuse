@@ -33,7 +33,7 @@ use version_utils qw(package_version_cmp);
 
 sub run {
     select_serial_terminal;
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP4+');
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP2+');
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
         # perl-IO-Socket-INET6 for reclimit test
@@ -79,9 +79,9 @@ sub run {
         assert_script_run 'runuser -u bernhard -- sh runall.sh -n', 7000;
     };
     if ($@) {
+        record_info 'Retry:', 'poo#71329';
         for (1 .. 3) {
             eval {
-                record_info 'Retry: poo#71329';
                 if (package_version_cmp($bind_version, '9.18.24') < 0) {
                     assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
                     assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
@@ -92,7 +92,8 @@ sub run {
                 }
             };
             last unless ($@);
-            record_info 'Retry', "Failed bind test retry: $_ of 3";
+            record_info "Retry $_", "Failed bind test retry: $_ of 3";
+            die 'bind testsuite failed, see log' if $@ && $_ == 3;
         }
     }
     # remove loopback interfaces
