@@ -33,7 +33,7 @@ use version_utils qw(package_version_cmp);
 
 sub run {
     select_serial_terminal;
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP4+');
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP2+');
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
         # perl-IO-Socket-INET6 for reclimit test
