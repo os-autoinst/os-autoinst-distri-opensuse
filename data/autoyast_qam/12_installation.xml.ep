@@ -157,11 +157,8 @@
     </dns>
     <interfaces config:type="list">
       <interface>
-        <bootproto>static</bootproto>
+        <bootproto>dhcp</bootproto>
         <device>eth0</device>
-        <ipaddr>{{HostIP}}</ipaddr>
-        <netmask>255.255.240.0</netmask>
-        <prefixlen>20</prefixlen>
         <startmode>auto</startmode>
         <zone>public</zone>
       </interface>
@@ -295,6 +292,15 @@
   </networking>
   % }
   <firewall>
+    <FW_CONFIGURATIONS_DMZ>sshd vnc-server</FW_CONFIGURATIONS_DMZ>
+    <FW_CONFIGURATIONS_EXT>sshd vnc-server</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_INT>sshd vnc-server</FW_CONFIGURATIONS_INT>
+    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
+    <FW_LOAD_MODULES>nf_conntrack_netbios_ns</FW_LOAD_MODULES>
+    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
+    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
+    <FW_SERVICES_ACCEPT_EXT>0.0.0.0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
+    <FW_STOP_KEEP_ROUTING_STATE>no</FW_STOP_KEEP_ROUTING_STATE>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
     <FW_ALLOW_PING_FW>yes</FW_ALLOW_PING_FW>
@@ -363,6 +369,8 @@
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        <service>SuSEfirewall2</service>
+        <service>SuSEfirewall2_init</service>
       </enable>
     </services>
   </services-manager>
