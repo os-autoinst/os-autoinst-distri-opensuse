@@ -107,7 +107,17 @@ sub install_package {
 }
 
 sub run {
+    if (is_x86_64) {
+        script_run("zypper ar -p 80 http://download.suse.de/ibs/home:/Julie_CAO:/branches:/workaround/SLE-15-SP6 workaround");
+        script_run("zypper --gpg-auto-import-keys ref -r workaround");
+        save_screenshot;
+    }
     install_package;
+    if (is_x86_64) {
+        script_run("zypper info qa_lib_virtauto");
+        script_run("zypper info qa_lib_keys");
+        save_screenshot;
+    }
 }
 
 
