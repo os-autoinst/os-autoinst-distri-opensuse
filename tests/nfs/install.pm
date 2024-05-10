@@ -61,6 +61,10 @@ sub install_testsuite {
         assert_script_run("git clone -q --depth 1 $url && cd ./cthon04");
         assert_script_run('make');
     }
+    else {
+        die 'PYNFS or CTHON04 variable is mandatory';
+    }
+
     record_info('git version', script_output('git log -1 --pretty=format:"git-%h" | tee'));
 }
 
