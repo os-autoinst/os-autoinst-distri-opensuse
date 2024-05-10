@@ -21,9 +21,9 @@ sub display_pynfs_results {
     my $pass = "";
     my $fail = 0;
 
-    my $folder = get_required_var('PYNFS');
+    my $version = get_required_var('NFSVERSION');
 
-    assert_script_run("cd ~/pynfs/$folder");
+    assert_script_run("cd ~/pynfs/nfs$version");
     upload_logs('results.json', failok => 1);
 
     my $content = script_output('cat results.json');

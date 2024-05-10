@@ -22,7 +22,7 @@ sub run {
     my $data = $args->{data};
     my $test = $data->{code};
     my $message = $data->{failure}->{message};
-    my $is_v4 = get_required_var('PYNFS') eq 'nfs4.0';
+    my $is_v4 = get_required_var('NFSVERSION') eq '4.0';
     my $log = "$message\n\n$data->{failure}->{err}";
     my $softfail;
 
