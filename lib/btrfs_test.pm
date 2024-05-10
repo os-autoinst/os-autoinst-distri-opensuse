@@ -4,16 +4,19 @@
 # SPDX-License-Identifier: FSFAP
 
 package btrfs_test;
+
 use base 'consoletest';
 use strict;
 use warnings;
+use Exporter 'import';
 use testapi;
 use utils 'get_root_console_tty';
-use Exporter 'import';
 use version_utils qw(is_sle);
 use Utils::Systemd qw(systemctl);
+use JSON qw(decode_json);
 
 our @EXPORT_OK = qw(set_playground_disk cleanup_partition_table);
+my $old_snapper = undef;
 
 =head2 set_playground_disk
 
@@ -112,6 +115,55 @@ sub cron_mock_lastrun {
 
     assert_script_run 'touch /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
     assert_script_run 'ls -al /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
+}
+
+# recent versions of snapper support json output
+# otherwise fallback to old implementation of parsing
+sub get_last_snap_number {
+    if (!defined($old_snapper)) {
+        $old_snapper = script_run('snapper --jsonout list --disable-used-space');
+    }
+
+    if (!!$old_snapper) {
+        return _get_last_snap_number_old();
+    }
+
+    my $snaps = decode_json(script_output('snapper --jsonout list --disable-used-space'));
+    my $last = (@{$snaps->{root}})[-1];
+    return $last->{number};
+}
+
+# In many cases script output returns not only script execution results
+# but other data which was written to serial device. We have to ensure
+# that we got what we expect. See poo#25716
+sub _get_last_snap_number_old {
+    # get snapshot id column, parse output in perl to avoid SIGPIPE
+    my $snap_head = script_output("snapper list");
+    # strip kernel messages - for some reason we always get something like this at this very position:
+    # [ 1248.663412] BTRFS info (device vda2): qgroup scan completed (inconsistency flag cleared)
+    my @lines = split(/\n/, $snap_head);
+    @lines = grep(/\|/, @lines);
+    die "Unable to receive snapshot list column header line - got this output: $snap_head" unless (@lines);
+    $snap_head = $lines[0];
+
+    my $snap_col_found = 0;
+    my $snap_id_col_index = 1;
+    for my $field (split(/\|/, $snap_head)) {
+        $field =~ s/^\s+|\s+$//g;    # trim spaces
+        if ($field eq '#') {
+            # get snapshot id field
+            $snap_col_found = 1;
+            last;
+        }
+        $snap_id_col_index++;
+    }
+    die "Unable to determine snapshot id column index" unless ($snap_col_found);
+
+    my $output = script_output("snapper list | tail -n1 | awk -F '|' '{ print \$$snap_id_col_index }' | tr -d '[:space:]*' | awk '{ print \">>>\" \$1 \"<<<\" }'");
+    if ($output =~ />>>(?<snap_number>\d+)<<</) {
+        return $+{snap_number};
+    }
+    die "Could not get last snapshot number, got following output:\n$output";
 }
 
 sub post_fail_hook {

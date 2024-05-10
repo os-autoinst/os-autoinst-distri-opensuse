@@ -29,9 +29,9 @@ Ensure column for size is displayed or not if flag is provided
 =cut
 sub ensure_size_displayed {
     # Displays the exclusive space used by each snapshot
-    assert_script_run "snapper list | awk -F '|' '{print \$6}' | grep -E 'Used Space|iB'";
+    assert_script_run "snapper -t 0 list | awk -F '|' '{print \$6}' | grep -E 'Used Space|iB'";
     # if flag set to disable it will be display Cleanup column instead
-    assert_script_run "snapper list --disable-used-space | awk -F '|' '{print \$6}' | grep -E 'Cleanup|number'";
+    assert_script_run "snapper -t 0 list --disable-used-space | awk -F '|' '{print \$6}' | grep -E 'Cleanup|number'";
 }
 
 =head2 query_space_single_snapshot
@@ -44,11 +44,11 @@ sub query_space_single_snapshot {
     # Create snapshot
     assert_script_run 'snapper create --cleanup number --print-number';
     # Check data is not exclusive to that snapshot
-    assert_script_run 'snapper list | tail -n1 | ' . COLUMN_FILTER . ' | grep KiB';
+    assert_script_run 'snapper -t 0 list | tail -n1 | ' . COLUMN_FILTER . ' | grep KiB';
     # Remove file
     assert_script_run REMOVE_BIG_FILE;
     # Check data is exclusive to that snapshot and used space grows 1GiB
-    assert_script_run 'snapper list | tail -n1 | ' . COLUMN_FILTER . ' | grep \'1.00 GiB\'';
+    assert_script_run 'snapper -t 0 list | tail -n1 | ' . COLUMN_FILTER . ' | grep \'1.00 GiB\'';
 }
 
 =head2 query_space_several_snapshot
@@ -64,7 +64,7 @@ sub query_space_several_snapshot {
         assert_script_run "snapper create --command $command --description $description $args";
     }
     # Check that correct used space does not show up in any of the snapshots.
-    assert_script_run 'snapper list | tail -n4 | ' . COLUMN_FILTER . ' | grep KiB';
+    assert_script_run 'snapper -t 0 list | tail -n4 | ' . COLUMN_FILTER . ' | grep KiB';
     # Filter snapshots containing the data (intermediate ones)
     my @ids = split(/\n/, script_output('btrfs subvolume list / | ' . SUBVOLUME_FILTER));
     # Create a new higher level qgroup

@@ -14,46 +14,11 @@
 #   - Cleanup by deleting created snapshots
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use strict;
-use warnings;
-use base 'btrfs_test';
+use Mojo::Base qw(btrfs_test);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
-
-# In many cases script output returns not only script execution results
-# but other data which was written to serial device. We have to ensure
-# that we got what we expect. See poo#25716
-sub get_last_snap_number {
-    # get snapshot id column, parse output in perl to avoid SIGPIPE
-    my $snap_head = script_output("snapper list");
-    # strip kernel messages - for some reason we always get something like this at this very position:
-    # [ 1248.663412] BTRFS info (device vda2): qgroup scan completed (inconsistency flag cleared)
-    my @lines = split(/\n/, $snap_head);
-    @lines = grep(/\|/, @lines);
-    die "Unable to receive snapshot list column header line - got this output: $snap_head" unless (@lines);
-    $snap_head = $lines[0];
-
-    my $snap_col_found = 0;
-    my $snap_id_col_index = 1;
-    for my $field (split(/\|/, $snap_head)) {
-        $field =~ s/^\s+|\s+$//g;    # trim spaces
-        if ($field eq '#') {
-            # get snapshot id field
-            $snap_col_found = 1;
-            last;
-        }
-        $snap_id_col_index++;
-    }
-    die "Unable to determine snapshot id column index" unless ($snap_col_found);
-
-    my $output = script_output("snapper list | tail -n1 | awk -F '|' '{ print \$$snap_id_col_index }' | tr -d '[:space:]*' | awk '{ print \">>>\" \$1 \"<<<\" }'");
-    if ($output =~ />>>(?<snap_number>\d+)<<</) {
-        return $+{snap_number};
-    }
-    die "Could not get last snapshot number, got following output:\n$output";
-}
 
 sub run {
     my $self = shift;
@@ -74,12 +39,12 @@ sub run {
             push @snapper_cmd, "--print-number --description \"$description\"";
             push @snapper_cmd, "--userdata \"$description\"";
             assert_script_run(join ' ', @snapper_cmd);
-            $first_snap_to_delete = get_last_snap_number() unless ($first_snap_to_delete);
-            assert_script_run("snapper list | tail -n1");
+            $first_snap_to_delete = $self->get_last_snap_number() unless ($first_snap_to_delete);
+            assert_script_run("snapper list --disable-used-space| tail -n1");
             for (1 .. 3) { pop @snapper_cmd; }
             if ($type eq 'pre') {
                 # Add last snapshot id for pre type
-                push @snap_numbers, get_last_snap_number();
+                push @snap_numbers, $self->get_last_snap_number();
             }
         }
         pop @snapper_cmd if ($type eq 'post');
@@ -87,9 +52,10 @@ sub run {
     }
     assert_script_run("snapper list");
     # Delete all those snapshots we just created so other tests are not confused
-    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number(), timeout => 240);
+    assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 240);
     assert_script_run("snapper list");
 }
+
 
 1;
 
