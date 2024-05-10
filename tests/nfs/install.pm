@@ -45,10 +45,11 @@ sub install_dependencies_cthon04 {
 
 sub install_testsuite {
     my $testsuite = shift;
-    if (get_var("PYNFS")) {
-        my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/cdmackay/pynfs.git');
-        my $rel = get_var('PYNFS_RELEASE');
+    my ($url, $rel);
 
+    if (get_var("PYNFS")) {
+        $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/cdmackay/pynfs.git');
+        $rel = get_var('PYNFS_RELEASE');
         $rel = "-b $rel" if ($rel);
 
         install_dependencies_pynfs;
@@ -56,7 +57,10 @@ sub install_testsuite {
         assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
     }
     elsif (get_var("CTHON04")) {
-        my $url = get_var('CTHON04_GIT_URL', 'git://git.linux-nfs.org/projects/steved/cthon04.git');
+        $url = get_var('CTHON04_GIT_URL', 'git://git.linux-nfs.org/projects/steved/cthon04.git');
+        $rel = get_var('CTHON04_RELEASE');
+        $rel = "-b $rel" if ($rel);
+
         install_dependencies_cthon04;
         assert_script_run("git clone -q --depth 1 $url && cd ./cthon04");
         assert_script_run('make');

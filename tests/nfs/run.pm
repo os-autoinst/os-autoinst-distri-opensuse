@@ -59,7 +59,7 @@ Overrides the official pynfs repository URL.
 
 =head2 PYNFS_RELEASE
 
-This can be set to a release tag, commit hash, branch name or whatever else Git
+This can be set to a release tag, commit hash, branch name or whatever else git
 will accept.
 
 If not set, then the default clone action will be performed, which probably
@@ -81,6 +81,14 @@ Fill 3 or 4 in this parameter to set test NFSv3 or NFSv4.
 
 =head2 CTHON04_GIT_URL
 
-Similar PYNFS_GIT_URL, it overrides the official cthon04 repository URL.
+Overrides the official cthon04 repository URL.
+
+=head2 CTHON04_RELEASE
+
+This can be set to a release tag, commit hash, branch name or whatever else git
+will accept.
+
+If not set, then the default clone action will be performed, which probably
+means the latest master branch will be used.
 
 =cut
