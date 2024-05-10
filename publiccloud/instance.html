@@ -22,6 +22,7 @@
       <li><a href="#ssh_script_retry">ssh_script_retry</a></li>
       <li><a href="#scp">scp</a></li>
       <li><a href="#upload_log">upload_log</a></li>
+      <li><a href="#upload_check_logs_tar">upload_check_logs_tar</a></li>
       <li><a href="#wait_for_guestregister">wait_for_guestregister</a></li>
       <li><a href="#wait_for_ssh">wait_for_ssh</a></li>
       <li><a href="#isok">isok</a></li>
@@ -85,6 +86,16 @@
 <pre><code>upload_log($filename);</code></pre>
 
 <p>Upload a file from this instance to openqa using <a>upload_logs()</a>. If the file doesn&#39;t exists on the instance, <b>no</b> error is thrown.</p>
+
+<h2 id="upload_check_logs_tar">upload_check_logs_tar</h2>
+
+<pre><code>upload_check_logs_tar(@files);</code></pre>
+
+<p>Check remote log files status and upload tar.gz of only ok logs, to oqa UI.</p>
+
+<p>Input: <code>@files</code> full-path-files array;</p>
+
+<p>Return <code>1</code> true explicit, as stateless and never impact calling code.</p>
 
 <h2 id="wait_for_guestregister">wait_for_guestregister</h2>
 
