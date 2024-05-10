@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';    # used in select_serial_terminal
 use utils 'zypper_call';    # used in zypper_call
-use version_utils 'is_transactional';
+use version_utils qw(is_transactional is_vmware);
 use transactional;
 use containers::common qw(install_packages);
 
@@ -21,7 +21,7 @@ sub run {
     # Required packages
     my @packages = qw(skopeo jq);
 
-    select_serial_terminal();    # Select most suitable text console
+    select_serial_terminal() unless is_vmware;    # Select most suitable text console
 
     # Set a variable for my remote image
     my $remote_image = 'registry.suse.com/bci/bci-busybox:latest';
