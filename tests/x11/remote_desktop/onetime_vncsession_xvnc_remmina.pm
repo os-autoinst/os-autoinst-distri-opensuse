@@ -25,7 +25,7 @@ sub run {
     # Start Remmina and login the remote server
     x11_start_program('remmina', target_match => 'remmina-launched');
     # The remmmina news turned off screen appears since the remmina got updated in 15SP3
-    if (is_sle('15-SP3+')) {
+    if (is_sle('15-SP3+') && is_sle('<=15-SP5')) {
         assert_screen("remmina-news-turned-off", 60);
         assert_and_click("remmina-close-news-turned-off");
     }
@@ -39,7 +39,7 @@ sub run {
     assert_screen 'remmina-hostkey-setting';
     send_key 'z';
     assert_screen 'remmina-hostkey-configured';
-    send_key 'esc';
+    assert_and_click 'remmina-preferences-close';
 
     # Add a new VNC connection
     assert_and_click 'remmina-plus-button';
