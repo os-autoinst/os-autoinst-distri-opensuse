@@ -51,7 +51,7 @@ sub run {
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
-    prepare_sdaf_repo();
+    prepare_sdaf_project();
     record_info('Jumphost ready');
 
     # Do not leave connection hanging around between modules.

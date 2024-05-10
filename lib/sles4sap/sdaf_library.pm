@@ -54,13 +54,15 @@ our @EXPORT = qw(
   sdaf_get_deployer_ip
   serial_console_diag_banner
   set_common_sdaf_os_env
-  prepare_sdaf_repo
+  prepare_sdaf_project
   generate_resource_group_name
   set_os_variable
+  get_os_variable
   prepare_tfvars_file
   sdaf_execute_deployment
   load_os_env_variables
   sdaf_cleanup
+  sdaf_execute_playbook
 );
 
 
@@ -354,7 +356,7 @@ sub set_common_sdaf_os_env {
         'export workload_zone_parameter_file=' . get_tfvars_path(deployment_type => 'workload_zone', vnet_code => $args{workload_vnet_code}, %args),
         "export tfstate_storage_account=$args{sdaf_tfstate_storage_account}",
         # Deployer state is a file existing in LIBRARY storage account, default value is SDAF default.
-'export deployerState=' . get_var('SDAF_DEPLOYER_TFSTATE', '${deployer_env_code}-${region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate'),
+        'export deployerState=' . get_var('SDAF_DEPLOYER_TFSTATE', '${deployer_env_code}-${region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate'),
         "export key_vault=$args{sdaf_key_vault}",
         "\n"    # Newline is required otherwise "echo 'something' >> file" will just append content to the last line
     );
@@ -497,8 +499,56 @@ sub serial_console_diag_banner {
 
     # max_length - length of the text - 4x2 dividing spaces
     my $symbol_fill = ($max_length - length($input_text) - 8) / 2;
-    $input_text = '#' x $symbol_fill . uc(' ' x 4 . $input_text . ' ' x 4) . '#' x $symbol_fill;
+    $input_text = '#' x $symbol_fill . ' ' x 4 . $input_text . ' ' x 4 . '#' x $symbol_fill;
     script_run($input_text, quiet => 1, die_on_timeout => 0, timeout => 1);
+}
+
+=head2 get_config_root_path
+
+    get_config_root_path(
+        deployment_type=>$deployment_type,
+        env_code=>$env_code,
+        region_code=>$region_code,
+        [vnet_code=>$vnet_code,
+        sap_sid=>$sap_sid]);
+
+Returns path to config root directory for deployment type specified.
+Root config directory is deployment type specific and usually contains tfvar file, inventory file, SUT ssh keys, etc...
+
+B<deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
+
+B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
+
+B<region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
+
+B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
+
+B<sap_sid>: SDAF parameter for sap system ID
+
+=cut
+
+sub get_config_root_path {
+    my (%args) = @_;
+    my @supported_types = ('workload_zone', 'sap_system', 'library', 'deployer');
+    croak "Invalid deployment type: $args{deployment_type}\nCurrently supported ones are: " . join(', ', @supported_types)
+      unless grep(/^$args{deployment_type}$/, @supported_types);
+
+    my @mandatory_args = qw(deployment_type env_code region_code);
+    # library does not require 'vnet_code'
+    push @mandatory_args, 'vnet_code' unless $args{deployment_type} eq 'library';
+    # only sap_system requires 'sap_sid'
+    push @mandatory_args, 'sap_sid' if $args{deployment_type} eq 'sap_system';
+
+    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless defined($args{$_}); }
+
+    my %config_paths = (
+        workload_zone => "LANDSCAPE/$args{env_code}-$args{region_code}-$args{vnet_code}-INFRASTRUCTURE",
+        deployer      => "DEPLOYER/$args{env_code}-$args{region_code}-$args{vnet_code}-INFRASTRUCTURE",
+        library       => "LIBRARY/$args{env_code}-$args{region_code}-SAP_LIBRARY",
+        sap_system    => "SYSTEM/$args{env_code}-$args{region_code}-$args{vnet_code}-$args{sap_sid}"
+    );
+
+    return(join('/', deployment_dir(), 'WORKSPACES', $config_paths{$args{deployment_type}}));
 }
 
 =head2 get_tfvars_path
@@ -520,48 +570,27 @@ B<region_code>: SDAF parameter to choose PC region. Note SDAF is using internal 
 
 B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
 
-B<sap_sid>: SDAF parameter for sap system ID
+B<sap_sid>: SDAF parameter for sap system ID. Required only for 'sap_system' deployment type
 
 =cut
 
 sub get_tfvars_path {
     my (%args) = @_;
-    my @supported_types = ('workload_zone', 'sap_system', 'library', 'deployer');
-    # common mandatory args
 
-    my @mandatory_args = qw(deployment_type env_code region_code);
-    # library does not require 'vnet_code'
-    push @mandatory_args, 'vnet_code' unless $args{deployment_type} eq 'library';
-    # only sap_system requires 'sap_sid'
-    push @mandatory_args, 'sap_sid' if $args{deployment_type} eq 'sap_system';
+    # All required checks are done by 'get_config_root_path()'
+    my $config_root_path = get_config_root_path(%args);
 
-    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless defined($args{$_}); }
-    croak "Invalid deployment type: $args{deployment_type}\nCurrently supported ones are: " . join(', ', @supported_types)
-      unless grep(/^$args{deployment_type}$/, @supported_types);
-
-    # Only workload and sap SUT needs unique ID
     my $job_id = get_current_job_id();
 
-    my $file_path;
-    if ($args{deployment_type} eq 'workload_zone') {
-        my $env_reg_vnet = join('-', $args{env_code}, $args{region_code}, $args{vnet_code});
-        $file_path = "LANDSCAPE/$env_reg_vnet-INFRASTRUCTURE/$env_reg_vnet-INFRASTRUCTURE-$job_id.tfvars";
-    }
-    elsif ($args{deployment_type} eq 'deployer') {
-        my $env_reg_vnet = join('-', $args{env_code}, $args{region_code}, $args{vnet_code});
-        $file_path = "DEPLOYER/$env_reg_vnet-INFRASTRUCTURE/$env_reg_vnet-INFRASTRUCTURE.tfvars";
-    }
-    elsif ($args{deployment_type} eq 'library') {
-        my $env_reg = join('-', $args{env_code}, $args{region_code});
-        $file_path = "LIBRARY/$env_reg-SAP_LIBRARY/$env_reg-SAP_LIBRARY.tfvars";
-    }
-    elsif ($args{deployment_type} eq 'sap_system') {
-        my $env_reg_vnet_sid = join('-', $args{env_code}, $args{region_code}, $args{vnet_code}, $args{sap_sid});
-        $file_path = "SYSTEM/$env_reg_vnet_sid/$env_reg_vnet_sid-$job_id.tfvars";
-    }
+    my %file_names = (
+        workload_zone => "$args{env_code}-$args{region_code}-$args{vnet_code}-INFRASTRUCTURE-$job_id.tfvars",
+        deployer      => "$args{env_code}-$args{region_code}-$args{vnet_code}-INFRASTRUCTURE-$job_id.tfvars",
+        library       => "$args{env_code}-$args{region_code}-SAP_LIBRARY-$job_id.tfvars",
+        sap_system    => "$args{env_code}-$args{region_code}-$args{vnet_code}-$args{sap_sid}-$job_id.tfvars"
+    );
 
-    my $result = join('/', deployment_dir(), 'WORKSPACES', $file_path);
-    return $result;
+
+    return "$config_root_path/$file_names{$args{deployment_type}}";
 }
 
 =head2 prepare_tfvars_file
@@ -616,7 +645,7 @@ If OpenQA variable is not set, placeholder is replaced with empty value.
 sub replace_tfvars_variables {
     my ($tfvars_file) = @_;
     croak 'Variable "$tfvars_file" undefined' unless defined($tfvars_file);
-    my @variables = qw(SDAF_ENV_CODE SDAF_LOCATION SDAF_RESOURCE_GROUP SDAF_VNET_CODE SAP_SID);
+    my @variables = qw(SDAF_ENV_CODE SDAF_LOCATION SDAF_RESOURCE_GROUP SDAF_VNET_CODE SAP_SID SDAF_MACHINE_HANA);
     my %to_replace = map { '%' . $_ . '%' => get_var($_, '') } @variables;
     file_content_replace($tfvars_file, %to_replace);
 }
@@ -712,9 +741,9 @@ sub get_sdaf_deployment_command {
     return $cmd;
 }
 
-=head2 prepare_sdaf_repo
+=head2 prepare_sdaf_project
 
-   prepare_sdaf_repo(
+   prepare_sdaf_project(
         [, env_code=>$env_code]
         [, region_code=>$region_code]
         [, workload_vnet_code=>$workload_vnet_code]
@@ -735,7 +764,7 @@ B<sap_sid>: SAP system ID. Default 'SAP_SID'
 
 =cut
 
-sub prepare_sdaf_repo {
+sub prepare_sdaf_project {
     my (%args) = @_;
     $args{env_code} //= get_required_var('SDAF_ENV_CODE');
     $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
@@ -744,7 +773,7 @@ sub prepare_sdaf_repo {
     $args{sap_sid} //= get_required_var('SAP_SID');
 
     my $deployment_dir = deployment_dir(create => 'yes');
-    my @git_repos = ("https://github.com/Azure/sap-automation.git sap-automation",
+    my @git_repos = ("-b experimental https://github.com/Azure/sap-automation.git sap-automation",
         "https://github.com/Azure/sap-automation-samples.git samples");
 
     assert_script_run("cd $deployment_dir");
@@ -898,4 +927,62 @@ sub sdaf_cleanup {
     }
     assert_script_run('rm -Rf ' . deployment_dir);
     record_info('Cleanup files', join(' ', 'Deployment directory', deployment_dir(), 'was deleted.'));
+}
+
+=head2 sdaf_execute_playbook
+
+    sdaf_execute_playbook(playbook_filename=$playbook_filename, sap_sid=>$sap_sid);
+
+B<playbook_filename> yaml filename of the playbook to be executed
+
+B<sap_sid> SAP system ID
+
+B<timeout> timeout for executing playbook. Passed into asset_script_run.
+
+B<verbosity> execute with verbosity level 0-4.
+
+Execute playbook specified by B<playbook_filename> and record command output in separate log file.
+
+=cut
+
+sub sdaf_execute_playbook {
+    my (%args) = @_;
+    $args{timeout} //= 1800;
+    $args{env_code} //= get_required_var('SDAF_ENV_CODE');
+    $args{workload_vnet_code} //= get_required_var('SDAF_WORKLOAD_VNET_CODE');
+    $args{region_code} //= get_required_var('SDAF_REGION_CODE');
+    $args{sap_sid} //= get_required_var('SAP_SID');
+
+    croak 'Missing mandatory argument "playbook_filename".' unless $args{playbook_filename};
+
+    # $inventory_file_dir is common location for multiple config files
+    my $sdaf_config_root_dir = get_config_root_path(
+        deployment_type=>'sap_system',
+        vnet_code=>$args{vnet_code},
+        env_code=>$args{env_code},
+        region_code=>$args{region_code},
+        sap_sid=>$args{sap_sid}
+    );
+
+    my $playbook_options = join(' ',
+        "--inventory-file=\"$args{sap_sid}_hosts.yaml\"",
+        "--private-key=$sdaf_config_root_dir/sshkey",
+        "--extra-vars='_workspace_directory=$sdaf_config_root_dir'",
+        '--extra-vars="@sap-parameters.yaml"',
+        '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"');
+    $playbook_options = $playbook_options . '-vvvv' if $args{verbose};
+
+    assert_script_run("cd $sdaf_config_root_dir");
+    script_run("chmod 600 $sdaf_config_root_dir/sshkey");
+
+    my $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.log/r;
+    my $playbook_file = join('/', deployment_dir(), 'sap-automation', 'deploy', 'ansible', $args{playbook_filename});
+    my $playbook_cmd = join(' ', 'ansible-playbook', $playbook_options, $playbook_file);
+
+    record_info('Playbook run', "Executing playbook: $playbook_file\nExecuted command:\n$playbook_cmd");
+    my $rc = script_run(log_command_output(command=>$playbook_cmd, log_file=>$output_log_file),
+        timeout=>$args{timeout}, output=>"Executing playbook: $args{playbook_filename}");
+    upload_logs($output_log_file);
+    die "Execution of playbook failed with RC: $rc" if $rc;
+    record_info('Playbook OK', "Playbook execution finished: $playbook_file");
 }
