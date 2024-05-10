@@ -96,13 +96,15 @@ sub setup_nfs_server {
 }
 
 sub run {
+    my $version = get_required_var("NFSVERSION");
+
     select_serial_terminal;
 
     # Disable PackageKit
     quit_packagekit;
 
     install_testsuite;
-    setup_nfs_server(get_var("NFSVERSION"));
+    setup_nfs_server($version);
 }
 
 sub test_flags {
