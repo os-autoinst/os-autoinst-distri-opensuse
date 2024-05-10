@@ -47,7 +47,7 @@ test_data:
       - language: Czech
         text: Licenční smlouva s koncovým uživatelem
       - language: English (US)
-        text: End User License Agreement for SUSE Products
+        text: End User License Agreement for SUSE Software
       - language: French
         text: Contrat de licence utilisateur final
       - language: German
@@ -57,13 +57,13 @@ test_data:
       - language: Japanese
         text: エンドユーザ使用許諾契約
       - language: Korean
-        text: SUSE 제품에 관한
+        text: SUSE 소프트웨어
       - language: Portuguese (Brazilian)
         text: Contrato de Licença para Usuário Final
       - language: Russian
         text: Лицензионное соглашение
       - language: Simplified Chinese
-        text: SUSE 产品
+        text: SUSE 软件
       - language: Spanish
         text: Acuerdo de licencia de usuario final
       - language: Traditional Chinese
