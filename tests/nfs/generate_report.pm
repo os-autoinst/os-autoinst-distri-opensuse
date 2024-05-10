@@ -15,7 +15,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
 
-sub display_results {
+sub display_pynfs_results {
     my $self = shift;
     my $skip = "";
     my $pass = "";
@@ -104,7 +104,7 @@ sub run {
     select_serial_terminal;
 
     if (get_var("PYNFS")) {
-        $self->display_results();
+        $self->display_pynfs_results();
     }
     elsif (get_var("CTHON04")) {
         $self->upload_cthon04_log();
