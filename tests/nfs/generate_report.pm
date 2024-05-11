@@ -15,15 +15,15 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
 
-sub display_results {
+sub display_pynfs_results {
     my $self = shift;
     my $skip = "";
     my $pass = "";
     my $fail = 0;
 
-    my $folder = get_required_var('PYNFS');
+    my $version = get_required_var('NFSVERSION');
 
-    assert_script_run("cd ~/pynfs/$folder");
+    assert_script_run("cd ~/pynfs/nfs$version");
     upload_logs('results.json', failok => 1);
 
     my $content = script_output('cat results.json');
@@ -104,7 +104,7 @@ sub run {
     select_serial_terminal;
 
     if (get_var("PYNFS")) {
-        $self->display_results();
+        $self->display_pynfs_results();
     }
     elsif (get_var("CTHON04")) {
         $self->upload_cthon04_log();

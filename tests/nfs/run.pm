@@ -17,19 +17,14 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 
-sub pynfs_server_test_all {
-    my $folder = get_required_var('PYNFS');
-
-    assert_script_run("cd ./$folder");
-    script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/exportdir all', 3600);
-}
-
 sub run {
     select_serial_terminal;
 
     if (get_var("PYNFS")) {
-        script_run('cd ~/pynfs');
-        pynfs_server_test_all;
+        my $version = get_required_var('NFSVERSION');
+
+        assert_script_run("cd ~/pynfs/nfs$version");
+        script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/exportdir all', 3600);
     }
     elsif (get_var("CTHON04")) {
         script_run('cd ~/cthon04');
@@ -49,7 +44,8 @@ sub run {
 BOOT_HDD_IMAGE=1
 DESKTOP=textmode
 HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
-PYNFS=nfs4.0
+PYNFS=1
+NFSVERSION=4.0
 UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
 START_AFTER_TEST=create_hdd_minimal_base+sdk
 
@@ -59,7 +55,7 @@ Overrides the official pynfs repository URL.
 
 =head2 PYNFS_RELEASE
 
-This can be set to a release tag, commit hash, branch name or whatever else Git
+This can be set to a release tag, commit hash, branch name or whatever else git
 will accept.
 
 If not set, then the default clone action will be performed, which probably
@@ -81,6 +77,14 @@ Fill 3 or 4 in this parameter to set test NFSv3 or NFSv4.
 
 =head2 CTHON04_GIT_URL
 
-Similar PYNFS_GIT_URL, it overrides the official cthon04 repository URL.
+Overrides the official cthon04 repository URL.
+
+=head2 CTHON04_RELEASE
+
+This can be set to a release tag, commit hash, branch name or whatever else git
+will accept.
+
+If not set, then the default clone action will be performed, which probably
+means the latest master branch will be used.
 
 =cut
