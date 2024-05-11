@@ -278,14 +278,15 @@ Return C<1> true explicit, as stateless and never impact calling code.
 
 sub upload_check_logs_tar {
     my ($self, @files) = @_;
-    my $remote_tar = $autotest::current_test->{name};
-    $remote_tar = "/tmp/" . $remote_tar . "_logs.tar.gz";
-    my $res = $self->ssh_script_output(cmd => 'sudo ls ' . join(' ', @files) . ' 2>/dev/null', proceed_on_failure => 1);
-    return 1 unless ($res);
-
+    my $remote_tar = "/tmp/" . $autotest::current_test->{name} . "_logs.tar.gz";
+    my $cmd = 'sudo ls -x ' . join(' ', @files) . " 2>/dev/null";
+    my $res = $self->ssh_script_output(cmd => $cmd, proceed_on_failure => 1);
+    my @logs = split(" ", $res);
+    return 1 unless ($#logs);
     # Upload existing logs to openqa  UI
-    $res = $self->ssh_script_run(cmd => "sudo tar -czvf $remote_tar $res", proceed_on_failure => 1);
-    $self->upload_log("$remote_tar", log_name => basename($remote_tar), failok => 1) if ($res);
+    $cmd = "sudo tar -czvf $remote_tar " . join(" ", @logs);
+    $res = $self->ssh_script_run(cmd => $cmd, proceed_on_failure => 1);
+    $self->upload_log("$remote_tar", log_name => basename($remote_tar), failok => 1) if ($res == 0);
     return 1;
 }
 
