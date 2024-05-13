@@ -31,7 +31,7 @@ sub run_tests {
     script_run "rm test/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "NETAVARK=/usr/libexec/podman/netavark bats --tap test | tee -a $log_file", 1200;
+    script_run "PATH=/usr/local/bin:\$PATH NETAVARK=/usr/libexec/podman/netavark bats --tap test | tee -a $log_file", 1200;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test";
 }
@@ -44,8 +44,11 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns dbus-1-daemon firewalld iproute2 iptables jq netavark netcat-openbsd);
+    my @pkgs = qw(aardvark-dns dbus-1-daemon firewalld iproute2 iptables jq ncat netavark);
     install_packages(@pkgs);
+
+    # netavark needs nmap's ncat instead of openbsd-netcat which we override via PATH above
+    assert_script_run "cp /usr/bin/ncat /usr/local/bin/nc";
 
     record_info("netavark version", script_output("/usr/libexec/podman/netavark --version"));
 
