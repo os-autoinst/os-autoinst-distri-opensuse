@@ -282,7 +282,7 @@ sub upload_check_logs_tar {
     my $cmd = 'sudo ls -x ' . join(' ', @files) . " 2>/dev/null";
     my $res = $self->ssh_script_output(cmd => $cmd, proceed_on_failure => 1);
     my @logs = split(" ", $res);
-    return 1 unless ($#logs);
+    return 1 unless (scalar(@logs) > 0);
     # Upload existing logs to openqa  UI
     $cmd = "sudo tar -czvf $remote_tar " . join(" ", @logs);
     $res = $self->ssh_script_run(cmd => $cmd, proceed_on_failure => 1);
