@@ -776,6 +776,8 @@ the second run will update the system.
 =cut
 
 sub fully_patch_system {
+    my (%args) = @_;
+    my $trup_call_timeout = $args{trup_call_timeout} // '1800';
     # special handle for 11-SP4 s390 install
     if (is_sle('=11-SP4') && is_s390x && is_backend_s390x) {
         # first run, possible update of packager -- exit code 103
@@ -787,10 +789,10 @@ sub fully_patch_system {
     my $ret = 1;
     if (is_transactional) {
         # Update package manager first, not possible to detect package manager update bsc#1216504
-        transactional::trup_call('patch');
+        transactional::trup_call('patch', timeout => $trup_call_timeout);
         transactional::reboot_on_changes();
         # Continue with patch
-        transactional::trup_call('patch');
+        transactional::trup_call('patch', timeout => $trup_call_timeout);
         transactional::reboot_on_changes();
         return;
     } else {
