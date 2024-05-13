@@ -162,10 +162,46 @@ sub prepare_pvm_installation {
     wait_still_screen;
 }
 
+sub assert_cmd {
+    my ($cmd, $timeout) = @_;
+    # clear screen with \033c as it seems to be running on restricted ksh and ott
+    type_string "echo -e '\\033c'\n";
+    type_string "$cmd; echo -e \"\\033c\\ncmd: $cmd\\nret: \$\?\\n\"\n";
+    assert_screen "cmd-successful", $timeout;
+}
+
+sub load_iso {
+    my $self = shift;
+    # avoid iso filename collision
+    my $iso_dir        = get_required_var('ISO_DIR');
+    my $vios_iso_dir   = get_required_var('_SECRET_VIOS_ISO_DIR');
+    my $iso            = get_required_var('ISO');
+    my $iso_url        = get_required_var('ISO_URL');
+    my $vtopt_name     = get_required_var('VTOPT_NAME');
+    my $vios_disk_name = get_required_var('VIOS_DISK_NAME');
+    my $vios_password  = get_required_var('_SECRET_VIOS_PASSWORD');
+    my $vios_username  = get_required_var('_SECRET_VIOS_USERNAME');
+    my $vios_hostname  = get_required_var('_SECRET_VIOS_HOSTNAME');
+    if (check_var('UPSTREAM_ISO', 'yes')) {
+        $iso_url = get_var('UPSTREAM_ISO_URL');
+    }
+    select_console("root-ssh");
+    #copying required installation media to vios server
+    assert_script_run "sshpass -p $vios_password scp -o StrictHostKeyChecking=no $iso_dir/$iso $vios_username\@$vios_hostname:$vios_iso_dir",timeout =>300;
+    select_console("vios-ssh");
+    #using vios server access to map the external disk to the virtual server and load installation media in the Vdvd 
+    assert_cmd "unloadopt -release -vtd $vtopt_name";
+    assert_cmd "rmvopt -name $vios_disk_name; [ \$? = 0 -o \$? = 4 ] && true";
+    assert_cmd "mkvopt -name $vios_disk_name -file $vios_iso_dir/$iso";
+    assert_cmd "loadopt -f -release -disk $vios_disk_name -vtd $vtopt_name";
+    assert_cmd "lsrep |grep $vios_disk_name", 600;
+}
+
 sub boot_pvm {
     if (is_spvm) {
         boot_spvm();
     } elsif (is_pvm_hmc) {
+        load_iso();
         boot_hmc_pvm();
     }
 }
@@ -201,6 +237,32 @@ sub boot_hmc_pvm {
 
     # don't wait for it, otherwise we miss the menu
     enter_cmd "mkvterm -m $hmc_machine_name --id $lpar_id";
+    assert_screen "hmc-openfirmware-prompt";
+    if (get_var('BOOT_CD_CMD')) {
+        enter_cmd "9\n";
+        sleep 5;
+        assert_screen "openfirmware-prompt";
+        type_string get_required_var('BOOT_CD_CMD');
+        enter_cmd "\n";
+        sleep 20;
+        assert_screen "grubmenu-installation";
+        send_key('pgup');
+        send_key('pgup');
+        send_key('pgup');
+        send_key('pgup');
+        send_key 'e';
+        assert_screen "setparam-installation";
+        send_key 'down';
+        send_key 'down';
+        send_key 'down';
+        send_key 'down';
+        send_key 'down';
+        send_key 'down';
+        type_string get_required_var('BOOT_PARAMS');
+        send_key "ctrl-x";
+        sleep 50;
+        return;
+    }
     # skip further preperations if system is already installed
     # PowerVM, send "up" key to refresh the serial terminal in case
     # it is already entered into grub2 menu

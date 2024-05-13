@@ -473,7 +473,7 @@ sub init_consoles {
     }
 
     if ((get_var('BACKEND', '') =~ /qemu|ikvm/
-            || (get_var('BACKEND', '') =~ /generalhw/ && get_var('GENERAL_HW_VNC_IP'))
+            || (get_var('BACKEND', '') =~ /generalhw|pvm_hmc/ && get_var('GENERAL_HW_VNC_IP'))
             || is_svirt_except_s390x))
     {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
@@ -611,6 +611,27 @@ sub init_consoles {
                     hostname => $hostname,
                     password => $testapi::password,
                     username => 'root'
+                });
+        }
+        elsif (check_var('BACKEND', 'pvm_hmc')) {
+        $self->add_console('vios-ssh', 'ssh-xterm', {
+            hostname   => get_required_var('_SECRET_VIOS_HOSTNAME'),
+            password   => get_required_var('_SECRET_VIOS_PASSWORD'),
+            username   => get_var('_SECRET_VIOS_USERNAME', 'padmin'),
+            persistent => 1});
+        $self->add_console('root-ssh', 'ssh-xterm', {
+            hostname => get_required_var('SUT_IP'),
+            password => get_required_var('ROOT_PASSWORD'),
+            user     => 'root',
+            serial   => 'mknod -m 0666 /dev/sshserial p; while true; do cat /dev/sshserial; done'});
+        $self->add_console(
+                'installation',
+                'vnc-base',
+                {
+                    hostname => $hostname,
+                    port => 1,
+                    password => get_required_var('ROOT_PASSWORD'),
+                    #password => $testapi::password
                 });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
@@ -896,6 +917,17 @@ sub activate_console {
         send_key('ret');
         my $user = get_var('HMC_USERNAME', 'hscroot');
         assert_screen("text-logged-in-$user", 60);
+    }
+    elsif ($console eq 'vios-ssh') {
+        assert_screen "vios-ssh-password";
+        type_string get_required_var('_SECRET_VIOS_PASSWORD');
+        send_key "ret";
+   }
+    elsif ($console eq 'root-ssh'){
+            assert_screen "password-prompt-root-ssh";
+            type_password get_required_var('ROOT_PASSWORD');
+            send_key('ret');
+
     }
     elsif ($type eq 'ssh') {
         $user ||= 'root';
