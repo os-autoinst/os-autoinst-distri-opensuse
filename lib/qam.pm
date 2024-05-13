@@ -75,7 +75,8 @@ sub is_patch_needed {
 
 sub add_repo_if_not_present {
     my ($url, $name) = @_;
-    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+    my $gpg = "";
+    $gpg = "-G" if (get_var('BUILD') =~ m/^MR:/ || get_var('MU_REPOS_NO_GPG_CHECK'));
     my $system_repos = zypper_repos('-u');
     zypper_call("--no-gpg-checks ar -f $gpg -n '$name' $url '$name'") unless grep { $_->{uri} eq $url } @$system_repos;
 }

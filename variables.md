@@ -138,6 +138,7 @@ MM_MTU | integer | 1380 | Specifies the MTU to set in SUTs of MM tests usually s
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.
 MOZILLATEST |||
 MOZILLA_NSS_DEVEL_REPO | string | | URL of the repository where to install the mozilla-nss packages from.
+MU_REPOS_NO_GPG_CHECK | boolean | false | Use -G option in zypper when adding the repositores from OS_TEST_REPOS variable
 NAME | string | | Name of the test run including distribution, build, machine name and job id.
 NAMESERVER | string | | Can be used to specify a name server's IP or FQDN.
 NET | boolean | false | Indicates net installation.
