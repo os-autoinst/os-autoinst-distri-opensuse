@@ -51,6 +51,17 @@ sub run {
         $instance = $provider->create_instance(check_guestregister => is_ondemand ? 1 : 0);
     }
 
+    # Collect various system information and pack them to instance_overview.tar
+    $instance->run_ssh_command(cmd => 'cd /var/tmp');
+    $instance->ssh_assert_script_run('mkdir -p instance_overview');
+    $instance->ssh_assert_script_run('rpm -qa | tee instance_overview/rpm.list.txt', timeout => 90);
+    $instance->ssh_assert_script_run('cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt');
+    $instance->ssh_assert_script_run('cat /proc/meminfo | tee instance_overview/meminfo.txt');
+    $instance->ssh_assert_script_run('uname -a | tee instance_overview/uname.txt');
+    $instance->ssh_assert_script_run('tar -zcvf instance_overview.tar.gz instance_overview');
+    $instance->upload_log('instance_overview.tar.gz', failok => 1);
+    $instance->run_ssh_command(cmd => 'cd');
+
     if (is_hardened) {
         # Fix permissions for /etc/ssh/sshd_config
         # https://bugzilla.suse.com/show_bug.cgi?id=1219100
