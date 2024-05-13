@@ -641,5 +641,19 @@
             "sle": ["15-SP6"]
         },
         "type": "bug"
+    },
+    "skip elemental systemd-journal check": {
+        "description": "Failed to resolve group 'systemd-journal': No such process",
+        "products": {
+            "sle-micro": ["6.0"]
+        },
+        "type": "ignore"
+    },
+    "skip elemental register check": {
+        "description": "Failed to start (e|E)lemental (r|R)egister",
+        "products": {
+            "sle-micro": ["6.0"]
+        },
+        "type": "ignore"
     }
 }
