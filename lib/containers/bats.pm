@@ -32,6 +32,7 @@ sub install_bats {
     assert_script_run "cd bats-core-$bats_version";
     assert_script_run "bash ./install.sh /usr/local";
 
+    script_run "mkdir -m 0750 /etc/sudoers.d/";
     assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
 }
 
