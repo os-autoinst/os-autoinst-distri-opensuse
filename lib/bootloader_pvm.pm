@@ -73,7 +73,7 @@ sub get_into_net_boot {
 
  prepare_pvm_installation();
 
-Handle the boot and installation preperation process of PVM LPARs after the hypervisor specific actions to power them on is done
+Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done
 
 =cut
 
@@ -91,6 +91,14 @@ sub reset_lpar_netboot {
         get_into_net_boot;
     }
 }
+
+=head2 enter_netboot_parameters
+
+ enter_netboot_parameters();
+
+Type kernel and ramdisk parameters in grub command line.
+
+=cut
 
 sub enter_netboot_parameters {
     # try 3 times but wait a long time in between - if we're too eager
@@ -127,6 +135,14 @@ sub enter_netboot_parameters {
     enter_cmd_slow "initrd $mntpoint/initrd";
 }
 
+=head2 prepare_pvm_installation
+
+ prepare_pvm_installation();
+
+Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done
+
+=cut
+
 sub prepare_pvm_installation {
     my ($boot_attempt) = @_;
     $boot_attempt //= 1;
@@ -162,6 +178,14 @@ sub prepare_pvm_installation {
     wait_still_screen;
 }
 
+=head2 boot_pvm
+
+ boot_pvm();
+
+Decide whether job is booting a pvm_hmc backend system or a spvm via Novalink one and call the appropriate booting function.
+
+=cut
+
 sub boot_pvm {
     if (is_spvm) {
         boot_spvm();
@@ -169,6 +193,34 @@ sub boot_pvm {
         boot_hmc_pvm();
     }
 }
+
+=head2 check_lpar_is_down
+
+ check_lpar_is_down($hmc_machine_name, $lpar_id);
+
+Check if an LPAR identified by C<$lpar_id> in the Power machine C<$hmc_machine_name> is down, by querying with the C<lssyscfg> command.
+Command will check 24 times in a loop while waiting 5 seconds between each run, and exit as soon as the LPAR is down. Check is performed
+by a needle match looking for the B<LPAR IS DOWN> text which is printed by the check script on success.
+
+=cut
+
+sub check_lpar_is_down {
+    my ($hmc_machine_name, $lpar_id) = @_;
+    enter_cmd("for i in {0..24}; do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done ");
+    assert_screen 'lpar-is-down', 120;
+}
+
+=head2 boot_hmc_pvm
+
+ boot_hmc_pvm();
+
+Boot a system connected via the hmc_pvm backend. This function will connect to the HMC command line,
+issue the commands necessary to start a given LPAR (from the setting B<LPAR_ID>), by first making sure
+the LPAR is down, before booting it into the System Management Services menu, and then opening a virtual
+terminal to the LPAR console to navigate the SMS to either boot the LPAR from network (for installations)
+or from the local disk.
+
+=cut
 
 sub boot_hmc_pvm {
     my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
@@ -190,8 +242,24 @@ sub boot_hmc_pvm {
     # sometimes lpar shutdown takes long time if the lpar was running already, we need to check it's state
     # and wait until it's finished
     enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id ");
-    enter_cmd("for ((i=0\; i<24\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done ");
-    assert_screen 'lpar-is-down', 120;
+    check_lpar_is_down($hmc_machine_name, $lpar_id);
+
+    # Restore LPAR's NVRAM defaults if SET_NVRAM_DEFAULTS setting is present
+    if (get_var('SET_NVRAM_DEFAULTS')) {
+        # Boot into open firmware (of) first to issue a SET_NVRAM_DEFAULTS command
+        enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o on -b of --id $lpar_id ");
+        enter_cmd("mkvterm -m $hmc_machine_name --id $lpar_id");
+        assert_screen 'openfirmware-prompt', 60;
+        enter_cmd('SET_NVRAM_DEFAULTS');
+        assert_screen 'openfirmware-prompt';
+        # Exit from LPAR's console, shutdown LPAR and continue as usual
+        enter_cmd('~~.');
+        assert_screen 'terminate-openfirmware-session';
+        send_key 'y';
+        assert_screen 'powerhmc-ssh', 60;
+        enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id ");
+        check_lpar_is_down($hmc_machine_name, $lpar_id);
+    }
 
     # proceed with normal boot if is system already installed, use sms boot for installation
     my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
