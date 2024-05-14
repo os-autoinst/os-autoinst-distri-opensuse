@@ -27,7 +27,7 @@ sub patch_json {
             $data->{tests}[$i]{outcome} = 'passed';
             record_soft_failure("bsc#1220269 - scap-security-guide fails");
             my $json = Mojo::JSON::encode_json($data);
-            assert_script_run "echo '$json' > $file";
+            assert_script_run "cat > $file <<EOF\n$json\nEOF";
             return;
         }
     }
