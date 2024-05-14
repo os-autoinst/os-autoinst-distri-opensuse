@@ -1,0 +1,26 @@
+---
+name: Clone an openQA test mentioned in a PR comment
+# yamllint disable-line rule:truthy
+on:
+  issue_comment:
+    types: [created, edited]
+env:
+  OPENQA_HOST: ${{ vars.OPENQA_URL }}
+  OPENQA_API_KEY: ${{ secrets.OPENQA_API_KEY }}
+  OPENQA_API_SECRET: ${{ secrets.OPENQA_API_SECRET }}
+  GH_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+  GH_REF: ${{ github.event.pull_request.head.ref }}
+  GH_COMMENT_BODY: ${{ github.event.comment.body }}
+  GH_COMMENT_AUTHOR: ${{ github.event.comment.user.id }}
+  RESTRICT_ORGA: os-autoinst
+  RESTRICT_TEAM: tests-maintainer
+
+jobs:
+  clone_mentioned_job:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request }}
+    container:
+      image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
+    steps:
+      - name: Clone and monitor job mentioned in PR comment
+        uses: os-autoinst/scripts/actions/clone-job@master
