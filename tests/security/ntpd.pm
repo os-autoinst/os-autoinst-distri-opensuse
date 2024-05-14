@@ -17,9 +17,13 @@ use utils;
 use services::ntpd;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Logging 'save_and_upload_log';
+use version_utils 'is_sle';
+use registration 'add_suseconnect_product';
+
 
 sub run {
     select_serial_terminal;
+    add_suseconnect_product('sle-module-legacy') if is_sle('>=15-SP6');
     services::ntpd::install_service();
     services::ntpd::enable_service();
     services::ntpd::start_service();
