@@ -25,6 +25,11 @@ sub run {
 
     # check basic stuff that has to work before to start
     ipaddr2_os_connectivity_sanity(bastion_ip => $bastion_ip);
+
+    ipaddr2_internal_key_exchange(bastion_ip => $bastion_ip);
+
+    record_info("STAGE 2", "Init and configure the Pacemaker cluster");
+    ipaddr2_create_cluster(bastion_ip => $bastion_ip);
 }
 
 sub test_flags {
@@ -33,6 +38,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    ipaddr2_deployment_sanity();
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_destroy();
     $self->SUPER::post_fail_hook;

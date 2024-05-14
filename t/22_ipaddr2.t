@@ -88,6 +88,37 @@ subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
     ok scalar @calls eq 2, "Exactly 2 calls";
 };
 
+subtest '[ipaddr2_internal_key_exchange]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+    $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'Bialetti'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+    $ipaddr2->redefine(get_ssh_private_key_path => sub { return 'LeonBattistaAlberti'; });
+
+    ipaddr2_internal_key_exchange();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    my $count = scalar grep (/ssh.*\@ip2t\-vm\-0[1-2].*ProxyCommand.*\@Moriondo.*StrictHostKeyChecking=accept\-new/, @calls);
+    ok(($count eq 2), "Expected 2 and get $count commands for the workers to accept HostKey of the two internal VMs");
+    ok((scalar grep (/ssh-keygen/, @calls) eq 2), '2 ssh-keygen commands');
+};
+
+subtest '[ipaddr2_create_cluster]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+
+    ipaddr2_create_cluster();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*vm-01.*cluster init/ } @calls), 'crm cluster init on VM1');
+    ok((any { /.*vm-02.*cluster join/ } @calls), 'crm cluster join on VM2');
+};
+
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
@@ -139,6 +170,35 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok((scalar @calls > 0), "Some calls to script_run and script_output");
+};
+
+subtest '[ipaddr2_os_sanity]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_assert_script_run_bastion => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            if ($args{cmd} =~ /cat.*authorized_keys.*wc/) { return "3"; }
+            return "I DO NOT KNOW WHAT TO SAY";
+    });
+
+    ipaddr2_os_sanity();
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
 };
 
 subtest '[ipaddr2_bastion_pubip]' => sub {

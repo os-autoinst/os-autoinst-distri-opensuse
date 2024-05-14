@@ -24,8 +24,9 @@ Library to manage ipaddr2 tests
 our @EXPORT = qw(
   ipaddr2_azure_deployment
   ipaddr2_bastion_key_accept
+  ipaddr2_internal_key_exchange
   ipaddr2_destroy
-  ipaddr2_get_internal_vm_name
+  ipaddr2_create_cluster
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
@@ -341,6 +342,126 @@ sub ipaddr2_bastion_key_accept {
         bastion_ip => $args{bastion_ip});
 }
 
+=head2 ipaddr2_internal_vm_key_accept
+
+    ipaddr2_internal_vm_key_accept()
+
+For the worker to accept the ssh key of the bastion
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_internal_vm_key_accept {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+
+    my ($vm_name, $vm_addr);
+    foreach my $i (1 .. 2) {
+        $vm_name = ipaddr2_get_internal_vm_name(id => $i);
+        $vm_addr = "$user\@$vm_name";
+
+        # The worker reach the remote internal VM through
+        # the bastion using ssh proxy mode.
+        # This workers - internal_VM connection is only used
+        # for test purpose, to observe from the external
+        # what is going on inside the SUT.
+        assert_script_run(join(' ',
+                'ssh -vvv', $vm_addr,
+                "-oProxyCommand=\"ssh $bastion_ssh_addr -W %h:%p\"",
+                '-oStrictHostKeyChecking=accept-new',
+                'whoami'));
+
+        # one more without StrictHostKeyChecking=accept-new just to verify it is ok
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'whoami',
+            bastion_ip => $args{bastion_ip});
+    }
+}
+
+=head2 ipaddr2_internal_key_gen
+
+    ipaddr2_internal_key_gen()
+
+Create, on the /tmp folder of the Worker, two ssh key set.
+One ssk yey pair for each internal VM
+Then upload in each internal VM the ssh key pair using
+scp in Proxy mode
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_internal_key_gen {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+
+    my $user_ssh = "/home/$user/.ssh";
+    my ($vm_name, $vm_addr, $this_tmp);
+    foreach my $i (1 .. 2) {
+        $vm_name = ipaddr2_get_internal_vm_name(id => $i);
+        $vm_addr = "$user\@$vm_name";
+
+        # Check if the folder /home/${MY_USERNAME}/.ssh exist in the $vm"
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "sudo [ -d $user_ssh ]",
+            bastion_ip => $args{bastion_ip});
+
+        # Check if the key /home/${MY_USERNAME}/.ssh/${MY_INTERNAL_KEY}
+        # exist in this internal VM
+        continue unless script_run("ssh -J $user\@$args{bastion_ip} $vm_addr 'sudo [ -f $user_ssh/$key_id ]'");
+
+        # Generate public/private keys pair for cloudadmin user on the internal VMs.
+        # Generate them on the openQA worker, in a folder within /tmp.
+        # The keys will be distributed using ssh and scp in Proxy mode.
+        $this_tmp = ipaddr2_get_worker_tmp_for_internal_vm(id => $i);
+        #assert_script_run("rm -rf $this_tmp");
+        assert_script_run("mkdir -p $this_tmp");
+        assert_script_run(join(' ',
+                'ssh-keygen',
+                '-N ""',
+                '-t rsa',
+                "-C \"Temp internal cluster key for $user on $vm_name\"",
+                '-f', "$this_tmp/$key_id"));
+        my $remote_key_tmp_path;
+        my $remote_key_home_path;
+        foreach my $this_key ($key_id, "$key_id.pub") {
+            $remote_key_tmp_path = "/tmp/$this_key";
+            $remote_key_home_path = "$user_ssh/$this_key";
+            assert_script_run(join(' ',
+                    'scp',
+                    '-J', $bastion_ssh_addr,
+                    join('/', $this_tmp, $this_key),
+                    "$vm_addr:$remote_key_tmp_path"));
+            ipaddr2_ssh_internal(id => $i,
+                cmd => "sudo mv $remote_key_tmp_path $remote_key_home_path",
+                bastion_ip => $args{bastion_ip});
+            ipaddr2_ssh_internal(id => $i,
+                cmd => "sudo chown $user:users $remote_key_home_path",
+                bastion_ip => $args{bastion_ip});
+            ipaddr2_ssh_internal(id => $i,
+                cmd => "sudo chmod 0600 $remote_key_home_path",
+                bastion_ip => $args{bastion_ip});
+            ipaddr2_ssh_internal(id => $i,
+                cmd => "sudo ls -lai $remote_key_home_path",
+                bastion_ip => $args{bastion_ip});
+        }
+    }
+}
 
 =head2 ipaddr2_deployment_sanity
 
@@ -395,6 +516,21 @@ sub ipaddr2_os_sanity {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
+
+    foreach my $i (1 .. 2) {
+        # Check if ssh without password works between
+        # the bastion and each of the internal VMs
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "whoami | grep $user",
+            bastion_ip => $args{bastion_ip});
+
+        # check root
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'sudo whoami | grep root',
+            bastion_ip => $args{bastion_ip});
+    }
 }
 
 =head2 ipaddr2_os_connectivity_sanity
@@ -439,6 +575,140 @@ sub ipaddr2_os_connectivity_sanity {
     }
 }
 
+=head2 ipaddr2_os_network_sanity
+
+    ipaddr2_os_network_sanity()
+
+Read network configuration on the internal VMs
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_os_network_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $i (1 .. 2) {
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'ip a show eth0 | grep -E "inet .*192\.168"',
+            bastion_ip => $args{bastion_ip});
+    }
+}
+
+=head2 ipaddr2_os_ssh_sanity
+
+    ipaddr2_os_ssh_sanity()
+
+Run some OS level checks on the various VMs ssh keys and configs.
+die in case of failure
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_os_ssh_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $user_ssh = "/home/$user/.ssh";
+    foreach my $i (1 .. 2) {
+        # Check if the folder /home/${MY_USERNAME}/.ssh
+        # exist in the $this internal VM
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "sudo [ -d $user_ssh ]",
+            bastion_ip => $args{bastion_ip});
+
+        # Check if the key /home/${MY_USERNAME}/.ssh/${MY_INTERNAL_KEY}
+        # exist in this internal VM
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "sudo [ -f $user_ssh/$key_id ]",
+            bastion_ip => $args{bastion_ip});
+
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "cat $user_ssh/authorized_keys",
+            bastion_ip => $args{bastion_ip});
+
+        my $res = ipaddr2_ssh_internal_output(id => $i,
+            cmd => "cat $user_ssh/authorized_keys | wc -l",
+            bastion_ip => $args{bastion_ip});
+        die "User $user on internal VM $i should have 3 keys instead of $res" unless $res eq '3';
+
+        # Each internal VM has some pub keys from the pair
+        # generated by the test code during the configure step
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
+            bastion_ip => $args{bastion_ip});
+    }
+}
+
+=head2 ipaddr2_internal_key_exchange
+
+    ipaddr2_internal_key_exchange()
+
+Configure ssh connection to the two internal VMs.
+A dedicated ssh key pair is created and shared between the
+two internal VMs, just for the two cloudadmin users on them.
+Keys are created on the worker and uploaded using `ssh -J` and `scp -J` proxy mode
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_internal_key_exchange {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my $user_ssh = "/home/$user/.ssh";
+
+    # Let the workers to accept the host keys of the two internal VMs
+    # Also this step is performed using ssh in Proxy mode
+    ipaddr2_internal_vm_key_accept(bastion_ip => $args{bastion_ip});
+
+    ipaddr2_internal_key_gen(bastion_ip => $args{bastion_ip});
+
+    my $pub_key;
+    $pub_key = script_output("cat " . ipaddr2_get_worker_tmp_for_internal_vm(id => 1) . "/$key_id.pub");
+    ipaddr2_ssh_internal(id => 2,
+        cmd => "ls -lai $user_ssh",
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => 2,
+        cmd => "echo \"$pub_key\" >> $user_ssh/authorized_keys",
+        bastion_ip => $args{bastion_ip});
+    # For debug purpose only
+    ipaddr2_ssh_internal(id => 2,
+        cmd => "cat $user_ssh/authorized_keys",
+        bastion_ip => $args{bastion_ip});
+
+    $pub_key = script_output("cat " . ipaddr2_get_worker_tmp_for_internal_vm(id => 2) . "/$key_id.pub");
+    ipaddr2_ssh_internal(id => 2,
+        cmd => "ls -lai $user_ssh",
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => 1,
+        cmd => "echo \"$pub_key\" >> $user_ssh/authorized_keys",
+        bastion_ip => $args{bastion_ip});
+    # For debug purpose only
+    ipaddr2_ssh_internal(id => 1,
+        cmd => "cat $user_ssh/authorized_keys",
+        bastion_ip => $args{bastion_ip});
+}
+
 =head2 ipaddr2_ssh_assert_script_run_bastion
 
     ipaddr2_ssh_assert_script_run_bastion(
@@ -467,6 +737,171 @@ sub ipaddr2_ssh_assert_script_run_bastion {
             'ssh',
             "$user\@" . $args{bastion_ip},
             "'$args{cmd}'"));
+}
+
+=head2 ipaddr2_ssh_script_output_bastion
+
+    ipaddr2_ssh_script_output_bastion(
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on the bastion using script_output
+
+=over 2
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+sub ipaddr2_ssh_script_output_bastion {
+    my (%args) = @_;
+    croak("Argument < cmd > missing") unless $args{cmd};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    return script_output(join(' ',
+            'ssh',
+            "$user\@" . $args{bastion_ip},
+            "'$args{cmd}'"));
+}
+
+=head2 ipaddr2_ssh_internal
+
+    ipaddr2_ssh_internal(
+        id => 2,
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on one of the two internal VM through the bastion
+using the assert_script_run API
+
+=over 3
+
+=item B<id> - id of the internal VM, used to compose its name, used as address for ssh
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+sub ipaddr2_ssh_internal {
+    my (%args) = @_;
+    foreach (qw(id cmd)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    assert_script_run(join(' ',
+            'ssh', '-J', "$user\@$args{bastion_ip}",
+            "$user\@" . ipaddr2_get_internal_vm_name(id => $args{id}),
+            "'$args{cmd}'"));
+}
+
+=head2 ipaddr2_ssh_internal_output
+
+    ipaddr2_ssh_internal_output(
+        id => 2,
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on one of the two internal VM through the bastion
+using the script_output API
+
+=over 3
+
+=item B<id> - id of the internal VM, used to compose its name, used as address for ssh
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+sub ipaddr2_ssh_internal_output {
+    my (%args) = @_;
+    foreach (qw(id cmd)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+
+    return ipaddr2_ssh_script_output_bastion(
+        bastion_ip => $args{bastion_ip},
+        cmd => join(' ',
+            'ssh',
+            "$user\@" . ipaddr2_get_internal_vm_name(id => $args{id}),
+            "'$args{cmd}'"));
+}
+
+=head2 ipaddr2_create_cluster
+
+    ipaddr2_create_cluster();
+
+Initialize and configure the Pacemaker cluster on the two internal nodes
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_create_cluster {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => 'sudo crm cluster init -y --name DONALDUCK',
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 2,
+        cmd => "sudo crm cluster join -y -c $user\@" . ipaddr2_get_internal_vm_name(id => 1),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => 'sudo crm configure property maintenance-mode=true',
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => join(' ',
+            'sudo crm configure primitive',
+            'rsc_ip_00',
+            'ocf:heartbeat:IPaddr2',
+            'meta target-role="Started"',
+            'operations \$id="rsc_ip_RES-operations"',
+            'op monitor interval="10s" timeout="20s"',
+            "params ip=\"$frontend_ip\""),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => join(' ',
+            'sudo crm configure primitive',
+            'rsc_alb_00',
+            'azure-lb',
+            'port=62500',
+            'op monitor  interval="10s" timeout="20s"'),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => join(' ',
+            'sudo crm configure group',
+            'rsc_grp_00', 'rsc_alb_00', 'rsc_ip_00'),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => 'sudo crm configure property maintenance-mode=false',
+        bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_deployment_logs
@@ -515,6 +950,20 @@ sub ipaddr2_get_internal_vm_private_ip {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
     return $priv_ip_range . '0.4' . $args{id};
+}
+
+=head2 ipaddr2_get_worker_tmp_for_internal_vm
+
+    my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);
+
+Return a path in /tmp of the worker used to store files associated
+two one of the internal VM
+=cut
+
+sub ipaddr2_get_worker_tmp_for_internal_vm {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+    return "/tmp/" . ipaddr2_get_internal_vm_name(id => $args{id});
 }
 
 1;
