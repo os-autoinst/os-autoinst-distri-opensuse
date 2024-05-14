@@ -304,6 +304,9 @@ sub load_container_tests {
         if (!check_var('NETAVARK_BATS_SKIP', 'all')) {
             loadtest 'containers/netavark_integration' if (is_tumbleweed);
         }
+        if (!check_var('AARDVARK_BATS_SKIP', 'all')) {
+            loadtest 'containers/aardvark_integration' if (is_tumbleweed);
+        }
         return;
     }
 
