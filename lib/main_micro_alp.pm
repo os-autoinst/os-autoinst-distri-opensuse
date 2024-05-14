@@ -300,7 +300,12 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/transfer_repos", run_args => $args);
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
         }
-        loadtest("publiccloud/slem_basic", run_args => $args);
+        if (get_var('PUBLIC_CLOUD_LTP', 0)) {
+            loadtest("publiccloud/run_ltp", run_args => $args);
+        }
+        else {
+            loadtest("publiccloud/slem_basic", run_args => $args);
+        }
     }
 }
 
