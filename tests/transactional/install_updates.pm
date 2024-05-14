@@ -14,7 +14,7 @@ use qam;
 use transactional;
 use version_utils 'is_sle_micro';
 use serial_terminal;
-use utils qw(script_retry);
+use utils qw(script_retry fully_patch_system);
 
 sub soft_fail_rt_scriptlet {
     return if (get_var('FLAVOR') !~ /rt/i);
@@ -45,9 +45,14 @@ sub run {
         assert_script_run('journalctl --sync --flush --rotate --vacuum-time=1second');
         assert_script_run('rm /tmp/journal_before');
     }
+
+    # First we update the system
+    fully_patch_system(trup_call_timeout => 1800);
+
+    # Now we add the incident repositories and do a zypper patch
     add_test_repositories;
-    record_info 'Updates', script_output('zypper lu');
-    my $ret = trup_call 'up', timeout => 1800, proceed_on_failure => 1;
+    record_info('Updates', script_output('zypper lu'));
+    my $ret = trup_call('up', timeout => 300, proceed_on_failure => 1);
     soft_fail_rt_scriptlet if ($ret != 0);
     process_reboot(trigger => 1);
 }
