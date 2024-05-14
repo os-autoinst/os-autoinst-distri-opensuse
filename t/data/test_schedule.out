@@ -50,7 +50,6 @@ tests/x11/firefox.pm
 tests/x11/ooffice.pm
 tests/x11/oomath.pm
 tests/x11/oocalc.pm
-tests/x11/khelpcenter.pm
 tests/x11/systemsettings.pm
 tests/x11/dolphin.pm
 tests/x11/konsole.pm
@@ -58,7 +57,6 @@ tests/x11/glxgears.pm
 tests/x11/desktop_mainmenu.pm
 tests/x11/kate.pm
 tests/x11/amarok.pm
-tests/x11/kontact.pm
 tests/x11/reboot_plasma5.pm
 tests/console/zypper_log_packages.pm
 tests/shutdown/shutdown.pm

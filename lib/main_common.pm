@@ -1385,7 +1385,7 @@ sub load_x11tests {
         if (!get_var('LIVECD')) {
             # Extension got (temporarily) pulled by Mozilla
             # loadtest "x11/plasma_browser_integration";
-            loadtest "x11/khelpcenter";
+            loadtest "x11/khelpcenter" unless !(is_x86_64 || is_aarch64 || is_riscv);
         }
         loadtest "x11/systemsettings";
         loadtest "x11/dolphin";
@@ -1426,7 +1426,7 @@ sub load_x11tests {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
-        loadtest "x11/kontact" unless is_kde_live;
+        loadtest "x11/kontact" unless is_kde_live || !(is_x86_64 || is_aarch64 || is_riscv);
         if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
