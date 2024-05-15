@@ -18,7 +18,7 @@ env:
 jobs:
   clone_mentioned_job:
     runs-on: ubuntu-latest
-    #if: ${{ github.event.issue.pull_request }}
+    if: ${{ github.event.issue.pull_request }}
     container:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
