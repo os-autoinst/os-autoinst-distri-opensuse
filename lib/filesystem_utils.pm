@@ -339,8 +339,8 @@ sub get_used_partition_space {
 
  is_lsblk_able_to_display_mountpoints();
 
-Runs utility C<lsblk> using flag --help to retrieve to check for one specific
-column 'MOUNTPOINTS'.
+Runs utility C<lsblk> using flag -H or --help to check whether it supports
+the column 'MOUNTPOINTS'.
 
 From version util-linux-systemd-2.37 lsblk include new column MOUNTPOINTS
 with all the mountpoints including all the subvolumes in a btrfs system
@@ -352,6 +352,7 @@ Please check bsc#1192996 for further info.
 =cut
 
 sub is_lsblk_able_to_display_mountpoints {
+    return 1 if script_run('lsblk -H | grep -w MOUNTPOINTS') == 0;
     return script_run('lsblk --help | grep MOUNTPOINTS') == 0;
 }
 
