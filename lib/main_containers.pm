@@ -310,6 +310,11 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('BUILDAH_BATS_SKIP')) {
+        loadtest 'containers/buildah_integration' if (is_tumbleweed);
+        return;
+    }
+
     if (get_var('FIPS_ENABLED')) {
         loadtest "fips/fips_setup";
         foreach (split(',\s*', $runtime)) {
