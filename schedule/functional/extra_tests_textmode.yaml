@@ -73,6 +73,10 @@ conditional_schedule:
                 - console/vmstat
                 - console/kdump_and_crash
                 - console/ansible
+    opensuse_repos:
+        DISTRI:
+            opensuse:
+                - console/opensuse_repos
     validate_packages_and_patterns:
         DISTRI:
             sle:
@@ -161,6 +165,7 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
+    - '{{opensuse_repos}}'
     - '{{tumbleweed_tests}}'
     - console/journalctl
     - console/tar
