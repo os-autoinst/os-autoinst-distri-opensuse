@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
 use containers::utils qw(get_podman_version registry_url);
 use Utils::Systemd qw(systemctl);
@@ -199,7 +199,7 @@ sub run {
 
         my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
         my $extra = '';
-        if (is_public_cloud || is_s390x) {
+        if (is_public_cloud || is_s390x || is_vmware) {
             my $sn = script_output(qq(ip -o -f inet addr show $dev | awk '/scope global/ {print \$4}' | head -n 1)) =~ s/\.\d+\//\.0\//r;
             $extra .= "--subnet $sn ";
             my $gw = $sn =~ s/0\/\d+$/1/r;
