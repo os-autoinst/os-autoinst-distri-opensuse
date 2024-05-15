@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 use version_utils qw(is_tumbleweed is_leap is_leap_micro is_microos is_slowroll);
 use serial_terminal 'select_serial_terminal';
 
