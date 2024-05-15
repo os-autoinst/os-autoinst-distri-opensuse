@@ -20,9 +20,6 @@ sub run {
         active => {
             tag => 'elemental-bootmenu-default'
         },
-        passive => {
-            tag => 'elemental-bootmenu-fallback'
-        },
         recovery => {
             tag => 'elemental-bootmenu-recovery'
         }
@@ -38,13 +35,16 @@ sub run {
     ## No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
+    # Stop the installation service, to avoid issue with mnanual Elemental deployment
+    assert_script_run('systemctl stop elemental-register-install.service');
+
     # Add a simple cloud-config
     my $rootpwd = script_output('openssl passwd -6 ' . get_var('TEST_PASSWORD'));
     assert_script_run('curl ' . data_url('elemental/cloud-config.yaml') . ' -o ' . $cloudconfig);
     file_content_replace($cloudconfig, '%TEST_PASSWORD%' => $rootpwd);
 
     # Install Elemental OS on HDD
-    assert_script_run('elemental install /dev/vda --cloud-init ' . $cloudconfig);
+    assert_script_run('elemental install /dev/vda --debug --cloud-init ' . $cloudconfig);
 
     # Reboot after installation
     power_action('reboot', keepconsole => 1, textmode => 1);
