@@ -311,7 +311,7 @@ sub load_container_tests {
     }
 
     if (get_var('BUILDAH_BATS_SKIP')) {
-        loadtest 'containers/buildah_integration' if (is_tumbleweed);
+        loadtest 'containers/buildah_integration' if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4'));
         return;
     }
 
