@@ -15,7 +15,8 @@ use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 
-has ssh_key_file => undef;
+has ssh_key_pair => undef;
+use constant SSH_KEY_PEM => 'QA_SSH_KEY.pem';
 
 sub init {
     my ($self) = @_;
@@ -36,24 +37,26 @@ sub find_img {
     return;
 }
 
-sub create_keypair {
-    my ($self, $prefix, $out_file) = @_;
+# Returns true if key is already created in EC2 otherwise tries 10 times to create it and then fails
+# If the subroutine manager to create key pair in EC2 it stores it in $self->ssh_key_pair
 
-    return $self->ssh_key_file if ($self->ssh_key_file);
+sub create_keypair {
+    my ($self, $prefix) = @_;
+
+    return 1 if (script_run('test -s ' . SSH_KEY_PEM) == 0);
 
     for my $i (0 .. 9) {
         my $key_name = $prefix . "_" . $i;
         my $cmd = "aws ec2 create-key-pair --key-name '" . $key_name
-          . "' --query 'KeyMaterial' --output text > " . $out_file;
+          . "' --query 'KeyMaterial' --output text > " . SSH_KEY_PEM;
         my $ret = script_run($cmd);
         if (defined($ret) && $ret == 0) {
-            assert_script_run('chmod 600 ' . $out_file);
-            $self->ssh_key($key_name);
-            $self->ssh_key_file($out_file);
-            return $key_name;
+            assert_script_run('chmod 0400 ' . SSH_KEY_PEM);
+            $self->ssh_key_pair($key_name);
+            return 1;
         }
     }
-    return;
+    return 0;
 }
 
 sub delete_keypair {
@@ -69,7 +72,7 @@ sub delete_keypair {
 sub upload_img {
     my ($self, $file) = @_;
 
-    die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
+    die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time));
 
     # AMI of image to use for helper VM to create/build the image on CSP.
     my $helper_ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
@@ -141,8 +144,8 @@ sub upload_img {
           . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->provider_client->region . "' "
-          . "--ssh-key-pair '" . $self->ssh_key . "' "
-          . "--private-key-file " . $self->ssh_key_file . " "
+          . "--ssh-key-pair '" . $self->ssh_key_pair . "' "
+          . "--private-key-file " . SSH_KEY_PEM . " "
           . "-d 'OpenQA upload image' "
           . "--wait-count 3 "
           . "--ec2-ami '" . $helper_ami_id . "' "
@@ -173,7 +176,7 @@ sub img_proof {
     $args{instance_type} //= 't2.large';
     $args{user} //= 'ec2-user';
     $args{provider} //= 'ec2';
-    $args{ssh_private_key_file} //= $self->ssh_key_file;
+    $args{ssh_private_key_file} //= SSH_KEY_PEM;
     $args{key_name} //= $self->ssh_key;
 
     return $self->run_img_proof(%args);
