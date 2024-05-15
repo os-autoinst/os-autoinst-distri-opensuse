@@ -38,7 +38,7 @@ sub run {
     # NVIDIA repo is available only for x86_64 and aarch64
     if (is_x86_64 || is_aarch64) {
         zypper_call "in openSUSE-repos-NVIDIA";
-        assert_script_run("rpm -q $pkgname");
+        assert_script_run("rpm -q $pkgname-NVIDIA");
     }
 
     # Ensure we can refresh repositories
