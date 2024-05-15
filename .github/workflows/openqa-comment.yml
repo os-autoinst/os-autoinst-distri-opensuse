@@ -8,10 +8,10 @@ env:
   OPENQA_HOST: ${{ vars.OPENQA_URL }}
   OPENQA_API_KEY: ${{ secrets.OPENQA_API_KEY }}
   OPENQA_API_SECRET: ${{ secrets.OPENQA_API_SECRET }}
-  GH_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-  GH_REF: ${{ github.event.pull_request.head.ref }}
+  GH_PR_URL: ${{ github.event.issue.pull_request.url }}
   GH_COMMENT_BODY: ${{ github.event.comment.body }}
-  GH_COMMENT_AUTHOR: ${{ github.event.comment.user.id }}
+  GH_COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+  GH_COMMENT_URL: ${{ github.event.comment.html_url }}
   RESTRICT_ORGA: os-autoinst
   RESTRICT_TEAM: tests-maintainer
 
@@ -19,6 +19,9 @@ jobs:
   clone_mentioned_job:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
+    env:
+      GITHUB_TOKEN_DEFAULT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.CLASSIC_TOKEN_FOR_TESTS }}
     container:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
