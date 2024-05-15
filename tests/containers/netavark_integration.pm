@@ -13,9 +13,10 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats qw(install_bats enable_modules);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
+my $netavark = "";
 my $netavark_version = "";
 
 sub run_tests {
@@ -26,7 +27,7 @@ sub run_tests {
     script_run "rm test/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "PATH=/usr/local/bin:\$PATH NETAVARK=/usr/libexec/podman/netavark bats --tap test | tee -a $log_file", 1200;
+    script_run "PATH=/usr/local/bin:\$PATH NETAVARK=$netavark bats --tap test | tee -a $log_file", 1200;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test";
 }
@@ -39,19 +40,28 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns dbus-1-daemon firewalld iproute2 iptables jq ncat netavark);
+    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark);
+    if (is_tumbleweed) {
+        push @pkgs, qw(dbus-1-daemon ncat);
+    } elsif (is_sle) {
+        push @pkgs, qw(dbus-1);
+    }
     install_packages(@pkgs);
 
     # netavark needs nmap's ncat instead of openbsd-netcat which we override via PATH above
-    assert_script_run "cp /usr/bin/ncat /usr/local/bin/nc";
+    # otherwise we can use nc but ignore failures due to openbsd-netcat not handling SIGTERM
+    assert_script_run "cp /usr/bin/ncat /usr/local/bin/nc" unless is_sle;
 
-    record_info("netavark version", script_output("/usr/libexec/podman/netavark --version"));
+    switch_cgroup_version($self, 2);
+
+    $netavark = script_output "rpm -ql netavark | grep podman/netavark";
+    record_info("netavark version", script_output("$netavark --version"));
 
     my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";
 
     # Download netavark sources
-    $netavark_version = script_output "/usr/libexec/podman/netavark --version | awk '{ print \$2 }'";
+    $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
     script_retry("curl -sL https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/netavark-$netavark_version/";
     assert_script_run "cp -r test test.orig";

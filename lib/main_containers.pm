@@ -302,7 +302,7 @@ sub load_container_tests {
             loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4'));
         }
         if (!check_var('NETAVARK_BATS_SKIP', 'all')) {
-            loadtest 'containers/netavark_integration' if (is_tumbleweed);
+            loadtest 'containers/netavark_integration' if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4'));
         }
         if (!check_var('AARDVARK_BATS_SKIP', 'all')) {
             loadtest 'containers/aardvark_integration' if (is_tumbleweed);
