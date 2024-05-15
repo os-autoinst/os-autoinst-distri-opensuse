@@ -25,7 +25,7 @@ sub patch_json {
         # Change "failed" to "passed"
         if ($data->{tests}[$i]{nodeid} =~ /^test_sles_hardened/ && $data->{tests}[$i]{outcome} eq 'failed') {
             $data->{tests}[$i]{outcome} = 'passed';
-            record_soft_failure("bsc#1220269 - scap-security-guide fails");
+            record_soft_failure(get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP', "bsc#1220269 - scap-security-guide fails"));
             my $json = Mojo::JSON::encode_json($data);
             assert_script_run "cat > $file <<EOF\n$json\nEOF";
             return;
@@ -93,7 +93,7 @@ sub run {
 
     if (is_hardened) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
-        patch_json $img_proof->{results};
+        patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
     }
 
     upload_logs($img_proof->{logfile}, log_name => basename($img_proof->{logfile}) . ".txt");
