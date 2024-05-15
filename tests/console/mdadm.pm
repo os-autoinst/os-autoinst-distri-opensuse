@@ -12,6 +12,7 @@
 
 use base 'consoletest';
 use testapi;
+use Utils::Logging 'save_and_upload_log';
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use strict;
@@ -35,7 +36,9 @@ sub run {
 }
 
 sub post_fail_hook {
+    select_serial_terminal;
     upload_logs 'mdadm.log';
+    save_and_upload_log('journalctl --no-pager -ab -o short-precise', 'journal.log');
 }
 
 1;
