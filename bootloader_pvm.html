@@ -16,6 +16,11 @@
     <ul>
       <li><a href="#get_into_net_boot">get_into_net_boot</a></li>
       <li><a href="#prepare_pvm_installation">prepare_pvm_installation</a></li>
+      <li><a href="#enter_netboot_parameters">enter_netboot_parameters</a></li>
+      <li><a href="#prepare_pvm_installation1">prepare_pvm_installation</a></li>
+      <li><a href="#boot_pvm">boot_pvm</a></li>
+      <li><a href="#check_lpar_is_down">check_lpar_is_down</a></li>
+      <li><a href="#boot_hmc_pvm">boot_hmc_pvm</a></li>
       <li><a href="#boot_spvm">boot_spvm</a></li>
     </ul>
   </li>
@@ -35,7 +40,37 @@
 
 <pre><code>prepare_pvm_installation();</code></pre>
 
-<p>Handle the boot and installation preperation process of PVM LPARs after the hypervisor specific actions to power them on is done</p>
+<p>Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done</p>
+
+<h2 id="enter_netboot_parameters">enter_netboot_parameters</h2>
+
+<pre><code>enter_netboot_parameters();</code></pre>
+
+<p>Type kernel and ramdisk parameters in grub command line.</p>
+
+<h2 id="prepare_pvm_installation1">prepare_pvm_installation</h2>
+
+<pre><code>prepare_pvm_installation();</code></pre>
+
+<p>Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done</p>
+
+<h2 id="boot_pvm">boot_pvm</h2>
+
+<pre><code>boot_pvm();</code></pre>
+
+<p>Decide whether job is booting a pvm_hmc backend system or a spvm via Novalink one and call the appropriate booting function.</p>
+
+<h2 id="check_lpar_is_down">check_lpar_is_down</h2>
+
+<pre><code>check_lpar_is_down($hmc_machine_name, $lpar_id);</code></pre>
+
+<p>Check if an LPAR identified by <code>$lpar_id</code> in the Power machine <code>$hmc_machine_name</code> is down, by querying with the <code>lssyscfg</code> command. Command will check 24 times in a loop while waiting 5 seconds between each run, and exit as soon as the LPAR is down. Check is performed by a needle match looking for the <b>LPAR IS DOWN</b> text which is printed by the check script on success.</p>
+
+<h2 id="boot_hmc_pvm">boot_hmc_pvm</h2>
+
+<pre><code>boot_hmc_pvm();</code></pre>
+
+<p>Boot a system connected via the hmc_pvm backend. This function will connect to the HMC command line, issue the commands necessary to start a given LPAR (from the setting <b>LPAR_ID</b>), by first making sure the LPAR is down, before booting it into the System Management Services menu, and then opening a virtual terminal to the LPAR console to navigate the SMS to either boot the LPAR from network (for installations) or from the local disk.</p>
 
 <h2 id="boot_spvm">boot_spvm</h2>
 
