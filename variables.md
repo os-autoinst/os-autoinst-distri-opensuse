@@ -35,6 +35,7 @@ BCI_TESTS_BRANCH | string | | Branch to be cloned from bci-tests. Used by `bci_p
 BCI_TIMEOUT | string | | Timeout given to the command to test each environment. Used by `bci_test.pm`.
 BCI_TARGET | string | ibs-cr | Container project to be tested. `ibs-cr` is the CR project, `ibs` is the released images project
 BCI_SKIP | boolean | false | Switch to disable BCI test runs. Necessary for fine-granular test disablement
+BCI_PREPARE | boolean | false | Launch the bci_prepare step again. Useful to re-initialize the BCI-Test repo when using a different BCI_TESTS_REPO
 BOOTLOADER | string | grub2 | Which bootloader is used by the image (and in the future also: will be selected during installation)
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
