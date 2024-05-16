@@ -14,7 +14,7 @@
 
 use base "consoletest";
 use strict;
-use warning;
+use warnings;
 use testapi;
 use utils qw(zypper_call);
 use Utils::architectures 'is_aarch64';
@@ -28,9 +28,9 @@ sub run {
     my $timeout = (is_aarch64) ? 600 : 300;
 
     # Check if the rustup and rustc versions are correct as of (2024-04-08).
-    versions_test;
-    installed_toolchain_test;
-    test_switch_to_nightly;
+    versions_test();
+    installed_toolchain_test();
+    test_switch_to_nightly();
 }
 
 # Might be redundant as they just have been installed, therefore, depending on where rustup checks for updates (distro or upstream)

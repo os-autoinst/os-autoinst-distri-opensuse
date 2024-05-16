@@ -31,8 +31,8 @@ sub run {
     assert_script_run('cargo_new ' . $proj_name . " && cd " . $proj_name);
     assert_script_run(qq(echo 'uuid = "0.8"' >> $proj_name/Cargo.toml));
 
-    cargo_run_test;
-    cargo_add_test;
+    cargo_run_test();
+    cargo_add_test();
     cargo_project_test(proj_name => $proj_name, test_arg => $test_arg, timeout => $timeout);
     cargo_doc_test($proj_name);
 }
