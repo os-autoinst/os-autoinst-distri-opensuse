@@ -31,26 +31,26 @@ sub run {
     assert_script_run('cargo_new ' . $proj_name . " && cd " . $proj_name);
     assert_script_run(qq(echo 'uuid = "0.8"' >> $proj_name/Cargo.toml));
 
-    test_cargo_run;
-    test_cargo_add;
-    test_cargo_project(proj_name => $proj_name, test_arg => $test_arg, timeout => $timeout);
-    test_cargo_doc($proj_name);
+    cargo_run_test;
+    cargo_add_test;
+    cargo_project_test(proj_name => $proj_name, test_arg => $test_arg, timeout => $timeout);
+    cargo_doc_test($proj_name);
 }
 
-sub test_cargo_run {
+sub cargo_run_test {
     # May take logner on aarch64, so extend timeout value for aarch64.
     my $timeout = (is_aarch64) ? 600 : 300;
     validate_script_output("cargo run",
         sub { m/Hello, world!/ }, timeout => $timeout);
 }
 
-sub test_cargo_add {
+sub cargo_add_test {
     select_console('user-console');
     # Add a major dependency to the project.
     assert_script_run('cargo add clap --features derive');
 }
 
-sub test_cargo_project {
+sub cargo_project_test {
     my %proj_name = @_;
     select_console('user-console');
     # Copy man_or_boy src file to the src directory of the project.
@@ -58,15 +58,10 @@ sub test_cargo_project {
     validate_script_output("cargo run -- --name " . $args{test_arg}, qr/Hello, openQA!/, timeout => $args{timeout}, fail_message => "Cannot verfiy script output.");
 }
 
-sub test_cargo_doc {
+sub cargo_doc_test {
     my $proj_name = @_;
     assert_script_run('cargo doc');
     assert_script_run('ll target/doc/' . $proj_name . '/ | grep index.html');
-}
-
-sub test_cargo_test {
-    select_console('user-console');
-    assert_script_run("cargo test");
 }
 
 sub post_run_hook {

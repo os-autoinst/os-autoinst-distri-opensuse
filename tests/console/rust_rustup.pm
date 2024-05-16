@@ -28,24 +28,24 @@ sub run {
     my $timeout = (is_aarch64) ? 600 : 300;
 
     # Check if the rustup and rustc versions are correct as of (2024-04-08).
-    test_versions;
-    test_installed_toolchain;
+    versions_test;
+    installed_toolchain_test;
     test_switch_to_nightly;
 }
 
 # Might be redundant as they just have been installed, therefore, depending on where rustup checks for updates (distro or upstream)
 # it would always report the installed version as "up to date" even if it is not.
-sub test_versions {
+sub versions_test {
     select_console('user-console');
     validate_script_output("rustup check", qr/Up to date/, fail_message => 'Cannot validate installed rust version or version out of date!');
 }
 
-sub test_installed_toolchain {
+sub installed_toolchain_test {
     select_console('user-console');
     validate_script_output("rustup show", qr/stable-x86_64-unknown-linux-gnu (default)/, fail_message => "Cannot verify toolchain to be 'stable-x86_64-unknown-linux-gnu'.");
 }
 
-sub test_switch_to_nightly {
+sub switch_to_nightly_test {
     select_console('user-console');
     assert_script_run('rustup toolchain install nightly');
     assert_script_run('rustup default nightly');
