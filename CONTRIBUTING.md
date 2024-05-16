@@ -35,6 +35,12 @@ zypper in os-autoinst-distri-opensuse-deps-worker perl-JSON-Validator gnu_parall
 zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel
 ```
 
+
+* Instructions for a minimal environment such as a distrobox in order to run necessary make tidy for contribution
+```
+zypper in  perl-XML-LibXML perl-Inline-Python perl-XML-SemanticDiff perl-Net-SSH2 perl-Perl-Critic perl-Perl-Critic-Utils perl-File-Map perl-Time-Moment perl-Test-Mock-Time perl-Test-MockModule perl-Perl-Critic-Policy perl-Net-DBus perl-Devel-Cover perl-Perl-Critic-Community perl-Socket-MsgHdr perl-Cpanel-JSON-XS perl-Crypt-DES perl-DateTime perl-Code-DRY perl-Code-TidyAll python3 python3-PyYAML perl-App-cpanminus awk make os-autoinst-distri-opensuse-deps-worker perl-JSON-Validator gnu_parallel
+```
+
 * Otherwise most of the dependencies are available using cpanm (with or without
 local::lib, or others), from within the working copy: call
 `cpanm -n --mirror http://no.where/ --installdeps .`
