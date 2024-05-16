@@ -111,7 +111,7 @@
 
 <pre><code>is_lsblk_able_to_display_mountpoints();</code></pre>
 
-<p>Runs utility <code>lsblk</code> using flag --help to retrieve to check for one specific column &#39;MOUNTPOINTS&#39;.</p>
+<p>Runs utility <code>lsblk</code> using flag -H or --help to check whether it supports the column &#39;MOUNTPOINTS&#39;.</p>
 
 <p>From version util-linux-systemd-2.37 lsblk include new column MOUNTPOINTS with all the mountpoints including all the subvolumes in a btrfs system and in this case existing column MOUNTPOINT does not contain the primary mountpoint for the partition, the first mounted, instead contains the most recent one mounted. Therefore we need to workaround this issue. Please check bsc#1192996 for further info.</p>
 
