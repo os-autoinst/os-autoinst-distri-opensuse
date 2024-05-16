@@ -68,7 +68,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle is_tumbleweed);
+use version_utils qw(is_leap is_sle is_sle_micro is_tumbleweed);
 use y2_module_consoletest;
 use Test::Assert ':all';
 use xml_utils;
@@ -491,6 +491,15 @@ sub generate_version {
     $separator //= '_';
     if (is_leap(">=15.4")) {
         return $version;
+    } elsif (is_sle_micro) {
+        $dist = 'SLE';
+        if (is_sle_micro('<5.3')) {
+            $version = "15_SP3";
+        } elsif (is_sle_micro('<5.5')) {
+            $version = "15_SP4";
+        } elsif (is_sle_micro('<6.0')) {
+            $version = "15_SP5";
+        }
     } elsif (is_sle) {
         $dist = 'SLE';
         $version =~ s/-/$separator/;
@@ -499,6 +508,7 @@ sub generate_version {
     } elsif (is_leap) {
         $dist = 'openSUSE_Leap';
     }
+
     return $dist . $separator . $version;
 }
 
