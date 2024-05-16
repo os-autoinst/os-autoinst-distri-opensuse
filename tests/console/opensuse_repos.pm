@@ -10,7 +10,7 @@
 # - Innstall openSUSE-repos-NVIDIA on aarch64 and x86_64
 # - Import gpg keys and refresh repositories
 # - Flavors of openSUSE-repos packages correspond with flavor of openSUSE-release
-# Maintainer: Lubos Kocmman <lubos.kocman@suse.com>
+# Maintainer: Lubos Kocmman <lubos.kocman@suse.com>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "consoletest";
 use strict;
@@ -22,7 +22,6 @@ use version_utils qw(is_tumbleweed is_leap is_leap_micro is_microos is_slowroll)
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $timeout = 300;
     my $pkgname = 'openSUSE-repos-Tumbleweed';
     select_serial_terminal;
 
