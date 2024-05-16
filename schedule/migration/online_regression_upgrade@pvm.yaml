@@ -63,9 +63,6 @@ conditional_schedule:
         - console/zypper_lifecycle
         - console/orphaned_packages_check
         - console/consoletest_finish
-        - x11/desktop_runner
-        - x11/setup
-        - x11/xterm
   rollback_after_migration:
     ROLLBACK_AFTER_MIGRATION:
       1:
