@@ -19,15 +19,10 @@ my $test_dir = "/var/tmp";
 my $aardvark_version = "";
 
 sub run_tests {
-    my %params = @_;
-    my ($skip_tests) = ($params{skip_tests});
-
-    return if ($skip_tests eq "all");
-
     my $log_file = "aardvark.tap";
 
     assert_script_run "cp -r test.orig test";
-    my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', '') . " " . $skip_tests);
+    my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
     script_run "rm test/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
@@ -58,7 +53,7 @@ sub run {
     assert_script_run "cd $test_dir/aardvark-dns-$aardvark_version/";
     assert_script_run "cp -r test test.orig";
 
-    run_tests(skip_tests => get_var('AARDVARK_BATS_SKIP', ''));
+    run_tests;
 }
 
 sub cleanup() {
