@@ -40,7 +40,7 @@ sub run {
             push @snapper_cmd, "--userdata \"$description\"";
             assert_script_run(join ' ', @snapper_cmd);
             $first_snap_to_delete = $self->get_last_snap_number() unless ($first_snap_to_delete);
-            assert_script_run("snapper list --disable-used-space| tail -n1");
+            assert_script_run("snapper list | tail -n1");
             for (1 .. 3) { pop @snapper_cmd; }
             if ($type eq 'pre') {
                 # Add last snapshot id for pre type
