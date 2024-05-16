@@ -18,6 +18,12 @@ use YaST::Module;
 
 sub run {
     select_console 'root-console';
+
+    if (script_run('systemctl is-active NetworkManager.service') == 0) {
+        record_info('SKIP', 'Only supported with Wicked, not NetworkManager.');
+        return;
+    }
+
     my $network_interface = script_output('ls /sys/class/net | grep ^e');
     my $test_data = get_test_suite_data();
 
