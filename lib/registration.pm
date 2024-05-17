@@ -15,6 +15,7 @@ use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micr
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 use YaST::workarounds;
+use y2_logs_helper qw(accept_license);
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -347,6 +348,10 @@ sub register_addons {
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
         push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap') || (is_sle('12-sp5+') && get_var('UPGRADE') && !get_var('IN_PATCH_SLE')));
+        if ($addon eq 'we' && get_var('BETA_WE')) {
+            accept_license;
+            send_key $cmd{next};
+        }
         if ((my $regcode = get_var("SCC_REGCODE_$uc_addon")) or ($addon eq "ltss")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
