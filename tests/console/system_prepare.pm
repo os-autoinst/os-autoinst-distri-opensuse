@@ -89,7 +89,10 @@ sub run {
             diag "SUSEConnect --status-text locked: $out";
         }
         diag "SUSEConnect --status-text: $out";
-        if (!get_var('MEDIA_UPGRADE')) {
+        # System is unregistered for installation process via Full medium prepared for migration test,
+        # set INSTALL_FOR_MIGRATION=1 to skip the registration check. Use this setting to distinguish
+        # installation process for migration or migration process even in same migration flavor.
+        if (!get_var('MEDIA_UPGRADE') && !get_var('INSTALL_FOR_MIGRATION')) {
             services::registered_addons::full_registered_check;
         }
     }
