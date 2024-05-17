@@ -73,7 +73,13 @@ sub license {
             send_key 'alt-n';
         }
         # Accept license
-        assert_screen 'wsl-license';
+        # assert_screen 'wsl-license' or wsl-liscense-beta;
+        if (check_var("BETA", "1")) {
+            assert_screen 'wsl-license-beta', timeout => 240;
+        }
+        else {
+            assert_screen 'wsl-license', timeout => 240;
+        }
         send_key 'alt-a';
         assert_screen 'license-accepted';
         send_key 'alt-n';
