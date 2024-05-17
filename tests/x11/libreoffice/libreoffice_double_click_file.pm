@@ -38,7 +38,8 @@ sub run {
             send_key 'alt-f4';
         }
         else {
-            send_key 'ctrl-q';
+            # due to bsc#1224395 the ctrl-q do not work on libreoffice math
+            assert_and_click 'close-libreoffice';
         }
     }
     send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
