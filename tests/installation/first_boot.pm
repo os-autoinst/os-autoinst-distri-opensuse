@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use base 'bootbasetest';
 use testapi;
+use utils;
 use x11utils 'turn_off_plasma_tooltips';
 
 sub run {
@@ -32,5 +33,11 @@ sub test_flags {
 
 # 'generic-desktop' already checked in wait_boot_past_bootloader
 sub post_run_hook { }
+
+sub post_fail_hook {
+    my ($self) = @_;
+    unlock_if_encrypted(check_typed_password => 1) if need_unlock_after_bootloader;
+    $self->SUPER::post_fail_hook;
+}
 
 1;
