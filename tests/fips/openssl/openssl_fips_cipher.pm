@@ -17,7 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils qw(is_sle is_transactional is_sle_micro);
+use version_utils qw(is_sle is_transactional is_sle_micro is_tumbleweed is_microos);
 use Utils::Architectures qw(is_s390x);
 
 sub run {
@@ -37,7 +37,7 @@ sub run {
 
     # With FIPS approved Cipher algorithms, openssl should work
     my @approved_cipher = ("aes128", "aes192", "aes256");
-    push @approved_cipher, qw(des3 des-ede3) unless (is_sle('15-SP6+') || is_sle_micro('6.0+'));
+    push @approved_cipher, qw(des3 des-ede3) unless (is_sle('15-SP6+') || is_sle_micro('6.0+') || is_tumbleweed || is_microos);
     for my $cipher (@approved_cipher) {
         assert_script_run "openssl enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg";
         assert_script_run "openssl enc -$cipher -d -pbkdf2 -in $file_enc -out $file_dec -k $enc_passwd -md $hash_alg";
