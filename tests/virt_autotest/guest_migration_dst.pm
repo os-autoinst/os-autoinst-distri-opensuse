@@ -16,9 +16,14 @@ use mmapi;
 use upload_system_log 'upload_supportconfig_log';
 use virt_autotest::utils qw(is_xen_host is_kvm_host upload_virt_logs);
 use version_utils 'is_sle';
+use Utils::Backends 'use_ssh_serial_console';
+use ipmi_backend_utils;
+
 
 sub run {
     my ($self) = @_;
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
 
     my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('DST_IP', $ip_out);

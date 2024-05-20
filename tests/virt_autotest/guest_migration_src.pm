@@ -17,6 +17,8 @@ use virt_utils;
 use Data::Dumper;
 use Utils::Architectures;
 use virt_autotest::utils qw(is_xen_host);
+use Utils::Backends 'use_ssh_serial_console';
+use ipmi_backend_utils;
 
 sub get_script_run {
     my ($self) = @_;
@@ -113,6 +115,10 @@ sub post_execute_script_assertion {
 
 sub run {
     my ($self) = @_;
+
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
+
 
     #preparation
     my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
