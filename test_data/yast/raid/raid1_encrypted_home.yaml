@@ -1,0 +1,42 @@
+<<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
+mds:
+  - raid_level: 1
+    name: md0
+    chunk_size: '0 KiB'
+    devices:
+      - vda2
+      - vdb1
+    partition:
+      role: operating-system
+      formatting_options:
+        should_format: 1
+        filesystem: xfs
+      mounting_options:
+        should_mount: 1
+  - raid_level: 1
+    name: md1
+    chunk_size: '0 KiB'
+    devices:
+      - vda3
+      - vdb2
+    partition:
+      formatting_options:
+        should_format: 1
+        filesystem: xfs
+      mount: /home
+      crypt_method: luks1
+      mounting_options:
+        should_mount: 1
+  - raid_level: 1
+    name: md2
+    chunk_size: '0 KiB'
+    devices:
+      - vda4
+      - vdb3
+    partition:
+      role: swap
+      formatting_options:
+        should_format: 1
+        filesystem: swap
+      mounting_options:
+        should_mount: 1
