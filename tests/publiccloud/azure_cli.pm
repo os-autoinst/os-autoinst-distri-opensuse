@@ -27,8 +27,7 @@ sub run {
     if (script_run("which az") != 0) {
         add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
         add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
-        # bsc#1201870c1 - please remove python3-azure-mgmt-resource
-        zypper_call('in azure-cli jq python3-susepubliccloudinfo python3-azure-mgmt-resource');
+        zypper_call('in azure-cli jq python3-susepubliccloudinfo');
     }
     assert_script_run('az version');
 
