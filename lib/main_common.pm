@@ -1828,6 +1828,7 @@ sub load_extra_tests_filesystem {
     loadtest "console/autofs";
     loadtest 'console/lvm';
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest 'console/btrfs_check' if (is_jeos || is_sle_micro);
         loadtest 'console/snapper_undochange';
         loadtest 'console/snapper_create';
         # Needs zsh, not available in staging
