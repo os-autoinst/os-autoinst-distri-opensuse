@@ -22,7 +22,7 @@
     <guest_installation_automation_platform/>
     <guest_installation_automation_file>opensuse_tumbleweed_xen_pv_guest_x86_64.xml</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
-    <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=hvc0,115200n8#textmode=1</guest_installation_extra_args>
+    <guest_installation_extra_args>sshd=1#sshpassword=ROOTPASSWORD#console=hvc0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT</guest_installation_media>
