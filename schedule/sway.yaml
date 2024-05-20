@@ -1,0 +1,15 @@
+name:           test sway
+description:    >
+    Tests sway
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/hostname
+  - update/zypper_clear_repos
+  - console/install_sway_pattern
+  - console/consoletest_finish
+  - x11/sway_reconfigure_openqa
+  - x11/reboot_icewm
+  - console/configure_sway
+  - shutdown/shutdown

@@ -167,6 +167,7 @@ sub load_otherDE_tests {
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
         if ($de =~ /^mate$/) { load_mate_tests(); }
         if ($de =~ /^lxqt$/) { load_lxqt_tests(); }
+        if ($de =~ /^sway/) { load_sway_tests(); }
         load_shutdown_tests;
         return 1;
     }
@@ -188,6 +189,10 @@ sub load_lxqt_tests {
 
 sub load_mate_tests {
     loadtest "x11/mate_terminal";
+}
+
+sub load_sway_tests {
+    loadtest "x11/configure_sway";
 }
 
 sub install_online_updates {
