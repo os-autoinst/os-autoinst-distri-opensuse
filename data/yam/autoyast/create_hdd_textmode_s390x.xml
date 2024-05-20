@@ -105,40 +105,6 @@
       </hosts_entry>
     </hosts>
   </host>
-  <kdump t="map">
-    <add_crash_kernel t="boolean">true</add_crash_kernel>
-    <crash_kernel>147M</crash_kernel>
-    <crash_xen_kernel>147M\&lt;4G</crash_xen_kernel>
-    <general t="map">
-      <KDUMPTOOL_FLAGS/>
-      <KDUMP_COMMANDLINE/>
-      <KDUMP_COMMANDLINE_APPEND/>
-      <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
-      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
-      <KDUMP_CPUS/>
-      <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
-      <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
-      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
-      <KDUMP_HOST_KEY/>
-      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
-      <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
-      <KDUMP_KERNELVER/>
-      <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
-      <KDUMP_NET_TIMEOUT>30</KDUMP_NET_TIMEOUT>
-      <KDUMP_NOTIFICATION_CC/>
-      <KDUMP_NOTIFICATION_TO/>
-      <KDUMP_POSTSCRIPT/>
-      <KDUMP_PRESCRIPT/>
-      <KDUMP_REQUIRED_PROGRAMS/>
-      <KDUMP_SAVEDIR>/var/crash</KDUMP_SAVEDIR>
-      <KDUMP_SMTP_PASSWORD/>
-      <KDUMP_SMTP_SERVER/>
-      <KDUMP_SMTP_USER/>
-      <KDUMP_TRANSFER/>
-      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
-      <KEXEC_OPTIONS/>
-    </general>
-  </kdump>
   <networking t="map">
     <dhcp_options t="map">
       <dhclient_client_id/>
