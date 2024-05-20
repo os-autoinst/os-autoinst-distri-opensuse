@@ -37,7 +37,7 @@ sub run {
     my @dsa_key_sizes = (2048, 3072);
 
     # Add the openssl version check
-    my $openssl_version_output = script_output("openssl version | awk '{print $2}'");
+    my $openssl_version_output = script_output(q[openssl version | awk '{print $2}']);
     my ($openssl_version) = $openssl_version_output =~ /(\d\.\d)/;
 
     # Prepare temp directory and file for testing
@@ -52,7 +52,7 @@ sub run {
         assert_script_run "openssl dsa -in $dsa_prikey -pubout -out $dsa_pubkey";
 
         # A source of random numbers is required for DSA, so get message digest first
-        assert_script_run "openssl dgst -$dgst_alg $file_raw | awk '{print $2}' > $file_dgt";
+        assert_script_run sprintf('openssl dgst -%s %s | awk \'{print $2}\' > %s', $dgst_alg, $file_raw, $file_dgt);
 
         # Sign message digest with private key and verify signature with public key
         # openssl >= 1.1.x (sha256)
