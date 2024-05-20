@@ -335,7 +335,7 @@
 <![CDATA[
 #!/bin/bash
 mkdir -p -m 700 /root/.ssh
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45gViEql0+R5rahWHQBxuSAxkJbPMLudym1ffdS3+ODuBVO8nHABZ7eGaPZJQQTO0Y2bpJXCis/0GxPUD94EJ+NI/4/qzpyuw5CbfO2MazXeF38mBRO/ceZ54ZIkZMuqTHq5kp+rhq2KyUBxum9tWC7uHh0JFCoRro28uRSgNn3uVSMe1pAihdqwlZ6CaDwfN/3+aEqDTz/e/E41AKJjDx7DaCO6alKbkn2V8D2althjnB7ZtKNsYfkiQ6V9qu9lEtgeFQeEZJklWPbq+CYLcvr7Fys8M56AANqBza5Kc8a7ALZZNEbrbbmsCy+avS/Ptft7LXNjDfNTUXQ+NRDNHtvc9UmHOx9cdokgU54hxAfxv8K2scvaWeBQJHAu76oNMrnGxKIMdNBH0ZbNudSgLlHV9Z/PIYYXN7XxHcJuIg9hjo2ryUdPdRA4KGaeZN9rXnr088qJUtDJj0MBaRSCZtq5zWaJyUk=' >> /root/.ssh/authorized_keys
+echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_key
 cat > /etc/init.d/after.local<< EOF
 #!/bin/sh
