@@ -1,0 +1,6 @@
+---
+name: message
+description: Sway wayland window manager
+schedule:
+  - openSUSEway/openSUSEway
+  - shutdown/shutdown
