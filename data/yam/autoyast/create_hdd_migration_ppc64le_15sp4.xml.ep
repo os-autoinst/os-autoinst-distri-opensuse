@@ -314,9 +314,11 @@
     % }
     % if ($check_var->('PATTERNS', 'all')) {
     <patterns t="list">
+      <pattern>Amazon_Web_Services_Tools</pattern>
+      <pattern>Microsoft_Azure_Tools</pattern>
+      <pattern>Google_Cloud_Platform_Tools</pattern>
+      <pattern>OpenStack_Tools</pattern>
       <pattern>32bit</pattern>
-      <pattern>Amazon_Web_Services</pattern>
-      <pattern>OpenStack</pattern>
       <pattern>apparmor</pattern>
       <pattern>apparmor-32bit</pattern>
       <pattern>base</pattern>
