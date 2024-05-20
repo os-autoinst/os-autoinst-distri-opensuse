@@ -342,7 +342,12 @@
     <init-scripts config:type="list">
       <script>
         <debug config:type="boolean">true</debug>
-	<source><![CDATA[sed -i 's/^\(Autostart[[:blank:]]*=\).*/\1 1/' /hana/shared/{{INSTANCE_SID}}/profile/{{INSTANCE_SID}}_HDB{{INSTANCE_ID}}_$(hostname)]]></source>
+        <source><![CDATA[
+# disable GRUB_TIMEOUT to avoid grub_test.pm failed since grub menu timeout
+sed -i '/GRUB_TIMEOUT=/ s/=.*$/=-1/' /etc/default/grub 2>&1 || exit 1
+grub2-mkconfig -o /boot/grub2/grub.cfg 2>&1 || exit 1
+sed -i 's/^\(Autostart[[:blank:]]*=\).*/\1 1/' /hana/shared/{{INSTANCE_SID}}/profile/{{INSTANCE_SID}}_HDB{{INSTANCE_ID}}_$(hostname)]]>
+        </source>
       </script>
     </init-scripts>
   </scripts>
