@@ -11,11 +11,16 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/install_SLES
+  - '{{install_sles}}'
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
   - installation/system_probing/cancel_encrypted_volume
   - console/validate_encrypted_partition_not_activated
+conditional_schedule:
+  install_sles:
+    ARCH:
+      x86_64:
+        - installation/product_selection/install_SLES
 test_data:
   enc_disk_part: vda2
