@@ -189,10 +189,11 @@ sub cleanup {
     $self->upload_ltp_logs();
 
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
-        assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
-        assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
+        script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
+        script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
+    $self->SUPER::cleanup();
 }
 
 sub gen_ltp_env {
