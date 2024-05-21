@@ -24,6 +24,8 @@ sub run {
     die('Note: Running publiccloud with a custom SCHEDULE is not supported') if (!defined $args);
 
     select_host_console();    # select console on the host, not the PC instance
+    script_run('ping -c5 10.144.110.65');
+    script_run('curl http://10.144.110.65');
 
     # Prevent kernel messages of the helper VM to contaminate the serial console
     # this is needed on our ext4-based helper VM to avoid kernel messages from overlayfs
