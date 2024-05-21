@@ -351,7 +351,7 @@ sub power_action {
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
-        handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
+        handle_livecd_reboot_failure if get_var('LIVECD') && !get_var('PATCH_BEFORE_MIGRATION') && $action eq 'reboot';
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
         select_console('svirt') if is_vmware && $action eq 'reboot' && !get_var('UEFI');
         reset_consoles;

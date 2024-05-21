@@ -39,6 +39,10 @@ sub run {
     if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
         set_var('BOOT_HDD_IMAGE', 0) unless (is_aarch64 && !check_var('ZDUP', '1'));
     }
+    if (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION')) {
+        record_info 'Switch to live upgrade process';
+        set_var('BOOT_HDD_IMAGE', 0);
+    }
     assert_script_run "sync", 300;
     power_action('reboot', textmode => 1, keepconsole => 1);
 
@@ -49,6 +53,9 @@ sub run {
     # for x86_64 we need to make sure the start item is installation for needle matching.
     stop_grub_timeout if is_x86_64;
     save_screenshot;
+
+    # Switch back to live upgrade process
+    set_var('PATCH_BEFORE_MIGRATION', 0) if (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION'));
 }
 
 1;

@@ -116,6 +116,7 @@ KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace
 KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.
 LAPTOP |||
 LIBC_LIVEPATCH | boolean | false | If set, run userspace livepatching tests
+PATCH_BEFORE_MIGRATION | boolean | false | If set, patch the system before migration/upgrade
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
 LINUXRC_KEXEC | integer | | linuxrc has the capability to download and run a new kernel and initrd pair from the repository.<br> There are four settings for the kexec option:<br> 0: feature disabled;<br> 1: always restart with kernel/initrd from repository (without bothering to check if it's necessary);<br>2: restart only if needed - that is, if linuxrc detects that the booted initrd is outdated (this is the default);<br>3: like kexec=2 but without user interaction.<br> *More details [here](https://en.opensuse.org/SDB:Linuxrc)*.
 LIVECD | boolean | false | Indicates live image being used.
