@@ -20,7 +20,12 @@ sub run {
 
     # Prepare the arrays of subvolumes for comparing
     # TODO: the subvolumes list vary depending on the arch and the version
-    my @kiwi_volumes = qw(@ @/.snapshots @/home @/opt @/root @/srv @/usr/local @/var);
+    my @kiwi_volumes = qw(@ @/.snapshots @/home @/opt @/root @/srv @/usr/local);
+    if (check_var('VERSION', '12-SP5')) {
+        push(@kiwi_volumes, qw(@/var/cache @/var/log));
+    } else {
+        push(@kiwi_volumes, '@/var');
+    }
     my @test_volumes = split("\n", script_output("btrfs subvolume list / | cut -d ' ' -f 9"));
     record_info('test_volumes', "@test_volumes");
     record_info('kiwi_volumes', "@kiwi_volumes");
