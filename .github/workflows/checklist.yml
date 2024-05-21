@@ -1,5 +1,6 @@
 ---
 # yamllint disable-line rule:truthy
+name: checklist
 on: [pull_request_target]
 jobs:
   checklist_job:
