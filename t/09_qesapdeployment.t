@@ -217,7 +217,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
-    my $expected_log_name = "qesap_exec_$cmd.log.txt";
+
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_get_file_paths => sub {
@@ -229,10 +229,11 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return $expected_res });
 
-    my @res = qesap_execute(cmd => $cmd);
+    my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
+    ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
+    ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
     ok((any { /.*activate/ } @calls), 'virtual environment activated');
     ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
     ok $res[0] == $expected_res;
@@ -244,7 +245,6 @@ subtest '[qesap_execute] simple call' => sub {
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
-    my $expected_log_name = "qesap_exec_$cmd.log.txt";
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
@@ -259,10 +259,11 @@ subtest '[qesap_execute] simple call' => sub {
             return (%paths);
     });
 
-    my @res = qesap_execute(cmd => $cmd);
+    my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
+    ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
+    ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
     ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
 };
 
@@ -288,10 +289,10 @@ subtest '[qesap_execute] cmd_options' => sub {
             return (%paths);
     });
 
-    qesap_execute(cmd => $cmd, cmd_options => $cmd_options);
+    qesap_execute(cmd => $cmd, cmd_options => $cmd_options, logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*$cmd\s+$cmd_options.*tee.*$expected_log_name/ } @calls), 'cmd_options result in proper qesap-py command composition');
+    ok((any { /.*$cmd\s+$cmd_options.*/ } @calls), 'cmd_options result in proper qesap-py command composition');
 };
 
 subtest '[qesap_execute] failure' => sub {
@@ -313,7 +314,7 @@ subtest '[qesap_execute] failure' => sub {
             return (%paths);
     });
 
-    my @res = qesap_execute(cmd => 'GILL');
+    my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res[0] == $expected_res, 'result part of the return array is 1 when script_run fails';
@@ -338,87 +339,66 @@ subtest '[qesap_execute] check_logs' => sub {
             return (%paths);
     });
 
-    my @res = qesap_execute(cmd => 'GILL');
+    my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
-};
-
-subtest '[qesap_execute] logname' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    my @logs = ();
-    my $expected_res = 0;
-    my $cmd = 'GILL';
-    my $expected_log_name = "GURLE.log.txt";
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd};
-            return $expected_res;
-    });
-    $qesap->redefine(qesap_get_file_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
-            return (%paths);
-    });
-
-    my @res = qesap_execute(cmd => $cmd, logname => $expected_log_name);
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*\/tmp\/$expected_log_name/ } @calls), 'log redirection to user specified filename');
-    ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
+    ok $res[1] =~ /\/WALLABY_STREET/, "File pattern '$res[1]' is okay";
 };
 
 subtest '[qesap_execute_conditional_retry] retry after fail with expected error message' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    my @logs = ();
-    my $cmd = 'TIFA';
-    my $error_string = 'AERIS';
-    my $retry_log = '_retry.log.txt';
-    my $expected_res = 0;
-    my $expected_log_name = "qesap_exec_$cmd.log.txt";
+
     $qesap->redefine(record_info => sub {
-            push @calls, join(' ', @_);
             note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    my @return_list = ();
+    # Reverse order than used in the execution
+    push @return_list, 0;
+    push @return_list, 1;
+    push @return_list, 1;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
-            $args{logname} //= "a log name";
-            push @calls, $args{logname};
-            if ($args{logname} =~ /\Q$retry_log\E/) {
-                return (0, 'log');
-            } else {
-                return (1, 'log');
-            }
-    });
+            my @results = (pop @return_list, 0);
+            return @results; });
+    # Simulate that qesap_execute has always 'AERIS'
+    # in the log
     $qesap->redefine(qesap_file_find_string => sub { return 1; });
 
-    my @res = qesap_execute_conditional_retry(cmd => $cmd, error_string => $error_string);
+    my @res = qesap_execute_conditional_retry(
+        cmd => 'TIFA',
+        error_string => 'AERIS',
+        logname => 'WALLABY_STREET',
+        retries => 5);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res[0] == 0, "Check if the rc of the result is 0";
-    ok(any { /$retry_log/ } @calls, "Check if retry log is mentioned in any call");
-    ok(any { /QESAP_EXECUTE RETRY PASS/ } @calls, "Check if QESAP_EXECUTE RETRY PASS is recorded");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
+    ok scalar @calls == 3, "Exactly '" . scalar @calls . "' as expected 3 retry";
 };
 
 subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my $cmd = 'TIFA';
-    my $error_string = 'AERIS';
     $qesap->redefine(record_info => sub {
             note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    my @calls;
     $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
             return (1, 'log');
     });
+    # Simulate that 'AERIS' is never
+    # in the log
     $qesap->redefine(qesap_file_find_string => sub { return 0; });
 
-    dies_ok { qesap_execute_conditional_retry(cmd => $cmd, error_string => $error_string) } 'Expected die if string is not found';
+    dies_ok { qesap_execute_conditional_retry(
+            cmd => 'TIFA',
+            logname => 'WALLABY_STREET',
+            error_string => 'AERIS',
+            retries => 5) } 'Expected die if string is not found';
+    # No retry if 'AERIS' is not in the log
+    ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
 };
 
 subtest '[qesap_file_find_string] success' => sub {

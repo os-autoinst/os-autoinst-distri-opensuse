@@ -13,7 +13,13 @@ use qesapdeployment;
 sub run {
     my ($self) = @_;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my @ret = qesap_execute_conditional_retry(cmd => 'terraform', verbose => 1, timeout => 1800, retries => 1, error_string => 'An internal execution error occurred. Please retry later');
+    my @ret = qesap_execute_conditional_retry(
+        cmd => 'terraform',
+        logname => 'qesap_exec_terraform.log.txt',
+        verbose => 1,
+        timeout => 1800,
+        retries => 1,
+        error_string => 'An internal execution error occurred. Please retry later');
 
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);
@@ -35,7 +41,21 @@ sub run {
     foreach my $host (@remote_ips) {
         die 'Timed out while waiting for ssh to be available in the CSP instances' if qesap_wait_for_ssh(host => $host) == -1;
     }
-    @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+    @ret = qesap_execute(
+        cmd => 'ansible',
+        cmd_options => join(' ', '--profile', '--junit', '/tmp/results/'),
+        logname => 'qesap_exec_ansible.log.txt',
+        verbose => 1,
+        timeout => 3600);
+    my $find_cmd = join(' ',
+        'find',
+        '/tmp/results/',
+        '-type', 'f',
+        '-iname', "*.xml");
+    for my $log (split(/\n/, script_output($find_cmd))) {
+        parse_extra_log("XUnit", $log);
+        #enter_cmd("rm $log");
+    }
     if ($ret[0]) {
         # Retry to deploy terraform + ansible
         if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1])) {
@@ -53,8 +73,18 @@ sub post_fail_hook {
     qesap_cluster_logs();
     qesap_upload_logs();
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300) unless (script_run("test -e $inventory"));
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
+    qesap_execute(
+        cmd => 'ansible',
+        cmd_options => '-d',
+        logname => 'qesap_exec_ansible_destroy.log.txt',
+        verbose => 1,
+        timeout => 300) unless (script_run("test -e $inventory"));
+    qesap_execute(
+        cmd => 'terraform',
+        cmd_options => '-d',
+        logname => 'qesap_exec_terraform_destroy.log.txt',
+        verbose => 1,
+        timeout => 1200);
     $self->SUPER::post_fail_hook;
 }
 

@@ -193,6 +193,7 @@ sub sles4sap_cleanup {
         for (1 .. 3) {
             my @cleanup_cmd_rc = qesap_execute(
                 verbose => '--verbose',
+                logname => join('_', 'qesap', $command, 'destroy', $_, 'log.txt'),
                 cmd => $command,
                 cmd_options => '-d',
                 timeout => 1200

@@ -35,7 +35,11 @@ sub run {
     $run_args->{ansible_present} = $self->{ansible_present} = 1;
     # skip ansible deployment in case of reusing infrastructure
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
-        my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
+        my @ret = qesap_execute(
+            cmd => 'ansible',
+            logname => 'qesap_exec_ansible.log.txt',
+            timeout => 3600,
+            verbose => 1);
         if ($ret[0]) {
             if (check_var('IS_MAINTENANCE', '1')) {
                 die("TEAM-9068 Ansible failed. Retry not supported for IBSM updates\n ret[0]: $ret[0]");
