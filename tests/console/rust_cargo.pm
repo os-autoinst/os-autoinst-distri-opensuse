@@ -20,7 +20,7 @@ use utils qw(zypper_call);
 use Utils::Architectures 'is_aarch64';
 
 sub run {
-    select_console('root_console');
+    select_console('root-console');
     zypper_call('in cargo gcc');
 
     # Setup test project
