@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call);
-use Utils::architectures 'is_aarch64';
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     # Install rustup from the zypper package.
