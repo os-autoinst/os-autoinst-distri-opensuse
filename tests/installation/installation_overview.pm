@@ -16,6 +16,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use utils;
 use version_utils qw(is_microos is_sle_micro is_upgrade is_sle is_tumbleweed);
 use Utils::Backends qw(is_remote_backend is_hyperv);
 use Test::Assert ':all';
@@ -144,7 +145,7 @@ sub run {
         set_linux_security_to_none if (is_sle('>=15-SP4') && check_screen("apparmor-not-selected") && !(get_var('PATTERNS') =~ 'default|all|apparmor'));
         ensure_ssh_unblocked;
         $self->check_default_target();
-        $self->disable_secureboot() if (get_var('UEFI') && get_var('DISABLE_SECUREBOOT'));
+        $self->disable_secureboot() if (is_uefi_boot && get_var('DISABLE_SECUREBOOT'));
     }
 }
 
