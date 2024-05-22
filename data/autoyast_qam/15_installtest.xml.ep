@@ -69,16 +69,6 @@
         <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      <listentry>
-        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
         % }
       % }
       <listentry>
@@ -101,7 +91,6 @@
         <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % unless ($check_var->('HA_QAM', '1') and !$check_var->('SAP_QAM', '1')) {
       <listentry>
         <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</alias>
@@ -113,6 +102,16 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Desktop-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       <listentry>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
         <name>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
@@ -122,7 +121,6 @@
         <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
       % if (($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3')) and (!$check_var->('HA_QAM', '1') or $check_var->('SAP_QAM', '1'))) {
       <listentry>
         <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
