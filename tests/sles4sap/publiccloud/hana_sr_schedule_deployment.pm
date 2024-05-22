@@ -45,7 +45,7 @@ sub run {
     if (check_var('FENCING_MECHANISM', 'native') and check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         # MSI is preferred method not requiring additional password so it is set to default.
         my $fence_agent_setup_type = uc(get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi'));
-        my $test_name = "Verify_azure_fence_agent_($fence_agent_setup_type)";
+        my $test_name = "Verify_azure_fence_agent_$fence_agent_setup_type";
         loadtest('sles4sap/publiccloud/azure_fence_agents_test', name => $test_name, run_args => $run_args, @_);
     }
 }
