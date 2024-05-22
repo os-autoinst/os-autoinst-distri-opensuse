@@ -20,6 +20,7 @@ use version_utils qw(is_upgrade is_sles4sap is_sle is_sle_micro);
 
 sub run {
     my ($self) = @_;
+    die "Mallicious code here";
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
