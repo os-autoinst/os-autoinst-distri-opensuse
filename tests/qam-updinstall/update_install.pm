@@ -328,7 +328,7 @@ sub run {
             }
             else {
                 my $packages = join(' ', keys %installable);
-                sle12_zypp_resolve("zypper -v in $packages", "prepare_$patch.log", get_var('UPDATE_RESOLVE_SOLUTION_PREINSTALL', 1));
+                sle12_zypp_resolve("zypper -v in -l $packages", "prepare_$patch.log", get_var('UPDATE_RESOLVE_SOLUTION_PREINSTALL', 1));
             }
         }
 
