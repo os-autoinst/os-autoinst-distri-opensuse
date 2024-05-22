@@ -55,7 +55,7 @@ sub run_tests ($python3_spec_release) {
 
 # Creating the source package with the name 'dist/user_package_setuptools-1.0.tar.gz' in the dist folder.
 sub build_package ($python_binary) {
-    assert_script_run("$python_binary -m venv myenv");
+    assert_script_run("$python_binary -m venv myenv --system-site-packages");
     assert_script_run("source myenv/bin/activate");
     assert_script_run("$python_binary setup.py sdist ");
     validate_script_output("ls", sub { m/dist/ });
