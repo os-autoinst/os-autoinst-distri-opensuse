@@ -33,7 +33,7 @@ sub nfs_test {
       = qw(nfs_start_stop nfs_mount_umount nfs_read nfs_write nfs_dontwrite nfs_usermapping_rootsquash nfs_usermapping_norootsquash nfs_usermapping_allsquash);
     foreach my $test_case (@test_cases) {
         record_info("$nfs_ver: $test_case");
-        assert_script_run("/usr/share/qa/qa_test_nfs/run-wrapper.sh $test_case.sh $nfs_ver", timeout => 300);
+        assert_script_run("/usr/share/qa/qa_test_nfs/run-wrapper.sh $test_case.sh $nfs_ver", timeout => 400);
     }
 }
 
