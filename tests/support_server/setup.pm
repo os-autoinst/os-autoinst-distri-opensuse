@@ -676,7 +676,7 @@ sub pre_run_hook {
         assert_script_run q|sed -i -e '/^include \"\/etc\/named.conf.include\";/ s/^/#/' /etc/named.conf|;
     }
 
-    assert_script_run q|sed -i -e '/^include \"\/etc\/named.d\/openqa.zones\";/ s/^/#/' /etc/named.conf|;
+    assert_script_run q|sed -i -e '/^include \"\/etc\/named.d\/openqa.zones\";/ s/^/#/' /etc/named.conf| unless (script_run q|grep -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf|);
     $self->SUPER::pre_run_hook;
 }
 
