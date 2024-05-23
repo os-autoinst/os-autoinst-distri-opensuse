@@ -15,7 +15,7 @@ sub run {
     select_console('root-console');
     zypper_call('in znc');
 
-    script_run("su znc -s /bin/bash -c 'znc --makeconf' | tee /dev/$serialdev; echo zncconf-status-\$? > /dev/$serialdev", 0);
+    script_run("su znc -s /bin/bash -c \"\$(grep ExecStart= /usr/lib/systemd/system/znc.service | sed 's/ExecStart=//') --makeconf\" | tee /dev/$serialdev; echo zncconf-status-\$? > /dev/$serialdev", 0);
 
     wait_serial('Listen on port') || die "znc --makeconf failed";
     enter_cmd("12345");
