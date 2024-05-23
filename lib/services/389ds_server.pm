@@ -43,7 +43,7 @@ sub config_service {
     assert_script_run("certutil -D -d $inst_ca_dir -n Server-Cert");
     assert_script_run("certutil -D -d $inst_ca_dir -n Self-Signed-CA");
 
-    # Import new CA files and resart the instance
+    # Import new CA files and restart the instance
     assert_script_run("dsctl localhost tls import-server-key-cert $ca_dir/server.pem $ca_dir/server.key");
     assert_script_run("dsctl localhost tls import-ca $ca_dir/myca.pem myca");
     assert_script_run("cp $ca_dir/myca.pem $inst_ca_dir/ca.crt");
@@ -59,11 +59,12 @@ sub config_service {
     my $uid = '1003';
     my $gid = '1003';
     my $display_name = 'Domain User';
+    my $basedn = "-b dc=example,dc=com";
     assert_script_run(
-"dsidm localhost user create --uid $ldap_user --cn $ldap_user --displayName '$display_name' --uidNumber $uid --gidNumber $gid --homeDirectory /home/$ldap_user"
+"dsidm $basedn localhost user create --uid $ldap_user --cn $ldap_user --displayName '$display_name' --uidNumber $uid --gidNumber $gid --homeDirectory /home/$ldap_user"
     );
     script_run_interactive(
-        "dsidm localhost account reset_password uid=$ldap_user,ou=people,dc=example,dc=com",
+        "dsidm $basedn localhost account reset_password uid=$ldap_user,ou=people,dc=example,dc=com",
         [
             {
                 prompt => qr/Enter new password.*/m,
@@ -77,7 +78,7 @@ sub config_service {
         60
     );
     script_run_interactive(
-        "dsidm localhost group create",
+        "dsidm $basedn localhost group create",
         [
             {
                 prompt => qr/Enter value.*/m,
@@ -86,10 +87,10 @@ sub config_service {
         ],
         60
     );
-    assert_script_run("dsidm localhost group add_member $ldap_group uid=$ldap_user,ou=people,dc=example,dc=com");
+    assert_script_run("dsidm $basedn localhost group add_member $ldap_group uid=$ldap_user,ou=people,dc=example,dc=com");
 
     # Generate the sample sssd configuration file
-    assert_script_run("dsidm localhost client_config sssd.conf $ldap_group > /tmp/sssd.conf");
+    assert_script_run("dsidm $basedn localhost client_config sssd.conf $ldap_group > /tmp/sssd.conf");
 
     # Delete the first 2 lines for the sample sssd.conf due to invalid messages there
     assert_script_run("sed -i '1,2d' /tmp/sssd.conf");
