@@ -345,6 +345,7 @@ sub plugin_vf_device {
             else {
                 $vf->{vm_bdf} = script_output "ssh root\@$vm \"if [ -e /sys/devices/pci-0/pci????:?? ]; then grep -H '$vf->{vm_mac}' /sys/devices/pci-0/*/*/net/*/address | cut -d '/' -f6; else grep -H '$vf->{vm_mac}' /sys/devices/*/*/net/*/address | cut -d '/' -f5; fi\"";
             }
+            die "NO BDF is found for $vf->{vm_mac} within $vm!" unless $vf->{vm_bdf};
             last;
 
         }
