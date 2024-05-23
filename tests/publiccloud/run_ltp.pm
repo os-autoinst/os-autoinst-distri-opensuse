@@ -193,7 +193,6 @@ sub cleanup {
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
-    $self->SUPER::cleanup();
 }
 
 sub gen_ltp_env {
