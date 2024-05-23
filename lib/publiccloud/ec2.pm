@@ -205,9 +205,9 @@ sub img_proof {
 
 sub cleanup {
     my ($self, $args) = @_;
-    #if for some reason the instance is not created everything below does not make sense to execute
-    return unless ($args->{my_instance} && $args->{my_instance}->{instance_id});
-    my $instance_id = $args->{my_instance}->{instance_id};
+    script_run('cd ~/terraform');
+    my $instance_id = script_output('terraform output -json | jq -r ".vm_name.value[0]"', proceed_on_failure => 1);
+    script_run('cd');
 
     select_host_console(force => 1);
 

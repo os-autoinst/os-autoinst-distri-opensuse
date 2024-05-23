@@ -100,7 +100,7 @@ sub run {
         $instance = $self->{my_instance} = $args->{my_instance};
         $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
-        $provider = $self->provider_factory();
+        $provider = $self->{provider} = $self->provider_factory();    # required for cleanup
         $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
@@ -193,7 +193,6 @@ sub cleanup {
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
-    $self->SUPER::cleanup();
 }
 
 sub gen_ltp_env {
