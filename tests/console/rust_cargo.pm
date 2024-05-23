@@ -28,7 +28,7 @@ sub run {
     my $timeout = (is_aarch64) ? 600 : 300;
     my $test_arg = 'openQA';
     select_console('user-console');
-    assert_script_run('cargo_new ' . $proj_name . " && cd " . $proj_name);
+    assert_script_run('cargo new ' . $proj_name . " && cd " . $proj_name);
 
     cargo_run_test();
     cargo_add_test();
