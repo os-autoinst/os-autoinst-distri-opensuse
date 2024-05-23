@@ -29,10 +29,10 @@ sub run {
     my $test_arg = 'openQA';
     select_console('user-console');
     assert_script_run('cargo_new ' . $proj_name . " && cd " . $proj_name);
-    assert_script_run(qq(echo 'uuid = "0.8"' >> $proj_name/Cargo.toml));
 
     cargo_run_test();
     cargo_add_test();
+    add_dep_manually_test();
     cargo_project_test(proj_name => $proj_name, test_arg => $test_arg, timeout => $timeout);
     cargo_doc_test($proj_name);
 }
@@ -62,6 +62,12 @@ sub cargo_doc_test {
     my $proj_name = @_;
     assert_script_run('cargo doc');
     assert_script_run('ll target/doc/' . $proj_name . '/ | grep index.html');
+}
+
+sub add_dep_manually_test {
+    select_console('user-console');
+    assert_script_run(qq(echo 'uuid = "1.8.0"' >> ./Cargo.toml));
+    validate_script_output("cargo tree", qr/uuid v1.8.0/, fail_message => "Cannot find manually added dependency!")
 }
 
 sub post_run_hook {
