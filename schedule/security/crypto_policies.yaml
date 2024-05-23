@@ -1,0 +1,8 @@
+name: crypto_policies
+description: >
+    This is for crypto-policies testing
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - security/crypto_policies/crypto_policies_setup
+    - security/crypto_policies/crypto_policies_sshd
