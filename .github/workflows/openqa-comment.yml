@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_FOR_ACTIONS }}
     container:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
