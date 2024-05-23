@@ -21,7 +21,7 @@ use Utils::Architectures 'is_aarch64';
 
 sub run {
     select_console('root-console');
-    zypper_call('in cargo gcc');
+    zypper_call('in cargo');
 
     # Setup test project
     my $proj_name = "test_project";
