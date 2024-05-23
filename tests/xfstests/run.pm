@@ -31,6 +31,8 @@ use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
 use version_utils 'is_public_cloud';
+use LTP::utils;
+use LTP::WhiteList;
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -56,6 +58,7 @@ my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
 my $MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
+my $TEST_SUITE = get_var('TEST');
 
 # Variables use for no heartbeat mode
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
@@ -502,6 +505,9 @@ sub run {
 
     config_debug_option;
 
+    # Load whitelist environment
+    my $whitelist_env = prepare_whitelist_environment();
+
     # Get wrapper
     assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
     assert_script_run("chmod a+x $TEST_WRAPPER");
@@ -528,7 +534,16 @@ sub run {
 
     heartbeat_start if $enable_heartbeat == 1;
 
+    # Generate xfstests blacklist and softfail list
     my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist);
+    if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my %skipped = map { $_ => 1 } $whitelist->list_skipped_tests($whitelist_env, $TEST_SUITE);
+        %black_list = (%black_list, %skipped);
+        my $known_issues = $whitelist->{whitelist}->{$TEST_SUITE};
+        set_var('XFSTESTS_SOFTFAIL', (get_var('XFSTESTS_SOFTFAIL') . join(',', keys(%$known_issues))));
+    }
+
     my $status_log_content = "";
     foreach my $test (@tests) {
         # trim testname
