@@ -130,6 +130,27 @@ sub upload_img {
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
     my $instance_type = get_required_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE');
 
+    if (!$sec_group) {
+        $sec_group = script_output("aws ec2 describe-security-groups --output text "
+              . "--region " . $self->provider_client->region . " "
+              . "--filters 'Name=group-name,Values=tf-sg' "
+              . "--query 'SecurityGroups[0].GroupId'"
+        );
+    }
+    if (!$vpc_subnet) {
+        my $vpc_id = script_output("aws ec2 describe-vpcs --output text "
+              . "--region " . $self->provider_client->region . " "
+              . "--filters 'Name=tag:Name,Values=tf-vpc' "
+              . "--query 'Vpcs[0].VpcId'"
+        );
+        # Grab subnet with CidrBlock defined in https://gitlab.suse.de/qac/infra/-/blob/master/aws/tf/main.tf
+        $vpc_subnet = script_output("aws ec2 describe-subnets --output text "
+              . "--region " . $self->provider_client->region . " "
+              . "--filters 'Name=vpc-id,Values=$vpc_id' 'Name=cidr-block,Values=10.11.4.0/22' "
+              . "--query 'Subnets[0].SubnetId'"
+        );
+    }
+
     # ec2uploadimg will fail without this file, but we can have it empty
     # because we passing all needed info via params anyway
     assert_script_run('echo " " > /root/.ec2utils.conf');
@@ -138,7 +159,7 @@ sub upload_img {
           . "--backing-store ssd "
           . "--grub2 "
           . "--machine '" . $img_arch . "' "
-          . "-n '" . $self->prefix . '-' . $img_name . "' "
+          . "-n '" . $self->prefix . 'testit-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
           . (is_byos() ? '' : '--use-root-swap ')
           . '--ena-support '
