@@ -8,7 +8,7 @@
       <boot_mbr>true</boot_mbr>
       <boot_root>true</boot_root>
       <generic_mbr>false</generic_mbr>
-      <timeout config:type="integer">-1</timeout>
+      <timeout config:type="integer">10</timeout>
     </global>
     <loader_type>{{LOADER_TYPE}}</loader_type>
   </bootloader>
