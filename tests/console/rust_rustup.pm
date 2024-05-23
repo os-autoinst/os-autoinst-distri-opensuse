@@ -37,7 +37,7 @@ sub run {
 # it would always report the installed version as "up to date" even if it is not.
 sub versions_test {
     select_console('user-console');
-    validate_script_output("rustup check", qr/Up to date/, fail_message => 'Cannot validate installed rust version or version out of date!');
+    validate_script_output("rustup check", qr/stable-x86_64-unknown-linux-gnu - Up to date/, fail_message => 'Cannot validate installed rust version or version out of date!');
 }
 
 sub installed_toolchain_test {
