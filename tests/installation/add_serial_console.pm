@@ -33,8 +33,8 @@ sub run {
     assert_script_run('sed -ie \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
     # VMware needs to always stop in Grub and wait for interaction.
     # Migration seems to reset it.
-    if (get_var('KEEP_GRUB_TIMEOUT')) {
-        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub');
+    if (get_var('GRUB_TIMEOUT')) {
+        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=' . get_var('GRUB_TIMEOUT') . '/\' /etc/default/grub');
     } else {
         assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
     }
