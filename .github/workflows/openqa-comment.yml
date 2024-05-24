@@ -18,7 +18,7 @@ env:
 jobs:
   clone_mentioned_job:
     runs-on: ubuntu-latest
-    if: ${{ github.event.issue.pull_request }}
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, 'openqa: Clone ') }}
     env:
       GITHUB_TOKEN_DEFAULT: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.CLASSIC_TOKEN_FOR_TESTS }}
