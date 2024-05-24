@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
-use containers::utils qw(get_podman_version registry_url);
+use containers::utils qw(get_podman_version);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
@@ -109,7 +109,7 @@ sub run {
         subnet_v6 => 'fd00::1:8:0/112'
     };
     my $ctr1 = {
-        image => registry_url('httpd'),
+        image => 'registry.opensuse.org/opensuse/httpd:latest',
         name => 'apache_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',

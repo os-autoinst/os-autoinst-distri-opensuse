@@ -11,7 +11,7 @@ use testapi;
 use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
-use containers::utils qw(registry_url container_ip container_route);
+use containers::utils qw(container_ip container_route);
 use transactional qw(trup_call check_reboot_changes process_reboot);
 use bootloader_setup 'add_grub_cmdline_settings';
 use serial_terminal 'select_serial_terminal';
@@ -191,10 +191,10 @@ sub check_containers_connectivity {
     my $runtime = shift;
     record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
     my $container_name = 'sut_container';
+    my $image = "registry.opensuse.org/opensuse/busybox:latest";
 
-    # Run container in the background (sleep for 30d because infinite is not supported by sleep in busybox)
     script_retry "$runtime pull " . registry_url('alpine'), retry => 3, delay => 120;
-    assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
+    assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 $image sleep infinity";
     my $container_ip = container_ip $container_name, $runtime;
 
     my $_4 = is_sle("<15") ? "" : "-4";
@@ -202,19 +202,19 @@ sub check_containers_connectivity {
     # Connectivity to host check
     my $container_route = container_route($container_name, $runtime);
     assert_script_run "ping $_4 -c3 " . $container_route;
-    assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 " . $container_route;
+    assert_script_run "$runtime run --rm $image ping -4 -c3 " . $container_route;
 
     # Cross-container connectivity check
     assert_script_run "ping $_4 -c3 " . $container_ip;
-    assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 " . $container_ip;
+    assert_script_run "$runtime run --rm $image ping -4 -c3 " . $container_ip;
 
     # Outside IP connectivity check
     script_retry "ping $_4 -c3 8.8.8.8", retry => 3, delay => 120;
-    script_retry "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 8.8.8.8", retry => 3, delay => 120;
+    script_retry "$runtime run --rm $image ping -4 -c3 8.8.8.8", retry => 3, delay => 120;
 
     # Outside IP+DNS connectivity check
     script_retry "ping $_4 -c3 google.com", retry => 3, delay => 120;
-    script_retry "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 google.com", retry => 3, delay => 120;
+    script_retry "$runtime run --rm $image ping -4 -c3 google.com", retry => 3, delay => 120;
 
     # Kill the container running on background
     assert_script_run "$runtime kill $container_name";

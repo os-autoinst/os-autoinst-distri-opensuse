@@ -114,7 +114,7 @@ sub test_update_cmd {
 sub runtime_smoke_tests {
     my %args = @_;
     my $runtime = $args{runtime};
-    my $image = $args{image} // registry_url('alpine', '3.6');
+    my $image = $args{image} // "registry.opensuse.org/opensuse/busybox:latest";
 
     record_info('Smoke', "Smoke test running image: $image on runtime: $runtime.");
 

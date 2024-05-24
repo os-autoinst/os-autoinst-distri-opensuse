@@ -11,7 +11,6 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
-use containers::utils qw(registry_url);
 use containers::common 'check_containers_connectivity';
 use Utils::Systemd 'systemctl';
 
@@ -37,8 +36,9 @@ sub run {
     }
 
     # Run netcat in container and check that we can reach it
-    assert_script_run "$runtime pull " . registry_url('alpine');
-    assert_script_run "$runtime run -d --name $container_name -p 1234:1234 " . registry_url('alpine') . " nc -l -p 1234";
+    my $image = "registry.opensuse.org/opensuse/bci/bci-busybox:latest";
+    assert_script_run "$runtime pull $image";
+    assert_script_run "$runtime run -d --name $container_name -p 1234:1234 $image nc -l -p 1234";
     assert_script_run "echo Hola Mundo >/dev/tcp/127.0.0.1/1234";
     assert_script_run "$runtime logs $container_name | grep Hola";
 

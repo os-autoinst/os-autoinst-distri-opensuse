@@ -156,7 +156,7 @@ sub run {
 
     basic_container_tests(runtime => $self->{runtime});
     # Build an image from Dockerfile and run it
-    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
+    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => 'registry.opensuse.org/opensuse/bci/python:latest');
 
     # Once more test the basic functionality
     runtime_smoke_tests(runtime => $engine);

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: engine subclass for containerd with nerdctl specific implementations
@@ -10,7 +10,6 @@ package containers::containerd_nerdctl;
 use Mojo::Base 'containers::engine';
 use testapi;
 use containers::common 'install_containerd_when_needed';
-use containers::utils 'registry_url';
 use utils qw(zypper_call);
 use version_utils qw(is_leap is_sle);
 use Utils::Architectures;

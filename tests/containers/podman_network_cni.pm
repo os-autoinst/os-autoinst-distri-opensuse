@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman network
@@ -12,7 +12,7 @@ use testapi;
 use utils qw(script_retry);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(package_version_cmp);
-use containers::utils qw(registry_url container_ip);
+use containers::utils qw(container_ip);
 use containers::utils qw(get_podman_version);
 
 
