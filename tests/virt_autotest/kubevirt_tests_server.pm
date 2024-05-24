@@ -489,7 +489,7 @@ EOF
     # Workaround for bsc#1199448
     my $node_helper = 'node-helper.yaml';
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$node_helper") . " -o $node_helper");
-    assert_script_run("sed -e \"s/$kubevirt_ver/\${KUBEVIRT_VERSION}/g\"");
+    assert_script_run("sed -i 's/\${KUBEVIRT_VERSION}/$kubevirt_ver/g' $node_helper");
     assert_script_run("kubectl apply -f $node_helper");
     assert_script_run("kubectl -n kubevirt-tests rollout status daemonset node-helper --timeout=50m");
 
