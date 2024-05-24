@@ -14,6 +14,7 @@ use base "virt_autotest_base";
 use virt_utils;
 use testapi;
 use Utils::Architectures;
+use virt_autotest::utils;
 
 sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-pvusb-run";
@@ -23,6 +24,8 @@ sub get_script_run {
     }
     handle_sp_in_settings_with_sp0("GUEST");
     my $guest = get_var("GUEST", "sles-12-sp3-64-fv-def-net");
+    my ($guest_regcode, $guest_regcode_ltss) = get_guest_regcode;
+    $pre_test_cmd .= " -o \"$guest_regcode\" -O \"$guest_regcode_ltss\"";
     $pre_test_cmd .= " -w \"" . $which_usb . "\"" . " -g $guest";
     my $vm_xml_dir = "/tmp/download_vm_xml";
     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {

@@ -15,6 +15,7 @@ use base "virt_autotest_base";
 use virt_utils;
 use testapi;
 use Utils::Architectures;
+use virt_autotest::utils;
 
 sub get_script_run {
     #NOTE:Found that s390x arch used with the svirt backend
@@ -44,9 +45,12 @@ sub get_script_run {
     my $guest_list = get_required_var("GUEST_LIST");
 
     $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -g \"$guest_list\"";
+    my ($guest_regcode, $guest_regcode_ltss) = get_guest_regcode;
     my $do_registration = check_var('GUEST_SCC_REGISTER', 'installation') ? "true" : "false";
     my $registration_server = get_var('SCC_URL', 'https://scc.suse.com');
     my $registration_code = get_var('SCC_REGCODE', 'INVALID_REGCODE');
+    $pre_test_cmd .= " -o \"$guest_regcode\"";
+    $pre_test_cmd .= " -O \"$guest_regcode_ltss\"";
     $pre_test_cmd .= " -e $do_registration";
     $pre_test_cmd .= " -s $registration_server";
     $pre_test_cmd .= " -c $registration_code";
