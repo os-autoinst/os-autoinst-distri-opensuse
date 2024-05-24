@@ -919,8 +919,10 @@ sub gnote_search_and_close {
 sub cleanup_gnote {
     my ($self, $needle) = @_;
     send_key 'esc';    #back to all notes interface
-    assert_and_click($needle, button => 'right');
-    assert_and_click "delete-new-note";
+    assert_and_click($needle);
+    wait_still_screen(2);
+    send_key "delete";
+    wait_still_screen(2);
     assert_and_click "really-delete-note";
     send_key 'alt-f4';
 }
