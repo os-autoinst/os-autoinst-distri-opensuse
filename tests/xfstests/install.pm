@@ -31,6 +31,7 @@ my @PACKAGES = (qw(xfstests fio), split(/ /, get_var('XFSTESTS_PACKAGES')));
 
 sub install_xfstests_from_repo {
     if (is_sle) {
+        zypper_call('rr qa-head');
         add_qa_head_repo(priority => 100);
     }
     elsif (is_tumbleweed) {
