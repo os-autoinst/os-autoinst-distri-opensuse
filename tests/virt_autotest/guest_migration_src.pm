@@ -16,7 +16,7 @@ use mmapi;
 use virt_utils;
 use Data::Dumper;
 use Utils::Architectures;
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host get_guest_regcode);
 use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
@@ -28,9 +28,10 @@ sub get_script_run {
     my $dst_pass = $self->get_var_from_parent('DST_PASS');
     handle_sp_in_settings_with_sp0("GUEST_LIST");
     my $guests = get_var("GUEST_LIST", "");
+    my ($guest_regcode, $guest_regcode_ltss) = get_guest_regcode;
     my $hypervisor = (is_xen_host) ? 'xen' : 'kvm';
     my $test_time = get_var("MAX_MIGRATE_TIME", "10800") - 90;
-    my $args = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -t $test_time";
+    my $args = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -o \"$guest_regcode\" -O \"$guest_regcode_ltss\" -t $test_time";
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-migrate-run " . $args;
     my $vm_xml_dir = "/tmp/download_vm_xml";
     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {

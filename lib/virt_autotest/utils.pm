@@ -31,7 +31,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons);
+  check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons get_guest_regcode);
 
 my %log_cursors;
 
@@ -1245,6 +1245,41 @@ sub upload_nm_debug_log {
     script_run("journalctl -u NetworkManager.service > /tmp/NetworkManager.logs");
     upload_virt_logs("/tmp/NetworkManager.logs", "NetworkManager-debug-logs");
     script_run("rm -rf /tmp/NetworkManager.logs");
+}
+
+=head2 get_guest_regcode
+
+
+  get_guest_regcode(separator => 'string separator')
+
+Pass guest registration code in dynamically via GUEST_SCC_REGCODE and
+GUEST_SCC_REGCODE_LTSS. If they are not provided, SCC_REGCODE and
+SCC_REGCODE_LTSS_15 will be used. If there are multiple guest patterns
+, their corresponding registration codes should also be specified in
+the same order and separated by separators like pipe, comma or others.
+Empty value is allowed. For example, regcode_guest1|regcode_guest2||
+regcode_guest4, because regcode_guest3 is emety, empty value is passed
+in to preserve order. For multiple guest patterns, an empty registration
+code for specific guest pattern will not be filled out by any default
+value and at the same time this  means registration code is not needed
+for it at all. This subroutine has one argument separator and returns
+generated registration codes joined together by specified separator.  
+
+=cut
+
+sub get_guest_regcode {
+    my (%args) = @_;
+    $args{separator} //= ",";
+
+    my $guest = (get_var("GUEST_PATTERN") ? get_var("GUEST_PATTERN") : (get_var("GUEST_LIST") ? get_var("GUEST_LIST") : get_var("GUEST", "")));
+    croak("Guest to be involved must be given in GUEST_PATTERN, GUEST_LIST or GUEST exclusively") if (!$guest);
+
+    my $regcode = get_var("GUEST_SCC_REGCODE", "");
+    my $regcode_ltss = get_var("GUEST_SCC_REGCODE_LTSS", "");
+    my $count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $guest)) : scalar(split("$args{separator}", $guest)));
+    $regcode = join("$args{separator}", (get_var("SCC_REGCODE", "")) x $count) if (!$regcode);
+    $regcode_ltss = join("$args{separator}", (get_var("SCC_REGCODE_LTSS_15", "")) x $count) if (!$regcode_ltss);
+    return $regcode, $regcode_ltss;
 }
 
 1;

@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use virt_utils;
+use virt_autotest::utils;
 
 sub get_script_run {
     my $pre_test_cmd;
@@ -28,6 +29,7 @@ sub get_script_run {
     #Prefer to use offline media for upgrade to avoid registration via autoyast
     $upgrade_repo =~ s/-Online-/-Full-/ if ($upgrade_repo =~ /15-sp[2-9]/i);
     my $guest_list = get_var("GUEST_LIST", "");
+    my ($guest_regcode, $guest_regcode_ltss) = get_guest_regcode;
     my $do_registration = (check_var('SCC_REGISTER', 'installation') || check_var('REGISTER', 'installation') || get_var('AUTOYAST', '')) ? "true" : "false";
     my $registration_server = get_var('SCC_URL', 'https://scc.suse.com');
     my $registration_code = get_var('SCC_REGCODE', 'INVALID_REGCODE');
@@ -39,6 +41,8 @@ sub get_script_run {
     $pre_test_cmd .= " -u $upgrade";
     $pre_test_cmd .= " -r $upgrade_repo";
     $pre_test_cmd .= " -i $guest_list";
+    $pre_test_cmd .= " -o \"$guest_regcode\"";
+    $pre_test_cmd .= " -O \"$guest_regcode_ltss\"";
     $pre_test_cmd .= " -e $do_registration";
     $pre_test_cmd .= " -s $registration_server";
     $pre_test_cmd .= " -c $registration_code";

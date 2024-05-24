@@ -14,6 +14,7 @@ use Utils::Architectures;
 use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 use virt_utils;
+use virt_autotest::utils;
 
 sub get_script_run {
     my $pre_test_cmd = "";
@@ -35,8 +36,8 @@ sub get_script_run {
     handle_sp_in_settings_with_fcs("GUEST_PATTERN");
     my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
     my $parallel_num = get_var("PARALLEL_NUM", "2");
-
-    $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
+    my ($regcode, $regcode_ltss) = get_guest_regcode(separator => '|');
+    $pre_test_cmd .= " -f \"" . $guest_pattern . "\" -n " . $parallel_num . " -r " . " -e \"" . $regcode . "\" -E \"" . $regcode_ltss . "\"";
     $pre_test_cmd .= " 2>&1 | tee /tmp/s390x_guest_install_test.log" if (is_s390x);
 
     return $pre_test_cmd;
