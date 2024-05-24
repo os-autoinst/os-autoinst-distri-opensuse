@@ -8,7 +8,6 @@
     % if ($check_var->('FLAVOR', 'Server-DVD-Updates-TERADATA') or $check_var->('FLAVOR', 'Server-DVD-Incidents-TERADATA')) {
     <do_registration config:type="boolean">false</do_registration>
     % }
-    <email><%= $get_var->('SCC_EMAIL') %></email>
     <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
     <install_updates config:type="boolean">true</install_updates>
     % if (keys %$addons) {
@@ -312,59 +311,11 @@
     % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
     <kernel>kernel-rt</kernel>
     % }
-    % if ($check_var->('PATTERNS', 'all')) {
-    <patterns t="list">
-      <pattern>Amazon_Web_Services_Tools</pattern>
-      <pattern>Microsoft_Azure_Tools</pattern>
-      <pattern>Google_Cloud_Platform_Tools</pattern>
-      <pattern>OpenStack_Tools</pattern>
-      <pattern>32bit</pattern>
-      <pattern>apparmor</pattern>
-      <pattern>apparmor-32bit</pattern>
-      <pattern>base</pattern>
-      <pattern>base-32bit</pattern>
-      <pattern>basesystem</pattern>
-      <pattern>basic_desktop</pattern>
-      <pattern>common-criteria</pattern>
-      <pattern>dhcp_dns_server</pattern>
-      <pattern>directory_server</pattern>
-      <pattern>documentation</pattern>
-      <pattern>enhanced_base</pattern>
-      <pattern>enhanced_base-32bit</pattern>
-      <pattern>file_server</pattern>
-      <pattern>fips</pattern>
-      <pattern>fonts</pattern>
-      <pattern>gateway_server</pattern>
-      <pattern>kvm_server</pattern>
-      <pattern>kvm_tools</pattern>
-      <pattern>lamp_server</pattern>
-      <pattern>lp_sles</pattern>
-      <pattern>mail_server</pattern>
-      <pattern>minimal_base</pattern>
-      <pattern>minimal_base-32bit</pattern>
-      <pattern>ofed</pattern>
-      <pattern>print_server</pattern>
-      <pattern>sap_server</pattern>
-      <pattern>sw_management</pattern>
-      <pattern>sw_management-32bit</pattern>
-      <pattern>transactional_base</pattern>
-      <pattern>wsl_base</pattern>
-      <pattern>wsl_gui</pattern>
-      <pattern>wsl_systemd</pattern>
-      <pattern>x11</pattern>
-      <pattern>x11-32bit</pattern>
-      <pattern>x11_yast</pattern>
-      <pattern>yast2_basis</pattern>
-      <pattern>yast2_desktop</pattern>
-      <pattern>yast2_server</pattern>
-    </patterns>
-    % } else {
     <patterns config:type="list">
      % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
      % }
     </patterns>
-      % }
   </software>
   <services-manager>
     % if ($check_var->('DESKTOP', 'gnome')) {
