@@ -46,7 +46,7 @@ sub run {
     #   updates as for SLE DVD installation, so we need to update manually.
     if (is_jeos) {
         record_info('Updates', script_output('zypper lu'));
-        zypper_call('up', timeout => 600);
+        zypper_call('up -l', timeout => 600);
         if (is_aarch64) {
             # Disable grub timeout for aarch64 cases so that the test doesn't stall
             assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub");
