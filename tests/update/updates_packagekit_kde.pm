@@ -85,7 +85,7 @@ sub run {
             }
         }
         # Close tray updater
-        send_key("alt-f4");
+        send_key_until_needlematch('generic-desktop', 'alt-f4', 3, 5);
     }
 
     if (check_screen "updates_installed-restart") {
