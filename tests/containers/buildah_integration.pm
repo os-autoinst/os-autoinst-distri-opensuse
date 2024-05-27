@@ -34,6 +34,8 @@ sub run_tests {
     script_run "BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 3600;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf tests";
+
+    assert_script_run "buildah prune -a -f";
 }
 
 sub run {
