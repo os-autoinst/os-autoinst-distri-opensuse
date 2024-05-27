@@ -70,6 +70,7 @@ my @conflicting_packages = (
 );
 
 # https://progress.opensuse.org/issues/153388
+push(@conflicting_packages, ('dpdk-thunderx', 'dpdk-thunderx-devel', 'dpdk-thunderx-kmp-default')) if is_aarch64;
 push(@conflicting_packages, ('dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default')) if is_aarch64;
 
 my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-example-pages', 'apache2-utils', 'apache2-worker',
