@@ -51,11 +51,11 @@ sub cargo_add_test {
 }
 
 sub cargo_project_test {
-    my %proj_name = @_;
+    my %args = @_;
     select_console('user-console');
     # Copy man_or_boy src file to the src directory of the project.
     assert_script_run("[ -f man_or_boy.rs ] || curl -o src/main.rs" . data_url("console/man_or_boy.rs") . " || true");
-    validate_script_output("cargo run -- --name " . $test_arg, qr/Hello, openQA!/, timeout => $proj_name{timeout}, fail_message => "Cannot verfiy script output.");
+    validate_script_output("cargo run -- --name " . $args{test_arg}, qr/Hello, openQA!/, timeout => $args{timeout}, fail_message => "Cannot verfiy script output.");
 }
 
 sub cargo_doc_test {
