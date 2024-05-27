@@ -438,9 +438,17 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 =cut
 
 sub cluster_deploy {
-    my @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => bmwqemu::scale_timeout(1800));
+    my @ret = qesap_execute(
+        cmd => 'terraform',
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(1800),
+        logname => 'terraform.log.txt');
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
-    @ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
+    @ret = qesap_execute(
+        cmd => 'ansible',
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(3600),
+        logname => 'ansible.log.txt');
     die "'qesap.py ansible' return: $ret[0]" if ($ret[0]);
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
@@ -452,9 +460,17 @@ Destroy the qe-sap-deployment SAP Landscape
 =cut
 
 sub cluster_destroy {
-    my @ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(300));
+    my @ret = qesap_execute(
+        cmd => 'ansible', cmd_options => '-d',
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(300),
+        logname => 'ansible_destroy.log.txt');
     die "'qesap.py ansible -d' return: $ret[0]" if ($ret[0]);
-    @ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
+    @ret = qesap_execute(
+        cmd => 'terraform', cmd_options => '-d',
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(3600),
+        logname => 'terraform_destroy.log.txt');
     die "'qesap.py terraform -d' return: $ret[0]" if ($ret[0]);
 }
 

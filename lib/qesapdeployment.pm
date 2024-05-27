@@ -429,12 +429,10 @@ sub qesap_yaml_replace {
 
 =head3 qesap_execute
 
-    qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
-    cmd_options - allows to append additional qesap.py commands arguments
-    like "qesap.py terraform -d"
-        Example:
-        qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
-        qesap.py terraform -d
+    qesap_execute(
+        cmd => 'terraform',
+        logname => 'terraform_destroy.log.txt'
+        [, verbose => 1, cmd_options => $cmd_options] );
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
@@ -444,36 +442,26 @@ sub qesap_yaml_replace {
 
 =item B<CMD> - qesap.py subcommand to run
 
+=item B<LOGNAME> - filename of the log file.
+
 =item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
 
 =item B<VERBOSE> - activate verbosity in qesap.py
 
 =item B<TIMEOUT> - max expected execution time
 
-=item B<LOGNAME> - filename of the log file. This argument is optional,
-                   if not specified the log filename is internally calculated
-                   using content from CMD and CMD_OPTIONS.
-
 =back
 =cut
 
 sub qesap_execute {
     my (%args) = @_;
-    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    foreach (qw(cmd logname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
     my $verbose = $args{verbose} ? "--verbose" : "";
     $args{cmd_options} ||= '';
 
     my %paths = qesap_get_file_paths();
-    my $exec_log = '/tmp/';
-    if ($args{logname})
-    {
-        $exec_log .= $args{logname};
-    } else {
-        $exec_log .= "qesap_exec_$args{cmd}";
-        $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
-        $exec_log .= '.log.txt';
-        $exec_log =~ s/[-\s]+/_/g;
-    }
+    my $exec_log = '/tmp/' . $args{logname};
 
     my $qesap_cmd = join(' ', qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
@@ -497,12 +485,11 @@ sub qesap_execute {
 
 =head3 qesap_execute_conditional_retry
 
-    qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
-    cmd_options - allows to append additional qesap.py commands arguments
-    like "qesap.py terraform -d"
-        Example:
-        qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
-        qesap.py terraform -d
+    qesap_execute_conditional_retry(
+    cmd => $qesap_script_cmd,
+    error_string => 'Fatal:',
+    logname => 'somefile.txt'
+    [, verbose => 1, cmd_options => $cmd_options] );
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
@@ -518,9 +505,7 @@ sub qesap_execute {
 
 =item B<TIMEOUT> - max expected execution time
 
-=item B<LOGNAME> - filename of the log file. This argument is optional,
-                   if not specified the log filename is internally calculated
-                   using content from CMD and CMD_OPTIONS.
+=item B<LOGNAME> - filename of the log file.
 
 =item B<RETRIES> - number of retries in case of expected error
 
@@ -531,12 +516,11 @@ sub qesap_execute {
 
 sub qesap_execute_conditional_retry {
     my (%args) = @_;
-    croak 'Missing mandatory cmd argument' unless $args{cmd};
-    croak 'Missing mandatory error string' unless $args{error_string};
+    foreach (qw(cmd logname error_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
     my $verbose = $args{verbose} ? "--verbose" : "";
     $args{cmd_options} ||= '';
     $args{timeout} //= bmwqemu::scale_timeout(90);
-    $args{logname} //= '';
     $args{retries} //= 1;
 
     my @ret = qesap_execute(cmd => $args{cmd},
@@ -549,7 +533,7 @@ sub qesap_execute_conditional_retry {
             if (qesap_file_find_string(file => $ret[1], search_string => $args{error_string})) {
                 record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_string});
                 @ret = qesap_execute(cmd => $args{cmd},
-                    logname => 'qesap_' . $args{cmd} . '_retry.log.txt',
+                    logname => 'qesap_' . $args{cmd} . '_retry_' . $args{retries} . '.log.txt',
                     timeout => $args{timeout});
                 if ($ret[0] == 0) {
                     record_info('QESAP_EXECUTE RETRY PASS');
@@ -752,7 +736,7 @@ sub qesap_prepare_env {
     push(@log_files, $terraform_tfvars);
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
-    my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+    my @exec_rc = qesap_execute(cmd => 'configure', logname => 'qesap_configure.log.txt', verbose => 1);
 
     if ($args{provider} eq 'EC2') {
         my $data = get_credentials('aws.json');
