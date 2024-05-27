@@ -213,12 +213,10 @@ Example:
 
 <h3 id="qesap_execute">qesap_execute</h3>
 
-<pre><code>qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
-cmd_options - allows to append additional qesap.py commands arguments
-like &quot;qesap.py terraform -d&quot;
-    Example:
-    qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
-    qesap.py terraform -d
+<pre><code>qesap_execute(
+    cmd =&gt; &#39;terraform&#39;,
+    logname =&gt; &#39;terraform_destroy.log.txt&#39;
+    [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
 
 Execute qesap glue script commands. Check project documentation for available options:
 https://github.com/SUSE/qe-sap-deployment
@@ -227,6 +225,10 @@ Test only returns execution result, failure has to be handled by calling method.
 <dl>
 
 <dt id="CMD---qesap.py-subcommand-to-run"><b>CMD</b> - qesap.py subcommand to run</dt>
+<dd>
+
+</dd>
+<dt id="LOGNAME---filename-of-the-log-file"><b>LOGNAME</b> - filename of the log file.</dt>
 <dd>
 
 </dd>
@@ -242,20 +244,15 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS.</dt>
-<dd>
-
-</dd>
 </dl>
 
 <h3 id="qesap_execute_conditional_retry">qesap_execute_conditional_retry</h3>
 
-<pre><code>qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
-cmd_options - allows to append additional qesap.py commands arguments
-like &quot;qesap.py terraform -d&quot;
-    Example:
-    qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
-    qesap.py terraform -d
+<pre><code>qesap_execute_conditional_retry(
+cmd =&gt; $qesap_script_cmd,
+error_string =&gt; &#39;Fatal:&#39;,
+logname =&gt; &#39;somefile.txt&#39;
+[, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
 
 Execute qesap glue script commands. Check project documentation for available options:
 https://github.com/SUSE/qe-sap-deployment
@@ -279,7 +276,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS1"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS.</dt>
+<dt id="LOGNAME---filename-of-the-log-file1"><b>LOGNAME</b> - filename of the log file.</dt>
 <dd>
 
 </dd>
