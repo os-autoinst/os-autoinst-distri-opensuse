@@ -159,7 +159,7 @@ sub upload_img {
           . "--backing-store ssd "
           . "--grub2 "
           . "--machine '" . $img_arch . "' "
-          . "-n '" . $self->prefix . 'testit-' . $img_name . "' "
+          . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
           . (is_byos() ? '' : '--use-root-swap ')
           . '--ena-support '

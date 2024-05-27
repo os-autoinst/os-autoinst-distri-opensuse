@@ -32,7 +32,7 @@ sub run {
 
     if (my $img_id = $provider->find_img($img_name)) {
         record_info('Info', "Image $img_id already exists!");
-        #return;
+        return;
     }
 
     # Download the given image via wget. Note that by default wget retries 20 times before giving up
