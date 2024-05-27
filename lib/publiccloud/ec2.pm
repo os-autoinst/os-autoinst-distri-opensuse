@@ -136,6 +136,7 @@ sub upload_img {
               . "--filters 'Name=group-name,Values=tf-sg' "
               . "--query 'SecurityGroups[0].GroupId'"
         );
+        $sec_group = "" if ($sec_group eq "None");
     }
     if (!$vpc_subnet) {
         my $vpc_id = script_output("aws ec2 describe-vpcs --output text "
@@ -143,12 +144,15 @@ sub upload_img {
               . "--filters 'Name=tag:Name,Values=tf-vpc' "
               . "--query 'Vpcs[0].VpcId'"
         );
-        # Grab subnet with CidrBlock defined in https://gitlab.suse.de/qac/infra/-/blob/master/aws/tf/main.tf
-        $vpc_subnet = script_output("aws ec2 describe-subnets --output text "
-              . "--region " . $self->provider_client->region . " "
-              . "--filters 'Name=vpc-id,Values=$vpc_id' 'Name=cidr-block,Values=10.11.4.0/22' "
-              . "--query 'Subnets[0].SubnetId'"
-        );
+        if ($vpc_id ne "None") {
+            # Grab subnet with CidrBlock defined in https://gitlab.suse.de/qac/infra/-/blob/master/aws/tf/main.tf
+            $vpc_subnet = script_output("aws ec2 describe-subnets --output text "
+                  . "--region " . $self->provider_client->region . " "
+                  . "--filters 'Name=vpc-id,Values=$vpc_id' 'Name=cidr-block,Values=10.11.4.0/22' "
+                  . "--query 'Subnets[0].SubnetId'"
+            );
+            $vpc_subnet = "" if ($vpc_subnet eq "None");
+        }
     }
 
     # ec2uploadimg will fail without this file, but we can have it empty
