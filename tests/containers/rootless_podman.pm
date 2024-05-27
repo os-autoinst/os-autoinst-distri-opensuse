@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021-2023 SUSE LLC
+# Copyright 2021-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test rootless mode on podman.
@@ -21,7 +21,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::utils qw(registry_url get_podman_version);
+use containers::utils qw(get_podman_version);
 use version_utils qw(is_sle is_leap is_jeos is_transactional package_version_cmp is_tumbleweed);
 use Utils::Architectures;
 use Utils::Logging 'save_and_upload_log';

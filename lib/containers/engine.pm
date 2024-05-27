@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Abstraction layer to operate docker and podman containers through same interfaces
@@ -11,7 +11,6 @@ use Mojo::Base -base;
 use testapi;
 use Carp 'croak';
 use Test::Assert 'assert_equals';
-use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace script_retry);
 use version_utils qw(package_version_cmp);
 use containers::utils qw(get_podman_version);
