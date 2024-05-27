@@ -18,6 +18,7 @@ use version_utils qw(is_desktop_installed is_sles4sap);
 use migration;
 use qam;
 use Utils::Backends 'is_pvm';
+use bootloader_setup qw(change_grub_config);
 
 sub run {
     my ($self) = @_;
@@ -50,6 +51,10 @@ sub run {
         zypper_call("rm $pkg");
     }
     cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
+    # Sometimes we can't wait the grub screen before it booting into system,
+    # we can change the GRUB_TIMEOUT in /etc/default/grub to fix this.
+    my $timeout = get_var('GRUB_TIMEOUT');
+    change_grub_config('=.*', "=$timeout", 'GRUB_TIMEOUT', '', 1) if (length $timeout);
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;
 
