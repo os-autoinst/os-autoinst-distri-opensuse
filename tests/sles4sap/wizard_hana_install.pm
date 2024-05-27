@@ -40,8 +40,8 @@ sub run {
 
     # Keep only the generic HANA partitioning profile and link it to the needed model
     # NOTE: fix name is used here (Dell), but something more flexible should be done later!
-    enter_cmd "rm -f /usr/share/YaST2/data/y2sap//hana_partitioning_Dell*.xml";
-    enter_cmd "ln -s hana_partitioning.xml '/usr/share/YaST2/data/y2sap/hana_partitioning_Dell Inc._generic.xml'";
+    assert_script_run "rm -f /usr/share/YaST2/data/y2sap//hana_partitioning_Dell*.xml";
+    assert_script_run "ln -s hana_partitioning.xml '/usr/share/YaST2/data/y2sap/hana_partitioning_Dell Inc._generic.xml'";
 
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
