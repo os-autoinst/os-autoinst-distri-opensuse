@@ -83,6 +83,11 @@ sub run {
     $self->wait_for_cluster(wait_time => 60, max_retries => 10);
     die "Required hana resource is NOT running on $self->{my_instance}, aborting" unless $self->is_hana_resource_running();
     $self->display_full_status();
+    if ($self->get_promoted_hostname() eq $target_site->{instance_id}) {
+        die(uc($site_name) . " '$target_site->{instance_id}' is in MASTER mode, when it shouldn't be.");
+    } else {
+        record_info("MASTER CHECK", "'$target_site->{instance_id}' is NOT master, as expected");
+    }
 
     record_info('Done', 'Test finished');
 }
