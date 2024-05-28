@@ -60,9 +60,9 @@ sub run {
 
     # Run a container passing secret1 as default and secret2 as an env variable
     record_info("Access secrets");
-    script_retry("podman pull registry.opensuse.org/opensuse/bci/bci-busybox:latest",
+    script_retry("podman pull registry.opensuse.org/opensuse/busybox:latest",
         retry => 3, delay => 10, timeout => 120);
-    validate_script_output("podman run --name secret-test --secret secret1 --secret secret2,type=env,target=TOP_SECRET2 bci-busybox:latest /bin/sh -c 'cat /run/secrets/secret1; echo; printenv TOP_SECRET2'", sub { m/T0p_S3cr3t1\nT0p_S3cr3t2/ });
+    validate_script_output("podman run --name secret-test --secret secret1 --secret secret2,type=env,target=TOP_SECRET2 registry.opensuse.org/opensuse/busybox:latest /bin/sh -c 'cat /run/secrets/secret1; echo; printenv TOP_SECRET2'", sub { m/T0p_S3cr3t1\nT0p_S3cr3t2/ });
 
     # Commit the container and check that the secrets are not in it
     record_info("Commit cont", "Commit container secret-test");

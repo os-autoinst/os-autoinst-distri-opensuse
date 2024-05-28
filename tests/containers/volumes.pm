@@ -45,7 +45,7 @@ sub run {
     assert_script_run("mkdir -p $test_dir");
 
     # Create Dockerfile with VOLUME defined
-    assert_script_run("echo -e 'FROM registry.opensuse.org/opensuse/bci/bci-busybox:latest\\nVOLUME /$test_dir' > $test_dir/Dockerfile");
+    assert_script_run("echo -e 'FROM registry.opensuse.org/opensuse/busybox:latest\\nVOLUME /$test_dir' > $test_dir/Dockerfile");
 
     # Build image
     assert_script_run("$runtime build -t $test_image -f $test_dir/Dockerfile $test_dir/");

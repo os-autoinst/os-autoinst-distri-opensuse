@@ -36,7 +36,7 @@ sub run {
     }
 
     # Run netcat in container and check that we can reach it
-    my $image = "registry.opensuse.org/opensuse/bci/bci-busybox:latest";
+    my $image = "registry.opensuse.org/opensuse/busybox:latest";
     assert_script_run "$runtime pull $image";
     assert_script_run "$runtime run -d --name $container_name -p 1234:1234 $image nc -l -p 1234";
     assert_script_run "echo Hola Mundo >/dev/tcp/127.0.0.1/1234";
