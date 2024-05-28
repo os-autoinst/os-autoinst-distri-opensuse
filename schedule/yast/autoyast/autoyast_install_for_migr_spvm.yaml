@@ -1,0 +1,22 @@
+---
+name: autoyast_install_for_migr_spvm
+description: >
+  Migration autoYaST installation and do prepare for migration
+  cases for powerVM only.
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - update/patch_sle
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
