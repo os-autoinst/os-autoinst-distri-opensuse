@@ -108,6 +108,7 @@ our @EXPORT = qw(
   qesap_az_diagnostic_log
   qesap_terraform_clean_up_retry
   qesap_terrafom_ansible_deploy_retry
+  qesap_ansible_error_detection
 );
 
 =head1 DESCRIPTION
@@ -2353,20 +2354,23 @@ sub qesap_terraform_clean_up_retry {
     Return 0: we manage the failure properly
     Return 1: something went wrong or we do not know what to do with the failure
 
-=over 1
+=over 2
 
 =item B<ERROR_LOG> - error log filename
+
+=item B<PROVIDER> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting
 
 =back
 =cut
 
 sub qesap_terrafom_ansible_deploy_retry {
     my (%args) = @_;
-    croak 'Missing mandatory error_log argument' unless $args{error_log};
+    foreach (qw(error_log provider)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $detected_error = qesap_ansible_error_detection(error_log => $args{error_log});
     my @ret;
 
-    if (qesap_file_find_string(file => $args{error_log}, search_string => 'Missing sudo password')) {
-        record_info('DETECTED ANSIBLE ERROR', 'MISSING SUDO PASSWORD');
+    if ($detected_error eq 3) {
         @ret = qesap_execute(cmd => 'ansible',
             logname => 'qesap_ansible_retry.log.txt',
             timeout => 3600);
@@ -2376,10 +2380,8 @@ sub qesap_terrafom_ansible_deploy_retry {
         }
         record_info('ANSIBLE RETRY PASS');
     }
-    elsif (qesap_file_find_string(file => $args{error_log}, search_string => 'Timed out waiting for last boot time check')) {
-        record_info('DETECTED ANSIBLE ERROR', 'REBOOT TIMEOUT');
-
-        if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif ($detected_error eq 2) {
+        if ($args{provider} eq 'AZURE') {
             my @diagnostic_logs = qesap_az_diagnostic_log();
             foreach (@diagnostic_logs) {
                 push(@log_files, $_);
@@ -2407,21 +2409,56 @@ sub qesap_terrafom_ansible_deploy_retry {
         }
         record_info('ANSIBLE RETRY PASS');
     }
+    return $detected_error;
+}
+
+
+=head2 qesap_ansible_error_detection
+
+    qesap_ansible_error_detection( error_log=>$error_log )
+
+    Inspect the provided Ansible log and search for known issue in the log
+    Also provide a nice record_info to summarize the error
+    Return:
+     - 0: no errors
+     - 1: unknown generic error
+     - 2: reboot timeout
+     - 3: no sudo password
+
+=over 1
+
+=item B<ERROR_LOG> - error log filename
+
+=back
+=cut
+
+sub qesap_ansible_error_detection {
+    my (%args) = @_;
+    croak 'Missing mandatory error_log argument' unless $args{error_log};
+    my $error_message = '';
+    my $ret_code = 0;
+
+    if (qesap_file_find_string(file => $args{error_log},
+            search_string => 'Missing sudo password')) {
+        $error_message = 'MISSING SUDO PASSWORD';
+        $ret_code = 3;
+    }
+    elsif (qesap_file_find_string(file => $args{error_log},
+            search_string => 'Timed out waiting for last boot time check')) {
+        $error_message = 'REBOOT TIMEOUT';
+        $ret_code = 2;
+    }
     else {
         my $ansible_fatal = script_output("grep -A30 'fatal:' $args{error_log} | cut -c-200",
             proceed_on_failure => 1);
         my $ansible_failed = script_output("grep -A30 'failed: \\[' $args{error_log} | cut -c-200",
             proceed_on_failure => 1);
-        record_info('ANSIBLE ISSUE',
-            join("\n",
-                'Ansible fatal:',
-                $ansible_fatal,
-                "\n---------",
-                "Ansible failed:",
-                $ansible_failed));
-        return 1;
+        $error_message .= "Ansible fatal: $ansible_fatal\n" unless ($ansible_fatal eq "");
+        $error_message .= "Ansible failed: $ansible_failed\n" unless ($ansible_failed eq "");
+        $ret_code = 1 unless ($error_message eq "");
     }
-    return 0;
+    record_info('ANSIBLE ISSUE', $error_message) unless $ret_code eq 0;
+    return $ret_code;
 }
 
 1;

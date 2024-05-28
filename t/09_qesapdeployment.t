@@ -1085,21 +1085,90 @@ subtest '[qesap_add_server_to_hosts]' => sub {
     ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+subtest '[qesap_terrafom_ansible_deploy_retry] no Ansible failures, no retry' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
+    my $qesap_execute_calls = 0;
 
-    $qesap->redefine(qesap_file_find_string => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd};
-            #return 1 if $args{search_string} eq 'Missing sudo password';
-            return 0; });
-    $qesap->redefine(script_output => sub { return 'ALGA' });
+    $qesap->redefine(qesap_ansible_error_detection => sub { return 0; });
     $qesap->redefine(qesap_cluster_logs => sub { return; });
+    $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL');
-    ok $ret == 1;
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+
+    ok $ret eq 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
+};
+
+subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap_execute_calls = 0;
+
+    $qesap->redefine(qesap_ansible_error_detection => sub { return 1; });
+    $qesap->redefine(qesap_cluster_logs => sub { return; });
+    $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+
+    ok $ret == 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
+};
+
+subtest '[qesap_ansible_error_detection] no error' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @input;
+
+    # Simulate we never find the string in the Ansible log file
+    $qesap->redefine(qesap_file_find_string => sub {
+            my (%args) = @_;
+            push @input, $args{file};
+            return 0; });
+    $qesap->redefine(script_output => sub {
+            push @input, shift;
+            return ''; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_ansible_error_detection(error_log => 'SHELL');
+
+    note("\n  I-->  " . join("\n  I-->  ", @input));
+    ok $ret eq 0, "If no error detected return '$ret' is 0";
+    ok((any { qr/SHELL/ } @input), 'At least one of the serach is on the provided input file SHELL');
+};
+
+subtest '[qesap_ansible_error_detection] generic error' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    # The specific search with qesap_file_find_string
+    # return nothing, but ...
+    $qesap->redefine(qesap_file_find_string => sub { return 0; });
+
+    # The generic one return something
+    $qesap->redefine(script_output => sub { return 'ALGA'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_ansible_error_detection(error_log => 'SHELL');
+    ok $ret eq 1, "If generic error detected return '$ret' is 1";
+};
+
+subtest '[qesap_ansible_error_detection] specific error' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    # The specific search with qesap_file_find_string
+    # return nothing, but ...
+    $qesap->redefine(qesap_file_find_string => sub {
+            my (%args) = @_;
+            if ($args{search_string} eq 'Timed out waiting for last boot time check') {
+                return 1;
+            }
+            return 0; });
+
+    # The generic one return something
+    $qesap->redefine(script_output => sub { return ''; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_ansible_error_detection(error_log => 'SHELL');
+    ok $ret eq 2, "If generic error detected return '$ret' is 2";
 };
 
 done_testing;
