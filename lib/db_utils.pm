@@ -174,20 +174,26 @@ sub push_image_data_to_db {
     bmwqemu::diag("Collected image data: " . encode_json(\%args));
     record_info("Image DB", "Destination DB: $url\nData: " . encode_json(\%args));
 
-    my $res = $ua->post("$url" => {Authorization => "Bearer $token", Accept => "application/json",
-            'Content-type' => "application/json"} => json => \%args)->result();
+    my $retries = 3;
+    my $res;
+    for (my $i = 0; $i < $retries; $i++) {
+        $res = $ua->post("$url" => {Authorization => "Bearer $token", Accept => "application/json",
+                'Content-type' => "application/json"} => json => \%args)->result();
 
-    # if successful push, it should return 'HTTP/1.1 201 Created'
-    if ($res->code == 201) {
-        bmwqemu::diag("Image data has been successfully pushed to the Database ($table), RC => " . $res->code);
-    } elsif ($res->code == 409) {
-        bmwqemu::diag("This image info already exists in $table, RC => " . $res->code);
-        # return to the caller that conflict has been found
-        # caller should exit the test case module immediately
-    } else {
-        record_info('DB error', "There has been a problem pushing data to the $table. RC => " . $res->code, result => 'fail');
+        # if successful push, it should return 'HTTP/1.1 201 Created'
+        if ($res->code == 201) {
+            bmwqemu::diag("Image data has been successfully pushed to the Database ($table), RC => " . $res->code);
+            return $res->code;
+        } elsif ($res->code == 409) {
+            bmwqemu::diag("This image info already exists in $table, RC => " . $res->code);
+            # return to the caller that conflict has been found
+            # caller should exit the test case module immediately
+            return $res->code;
+        } else {
+            record_info('DB error', "There has been a problem pushing data to the $table. RC => " . $res->code, result => 'fail');
+            sleep(30);    # Give database some time to recover in case of issues
+        }
     }
-
     return $res->code;
 }
 
