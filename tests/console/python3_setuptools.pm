@@ -28,6 +28,8 @@ sub run {
     # Verify the system's python3 version
     my $system_python_version = get_system_python_version();
     record_info("System python version", "$system_python_version");
+    # In tumbleweed python3-setuptools is just a provides from python311-setuptools package
+    zypper_call("install $system_python_version-setuptools") if (is_tumbleweed);
     # Import the project directory for creating a source distribution package.
     # The directory should contain setup.py and a Python module named test_module.py
     assert_script_run('curl -L -s ' . data_url('python/python3-setuptools') . ' | cpio --make-directories --extract && cd data');
@@ -97,6 +99,9 @@ sub cleanup {
     # Deletion of work folders
     assert_script_run("rm -rf dist user_package_setuptools.egg-info repo_webroot");
     assert_script_run("deactivate");    # leave the virtual env
+    assert_script_run("cd ..");
+    script_run("rm -r data");
+
 }
 
 sub post_run_hook {
