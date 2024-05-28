@@ -75,6 +75,10 @@ conditional_schedule:
         - installation/system_role
       15-SP5:
         - installation/system_role
+      15-SP6:
+        - installation/system_role
+      15-SP7:
+        - installation/system_role
   qam_system_role:
     HORIZONTAL_MIGRATION:
       1:
