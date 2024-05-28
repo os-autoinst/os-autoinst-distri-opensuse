@@ -33,8 +33,10 @@ our @EXPORT = qw(
   az_network_lb_rule_create
   az_vm_as_create
   az_vm_create
+  az_vm_name_get
   az_vm_openport
   az_vm_wait_cloudinit
+  az_vm_instance_view_get
   az_nic_id_get
   az_nic_name_get
   az_ipconfig_name_get
@@ -81,11 +83,9 @@ sub az_group_create {
     assert_script_run($az_cmd);
 }
 
-
-
 =head2 az_group_name_get
 
-    az_group_name_get();
+    my $ret = az_group_name_get();
 
 Get the name of all existing Resource groups in the current subscription
 
@@ -134,6 +134,11 @@ sub az_network_vnet_create {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{address_prefixes} //= '192.168.0.0/16';
     $args{subnet_prefixes} //= '192.168.0.0/24';
+    foreach (qw(address_prefixes subnet_prefixes)) {
+        croak "Invalid IP range $args{$_} in $_"
+          unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+    }
+
     my $az_cmd = join(' ', 'az network vnet create',
         '--resource-group', $args{resource_group},
         '--location', $args{region},
@@ -295,7 +300,7 @@ sub az_network_publicip_get {
         vnet => 'openqa-vnet',
         snet => 'openqa-subnet',
         backend => 'openqa-be',
-        frontend_ip => 'openqa-feip',
+        frontend_ip_name => 'openqa-feip',
         sku => 'Standard')
 
 Create a load balancer entity.
@@ -316,7 +321,7 @@ SKU Standard (and not Basic) is needed to get some Metrics
 
 =item B<backend> - name to assign to created backend pool
 
-=item B<frontend_ip> - name to assign to created frontend ip, will be reused in "az network lb rule create"
+=item B<frontend_ip_name> - name to assign to created frontend ip, will be reused in "az network lb rule create"
 
 =item B<sku> - default Basic
 
@@ -327,11 +332,16 @@ SKU Standard (and not Basic) is needed to get some Metrics
 
 sub az_network_lb_create {
     my (%args) = @_;
-    foreach (qw(resource_group name vnet snet backend frontend_ip)) {
+    foreach (qw(resource_group name vnet snet backend frontend_ip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{sku} //= 'Basic';
-    my $fip_cmd = $args{fip} ? "--private-ip-address $args{fip}" : '';
+    my $fip_cmd = '';
+    if ($args{fip}) {
+        croak "Invalid IP address fip:$args{fip}"
+          unless ($args{fip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
+        $fip_cmd = "--private-ip-address $args{fip}";
+    }
 
     my $az_cmd = join(' ', 'az network lb create',
         '--resource-group', $args{resource_group},
@@ -340,7 +350,7 @@ sub az_network_lb_create {
         '--vnet-name', $args{vnet},
         '--subnet', $args{snet},
         '--backend-pool-name', $args{backend},
-        '--frontend-ip-name', $args{frontend_ip},
+        '--frontend-ip-name', $args{frontend_ip_name},
         $fip_cmd);
     assert_script_run($az_cmd);
 }
@@ -553,6 +563,66 @@ sub az_vm_create {
         '--public-ip-address ""',
         $region_cmd, $as_cmd, $vnet_cmd, $snet_cmd, $user_cmd, $nsg_cmd, $cd_cmd, $nic_cmd, $pip_cmd, $ssh_cmd);
     assert_script_run($az_cmd, timeout => 600);
+}
+
+=head2 az_vm_name_get
+
+    my $ret = az_vm_name_get(resource_group => 'openqa-rg');
+
+Get the name of all existing VMs within a Resource groups
+
+=over 1
+
+=item B<resource_group> - existing resource group where to create the network
+
+=back
+=cut
+
+sub az_vm_name_get {
+    my (%args) = @_;
+    croak("Argument < resource_group > missing") unless $args{resource_group};
+    my $az_cmd = join(' ',
+        'az vm list',
+        "-g $args{resource_group}",
+        '--query "[].name"',
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
+=head2 az_vm_instance_view_get
+
+    my $res = az_vm_instance_view_get(
+        resource_group => 'openqa-rg',
+        name => 'openqa-vm')
+
+Get some details of a specific VM
+
+Json output looks like:
+
+[
+  "PowerState/running",
+  "VM running"
+]
+
+=over 2
+
+=item B<resource_group> - existing resource group where to create the VM
+
+=item B<name> - name of an existing virtual machine
+
+=back
+=cut
+
+sub az_vm_instance_view_get {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ',
+        'az vm get-instance-view',
+        '--name', $args{name},
+        '--resource-group', $args{resource_group},
+        '--query "instanceView.statuses[1].[code,displayStatus]"');
+    return decode_json(script_output($az_cmd));
 }
 
 =head2 az_vm_openport
