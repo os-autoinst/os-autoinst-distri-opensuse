@@ -120,7 +120,7 @@ sub ipaddr2_azure_deployment {
         vnet => $vnet,
         snet => $subnet,
         backend => $lb_be,
-        frontend_ip => $lb_fe,
+        frontend_ip_name => $lb_fe,
         fip => $lb_feip,
         sku => 'Standard');
 

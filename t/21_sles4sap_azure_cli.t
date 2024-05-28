@@ -25,7 +25,6 @@ subtest '[az_group_create] missing args' => sub {
     dies_ok { az_group_create(name => 'Arlecchino') } 'Die for missing argument region';
 };
 
-
 subtest '[az_group_name_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -51,6 +50,34 @@ subtest '[az_network_vnet_create]' => sub {
     ok((any { /az network vnet create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_network_vnet_create] die on invalid IP' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    foreach my $arg (qw(address_prefixes subnet_prefixes)) {
+        foreach my $test_pattern (qw(192.168.0/16 192.168..0/16 192.068.0.0/16 192.168.0.0 192.168.000.000/16 1192.168.0.0/16)) {
+            dies_ok { az_network_vnet_create(
+                    resource_group => 'Arlecchino',
+                    region => 'Pulcinella',
+                    vnet => 'Pantalone',
+                    snet => 'Colombina',
+                    $arg => $test_pattern) } "Die for invalid IP $test_pattern as argument $arg";
+            ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
+            @calls = ();
+        }
+        foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16)) {
+            az_network_vnet_create(
+                resource_group => 'Arlecchino',
+                region => 'Pulcinella',
+                vnet => 'Pantalone',
+                snet => 'Colombina',
+                $arg => $test_pattern);
+            ok scalar @calls > 0, "Some calls to assert_script_run for valid IP $test_pattern as argument $arg";
+            @calls = ();
+        }
+    }
+};
 
 subtest '[az_network_nsg_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
@@ -126,9 +153,41 @@ subtest '[az_network_lb_create]' => sub {
         vnet => 'Pantalone',
         snet => 'Colombina',
         backend => 'Smeraldina',
-        frontend_ip => 'Momolo');
+        frontend_ip_name => 'Momolo');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network lb create/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_network_lb_create] with a fixed IP' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_network_lb_create(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino',
+        vnet => 'Pantalone',
+        snet => 'Colombina',
+        backend => 'Smeraldina',
+        frontend_ip_name => 'Momolo',
+        fip => '1.2.3.4');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network lb create/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_network_lb_create] with an invalid fixed IP' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    dies_ok { az_network_lb_create(
+            resource_group => 'Arlecchino',
+            name => 'Truffaldino',
+            vnet => 'Pantalone',
+            snet => 'Colombina',
+            backend => 'Smeraldina',
+            frontend_ip_name => 'Momolo',
+            fip => '1.2.3.') } "Die for invalid IP as fip argument";
+    ok scalar @calls == 0, "No call to assert_script_run if IP is invalid";
 };
 
 subtest '[az_vm_as_create]' => sub {
@@ -179,6 +238,31 @@ subtest '[az_vm_create] with no public IP' => sub {
         public_ip => '""');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--public-ip-address ""/ } @calls), 'empty Public IP address');
+};
+
+subtest '[az_vm_name_get]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Mirandolina","Truffaldino"]'; });
+
+    my $res = az_vm_name_get(resource_group => 'Arlecchino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm list/ } @calls), 'Correct composition of the main command');
+    ok((any { /-g Arlecchino/ } @calls), 'Correct composition of the -g argument');
+    ok((any { /Mirandolina/ } @$res), 'Correct result decoding');
+};
+
+subtest '[az_vm_instance_view_get]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
+
+    my $res = az_vm_instance_view_get(resource_group => 'Arlecchino', name => 'Mirandolina');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm get-instance-view/ } @calls), 'Correct composition of the main command');
+    ok((any { /VM running/ } @$res), 'Correct result decoding');
 };
 
 subtest '[az_vm_openport]' => sub {
