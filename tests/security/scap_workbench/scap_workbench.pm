@@ -13,7 +13,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub authentication_required {
-    if (check_screen('Authentication-Required', timeout => 120)) {
+    if (check_screen('Authentication-Required', timeout => 240)) {
         type_password($testapi::password);
         assert_and_click('authenticate');
     }
@@ -38,18 +38,32 @@ sub run {
     enter_cmd("scap-workbench $content_to_load &");
     # Customize profile
     record_info('Customize profile');
-    assert_and_click('scap-workbench-Customize', timeout => 180);
-    assert_and_click('scap-workbench-Customize-Profile-OK', timeout => 180);
-    assert_and_click('scap-workbench-Customize-OK', timeout => 180);
-
+    wait_still_screen();
+    wait_screen_change {
+        assert_and_click('scap-workbench-Customize', timeout => 180);
+    };
+    # close the customization dialog
+    wait_screen_change {
+        assert_and_click('scap-workbench-Customize-Profile-OK', timeout => 180);
+    };
+    # close the right panel that should appear displaying the customized profile.
+    # if it's not present, select first element in order to show it
+    if (!check_screen 'scap-workbench-Customize-OK') {
+        send_key 'tab';
+    }
+    wait_screen_change {
+        assert_and_click('scap-workbench-Customize-OK', timeout => 180);
+    };
+    wait_still_screen();
     # Scan system
     record_info('Scan system');
     assert_and_click('scap-workbench-Scan');
     authentication_required();
+    wait_still_screen();
     # SLE file has 3x size so requires more time to scan
     if (is_sle()) {
         assert_and_click('scap-workbench-Diagnostics-Close', timeout => 600);
-        assert_screen('scap-workbench-Scan-Done');
+        assert_screen('scap-workbench-Scan-Done', timeout => 300);
     }
 
     # Show report after 'Scan'
@@ -96,7 +110,7 @@ sub run {
     authentication_required();
     if (is_sle()) {
         assert_and_click('scap-workbench-Diagnostics-Close', timeout => 600);
-        assert_screen('scap-workbench-Scan-Done');
+        assert_screen('scap-workbench-Scan-Done', timeout => 300);
     }
 
     # Turn to root console
