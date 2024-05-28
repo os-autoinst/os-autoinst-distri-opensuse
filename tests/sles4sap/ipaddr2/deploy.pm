@@ -22,7 +22,10 @@ sub run {
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
 
-    ipaddr2_azure_deployment(region => $provider->provider_client->region, os => get_required_var('CLUSTER_OS_VER'));
+    ipaddr2_azure_deployment(
+        region => $provider->provider_client->region,
+        os => get_required_var('CLUSTER_OS_VER'));
+    ipaddr2_deployment_sanity();
 }
 
 sub test_flags {

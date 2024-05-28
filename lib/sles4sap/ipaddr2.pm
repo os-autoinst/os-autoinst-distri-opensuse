@@ -26,12 +26,17 @@ our @EXPORT = qw(
   ipaddr2_azure_deployment
   ipaddr2_ssh_cmd
   ipaddr2_destroy
+  ipaddr2_get_internal_vm_name
+  ipaddr2_deployment_sanity
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
 
 our $user = 'cloudadmin';
+our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
+our $priv_ip_range = '192.168.';
+our $frontend_ip = $priv_ip_range . '0.50';
 
 =head2 ipaddr2_azure_resource_group
 
@@ -82,14 +87,13 @@ sub ipaddr2_azure_deployment {
     # Create a VNET only needed later when creating the VM
     my $vnet = DEPLOY_PREFIX . '-vnet';
     my $subnet = DEPLOY_PREFIX . '-snet';
-    my $priv_ip_range = '192.168.0';
     az_network_vnet_create(
         resource_group => $rg,
         region => $args{region},
         vnet => $vnet,
-        address_prefixes => $priv_ip_range . '.0/16',
+        address_prefixes => $priv_ip_range . '0.0/16',
         snet => $subnet,
-        subnet_prefixes => $priv_ip_range . '.0/24');
+        subnet_prefixes => $priv_ip_range . '0.0/24');
 
     # Create a Network Security Group
     # only needed later when creating the VM
@@ -113,7 +117,6 @@ sub ipaddr2_azure_deployment {
     my $lb = DEPLOY_PREFIX . '-lb';
     my $lb_be = DEPLOY_PREFIX . '-backend_pool';
     my $lb_fe = DEPLOY_PREFIX . '-frontent_ip';
-    my $lb_feip = $priv_ip_range . '.50';
     az_network_lb_create(
         resource_group => $rg,
         name => $lb,
@@ -121,7 +124,7 @@ sub ipaddr2_azure_deployment {
         snet => $subnet,
         backend => $lb_be,
         frontend_ip_name => $lb_fe,
-        fip => $lb_feip,
+        fip => $frontend_ip,
         sku => 'Standard');
 
     # All the 2 VM will be later assigned to it.
@@ -144,7 +147,7 @@ sub ipaddr2_azure_deployment {
             data_url('sles4sap/cloud-init-web.txt'),
             '-o', $cloud_init_file));
     foreach my $i (1 .. 2) {
-        $vm = DEPLOY_PREFIX . "-vm-0$i";
+        $vm = ipaddr2_get_internal_vm_name(id => $i);
         # the VM creation command refers to an external cloud-init
         # configuration file that is in charge to install and setup
         # the nginx server.
@@ -172,10 +175,9 @@ sub ipaddr2_azure_deployment {
             name => $vm, port => 80);
     }
 
-    $vm = DEPLOY_PREFIX . "-vm-bastion";
     az_vm_create(
         resource_group => $rg,
-        name => $vm,
+        name => $bastion_vm_name,
         region => $args{region},
         image => $args{os},
         username => $user,
@@ -188,7 +190,7 @@ sub ipaddr2_azure_deployment {
     # give cloud-init more time to run and avoid interfering
     # with it by changing the networking on the running VM
     foreach my $i (1 .. 2) {
-        my $vm = DEPLOY_PREFIX . "-vm-0$i";
+        my $vm = ipaddr2_get_internal_vm_name(id => $i);
         my $nic_id = az_nic_id_get(
             resource_group => $rg,
             name => $vm);
@@ -252,6 +254,38 @@ sub ipaddr2_ssh_cmd {
     return 'ssh ' . $user . '@' . $pub_ip_addr;
 }
 
+=head2 ipaddr2_deployment_sanity
+
+    ipaddr2_deployment_sanity()
+
+Run some checks on the existing deployment using the
+az command line.
+die in case of failure
+=cut
+
+sub ipaddr2_deployment_sanity {
+    my $rg = ipaddr2_azure_resource_group();
+    my $res = az_group_name_get();
+    my $count = grep(/$rg/, @$res);
+    die "There are not exactly one but $count resource groups with name $rg" unless $count eq 1;
+
+    $res = az_vm_name_get(resource_group => $rg);
+    $count = grep(/$bastion_vm_name/, @$res);
+    die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) eq 3;
+    die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count eq 1;
+
+    foreach my $i (1 .. 2) {
+        my $vm = ipaddr2_get_internal_vm_name(id => $i);
+        $res = az_vm_instance_view_get(
+            resource_group => $rg,
+            name => $vm);
+        # Expected return is
+        # [ "PowerState/running", "VM running" ]
+        $count = grep(/running/, @$res);
+        die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
+    }
+}
+
 =head2 ipaddr2_destroy
 
     ipaddr2_destroy();
@@ -262,6 +296,19 @@ Destroy the deployment by deleting the resource group
 sub ipaddr2_destroy {
     my $rg = ipaddr2_azure_resource_group();
     assert_script_run("az group delete --name $rg -y", timeout => 600);
+}
+
+=head2 ipaddr2_get_internal_vm_name
+
+    my $vm_name = ipaddr2_get_internal_vm_name(42);
+
+compose and return a string for the vm name
+=cut
+
+sub ipaddr2_get_internal_vm_name {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+    return DEPLOY_PREFIX . "-vm-0$args{id}";
 }
 
 1;
