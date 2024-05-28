@@ -27,6 +27,8 @@
       <li><a href="#az_network_lb_rule_create">az_network_lb_rule_create</a></li>
       <li><a href="#az_vm_as_create">az_vm_as_create</a></li>
       <li><a href="#az_vm_create">az_vm_create</a></li>
+      <li><a href="#az_vm_name_get">az_vm_name_get</a></li>
+      <li><a href="#az_vm_instance_view_get">az_vm_instance_view_get</a></li>
       <li><a href="#az_vm_openport">az_vm_openport</a></li>
       <li><a href="#az_vm_wait_cloudinit">az_vm_wait_cloudinit</a></li>
       <li><a href="#az_nic_id_get">az_nic_id_get</a></li>
@@ -69,7 +71,7 @@
 
 <h2 id="az_group_name_get">az_group_name_get</h2>
 
-<pre><code>az_group_name_get();</code></pre>
+<pre><code>my $ret = az_group_name_get();</code></pre>
 
 <p>Get the name of all existing Resource groups in the current subscription</p>
 
@@ -224,7 +226,7 @@
     vnet =&gt; &#39;openqa-vnet&#39;,
     snet =&gt; &#39;openqa-subnet&#39;,
     backend =&gt; &#39;openqa-be&#39;,
-    frontend_ip =&gt; &#39;openqa-feip&#39;,
+    frontend_ip_name =&gt; &#39;openqa-feip&#39;,
     sku =&gt; &#39;Standard&#39;)</code></pre>
 
 <p>Create a load balancer entity. LB is mostly &quot;just&quot; a &quot;group&quot; definition to link back-end and front-end resources (usually an IP)</p>
@@ -253,7 +255,7 @@
 <dd>
 
 </dd>
-<dt id="frontend_ip---name-to-assign-to-created-frontend-ip-will-be-reused-in-az-network-lb-rule-create"><b>frontend_ip</b> - name to assign to created frontend ip, will be reused in &quot;az network lb rule create&quot;</dt>
+<dt id="frontend_ip_name---name-to-assign-to-created-frontend-ip-will-be-reused-in-az-network-lb-rule-create"><b>frontend_ip_name</b> - name to assign to created frontend ip, will be reused in &quot;az network lb rule create&quot;</dt>
 <dd>
 
 </dd>
@@ -448,6 +450,44 @@
 
 </dd>
 <dt id="ssh_pubkey---optional-inclusion-in-an-availability-set-if-missing-the-command-is-configured-to-generate-one"><b>ssh_pubkey</b> - optional inclusion in an availability set, if missing the command is configured to generate one</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_name_get">az_vm_name_get</h2>
+
+<pre><code>my $ret = az_vm_name_get(resource_group =&gt; &#39;openqa-rg&#39;);</code></pre>
+
+<p>Get the name of all existing VMs within a Resource groups</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-network1"><b>resource_group</b> - existing resource group where to create the network</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_instance_view_get">az_vm_instance_view_get</h2>
+
+<pre><code>my $res = az_vm_instance_view_get(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;)</code></pre>
+
+<p>Get some details of a specific VM</p>
+
+<p>Json output looks like:</p>
+
+<p>[ &quot;PowerState/running&quot;, &quot;VM running&quot; ]</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-VM1"><b>resource_group</b> - existing resource group where to create the VM</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-an-existing-virtual-machine"><b>name</b> - name of an existing virtual machine</dt>
 <dd>
 
 </dd>
