@@ -90,6 +90,7 @@
       <li><a href="#qesap_az_diagnostic_log">qesap_az_diagnostic_log</a></li>
       <li><a href="#qesap_terraform_clean_up_retry">qesap_terraform_clean_up_retry</a></li>
       <li><a href="#qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</a></li>
+      <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
     </ul>
   </li>
 </ul><h1>lib/qesapdeployment.pm</h1>
@@ -1164,6 +1165,30 @@ Return 1: something went wrong or we do not know what to do with the failure</co
 <dl>
 
 <dt id="ERROR_LOG---error-log-filename"><b>ERROR_LOG</b> - error log filename</dt>
+<dd>
+
+</dd>
+<dt id="PROVIDER---cloud-provider-name-as-from-PUBLIC_CLOUD_PROVIDER-setting"><b>PROVIDER</b> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="qesap_ansible_error_detection">qesap_ansible_error_detection</h2>
+
+<pre><code>qesap_ansible_error_detection( error_log=&gt;$error_log )
+
+Inspect the provided Ansible log and search for known issue in the log
+Also provide a nice record_info to summarize the error
+Return:
+ - 0: no errors
+ - 1: unknown generic error
+ - 2: reboot timeout
+ - 3: no sudo password</code></pre>
+
+<dl>
+
+<dt id="ERROR_LOG---error-log-filename1"><b>ERROR_LOG</b> - error log filename</dt>
 <dd>
 
 </dd>
