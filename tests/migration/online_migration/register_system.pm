@@ -15,6 +15,7 @@ use migration;
 
 sub run {
     select_console 'root-console';
+    set_var('SCC_ADDONS', get_var('SCC_ADDONS_2')) if (get_var('SCC_ADDONS_2'));
     register_system_in_textmode;
 }
 
