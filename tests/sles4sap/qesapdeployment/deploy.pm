@@ -58,7 +58,7 @@ sub run {
     }
     if ($ret[0]) {
         # Retry to deploy terraform + ansible
-        if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1])) {
+        if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1], provider => $provider)) {
             die "Retry failed, original ansible return: $ret[0]";
         }
     }
