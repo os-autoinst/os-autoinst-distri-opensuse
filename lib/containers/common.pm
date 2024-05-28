@@ -11,7 +11,7 @@ use testapi;
 use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
-use containers::utils qw(container_ip container_route);
+use containers::utils qw(registry_url container_ip container_route);
 use transactional qw(trup_call check_reboot_changes process_reboot);
 use bootloader_setup 'add_grub_cmdline_settings';
 use serial_terminal 'select_serial_terminal';
