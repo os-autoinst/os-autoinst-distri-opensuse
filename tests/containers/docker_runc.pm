@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2023 SUSE LLC
+# Copyright 2017-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: runc docker-runc
@@ -32,8 +32,8 @@ sub run {
     record_info("$runc", script_output("$runc -v"));
     # Create root filesystem for the test container. We need docker for this preparation step.
     assert_script_run('rm -rf rootfs && mkdir rootfs');
-    my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
-    assert_script_run('docker export $(docker create ' . $tumbleweed . ') | tar -C rootfs -xvf -', fail_message => "Cannot export rootfs, see bsc#1152508");
+    my $image = "registry.opensuse.org/opensuse/busybox";
+    assert_script_run('docker export $(docker create ' . $image . ') | tar -C rootfs -xvf -', fail_message => "Cannot export rootfs, see bsc#1152508");
 
     # create the OCI specification file and verify that the template has been created
     record_info 'Test #2', 'Test: OCI Specification';
