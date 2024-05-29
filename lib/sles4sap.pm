@@ -517,14 +517,33 @@ and threads that it can create.
 sub test_pids_max {
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
     my $uid = script_output "id -u $sapadmin";
-    # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | tee /tmp/pids-max";
+
+    # push the command to SUT by write_sut_file API instead of typing string
+    # it is not stable to type long string especially when high load on worker
+    # write_sut_file API is more stable in most case
+    my $test_script = "#!/bin/sh
+# The systemd-run command generates syslog output that may end up in the console, so save the output to a file
+systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | tee /tmp/pids-max
+";
+    write_sut_file '/root/test_script.sh', $test_script;
+    assert_script_run 'bash -ex /root/test_script.sh';
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
-    # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
+
+    # nproc should be set to \"unlimited\" in /etc/security/limits.d/99-sapsys.conf
     # Check that nproc * 2 + 1 >= threads-max
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -n 1 | tr -d '\\r' > /tmp/nproc";
-    assert_script_run "cat /tmp/nproc ; sysctl -n kernel.threads-max";
-    my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
+    $test_script = "#!/bin/sh
+systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -n 1 | tr -d '\\r' > /tmp/nproc
+";
+    write_sut_file '/root/test_script.sh', $test_script;
+    assert_script_run 'bash -ex /root/test_script.sh';
+    assert_script_run "cat /tmp/nproc && sysctl -n kernel.threads-max";
+
+    $test_script = "#!/bin/sh
+[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]
+";
+    write_sut_file '/root/test_script.sh', $test_script;
+    my $rc2 = script_run "bash -ex /root/test_script.sh";
+
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
 
