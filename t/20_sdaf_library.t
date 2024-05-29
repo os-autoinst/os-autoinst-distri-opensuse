@@ -26,7 +26,7 @@ subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_repo
         sap_sid => 'QAS',
         deployer_vnet_code => 'DEP05',
         workload_vnet_code => 'SAP04',
-        region_code => 'SECE',
+        sdaf_region_code => 'SECE',
         env_code => 'LAB'
     );
     my %expected_results = (
@@ -60,7 +60,7 @@ subtest '[get_tfvars_path] Test unsupported deployment types - test using set_co
         sap_sid => 'QAS',
         deployer_vnet_code => 'DEP05',
         workload_vnet_code => 'SAP04',
-        region_code => 'SECE',
+        sdaf_region_code => 'SECE',
         env_code => 'LAB',
         sdaf_tfstate_storage_account => 'labsecetfstate300',
         sdaf_key_vault => 'LABSECEDEP05userDDF',
@@ -98,7 +98,7 @@ subtest '[prepare_sdaf_repo]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
-        region_code => 'SECE',
+        sdaf_region_code => 'SECE',
         env_code => 'LAB',
         deployer_vnet_code => 'DEP05',
         workload_vnet_code => 'SAP04'
@@ -136,7 +136,7 @@ subtest '[prepare_sdaf_repo] Check directory creation' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
-        region_code => 'SECE',
+        sdaf_region_code => 'SECE',
         env_code => 'LAB',
         deployer_vnet_code => 'DEP05',
         workload_vnet_code => 'SAP04',
@@ -201,7 +201,7 @@ subtest '[replace_tfvars_variables] Test correct variable replacement' => sub {
 
     my %expected_variables = (
         SDAF_ENV_CODE => 'Balbo',
-        SDAF_LOCATION => 'Mungo',
+        PUBLIC_CLOUD_REGION => 'Mungo',
         SDAF_RESOURCE_GROUP => 'Bungo',
         SDAF_VNET_CODE => 'Bilbo',
         SAP_SID => 'Frodo'
@@ -244,10 +244,10 @@ subtest '[serial_console_diag_banner] ' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
     my $printed_output;
     $ms_sdaf->redefine(script_run => sub { $printed_output = $_[0]; return 1; });
-    my $correct_output = "##########################    EXECUTING DEPLOYMENT    ##########################";
+    my $correct_output = "##########################    Executing deployment    ##########################";
 
-    serial_console_diag_banner('exeCuTing deploYment');
-    is $printed_output, $correct_output, "Print banner correctly in uppercase:\n$correct_output";
+    serial_console_diag_banner('Executing deployment');
+    is $printed_output, $correct_output, "Print banner correctly uppercase:\n$correct_output";
     dies_ok { serial_console_diag_banner() } 'Fail with missing test to be printed';
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
 };
@@ -328,7 +328,7 @@ subtest '[create_sdaf_os_var_file]' => sub {
         sap_sid => 'QAS',
         deployer_vnet_code => 'DEP05',
         workload_vnet_code => 'SAP04',
-        region_code => 'SECE',
+        sdaf_region_code => 'SECE',
         env_code => 'LAB',
         sdaf_tfstate_storage_account => 'labsecetfstate300',
         sdaf_key_vault => 'LABSECEDEP05userDDF',
@@ -346,7 +346,7 @@ subtest '[create_sdaf_os_var_file]' => sub {
         'export workload_vnet_code=SAP04',
         'export sap_env_code=LAB',
         'export deployer_env_code=LAB',
-        'export region_code=SECE',
+        'export sdaf_region_code=SECE',
         'export SID=QAS',
         'export ARM_SUBSCRIPTION_ID=RX-78',
         'export SAP_AUTOMATION_REPO_PATH=/deployment/sap-automation/',
@@ -357,7 +357,7 @@ subtest '[create_sdaf_os_var_file]' => sub {
         'export sap_system_parameter_file=/some/path',
         'export workload_zone_parameter_file=/some/path',
         'export tfstate_storage_account=labsecetfstate300',
-        'export deployerState=${deployer_env_code}-${region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate',
+        'export deployerState=${deployer_env_code}-${sdaf_region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate',
         'export key_vault=LABSECEDEP05userDDF',
         "\n"
     );
@@ -521,6 +521,76 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     ok $sdaf_command_no_log =~ m/$_/, "Command for deploying workload zone must contain cmd option: '$_'" foreach @workload_zone_cmdline;
     sdaf_execute_deployment(deployment_type => 'sap_system');
     ok $sdaf_command_no_log =~ m/$_/, "Command for deploying sap systems must contain cmd option: '$_'" foreach @sap_system_cmdline;
+};
+
+subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_library', no_auto => 1);
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { return 1; });
+    $ms_sdaf->redefine(upload_logs => sub { return 0; });
+    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
+    $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
+    $ms_sdaf->redefine(set_os_variable => sub { return 1 });
+    $ms_sdaf->redefine(log_command_output => sub { return; });
+    $ms_sdaf->redefine(get_sdaf_deployment_command => sub { return 'dd if=/dev/zero of=/dev/sda'; });
+    my $retry = 0;
+    $ms_sdaf->redefine(script_run => sub { $retry++; print $retry; return 0 if $retry == 3; return 1 });
+
+    ok sdaf_execute_deployment(deployment_type => 'workload_zone', retries => 3);
+};
+
+subtest '[convert_region_to_short] Test conversion' => sub {
+    is convert_region_to_short('swedencentral'), 'SECE', 'Convert full region name "swedencentral" to "SECE"';
+    is convert_region_to_short('westus2'), 'WUS2', 'Convert full region name "westus2" to "WUS2"';
+    is convert_region_to_short('westeurope'), 'WEEU', 'Convert full region name "westeurope" to "WEEU"';
+};
+
+subtest '[convert_region_to_short] Test invalid input' => sub {
+    my @invalid_region_names = qw(sweden central estus5 . estus);
+    dies_ok { convert_region_to_short() } 'Croak with missing mandatory argument';
+    dies_ok { convert_region_to_short($_) } "Croak with invalid region name: $_" foreach @invalid_region_names;
+};
+
+subtest '[sdaf_public_ip_name_gen]' => sub {
+    is sdaf_public_ip_name_gen(env_code => 'LAB', sdaf_region_code => 'SECE', vnet_code => 'SAP04'),
+      'LAB-SECE-SAP04-pip', 'Generate correct name for public IP resource';
+};
+
+subtest '[sdaf_public_ip_name_gen]' => sub {
+    my %arguments = (
+        env_code => 'LAB',
+        sdaf_region_code => 'SECE',
+        vnet_code => 'SAP04'
+    );
+
+    is sdaf_public_ip_name_gen(%arguments),
+      'LAB-SECE-SAP04-pip', 'Generate correct name for public IP resource';
+
+    foreach (keys(%arguments)) {
+        my $orig_value = $arguments{$_};
+        $arguments{$_} = undef;
+        dies_ok { sdaf_public_ip_name_gen(%arguments) } "Fail with missing argument: '$_'";
+        $arguments{$_} = $orig_value;
+    }
+};
+
+subtest '[sdaf_nat_gateway_name_gen]' => sub {
+    my %arguments = (
+        env_code => 'LAB',
+        sdaf_region_code => 'SECE',
+        vnet_code => 'SAP04'
+    );
+
+    is sdaf_nat_gateway_name_gen(%arguments),
+      'LAB-SECE-SAP04-natgw', 'Generate correct name for NAT gateway resource';
+
+    foreach (keys(%arguments)) {
+        my $orig_value = $arguments{$_};
+        $arguments{$_} = undef;
+        dies_ok { sdaf_nat_gateway_name_gen(%arguments) } "Fail with missing argument: '$_'";
+        $arguments{$_} = $orig_value;
+    }
 };
 
 done_testing;

@@ -130,6 +130,17 @@ subtest '[az_network_publicip_create] with optional arguments' => sub {
     ok((any { /--zone Venezia Mestre/ } @calls), 'Argument --zone');
 };
 
+subtest '[az_network_publicip_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_network_publicip_delete(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network public-ip delete/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_network_publicip_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -394,6 +405,110 @@ subtest '[az_network_lb_rule_create]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network lb rule create/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_network_vnet_list]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $cmd_out = '[
+  "vnet_a",
+  "vnet_b"
+]';
+    $mock->redefine(script_output => sub { push @calls, $_[0]; return $cmd_out; });
+
+    my $result = az_network_vnet_list(resource_group => 'Eugenia');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /az network vnet list/ } @calls), 'Correct composition of the main command');
+    ok((any { /--resource-group Eugenia/ } @calls), 'Argument --resource-group');
+    ok((any { /--query \"\[\].name\"/ } @calls), 'Argument --query');
+    ok((any { /-o json/ } @calls), 'Return output in json format');
+
+    is ref($result), 'ARRAY', 'Returned value must be an ARRAY';
+    foreach ('vnet_a', 'vnet_b') {
+         ok((any { /$_/ } @$result), "Function return value must contain '$_'");
+    }
+};
+
+subtest '[az_network_vnet_subnet_list]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $cmd_out = '[
+  "subnet-A",
+  "subnet-B"
+]';
+    $mock->redefine(script_output => sub { push @calls, $_[0]; return $cmd_out; });
+
+    my $result = az_network_vnet_subnet_list(vnet_name => 'Eugenia', resource_group => 'Elisa');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet subnet list/ } @calls), 'Correct composition of the main command');
+    ok((any { /--resource-group Elisa/ } @calls), 'Argument --resource-group');
+    ok((any { /--vnet-name Eugenia/ } @calls), 'Argument --resource-group');
+    ok((any { /--query \"\[\].name\"/ } @calls), 'Argument --query');
+    ok((any { /-o json/ } @calls), 'Return output in json format');
+
+    is ref($result), 'ARRAY', 'Returned value must be ARRAY';
+    foreach ('subnet-A', 'subnet-B') {
+         ok((any { /$_/ } @$result), "Function return value must contain '$_'");
+    }
+};
+
+subtest '[az_network_nat_gateway_create]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $mock->redefine(assert_script_run => sub {  push @calls, $_[0]; return; });
+    $mock->redefine(record_info => sub { return; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        public_ip => 'Fabrizio'
+    );
+
+    az_network_nat_gateway_create(%mandatory_args);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nat gateway create/ } @calls), 'Main command composition');
+    ok((any { /--resource-group Elisa/ } @calls), 'Argument --resource-group');
+    ok((any { /--name Eugenia/ } @calls), 'Argument --name');
+    ok((any { /--public-ip-addresses Fabrizio/ } @calls), 'Argument --public-ip-addresses');
+};
+
+subtest '[az_network_nat_gateway_delete]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $mock->redefine(assert_script_run => sub {  push @calls, $_[0]; return; });
+    $mock->redefine(record_info => sub { return; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia'
+    );
+
+    az_network_nat_gateway_delete(%mandatory_args);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nat gateway delete/ } @calls), 'Main command composition');
+    ok((any { /--resource-group Elisa/ } @calls), 'Argument --resource-group');
+    ok((any { /--name Eugenia/ } @calls), 'Argument --name');
+};
+
+subtest '[az_network_vnet_subnet_update]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $mock->redefine(assert_script_run => sub {  push @calls, $_[0]; return; });
+    $mock->redefine(record_info => sub { return; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        vnet_name => 'Fabrizio',
+        subnet_name => 'Truffaldino'
+    );
+
+    az_network_vnet_subnet_update(%mandatory_args);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet subnet update/ } @calls), 'Main command composition');
+    ok((any { /--resource-group Elisa/ } @calls), 'Argument --resource-group');
+    ok((any { /--name Truffaldino/ } @calls), 'Argument --name');
+    ok((any { /--vnet-name Fabrizio/ } @calls), 'Argument --vnet-name');
+    ok((any { /--nat-gateway Eugenia/ } @calls), 'Argument --nat-gateway');
 };
 
 done_testing;

@@ -11,7 +11,7 @@
 #     'SDAF_ENV_CODE'  Code for SDAF deployment env.
 #     'SDAF_DEPLOYER_VNET_CODE' Deployer virtual network code.
 #     'SDAF_WORKLOAD_VNET_CODE' Virtual network code for workload zone.
-#     'SDAF_REGION_CODE' SDAF internal code for azure region.
+#     'PUBLIC_CLOUD_REGION' SDAF internal code for azure region.
 #     'SAP_SID' SAP system ID.
 #     'SDAF_DEPLOYER_RESOURCE_GROUP' Existing deployer resource group - part of the permanent cloud infrastructure.
 
@@ -35,7 +35,7 @@ sub check_required_vars {
       SDAF_ENV_CODE
       SDAF_DEPLOYER_VNET_CODE
       SDAF_WORKLOAD_VNET_CODE
-      SDAF_REGION_CODE
+      PUBLIC_CLOUD_REGION
       SAP_SID
       SDAF_DEPLOYER_RESOURCE_GROUP
     );
