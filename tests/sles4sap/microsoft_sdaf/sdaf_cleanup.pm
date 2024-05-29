@@ -13,7 +13,7 @@ use parent 'sles4sap::microsoft_sdaf_basetest';
 use strict;
 use testapi;
 use warnings;
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 
 sub test_flags {
@@ -22,6 +22,10 @@ sub test_flags {
 
 sub run {
     serial_console_diag_banner('end: sdaf_cleanup.pm');
+    if (get_var('SDAF_NO_CLEANUP')) {
+        record_info('Cleanup OFF', 'OpenQA variable "SDAF_NO_CLEANUP" is active, skipping cleanup.');
+        return;
+    }
 
     # Cleanup SDAF files form Deployer VM
     connect_target_to_serial();

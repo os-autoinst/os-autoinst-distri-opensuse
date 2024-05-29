@@ -1,5 +1,5 @@
 ---
-name: microsoft_sdaf
+name: microsoft_sdaf_deployment
 description: |
   microsoft sdaf based deployment
 schedule:
@@ -7,5 +7,6 @@ schedule:
   - sles4sap/microsoft_sdaf/sdaf_redirect_console_to_deployer
   - sles4sap/microsoft_sdaf/sdaf_deployer_setup
   - sles4sap/microsoft_sdaf/sdaf_deploy_workload_zone
+  - sles4sap/microsoft_sdaf/sdaf_setup_nat_gateway
   - sles4sap/microsoft_sdaf/sdaf_deploy_sap_systems
   - sles4sap/microsoft_sdaf/sdaf_cleanup

@@ -396,4 +396,118 @@ subtest '[az_network_lb_rule_create]' => sub {
     ok((any { /az network lb rule create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_network_vnet_list]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    my $cmd_out = 'LAB-SECE-SAP04_vnet_a
+LAB-SECE-SAP04_vnet_b
+LAB-SECE-SAP04_vnet_c';
+    my @expected_result = ('LAB-SECE-SAP04_vnet_a', 'LAB-SECE-SAP04_vnet_b', 'LAB-SECE-SAP04_vnet_c');
+    $mock->redefine(script_output => sub { $cmd = $_[0]; return $cmd_out; });
+
+    dies_ok { az_network_vnet_list() } "Fail with missing argument: 'resource_group'";
+
+    my $result = az_network_vnet_list(resource_group => 'Eugenia');
+    is ref($result), 'ARRAY', 'Returned value must be ARRAY';
+    is $cmd, "az network vnet list --resource-group Eugenia --query \"[].name\" -o tsv",
+      "Pass with executed command: \n$cmd";
+    is_deeply($result, \@expected_result, 'Return correct result');
+};
+
+subtest '[az_network_vnet_subnet_list] Test exceptions' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $mock->redefine(script_output => sub { return; });
+
+    dies_ok { az_network_vnet_subnet_list(vnet_name => 'Eugenia') } "Fail with missing argument: 'resource_group'";
+    dies_ok { az_network_vnet_subnet_list(resource_group => 'Elisa') } "Fail with missing argument: 'vnet_name'";
+};
+
+subtest '[az_network_vnet_subnet_list]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    my $cmd_out = 'LAB-SECE-SAP04_admin-subnet
+LAB-SECE-SAP04_app-subnet
+LAB-SECE-SAP04_db-subnet';
+    my @expected_result = (
+        'LAB-SECE-SAP04_admin-subnet',
+        'LAB-SECE-SAP04_app-subnet',
+        'LAB-SECE-SAP04_db-subnet'
+    );
+    $mock->redefine(script_output => sub { $cmd = $_[0]; return $cmd_out; });
+
+    my $result = az_network_vnet_subnet_list(vnet_name => 'Eugenia', resource_group => 'Elisa');
+    is ref($result), 'ARRAY', 'Returned value must be ARRAY';
+    is $cmd, "az network vnet subnet list --resource-group Elisa --vnet-name Eugenia --query \"[].name\" -o tsv",
+      "Pass with executed command: \n$cmd";
+    is_deeply($result, \@expected_result, 'Return correct result');
+};
+
+subtest '[az_network_nat_gateway_create] Test exceptions' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    $mock->redefine(assert_script_run => sub { $cmd = $_[0]; return 1; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        public_ip => 'Fabrizio'
+    );
+
+    foreach (keys(%mandatory_args)) {
+        my $original_value = $mandatory_args{$_};
+        $mandatory_args{$_} = undef;
+        dies_ok { az_network_nat_gateway_create(%mandatory_args) } "Fail with missing argument: '$_'";
+        $mandatory_args{$_} = $original_value;
+    }
+};
+
+subtest '[az_network_nat_gateway_create]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    my $expected_cmd = 'az network nat gateway create --resource-group Elisa --name Eugenia --public-ip-addresses Fabrizio';
+    $mock->redefine(assert_script_run => sub { $cmd = $_[0]; return 1; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        public_ip => 'Fabrizio'
+    );
+
+    az_network_nat_gateway_create(%mandatory_args);
+    is $cmd, $expected_cmd, "Execute correct command: '$cmd'";
+};
+
+subtest '[az_network_vnet_subnet_update] Test exceptions' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    $mock->redefine(assert_script_run => sub { $cmd = $_[0]; return 1; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        vnet_name => 'Fabrizio',
+        subnet_name => 'Truffaldino'
+    );
+
+    foreach (keys(%mandatory_args)) {
+        my $original_value = $mandatory_args{$_};
+        $mandatory_args{$_} = undef;
+        dies_ok { az_network_vnet_subnet_update(%mandatory_args) } "Fail with missing argument: '$_'";
+        $mandatory_args{$_} = $original_value;
+    }
+};
+
+subtest '[az_network_vnet_subnet_update]' => sub {
+    my $mock = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my $cmd;
+    my $expected_cmd = 'az network vnet subnet update --resource-group Elisa --name Truffaldino --vnet-name Fabrizio --nat-gateway Eugenia';
+    $mock->redefine(assert_script_run => sub { $cmd = $_[0]; return 1; });
+    my %mandatory_args = (
+        resource_group => 'Elisa',
+        gateway_name => 'Eugenia',
+        vnet_name => 'Fabrizio',
+        subnet_name => 'Truffaldino'
+    );
+
+    az_network_vnet_subnet_update(%mandatory_args);
+    is $cmd, $expected_cmd, "Execute correct command: '$cmd'";
+};
+
 done_testing;

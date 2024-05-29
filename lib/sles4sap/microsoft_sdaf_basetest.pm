@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use parent 'opensusebasetest';
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 
 sub post_fail_hook {

@@ -24,6 +24,9 @@ our @EXPORT = qw(
   az_group_create
   az_group_name_get
   az_network_vnet_create
+  az_network_vnet_list
+  az_network_vnet_subnet_list
+  az_network_vnet_subnet_update
   az_network_nsg_create
   az_network_nsg_rule_create
   az_network_publicip_create
@@ -31,6 +34,7 @@ our @EXPORT = qw(
   az_network_lb_create
   az_network_lb_probe_create
   az_network_lb_rule_create
+  az_network_nat_gateway_create
   az_vm_as_create
   az_vm_create
   az_vm_name_get
@@ -242,6 +246,8 @@ Create an IPv4 public IP resource
 
 =item B<zone> - optionally add --zone
 
+=item B<timeout> - optional - override default command execution timeout
+
 =back
 =cut
 
@@ -259,7 +265,7 @@ sub az_network_publicip_create {
         '--sku', $args{sku},
         $alloc_cmd,
         $zone_cmd);
-    assert_script_run($az_cmd);
+    assert_script_run($az_cmd, timeout => $args{timeout});
 }
 
 
@@ -864,4 +870,108 @@ sub az_ipconfig_pool_add {
         '--ip-config-name', $args{ipconfig_name},
         '--nic-name', $args{nic_name});
     assert_script_run($az_cmd);
+}
+=head2 az_network_vnet_list
+
+    az_network_vnet_list( resource_group => 'openqa-rg' )
+
+    get list of virtual networks belonging to resource group
+
+=over 2
+
+=item B<resource_group> - existing resource group name
+
+=back
+=cut
+
+sub az_network_vnet_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: '\$args{resource_group}'" unless $args{resource_group};
+    my $cmd = "az network vnet list --resource-group $args{resource_group} --query \"[].name\" -o tsv";
+    my @vnet_list = split("\n", script_output($cmd));
+    return \@vnet_list;
+}
+
+=head2 az_network_vnet_subnet_list
+
+    az_network_vnet_subnet_list( resource_group => 'openqa-rg', vnet_name => 'rg-vnet' )
+
+    get list of subnets belonging to vnet inside resource group
+
+=over 2
+
+=item B<resource_group> - existing resource group name
+
+=item B<vnet_name> - existing vnet name
+
+=back
+=cut
+
+sub az_network_vnet_subnet_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: '\$args{resource_group}'" unless $args{resource_group};
+    croak "Missing mandatory argument: '\$args{vnet_name}'" unless $args{vnet_name};
+
+    my $cmd = "az network vnet subnet list --resource-group $args{resource_group} --vnet-name $args{vnet_name} --query \"[].name\" -o tsv";
+    my @subnet_list = split("\n", script_output($cmd));
+
+    return \@subnet_list;
+}
+
+=head2 az_network_nat_gateway_create
+
+    az_network_nat_gateway_create( resource_group => 'openqa-rg', gateway_name=>'', public_ip=>'' )
+
+    Create new NAT gateway, returns gateway name
+
+=over 2
+
+=item B<resource_group> - existing resource group name
+
+=item B<gateway_name> - name for newly created nat gateway
+
+=item B<public_ip> - exisitng public IP resource name to associate with gateway
+
+=back
+=cut
+
+sub az_network_nat_gateway_create {
+    my (%args) = @_;
+    croak "Missing mandatory argument: '\$args{resource_group}'" unless $args{resource_group};
+    croak "Missing mandatory argument: '\$args{gateway_name}'" unless $args{gateway_name};
+    croak "Missing mandatory argument: '\$args{public_ip}'" unless $args{public_ip};
+
+    my $cmd = "az network nat gateway create --resource-group $args{resource_group} --name $args{gateway_name} --public-ip-addresses $args{public_ip}";
+    assert_script_run($cmd);
+
+    return $args{gateway_name};
+}
+
+=head2 az_network_vnet_subnet_update
+
+    az_network_vnet_subnet_update( resource_group => 'openqa-rg', gateway_name=>'', public_ip=>'' )
+
+    Create new NAT gateway, returns gateway name
+
+=over 2
+
+=item B<resource_group> - existing resource group name
+
+=item B<gateway_name> - name for newly created nat gateway
+
+=item B<subnet_name> - resource name for existing subnet inside resource group
+
+=item B<vnet_name> - exisitng vnet resource name to associate with gateway
+
+=back
+=cut
+
+sub az_network_vnet_subnet_update {
+    my (%args) = @_;
+    foreach ('resource_group', 'subnet_name', 'vnet_name', 'gateway_name') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+
+    my $cmd = "az network vnet subnet update --resource-group $args{resource_group} --name $args{subnet_name} --vnet-name $args{vnet_name} --nat-gateway $args{gateway_name}";
+    assert_script_run($cmd);
 }

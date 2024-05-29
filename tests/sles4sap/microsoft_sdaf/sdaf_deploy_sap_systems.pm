@@ -12,7 +12,7 @@ use parent 'sles4sap::microsoft_sdaf_basetest';
 
 use strict;
 use warnings;
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -36,6 +36,13 @@ sub run {
     # 'vnet_code' variable changes with deployment type.
     set_os_variable('vnet_code', get_required_var('SDAF_WORKLOAD_VNET_CODE'));
     prepare_tfvars_file(deployment_type => 'sap_system');
+
+    # This overrides default VM size values which are way too big for functional testing
+    my $retrieve_custom_sizing = join(' ', 'curl', '-v', '-fL',
+        data_url('sles4sap/sdaf/custom_sizes.json'),
+        '-o', get_os_variable('CONFIG_REPO_PATH') . '/SYSTEM/LAB-SECE-SAP04-QES/custom_sizes.json');
+    assert_script_run($retrieve_custom_sizing);
+
     az_login();
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
 
