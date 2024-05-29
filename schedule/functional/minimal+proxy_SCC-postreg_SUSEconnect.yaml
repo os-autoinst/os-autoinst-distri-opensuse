@@ -1,15 +1,7 @@
 name:           minimal+proxy_SCC-postreg_SUSEconnect
 description:    >
-    Maintainer: riafarov
+    Maintainer: qe-core
     Register modules after a system is installed using SUSEconnect.
 schedule:
     - boot/boot_to_desktop
-    - console/validate_repos
-    - console/zypper_ref
-    - console/zypper_in
-    - console/firewall_enabled
-    - console/sshd_running
-    - x11/xterm
     - console/suseconnect_scc
-test_data:
-    <<: !include test_data/yast/skip_registration/default_repos.yaml
