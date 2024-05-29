@@ -1202,6 +1202,14 @@ sub qesap_cluster_log_cmds {
             Cmd => 'cat /var/tmp/hdblcm.log',
             Output => 'hdblcm.log.txt',
         },
+        {
+            Cmd => 'cat /var/log/zypper.log',
+            Output => 'zypper.log.txt',
+        },
+        {
+            Cmd => 'cat /var/log/zypp/history',
+            Output => 'zypp.history.txt',
+        },
     );
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         push @log_list, {
