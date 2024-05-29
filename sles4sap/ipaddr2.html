@@ -17,7 +17,9 @@
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
       <li><a href="#ipaddr2_azure_deployment">ipaddr2_azure_deployment</a></li>
       <li><a href="#ipaddr2_ssh_cmd">ipaddr2_ssh_cmd</a></li>
+      <li><a href="#ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</a></li>
       <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
+      <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -58,11 +60,23 @@
 
 <p>Create ssh command that target the only VM in the deployment that has public IP.</p>
 
+<h2 id="ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</h2>
+
+<pre><code>ipaddr2_deployment_sanity()</code></pre>
+
+<p>Run some checks on the existing deployment using the az command line. die in case of failure</p>
+
 <h2 id="ipaddr2_destroy">ipaddr2_destroy</h2>
 
 <pre><code>ipaddr2_destroy();</code></pre>
 
 <p>Destroy the deployment by deleting the resource group</p>
+
+<h2 id="ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</h2>
+
+<pre><code>my $vm_name = ipaddr2_get_internal_vm_name(42);</code></pre>
+
+<p>compose and return a string for the vm name</p>
 
 
 </body>
