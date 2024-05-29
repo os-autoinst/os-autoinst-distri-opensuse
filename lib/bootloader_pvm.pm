@@ -69,11 +69,12 @@ sub get_into_net_boot {
     assert_screen ["pvm-grub", "novalink-failed-first-boot"], 90;
 }
 
-=head2 prepare_pvm_installation
+=head2 reset_lpar_netboot
 
- prepare_pvm_installation();
+ reset_lpar_netboot();
 
-Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done
+Reset LPAR manually and attempt a second network boot when the first boot attempt failed in cases when the LPAR
+was reconfigured during the boot process or when it fails to load the linux kernel or initrd.
 
 =cut
 
