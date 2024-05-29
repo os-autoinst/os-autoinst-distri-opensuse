@@ -777,7 +777,7 @@ NO_CLOUD variable is set in order to test the image in QEMU
 =cut
 
 sub is_openstack {
-    return get_var('FLAVOR', '') =~ /JeOS-for-OpenStack-Cloud.*/ && check_var('NO_CLOUD', '0');
+    return get_var('FLAVOR', '') =~ /JeOS-for-OpenStack-Cloud.*/ && !get_var('NO_CLOUD');
 }
 
 =head2 is_leap_migration

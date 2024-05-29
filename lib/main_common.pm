@@ -574,7 +574,7 @@ sub load_system_role_tests {
 }
 
 sub load_jeos_openstack_tests {
-    return if (!is_openstack || get_var('JEOS_OPENSTACK_UPLOAD_IMG', 0));
+    return unless is_openstack;
     my $args = OpenQA::Test::RunArgs->new();
     loadtest 'boot/boot_to_desktop';
     if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
