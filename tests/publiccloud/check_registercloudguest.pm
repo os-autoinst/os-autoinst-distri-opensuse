@@ -145,12 +145,14 @@ sub check_instance_unregistered {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->{instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
-    if (is_azure()) {
-        record_info('azuremetadata', $self->{instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
+    if (exists($self->{my_instance})) {
+        $self->{my_instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
     }
-    $self->SUPER::post_fail_hook;
-    registercloudguest($self->{instance});
+    if (is_azure()) {
+        record_info('azuremetadata', $self->{my_instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
+    }
+    $self->SUPER::post_fail_hook();
+    registercloudguest($self->{my_instance});
 }
 
 sub test_flags {
