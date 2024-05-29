@@ -15,9 +15,9 @@
   <li><a href="#bootloader_pvm">bootloader_pvm</a>
     <ul>
       <li><a href="#get_into_net_boot">get_into_net_boot</a></li>
-      <li><a href="#prepare_pvm_installation">prepare_pvm_installation</a></li>
+      <li><a href="#reset_lpar_netboot">reset_lpar_netboot</a></li>
       <li><a href="#enter_netboot_parameters">enter_netboot_parameters</a></li>
-      <li><a href="#prepare_pvm_installation1">prepare_pvm_installation</a></li>
+      <li><a href="#prepare_pvm_installation">prepare_pvm_installation</a></li>
       <li><a href="#boot_pvm">boot_pvm</a></li>
       <li><a href="#check_lpar_is_down">check_lpar_is_down</a></li>
       <li><a href="#boot_hmc_pvm">boot_hmc_pvm</a></li>
@@ -36,11 +36,11 @@
 
 <p>Get into SMS menu for booting from net.</p>
 
-<h2 id="prepare_pvm_installation">prepare_pvm_installation</h2>
+<h2 id="reset_lpar_netboot">reset_lpar_netboot</h2>
 
-<pre><code>prepare_pvm_installation();</code></pre>
+<pre><code>reset_lpar_netboot();</code></pre>
 
-<p>Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done</p>
+<p>Reset LPAR manually and attempt a second network boot when the first boot attempt failed in cases when the LPAR was reconfigured during the boot process or when it fails to load the linux kernel or initrd.</p>
 
 <h2 id="enter_netboot_parameters">enter_netboot_parameters</h2>
 
@@ -48,7 +48,7 @@
 
 <p>Type kernel and ramdisk parameters in grub command line.</p>
 
-<h2 id="prepare_pvm_installation1">prepare_pvm_installation</h2>
+<h2 id="prepare_pvm_installation">prepare_pvm_installation</h2>
 
 <pre><code>prepare_pvm_installation();</code></pre>
 
