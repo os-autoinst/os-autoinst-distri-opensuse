@@ -2400,117 +2400,130 @@ sub load_virtualization_tests {
     return 1;
 }
 
+sub check_and_load_mu_virt_features {
+    my ($test, $modules, $hypervisor) = @_;
+    die "You can't have empty switch or test_modules" if (!$test or !$modules);
+
+    # Check the switch variable and host_hypervisor
+    if (check_var($test, 1) && (!$hypervisor || check_var('HOST_HYPERVISOR', $hypervisor))) {
+        loadtest "console/login";
+        loadtest "virt_autotest/cleanup_libvirtd_log";
+        foreach my $module (@$modules) {
+            loadtest $module;
+        }
+        loadtest "virtualization/universal/finish";
+    }
+}
+
+sub load_host_installation_modules {
+    loadtest "installation/welcome";
+    loadtest "installation/scc_registration";
+    loadtest "installation/addon_products_sle";
+    loadtest "installation/system_role";
+    loadtest "installation/partitioning";
+    loadtest "installation/partitioning_firstdisk";
+    loadtest "installation/partitioning_finish";
+    loadtest "installation/installer_timezone";
+    loadtest "installation/user_settings";
+    loadtest "installation/user_settings_root";
+    loadtest "installation/resolve_dependency_issues";
+    loadtest "installation/installation_overview";
+    loadtest "installation/disable_grub_timeout";
+    loadtest "installation/start_install";
+    loadtest "installation/await_install";
+    loadtest "installation/reboot_after_installation";
+}
+
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
-    return unless get_var('VIRT_PART');
-    my $windows = check_var('VIRT_PART', 'windows');
 
-    # Install hypervisor via autoyast or manually
-    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests if check_var('VIRT_PART', 'install');
-
-    if (get_var("AUTOYAST")) {
-        loadtest "autoyast/installation";
-        loadtest "virt_autotest/reboot_and_wait_up_normal";
-    }
-    else {
-        load_inst_tests if check_var('VIRT_PART', 'install');
-    }
-
-    loadtest "virt_autotest/login_console";
-
-    if (check_var('VIRT_PART', 'install')) {
-        loadtest 'virtualization/universal/prepare_guests';    # Prepare libvirt and install guests
-        loadtest 'virtualization/universal/ssh_hypervisor_init';    # Configure SSH for hypervisor
-        loadtest 'virtualization/universal/waitfor_guests';    # Wait for guests to be installed
-
-        loadtest 'virtualization/universal/ssh_guests_init';    # Fetch SSH key from guests and connect
-        loadtest 'virtualization/universal/register_guests';    # Register guests against the SMT server
-        loadtest 'virtualization/universal/upgrade_guests';    # Upgrade all guests
-        loadtest 'virtualization/universal/patch_guests';    # Apply patches to all compatible guests
-        loadtest 'virtualization/universal/patch_and_reboot';    # Apply updates and reboot
-
-        loadtest "virt_autotest/login_console";
-    }
-
-    loadtest "virtualization/universal/list_guests" unless ($windows);    # List all guests and ensure they are running
-
-    if (check_var('VIRT_PART', 'install')) {
-        loadtest "virtualization/universal/kernel";    # Virtualization kernel functions
-    }
-
-    if (check_var('VIRT_PART', 'virtmanager')) {
-        loadtest 'virtualization/universal/virtmanager_init';    # Connect to the Xen hypervisor using virt-manager
-        loadtest 'virtualization/universal/virtmanager_offon';    # Turn all VMs off and then on again
-
-        if (is_sle('12-SP3+')) {
-            loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some aditional HV to all VMs
-            loadtest 'virtualization/universal/virtmanager_rm_devices';    # Remove the aditional HV from all VMs
+    if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
+        if (get_var('AUTOYAST')) {
+            loadtest "autoyast/prepare_profile";
+        }
+        loadtest "boot/boot_from_pxe";
+        if (get_var('AUTOYAST')) {
+            loadtest "autoyast/installation";
+        } else {
+            load_host_installation_modules();
         }
     }
 
-
-    if (check_var('VIRT_PART', 'save_and_restore')) {
-        loadtest 'virtualization/universal/save_and_restore';    # Try to save and restore the state of the guest
+    if (check_var('ENABLE_VM_INSTALL', 1)) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/universal/prepare_guests";
+        loadtest "virtualization/universal/waitfor_guests";
+        if (check_var('PATCH_WITH_ZYPPER', 1)) {
+            loadtest "virtualization/universal/patch_and_reboot";
+            if (my $update_package = get_var('UPDATE_PACKAGE')) {
+                if ($update_package eq 'kernel-default') {
+                    loadtest "virt_autotest/login_console";
+                    loadtest "virtualization/universal/list_guests";
+                    loadtest "virtualization/universal/patch_guests";
+                } elsif ($update_package eq 'xen' || $update_package eq 'qemu') {
+                    loadtest "virt_autotest/login_console";
+                    loadtest "virtualization/universal/list_guests";
+                }
+            }
+        }
+        loadtest "virtualization/universal/kernel";
+        loadtest "virtualization/universal/finish";
     }
 
-    if (check_var('VIRT_PART', 'guest_management')) {
-        loadtest 'virtualization/universal/guest_management';    # Try to shutdown, start, suspend and resume the guest
+    my %virt_features = (
+        ENABLE_SAVE_AND_RESTORE => {
+            modules => ['virtualization/universal/save_and_restore'],
+        },
+        ENABLE_GUEST_MANAGEMENT => {
+            modules => ['virtualization/universal/guest_management'],
+        },
+        ENABLE_FINAL => {
+            modules => ['virtualization/universal/ssh_final', 'virtualization/universal/virtmanager_final', 'virtualization/universal/smoketest', 'virtualization/universal/stresstest', 'console/perf'],
+        },
+        ENABLE_STORAGE => {
+            modules => ['virtualization/universal/storage'],
+        },
+        ENABLE_WINDOWS => {
+            modules => ['virtualization/universal/download_image', 'virtualization/universal/windows'],
+        },
+        ENABLE_DOM_METRICS => {
+            modules => ['virtualization/universal/virsh_stop', 'virtualization/universal/xl_create', 'virtualization/universal/dom_install', 'virtualization/universal/dom_metrics', 'virtualization/universal/xl_stop', 'virtualization/universal/virsh_start'],
+            hypervisor => 'xen',
+        },
+        ENABLE_IRQBALANCE => {
+            modules => ['virt_autotest/xen_guest_irqbalance'],
+            hypervisor => 'xen',
+        },
+        ENABLE_VIR_NET => {
+            modules => ['virt_autotest/libvirt_host_bridge_virtual_network', 'virt_autotest/libvirt_nated_virtual_network', 'virt_autotest/libvirt_isolated_virtual_network'],
+        },
+        ENABLE_VIRTMANAGER => {
+            modules => ['virtualization/universal/virtmanager_init', 'virtualization/universal/virtmanager_offon', 'virtualization/universal/virtmanager_add_devices', 'virtualization/universal/virtmanager_rm_devices'],
+        },
+        ENABLE_HOTPLUGGING => {
+            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
+        },
+        ENABLE_SNAPSHOTS => {
+            modules => ['virt_autotest/virsh_internal_snapshot', 'virt_autotest/virsh_external_snapshot'],
+            hypervisor => 'kvm',
+        },
+        ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH => {
+            modules => ['virt_autotest/sriov_network_card_pci_passthrough'],
+        },
+    );
+
+    for my $test (keys %virt_features) {
+        next if $test eq 'ENABLE_SNAPSHOTS';
+        my $feature = $virt_features{$test};
+        my $modules = $feature->{modules};
+        my $hypervisor = $feature->{hypervisor};
+        if ($test eq 'ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH') {
+            next unless is_sle('>15');
+        }
+        check_and_load_mu_virt_features($test, $modules, $hypervisor);
     }
-
-    if (check_var('VIRT_PART', 'dom_metrics')) {
-        loadtest 'virtualization/universal/virsh_stop';    # Stop libvirt guests
-        loadtest 'virtualization/universal/xl_create';    # Clone guests using the xl Xen tool
-        loadtest 'virtualization/universal/dom_install';    # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/universal/dom_metrics';    # Collect some sample metrics
-        loadtest 'virtualization/universal/xl_stop';    # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/universal/virsh_start';    # Start virsh guests again
-    }
-
-    if (check_var('VIRT_PART', 'hotplugging')) {
-        loadtest 'virtualization/universal/hotplugging_guest_preparation';    # Prepare guests
-        loadtest 'virtualization/universal/hotplugging_network_interfaces';    # Virtual network hotplugging
-        loadtest 'virtualization/universal/hotplugging_HDD';    # Virtual block device hotplugging
-        loadtest 'virtualization/universal/hotplugging_vCPUs';    # Add and remove guests vCPU
-        loadtest 'virtualization/universal/hotplugging_memory';    # Live memory change of guests
-        loadtest 'virtualization/universal/hotplugging_cleanup';    # Restore guests properties
-    }
-
-    if (check_var('VIRT_PART', 'networking')) {
-        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
-        loadtest "virt_autotest/libvirt_nated_virtual_network";
-        loadtest "virt_autotest/libvirt_isolated_virtual_network";
-    }
-
-    if (check_var('VIRT_PART', 'irqbalance')) {
-        loadtest "virt_autotest/xen_guest_irqbalance";
-    }
-
-    if (check_var('VIRT_PART', 'snapshots')) {
-        loadtest "virt_autotest/virsh_internal_snapshot";
-        loadtest "virt_autotest/virsh_external_snapshot";
-
-    }
-
-    if (check_var('VIRT_PART', 'storage')) {
-        loadtest 'virtualization/universal/storage';    # Storage pool / volume test
-    }
-
-    if (check_var('VIRT_PART', 'final')) {
-        loadtest 'virtualization/universal/ssh_final';    # Check that every guest is reachable over SSH
-        loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
-        loadtest "virtualization/universal/smoketest";    # Virtualization smoke test for hypervisor
-        loadtest "virtualization/universal/stresstest";    # Perform stress tests on the guests
-        loadtest "console/perf";
-        loadtest "console/oprofile" unless (get_var("REGRESSION", '') =~ /xen/);
-    }
-
-    if ($windows) {
-        loadtest "virtualization/universal/download_image";    # Download Windows disk image(s)
-        loadtest "virtualization/universal/windows";    # Import and test Windows
-    }
-
-    loadtest "virtualization/universal/finish";    # Collect logs
+    # Load ENABLE_SNAPSHOTS at the end
+    check_and_load_mu_virt_features('ENABLE_SNAPSHOTS', $virt_features{ENABLE_SNAPSHOTS}{modules}, $virt_features{ENABLE_SNAPSHOTS}{hypervisor});
 }
 
 sub load_extra_tests_syscontainer {
