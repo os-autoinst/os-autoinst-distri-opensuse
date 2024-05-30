@@ -155,12 +155,6 @@ sub run {
     # during restart of the X/GDM stack
     if (is_sle_micro) {
         check_reboot_changes;
-        # Workaround to enable and start wicked service
-        if ((script_run('systemctl is-active wicked.service')) != 0) {
-            record_info('INFO', 'Workaround to enable and start wicked service');
-            systemctl 'enable wicked.service';
-            systemctl 'start wicked.service';
-        }
     } else {
         power_action('reboot', textmode => 1);
         reconnect_mgmt_console if is_pvm;
