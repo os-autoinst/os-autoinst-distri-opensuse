@@ -4,9 +4,6 @@ description: >
   as specified by the test_data. After installation, it verifies that the
   partitions are mounted by the expected option.
 name: fstab_mount_by
-vars:
-  YUI_REST_API: 1
-  DESKTOP: textmode
 schedule:
   suggested_partitioning:
     - installation/partitioning/new_partitioning_gpt

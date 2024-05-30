@@ -2,8 +2,6 @@
 name:           autologin@yast
 description:    >
   Test automatic login when selected for local user during installation.
-vars:
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop

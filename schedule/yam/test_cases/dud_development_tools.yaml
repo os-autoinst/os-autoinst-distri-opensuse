@@ -6,11 +6,6 @@ description: >
   runtime, so test cannot be executed on other architectures.
   Also development tools module requires desktop applications module as a
   dependency, so DESKTOP is set to gnome.
-vars:
-  DUD_ADDONS: sdk
-  DESKTOP: gnome
-  SCC_ADDONS: base,serverapp,desktop
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop

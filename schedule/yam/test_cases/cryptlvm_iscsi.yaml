@@ -2,14 +2,6 @@
 name: cryptlvm_iscsi
 description: >
   Conducts installation on iSCSI device relying on iBFT with encrypted LVM.
-vars:
-  DESKTOP: gnome
-  ENCRYPT: 1
-  IBFT: 1
-  LVM: 1
-  NBF: iqn.2016-02.openqa.de:for.openqa
-  NICTYPE: user
-  YUI_REST_API: 1
 schedule:
   disk_activation:
     - installation/iscsi_configuration
