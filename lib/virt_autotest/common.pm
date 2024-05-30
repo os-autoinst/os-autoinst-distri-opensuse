@@ -132,7 +132,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a9',
             ip => '192.168.122.121',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GMC-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.121/24,192.168.122.1,192.168.122.1"'
         },
         sles15sp6HVM => {
@@ -141,7 +141,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a0',
             ip => '192.168.122.122',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GMC-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.122/24,192.168.122.1,192.168.122.1"'
         }
     );
@@ -247,7 +247,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:b8',
             ip => '192.168.122.111',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GMC-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"'
         }
     );
