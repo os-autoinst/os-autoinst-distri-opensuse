@@ -97,12 +97,6 @@ sub run {
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
-    # Run common tests from test_all.py
-    $self->run_tox_cmd('all');
-
-    # Run metadata tests when needed
-    $self->run_tox_cmd('metadata') if get_var('BCI_TEST_METADATA');
-
     # Run environment specific tests
     for my $env (split(/,/, $test_envs)) {
         $self->run_tox_cmd($env);
