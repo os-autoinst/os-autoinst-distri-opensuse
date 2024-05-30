@@ -11,7 +11,7 @@
 #     'SDAF_ENV_CODE'  Code for SDAF deployment env.
 #     'SDAF_DEPLOYER_VNET_CODE' Deployer virtual network code.
 #     'SDAF_WORKLOAD_VNET_CODE' Virtual network code for workload zone.
-#     'SDAF_REGION_CODE' SDAF internal code for azure region.
+#     'PUBLIC_CLOUD_REGION' SDAF internal code for azure region.
 #     'SAP_SID' SAP system ID.
 #     'SDAF_DEPLOYER_RESOURCE_GROUP' Existing deployer resource group - part of the permanent cloud infrastructure.
 
@@ -19,7 +19,7 @@ use parent 'sles4sap::microsoft_sdaf_basetest';
 
 use strict;
 use warnings;
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -35,7 +35,7 @@ sub check_required_vars {
       SDAF_ENV_CODE
       SDAF_DEPLOYER_VNET_CODE
       SDAF_WORKLOAD_VNET_CODE
-      SDAF_REGION_CODE
+      PUBLIC_CLOUD_REGION
       SAP_SID
       SDAF_DEPLOYER_RESOURCE_GROUP
     );
@@ -51,7 +51,7 @@ sub run {
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
-    prepare_sdaf_repo();
+    prepare_sdaf_project();
     record_info('Jumphost ready');
 
     # Do not leave connection hanging around between modules.

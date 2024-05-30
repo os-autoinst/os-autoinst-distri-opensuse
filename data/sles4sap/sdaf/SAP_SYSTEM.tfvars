@@ -38,10 +38,10 @@
 environment = "%SDAF_ENV_CODE%"
 
 # The location value is a mandatory field, it is used to control where the resources are deployed
-location = "%SDAF_LOCATION%"
+location = "%PUBLIC_CLOUD_REGION%"
 
 #If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
-#custom_disk_sizes_filename = ""
+custom_disk_sizes_filename = "custom_sizes.json"
 
 #If you want to provide a custom naming json use the following parameter.
 #name_override_file = ""
@@ -107,7 +107,7 @@ network_logical_name = "%SDAF_VNET_CODE%"
 use_loadbalancers_for_standalone_deployments = false
 
 # use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
-use_private_endpoint = false
+use_private_endpoint = true
 
 
 #########################################################################################
@@ -154,11 +154,11 @@ database_platform = "HANA"
 database_server_count = 1
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
-database_high_availability = false
+database_high_availability = true
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
-database_size = "E20ds_v4"
+database_size = "Custom"
 
 # database_vm_sku, if provided defines the Virtual Machine SKU to use for the database virtual machines"
 #database_vm_sku = ""
@@ -266,7 +266,7 @@ database_use_avset = false
 #                                                                                       #
 #########################################################################################
 # app_tier_sizing_dictionary_key defines the VM SKU and the disk layout for the application tier servers.
-app_tier_sizing_dictionary_key = "Optimized"
+app_tier_sizing_dictionary_key = "Custom"
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
 enable_app_tier_deployment = true
@@ -497,9 +497,9 @@ dns_a_records_for_secondary_names = true
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider = "NONE"
+NFS_provider = "NFS"
 # sapmnt_volume_size defines the size of the sapmnt volume in GB
-sapmnt_volume_size = 16
+sapmnt_volume_size = 32
 
 # azure_files_sapmnt_id defines the Resource identifier for Azure Files for NFS storage account for sapmnt
 #azure_files_sapmnt_id = ""

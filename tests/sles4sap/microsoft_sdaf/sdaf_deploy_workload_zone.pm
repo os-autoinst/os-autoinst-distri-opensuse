@@ -12,7 +12,7 @@ use parent 'sles4sap::microsoft_sdaf_basetest';
 
 use strict;
 use warnings;
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
