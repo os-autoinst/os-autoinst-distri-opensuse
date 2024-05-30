@@ -205,6 +205,9 @@ sub export_logs {
     if ($utils::IN_ZYPPER_CALL) {
         upload_solvertestcase_logs();
     }
+
+    my $audit_log = "/var/log/audit/audit.log";
+    upload_logs("$audit_log", failok => 1);
 }
 
 =head2 problem_detection
