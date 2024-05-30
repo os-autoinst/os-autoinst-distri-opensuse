@@ -29,19 +29,46 @@ sub run {
     assert_script_run("set -o pipefail");
 
     # Specify the two usb drives to use
-    my $cmd = "ls /dev/disk/by-id/ -l | grep -i usb | "
-      . "grep -i -v -E \"generic|part|Virtual\" | sed 's#^.*\\\/##'";
-    my @usb = split('\n', script_output($cmd));
+    # If the default keywords cannot filter out the specific disks, please specify the variable
+    # 'USB_DISK_FILTER' to filter out the specified type of usb disks by shell script
+    my $usb_disk_filter = get_var('USB_DISK_FILTER') ? get_var('USB_DISK_FILTER') : "grep -i usb | grep -i -v -E 'part|Virtual|generic'";
+    my $cmd = "ls -l /dev/disk/by-id/ | " . $usb_disk_filter;
+    my @usb_disk_by_id = split('\n', script_output($cmd));
     record_info("Disk info on the machine:", script_output("ls /dev/disk/by-id/ -l; fdisk -l"));
-    die "No proper usb devices!" unless (scalar(@usb) == 2);
-    my $medium_usb = "/dev/$usb[0]";
-    my $provision_usb = "/dev/$usb[1]";
-    record_info("Pick usb drive $medium_usb to store ISO and $provision_usb to store ignition and combustion config.");
+    die "No proper usb devices!" unless (scalar(@usb_disk_by_id) == 2);
+
+    my $usb_boot_entry = get_var('SPECIFIED_USB_BOOT_ENTRY');
+    my $usb_dev = '';
+    my $medium_usb = '';
+    my $provision_usb = '';
+    if ($usb_boot_entry) {
+        my $match_usb = join('_', split(' ', $usb_boot_entry));
+        foreach (@usb_disk_by_id) {
+            $usb_dev = script_output(qq(sed 's#^.*/##' <<< "$_"));
+            chomp($usb_dev);
+            if ($_ =~ /$match_usb/) {
+                # Pick usb device $medium_usb to store ISO
+                $medium_usb = "/dev/$usb_dev";
+            } else {
+                # Pick usb device $provision_usb to store ignition and combustion config
+                $provision_usb = "/dev/$usb_dev";
+            }
+        }
+    } else {
+        for (0 .. $#usb_disk_by_id) {
+            $usb_dev = script_output(qq(sed 's#^.*/##' <<< "$usb_disk_by_id[$_]"));
+            chomp($usb_dev);
+            $medium_usb = "/dev/$usb_dev" if ($_ == 0);
+            $provision_usb = "/dev/$usb_dev" if ($_ == 1);
+        }
+    }
+    record_info("Medium usb device", $medium_usb);
+    record_info("Provision usb device", $provision_usb);
 
     # Write ignition config to one usb
-    assert_script_run("echo y | mkfs.ext4 $provision_usb", 60);
+    assert_script_run("echo y | mkfs.ext4 $provision_usb", 120);
     assert_script_run("e2label $provision_usb ignition");
-    assert_script_run("mkdir  -p /mnt");
+    assert_script_run("mkdir -p /mnt");
     assert_script_run("mount $provision_usb /mnt");
     assert_script_run("mkdir -p /mnt/ignition");
     $cmd = "curl -L "
@@ -93,10 +120,10 @@ sub run {
         my $cmd = '';
         my $output = '';
         my $usb_boot_num = '';
-        if (get_var('SPECIFIED_USB_BOOT_ENTRY')) {
+        if ($usb_boot_entry) {
             # Workaround for some machines, like vh081/82, which can not boot from user-added
             # uefi boot entry, but BIOS auto-detected entry.
-            $UEFI_USB_BOOT_LABEL = get_required_var('SPECIFIED_USB_BOOT_ENTRY');
+            $UEFI_USB_BOOT_LABEL = $usb_boot_entry;
         } else {
             # Delete the sle micro usb boot entry if it exists already
             # (old boot entry survives new installation)
@@ -115,7 +142,7 @@ sub run {
             assert_script_run("$cmd");
             save_screenshot;
         }
-        $cmd = "efibootmgr | grep $UEFI_USB_BOOT_LABEL";
+        $cmd = "efibootmgr | grep \"$UEFI_USB_BOOT_LABEL\"";
         $output = script_output("$cmd");
         $output =~ /Boot([0-9A-F]+)\*/m;
         $usb_boot_num = $1;
