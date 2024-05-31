@@ -934,7 +934,7 @@ find / -name YaST2-Second-Stage.service
                 <user>
                    <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
-                   <user_password>nots3cr3t</user_password>
+                   <user_password>{{PASSWORD}}</user_password>
                    <username>bernhard</username>
                 </user>
 
@@ -954,7 +954,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>65534</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>nobody</username>
     </user>
     <user>
@@ -972,7 +972,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>bin</username>
     </user>
     <user>
@@ -990,7 +990,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>495</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>puppet</username>
     </user>
     <user>
@@ -1008,7 +1008,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>498</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>sshd</username>
     </user>
     <user>
@@ -1026,7 +1026,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>30</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>wwwrun</username>
     </user>
     <user>
@@ -1044,7 +1044,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/sbin/nologin</shell>
       <uid>492</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>statd</username>
     </user>
     <user>
@@ -1062,7 +1062,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>9</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>news</username>
     </user>
     <user>
@@ -1080,7 +1080,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>40</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>ftp</username>
     </user>
     <user>
@@ -1098,7 +1098,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>13</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>man</username>
     </user>
     <user>
@@ -1116,7 +1116,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/sbin/nologin</shell>
       <uid>496</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>nscd</username>
     </user>
     <user>
@@ -1134,7 +1134,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/sbin/nologin</shell>
       <uid>493</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>rpc</username>
     </user>
     <user>
@@ -1152,7 +1152,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>51</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>postfix</username>
     </user>
     <user>
@@ -1170,7 +1170,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>8</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>mail</username>
     </user>
     <user>
@@ -1188,7 +1188,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>12</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>games</username>
     </user>
     <user>
@@ -1206,7 +1206,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/sbin/nologin</shell>
       <uid>494</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>openslp</username>
     </user>
     <user>
@@ -1224,7 +1224,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>499</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>messagebus</username>
     </user>
     <user>
@@ -1242,7 +1242,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/usr/sbin/nologin</shell>
       <uid>491</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>scard</username>
     </user>
     <user>
@@ -1260,7 +1260,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>2</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>daemon</username>
     </user>
     <user>
@@ -1278,7 +1278,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>root</username>
     </user>
     <user>
@@ -1296,7 +1296,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>25</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>at</username>
     </user>
     <user>
@@ -1314,7 +1314,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/sbin/nologin</shell>
       <uid>497</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>polkitd</username>
     </user>
     <user>
@@ -1332,7 +1332,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>10</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>uucp</username>
     </user>
     <user>
@@ -1350,7 +1350,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>4</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>lp</username>
     </user>
     <user>
@@ -1368,7 +1368,7 @@ find / -name YaST2-Second-Stage.service
       </password_settings>
       <shell>/bin/false</shell>
       <uid>74</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>ntp</username>
     </user>
   </users>

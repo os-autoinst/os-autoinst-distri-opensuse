@@ -339,7 +339,7 @@ sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_c
                 <user>
                    <fullname>Bernhard M. Wiedemann</fullname>
                    <encrypted config:type="boolean">false</encrypted>
-                   <user_password>nots3cr3t</user_password>
+                   <user_password>{{PASSWORD}}</user_password>
                    <username>bernhard</username>
                 </user>
 
@@ -355,7 +355,7 @@ sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_c
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>root</username>
     </user>
 

@@ -4,6 +4,7 @@ description: >
     Parent job produces autoyast profile after successful completion.
     This test uses generated profile to do autoyast installation.
 schedule:
+  - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   # On Tumbleweed process Welcome pop-up screen
