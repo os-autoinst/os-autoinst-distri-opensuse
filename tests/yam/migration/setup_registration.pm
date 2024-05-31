@@ -19,6 +19,7 @@ sub run {
     @filter{@addons_drop} = {};
 
     select_console('root-console');
+    assert_script_run('SUSEConnect -d');
     assert_script_run('SUSEConnect --debug --cleanup');
     assert_script_run('SUSEConnect --debug --regcode ' . get_required_var('SCC_REGCODE'), 200);
     my $addons_to_register = join(',', grep !exists $filter{$_}, @addons);
