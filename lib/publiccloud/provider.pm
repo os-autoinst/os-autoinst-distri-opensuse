@@ -342,7 +342,7 @@ sub create_instances {
     $args{check_connectivity} //= 1;
     $args{check_guestregister} //= 1;
     my @vms = $self->terraform_apply(%args);
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://larry.qe.suse.de:8086');
 
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
