@@ -435,7 +435,7 @@ sub wait_grub {
       if (is_aarch64_uefi_boot_hdd
         && !is_jeos
         && !$in_grub
-        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP')));
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP') || (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION'))));
     assert_screen(\@tags, $bootloader_time);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
