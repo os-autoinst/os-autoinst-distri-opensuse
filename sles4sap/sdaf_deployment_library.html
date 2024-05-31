@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>lib/sles4sap/sdaf_library.pm</title>
+<title>lib/sles4sap/sdaf_deployment_library.pm</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel='stylesheet' href='../style.css' />
 </head>
@@ -14,6 +14,8 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#convert_region_to_long">convert_region_to_long</a></li>
+      <li><a href="#convert_region_to_short">convert_region_to_short</a></li>
       <li><a href="#homedir">homedir</a></li>
       <li><a href="#deployment_dir">deployment_dir</a></li>
       <li><a href="#log_dir">log_dir</a></li>
@@ -30,19 +32,20 @@
       <li><a href="#sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
+      <li><a href="#get_sdaf_config_path">get_sdaf_config_path</a></li>
       <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
       <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
       <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
       <li><a href="#sdaf_execute_deployment">sdaf_execute_deployment</a></li>
       <li><a href="#get_sdaf_deployment_command">get_sdaf_deployment_command</a></li>
-      <li><a href="#prepare_sdaf_repo">prepare_sdaf_repo</a></li>
+      <li><a href="#prepare_sdaf_project">prepare_sdaf_project</a></li>
       <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
       <li><a href="#resource_group_exists">resource_group_exists</a></li>
       <li><a href="#sdaf_execute_remover">sdaf_execute_remover</a></li>
       <li><a href="#sdaf_cleanup">sdaf_cleanup</a></li>
     </ul>
   </li>
-</ul><h1>lib/sles4sap/sdaf_library.pm</h1>
+</ul><h1>lib/sles4sap/sdaf_deployment_library.pm</h1>
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
@@ -65,6 +68,26 @@
 <p><b>Workload zone</b>: Resource group that provides services similar to support server.</p>
 
 <p><b>SAP Systems</b>: Resource group containing SAP SUTs and related resources.</p>
+
+<h2 id="convert_region_to_long">convert_region_to_long</h2>
+
+<pre><code>convert_region_to_long($sdaf_region_code);</code></pre>
+
+<p><b>$sdaf_region_code</b>: Region name abbreviation containing 4 uppercase alphanumeric characters</p>
+
+<p>Performs region name conversion from 4 letter SDAF abbreviation to full region name. You can find definitions in the function <b>get_region_code</b> located in sdaf shell script:</p>
+
+<p><a href="https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403">https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403</a></p>
+
+<h2 id="convert_region_to_short">convert_region_to_short</h2>
+
+<pre><code>convert_region_to_short($region);</code></pre>
+
+<p><b>$region</b>: Full region name. Can contain only lowercase alphanumeric characters.</p>
+
+<p>Performs region name conversion from full region name to 4 letter SDAF abbreviation. You can find definitions in the function <b>get_region_code</b> located in sdaf shell script:</p>
+
+<p><a href="https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403">https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403</a></p>
 
 <h2 id="homedir">homedir</h2>
 
@@ -167,7 +190,7 @@ tee - writes output also into the log file</code></pre>
     [, env_code=&gt;$env_code]
     [, deployer_vnet_code=&gt;$deployer_vnet_code]
     [, workload_vnet_code=&gt;$workload_vnet_code]
-    [, region_code=&gt;$region_code]
+    [, sdaf_region_code=&gt;$sdaf_region_code]
     [, sap_sid=&gt;$sap_sid]
     [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
     [, sdaf_key_vault=&gt;$sdaf_key_vault]
@@ -181,7 +204,7 @@ tee - writes output also into the log file</code></pre>
 
 <p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
 
-<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
+<p><b>sdaf_region_code</b>: SDAF internal code for azure region. Default: &#39;PUBLIC_CLOUD_REGION&#39; - converted to SDAF format</p>
 
 <p><b>sap_sid</b>: SAP system ID. Default: &#39;SAP_SID&#39;</p>
 
@@ -233,12 +256,36 @@ tee - writes output also into the log file</code></pre>
 
 <p>Prints a simple line in serial console that highlights a point in output to make it more readable. Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.</p>
 
+<h2 id="get_sdaf_config_path">get_sdaf_config_path</h2>
+
+<pre><code>get_sdaf_config_path(
+    deployment_type=&gt;$deployment_type,
+    env_code=&gt;$env_code,
+    sdaf_region_code=&gt;$sdaf_region_code,
+    [vnet_code=&gt;$vnet_code,
+    sap_sid=&gt;$sap_sid,
+    job_id=&gt;$job_id]);</code></pre>
+
+<p>Returns path to config root directory for deployment type specified. Root config directory is deployment type specific and usually contains tfvar file, inventory file, SUT ssh keys, etc...</p>
+
+<p><b>deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
+
+<p><b>sdaf_region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
+
+<p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
+
+<p><b>sap_sid</b>: SDAF parameter for sap system ID</p>
+
+<p><b>job_id</b>: Specify job id instead of using current one. Default: current job id</p>
+
 <h2 id="get_tfvars_path">get_tfvars_path</h2>
 
 <pre><code>get_tfvars_path(
     deployment_type=&gt;$deployment_type,
     env_code=&gt;$env_code,
-    region_code=&gt;$region_code,
+    sdaf_region_code=&gt;$sdaf_region_code,
     [vnet_code=&gt;$vnet_code,
     sap_sid=&gt;$sap_sid]);</code></pre>
 
@@ -248,11 +295,11 @@ tee - writes output also into the log file</code></pre>
 
 <p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
 
-<p><b>region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
+<p><b>sdaf_region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
 
 <p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
 
-<p><b>sap_sid</b>: SDAF parameter for sap system ID</p>
+<p><b>sap_sid</b>: SDAF parameter for sap system ID. Required only for &#39;sap_system&#39; deployment type</p>
 
 <h2 id="prepare_tfvars_file">prepare_tfvars_file</h2>
 
@@ -278,6 +325,8 @@ tee - writes output also into the log file</code></pre>
 
 <p><b>timeout</b>: Execution timeout. Default: 1800s.</p>
 
+<p><b>retries</b>: Number of attempts to execute deployment in case of failure. Default: 3</p>
+
 <p>Executes SDAF deployment according to the type specified. Croaks with unsupported deployment type, dies upon command failure. <a href="https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone">https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone</a> <a href="https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure">https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure</a></p>
 
 <h2 id="get_sdaf_deployment_command">get_sdaf_deployment_command</h2>
@@ -290,11 +339,11 @@ tee - writes output also into the log file</code></pre>
 
 <p>Function composes SDAF deployment script command for <b>sap_system</b> or <b>workload_zone</b> according to official documentation. Although the documentation uses env OS variable references in the command, function replaces them with actual values. This is done for better debugging and logging transparency. Only sensitive values are hidden by using references.</p>
 
-<h2 id="prepare_sdaf_repo">prepare_sdaf_repo</h2>
+<h2 id="prepare_sdaf_project">prepare_sdaf_project</h2>
 
-<pre><code>prepare_sdaf_repo(
+<pre><code>prepare_sdaf_project(
      [, env_code=&gt;$env_code]
-     [, region_code=&gt;$region_code]
+     [, sdaf_region_code=&gt;$sdaf_region_code]
      [, workload_vnet_code=&gt;$workload_vnet_code]
      [, deployer_vnet_code=&gt;$workload_vnet_code]
      [, sap_sid=&gt;$sap_sid]);</code></pre>
@@ -307,7 +356,7 @@ tee - writes output also into the log file</code></pre>
 
 <p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
 
-<p><b>region_code</b>: SDAF internal code for azure region. Default: &#39;SDAF_REGION_CODE&#39;</p>
+<p><b>sdaf_region_code</b>: SDAF internal code for azure region. Default: &#39;PUBLIC_CLOUD_REGION&#39; converted to SDAF format</p>
 
 <p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
 
