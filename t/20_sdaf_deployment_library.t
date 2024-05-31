@@ -6,6 +6,7 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use List::MoreUtils qw(uniq);
+use List::Util qw(any none);
 use Data::Dumper;
 use testapi;
 use sles4sap::sdaf_deployment_library;
@@ -523,6 +524,23 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     ok $sdaf_command_no_log =~ m/$_/, "Command for deploying sap systems must contain cmd option: '$_'" foreach @sap_system_cmdline;
 };
 
+subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { return 1; });
+    $ms_sdaf->redefine(upload_logs => sub { return 0; });
+    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
+    $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
+    $ms_sdaf->redefine(set_os_variable => sub { return 1 });
+    $ms_sdaf->redefine(log_command_output => sub { return; });
+    $ms_sdaf->redefine(get_sdaf_deployment_command => sub { return 'dd if=/dev/zero of=/dev/sda'; });
+    my $retry = 0;
+    $ms_sdaf->redefine(script_run => sub { $retry++; print $retry; return 0 if $retry == 3; return 1 });
+
+    ok sdaf_execute_deployment(deployment_type => 'workload_zone', retries => 3);
+};
+
 subtest '[convert_region_to_long] Test conversion' => sub {
     is convert_region_to_long('SECE'), 'swedencentral', 'Convert abbreviation "SECE" to "swedencentral"';
     is convert_region_to_long('WUS2'), 'westus2', 'Convert abbreviation "WUS2" to "westus2"';
@@ -545,6 +563,81 @@ subtest '[convert_region_to_short] Test invalid input' => sub {
     my @invalid_region_names = qw(sweden central estus5 . estus);
     dies_ok { convert_region_to_short() } 'Croak with missing mandatory argument';
     dies_ok { convert_region_to_short($_) } "Croak with invalid region name: $_" foreach @invalid_region_names;
+};
+
+subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $croak_message;
+    $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; die(); });
+
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+    set_var('SAP_SID', 'QES');
+
+    dies_ok { sdaf_execute_playbook(sdaf_config_root_dir => '/love/and/peace') } 'Croak with missing mandatory argument "playbook_filename"';
+    ok $croak_message =~ m/playbook_filename/, 'Verify failure reason.';
+
+    dies_ok { sdaf_execute_playbook(playbook_filename => '00_world_domination.yaml') } 'Croak with missing mandatory argument "sdaf_config_root_dir"';
+    ok $croak_message =~ m/sdaf_config_root_dir/, 'Verify failure reason.';
+
+    undef_variables();
+};
+
+subtest '[sdaf_execute_playbook] Command execution' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my @calls;
+
+    $ms_sdaf->redefine(upload_logs => sub { return; });
+    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
+    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
+
+    set_var('SAP_SID', 'QES');
+    set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
+
+    sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ansible-playbook/ } @calls), 'Execute main command');
+    ok((any { /--inventory-file="QES_hosts.yaml"/ } @calls), 'Command contains "--inventory-file" parameter');
+    ok((any { /--private-key=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\/sshkey/ } @calls),
+        'Command contains "--private-key" parameter');
+    ok((any { /--extra-vars=\'_workspace_directory=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\'/ } @calls),
+        'Command contains extra variable: "_workspace_directory"');
+    ok((any { /--extra-vars="\@sap-parameters.yaml"/ } @calls), 'Command contains extra variable with SDAF sap-parameters');
+    ok((any { /--ssh-common-args=/ } @calls), 'Command contains "--ssh-common-args" parameter');
+
+    undef_variables();
+};
+
+subtest '[sdaf_execute_playbook] Command verbosity' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my @calls;
+
+    $ms_sdaf->redefine(upload_logs => sub { return; });
+    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
+    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { return; });
+    $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
+
+    set_var('SAP_SID', 'QES');
+
+    my %verbosity_levels = (
+        '1' => '-v',
+        '2' => '-vv',
+        '6' => '-vvvvvv',
+        'somethingtrue' => '-vvvv'
+    );
+
+    for my $level (keys(%verbosity_levels)) {
+        set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', $level);
+        sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS');
+        ok(grep(/$verbosity_levels{$level}/, @calls), "Append '$verbosity_levels{$level}' with verbosity parameter: '$level'");
+    }
+
+    undef_variables();
 };
 
 done_testing;
