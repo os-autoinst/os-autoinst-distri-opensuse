@@ -73,7 +73,7 @@ sub run {
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
     my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://larry.qe.suse.de:8086');
     my $use_nvme = is_azure() && get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v(2|3)';
     my @scenario = (
         {
