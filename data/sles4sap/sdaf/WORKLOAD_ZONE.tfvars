@@ -27,7 +27,7 @@
 environment = "%SDAF_ENV_CODE%"
 
 # The location value is a mandatory field, it is used to control where the resources are deployed
-location = "%SDAF_LOCATION%"
+location = "%PUBLIC_CLOUD_REGION%"
 
 #If you want to provide a custom naming json use the following parameter.
 #name_override_file = ""
@@ -334,7 +334,7 @@ dns_label="openqa.net"
 NFS_provider = "AFS"
 
 # use_AFS_for_installation_media defines if shared media is on AFS even when using ANF for data
-use_AFS_for_installation_media = true
+# use_AFS_for_installation_media = true
 
 #########################################################################################
 #                                                                                       #

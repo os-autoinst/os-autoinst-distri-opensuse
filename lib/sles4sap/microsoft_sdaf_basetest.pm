@@ -11,10 +11,15 @@ use strict;
 use warnings;
 use testapi;
 use parent 'opensusebasetest';
-use sles4sap::sdaf_library;
+use sles4sap::sdaf_deployment_library;
 use sles4sap::console_redirection;
 
 sub post_fail_hook {
+    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+        record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
+        return;
+    }
+
     record_info('Post fail', 'Executing post fail hook');
     # Cleanup SDAF files form Deployer VM
     connect_target_to_serial();
