@@ -348,7 +348,6 @@ else {
         }
     }
     elsif (get_var("AUTOYAST")) {
-        loadtest 'autoyast/prepare_profile';
         load_boot_tests();
         load_autoyast_tests();
         load_reboot_tests();

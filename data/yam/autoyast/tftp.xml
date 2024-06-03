@@ -156,7 +156,7 @@ chmod 755 /srv/tftpboot
       <home>/home/vagrant</home>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>{{PASSWORD}}</user_password>
+      <user_password>nots3cr3t</user_password>
       <username>vagrant</username>
     </user>
     <user>
@@ -166,7 +166,7 @@ chmod 755 /srv/tftpboot
       <home>/root</home>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>{{PASSWORD}}</user_password>
+      <user_password>nots3cr3t</user_password>
       <username>root</username>
     </user>
   </users>
