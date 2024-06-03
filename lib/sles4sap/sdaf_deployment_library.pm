@@ -415,6 +415,9 @@ sub set_common_sdaf_os_env {
     $args{sdaf_tfstate_storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
     $args{sdaf_key_vault} //= get_required_var('SDAF_KEY_VAULT');
 
+    # This is used later filling up tfvars files.
+    set_var('SDAF_REGION_CODE', $args{sdaf_region_code});
+
     my @variables = (
         "export env_code=$args{env_code}",
         "export deployer_vnet_code=$args{deployer_vnet_code}",
@@ -725,7 +728,7 @@ If OpenQA variable is not set, placeholder is replaced with empty value.
 sub replace_tfvars_variables {
     my ($tfvars_file) = @_;
     croak 'Variable "$tfvars_file" undefined' unless defined($tfvars_file);
-    my @variables = qw(SDAF_ENV_CODE PUBLIC_CLOUD_REGION SDAF_RESOURCE_GROUP SDAF_VNET_CODE SAP_SID);
+    my @variables = qw(SDAF_ENV_CODE PUBLIC_CLOUD_REGION SDAF_RESOURCE_GROUP SDAF_VNET_CODE SAP_SID SDAF_REGION_CODE);
     my %to_replace = map { '%' . $_ . '%' => get_var($_, '') } @variables;
     file_content_replace($tfvars_file, %to_replace);
 }
