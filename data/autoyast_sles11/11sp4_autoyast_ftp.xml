@@ -96,12 +96,12 @@ echo -e "\nlisten=NO\nlisten_ipv6=NO" >> /etc/vsftpd.conf
   <users config:type="list">
           <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <user_password>nots3cr3t</user_password>
+                      <user_password>{{PASSWORD}}</user_password>
                       <username>root</username>
           </user>
           <user>
                       <encrypted config:type="boolean">false</encrypted>
-                      <user_password>nots3cr3t</user_password>
+                      <user_password>{{PASSWORD}}</user_password>
                       <username>bernhard</username>
           </user>
 

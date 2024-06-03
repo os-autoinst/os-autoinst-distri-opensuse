@@ -37,6 +37,7 @@ our @EXPORT = qw(
   expand_version
   adjust_network_conf
   expand_variables
+  adjust_user_password
   upload_profile
   inject_registration
   init_autoyast_profile
@@ -720,6 +721,26 @@ sub expand_variables {
     return $profile;
 }
 
+=head2 adjust_user_password
+
+ adjust_user_password($profile);
+
+ Password is defined at first, see lib/main_common.pm like below:
+ ---
+ $testapi::password = "xxxxxx";
+ $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
+ ---
+
+ $profile is the autoyast profile 'autoinst.xml'.
+
+=cut
+
+sub adjust_user_password {
+    my ($profile) = @_;
+    $profile =~ s/\{\{PASSWORD\}\}/$testapi::password/g;
+    return $profile;
+}
+
 =head2 upload_profile
 
  upload_profile(profile => $profile, path => $path)
@@ -845,6 +866,7 @@ Get profile from autoyast template
 Map version names
 Get IP address from system variables
 Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE
+Adjust user password
 Modify profile with obtained values
 Return new path in case of using AutoYaST templates
 
@@ -866,6 +888,7 @@ sub prepare_ay_file {
     $profile = expand_version($profile);
     $profile = adjust_network_conf($profile);
     $profile = expand_variables($profile);
+    $profile = adjust_user_password($profile);
 
     if (check_var('IPXE', '1')) {
         $path = get_required_var('SUT_IP') . $path;

@@ -9,6 +9,7 @@ vars:
   AUTOYAST_LICENSE: 1
   DESKTOP: textmode
 schedule:
+  - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console

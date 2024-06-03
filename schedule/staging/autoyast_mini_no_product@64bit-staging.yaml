@@ -6,6 +6,7 @@ vars:
     AUTOYAST: autoyast/mini.xml
     AUTOYAST_CONFIRM: 1
 schedule:
+    - autoyast/prepare_profile
     - installation/bootloader
     - autoyast/installation
     - autoyast/console
