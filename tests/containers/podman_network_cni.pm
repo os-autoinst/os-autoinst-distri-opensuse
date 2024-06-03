@@ -20,8 +20,9 @@ sub run() {
 
     my ($self, $args) = @_;
     select_serial_terminal;
-
     my $podman = $self->containers_factory('podman');
+
+
     my $podman_version = get_podman_version();
     my $supports_network = (package_version_cmp($podman_version, '3.1.0') >= 0) ? 0 : 1;
 
@@ -54,13 +55,12 @@ sub run() {
 
     #connect, disconnect & reload
     unless ($supports_network) {
-        my $image = "registry.opensuse.org/opensuse/busybox";
         record_info('Prepare', 'Prepare three containers');
-        script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
+        script_retry("podman pull registry.opensuse.org/opensuse/tumbleweed", timeout => 300, delay => 60, retry => 3);
 
-        assert_script_run("podman run -id --rm --name container1 -p 1234:1234 $image");
-        assert_script_run("podman run -id --rm --name container2 -p 1235:1235 $image");
-        assert_script_run("podman run -id --rm --name container3 -p 1236:1236 $image");
+        assert_script_run('podman run -id --rm --name container1 -p 1234:1234 registry.opensuse.org/opensuse/tumbleweed');
+        assert_script_run('podman run -id --rm --name container2 -p 1235:1235 registry.opensuse.org/opensuse/tumbleweed');
+        assert_script_run('podman run -id --rm --name container3 -p 1236:1236 registry.opensuse.org/opensuse/tumbleweed');
 
         my $container_id = script_output("podman inspect -f '{{.Id}}' container3");
 

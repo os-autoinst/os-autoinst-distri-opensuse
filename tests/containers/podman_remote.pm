@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -14,7 +14,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 
 sub run {
     my ($self, $args) = @_;
-    my $image = 'registry.opensuse.org/opensuse/busybox:latest';
+    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
     select_serial_terminal();
     my $podman = $self->containers_factory('podman');
