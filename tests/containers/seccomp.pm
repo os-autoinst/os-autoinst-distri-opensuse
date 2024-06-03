@@ -26,7 +26,7 @@ sub run {
     assert_script_run "grep SECCOMP /boot/config-\$(uname -r)";
     assert_script_run "$runtime info | grep -i seccomp";
 
-    my $image = "registry.opensuse.org/opensuse/tumbleweed";
+    my $image = "registry.opensuse.org/opensuse/busybox";
     my $policy = "policy.json";
 
     assert_script_run('curl ' . data_url("containers/$runtime-seccomp.json") . " -o $policy");
