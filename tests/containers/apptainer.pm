@@ -14,28 +14,27 @@ use containers::utils qw(registry_url);
 
 sub run {
     my ($self) = @_;
-    # Not used of serial_terminal because causes some delays due to wait_serial
-    # failing match on `serial_term_prompt`
-    select_console 'root-console';
-    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+    $self->select_serial_terminal;
+    my $image = 'registry.opensuse.org/opensuse/leap:latest';
     my $registry = registry_url() . "/library";
     record_info('reg', "$registry");
     record_info('Installation', 'apptainer');
     zypper_call('install apptainer');
     record_info('Version', script_output('apptainer --version'));
+    assert_script_run('export APPTAINER_TMPDIR=/var/tmp');
     assert_script_run('apptainer cache list');
     record_info('Smoke run', 'Pull image');
     validate_script_output(qq{apptainer run --containall --no-https docker://$registry/alpine echo "hello"},
         sub { /hello/ }, timeout => 300);
 
     record_info('Run Tumbleweed container', "Create container from $image");
-    validate_script_output(qq{apptainer run --containall docker://$image cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE Tumbleweed/ });
+    validate_script_output(qq{apptainer run --containall docker://$image cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE Leap/ });
 
     record_info('Build', "Build sandbox from $image");
-    assert_script_run(qq{apptainer build --sandbox my_tw/ docker://$image});
-    assert_script_run('ls -la my_tw');
-    assert_script_run('apptainer exec --writable my_tw touch /foo');
-    validate_script_output('apptainer exec my_tw/ ls -l /foo',, sub { /foo/ });
+    assert_script_run(qq{apptainer build --sandbox my_os/ docker://$image});
+    assert_script_run('ls -la my_os');
+    assert_script_run('apptainer exec --writable my_os touch /foo');
+    validate_script_output('apptainer exec my_os/ ls -l /foo',, sub { /foo/ });
 
     record_info('Build with def file', 'Build from definition file');
     assert_script_run "curl " . data_url('containers/apptainer_container.def') . " -o ./apptainer_container.def";
@@ -52,7 +51,7 @@ sub run {
 
 sub post_run_hook {
     my ($self) = @_;
-    assert_script_run('rm -rf my_tw apptainer_container.def container.sif',
+    assert_script_run('rm -rf my_os apptainer_container.def container.sif',
         fail_message => "failed to remove test data. Check current folder: \n" . script_output('ls -l'));
     zypper_call('remove apptainer');
 }
