@@ -42,6 +42,8 @@ sub run_tests {
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
     script_run 'kill %1' if ($remote);
+
+    assert_script_run "podman system reset -f";
 }
 
 sub run {
