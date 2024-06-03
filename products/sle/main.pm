@@ -561,7 +561,7 @@ sub load_default_tests {
 }
 
 sub load_default_autoyast_tests {
-    loadtest "autoyast/prepare_profile";
+    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
     load_patching_tests if get_var('PATCH');
     load_boot_tests;
     load_autoyast_tests;
