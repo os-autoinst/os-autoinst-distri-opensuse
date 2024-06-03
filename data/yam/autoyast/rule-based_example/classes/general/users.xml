@@ -5,7 +5,7 @@
     <user>
       <encrypted config:type="boolean">false</encrypted>
       <fullname>Bernhard M. Wiedemann</fullname>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>bernhard</username>
     </user>
     <user>
@@ -15,7 +15,7 @@
       <home>/root</home>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>{{PASSWORD}}</user_password>
       <username>root</username>
     </user>
   </users>

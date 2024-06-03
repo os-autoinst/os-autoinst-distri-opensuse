@@ -2,7 +2,8 @@
 name: autoyast_reinstall
 description: >
     Parent job produces autoyast profile after successful completion.
-    This test uses generated profile to do autoyast installation.
+    This test uses generated profile to do autoyast installation, so
+    no need to run 'prepare_profile' any more.
 schedule:
   - installation/bootloader_start
   - autoyast/installation
