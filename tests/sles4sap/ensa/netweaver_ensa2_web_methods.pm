@@ -14,14 +14,23 @@ use testapi;
 use hacluster;
 use lockapi;
 use serial_terminal qw(select_serial_terminal);
-
+use version_utils 'is_sle';
 
 sub webmethod_checks {
     my ($self, $instance_id) = @_;
+    my $outputs;
+    my $looptime = 300;
+
     # General status will help with troubleshooting
     $self->sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
     record_info('ENSA check', "Executing 'HACheckConfig' and 'HACheckFailoverConfig'");
-    $self->sapcontrol(webmethod => 'HACheckConfig', instance_id => $instance_id);
+    while ($outputs = $self->sapcontrol(webmethod => 'HACheckConfig', instance_id => $instance_id, return_output => 1)) {
+        last unless ($outputs =~ /ERROR/);
+        record_info("ERROR found in HACheckConfig: $outputs", "sleep 30s and try again");
+        sleep 30;
+        $looptime -= 30;
+        last if ($looptime <= 0);
+    }
     $self->sapcontrol(webmethod => 'HACheckFailoverConfig', instance_id => $instance_id);
 }
 
@@ -61,6 +70,11 @@ sub run {
     $self->webmethod_checks($instance_id);
     # Execute failover from ASCS instance - this will return resources to original host
     if ($instance_type eq 'ASCS') {
+        # Some delay needed here for 12-SP5, don't know why even webmethod_checks passed
+        if (is_sle('=12-SP5')) {
+            sleep 300;
+            record_info "sleep 300s for 12-SP5";
+        }
         record_info('Failover', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
         $self->sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
     }
