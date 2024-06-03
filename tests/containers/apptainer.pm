@@ -21,6 +21,7 @@ sub run {
     record_info('Installation', 'apptainer');
     zypper_call('install apptainer');
     record_info('Version', script_output('apptainer --version'));
+    assert_script_run('export APPTAINER_TMPDIR=/var/tmp');
     assert_script_run('apptainer cache list');
     record_info('Smoke run', 'Pull image');
     validate_script_output(qq{apptainer run --containall --no-https docker://$registry/alpine echo "hello"},
