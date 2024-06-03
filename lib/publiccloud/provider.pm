@@ -705,6 +705,25 @@ sub terraform_param_tags
     return encode_json($tags);
 }
 
+=head2 get_terraform_output
+
+Query the terraform data structure in json format.
+Input: <jq-query-format> string; <empty> = no query then full output of data structure.
+E.g: to get the VM instance name from json data structure, the call is: 
+    get_terraform_output(".vm_name.value[0]");
+To get the complete output structure, the call is:
+    get_terraform_output();
+
+=cut
+
+sub get_terraform_output {
+    my ($self, $jq_query) = @_;
+    assert_script_run('cd ~/terraform');
+    my $res = script_output("terraform output -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
+    script_run('cd');
+    return $res;
+}
+
 sub escape_single_quote {
     my $s = shift;
     $s =~ s/'/'"'"'/g;
