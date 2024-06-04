@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use utils 'zypper_call';
 use registration 'register_addons_cmd';
 
 sub run {
@@ -21,10 +20,7 @@ sub run {
 
     select_console('root-console');
     assert_script_run('SUSEConnect --debug --cleanup');
-    foreach my $addon (@addons_drop) {
-        my $pkg_name = ($addon eq 'ltss') ? "sles-$addon-release" : "sle-module-$addon-release";
-        zypper_call("rm $pkg_name");
-    }
+    script_run('SUSEConnect -d', proceed_on_failure => 1);
     assert_script_run('SUSEConnect --debug --regcode ' . get_required_var('SCC_REGCODE'), 200);
     my $addons_to_register = join(',', grep !exists $filter{$_}, @addons);
     register_addons_cmd($addons_to_register);
