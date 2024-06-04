@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test boot of Elemental OS
@@ -12,6 +12,7 @@ use testapi;
 use power_action_utils qw(power_action);
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
@@ -25,12 +26,13 @@ sub run {
         }
     );
 
-
-    # Wait for GRUB
-    $self->wait_grub(bootloader_time => 120);
-    send_key('ret', wait_screen_change => 1);
-    wait_still_screen(timeout => 90);
-    save_screenshot();
+    # Wait for boot
+    # Bypass Grub on aarch64 as it can take too long to match the first grub2 needle
+    if (is_aarch64) {
+        $self->wait_boot_past_bootloader(textmode => 1);
+    } else {
+        $self->wait_boot(textmode => 1);
+    }
 
     ## No GUI, easier and quicker to use the serial console
     select_serial_terminal();
@@ -46,22 +48,26 @@ sub run {
     # Install Elemental OS on HDD
     assert_script_run('elemental install /dev/vda --debug --cloud-init ' . $cloudconfig);
 
-    # Reboot after installation
-    power_action('reboot', keepconsole => 1, textmode => 1);
-
-    # Use new root password
-    $testapi::password = get_var('TEST_PASSWORD');
-
     # Loop on all entries to test them
+    my @loop_count;
     foreach my $boot_entry (keys %boot_entries) {
         my $state = $boot_entries{$boot_entry};
         my $state_file = "/run/cos/${boot_entry}_mode";
+
+        # Incrememnt the loop counter
+        push @loop_count, $_;
+
+        # Reboot to test the Grub entry
+        power_action('reboot', keepconsole => 1, textmode => 1);
+
+        # Use new root password after the first reboot (so after OS installation)
+        $testapi::password = get_var('TEST_PASSWORD') if @loop_count == 1;
 
         # Select SUT for bootloader
         select_console('sut');
 
         # Wait for GRUB
-        $self->wait_grub(bootloader_time => 120);
+        $self->wait_grub();
 
         # Choose entry to test
         send_key_until_needlematch($state->{tag}, 'down');
@@ -73,7 +79,7 @@ sub run {
         select_serial_terminal();
 
         # Check that we are booted in the correct entry
-        # NOTE: Shell and Perl return code are inverted!
+        # NOTE: Shell and Perl return codes are inverted!
         if (!script_run("[[ -f ${state_file} ]]")) {
             record_info("$boot_entry detected!", "$state_file has been detected!");
         } else {
@@ -82,9 +88,6 @@ sub run {
 
         # Check the installed OS
         assert_script_run('cat /etc/os-release');
-
-        # Reboot to test the next entry
-        power_action('reboot', keepconsole => 1, textmode => 1);
 
         # Record boot
         record_info('OS boot', "$boot_entry: successfully tested!");
