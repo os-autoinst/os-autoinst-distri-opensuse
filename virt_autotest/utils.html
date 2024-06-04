@@ -20,6 +20,7 @@
       <li><a href="#check_system_registration">check_system_registration</a></li>
       <li><a href="#subscribe_extensions_and_modules">subscribe_extensions_and_modules</a></li>
       <li><a href="#is_sev_es_guest">is_sev_es_guest</a></li>
+      <li><a href="#get_guest_regcode">get_guest_regcode</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -59,6 +60,12 @@
 <pre><code>is_sev_es_guest($guest_name)</code></pre>
 
 <p>Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching whether sev-es or sev word is available in its name. The only argument for the subroutine is guest_name. It returns sev-es or sev if either is found in guest name, otherwise it returns 0.</p>
+
+<h2 id="get_guest_regcode">get_guest_regcode</h2>
+
+<pre><code>get_guest_regcode(separator =&gt; &#39;string separator&#39;)</code></pre>
+
+<p>Pass guest registration code in dynamically via GUEST_SCC_REGCODE and GUEST_SCC_REGCODE_LTSS. If they are not provided, SCC_REGCODE and SCC_REGCODE_LTSS_15 will be used. If there are multiple guest patterns , their corresponding registration codes should also be specified in the same order and separated by separators like pipe, comma or others. Empty value is allowed. For example, regcode_guest1|regcode_guest2|| regcode_guest4, because regcode_guest3 is emety, empty value is passed in to preserve order. For multiple guest patterns, an empty registration code for specific guest pattern will not be filled out by any default value and at the same time this means registration code is not needed for it at all. This subroutine has one argument separator and returns generated registration codes joined together by specified separator.</p>
 
 
 </body>
