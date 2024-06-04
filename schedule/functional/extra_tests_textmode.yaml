@@ -104,6 +104,7 @@ schedule:
     - '{{update_repos}}'
     - console/man_pages
     - console/ping
+    - console/arping
     - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref

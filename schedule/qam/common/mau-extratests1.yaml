@@ -8,6 +8,7 @@ schedule:
   - console/consoletest_setup
   - console/check_os_release
   - console/ping
+  - console/arping
   - console/man_pages
   - console/openvswitch
   - console/pam
