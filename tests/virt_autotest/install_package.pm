@@ -69,13 +69,13 @@ sub install_package {
         }
     }
 
-    ###Install KVM role patterns for aarch64 virtualization host
+    #Install KVM role patterns for aarch64 virtualization host
     if (is_remote_backend && is_aarch64) {
         zypper_call("--gpg-auto-import-keys ref", timeout => 180);
         zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
-    #install qa_lib_virtauto
+    #Install qa_lib_virtauto
     if (is_s390x) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
         my $pkg_lib_data = "qa_lib_virtauto-data";
@@ -99,11 +99,23 @@ sub install_package {
 
     virt_autotest::utils::install_default_packages();
 
-    ###Install required package for window guest installation on xen host
+    #Install required package for window guest installation on xen host
     if (get_var('GUEST_LIST', '') =~ /^win-.*/ && (is_xen_host)) { zypper_call '--no-refresh --no-gpg-checks in mkisofs' }
 
     #Subscribing packagehub from SLE 15-SP4 onwards that enables access to many useful software tools
     virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => 'PackageHub') if (!get_var('AUTOYAST') and is_sle('>=15-sp4') and !is_s390x);
+
+    #Switch all VM Passwords from installed settings files
+    my $setting_file = "/usr/share/qa/virtautolib/data/settings." . locate_sourcefile;
+    my $qa_password = $testapi::password;
+    my $vm_password = get_var('VIRTAUTO_VM_PASSWORD');
+    my $cmd = "sed -i -e 's/vm.pass=/vm.pass=$vm_password/g' -e 's/xen.pass=/xen.pass=$vm_password/g' -e 's/migratee.pass=/migratee.pass=$vm_password/g' -e 's/vm.sshpassword=/vm.sshpassword=$qa_password/g' $setting_file";
+    if (is_s390x) {
+        lpar_cmd("$cmd");
+    }
+    else {
+        script_run "$cmd";
+    }
 }
 
 sub run {
