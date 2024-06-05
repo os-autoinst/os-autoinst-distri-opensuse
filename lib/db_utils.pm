@@ -10,6 +10,7 @@ use warnings;
 use testapi;
 use mmapi qw(get_current_job_id);
 use JSON qw(encode_json);
+use utils qw(script_retry);
 
 our @EXPORT = qw(
   influxdb_push_data
@@ -242,10 +243,15 @@ sub check_postgres_db {
 
 sub is_ok_url {
     # url connectivity check
-    # Parameters: url[:port] [, timeout: default=90]
+    # Parameters: url[:port] [, <script_retry parameters>]
     my ($url, %args) = @_;
-    $args{timeout} //= 120;
-    my $cmd = "curl -skf --connect-timeout " . $args{timeout} . " " . $url . " >/dev/null";
-    # t+3 to let curl trigger first.
-    return (script_run($cmd, timeout => ($args{timeout} + 3), die_on_timeout => 0) == 0);
+    $args{die} //= 0;
+    $args{retry} //= 5;
+    $args{delay} //= 10;
+    $args{timeout} //= 50;
+    # Any other input default of called routine: max wait default = 300s
+    my $cmd = "curl -ILskf --connect-timeout " . $args{timeout} . " " . $url . " >/dev/null";
+    # Increase routine's timeout to let cmd timeout be triggered first.
+    $args{timeout} += 2;
+    return (script_retry($cmd, %args) == 0);
 }
