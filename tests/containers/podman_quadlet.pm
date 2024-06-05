@@ -34,7 +34,7 @@ Description=The sleep container
 After=local-fs.target
 
 [Container]
-Image=registry.opensuse.org/opensuse/tumbleweed:latest
+Image=registry.opensuse.org/opensuse/busybox:latest
 Exec=sleep 1000
 Volume=sleeper.volume:/opt
 
