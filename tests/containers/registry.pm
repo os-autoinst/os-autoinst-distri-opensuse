@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2023 SUSE LLC
+# Copyright 2012-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-distribution-registry | distribution-registry
@@ -86,14 +86,14 @@ sub run {
 
     # Run docker tests
     my $docker = $self->containers_factory('docker');
-    my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
-    registry_push_pull(image => $tumbleweed, runtime => $docker);
+    my $image = 'registry.opensuse.org/opensuse/busybox';
+    registry_push_pull(image => $image, runtime => $docker);
     $docker->cleanup_system_host();
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         my $podman = $self->containers_factory('podman');
-        registry_push_pull(image => $tumbleweed, runtime => $podman);
+        registry_push_pull(image => $image, runtime => $podman);
         $podman->cleanup_system_host();
     }
 }
