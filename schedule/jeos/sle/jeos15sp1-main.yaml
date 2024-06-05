@@ -58,6 +58,7 @@ schedule:
     - '{{udev_dep}}'
     - locale/keymap_or_locale
     - console/ping
+    - console/arping
     - console/apache
     - console/dns_srv
     - console/postgresql_server

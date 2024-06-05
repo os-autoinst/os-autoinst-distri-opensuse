@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Very basic ping tests.
-
+#
 # Tests pinging as user:
+# * various basic tests
 # * localhost (sanity checks for both RAW sockets used on older SLES/openSUSE
 #   and newer ICMP datagram socket)
 # * site-local IPv6, which had problems on ICMP datagram socket,
@@ -41,19 +42,53 @@ sub run {
 
     record_info('getcap', $capability);
 
-    my $ifname = script_output('ip -6 link |grep "^[0-9]:" |grep -v lo: | head -1 | awk "{print \$2}" | sed s/://');
-    my $addr = script_output("ip -6 addr show $ifname | grep 'scope link' | head -1 | awk '{ print \$2 }' | cut -d/ -f1");
+    my $ifname = script_output('ip link | grep -v lo: | awk "/^[0-9]/ {print \$2}" | sed s/:// | head -1');
+    my $ipv4 = script_output("ip -4 addr show $ifname | awk '/inet.*brd/ { print \$2 }' | head -1 | cut -d/ -f1");
+    my $ipv6 = script_output("ip -6 addr show $ifname | awk '/scope link/ { print \$2 }' | head -1 | cut -d/ -f1");
+    my $route = script_output("ip route show default | awk '/default/ {print \$3}' | head -1");
 
     # test as non-root user
     my $sudo = "sudo -u $testapi::username";
     record_info('id non-root', script_output("$sudo id", proceed_on_failure => 1));
 
-    foreach my $cmd ("ping localhost", "ping6 ::1", "ping6 $addr%$ifname") {
-        record_info($cmd);
-        assert_script_run("$sudo $cmd -c2");
+    # basic tests
+    my @tests = (
+        'ping localhost',
+        'ping6 ::1',
+        "ping -w5 $route",
+        "ping -W2 $route",
+        "ping -i2 $route",
+        "ping -s56 -D -v $route",
+        "ping6 $ipv6%$ifname",
+    );
+
+    # -4 and -6 support and merged ping6 command into ping was added in s20150815
+    # https://github.com/iputils/iputils/commit/ebad35fee3de851b809c7b72ccc654a72b6af61d
+    if (script_run('ping -V | grep -q -E "ping.*iputils.(s20150815|s20[12][6-9]|20)"') == 0) {
+        push @tests, 'ping -4 localhost';
+        push @tests, 'ping -6 ::1';
+        push @tests, 'ping ::1';
+        push @tests, "ping $ipv6%$ifname",;
+    } else {
+        record_info('Skipped', 'skipped tests for iputils < s20150815', result => 'softfail');
     }
 
-    my $cmd = "ping6 -c2 $addr -I$ifname -v";
+    # '.' (dot) as decimal separator for -i was forced since s20200821
+    # https://github.com/iputils/iputils/commit/d865d4c468965bbff1b9d6b912eee44ade52967d
+    # https://github.com/iputils/iputils/commit/1530bc9719c6bf4d01dd20b26e904995903d82d8
+    if (script_run('ping -V | grep -q -E "ping.*iputils.(s20200821|20)"') == 0) {
+        push @tests, "ping -i0.1 $route";
+    } else {
+        record_info('Skipped', 'skipped tests for iputils < s20200821', result => 'softfail');
+    }
+
+    for my $cmd (@tests) {
+        record_info($cmd);
+        assert_script_run("time $sudo $cmd -c2");
+    }
+
+    # IPv6 -I bug reproducibility
+    my $cmd = "ping6 -c2 $ipv6 -I$ifname -v";
     my $rc = script_run("$sudo $cmd -c2");
     if ($rc) {
         my $bug;
@@ -75,9 +110,9 @@ sub run {
     if ($capability && $ping_group_range !~ m/^net.ipv4.ping_group_range\s*=\s*1\s*0/) {
         my $msg = "capability '$capability' is not needed when ICMP socket allowed for non-root user: '$ping_group_range'";
         if (is_sle('=15-SP3')) {
-            record_info('unneeded capability', "bsc#1196840#c29: $msg", result => 'softfail');
+            record_info('Unneeded capability', "bsc#1196840#c29: $msg", result => 'softfail');
         } else {
-            record_info('unneeded capability', $msg, result => 'fail');
+            record_info('Unneeded capability', $msg, result => 'fail');
             $self->result("fail");
         }
     }
