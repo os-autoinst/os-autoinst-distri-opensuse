@@ -177,7 +177,7 @@ sub pull {
     }
     my $die = $args{die} // 1;
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
+    return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 6, delay => 60, die => $die);
 }
 
 =head2 enum_images
