@@ -153,16 +153,16 @@ sub supports_image_arch {
 }
 
 sub get_3rd_party_images {
-    my $registry = get_var('REGISTRY', 'docker.io');
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "$registry/library/alpine",
-        "$registry/library/debian");
+        "public.ecr.aws/docker/library/alpine",
+        "public.ecr.aws/debian/debian",
+    );
 
     # Following images are not available on 32-bit arm
     push @images, (
-        "$registry/library/fedora",
+        "registry.fedoraproject.org/fedora",
         "registry.access.redhat.com/ubi8/ubi",
         "registry.access.redhat.com/ubi8/ubi-minimal",
         "registry.access.redhat.com/ubi8/ubi-micro",
@@ -184,8 +184,8 @@ sub get_3rd_party_images {
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
     push @images, (
-        "$registry/library/ubuntu",
-        "$registry/library/centos"
+        "public.ecr.aws/ubuntu/ubuntu",
+        "public.ecr.aws/docker/library/centos"
     ) unless (is_arm || is_s390x || is_ppc64le);
 
     # RedHat UBI7 images are not built for aarch64 and 32-bit arm
