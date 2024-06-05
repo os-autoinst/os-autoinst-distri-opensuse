@@ -160,18 +160,10 @@ sub run {
     my @new_binaries_conflicts;    #New binaries with conflict will be installed alone e.g. libwx_base-suse-nostl-devel conflicts with libwx_base-devel
     my %bins;
 
-    if (get_var('BUILD') =~ /tomcat/ && get_var('HDD_1') =~ /SLED/) {
-        record_info('not shipped', 'tomcat is not shipped to Desktop https://suse.slack.com/archives/C02D16TCP99/p1706675337430879');
-        return;
-    }
 
     select_serial_terminal;
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
-
-    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
-    zypper_call(q{mr -f $(zypper lr | awk -F '|' '/SLES15-SP4-15.4-0/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
-    zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/12-SP3/" . get_var('ARCH') . "/update/ sle-module-live-patching:12-SP3::update") if is_sle('=12-SP3');
 
     # Extract module name from repo url.
     my @modules = split(/,/, $repos);
@@ -182,9 +174,6 @@ sub run {
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
     record_info('Modules', "@modules");
-
-    # Patch the SUT to a released state and reboot if reboot is needed;
-    reboot_and_login if fully_patch_system == 102;
 
     set_var('MAINT_TEST_REPO', $repos);
     my $repos_count = add_test_repositories;

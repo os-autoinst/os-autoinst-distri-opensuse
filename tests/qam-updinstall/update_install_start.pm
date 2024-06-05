@@ -13,14 +13,37 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 
+use utils qw(fully_patch_system);
+use power_action_utils qw(prepare_system_shutdown power_action);
+
+
 sub run {
     my $self = shift;
+
+    if (get_var('BUILD') =~ /tomcat/ && get_var('HDD_1') =~ /SLED/) {
+        record_info('not shipped', 'tomcat is not shipped to Desktop https://suse.slack.com/archives/C02D16TCP99/p1706675337430879');
+        return;
+    }
+
+    record_info("Repo quirks");
+    autotest::loadtest("tests/qam-updinstall/repo_quirks.pm");
+
+    record_info("Prepatch", "Bringig the image to a released state.");
+    fully_patch_system;
+    prepare_system_shutdown;
+    power_action("reboot");
+    record_info("Done", "SUT up to date");
+
+
+    $self->wait_boot(bootloader_time => 200);
+
     if (get_required_var('BUILD') =~ /^MR:/) {
         record_info("Maintenance Request Build", "Scheduling qam-updinstall/update_install_mr");
         autotest::loadtest("tests/qam-updinstall/update_install_mr.pm");
     }
     else {
         record_info("update_install", "Scheduling qam-updinstall/update_install");
+        autotest::loadtest("tests/qam-updinstall/smelt_info.pm");
         autotest::loadtest("tests/qam-updinstall/update_install.pm");
     }
 }
