@@ -19,7 +19,12 @@ sub run {
 
     assert_script_run 'make fltk';
     script_run './fltk', 0;
-    assert_screen 'ui-toolkit-fltk';
+    assert_screen [qw(ui-toolkit-fltk ui-toolkit-fltk-nomsg-display)];
+    if (match_has_tag 'ui-toolkit-fltk-nomsg-display') {
+        wait_screen_change { send_key 'alt-f4' };
+        script_run './fltk', 0;
+        assert_screen 'ui-toolkit-fltk';
+    }
     wait_screen_change { send_key 'alt-f4' };
     assert_script_run '$(exit $?)';
 
