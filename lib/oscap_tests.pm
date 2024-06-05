@@ -11,7 +11,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
-use base 'opensusebasetest';
+use base 'consoletest';
 use version_utils qw(is_sle is_opensuse);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils 'power_action';
@@ -1042,7 +1042,7 @@ sub oscap_security_guide_setup {
     Invalid or unexpected arguments, i.e. ansible-playbook --this-arg-doesnt-exist some_playbook.yml.
     A syntax or YAML parsing error was encountered during a dynamic include, i.e. include_role or include_task.
 
-3 = This used to mean “Hosts unreachable” per TQM, but that seems to have been redefined to 4. I’m not sure if this means anything different now.
+3 = This used to mean 'Hosts unreachable' per TQM, but that seems to have been redefined to 4. I'm not sure if this means anything different now.
 4 = Can mean any of:
 
     Some hosts were unreachable during the run (login errors, host unavailable, etc). This will NOT end the run early.
@@ -1097,8 +1097,16 @@ sub oscap_remediate {
             }
             $script_cmd .= " > $f_stdout 2> $f_stderr";
         }
-        $ret
-          = script_run($script_cmd, timeout => 3200);
+        my $pid = background_script_run($script_cmd, "running $script_cmd");
+        # wait for command to be complete. It can take 30 upto 60 minutes on slow platforms
+        my $minutes = 90;    # 1.5 h
+                             # loop while 'ps' command exits with 0, that means process is still running
+                             # in this way the user has an hint of some activity and we keep openQA communication alive
+        until (script_run("echo $minutes ; ps -p $pid > /dev/null")) {
+            sleep 60;
+            $minutes--;
+            die "timeout running Ansible remediation" if $minutes <= 0;
+        }
         # In case if STIG rules switches console to GUI need to switch it back
         if ($profile_ID =~ /stig/) {
             select_console 'root-console';
