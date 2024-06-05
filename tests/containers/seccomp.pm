@@ -26,21 +26,22 @@ sub run {
     assert_script_run "grep SECCOMP /boot/config-\$(uname -r)";
     assert_script_run "$runtime info | grep -i seccomp";
 
-    my $image = "registry.opensuse.org/opensuse/busybox";
+    # busybox ls doesn't handle readdir failure, so use something with coreutils inside.
+    # Note that there can also be a kind of false negative: with runc, the seccomp policy
+    # breaks runc even before it reaches ls.
+    my $image = "registry.opensuse.org/opensuse/tumbleweed";
     my $policy = "policy.json";
 
     assert_script_run('curl ' . data_url("containers/$runtime-seccomp.json") . " -o $policy");
 
-    # Run ls command
-    assert_script_run "$runtime run --rm --security-opt seccomp=$policy $image ls >/dev/null";
-    # Remove syscalls needed to get directory entries
+    # Verify ls works with that policy
+    validate_script_output "$runtime run --rm --security-opt seccomp=$policy $image ls", qr/proc/;
+    # Verify it fails if syscalls needed to get directory entries get denied
     assert_script_run "sed -i -e 's/\"getdents\",//' -e 's/\"getdents64\",//' $policy";
-    assert_script_run "! $runtime run --rm --security-opt seccomp=$policy $image ls >/dev/null";
+    assert_script_run "! $runtime run --rm --security-opt seccomp=$policy $image ls";
 
-    assert_script_run "$runtime run --rm --security-opt seccomp=unconfined $image ls >/dev/null";
+    validate_script_output "$runtime run --rm --security-opt seccomp=unconfined $image ls", qr/proc/;
 }
-
-1;
 
 sub cleanup() {
     $engine->cleanup_system_host();
@@ -57,3 +58,5 @@ sub post_run_hook {
     cleanup();
     $self->SUPER::post_run_hook;
 }
+
+1;
