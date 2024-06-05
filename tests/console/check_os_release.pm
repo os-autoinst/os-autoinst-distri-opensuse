@@ -62,10 +62,9 @@ sub run {
         $checker{CPE_NAME} = "cpe:/o:opensuse:tumbleweed:$checker{VERSION}";
         $checker{PRETTY_NAME} = $checker{NAME};
 
-        # Return early if BUILD is os-autoinst/os-autoinst-distri-opensuse
-        if (get_var('BUILD') =~ m/os-autoinst-distri-opensuse/) {
-            record_info "PR/Verification run", "os-autoinst/os-autoinst-distri-opensuse detected, skipping check";
-            return;
+        if ($checker{VERSION} !~ m/^\d+$/) {
+            record_info 'BUILD Non-Numeric', 'Non-Numeric BUILD setting in Tumbleweed. Skipping VERSION, VERSION_ID and CPE_NAME check';
+            delete $checker{$_} for qw(VERSION VERSION_ID CPE_NAME);
         }
     }
 
