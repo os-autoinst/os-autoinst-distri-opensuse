@@ -1,0 +1,5 @@
+name: "Post-installation configuration"
+stages:
+  after-install:
+  - commands:
+    - grub2-editenv %PATH%/grub_oem_env set timeout=-1

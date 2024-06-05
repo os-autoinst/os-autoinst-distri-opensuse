@@ -1,4 +1,4 @@
-name: "Post-installation configuration"
+name: "initramfs configuration"
 stages:
   initramfs:
   - name: "Setup users"
@@ -8,6 +8,3 @@ stages:
         kind: "shadow"
         username: "root"
         password: "%TEST_PASSWORD%"
-  after-install-chroot:
-  - commands:
-    - grub2-editenv /run/elemental/efi/grub_oem_env set timeout=-1
