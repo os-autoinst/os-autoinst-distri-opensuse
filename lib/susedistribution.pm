@@ -619,20 +619,6 @@ sub init_consoles {
             password   => get_required_var('_SECRET_VIOS_PASSWORD'),
             username   => get_var('_SECRET_VIOS_USERNAME', 'padmin'),
             persistent => 1});
-        $self->add_console('root-ssh', 'ssh-xterm', {
-            hostname => get_required_var('SUT_IP'),
-            password => get_required_var('ROOT_PASSWORD'),
-            user     => 'root',
-            serial   => 'mknod -m 0666 /dev/sshserial p; while true; do cat /dev/sshserial; done'});
-        $self->add_console(
-                'installation',
-                'vnc-base',
-                {
-                    hostname => $hostname,
-                    port => 1,
-                    password => get_required_var('ROOT_PASSWORD'),
-                    #password => $testapi::password
-                });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
             $self->add_console(
@@ -662,6 +648,14 @@ sub init_consoles {
                 hostname => $hostname,
                 port => 5901,
                 password => $testapi::password
+            });
+        $self->add_console(
+            'vnc-install',
+            'vnc-base',
+            {
+                hostname => get_required_var('STATIC_IP'),
+                port => 5901,
+                password => get_required_var('_SECRET_VNC_PASSWORD'),
             });
         $self->add_console(
             'iucvconn',
@@ -1025,6 +1019,9 @@ sub console_selected {
     # locked, display manager is waiting for login, etc.
     if ($args{tags} =~ /x11/) {
         return ensure_unlocked_desktop;
+    }
+    if ($args{tags} =~ /powerhmc-ssh|vnc-install/) {
+        return;
     }
     assert_screen($args{tags}, no_wait => 1, timeout => $args{timeout});
     if (match_has_tag('workqueue_lockup')) {
