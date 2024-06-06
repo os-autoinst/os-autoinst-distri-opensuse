@@ -28,6 +28,7 @@ sub cleanup {
         network_peering_present => $self->{network_peering_present},
         ansible_present => $self->{ansible_present}
     );
+
     if ($res) {
         $self->{cleanup_called} = 1;
         $self->{network_peering_present} = 0;
@@ -62,7 +63,16 @@ sub post_fail_hook {
         return;
     }
     qesap_cluster_logs();
-    eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
+    $self->cleanup();
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    if ($self->test_flags()->{publiccloud_multi_module} or get_var('QESAP_NO_CLEANUP')) {
+        diag('Skip post run', "Skipping post run hook. \n Variable 'QESAP_NO_CLEANUP' defined or test_flag 'publiccloud_multi_module' active");
+        return;
+    }
+    $self->cleanup();
 }
 
 1;
