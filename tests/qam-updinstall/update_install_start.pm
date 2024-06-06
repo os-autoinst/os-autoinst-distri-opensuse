@@ -25,17 +25,13 @@ sub run {
         return;
     }
 
-    record_info("Repo quirks");
+    # Apply repo quirks unrelated to the incident. e.g NVIDIA repo
     autotest::loadtest("tests/qam-updinstall/repo_quirks.pm");
 
-    record_info("Prepatch", "Bringig the image to a released state.");
-    fully_patch_system;
-    prepare_system_shutdown;
-    power_action("reboot");
-    record_info("Done", "SUT up to date");
+    # Bring the SUT to a fully released state
+    autotest::loadtest("tests/qam-updinstall/prepatch.pm");
 
-
-    $self->wait_boot(bootloader_time => 200);
+    
 
     if (get_required_var('BUILD') =~ /^MR:/) {
         record_info("Maintenance Request Build", "Scheduling qam-updinstall/update_install_mr");
