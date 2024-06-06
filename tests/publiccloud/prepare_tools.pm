@@ -74,12 +74,8 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python3-img-proof python3-img-proof-tests');
+    zypper_call('-q in python311-img-proof python311-img-proof-tests');
     record_info('python exec', script_output("$python_exec --version"));
-
-    # bsc#1213529
-    assert_script_run('cat /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt');
-    assert_script_run(q(sed -i 's/^typing-extensions>=4\.0\.1$/typing-extensions>=3.10.0.0/' /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt));
 
     assert_script_run("img-proof list");
     my $img_proof_ver = script_output('img-proof --version');
