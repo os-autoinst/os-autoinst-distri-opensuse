@@ -22,7 +22,7 @@ sub run {
             "Variable 'QESAP_NO_CLEANUP' set to value " . get_var('QESAP_NO_CLEANUP'));
         return 1;
     }
-    eval { $self->cleanup($run_args); } or bmwqemu::fctwarn("self::cleanup(\$run_args) failed -- $@");
+    $self->cleanup($run_args);
     $run_args->{network_peering_present} = $self->{network_peering_present};
     $run_args->{ansible_present} = $self->{ansible_present};
 }
