@@ -63,16 +63,11 @@ sub post_fail_hook {
         return;
     }
     qesap_cluster_logs();
-    $self->cleanup();
+    eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    if ($self->test_flags()->{publiccloud_multi_module} or get_var('QESAP_NO_CLEANUP')) {
-        diag('Skip post run', "Skipping post run hook. \n Variable 'QESAP_NO_CLEANUP' defined or test_flag 'publiccloud_multi_module' active");
-        return;
-    }
-    $self->cleanup();
+    diag('Skip post run', "Skipping post run hook. \n but also avoid to call the PC one");
 }
 
 1;
