@@ -503,14 +503,34 @@ sub wrap_script_run {
         #   Leftover
         #     - soft memlock for sybase      [FAIL]  8192 == 64
         #     - hard memlock for sybase      [FAIL]  8192 == 64
-        $ret_tmp = script_run("cat $log | grep -E '([FAIL]|[WARN])' | grep -Ev '(HANA.*notes.*1868829|ASE.*notes.*1410736|.*memlock for sybase.*)'");
-        if ($ret_tmp == 0) {
-            $result = 'fail';
-            record_soft_failure('Error found:jsc#TEAM-7435');
-            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
+
+        if ($output =~ /.*memlock\sfor\ssybase/) {
+            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
+        }
+        elsif ($output =~ /HANA.*notes.*1868829/) {
+            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
+        }
+        elsif ($output =~ /ASE.*notes.*1410736/) {
+            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
+        }
+        elsif ($output =~ /transparent_hugepage.*always\s\[madvise\]\snever/) {
+            # For Power, the default is changed to madavise
+            if (is_pvm) {
+                record_info('Issue can be ignored, see jsc#TEAM-9086', "$output");
+            }
+            else {
+                $result = 'fail';
+                record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
+            }
+        }
+        elsif ($output =~ /solution.*notes.*==.*1410736/ && $output =~ /net\.ipv4\.tcp_keepalive_time.*1250/) {
+            # SP6 is shipped with saptune v3.1.2. The ASE solution in this version contains the Notes: 941735 1680803 1771258 2578899 2993054 1656250.
+            # The test still assumes, that 1410736 is part of the solution, which sets (among others) net.ipv4.tcp_keepalive_time.
+            record_info('Issue can be ignored, see jsc#TEAM-9086', "$output");
         }
         else {
-            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
+            $result = 'fail';
+            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
         }
 
         if (is_public_cloud() && ($result == 'fail')) {

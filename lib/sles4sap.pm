@@ -837,6 +837,11 @@ sub reboot {
         wait_still_screen(30);
         $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));
     }
+    elsif (is_pvm_hmc) {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console;
+        $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));
+    }
     else {
         power_action('reboot', textmode => 1);
         $self->wait_boot(nologin => 1, bootloader_time => 300);
