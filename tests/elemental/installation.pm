@@ -52,6 +52,7 @@ sub run {
     # Bypass Grub on aarch64 as it can take too long to match the first grub2 needle
     if (is_aarch64) {
         $self->wait_boot_past_bootloader(textmode => 1);
+        sleep bmwqemu::scale_timeout(30);
     } else {
         $self->wait_boot(textmode => 1);
     }
