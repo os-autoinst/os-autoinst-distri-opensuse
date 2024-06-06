@@ -331,7 +331,7 @@
     "health-check-typo": {
         "description": "health-checker/fail.sh check\" failed|Failed to start MicroOS Health Checker|Machine didn't come up correct, do a rollback",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1" ],
             "leap-micro": ["5.2", "5.3", "5.4", "5.5"],
             "microos":  ["Tumbleweed"]
         },
@@ -341,7 +341,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
             "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0"]
+            "sle-micro": ["6.0", "6.1"]
         },
         "type": "ignore"
     },
@@ -509,7 +509,7 @@
     "bsc#1215377": {
         "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
         "products": {
-            "sle-micro": ["5.4" , "5.5", "6.0"],
+            "sle-micro": ["5.4" , "5.5", "6.0", "6.1"],
             "leap-micro": [ "5.5" ]
         },
         "type": "bug"
@@ -517,7 +517,7 @@
     "bsc#1215378": {
         "description": "(libvirtd|virtqemud).*: error from service: GDBus.Error:org.freedesktop.(login1.OperationInProgress: The operation inhibition has been requested for is already running|systemd1.ShuttingDown: Refusing activation, D-Bus is shutting down)",
         "products": {
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0"]
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
         },
         "type": "bug"
     },
@@ -576,7 +576,7 @@
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0"]
+            "sle-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
