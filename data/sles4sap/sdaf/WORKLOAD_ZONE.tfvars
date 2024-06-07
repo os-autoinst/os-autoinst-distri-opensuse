@@ -84,6 +84,24 @@ public_network_access_enabled = true
 # place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
 place_delete_lock_on_resources = false
 
+
+
+############################################################################################
+#                                                                                          #
+#                                  NAT Configuration                                       #
+#                                                                                          #
+############################################################################################
+
+deploy_nat_gateway = true
+nat_gateway_name   = "%SDAF_ENV_CODE%-%SDAF_REGION_CODE%-%SDAF_VNET_CODE%-NG_0001"
+# nat_gateway_public_ip_zones = ["1", "2", "3"]
+# nat_gateway_idle_timeout_in_minutes = 10
+nat_gateway_public_ip_tags = {
+  "ipTagType": "OpenQA-SDAF-automation",
+  "tag": "OpenQA-SDAF-automation"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #
