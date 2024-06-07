@@ -17,6 +17,8 @@ sub undef_variables {
       _SECRET_AZURE_SDAF_APP_ID
       _SECRET_AZURE_SDAF_APP_PASSWORD
       _SECRET_AZURE_SDAF_TENANT_ID
+      SDAF_GIT_AUTOMATION_REPO
+      SDAF_GIT_TEMPLATES_REPO
     );
     set_var($_, '') foreach @openqa_variables;
 }
@@ -38,6 +40,7 @@ subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_proj
     );
     my %get_tfvars_results;
     $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(assert_script_run => sub { return 1; });
     $ms_sdaf->redefine(get_current_job_id => sub { return '0079'; });
     $ms_sdaf->redefine(dirname => sub {
@@ -47,12 +50,14 @@ subtest '[get_tfvars_path] Test passing scenarios - test using prepare_sdaf_proj
             $get_tfvars_results{deployer} = $_[0] if grep(/DEPLOYER/, @_);
             return @_;
     });
+    set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
+    set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
 
     prepare_sdaf_project(%arguments);
     foreach (keys(%expected_results)) {
         is $get_tfvars_results{$_}, $expected_results{$_}, "Pass with corrct tfvars path generated for: $_";
     }
-
+    undef_variables();
 };
 
 subtest '[get_tfvars_path] Test unsupported deployment types - test using set_common_sdaf_os_env()' => sub {
@@ -70,6 +75,7 @@ subtest '[get_tfvars_path] Test unsupported deployment types - test using set_co
     my @unexpected_failures;
 
     $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(upload_logs => sub { return; });
     $ms_sdaf->redefine(assert_script_run => sub { return 1; });
     $ms_sdaf->redefine(get_current_job_id => sub { return '0079'; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/'; });
@@ -108,6 +114,7 @@ subtest '[prepare_sdaf_project]' => sub {
     my @git_commands;
     my %vnet_checks;
     $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(assert_script_run => sub {
             push(@git_commands, join('', $_[0])) if grep(/git/, $_[0]);
@@ -118,19 +125,17 @@ subtest '[prepare_sdaf_project]' => sub {
             my (%args) = @_;
             $vnet_checks{$args{deployment_type}} = $args{vnet_code};
             return '/some/useless/path'; });
+    set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation.git');
+    set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/sap-automation-samples.git');
 
     prepare_sdaf_project(%arguments);
-
-
-    is $git_commands[0], 'git clone https://github.com/Azure/sap-automation.git sap-automation --quiet', 'Clone SDAF automation code repo';
-    is $git_commands[1], 'git clone https://github.com/Azure/sap-automation-samples.git samples --quiet', 'Clone SDAF automation samples repo';
 
     # Check correct vnet codes
     is $vnet_checks{library}, '', 'Return library without vnet code';
     is $vnet_checks{deployer}, $arguments{deployer_vnet_code}, 'Return correct vnet code for deployer';
     is $vnet_checks{workload_zone}, $arguments{workload_vnet_code}, 'Return correct vnet code for workload zone';
     is $vnet_checks{sap_system}, $arguments{workload_vnet_code}, 'Return correct vnet code for sap SUT';
-
+    undef_variables();
 };
 
 subtest '[prepare_sdaf_project] Check directory creation' => sub {
@@ -150,11 +155,16 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(git_clone => sub { return; });
+
+    set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
+    set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
 
     prepare_sdaf_project(%arguments);
     is $mkdir_commands[0], 'mkdir -p /tmp/openqa_logs', 'Create logging directory';
     is $mkdir_commands[1], 'mkdir -p Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE',
       'Create workspace directory';
+    undef_variables;
 };
 
 subtest '[prepare_tfvars_file] Test missing or incorrect args' => sub {

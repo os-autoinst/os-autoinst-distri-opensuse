@@ -37,7 +37,11 @@ sub run {
     # NVIDIA repo is available only for x86_64 and aarch64
     # Add "--gpg-auto-import-keys" option due to poo#161798
     if (is_x86_64 || is_aarch64) {
-        zypper_call "--gpg-auto-import-keys in openSUSE-repos-NVIDIA";
+        if (zypper_call('in openSUSE-repos-NVIDIA', exitcode => [0, 106]) == 106) {
+            record_info('Refresh repos', 'see poo#161798');
+            zypper_call '--gpg-auto-import-keys ref';
+            zypper_call 'in openSUSE-repos-NVIDIA';
+        }
         assert_script_run("rpm -q $pkgname-NVIDIA");
     }
 
