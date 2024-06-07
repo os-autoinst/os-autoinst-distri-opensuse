@@ -54,12 +54,7 @@ sub switch_user {
 }
 
 sub change_pwd {
-    send_key "alt-p";
-    wait_still_screen;
-    send_key "ret";
-    wait_still_screen;
-    send_key "alt-p";
-    wait_still_screen;
+    assert_and_click "users-password";
     type_password;
     wait_still_screen;
     assert_and_click "new-password";
@@ -76,6 +71,7 @@ sub change_pwd {
 sub add_user {
     assert_and_click "add-user";
     assert_screen("before-input-username-test");
+    assert_and_click "focus-name-field";
     type_string $newUser;
     assert_screen("input-username-test");
     assert_and_click "set-password-option";
