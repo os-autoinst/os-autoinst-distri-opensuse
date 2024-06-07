@@ -58,7 +58,11 @@ sub load_boot_from_disk_tests {
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         loadtest 'jeos/firstrun';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
-        loadtest 'boot/cloud_init';
+        unless (is_s390x) {
+            loadtest 'installation/bootloader_uefi';
+            loadtest 'installation/first_boot';
+        }
+        loadtest 'jeos/verify_cloudinit';
     } else {
         if (is_s390x()) {
             loadtest 'boot/boot_to_desktop';
