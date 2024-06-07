@@ -75,6 +75,7 @@
           <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
           <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
           <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
+          <li><a href="#qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</a></li>
           <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
           <li><a href="#qesap_az_get_active_peerings">qesap_az_get_active_peerings</a></li>
         </ul>
@@ -994,6 +995,25 @@ the two provided deployments.</code></pre>
 </dd>
 </dl>
 
+<h3 id="qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</h3>
+
+<pre><code>Compose the azure peering list command, using the provided:
+- resource group, and
+- vnet
+Returns the command string to be run.</code></pre>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
+<dd>
+
+</dd>
+<dt id="VNET---vnet-connected-to-the-peering"><b>VNET</b> - vnet connected to the peering</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
 
 <pre><code>Search for all network peering related to both:
@@ -1004,7 +1024,7 @@ empty string if a peering doesn&#39;t exist</code></pre>
 
 <dl>
 
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
+<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering1"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
 <dd>
 
 </dd>
