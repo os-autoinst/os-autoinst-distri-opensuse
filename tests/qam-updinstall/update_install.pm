@@ -40,6 +40,14 @@
 #   UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN
 #   UPDATE_RESOLVE_SOLUTION_UNINSTALL
 #
+#   UPDATE_NEW_BIN_ENABLE_REPLACEFILES
+#     run install new bin/pacakage with --replacefiles, not enabled by default
+#     would hide unintended conflict
+#
+#   UPDATE_PATCH_ENABLE_REPLACEFILES
+#     run install patch with --replacefiles, not enabled by default
+#     would hide unintended conflict
+#
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
 use base "opensusebasetest";
@@ -337,10 +345,11 @@ sub run {
         enable_test_repositories($repos_count);
 
         # Patch binaries already installed.
+        my $patch_replacefiles = get_var('UPDATE_PATCH_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
         record_info 'Install patch', "Install patch $patch";
         if (get_var('UPDATE_PATCH_WITH_SOLVER_FEATURE')) {
             if ($solver_focus) {
-                zypper_call("in -l $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+                zypper_call("in -l $patch_replacefiles $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
             }
             else {
                 if (get_var('UPDATE_RESOLVE_SOLUTION_INSTALL')) {
@@ -352,13 +361,14 @@ sub run {
             }
         }
         else {
-            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            zypper_call("in -l $patch_replacefiles -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
         }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
+            my $new_replacefiles = get_var('UPDATE_NEW_BIN_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l $new_replacefiles @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         foreach (@new_binaries_conflicts) {
