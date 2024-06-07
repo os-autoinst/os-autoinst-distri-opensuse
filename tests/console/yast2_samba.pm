@@ -378,7 +378,7 @@ sub setup_samba {
 
 sub run {
     select_console 'root-console';
-    zypper_call 'in samba yast2-samba-server yast2-auth-server';
+    zypper_call 'in samba yast2-samba-server yast2-auth-server mozilla-nss-tools';
 
     # setup ldap instance (openldap or 389-ds) for samba
     if (is_sle('<15') || is_leap('<15.0')) {
