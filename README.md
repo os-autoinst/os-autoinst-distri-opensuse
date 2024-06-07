@@ -10,7 +10,7 @@ Status of [openSUSE Tumbleweed](https://get.opensuse.org/tumbleweed/) tests:
 
 ---
 *osado* – or with long name *os-autoinst-distri-opensuse* – is repo which
-contains tests, which are executed by openQA for openSUSE and SLE
+contains the [test distribution](https://en.wikipedia.org/wiki/Software_distribution) of the suite and harness, executed by openQA for openSUSE and SLE
 distributions.
 
 Why the name *osado*? Two reasons:
