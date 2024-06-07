@@ -617,7 +617,7 @@ sub measure_boottime() {
     my ($self, $instance, $type) = @_;
     my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
 
-    return 0 unless ($data_collect);
+    return 0 if (!$data_collect || is_openstack);
 
     my $ret = {
         kernel_release => undef,
