@@ -17,7 +17,7 @@ Please, find up-to-date documentation references on the official [openQA project
 If you are looking for a task to start with, check out the [openQA Tests](https://progress.opensuse.org/projects/openqatests/issues/)
 Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
-## How to get this repository working
+## How to get this repository working locally
 
 Upon setting up a new openQA instance, it's also necessary to install some
 additional dependencies that are inherent to this repository.
@@ -47,6 +47,25 @@ local::lib, or others), from within the working copy: call
 
 * For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
+## Developing tests in a browser
+
+If you only have a browser available, you can also develop tests with
+[GitHub Codespaces](https://docs.github.com/en/codespaces).
+
+On
+[os-autoinst-distri-opensuse](https://github.com/os-autoinst/os-autoinst-distri-opensuse).
+click on the "Code" button and select "Codespaces". Just click on the plus sign
+to create a new Codespace. Or use
+[this link](https://codespaces.new/os-autoinst/os-autoinst-distri-opensuse?quickstart=1)
+as a quickstart to resume existing instances or create new ones.
+
+See [OpenQA in a browser](https://open.qa/docs/#_openqa_in_a_browser) for
+documentation on how to use it.
+
+You can then directly modify tests in VSCode and run
+```
+openqa-clone-job url-to-job CASEDIR=$PWD
+`
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
