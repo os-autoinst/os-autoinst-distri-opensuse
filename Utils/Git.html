@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Utils/Git.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Utils::Git">Utils::Git</a>
+    <ul>
+      <li><a href="#git_clone">git_clone</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Utils/Git.pm</h1>
+
+<h1 id="Utils::Git">Utils::Git</h1>
+
+<p><code>Utils::Git</code> - Library for various git related functions</p>
+
+<h2 id="git_clone">git_clone</h2>
+
+<pre><code>git_clone(&#39;https://github.com/myrepo/tree/main&#39; [, branch=&gt;&#39;development&#39;, quiet=&gt;&#39;1&#39;, skip_ssl_verification=&gt;&#39;true&#39;,
+    output_log_file=&gt;&#39;git_clone.log&#39;]);</code></pre>
+
+<p><b>repository</b>: Git repository url. Mandatory argument.</p>
+
+<p><b>branch</b>: Clone specific branch. Default: not defined</p>
+
+<p><b>quiet</b>: Minimize output verbosity. Default: false</p>
+
+<p><b>skip_ssl_verification</b>: Disable SSL verification. Can be useful in case of self signed certificates. Define this parameter <b>ONLY</b> if you want to skip verification. Default: undef</p>
+
+<p><b>output_log_file</b>: Log output into a file.</p>
+
+<p>Generic wrapper around <code>git clone</code> command. Supports basic set of switches and output logging.</p>
+
+
+</body>
+
+</html>
+
+
