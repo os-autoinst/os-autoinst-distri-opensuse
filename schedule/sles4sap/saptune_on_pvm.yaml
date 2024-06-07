@@ -1,8 +1,7 @@
 ---
-name: pvm_hana_gnome
+name: saptune_on_pvm
 description: >
-  SLES4SAP Installation on pvm_hmc and HANA installation and test.
-  Set HANA to the installation master path over NFS or SMB in the yaml job group.
+  SLES4SAP Installation on pvm_hmc and test saptune.
 vars:
   AUTOMATED_REGISTER: 'false'
   DESKTOP: 'textmode'
