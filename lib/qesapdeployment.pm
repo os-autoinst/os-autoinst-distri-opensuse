@@ -1996,6 +1996,33 @@ sub qesap_az_vnet_peering_delete {
     record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
 }
 
+=head3 qesap_az_peering_list_cmd
+
+    Compose the azure peering list command, using the provided:
+    - resource group, and
+    - vnet
+    Returns the command string to be run.
+
+=over 2
+
+=item B<RESOURCE_GROUP> - resource group connected to the peering
+
+=item B<VNET> - vnet connected to the peering
+
+=back
+=cut
+
+sub qesap_az_peering_list_cmd {
+    my (%args) = @_;
+    foreach (qw(resource_group vnet)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    return join(' ', 'az network vnet peering list',
+        '-g', $args{resource_group},
+        '--vnet-name', $args{vnet},
+        '--query "[].name"',
+        '-o tsv');
+}
+
 =head3 qesap_az_get_peering_name
 
     Search for all network peering related to both:
@@ -2016,12 +2043,8 @@ sub qesap_az_get_peering_name {
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
 
     my $job_id = get_current_job_id();
-    my $cmd = join(' ', 'az network vnet peering list',
-        '-g', $args{resource_group},
-        '--vnet-name', qesap_az_get_vnet($args{resource_group}),
-        '--query "[].name"',
-        '-o tsv',
-        '| grep', $job_id);
+    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{resource_group}, vnet => qesap_az_get_vnet($args{resource_group}));
+    $cmd .= ' | grep ' . $job_id;
     return script_output($cmd, proceed_on_failure => 1);
 }
 
@@ -2041,11 +2064,7 @@ sub qesap_az_get_peering_name {
 sub qesap_az_get_active_peerings {
     my (%args) = @_;
     foreach (qw(rg vnet)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    my $cmd = join(' ', 'az network vnet peering list',
-        '-g', $args{rg},
-        '--vnet-name', $args{vnet},
-        '--output tsv',
-        '--query "[].name"');
+    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{rg}, vnet => $args{vnet});
     my $output_str = script_output($cmd);
     my @output = split(/\n/, $output_str);
     my %result;
