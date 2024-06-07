@@ -6,12 +6,12 @@
 
 # Summary: QAM incident install test in openQA
 #    1) boots prepared image / clean install
-#    2) update it to last released updates
+#    2) update it to last released updates and do reboot if needed
 #    3) install packages mentioned in each patch at once
 #       update can contain multiple patches which could together conflict
 #    4) conflicting packages will be installed one by one
-#    5) try install update and store install_logs
-#    6) try reboot
+#    5) install update, reboot end store install_logs
+#    6) rollback to state before patch if multiple patches are tested
 #    7) all done
 #
 #   variables: I added variables to contol behavior of the test when needed
@@ -39,6 +39,14 @@
 #   UPDATE_RESOLVE_SOLUTION_INSTALL
 #   UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL_NEW_BIN
 #   UPDATE_RESOLVE_SOLUTION_UNINSTALL
+#
+#   UPDATE_NEW_BIN_ENABLE_REPLACEFILES
+#     run install new bin/pacakage with --replacefiles, not enabled by default
+#     would hide unintended conflict
+#
+#   UPDATE_PATCH_ENABLE_REPLACEFILES
+#     run install patch with --replacefiles, not enabled by default
+#     would hide unintended conflict
 #
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
@@ -136,6 +144,13 @@ sub sle12_zypp_resolve {
     ", 1500;
 }
 
+sub reboot_and_login {
+    prepare_system_shutdown;
+    power_action('reboot');
+    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+    select_serial_terminal;
+}
+
 sub run {
     my ($self) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
@@ -168,12 +183,15 @@ sub run {
     }
     record_info('Modules', "@modules");
 
-    # Patch the SUT to a released state;
-    fully_patch_system;
+    # Patch the SUT to a released state and reboot if reboot is needed;
+    reboot_and_login if fully_patch_system == 102;
 
     set_var('MAINT_TEST_REPO', $repos);
     my $repos_count = add_test_repositories;
     record_info('Repos', script_output('zypper lr -u'));
+
+    record_info 'Snapshot created', 'Snapshot for rollback';
+    my $rollback_number = script_output('snapper create --description "Pre-patch" -p');
 
     my @patches = get_patch($incident_id, $repos);
     record_info "Patches", "@patches";
@@ -300,24 +318,9 @@ sub run {
                 # Store version of installed binaries after update.
                 $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new');
 
-                disable_test_repositories($repos_count);
-
-                record_info 'Conflict uninstall', "Uninstall patch $patch with conflicting $single_package";
-                # update repos are disabled, zypper dup will downgrade packages from patch
-                if ($solver_focus) {
-                    zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
-                }
-                else {
-                    sle12_zypp_resolve('zypper -v dup -l --replacefiles',, get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_UNINSTALL', 1));
-                }
-                # remove conflicts
-                foreach (@update_conflicts) {
-                    zypper_call("rm $_", exitcode => [0, 104]);
-                }
-                # remove patched packages with multiple versions installed e.g. kernel-source
-                foreach (@patch_l3, @patch_l2) {
-                    zypper_call("rm $_-\$(zypper se -si $_|awk 'END{print\$7}')", exitcode => [0, 104]) if script_output("rpm -q $_|wc -l", proceed_on_failure => 1) >= 2;
-                }
+                record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
+                assert_script_run("snapper rollback $rollback_number");
+                reboot_and_login;
             }
         }
 
@@ -342,10 +345,11 @@ sub run {
         enable_test_repositories($repos_count);
 
         # Patch binaries already installed.
+        my $patch_replacefiles = get_var('UPDATE_PATCH_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
         record_info 'Install patch', "Install patch $patch";
         if (get_var('UPDATE_PATCH_WITH_SOLVER_FEATURE')) {
             if ($solver_focus) {
-                zypper_call("in -l $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+                zypper_call("in -l $patch_replacefiles $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
             }
             else {
                 if (get_var('UPDATE_RESOLVE_SOLUTION_INSTALL')) {
@@ -357,13 +361,14 @@ sub run {
             }
         }
         else {
-            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            zypper_call("in -l $patch_replacefiles -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
         }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
+            my $new_replacefiles = get_var('UPDATE_NEW_BIN_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l $new_replacefiles @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         foreach (@new_binaries_conflicts) {
@@ -375,6 +380,9 @@ sub run {
                 zypper_call("in -l $solver_focus $_", exitcode => [0, 102, 103], log => "new_${_}_conflicts.log", timeout => 1500);
             }
         }
+
+        record_info 'Reboot after patch', "system is bootable after patch $patch";
+        reboot_and_login;
 
         # After the patches have been applied and the new binaries have been
         # installed, check the version again and based on that determine if the
@@ -407,22 +415,11 @@ sub run {
         record_soft_failure 'poo#67357 Some L3 binaries were not updated.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l3);
         record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l2);
 
-        # no need to uninstall last patch
+        # no need to rollback last patch
         unless ($patch eq $patches[-1]) {
-            disable_test_repositories($repos_count);
-            record_info 'Uninstall patch', "Uninstall patch $patch";
-            # zypper dup will downgrade dependencies of packages from patch
-            if ($solver_focus) {
-                zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
-            }
-            else {
-                sle12_zypp_resolve('zypper -v dup -l --replacefiles',, get_var('UPDATE_RESOLVE_SOLUTION_UNINSTALL', 1));
-            }
-            # remove patched packages with multiple versions installed e.g. kernel-source
-            foreach (@patch_l3, @patch_l2) {
-                zypper_call("rm $_-\$(zypper se -si $_|awk 'END{print\$7}')", exitcode => [0, 104]) if script_output("rpm -q $_|wc -l", proceed_on_failure => 1) >= 2;
-            }
-            enable_test_repositories($repos_count);
+            record_info 'Rollback', "Rollback system before $patch";
+            assert_script_run("snapper rollback $rollback_number");
+            reboot_and_login;
         }
     }
 
@@ -432,10 +429,6 @@ sub run {
         assert_script_run("cat /tmp/$_* > /tmp/$_.log");
         upload_logs("/tmp/$_.log");
     }
-
-    prepare_system_shutdown;
-    power_action("reboot");
-    $self->wait_boot(bootloader_time => 200);
 }
 
 sub test_flags {

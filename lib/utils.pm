@@ -815,6 +815,7 @@ sub fully_patch_system {
     }
 
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
+    return $ret;
 }
 
 =head2 ssh_fully_patch_system
