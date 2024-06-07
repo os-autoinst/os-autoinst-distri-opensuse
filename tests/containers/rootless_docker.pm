@@ -43,7 +43,7 @@ sub run {
     if ($subuid_start eq '') {
         record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
         $subuid_start = 200000;
-        my $subuid_range = $subuid_start + 1000;
+        my $subuid_range = $subuid_start + 65535;
         assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
     }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
