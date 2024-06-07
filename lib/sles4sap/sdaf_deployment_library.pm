@@ -15,6 +15,7 @@ use Exporter qw(import);
 use Carp qw(croak);
 use mmapi qw(get_current_job_id);
 use utils qw(write_sut_file);
+use Utils::Git qw(git_clone);
 use File::Basename;
 use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
@@ -859,18 +860,19 @@ sub prepare_sdaf_project {
     $args{sap_sid} //= get_required_var('SAP_SID');
 
     my $deployment_dir = deployment_dir(create => 'yes');
-    my @git_repos = ("https://github.com/Azure/sap-automation.git sap-automation",
-        "https://github.com/Azure/sap-automation-samples.git samples");
 
     assert_script_run("cd $deployment_dir");
     assert_script_run('mkdir -p ' . log_dir());
 
-    foreach (@git_repos) {
-        record_info('Clone repo', "Cloning SDAF repository: $_");
-        assert_script_run("git clone $_ --quiet");
-    }
+    git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
+        branch => get_var('SDAF_GIT_AUTOMATION_BRANCH'),
+        output_log_file => log_dir() . '/git_clone_automation.log');
 
-    assert_script_run("cp -Rp samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
+    git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
+        branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
+        output_log_file => log_dir() . '/git_clone_templates.log');
+
+    assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
         workload_zone => $args{workload_vnet_code},
