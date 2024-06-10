@@ -23,19 +23,10 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   kdump_is_active do_kdump configure_service check_function
   full_kdump_check deactivate_kdump_cli);
 
-sub determine_kernel_debuginfo_latest_version {
-    # Using the provided capabilities of the latest installed kernel,
-    # get the name and version and add "-debuginfo" to the name.
-    # There is only kernel-default-debuginfo for both kernel-default & -base,
-    # kernel-default-base has extended version of kernel-default
-    # Before kernel-default-base was built separately (< 15 SP2/15.2):
-    # kernel-default-base(x86-64) = 4.12.14-197.37.1
-    # -> kernel-default-debuginfo-4.12.14-197.37.1
-    # With kernel-default-base built separately (>= 15 SP2/15.2):
-    # kernel-default(x86-64) = 5.3.18-lp152.26.2
-    # kernel-default-base(x86-64) = 5.3.18-lp152.26.2.lp152.8.2.2
-    # -> kernel-default-debuginfo-5.3.18-lp152.26.2
-    return script_output(q(zypper se -t package -s --match-exact kernel-default|awk -F'|' '/[0-9]+/ {print$4}'|sort -Vr|head -n1));
+sub determine_kernel_debuginfo_package {
+    # Using the provided capabilities of the currently active kernel, get the
+    # name and version of the shortest flavor and add "-debuginfo" to the name.
+    return script_output('rpm -qf /boot/initrd-$(uname -r) --provides | awk \'match($0,/(kernel-.+)\(.+\) = (.+)/,m) {printf "%d %s-debuginfo-%s\n", length($0), m[1], m[2]}\' | sort -n | head -n1 | cut -d" " -f2-');
 }
 
 my $install_debug_info_timeout = 4000;
@@ -51,8 +42,8 @@ sub install_kernel_debuginfo {
     my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
     zypper_call "$import_gpg ref";
     return undef if get_var('SKIP_KERNEL_DEBUGINFO');
-    my $version = determine_kernel_debuginfo_latest_version;
-    zypper_call("-v in kernel-default-debuginfo=$version", timeout => $install_debug_info_timeout);
+    my $debuginfo = determine_kernel_debuginfo_package;
+    zypper_call("-v in $debuginfo", timeout => $install_debug_info_timeout);
 }
 
 sub get_repo_url_for_kdump_sle {
