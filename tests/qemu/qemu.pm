@@ -18,11 +18,11 @@ use version_utils qw(is_sle_micro is_leap_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case
 sub is_qemu_preinstalled {
-    if (is_sle_micro('<6.0') || is_leap_micro) {
+    if (is_sle_micro('<6.0') || is_leap_micro('<6.0')) {
         assert_script_run('rpm -q patterns-microos-kvm_host');
         return 1;
     }
-    elsif (is_sle_micro('>=6.0')) {
+    elsif (is_sle_micro('>=6.0') || is_leap_micro('>=6.0')) {
         assert_script_run('rpm -q patterns-base-kvm_host');
         return 1;
     }
