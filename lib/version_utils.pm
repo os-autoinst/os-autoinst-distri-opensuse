@@ -22,6 +22,7 @@ use constant {
           is_microos
           is_leap_micro
           is_sle_micro
+          is_micro
           is_alp
           is_selfinstall
           is_gnome_next
@@ -281,6 +282,18 @@ sub is_sle_micro {
 
     # Version check
     return check_version($query, $version, qr/\d{1,}\.\d/);
+}
+
+=head2 is_micro
+
+Check if distribution is any of MicroOS, Leap Micro or SL-Micro
+=cut
+
+sub is_micro {
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return is_microos($query, $version) || is_leap_micro($query, $version) || is_sle_micro($query, $version);
 }
 
 =head2 is_alp
