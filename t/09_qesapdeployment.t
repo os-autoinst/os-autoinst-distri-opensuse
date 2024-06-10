@@ -127,7 +127,7 @@ subtest '[qesap_get_deployment_code] from branch' => sub {
     ok((any { /git.*clone.*--branch.*TED/ } @calls), 'Checkout expected branch');
 };
 
-subtest '[qesap_get_deployment_code] from a release' => sub {
+subtest '[qesap_get_deployment_code] from a specific release' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -150,6 +150,32 @@ subtest '[qesap_get_deployment_code] from a release' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-ovCORAL\.tar\.gz/ } @calls), 'Get release archive from github');
     ok((any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls), 'Decompress the release archive');
+};
+
+subtest '[qesap_get_deployment_code] from the latest release' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub { return "MYGITHUBREPO/tag/v1.0.0" });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{terraform_dir} = '/BRUCE/OCEAN';
+            return (%paths);
+    });
+    set_var('QESAP_INSTALL_VERSION', 'latest');
+    # set to test that it is ignored
+    set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
+
+    qesap_get_deployment_code();
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+    set_var('QESAP_INSTALL_GITHUB_REPO', undef);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v1.0.0\.tar\.gz.*-ov1.0.0\.tar\.gz/ } @calls), 'Get latest release archive from github');
+    ok((any { /tar.*[xvf]+.*v1.0.0\.tar\.gz/ } @calls), 'Decompress the release archive');
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {

@@ -342,7 +342,18 @@ sub qesap_get_deployment_code {
     if (get_var('QESAP_INSTALL_VERSION')) {
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_REPO will be ignored') if (get_var('QESAP_INSTALL_GITHUB_REPO'));
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_BRANCH will be ignored') if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
-        my $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
+        my $ver_artifact;
+        if (check_var('QESAP_INSTALL_VERSION', 'latest')) {
+            my $latest_release_url = "https://$official_repo/releases/latest";
+            my $redirect_url = script_output("curl -s -L -o /dev/null -w %{url_effective} $latest_release_url");
+            die "Failed to parse the latest version from $redirect_url" if ($redirect_url !~ /\/tag\/v([0-9.]+)$/);
+            my $version = $1;
+            $ver_artifact = "v$version.tar.gz";
+            record_info("Vesion latest", "Latest QE-SAP-DEPLOYMENT release used: $version");
+        }
+        else {
+            $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
+        }
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
