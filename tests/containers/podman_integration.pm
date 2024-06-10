@@ -55,7 +55,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib skopeo socat sudo systemd-container);
-    push @pkgs, qw(buildah) unless is_sle_micro;
+    push @pkgs, qw(go buildah) unless is_sle_micro;
     # podman-remote is not yet available & python3-PyYAML was dropped in SLM 6.0
     push @pkgs, qw(podman-remote python3-PyYAML) unless is_sle_micro('>=6.0');
     # passt requires podman 5.0
