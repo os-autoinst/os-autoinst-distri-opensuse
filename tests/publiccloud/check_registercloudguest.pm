@@ -97,7 +97,7 @@ sub run {
     $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
-        last if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) == 0);
+        last if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0);
         sleep 15;
     }
     check_instance_unregistered($instance, 'The list of zypper repositories is not empty.');
@@ -122,8 +122,8 @@ sub run {
 
 sub check_instance_registered {
     my ($instance) = @_;
-    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) == 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
+    if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0) {
+        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper -t lr ||:'));
         die('The list of zypper repositories is empty.');
     }
     if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
@@ -133,13 +133,18 @@ sub check_instance_registered {
 
 sub check_instance_unregistered {
     my ($instance, $error) = @_;
-    if ($instance->ssh_script_output(cmd => 'zypper -x lr | grep "<repo\s" | wc -l', timeout => 300) > 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper lr'));
-        die($error);
-    }
     if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
         my $creds_output = $instance->ssh_script_output(cmd => 'sudo ls -la /etc/zypp/credentials.d/');
         die("/etc/zypp/credentials.d/ is not empty:\n" . $creds_output);
+    }
+    my $out = $instance->ssh_script_output(cmd => 'zypper -t lr ||:', timeout => 300);
+    return if ($out =~ /No repositories defined/m);
+
+    for (split('\n', $out)) {
+        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance/) {
+            record_info('zypper lr', $out);
+            die($error);
+        }
     }
 }
 
