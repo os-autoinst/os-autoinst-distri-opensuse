@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use containers::common;
-use version_utils 'is_sle_micro';
+use version_utils qw(is_sle_micro is_leap_micro);
 
 our $user = $testapi::username;
 our $password = $testapi::password;
@@ -41,6 +41,11 @@ sub create_user {
 }
 
 sub toolbox_has_repos {
+    # Leap Micro 6.0 is using a local service managed repos.
+    # Service needs to get refreshed (ref -s) for a first time use
+    if (is_leap_micro('>=6.0')) {
+        assert_script_run 'toolbox -r -- zypper -n ref -s', timeout => 300;
+    }
     my $output = script_output 'toolbox -r -- zypper lr -u', timeout => 180, proceed_on_failure => 1;
     if ($output =~ m/No repositories defined/ && is_sle_micro('=6.0')) {
         record_soft_failure 'bsc#1220648 - Toolbox container for SLE Micro 6.0 has limited functionality given that there are no repositories available';
@@ -109,7 +114,11 @@ sub run {
     assert_script_run 'zypper lr -u', timeout => 300;
     my $toolbox_has_repos = toolbox_has_repos();
     if ($toolbox_has_repos) {
-        assert_script_run 'toolbox -r -- zypper -n ref', timeout => 300;
+        if (is_leap_micro('>=6.0')) {
+            assert_script_run 'toolbox -r -- zypper -n ref -s', timeout => 300;
+        } else {
+            assert_script_run 'toolbox -r -- zypper -n ref', timeout => 300;
+        }
         if (script_run('toolbox -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
             upload_logs('/var/tmp/toolbox_zypper_up.txt');
             die "zypper up failed within toolbox";
@@ -143,6 +152,10 @@ sub run {
     assert_script_run 'toolbox create -r -c devel';
     validate_script_output 'toolbox list', sub { m/devel/ }, timeout => 180;
     if ($toolbox_has_repos) {
+        # The has_repos is actually called on a different toolbox container ...
+        if (is_leap_micro('>=6.0')) {
+            assert_script_run 'toolbox run -c devel -- zypper -n ref -s', timeout => 300;
+        }
         assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
         assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
     }
