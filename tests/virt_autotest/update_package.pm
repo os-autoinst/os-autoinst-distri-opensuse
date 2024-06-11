@@ -5,16 +5,17 @@
 #
 package update_package;
 # Summary: update_package: Update all packages and use real repo as guest installation source before test.
-# Maintainer: John <xgwang@suse.com>
+# Maintainer: qe-virt@suse.com
 
 use strict;
 use warnings;
 use testapi;
 use base "virt_autotest_base";
+use utils 'is_uefi_boot';
+use version_utils 'is_sle';
 use virt_utils;
 use ipmi_backend_utils;
 use Utils::Architectures;
-use version_utils 'is_sle';
 use virt_autotest::utils qw(is_xen_host is_kvm_host);
 
 sub update_package {
@@ -47,10 +48,11 @@ sub update_package {
 
 sub run {
     my $self = shift;
-    #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
-    $self->update_package() unless (!!get_var('AUTOYAST') || is_registered_sles && is_aarch64);
-    if (!!get_var('AUTOYAST') || (is_registered_sles && is_aarch64)) {
+    #workaroud: skip update package for registered sles as the packages are already up-to-date
+    $self->update_package() unless (!!get_var('AUTOYAST') || (is_registered_sles && !is_s390x));
+    if (!!get_var('AUTOYAST') || (is_registered_sles && !is_s390x)) {
         my @files_to_upload = ("/boot/grub2/grub.cfg", "/etc/default/grub");
+        push(@files_to_upload, script_output("ls /boot/efi/efi/sles/xen-*.cfg")) if is_xen_host and is_uefi_boot;
         upload_logs($_, failok => 1) foreach (@files_to_upload);
     } elsif (!is_s390x) {
         set_grub_on_vh('', '', 'xen') if is_xen_host;

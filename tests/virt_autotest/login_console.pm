@@ -299,6 +299,9 @@ sub run {
     my $self = shift;
     $self->login_to_console;
     config_ssh_client if get_var('VIRT_AUTOTEST') and !get_var('AUTOYAST') and !is_s390x;
+    # Provide a screenshot to check if the kernel parameters are correct before tests begin
+    script_run("cat /proc/cmdline") if !is_s390x;
+    save_screenshot;
 }
 
 sub post_fail_hook {
