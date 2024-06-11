@@ -514,6 +514,13 @@
         },
         "type": "bug"
     },
+    "bsc#1223259": {
+        "description": "sedispatch.*Connection Error.*Failed to connect to socket /run/dbus/system_bus_socket: Connection refused.*",
+        "products": {
+            "sle-micro": ["6.0", "6.1"]
+        },
+        "type": "bug"
+    },
     "bsc#1215378": {
         "description": "(libvirtd|virtqemud).*: error from service: GDBus.Error:org.freedesktop.(login1.OperationInProgress: The operation inhibition has been requested for is already running|systemd1.ShuttingDown: Refusing activation, D-Bus is shutting down)",
         "products": {
