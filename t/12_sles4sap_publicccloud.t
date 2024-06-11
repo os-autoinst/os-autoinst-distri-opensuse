@@ -170,7 +170,7 @@ subtest "[stop_hana] crash" => sub {
     $mock_pc->mock('run_ssh_command', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
-            return 'BABUUUUUUUUM' });
+            return 'running' });
     $self->{my_instance} = $mock_pc;
 
     $self->stop_hana(method => 'crash');
