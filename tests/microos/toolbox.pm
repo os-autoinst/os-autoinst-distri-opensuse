@@ -13,7 +13,6 @@ use testapi;
 use containers::common;
 use version_utils qw(is_sle_micro is_leap_micro);
 
-
 our $user = $testapi::username;
 our $password = $testapi::password;
 
