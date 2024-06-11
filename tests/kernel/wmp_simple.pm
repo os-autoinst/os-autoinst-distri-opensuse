@@ -28,7 +28,7 @@ sub run {
     my $failed;
 
     my $cgroup_mem = get_required_var('WMP_MEMORY_LOW');
-    my $stressng_mem = get_required_var('WMP_STRESS_MEM');
+    my $stressng_mem = get_var('WMP_STRESS_MEM', 0);
 
     my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
@@ -41,6 +41,10 @@ sub run {
     }
 
     select_serial_terminal;
+
+    # we're only interested in the number
+    my $mem_free = script_output('grep MemFree /proc/meminfo') =~ /(\d+)/;
+    $stressng_mem = $mem_free if ($mem_free < $stressng_mem or $stressng_mem == 0);
 
     # we need packagehub for stress-ng, let's enable it
     add_suseconnect_product(get_addon_fullname('phub'));
