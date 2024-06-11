@@ -39,6 +39,7 @@
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
+      <secure_boot>false</secure_boot>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
@@ -47,7 +48,11 @@
       <append>loglevel=5 gfxpayload=1024x768 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
     </global>
-    <loader_type>default</loader_type>
+    % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
+    <loader_type>grub2-efi</loader_type>
+    % } else {
+    <loader_type>grub2</loader_type>
+    % }
   </bootloader>
   <general>
     <ask-list config:type="list"/>
@@ -126,6 +131,16 @@
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+        % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>512M</size>
+        </partition>
+        % }
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">btrfs</filesystem>
@@ -144,6 +159,13 @@
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
           <resize config:type="boolean">false</resize>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>2G</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>

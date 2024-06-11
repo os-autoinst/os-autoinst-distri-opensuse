@@ -46,11 +46,9 @@ sub switch_from_ssh_to_sol_console {
     save_screenshot;
 }
 
-my $grub_ver = "grub2";
-
 sub get_dom0_serialdev {
     my $dom0_serialdev;
-    if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")) {
+    if (is_xen_host) {
         $dom0_serialdev = "hvc0";
     }
     else {
@@ -70,79 +68,86 @@ sub setup_console_in_grub {
     my $grub_default_file = "${root_dir}/etc/default/grub";
     my $grub_cfg_file = "";
     my $com_settings = "";
-    my $bootmethod = "";
-    my $search_pattern = "";
     my $cmd = "";
-    if ($grub_ver eq "grub2") {
-        #grub2
-        $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
-        if (${virt_type} eq "xen") {
-            # On some special beremetal machines, such as unreal2/3, their serial console:
-            # SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1"
-            $com_settings = get_var("XEN_SERIAL_CONSOLE", "console=com2,115200");
-            $bootmethod = "module";
-            $search_pattern = "vmlinuz";
+    $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
+    script_run("cp $grub_cfg_file ${grub_cfg_file}.org");
+    if (${virt_type} eq "xen") {
 
+        # Setting grub menuentry selection on sol console with grub2-set-default as xen, during host installation
+        if (is_xen_host && get_var('XEN_DEFAULT_BOOT_IS_SET')) {
+            $cmd = "sed -i '/### END \\\/etc\\\/grub.d\\\/00_header ###/iset default=2' $grub_cfg_file";
+            assert_script_run($cmd);
+        }
+
+        # Set serial console in kernel options
+        # On some special beremetal machines, such as unreal2/3, their serial console:
+        # SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1"
+        $com_settings = get_var("XEN_SERIAL_CONSOLE", "console=com2,115200");
+
+        if (is_uefi_boot) {
+            # Xen host with UEFI boot uses different grub2 configurate file on a seperate partion
+            if (${root_dir} eq "/") {
+                ${root_dir} = "/boot/efi";
+            }
+            else {
+                ${root_dir} = "/efi_mnt";
+                script_run("mkdir -p ${root_dir}");
+                my $y2log_file = '/var/log/YaST2/y2log';
+                $cmd = qq{grep -o '/dev/[^ ]\\+ /mnt/boot/efi ' $y2log_file | head -n1 | cut -f1 -d' '};
+                my $efi_partition = script_output("$cmd");
+                script_run("mount $efi_partition ${root_dir}");
+            }
+            script_run("find ${root_dir}");
+            my $xen_efi_grub_cfg_file = script_output("ls ${root_dir}/efi/sles/xen-*.cfg");
+            $cmd
+              = "sed -ri '/options=/ "
+              . "{s/(com[0-2]|console|loglevel|loglvl|guest_loglvl)=[^ ]* //g; "
+              . "/options=/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
+              . "' $xen_efi_grub_cfg_file";
+            assert_script_run($cmd);
+            script_run("cat $xen_efi_grub_cfg_file");
+            upload_logs($xen_efi_grub_cfg_file);
+            script_run("cd / && umount -l /efi_mnt") if ${root_dir} eq "/efi_mnt";
+        }
+        else {
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
               . "/multiboot/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
-            save_screenshot;
-
-            # setting grub menuentry selection on sol console with grub2-set-default as xen, during host installation
-            if (is_xen_host && get_var('XEN_DEFAULT_BOOT_IS_SET')) {
-                $cmd = "sed -i '/### END \\\/etc\\\/grub.d\\\/00_header ###/iset default=2' $grub_cfg_file";
-                assert_script_run($cmd);
-            }
-
-
         }
-        elsif (${virt_type} eq "kvm") {
-            $bootmethod = "linux";
-            $search_pattern = "boot";
-        }
-        else {
-            die "Host Hypervisor is not xen or kvm";
-        }
-
+    }
+    elsif (${virt_type} eq "kvm") {
         #enable Intel VT-d for SR-IOV test running on intel SUTs
         my $intel_option = "";
-        if (${virt_type} eq "kvm" && get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
             $intel_option = "intel_iommu=on";
         }
 
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org "
-          . "\&\& sed -ri '/($bootmethod\\s*.*$search_pattern)/ "
+          = "sed -ri '/(linux\\s*.*boot)/ "
           . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
-          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5 $intel_option/;}; "
-          . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
+          . "/linux\\s*.*boot/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5 $intel_option/;}; "
           . "' $grub_cfg_file";
         assert_script_run($cmd);
-        save_screenshot;
-        $cmd = "sed -rn '/(multiboot|$bootmethod\\s*.*$search_pattern|timeout=)/p' $grub_cfg_file";
-        assert_script_run($cmd);
-        save_screenshot;
-
-        if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
-            $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
-            assert_script_run($cmd);
-            $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";
-            assert_script_run($cmd);
-            $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
-            assert_script_run($cmd);
-        }
-        $cmd = "cat $grub_cfg_file $grub_default_file";
-        assert_script_run($cmd);
-        save_screenshot;
-        upload_logs($grub_default_file);
     }
     else {
-        die "Not supported grub version!";
+        die "Host Hypervisor is not xen or kvm";
     }
+
+    if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
+        $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
+        assert_script_run($cmd);
+        $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";
+        assert_script_run($cmd);
+        $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
+        assert_script_run($cmd);
+    }
+    $cmd = "cat $grub_cfg_file $grub_default_file";
+    assert_script_run($cmd);
     save_screenshot;
+    upload_logs($grub_default_file);
     upload_logs($grub_cfg_file);
 }
 

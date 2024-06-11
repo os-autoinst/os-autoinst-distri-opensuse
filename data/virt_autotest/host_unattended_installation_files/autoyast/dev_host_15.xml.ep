@@ -48,6 +48,7 @@
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
+      <secure_boot>false</secure_boot>
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
@@ -121,6 +122,17 @@
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+	% if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+	  <partition_id t="integer">259</partition_id>
+	  <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>512M</size>
+        </partition>
+	% }
         <partition>
           <create config:type="boolean">true</create>
           <create_subvolumes config:type="boolean">true</create_subvolumes>
@@ -139,6 +151,13 @@
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
           <resize config:type="boolean">false</resize>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>2G</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
