@@ -9,13 +9,14 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 
+use serial_terminal 'select_serial_terminal';
 use utils qw(fully_patch_system);
 use power_action_utils qw(prepare_system_shutdown power_action);
 
 sub run{
-    my $self = @_;
-    select_serial_terminal();
-    record_info("Prepatch", "Bringig the image to a released state.");
+    my ($self) = @_;
+    select_serial_terminal;
+    record_info("Prepatch", "Bringing the image to a released state.");
     fully_patch_system;
     prepare_system_shutdown;
     power_action("reboot");
