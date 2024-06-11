@@ -45,7 +45,7 @@ sub toolbox_has_repos {
     # Leap Micro 6.0 is using a local service managed repos.
     # Service needs to get refreshed (ref -s) for a first time use
     if (is_leap_micro('>=6.0')) {
-        assert_script_run 'toolbox -r -- zypper -n --gpg-auto-import-keys ref -s', timeout => 300;
+        assert_script_run 'toolbox -r -- zypper -n ref -s', timeout => 300;
     }
     my $output = script_output 'toolbox -r -- zypper lr -u', timeout => 180, proceed_on_failure => 1;
     if ($output =~ m/No repositories defined/ && is_sle_micro('=6.0')) {
@@ -155,7 +155,7 @@ sub run {
     if ($toolbox_has_repos) {
         # The has_repos is actually called on a different toolbox container ...
         if (is_leap_micro('>=6.0')) {
-            assert_script_run 'toolbox run -c devel -- zypper -n --gpg-auto-import-keys ref -s', timeout => 300;
+            assert_script_run 'toolbox run -c devel -- zypper -n ref -s', timeout => 300;
         }
         assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
         assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
