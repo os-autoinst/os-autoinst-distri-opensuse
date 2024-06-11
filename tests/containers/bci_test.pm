@@ -83,9 +83,12 @@ sub run {
     my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
+    my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
     return if ($test_envs eq '-');
 
     reset_container_network_if_needed($engine);
+
+    assert_script_run('source bci/bin/activate') if ($bci_virtualenv);
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard origin");
@@ -102,6 +105,7 @@ sub run {
         $self->run_tox_cmd($env);
     }
 
+    assert_script_run('deactivate') if ($bci_virtualenv);
 
     # Mark the job as failed if any of the tests failed
     die("$error_count tests failed.") if ($error_count > 0);
