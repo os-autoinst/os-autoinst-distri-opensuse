@@ -153,6 +153,10 @@ sub run {
     assert_script_run 'toolbox create -r -c devel';
     validate_script_output 'toolbox list', sub { m/devel/ }, timeout => 180;
     if ($toolbox_has_repos) {
+        # The has_repos is actually called on a different toolbox container ...
+        if (is_leap_micro('>=6.0')) {
+            assert_script_run 'toolbox run -c devel -- zypper -n --gpg-auto-import-keys ref -s', timeout => 300;
+        }
         assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
         assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
     }
