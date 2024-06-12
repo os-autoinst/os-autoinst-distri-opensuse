@@ -211,43 +211,32 @@
       <enable_snapshots config:type="boolean">true</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+        % if ($check_var->('UEFI', '1')) {
         <partition>
           <create config:type="boolean">true</create>
-          % if ($check_var->('ARCH', 'ppc64le')) {
-          <format config:type="boolean">false</format>
-          % }
-          % unless ($check_var->('ARCH', 'ppc64le')) {
-          <format config:type="boolean">true</format>
-          <filesystem config:type="symbol">ext2</filesystem>
-          % }
-          % if ($check_var->('UEFI', '1')) {
           <filesystem config:type="symbol">vfat</filesystem>
-          % }
-          % if ($check_var->('ARCH', 's390x')) {
-          <mount>/boot/zipl</mount>
-          <fstopt>acl,user_xattr</fstopt>
-          % }
-          % if ($check_var->('UEFI', '1')) {
           <mount>/boot/efi</mount>
           <fstopt>umask=0002,utf8=true</fstopt>
-          % }
-          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
-          <mount>/boot</mount>
-          % }
           <mountby config:type="symbol">path</mountby>
-          % if ($check_var->('ARCH', 'ppc64le')) {
-          <partition_id config:type="integer">65</partition_id>
-          % }
-          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
-          <partition_id config:type="integer">131</partition_id>
-          % }
-          % if ($check_var->('UEFI', '1')) {
           <partition_id config:type="integer">259</partition_id>
-          % }
           <partition_nr config:type="integer">1</partition_nr>
           <partition_type>primary</partition_type>
           <size>500M</size>
         </partition>
+        % }
+        % if ($check_var->('ARCH', 's390x')) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">ext2</filesystem>
+          <mountby config:type="symbol">path</mountby>
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
+        % }
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
@@ -270,8 +259,6 @@
           <size>max</size>
         </partition>
       </partitions>
-      <pesize/>
-      <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
   </partitioning>
