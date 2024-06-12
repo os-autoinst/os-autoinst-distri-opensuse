@@ -54,7 +54,8 @@ sub run_test {
         record_info "Clone a virtual machine from $guest";
         #setup a timeout value to clone a given guest system,
         #refer to poo#124107 for more details
-        assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone", 360);
+        assert_script_run("time virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone", 1800);
+        save_screenshot;
         assert_script_run("virsh start $guest");
         ensure_online $guest, skip_network => 1;
         assert_script_run("virsh start $guest.clone");
