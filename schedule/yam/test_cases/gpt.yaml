@@ -2,8 +2,6 @@
 name: gpt
 description: >
   Test installation on a very large hard disk which needs GPT partition format.
-vars:
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop
