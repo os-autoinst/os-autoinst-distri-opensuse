@@ -1,0 +1,28 @@
+---
+name: autoupgrade_sles12sp5_to_sles15spx_maintenance.yaml
+description: >
+  Performs a migration from system with released maintenance updates to a target system using its unreleased maintenance updates.
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - migration/online_migration/register_system
+  - migration/prepare_scc_addons
+  - migration/prepare_maintenance_repos
+  - yam/migration/reboot_to_boot_screen
+  - migration/version_switch_upgrade_target
+  - autoyast/prepare_profile
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/zypper_ref
