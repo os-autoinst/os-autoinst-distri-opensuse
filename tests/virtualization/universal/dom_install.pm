@@ -21,7 +21,7 @@ sub run {
     zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-        ensure_online($guest, use_virsh => 0);
+        ensure_online($guest, use_virsh => 0, HYPERVISOR => get_var('SUT_IP'));
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";
         script_retry("ssh root\@$guest 'zypper -n in vm-dump-metrics'", delay => 120, retry => 3);
     }
