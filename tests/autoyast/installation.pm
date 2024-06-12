@@ -37,6 +37,7 @@ use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 use validate_encrypt_utils "validate_encrypted_volume_activation";
+use Data::Dumper;
 
 my $confirmed_licenses = 0;
 my $stage = 'stage1';
@@ -95,12 +96,18 @@ sub handle_warnings {
 sub verify_timeout_and_check_screen {
     my ($timer, $needles) = @_;
     if ($timer > $maxtime) {
+        diag "[installation] \$timer > \$maxtime: $timer > $maxtime";
         #Try to assert_screen to explicitly show mismatching needles
         assert_screen $needles;
         #Die explicitly in case of infinite loop when we match some needle
         die "timeout hit on during $stage";
     }
     return check_screen $needles, $check_time;
+}
+
+sub _debug_needles {
+    my ($self, $needles) = @_;
+    diag "[installation::_debug_needles] \$needles is:\n" . Dumper($needles);
 }
 
 sub run {
@@ -166,7 +173,10 @@ sub run {
     my $num_errors = 0;
     my $timer = 0;    # Prevent endless loop
 
-    check_screen \@needles, $check_time;
+    diag "[installation] before loop \@needles: @needles";
+    my $begin_check = check_screen \@needles, $check_time;
+    diag "[installation] \$begin_check with \$check_time: $check_time";
+    $self->_debug_needles($begin_check);
     until (match_has_tag('reboot-after-installation')
           || match_has_tag('opensuse-welcome')
           || match_has_tag('bios-boot')
@@ -175,8 +185,11 @@ sub run {
           || match_has_tag('lang_and_keyboard')
           || match_has_tag('encrypted-disk-password-prompt'))
     {
+        diag "[installation] (\$timer: $timer) inside start loop \@needles: @needles";
         #Verify timeout and continue if there was a match
-        next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
+        my $verify = verify_timeout_and_check_screen(($timer += $check_time), \@needles);
+        $self->_debug_needles($verify);
+        next unless $verify;
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;    # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
