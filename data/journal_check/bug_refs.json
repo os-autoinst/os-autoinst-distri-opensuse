@@ -599,7 +599,7 @@
     "bsc#1217773": {
         "description": "Unable to send container stderr message to parent Broken pipe",
         "products": {
-            "sle-micro": ["5.4"]
+            "sle-micro": ["5.1", "5.4"]
         },
         "type": "bug"
     },
