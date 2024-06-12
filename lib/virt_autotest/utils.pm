@@ -489,7 +489,6 @@ sub create_guest {
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
-    my $linuxrc = $guest->{linuxrc};
     $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
@@ -499,11 +498,11 @@ sub create_guest {
         my ($autoyastURL, $diskformat, $virtinstall);
         $autoyastURL = $autoyast;
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
-        $extra_args = "$linuxrc autoyast=$autoyastURL $extra_args";
+        $extra_args = "autoyast=$autoyastURL $extra_args";
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
-        $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
+        $virtinstall .= " --network bridge=br0 --autostart --location=$location --wait -1";
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
@@ -559,7 +558,7 @@ sub install_default_packages {
 sub ensure_online {
     my ($guest, %args) = @_;
 
-    my $hypervisor = $args{HYPERVISOR} // " ";
+    my $hypervisor = defined $args{HYPERVISOR} ? $args{HYPERVISOR} : (get_var('VIRT_AUTOTEST') ? "192.168.123.1" : "192.168.122.1");
     my $dns_host = $args{DNS_TEST_HOST} // "www.suse.com";
     my $skip_ssh = $args{skip_ssh} // 0;
     my $skip_network = $args{skip_network} // 0;
@@ -567,8 +566,6 @@ sub ensure_online {
     my $ping_delay = $args{ping_delay} // 15;
     my $ping_retry = $args{ping_retry} // 60;
     my $use_virsh = $args{use_virsh} // 1;
-
-    $hypervisor = get_var('VIRT_AUTOTEST') ? "192.168.123.1" : "192.168.122.1";
 
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
