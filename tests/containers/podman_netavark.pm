@@ -109,12 +109,13 @@ sub run {
         subnet_v6 => 'fd00::1:8:0/112'
     };
     my $ctr1 = {
-        image => registry_url('httpd'),
-        name => 'apache_ctr',
+        # Temporary workaround due to https://progress.opensuse.org/issues/161276
+        image => is_sle_micro('<5.3') ? registry_url('httpd') : 'registry.opensuse.org/opensuse/httpd',
+        name => 'webserver_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',
         ip6 => 'fd00::1:8:9',
-        name6 => 'apache_ctr_ipv6'
+        name6 => 'webserver_ctr_ipv6'
     };
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
@@ -156,7 +157,7 @@ sub run {
         validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'ip addr show eth1'", sub { /$net1_reg|$net2_reg/m });
         validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'nslookup $ctr1->{name}'", sub { /Name:\s+$ctr1->{name}\s+Address.*$ctr1->{ip}/m });
         validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'wget -S $ctr1->{ip}:80'", sub { /HTTP.* 200 OK/ });
-        # busybox container should be able to resolve apache container
+        # busybox container should be able to resolve webserver container
         assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
         assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
         assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net2->{name}");
