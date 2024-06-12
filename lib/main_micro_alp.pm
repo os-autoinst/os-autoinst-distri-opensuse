@@ -40,6 +40,7 @@ sub load_config_tests {
     loadtest 'transactional/host_config' unless is_dvd;
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
+    loadtest 'transactional/disable_selinux' if (check_var('ENABLE_SELINUX', '0'));
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
 }
