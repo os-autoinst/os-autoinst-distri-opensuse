@@ -372,7 +372,7 @@ Return:
 sub wait_for_ssh {
     my ($self, %args) = @_;
     # Input parameters, see description in above head2 - Parameters section:
-    $args{timeout} //= 600;
+    $args{timeout} = get_var('PUBLIC_CLOUD_SSH_TIMEOUT', $args{timeout} // 600);
     $args{wait_stop} //= 0;
     $args{proceed_on_failure} //= $args{wait_stop};
     $args{systemup_check} //= not $args{wait_stop};
