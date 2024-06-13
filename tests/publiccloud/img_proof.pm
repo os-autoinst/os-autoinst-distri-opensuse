@@ -74,12 +74,6 @@ sub run {
         assert_script_run "cp -r usr/* /usr";
     }
 
-    if (is_sle('=15-SP6')) {
-        record_soft_failure('poo#156763 - Rebuild the PC Tools image when python3.11-paramiko is available and drop the SSH-RSA SHA-1');
-        $instance->ssh_assert_script_run('echo PubkeyAcceptedKeyTypes=+ssh-rsa | sudo tee -a /etc/ssh/sshd_config');
-        $instance->ssh_assert_script_run('sudo systemctl restart sshd');
-    }
-
     my $img_proof = $provider->img_proof(
         instance => $instance,
         tests => $tests,
