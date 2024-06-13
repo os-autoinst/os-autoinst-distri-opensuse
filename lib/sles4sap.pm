@@ -522,11 +522,24 @@ sub test_pids_max {
     # it is not stable to type long string especially when high load on worker
     # write_sut_file API is more stable in most case
     my $test_script = "#!/bin/sh
+# Compatibility with cgroup directory changes in old and new versions of systemd
+if [[ -d /sys/fs/cgroup/pids/user.slice ]]; then
+    PREFIX_DIR='/sys/fs/cgroup/pids/user.slice'
+elif [[ -d /sys/fs/cgroup/user.slice ]]; then
+    PREFIX_DIR='/sys/fs/cgroup/user.slice'
+else
+    CMD='echo \"ERROR: no user.slice directory\" && exit 2'
+fi
+
+if [[ -n \$PREFIX_DIR ]]; then
+    CMD=\"cat \$PREFIX_DIR/user-${uid}.slice/pids.max\"
+fi
+
 # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
-systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | tee /tmp/pids-max
+systemd-run --slice user -qt su - $sapadmin -c \"\$CMD\" | tr -d '\\r' | tee /tmp/pids-max
 ";
     write_sut_file '/root/test_script.sh', $test_script;
-    assert_script_run 'bash -ex /root/test_script.sh';
+    assert_script_run 'bash -eox pipefail /root/test_script.sh';
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
 
     # nproc should be set to \"unlimited\" in /etc/security/limits.d/99-sapsys.conf
@@ -535,14 +548,14 @@ systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.sli
 systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -n 1 | tr -d '\\r' > /tmp/nproc
 ";
     write_sut_file '/root/test_script.sh', $test_script;
-    assert_script_run 'bash -ex /root/test_script.sh';
+    assert_script_run 'bash -eox pipefail /root/test_script.sh';
     assert_script_run "cat /tmp/nproc && sysctl -n kernel.threads-max";
 
     $test_script = "#!/bin/sh
 [[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]
 ";
     write_sut_file '/root/test_script.sh', $test_script;
-    my $rc2 = script_run "bash -ex /root/test_script.sh";
+    my $rc2 = script_run "bash -eox pipefail /root/test_script.sh";
 
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
