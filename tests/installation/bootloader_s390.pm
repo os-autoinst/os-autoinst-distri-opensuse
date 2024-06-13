@@ -138,7 +138,7 @@ EO_frickin_boot_parms
         eval {
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
-            $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
+            $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 90);
             $s3270->sequence_3270("String(\"qaboot $repo_host $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
             # wait for qaboot dumping us into xedit. If this fails, probably the
             # download of kernel or initrd timed out and we retry
