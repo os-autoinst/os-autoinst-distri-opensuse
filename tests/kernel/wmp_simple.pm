@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
 use registration;
 use utils;
 use Mojo::Util 'trim';
@@ -27,13 +28,23 @@ sub run {
     my $failed;
 
     my $cgroup_mem = get_required_var('WMP_MEMORY_LOW');
-    my $stressng_mem = get_required_var('WMP_STRESS_MEM');
+    my $stressng_mem = get_var('WMP_STRESS_MEM', 0);
 
     my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
     my $instance_type = get_var('INSTANCE_TYPE', 'HDB');
 
+
+    if (is_sle('<15') || is_sle('>=15-SP5')) {
+        diag "WMP not supported on " . get_var('VERSION');
+        return;
+    }
+
     select_serial_terminal;
+
+    # we're only interested in the number
+    my $mem_free = script_output('grep MemFree /proc/meminfo') =~ /(\d+)/;
+    $stressng_mem = $mem_free if ($mem_free < $stressng_mem or $stressng_mem == 0);
 
     # we need packagehub for stress-ng, let's enable it
     add_suseconnect_product(get_addon_fullname('phub'));
@@ -62,9 +73,8 @@ sub run {
     $meminfo = script_output("cat /proc/meminfo");
     record_info("meminfo", "$meminfo");
 
-    my $scope = trim(script_output('systemd-cgls -u SAP.slice | grep \'wmp-.*.scope\' | cut -c 3-'));
 
-    my @pids = split(' ', script_output("cat /sys/fs/cgroup/SAP.slice/$scope/cgroup.procs"));
+    my @pids = split(' ', script_output("cat /sys/fs/cgroup/SAP.slice/cgroup.procs"));
 
     foreach (@pids) {
         my $vmswap = trim(script_output("grep \"VmSwap:\"  /proc/$_/status | cut -d ':' -f 2"));
