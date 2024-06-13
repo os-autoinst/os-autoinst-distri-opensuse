@@ -61,6 +61,11 @@ sub run {
         die "missing tpm_server path\n" if ($server eq '');
         assert_script_run("su -s /bin/bash - $tss_user -c '$server &'");
     }
+    # workaround for permission denied
+    my $udev_rules = "/etc/udev/rules.d/tpm-udev.rules";
+    assert_script_run(q{echo 'KERNEL=="tpm[0-9]", MODE="0660", OWNER="tss", GROUP="tss"' >} . $udev_rules);
+    assert_script_run(q{echo 'KERNEL=="tpmrm[0-9]", MODE="0660", OWNER="tss", GROUP="tss"' >>} . $udev_rules);
+    assert_script_run('udevadm control --reload-rules && udevadm trigger');
 
     # Restart the tpm2-abrmd service
     assert_script_run("systemctl enable tpm2-abrmd");
