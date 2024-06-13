@@ -32,6 +32,7 @@
       <li><a href="#terraform_apply">terraform_apply</a></li>
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
       <li><a href="#terraform_param_tags">terraform_param_tags</a></li>
+      <li><a href="#get_terraform_output">get_terraform_output</a></li>
       <li><a href="#cleanup">cleanup</a></li>
       <li><a href="#stop_instance">stop_instance</a></li>
       <li><a href="#start_instance">start_instance</a></li>
@@ -127,6 +128,10 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 <h2 id="terraform_param_tags">terraform_param_tags</h2>
 
 <p>Build the tags parameter for terraform. It is a single depth json like c&lt;{&quot;key&quot;: &quot;value&quot;}&gt; where c&lt;value&gt; must be a string.</p>
+
+<h2 id="get_terraform_output">get_terraform_output</h2>
+
+<p>Query the terraform data structure in json format. Input: &lt;jq-query-format&gt; string; &lt;empty&gt; = no query then full output of data structure. E.g: to get the VM instance name from json data structure, the call is: get_terraform_output(&quot;.vm_name.value[0]&quot;); To get the complete output structure, the call is: get_terraform_output();</p>
 
 <h2 id="cleanup">cleanup</h2>
 
