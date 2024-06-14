@@ -91,7 +91,7 @@ sub run {
     assert_script_run('source bci/bin/activate') if ($bci_virtualenv);
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
-    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard origin");
+    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
