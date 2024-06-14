@@ -34,10 +34,8 @@ sub run {
     autotest::loadtest("tests/qam-updinstall/prepatch.pm", name => "Prepatch", run_args => $run_args, @_);
 
     # Query SMELT for incident info
-    autotest::loadtest("tests/qam-updinstall/smelt_info.pm", name => 'hello', run_args => $run_args, @_);
-    autotest::loadtest("tests/qam-updinstall/smelt_info.pm", name => 'bye',  run_args => $run_args, @_);
+    autotest::loadtest("tests/qam-updinstall/smelt_info.pm", name => 'SMELT Info', run_args => $run_args, @_);
 
- 
     autotest::loadtest("tests/qam-updinstall/update_install.pm", name => "Installation", run_args => $run_args, @_);
 
 }

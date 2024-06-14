@@ -87,7 +87,7 @@ my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-exa
 );
 
 # rpm-ndb can't be installed, it will remove rpm and break rpmdb2solv -> zypper
-my @blocked_packages = ('rpm-ndb', 'kernel-default-base');
+my @blocked_binaries = ('rpm-ndb', 'kernel-default-base');
 
 sub get_patch {
     my ($incident_id, $repos) = @_;
@@ -152,7 +152,7 @@ sub reboot_and_login {
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self, $run_args) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos = get_required_var('INCIDENT_REPO');
     my %installable;    #Binaries already released that can already be installed.
@@ -160,20 +160,12 @@ sub run {
     my @new_binaries_conflicts;    #New binaries with conflict will be installed alone e.g. libwx_base-suse-nostl-devel conflicts with libwx_base-devel
     my %bins;
 
-
     select_serial_terminal;
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
     # Extract module name from repo url.
-    my @modules = split(/,/, $repos);
-    foreach (@modules) {
-        # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
-        $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/ if is_sle('15+');
-        next if s{http.*SUSE_Updates_(.*)/?}{$1};
-        die 'Modules regex failed. Modules could not be extracted from repos variable.';
-    }
-    record_info('Modules', "@modules");
+    record_info('Modules', $run_args->{modules}->@*);
 
     set_var('MAINT_TEST_REPO', $repos);
     my $repos_count = add_test_repositories;
@@ -186,22 +178,17 @@ sub run {
     record_info "Patches", "@patches";
 
     # Get packages affected by the incident.
-    my @packages = get_incident_packages($incident_id);
+    my @packages = $run_args->{packages}->@*;
     record_info('Packages', "@packages");
 
-    # Get binaries that are in each package across the modules that are in the repos.
-    foreach (@packages) {
-        %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
-        # hash of hashes with keys 'name', 'supportstatus' and 'package'.
-        # e.g. https://smelt.suse.de/api/v1/basic/maintained/grub2
-        record_info("$_", Dumper(\%bins));
-    }
-    die "Parsing binaries from SMELT data failed" if not keys %bins;
+    my %bins = $run_args->{bins}->%*;
+    record_info("Bins", Dumper(\%bins));
 
-    my @l2 = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
-    my @l3 = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
-    my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
+    my @l2 = $run_args->{l2}->@*;
+    my @l3 = $run_args->{l3}->@*;
+    my @unsupported = $run_args->{unsupported}->@*;
 
+    
     for my $patch (@patches) {
         my %patch_bins = %bins;
         my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts);
@@ -250,8 +237,8 @@ sub run {
         }
 
         # separate binaries from this one patch based on patch info
-        for my $b (@l2) { push(@patch_l2, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
-        for my $b (@l3) { push(@patch_l3, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
+        for my $b (@l2) { push(@patch_l2, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_binaries); }
+        for my $b (@l3) { push(@patch_l3, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_binaries); }
         for my $b (@unsupported) { push(@patch_unsupported, $b) if grep($b eq $_, @conflict_names); }
         %patch_bins = map { $_ => ${bins}{$_} } (@patch_l2, @patch_l3);
 
@@ -267,7 +254,7 @@ sub run {
                 }
             }
             else {
-                $installable{$b} = 1 unless grep($b eq $_, @blocked_packages);
+                $installable{$b} = 1 unless grep($b eq $_, @blocked_binaries);
             }
         }
 
