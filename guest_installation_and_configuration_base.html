@@ -75,6 +75,8 @@
       <li><a href="#config_guest_installation_automation">config_guest_installation_automation</a></li>
       <li><a href="#config_guest_unattended_installation">config_guest_unattended_installation</a></li>
       <li><a href="#validate_guest_installation_automation_file">validate_guest_installation_automation_file</a></li>
+      <li><a href="#config_guest_installation_command">config_guest_installation_command</a></li>
+      <li><a href="#config_guest_plain_password">config_guest_plain_password</a></li>
       <li><a href="#guest_installation_run">guest_installation_run</a></li>
       <li><a href="#prepare_guest_installation">prepare_guest_installation</a></li>
       <li><a href="#start_guest_installation">start_guest_installation</a></li>
@@ -489,6 +491,18 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>validate_guest_installation_automation_file($self)</code></pre>
 
 <p>Validate autoyast file using xmllint and yast2-schema. This is only for reference purpose if guest and host oses have different release major version. Output kickstart file content directly because its content can not be validated on SLES or opensuse host by using ksvalidator.</p>
+
+<h2 id="config_guest_installation_command">config_guest_installation_command</h2>
+
+<pre><code>config_guest_installation_command($self)</code></pre>
+
+<p>Assemble all configured options into one virt-install command line to be fired up for guest installation. If certain options that have special settings need to be further tweaked before final virt-install is formed, corresponding work should also be done in this subroutine as well, for example, applying authentic plain passwords to be used. This subroutine does not receive any other passed in arguments.</p>
+
+<h2 id="config_guest_plain_password">config_guest_plain_password</h2>
+
+<pre><code>config_guest_plain_password($self)</code></pre>
+
+<p>Before guest installation starts or during its installation, plain passwords might be used to facilitate configuring, installing or investigating guest, for example, a ssh root password is usually used to enable password access to linuxrc via ssh when performing guest installation with autoyast or kickstart. User can put HOLDER ROOTPASSWORD in guest profile to indicate that plain password is expected. If a different plain password is used at the same time, a different HOLDER name can be used as well in either guest profile or provision/unattended installation file. Root plain password should be saved in $testapi::apassword, but customized one can be chosen by specific setting _SECRET_ROOT_PASSWORD. This subroutine does not receive any other passed in arguments.</p>
 
 <h2 id="guest_installation_run">guest_installation_run</h2>
 
