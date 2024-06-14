@@ -718,9 +718,7 @@ To get the complete output structure, the call is:
 
 sub get_terraform_output {
     my ($self, $jq_query) = @_;
-    assert_script_run('cd ~/terraform');
     my $res = script_output("terraform output -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
-    script_run('cd');
     return $res;
 }
 
