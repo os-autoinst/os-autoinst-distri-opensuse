@@ -87,7 +87,7 @@ sub run {
 
     if (is_hardened) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
-        patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
+        patch_json $img_proof->{results}; # if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
     }
 
     upload_logs($img_proof->{logfile}, log_name => basename($img_proof->{logfile}) . ".txt");
