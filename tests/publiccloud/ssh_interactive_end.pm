@@ -16,7 +16,7 @@ use utils;
 sub run {
     my ($self, $args) = @_;
     select_host_console(force => 1);
-    $args->{my_provider}->cleanup($args);
+    $args->{my_provider}->cleanup($args) unless check_var('PUBLIC_CLOUD_SLES4SAP', 1);
 }
 
 1;
