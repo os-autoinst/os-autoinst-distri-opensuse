@@ -636,7 +636,7 @@ sub cleanup {
 
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
 
-    if (defined($args->{my_instance}->{instance_id})) {
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($args->{my_instance}->{instance_id})) {
         my $id = $args->{my_instance}->{instance_id};
         script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
         upload_logs("bootlog.txt", failok => 1);
