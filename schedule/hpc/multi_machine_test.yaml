@@ -19,6 +19,12 @@ conditional_schedule:
     IMB:
       RUN:
         - hpc/mpi_imb
+    HDF5:
+      RUN:
+        - hpc/mpi_hdf5
+    SCIPY:
+      RUN:
+        - hpc/mpi_scipy
   hpctest:
     HPC:
       slurm_master:
