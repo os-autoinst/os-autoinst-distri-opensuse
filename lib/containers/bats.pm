@@ -21,7 +21,7 @@ use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
-our @EXPORT = qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+our @EXPORT = qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
 
 sub install_bats {
     return if (script_run("which bats") == 0);
@@ -34,6 +34,9 @@ sub install_bats {
 
     script_run "mkdir -m 0750 /etc/sudoers.d/";
     assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
+
+    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
+    assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
 }
 
 sub remove_mounts_conf {
@@ -75,4 +78,16 @@ sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3'));
+}
+
+sub patch_logfile {
+    my ($log_file, @skip_tests) = @_;
+
+    foreach my $test (@skip_tests) {
+        next if ($test eq "none");
+        if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
+            record_info("BATS: Test $test passed!");
+        }
+    }
+    assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
 }

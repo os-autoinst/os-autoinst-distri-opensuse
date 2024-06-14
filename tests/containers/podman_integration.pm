@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -34,11 +34,11 @@ sub run_tests {
 
     assert_script_run "cp -r test/system.orig test/system";
     my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
-    script_run "rm test/system/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 3600;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 4000;
+    patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
     script_run 'kill %1' if ($remote);

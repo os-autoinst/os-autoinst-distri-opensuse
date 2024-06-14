@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats remove_mounts_conf switch_to_user enable_modules);
+use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user enable_modules);
 use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp";
@@ -29,7 +29,6 @@ sub run_tests {
 
     assert_script_run "cp -r systemtest.orig systemtest";
     my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
-    script_run "rm systemtest/$_.bats" foreach (@skip_tests);
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
@@ -40,6 +39,7 @@ sub run_tests {
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
+    patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf systemtest";
 }

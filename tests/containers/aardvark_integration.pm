@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats enable_modules);
+use containers::bats qw(install_bats patch_logfile enable_modules);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -24,10 +24,10 @@ sub run_tests {
 
     assert_script_run "cp -r test.orig test";
     my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
-    script_run "rm test/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "AARDVARK=$aardvark bats --tap test | tee -a $log_file", 2000;
+    patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test";
 }

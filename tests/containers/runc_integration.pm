@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -28,10 +28,10 @@ sub run_tests {
 
     assert_script_run "cp -r tests/integration.orig tests/integration";
     my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
-    script_run "rm tests/integration/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 1200;
+    patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf tests/integration";
 }
