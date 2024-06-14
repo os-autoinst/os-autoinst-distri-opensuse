@@ -2416,6 +2416,71 @@ sub validate_guest_installation_automation_file {
     return $self;
 }
 
+=head2 config_guest_installation_command
+
+  config_guest_installation_command($self)
+
+Assemble all configured options into one virt-install command line to be fired
+up for guest installation. If certain options that have special settings need
+to be further tweaked before final virt-install is formed, corresponding work
+should also be done in this subroutine as well, for example, applying authentic
+plain passwords to be used. This subroutine does not receive any other passed in
+arguments.
+
+=cut
+
+sub config_guest_installation_command {
+    my $self = shift;
+
+    $self->reveal_myself;
+    $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} "
+      . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
+      . "$self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
+      . "$self->{guest_installation_method_options} $self->{guest_installation_automation_options} $self->{guest_installation_extra_args_options} "
+      . "$self->{guest_graphics_and_video_options} $self->{guest_sysinfo_options} $self->{guest_serial_options} $self->{guest_channel_options} "
+      . "$self->{guest_console_options} $self->{guest_features_options} $self->{guest_events_options} $self->{guest_power_management_options} "
+      . "$self->{guest_qemu_command_options} $self->{guest_xpath_options} $self->{guest_security_options} $self->{guest_controller_options} "
+      . "$self->{guest_tpm_options} $self->{guest_rng_options} --debug";
+    $self->{virt_install_command_line_dryrun} = $self->{virt_install_command_line} . " --dry-run";
+    $self->config_guest_plain_password;
+    return $self;
+}
+
+=head2 config_guest_plain_password
+
+  config_guest_plain_password($self)
+
+Before guest installation starts or during its installation, plain passwords might
+be used to facilitate configuring, installing or investigating guest, for example,
+a ssh root password is usually used to enable password access to linuxrc via ssh
+when performing guest installation with autoyast or kickstart. User can put HOLDER
+ROOTPASSWORD in guest profile to indicate that plain password is expected. If a
+different plain password is used at the same time, a different HOLDER name can be
+used as well in either guest profile or provision/unattended installation file.
+Root plain password should be saved in $testapi::apassword, but customized one 
+can be chosen by specific setting _SECRET_ROOT_PASSWORD. This subroutine does not
+receive any other passed in arguments. 
+
+=cut
+
+sub config_guest_plain_password {
+    my $self = shift;
+
+    $self->reveal_myself;
+    if ($self->{virt_install_command_line} =~ /ROOTPASSWORD/) {
+        unless ($testapi::password) {
+            my $_root_password = get_required_var('_SECRET_ROOT_PASSWORD');
+            $self->{virt_install_command_line} =~ s/ROOTPASSWORD/$_root_password/;
+            $self->{virt_install_command_line_dryrun} =~ s/ROOTPASSWORD/$_root_password/;
+        }
+        else {
+            $self->{virt_install_command_line} =~ s/ROOTPASSWORD/$testapi::password/;
+            $self->{virt_install_command_line_dryrun} =~ s/ROOTPASSWORD/$testapi::password/;
+        }
+    }
+    return $self;
+}
+
 =head2 guest_installation_run
 
   guest_installation_run($self, @_)
@@ -2478,6 +2543,8 @@ sub prepare_guest_installation {
     $self->config_guest_installation_method;
     $self->config_guest_installation_automation;
     $self->config_guest_installation_extra_args;
+    $self->config_guest_installation_command;
+    $self->print_guest_params;
     return $self;
 }
 
@@ -2498,16 +2565,6 @@ sub start_guest_installation {
         record_info("Guest $self->{guest_name} installation has not started due to some errors", "Bad luck !");
         return $self;
     }
-    $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} "
-      . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
-      . "$self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
-      . "$self->{guest_installation_method_options} $self->{guest_installation_automation_options} $self->{guest_installation_extra_args_options} "
-      . "$self->{guest_graphics_and_video_options} $self->{guest_sysinfo_options} $self->{guest_serial_options} $self->{guest_channel_options} "
-      . "$self->{guest_console_options} $self->{guest_features_options} $self->{guest_events_options} $self->{guest_power_management_options} "
-      . "$self->{guest_qemu_command_options} $self->{guest_xpath_options} $self->{guest_security_options} $self->{guest_controller_options} "
-      . "$self->{guest_tpm_options} $self->{guest_rng_options} --debug";
-    $self->{virt_install_command_line_dryrun} = $self->{virt_install_command_line} . " --dry-run";
-    $self->print_guest_params;
 
     my $_start_installation_timestamp = localtime();
     $_start_installation_timestamp =~ s/ |:/_/g;

@@ -22,7 +22,7 @@
     <guest_installation_automation_platform/>
     <guest_installation_automation_file>oracle_linux_9_graphical_server.ks</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
-    <guest_installation_extra_args>inst.sshd#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#inst.noverifyssl#inst.waitfornet=60#inst.geoloc=provider_hostip#inst.geoloc-use-with-ks#inst.debug#inst.notmux#inst.gpt#inst.cmdline</guest_installation_extra_args>
+    <guest_installation_extra_args>inst.sshd#sshpassword=ROOTPASSWORD#console=ttyS0,115200n8#textmode=1#inst.noverifyssl#inst.waitfornet=60#inst.geoloc=provider_hostip#inst.geoloc-use-with-ks#inst.debug#inst.notmux#inst.gpt#inst.cmdline</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>OracleLinux-R9-U3-x86_64-dvd.iso</guest_installation_media>
