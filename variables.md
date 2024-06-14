@@ -384,6 +384,7 @@ PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable wri
 PUBLIC_CLOUD_INFRA | boolean | false | Would trigger special flow in [check_registercloudguest.pm](tests/publiccloud/check_registercloudguest.pm) needed for run test against special test infra (DO NOT use the variable if you don't know what is about)
 PUBLIC_CLOUD_INFRA_RMT_V4 | string | "" | Defines IPv4 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
 PUBLIC_CLOUD_INFRA_RMT_V6 | string | "" | Defines IPv6 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
+PUBLIC_CLOUD_GEN_RESOLVER | boolean | 0 | Control use of `--debug-resolver` option during maintenance updates testing . In case option was used also controls uploading of resolver case into the test
 
 
 ### Wicked testsuite specific variables
