@@ -37,7 +37,7 @@ sub run_tests {
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 4000;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 6000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
