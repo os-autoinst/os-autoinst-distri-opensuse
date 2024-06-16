@@ -645,9 +645,8 @@ sub load_jeos_tests {
     # this test case also disables grub timeout
     loadtest "jeos/grub2_gfxmode";
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
-        # Cloud image is the only one based on XFS and not BTRFS
         # jeos/diskusage as of now works only with BTRFS
-        loadtest "jeos/diskusage" unless get_var('FLAVOR') =~ /OpenStack-Cloud/;
+        loadtest "jeos/diskusage" unless get_var('FILESYSTEM', 'btrfs') =~ /btrfs/;
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
