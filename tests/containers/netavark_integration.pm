@@ -25,7 +25,7 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "PATH=/usr/local/bin:\$PATH NETAVARK=$netavark bats --tap test | tee -a $log_file", 1200;
+    script_run "PATH=/usr/local/bin:\$PATH BATS_TMPDIR=/var/tmp NETAVARK=$netavark bats --tap test | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 }

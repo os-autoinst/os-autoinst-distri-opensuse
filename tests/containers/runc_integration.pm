@@ -29,7 +29,7 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 1200;
+    script_run "BATS_TMPDIR=/var/tmp RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 }
