@@ -401,6 +401,8 @@ Turns off the Plasma desktop screen energy saving.
 sub turn_off_plasma_screen_energysaver {
     my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
     x11_start_program("$kcmshell powerdevilprofilesconfig", target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
+    # Open dropdown menu if necessary
+    click_lastmatch if match_has_tag('kde-display-timeout-menu');
     assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
     assert_screen 'kde-energysaver-disabled';
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
@@ -419,6 +421,8 @@ Turns off the Plasma desktop screenlocker.
 sub turn_off_plasma_screenlocker {
     my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
     x11_start_program("$kcmshell screenlocker", target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
+    # Open dropdown menu if necessary
+    click_lastmatch if match_has_tag('kde-screenlock-timeout-menu');
     assert_and_click 'kde-disable-screenlock' if match_has_tag('kde-screenlock-enabled');
     assert_screen 'screenlock-disabled';
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
