@@ -189,7 +189,7 @@ sub find_sriov_ethernet_devices {
             }
         }
     }
-    die "Error: No SR-IOV ethernet card on host!" unless @sriov_devices;
+    die "Error: No SR-IOV ethernet card on host or no carrier connection to SR-IOV ethernet cards!" unless @sriov_devices;
 
     return @sriov_devices;
 }
