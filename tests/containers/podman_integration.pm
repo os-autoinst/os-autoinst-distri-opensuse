@@ -32,7 +32,6 @@ sub run_tests {
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
-    assert_script_run "cp -r test/system.orig test/system";
     my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
@@ -40,7 +39,6 @@ sub run_tests {
     script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 6000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf test/system";
     script_run 'kill %1' if ($remote);
 
     assert_script_run "podman system reset -f";
@@ -92,7 +90,6 @@ sub run {
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run("cd $test_dir/podman-$podman_version/");
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
-    assert_script_run "cp -r test/system test/system.orig";
 
     # user / local
     run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));

@@ -26,14 +26,12 @@ sub run_tests {
 
     my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
 
-    assert_script_run "cp -r tests/integration.orig tests/integration";
     my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf tests/integration";
 }
 
 sub run {
@@ -64,7 +62,6 @@ sub run {
     $runc_version = script_output "runc --version  | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/opencontainers/runc/archive/refs/tags/v$runc_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/runc-$runc_version/";
-    assert_script_run "cp -r tests/integration tests/integration.orig";
 
     # Compile helpers used by the tests
     assert_script_run "make \$(ls contrib/cmd/)";

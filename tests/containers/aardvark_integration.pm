@@ -22,14 +22,12 @@ my $aardvark_version = "";
 sub run_tests {
     my $log_file = "aardvark.tap";
 
-    assert_script_run "cp -r test.orig test";
     my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "AARDVARK=$aardvark bats --tap test | tee -a $log_file", 2000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf test";
 }
 
 sub run {
@@ -60,7 +58,6 @@ sub run {
     $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
     script_retry("curl -sL https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/aardvark-dns-$aardvark_version/";
-    assert_script_run "cp -r test test.orig";
 
     run_tests;
 }

@@ -27,7 +27,6 @@ sub run_tests {
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
 
-    assert_script_run "cp -r systemtest.orig systemtest";
     my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
@@ -41,7 +40,6 @@ sub run_tests {
     script_run "SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf systemtest";
 }
 
 sub run {
@@ -71,7 +69,6 @@ sub run {
     $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
-    assert_script_run "cp -r systemtest systemtest.orig";
 
     run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
 
