@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats switch_to_user delegate_controllers enable_modules remove_mounts_conf);
+use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -26,14 +26,12 @@ sub run_tests {
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap";
 
-    assert_script_run "cp -r tests.orig tests";
     my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
-    script_run "rm tests/$_.bats" foreach (@skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 3600;
+    script_run "BATS_TMPDIR=/var/tmp TMPDIR=/var/tmp BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 4200;
+    patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf tests";
 
     assert_script_run "buildah prune -a -f";
 }
@@ -68,7 +66,6 @@ sub run {
     $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/buildah-$buildah_version/";
-    assert_script_run "cp -r tests tests.orig";
 
     # Compile helpers used by the tests
     assert_script_run "make bin/imgtype bin/copy bin/tutorial", timeout => 600;

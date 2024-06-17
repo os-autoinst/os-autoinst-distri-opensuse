@@ -29,8 +29,8 @@ sub install_bats {
     my $bats_version = get_var("BATS_VERSION", "1.11.0");
 
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd bats-core-$bats_version";
-    assert_script_run "bash ./install.sh /usr/local";
+    assert_script_run "bash bats-core-$bats_version/install.sh /usr/local";
+    assert_script_run "rm -rf bats-core-$bats_version";
 
     script_run "mkdir -m 0750 /etc/sudoers.d/";
     assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";

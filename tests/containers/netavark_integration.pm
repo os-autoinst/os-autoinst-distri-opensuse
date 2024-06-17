@@ -22,14 +22,12 @@ my $netavark_version = "";
 sub run_tests {
     my $log_file = "netavark.tap";
 
-    assert_script_run "cp -r test.orig test";
     my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "PATH=/usr/local/bin:\$PATH NETAVARK=$netavark bats --tap test | tee -a $log_file", 1200;
+    script_run "PATH=/usr/local/bin:\$PATH BATS_TMPDIR=/var/tmp NETAVARK=$netavark bats --tap test | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
-    assert_script_run "rm -rf test";
 }
 
 sub run {
@@ -64,7 +62,6 @@ sub run {
     $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
     script_retry("curl -sL https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/netavark-$netavark_version/";
-    assert_script_run "cp -r test test.orig";
 
     run_tests;
 }
