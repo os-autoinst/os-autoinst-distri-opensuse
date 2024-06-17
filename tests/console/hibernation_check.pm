@@ -13,10 +13,14 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use scheduler 'get_test_suite_data';
 
 sub run {
     select_console 'root-console';
-    assert_script_run("grep -v 'resume=' /proc/cmdline", fail_message => "resume parameter found in /proc/cmdline");
+    my $is_present = get_test_suite_data()->{resume_kernel_param_present};
+    my $grep_param = ($is_present eq '1') ? '' : '-v';
+    my $error_msg = ($is_present eq '1') ? 'resume parameter not found' : 'resume parameter found';
+    assert_script_run("grep $grep_param 'resume=' /proc/cmdline", fail_message => "$error_msg in /proc/cmdline");
 }
 
 1;

@@ -11,7 +11,7 @@ schedule:
     - console/system_prepare
     - console/force_scheduled_tasks
   system_validation:
-    - console/hibernation_disabled
+    - console/hibernation_check
     - console/validate_product_installed_SLES
     - console/verify_separate_home
     - console/validate_partition_table_via_blkid
