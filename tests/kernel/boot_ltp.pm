@@ -67,6 +67,7 @@ sub run {
     # module is used by non-LTP tests, i.e. kernel-live-patching
     return unless (get_var('LTP_COMMAND_FILE'));
 
+    check_kernel_taint($self, 1);
     prepare_ltp_env;
     init_ltp_tests($cmd_file);
 

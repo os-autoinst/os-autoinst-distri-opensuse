@@ -22,6 +22,7 @@ use utils;
 use kernel 'get_kernel_flavor';
 
 our @EXPORT = qw(
+  check_kernel_taint
   export_ltp_env
   get_ltproot
   get_ltp_openposix_test_list_file
@@ -163,6 +164,57 @@ sub prepare_ltp_env {
 
     export_ltp_env;
     assert_script_run('cd $LTPROOT/testcases/bin');
+}
+
+sub check_kernel_taint {
+    my ($testmod, $softfail) = @_;
+
+    my @flag_desc = (
+        undef,    # proprietary module, ignore
+        'Module was force loaded',
+        'Kernel running on out of specification system',
+        'Module was force unloaded',
+        'Processor reported Machine Check Exception (MCE)',
+        'Bad page referenced or unexpected page flags',
+        'Taint requested by userspace application',
+        'Kernel died recently (OOPS or BUG)',
+        'ACPI table overridden by user',
+        'Kernel issued warning',
+        'Staging driver was loaded',
+        undef,    # platform firmware bug workaround, ignore
+        undef,    # out-of-tree module, ignore
+        'Unsigned module was loaded',
+        'Soft lockup occurred',
+        undef,    # livepatch, ignore
+        'Auxiliary taint',
+        undef,    # kernel built with struct randomization, ignore
+        'In-kernel test has been run'
+    );
+    my $flag = 1;
+    my @taint;
+
+    my $taint_val = script_output('cat /proc/sys/kernel/tainted');
+
+    for my $desc (@flag_desc) {
+        push @taint, "- $desc" if defined($desc) && $flag & $taint_val;
+        $flag <<= 1;
+    }
+
+    push @taint, '- Unknown tainted state' if $taint_val >= $flag;
+    my $message = sprintf("Kernel taint: 0x%x", $taint_val);
+
+    unless (@taint) {
+        $testmod->record_resultfile('Kernel taint OK', "$message (OK)",
+            result => 'ok');
+    }
+    elsif ($softfail) {
+        $testmod->record_soft_failure_result("$message:\n" . join("\n", @taint));
+    }
+    else {
+        $testmod->record_resultfile('Kernel tainted',
+            "$message\n" . join("\n", @taint), result => 'fail');
+        $testmod->{result} = 'fail';
+    }
 }
 
 sub init_ltp_tests {

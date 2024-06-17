@@ -11,6 +11,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
 
@@ -32,6 +33,7 @@ sub run {
     }
 
     script_run('df -h');
+    check_kernel_taint($self, 0);
 
     if (get_var('LTP_COMMAND_FILE')) {
         my $ver_linux_log = '/tmp/ver_linux_after.txt';

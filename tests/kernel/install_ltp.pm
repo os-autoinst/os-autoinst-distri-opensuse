@@ -388,6 +388,7 @@ sub run {
     } elsif ($cmd_file) {
         assert_secureboot_status(1) if get_var('SECUREBOOT');
         prepare_ltp_env() if (is_sle('<12'));
+        check_kernel_taint($self, 1);
         init_ltp_tests($cmd_file);
         schedule_tests($cmd_file);
     }
