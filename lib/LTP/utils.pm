@@ -14,7 +14,7 @@ use Utils::Backends;
 use autotest;
 use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
-use version_utils qw(is_jeos is_released is_sle is_leap is_tumbleweed is_rt is_transactional);
+use version_utils qw(is_jeos is_leap is_released is_rt is_sle is_sle_micro is_tumbleweed is_transactional);
 use File::Basename 'basename';
 use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
@@ -187,13 +187,19 @@ sub check_kernel_taint {
         'Unsigned module was loaded',
         'Soft lockup occurred',
         undef,    # livepatch, ignore
-        'Auxiliary taint',
+        'Auxiliary taint',    # 'X' - Modules with external support loaded on SLE11-SP4-LTSS - SLE15-SP3-LTSS (see below)
         undef,    # kernel built with struct randomization, ignore
-        'In-kernel test has been run'
+        'In-kernel test has been run',
     );
+
+    if (is_sle('>=12-sp3') || is_leap || is_sle_micro) {
+        push @flag_desc, undef,    # 'H': Restored from unsafe hibernate snapshot image, SUSE specific ignore
+    }
+
     my $flag = 1;
     my @taint_fail;
     my @taint_softfail;
+    my $flag_unsupported = 1 << 31;
 
     my $taint_val = script_output('cat /proc/sys/kernel/tainted');
 
@@ -203,7 +209,10 @@ sub check_kernel_taint {
             next;
         }
 
-        if ($softfail || $flag & $flag_softfail) {
+        if ($flag & (1 << 16) && is_sle('>=11-sp4') && is_sle('<=15-sp3')) {
+            push @taint_softfail, " - Modules with external support loaded";
+        }
+        elsif ($softfail || $flag & $flag_softfail) {
             push @taint_softfail, "- $desc";
         } else {
             push @taint_fail, "- $desc";
@@ -211,7 +220,12 @@ sub check_kernel_taint {
         $flag <<= 1;
     }
 
-    push @taint_fail, '- Unknown tainted state' if $taint_val >= $flag;
+    if ($flag_unsupported & $taint_val) {
+        push @taint_softfail, (@taint_softfail ? "\n" : "") . '- Unsupported kernel module was loaded';
+    }
+
+
+    push @taint_fail, '- Unknown tainted state' if ($taint_val & ~$flag_unsupported) >= $flag;
     my $message = sprintf("Kernel taint: 0x%x", $taint_val);
 
     if (@taint_softfail) {
