@@ -718,8 +718,9 @@ To get the complete output structure, the call is:
 
 sub get_terraform_output {
     my ($self, $jq_query) = @_;
-    my $res = script_output("terraform output -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
-    return $res;
+    my $res = script_output("terraform output -no-color -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
+    # jq 'null' shall return empty
+    return $res unless ($res =~ /^null$/);
 }
 
 sub escape_single_quote {

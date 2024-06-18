@@ -165,18 +165,19 @@ sub start_instance
 
 sub cleanup {
     my ($self, $args) = @_;
-
     select_host_console(force => 1);
 
     my $region = $self->{provider_client}->{region};
     my $project = $self->{provider_client}->{project_id};
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     # gce provides full serial log, so extended timeout
-    if ($instance_id =~ /$self->{resource_name}/) {
-        script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
-        upload_logs("instance_serial.txt", failok => 1);
-    } else {
-        record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
+        if ($instance_id =~ /$self->{resource_name}/) {
+            script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
+            upload_logs("instance_serial.txt", failok => 1);
+        } else {
+            record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
+        }
     }
     $self->SUPER::cleanup();
 }
