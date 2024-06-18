@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: This module installs the LTP (Linux Test Project) and then reboots.
-# Maintainer: Richard palethorpe <rpalethorpe@suse.com>
-# Usage details are at the end of this file.
+# Maintainer: QE Kernel <kernel-qa@suse.de>
+# For usage see the bottom and tests/kernel/run_ltp.pm.
+
 use 5.018;
 use warnings;
 use base 'opensusebasetest';

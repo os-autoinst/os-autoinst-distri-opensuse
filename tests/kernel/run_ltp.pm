@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes a single LTP test case
-# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
-# More documentation is at the bottom
+# Maintainer: QE Kernel <kernel-qa@suse.de>
+# For usage see the bottom and tests/kernel/install_ltp.pm.
 
 use 5.018;
 use warnings;

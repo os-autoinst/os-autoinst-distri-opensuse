@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Cleanup and shutdown after installing or running the LTP
-# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
+# For usage see tests/kernel/run_ltp.pm and tests/kernel/install_ltp.pm
 
 use 5.018;
 use warnings;
