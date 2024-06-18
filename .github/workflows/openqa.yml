@@ -22,7 +22,7 @@ jobs:
     container:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Determine the latest Tumbleweed build on o3
         id: latest_build
         run: >-
