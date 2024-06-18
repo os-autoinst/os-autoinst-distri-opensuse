@@ -40,7 +40,7 @@ sub run {
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark slirp4netns);
     if (is_tumbleweed) {
-        push @pkgs, qw(dbus-1-daemon ncat);
+        push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
     }
