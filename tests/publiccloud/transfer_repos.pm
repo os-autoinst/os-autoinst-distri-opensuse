@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: rsync
@@ -39,6 +39,12 @@ sub run {
 
         # We need to exclude embargoed incidents
         my @all_repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        for my $exclude (split(/,/, get_var('EXCLUDED_TEST_REPO', ''))) {
+            for my $index (reverse 0 .. $#all_repos) {
+                splice(@all_repos, $index, 1, ()) if ($all_repos[$index] =~ /$exclude/);
+            }
+        }
+
         my @repos;
         my ($incident, $type);
         for my $maintrepo (@all_repos) {
