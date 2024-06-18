@@ -38,17 +38,13 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark);
+    my @pkgs = qw(aardvark-dns firewalld netcat-openbsd iproute2 iptables jq netavark);
     if (is_tumbleweed) {
-        push @pkgs, qw(dbus-1-daemon ncat);
+        push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
     }
     install_packages(@pkgs);
-
-    # netavark needs nmap's ncat instead of openbsd-netcat which we override via PATH above
-    # otherwise we can use nc but ignore failures due to openbsd-netcat not handling SIGTERM
-    assert_script_run "cp /usr/bin/ncat /usr/local/bin/nc" unless is_sle;
 
     switch_cgroup_version($self, 2);
 
