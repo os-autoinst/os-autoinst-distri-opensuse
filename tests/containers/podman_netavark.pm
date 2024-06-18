@@ -15,8 +15,6 @@ use containers::common qw(install_packages);
 use containers::utils qw(get_podman_version);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
-use main_common qw(is_updates_tests);
-use publiccloud::utils qw(is_gce);
 
 sub is_cni_in_tw {
     return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
@@ -198,27 +196,24 @@ sub run {
     my $cur_version = script_output('rpm -q --qf "%{VERSION}\n" netavark');
     # only for netavark v1.6+
     # JeOS's kernel-default-base is missing *macvlan* kernel module
-    if (!(is_jeos || (is_updates_tests && is_gce)) && package_version_cmp($cur_version, '1.6.0') >= 0) {
+    if (!is_jeos && package_version_cmp($cur_version, '1.6.0') >= 0) {
         record_info('TEST4', 'smoke test for netavark dhcp proxy + macvlan');
         $net1->{name} = 'test_macvlan';
         systemctl('enable --now netavark-dhcp-proxy.socket');
         systemctl('status netavark-dhcp-proxy.socket');
 
         my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
-        my $extra = '';
-        if (is_public_cloud || is_s390x || is_vmware) {
-            my $sn = script_output(qq(ip -o -f inet addr show $dev | awk '/scope global/ {print \$4}' | head -n 1)) =~ s/\.\d+\//\.0\//r;
-            $extra .= "--subnet $sn ";
-            my $gw = $sn =~ s/0\/\d+$/1/r;
-            $extra .= "--gateway $gw ";
-            my $range = $gw =~ s/\d+$/244\/30/r;
-            $extra .= "--ip-range $range";
-        }
-        assert_script_run("podman network create -d macvlan --interface-name $dev $extra $net1->{name}");
-        assert_script_run("podman run --network $net1->{name} -td --name $ctr2->{name} $ctr2->{image}");
+        #script_run("ip link set $dev promisc on");
+        my $routes = script_output("ip -4 route list | tee -a /dev/$serialdev | grep $dev");
+        my ($sn) = $routes =~ /(\b[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+\b)\s+dev\s+$dev/;
+        my $network = "--subnet $sn";
+
+        assert_script_run("podman network create -d macvlan --interface-name $dev --ipam-driver=host-local $network $net1->{name}");
+        assert_script_run("podman run --network $net1->{name} --cap-add=net_raw -td --name $ctr2->{name} $ctr2->{image}");
         if (is_container_running($ctr2->{name})) {
-            assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
+            assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
+            assert_script_run("podman exec $ctr2->{name} ping 8.8.8.8 -c 4");
         }
     }
 
@@ -230,6 +225,7 @@ sub post_run_hook {
 }
 sub post_fail_hook {
     script_run("sysctl -a | grep --color=never net");
+    sleep;
     shift->_cleanup();
 }
 
