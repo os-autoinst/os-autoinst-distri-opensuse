@@ -16,8 +16,11 @@
     <ul>
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
       <li><a href="#ipaddr2_azure_deployment">ipaddr2_azure_deployment</a></li>
-      <li><a href="#ipaddr2_ssh_cmd">ipaddr2_ssh_cmd</a></li>
+      <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
+      <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
+      <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
       <li><a href="#ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</a></li>
+      <li><a href="#ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</a></li>
       <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
       <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
     </ul>
@@ -54,17 +57,65 @@
 </dd>
 </dl>
 
-<h2 id="ipaddr2_ssh_cmd">ipaddr2_ssh_cmd</h2>
+<h2 id="ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</h2>
 
-<pre><code>script_run(ipaddr2_ssh_cmd() . &#39; whoami&#39;);</code></pre>
+<pre><code>my $bastion_ip = ipaddr2_bastion_pubip();</code></pre>
 
-<p>Create ssh command that target the only VM in the deployment that has public IP.</p>
+<p>Get the only public IP in the deployment associated to the VM used as bastion.</p>
+
+<h2 id="ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</h2>
+
+<pre><code>script_run(join(&#39; &#39;, &#39;ssh&#39;, ipaddr2_bastion_ssh_addr(), &#39;whoami&#39;);</code></pre>
+
+<p>Help to create ssh command that target the only VM in the deployment that has public IP.</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</h2>
+
+<pre><code>ipaddr2_bastion_key_accept()</code></pre>
+
+<p>For the worker to accept the ssh key of the bastion</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</h2>
 
 <pre><code>ipaddr2_deployment_sanity()</code></pre>
 
 <p>Run some checks on the existing deployment using the az command line. die in case of failure</p>
+
+<h2 id="ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</h2>
+
+<pre><code>ipaddr2_ssh_assert_script_run_bastion(
+    bastion_ip =&gt; &#39;1.2.3.4&#39;,
+    cmd =&gt; &#39;whoami&#39;);</code></pre>
+
+<p>run a command on the bastion using assert_script_run</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dd>
+
+</dd>
+<dt id="cmd---command-to-run-there"><b>cmd</b> - command to run there</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="ipaddr2_destroy">ipaddr2_destroy</h2>
 
