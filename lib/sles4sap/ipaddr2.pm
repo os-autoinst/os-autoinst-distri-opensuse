@@ -22,12 +22,12 @@ Library to manage ipaddr2 tests
 =cut
 
 our @EXPORT = qw(
-  $user
   ipaddr2_azure_deployment
-  ipaddr2_ssh_cmd
+  ipaddr2_bastion_key_accept
   ipaddr2_destroy
   ipaddr2_get_internal_vm_name
   ipaddr2_deployment_sanity
+  ipaddr2_bastion_pubip
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -37,6 +37,7 @@ our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
 our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
+our $key_id = 'id_rsa';
 
 =head2 ipaddr2_azure_resource_group
 
@@ -237,22 +238,75 @@ sub ipaddr2_azure_deployment {
         port => '80');
 }
 
-=head2 ipaddr2_ssh_cmd
+=head2 ipaddr2_bastion_pubip
 
-    script_run(ipaddr2_ssh_cmd() . ' whoami');
+    my $bastion_ip = ipaddr2_bastion_pubip();
 
-Create ssh command that target the only VM
-in the deployment that has public IP.
+Get the only public IP in the deployment associated to the VM used as bastion.
+
 =cut
 
-sub ipaddr2_ssh_cmd {
+sub ipaddr2_bastion_pubip {
     my $rg = ipaddr2_azure_resource_group();
-    my $pub_ip_addr = az_network_publicip_get(
+    return az_network_publicip_get(
         resource_group => $rg,
         name => $bastion_pub_ip);
-
-    return 'ssh ' . $user . '@' . $pub_ip_addr;
 }
+
+=head2 ipaddr2_bastion_ssh_addr
+
+    script_run(join(' ', 'ssh', ipaddr2_bastion_ssh_addr(), 'whoami');
+
+Help to create ssh command that target the only VM
+in the deployment that has public IP.
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+
+=back
+=cut
+
+sub ipaddr2_bastion_ssh_addr {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    return $user . '@' . $args{bastion_ip};
+}
+
+=head2 ipaddr2_bastion_key_accept
+
+    ipaddr2_bastion_key_accept()
+
+For the worker to accept the ssh key of the bastion
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+
+=back
+=cut
+
+sub ipaddr2_bastion_key_accept {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    # Clean up known_hosts on the machine running the test script
+    #    ssh-keygen -R $bastion_ssh_addr
+    # is not needed and has not to be executed
+    # as /root/.ssh/known_hosts does not exist at all in the worker context.
+    # Not strictly needed in this context as each test
+    # in openQA start from a clean environment
+
+    my $bastion_ssh_cmd = "ssh -oStrictHostKeyChecking=accept-new $bastion_ssh_addr";
+    assert_script_run(join(' ', $bastion_ssh_cmd, 'whoami'));
+
+    # one more without StrictHostKeyChecking=accept-new just to verify it is ok
+    ipaddr2_ssh_assert_script_run_bastion(
+        cmd => 'whoami',
+        bastion_ip => $args{bastion_ip});
+}
+
 
 =head2 ipaddr2_deployment_sanity
 
@@ -284,6 +338,36 @@ sub ipaddr2_deployment_sanity {
         $count = grep(/running/, @$res);
         die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
     }
+=head2 ipaddr2_ssh_assert_script_run_bastion
+
+    ipaddr2_ssh_assert_script_run_bastion(
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on the bastion using assert_script_run
+
+=over 2
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+    sub ipaddr2_ssh_assert_script_run_bastion {
+        my (%args) = @_;
+        croak("Argument < cmd > missing") unless $args{cmd};
+        $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+        assert_script_run(join(' ',
+                'ssh',
+                "$user\@" . $args{bastion_ip},
+                "'$args{cmd}'"));
+    }
+
 }
 
 =head2 ipaddr2_destroy
