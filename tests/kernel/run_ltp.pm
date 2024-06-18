@@ -493,5 +493,11 @@ C<tcpdump>: Capture all packets sent or received during each test.
 C<crashdump>: Save kernel crashdump on test timeout.
 C<tasktrace>: Print backtrace of all processes and show blocked tasks
 
+=head2 LTP_KERNEL_TAINT_SOFTFAIL
+
+Flags to softfail (bitfield number).
+
+https://www.kernel.org/doc/html/latest/admin-guide/tainted-kernels.html
+
 =cut
 

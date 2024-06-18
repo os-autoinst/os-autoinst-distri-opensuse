@@ -168,6 +168,7 @@ sub prepare_ltp_env {
 
 sub check_kernel_taint {
     my ($testmod, $softfail) = @_;
+    my $flag_softfail = get_var('LTP_KERNEL_TAINT_SOFTFAIL', 0);
 
     my @flag_desc = (
         undef,    # proprietary module, ignore
@@ -191,29 +192,42 @@ sub check_kernel_taint {
         'In-kernel test has been run'
     );
     my $flag = 1;
-    my @taint;
+    my @taint_fail;
+    my @taint_softfail;
 
     my $taint_val = script_output('cat /proc/sys/kernel/tainted');
 
     for my $desc (@flag_desc) {
-        push @taint, "- $desc" if defined($desc) && $flag & $taint_val;
+        unless (defined($desc) && $flag & $taint_val) {
+            $flag <<= 1;
+            next;
+        }
+
+        if ($softfail || $flag & $flag_softfail) {
+            push @taint_softfail, "- $desc";
+        } else {
+            push @taint_fail, "- $desc";
+        }
         $flag <<= 1;
     }
 
-    push @taint, '- Unknown tainted state' if $taint_val >= $flag;
+    push @taint_fail, '- Unknown tainted state' if $taint_val >= $flag;
     my $message = sprintf("Kernel taint: 0x%x", $taint_val);
 
-    unless (@taint) {
+    if (@taint_softfail) {
+        $testmod->record_soft_failure_result("$message:\n" .
+              join("", @taint_softfail));
+    }
+
+    if (@taint_fail) {
+        $testmod->record_resultfile('Kernel tainted',
+            "$message\n" . join("\n", @taint_fail), result => 'fail');
+        $testmod->{result} = 'fail';
+    }
+
+    unless (@taint_fail || @taint_softfail) {
         $testmod->record_resultfile('Kernel taint OK', "$message (OK)",
             result => 'ok');
-    }
-    elsif ($softfail) {
-        $testmod->record_soft_failure_result("$message:\n" . join("\n", @taint));
-    }
-    else {
-        $testmod->record_resultfile('Kernel tainted',
-            "$message\n" . join("\n", @taint), result => 'fail');
-        $testmod->{result} = 'fail';
     }
 }
 
