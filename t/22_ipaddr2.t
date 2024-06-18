@@ -5,7 +5,7 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use Test::Mock::Time;
-use List::Util qw(any none);
+use List::Util qw(any none all);
 
 use sles4sap::ipaddr2;
 
@@ -28,24 +28,6 @@ subtest '[ipaddr2_azure_deployment]' => sub {
     ok $#calls > 0, "There are some command calls";
 };
 
-subtest '[ipaddr2_ssh_cmd]' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
-
-    my @calls;
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    #$azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
-    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
-
-    my $ret = ipaddr2_ssh_cmd();
-
-    for my $call_idx (0 .. $#calls) {
-        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
-    }
-
-    like($ret, qr/ssh cloudadmin\@Fermi/, "The ssh command is like $ret");
-};
-
 subtest '[ipaddr2_destroy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -56,6 +38,31 @@ subtest '[ipaddr2_destroy]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az group delete/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[ipaddr2_bastion_key_accept]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+
+    my $ret = ipaddr2_bastion_key_accept();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
+    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok scalar @calls eq 2, "Exactly 2 calls";
+};
+
+subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
+    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok scalar @calls eq 2, "Exactly 2 calls";
 };
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
@@ -83,7 +90,7 @@ subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     for my $call_idx (0 .. $#calls) {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
-    ok 1;
+    ok(($#calls > 0), "There are some command calls");
 };
 
 subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
@@ -108,7 +115,15 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
     for my $call_idx (0 .. $#calls) {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
-    ok scalar @calls > 0, "Some calls to script_run and script_output";
+    ok((scalar @calls > 0), "Some calls to script_run and script_output");
+};
+
+subtest '[ipaddr2_bastion_pubip]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(az_network_publicip_get => sub { return '1.2.3.4'; });
+    my $res = ipaddr2_bastion_pubip();
+    ok(($res eq '1.2.3.4'), "Expect 1.2.3.4 and get $res");
 };
 
 done_testing;
