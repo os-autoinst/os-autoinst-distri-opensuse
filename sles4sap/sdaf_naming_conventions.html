@@ -1,0 +1,154 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/sdaf_naming_conventions.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#sdaf_region_matrix">%sdaf_region_matrix</a></li>
+      <li><a href="#convert_region_to_long">convert_region_to_long</a></li>
+      <li><a href="#convert_region_to_short">convert_region_to_short</a></li>
+      <li><a href="#homedir">homedir</a></li>
+      <li><a href="#deployment_dir">deployment_dir</a></li>
+      <li><a href="#log_dir">log_dir</a></li>
+      <li><a href="#sdaf_scripts_dir">sdaf_scripts_dir</a></li>
+      <li><a href="#env_variable_file">env_variable_file</a></li>
+      <li><a href="#get_sdaf_config_path">get_sdaf_config_path</a></li>
+      <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
+      <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/sdaf_naming_conventions.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library contains functions that handle SDAF naming conventions used in various strings. Mostly used for generating resource names, file names or file paths. Please try not to add here complex functions that do much beyond returning a string.</p>
+
+<h2 id="sdaf_region_matrix">%sdaf_region_matrix</h2>
+
+<p><b>SDAF</b> uses own internal 4 character abbreviations for Public Cloud region names.</p>
+
+<p>This is an internal matrix used for translation. It contains only commonly used regions, if you need to extend the list you can find definitions in the function <b>get_region_code</b> located in sdaf shell script at: <a href="https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403">https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403</a></p>
+
+<h2 id="convert_region_to_long">convert_region_to_long</h2>
+
+<pre><code>convert_region_to_long($sdaf_region_code);</code></pre>
+
+<p><b>$sdaf_region_code</b>: Region name abbreviation containing 4 uppercase alphanumeric characters</p>
+
+<p>Performs region name conversion from 4 letter SDAF abbreviation to full region name. You can find definitions in the function <b>get_region_code</b> located in sdaf shell script:</p>
+
+<p><a href="https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403">https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403</a></p>
+
+<h2 id="convert_region_to_short">convert_region_to_short</h2>
+
+<pre><code>convert_region_to_short($region);</code></pre>
+
+<p><b>$region</b>: Full region name. Can contain only lowercase alphanumeric characters.</p>
+
+<p>Performs region name conversion from full region name to 4 letter SDAF abbreviation. You can find definitions in the function <b>get_region_code</b> located in sdaf shell script:</p>
+
+<p><a href="https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403">https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403</a></p>
+
+<h2 id="homedir">homedir</h2>
+
+<pre><code>homedir();</code></pre>
+
+<p>Returns home directory path for current user from env variable $HOME.</p>
+
+<h2 id="deployment_dir">deployment_dir</h2>
+
+<pre><code>deployment_dir([create=&gt;1]);</code></pre>
+
+<p><b>create</b>: Create directory if it does not exist.</p>
+
+<p>Returns deployment directory path with job ID appended as unique identifier. Optionally it can create directory if it does not exists.</p>
+
+<h2 id="log_dir">log_dir</h2>
+
+<pre><code>log_dir([create=&gt;1]);</code></pre>
+
+<p><b>create</b>: Create directory if it does not exist.</p>
+
+<p>Returns logging directory path with job ID appended as unique identifier. Optionally creates the directory.</p>
+
+<h2 id="sdaf_scripts_dir">sdaf_scripts_dir</h2>
+
+<pre><code>sdaf_scripts_dir();</code></pre>
+
+<p>Returns directory containing SDAF scripts.</p>
+
+<h2 id="env_variable_file">env_variable_file</h2>
+
+<pre><code>env_variable_file();</code></pre>
+
+<p>Returns full path to a file containing all required SDAF OS env variables. Sourcing this file is essential for running SDAF.</p>
+
+<h2 id="get_sdaf_config_path">get_sdaf_config_path</h2>
+
+<pre><code>get_sdaf_config_path(
+    deployment_type=&gt;$deployment_type,
+    env_code=&gt;$env_code,
+    sdaf_region_code=&gt;$sdaf_region_code,
+    [vnet_code=&gt;$vnet_code,
+    sap_sid=&gt;$sap_sid,
+    job_id=&gt;$job_id]);</code></pre>
+
+<p>Returns path to config root directory for deployment type specified. Root config directory is deployment type specific and usually contains tfvar file, inventory file, SUT ssh keys, etc...</p>
+
+<p><b>deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
+
+<p><b>sdaf_region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
+
+<p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
+
+<p><b>sap_sid</b>: SDAF parameter for sap system ID</p>
+
+<p><b>job_id</b>: Specify job id instead of using current one. Default: current job id</p>
+
+<h2 id="get_tfvars_path">get_tfvars_path</h2>
+
+<pre><code>get_tfvars_path(
+    deployment_type=&gt;$deployment_type,
+    env_code=&gt;$env_code,
+    sdaf_region_code=&gt;$sdaf_region_code,
+    [vnet_code=&gt;$vnet_code,
+    sap_sid=&gt;$sap_sid]);</code></pre>
+
+<p>Returns full tfvars filepath respective to deployment type.</p>
+
+<p><b>deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
+
+<p><b>sdaf_region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
+
+<p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
+
+<p><b>sap_sid</b>: SDAF parameter for sap system ID. Required only for &#39;sap_system&#39; deployment type</p>
+
+<h2 id="generate_resource_group_name">generate_resource_group_name</h2>
+
+<pre><code>generate_resource_group_name(deployment_type=&gt;$deployment_type);</code></pre>
+
+<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+<p>Returns name of the resource group for the deployment type specified by <b>$deployment_type</b> . Resource group pattern: <i>SDAF-OpenQA-[deployment type]-[deployment id]-[OpenQA job id]</i></p>
+
+
+</body>
+
+</html>
+
+
