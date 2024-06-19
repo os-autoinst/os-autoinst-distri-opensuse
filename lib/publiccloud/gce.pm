@@ -62,6 +62,7 @@ sub upload_img {
         # We need to uppercase the value, as we typically use lowercase settings (e.g. arm64)
         $cmd .= " --architecture=" . uc $arch;
     }
+    $cmd .= " --labels pcw_ignore=1" if (check_var('PUBLIC_CLOUD_KEEP_IMG', '1'));
     assert_script_run($cmd, timeout => 60 * 10);
 
     if (!$self->find_img($file)) {

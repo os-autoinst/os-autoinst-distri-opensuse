@@ -255,13 +255,14 @@ sub generate_img_version {
     return "$build.$kiwi";
 }
 
-sub generate_tags {
+sub generate_image_tags {
     # Define tags
     my $job_id = get_current_job_id();
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     $openqa_url =~ s@^https?://|/$@@gm;
     my $created_by = "$openqa_url/t$job_id";
     my $tags = "'openqa_created_by=$created_by' 'openqa_var_server=$openqa_url' 'openqa_var_job_id=$job_id'";
+    $tags .= " 'pcw_ignore=1'" if (check_var('PUBLIC_CLOUD_KEEP_IMG', '1'));
 
     return $tags;
 }
@@ -382,7 +383,7 @@ sub upload_blob {
     my $img_name = $self->get_blob_name($file);
     my $container = $self->container;
     my $key = $self->get_storage_account_keys($storage_account);
-    my $tags = generate_tags();
+    my $tags = generate_image_tags();
     # Note: VM images need to be a page blob type
     assert_script_run('az storage blob upload --max-connections 4 --type page --overwrite --no-progress'
           . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
@@ -411,7 +412,7 @@ sub create_image_definition {
     my $sku = az_sku();
 
     my $gen = ($sku =~ "gen2" ? "V2" : "V1");
-    my $tags = generate_tags();
+    my $tags = generate_image_tags();
 
     my $arch = az_arch();
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
@@ -443,7 +444,7 @@ sub create_image_version {
     my $definition = $self->get_image_definition($resource_group, $gallery);
     my $version = generate_img_version();
     my $os_vhd_uri = $self->get_blob_uri($file);
-    my $tags = generate_tags();
+    my $tags = generate_image_tags();
     my $target_regions = ($self->provider_client->region !~ $self->storage_region) ? $self->provider_client->region . ' ' . $self->storage_region : $self->provider_client->region;
     # Note: Repetitive calls do not fail
     assert_script_run("az sig image-version create --debug --resource-group '$resource_group' --gallery-name '$gallery' " .
