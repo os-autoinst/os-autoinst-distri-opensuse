@@ -34,6 +34,11 @@ sub yast2_console_exec {
         $cmd_start = y2_module_basetest::with_yast_env_variables($args{extra_vars}) . $args{podman};
         $module_name = 'podman-status';
     }
+    if (!defined($args{yast2_module})) {
+        $cmd_start = y2_module_basetest::with_yast_env_variables($args{extra_vars}) . ' yast2 ';
+        $cmd_start .= ';';
+        $module_name = 'yast2-ui-status';
+    }
     if (!script_run($cmd_start . " echo $module_name-\$? > /dev/$serialdev", 0)) {
         return $module_name;
     } else {
