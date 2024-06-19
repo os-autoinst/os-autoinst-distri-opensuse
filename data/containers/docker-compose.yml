@@ -1,9 +1,7 @@
-version: "3.3"
 services:
 
   nginx:
-    # The REGISTRY is variable and will be replaced
-    image: REGISTRY/library/nginx
+    image: registry.opensuse.org/opensuse/nginx
     networks:
       - backend
     volumes:
@@ -11,10 +9,9 @@ services:
     restart: on-failure
 
   haproxy:
-    # The REGISTRY is variable and will be replaced
-    image: REGISTRY/library/haproxy
+    image: registry.opensuse.org/opensuse/haproxy
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,Z
+      - ./haproxy.cfg:/etc/haproxy/haproxy.cfg:ro,Z
     ports:
       - "8080:80"
     # Port 80 is privileged but haproxy 2.4 runs as user by default.

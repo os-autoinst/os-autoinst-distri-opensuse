@@ -36,7 +36,6 @@ sub basic_test {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run "$runtime compose pull", 600;
 
     # Start all containers in background
@@ -51,7 +50,7 @@ sub basic_test {
     assert_script_run 'curl -s http://127.0.0.1:8080/ | grep "Welcome to nginx!"';
 
     # Change the index.html in nginx /usr/share/nginx/html volume a check it
-    assert_script_run "$runtime compose exec nginx /bin/sh -c 'echo Hello > /usr/share/nginx/html/index.html'";
+    assert_script_run "$runtime compose exec nginx /bin/sh -c 'echo Hello > /srv/www/htdocs/index.html'";
     assert_script_run 'curl -s http://127.0.0.1:8080/ | grep "Hello"';
 
     assert_script_run "$runtime compose logs | tee $runtime-compose-logs.txt";
