@@ -1,0 +1,11 @@
+---
+name: create_hdd_maintenance_deregistered
+description: '|
+  This job is to deregister the system and publish a qcow
+  file for maintenance updates migration test cases.'
+schedule:
+  - boot/boot_to_desktop
+  - console/scc_deregistration
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
