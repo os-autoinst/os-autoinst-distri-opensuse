@@ -185,6 +185,7 @@ sub upload_img {
 
     my $ami = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $ami;
+    script_run("aws ec2 create-tags --resources $ami --tags Key=pcw_ignore,Value=1") if (check_var('PUBLIC_CLOUD_KEEP_IMG', '1'));
     validate_script_output('aws ec2 describe-images --image-id ' . $ami, sub { /"EnaSupport":\s+true/ });
     record_info('INFO', "AMI: $ami");    # Show the ami-* number, could be useful
 }

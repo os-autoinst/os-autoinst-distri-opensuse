@@ -308,6 +308,7 @@ PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
+PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
 PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
