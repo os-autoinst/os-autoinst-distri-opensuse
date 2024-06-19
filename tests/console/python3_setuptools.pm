@@ -97,6 +97,8 @@ sub cleanup {
     # Deletion of work folders
     assert_script_run("rm -rf dist user_package_setuptools.egg-info repo_webroot");
     assert_script_run("deactivate");    # leave the virtual env
+    assert_script_run("cd ..");
+    script_run("rm -r data");
 }
 
 sub post_run_hook {
