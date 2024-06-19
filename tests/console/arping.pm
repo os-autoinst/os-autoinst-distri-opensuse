@@ -51,6 +51,7 @@ sub run {
     }
 
     my $cmd = "arping -w2 $route";
+    record_info($cmd);
     my $rc = script_run($cmd);
     if ($rc) {
         my $bug;
