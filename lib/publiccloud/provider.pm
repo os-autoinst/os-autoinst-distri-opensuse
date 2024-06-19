@@ -723,11 +723,12 @@ sub terraform_param_tags
     return encode_json($tags);
 }
 
-=head2 get_terraform_output
+=head2 get_terraform_output($jq_query, $tf_dir)
 
 Query the terraform data structure in json format.
 Automatic search and set valid terraform directory on helper image.
 Input: <jq-query-format> string; <empty> = no query then full output of data structure.
+       <tf_dir> string, optional terraform destination directory; when empty, dir.searched.
 E.g: to get the VM instance name from json data structure, the call is: 
     get_terraform_output(".vm_name.value[0]");
 To get the complete output structure, the call is:
@@ -736,21 +737,16 @@ To get the complete output structure, the call is:
 =cut
 
 sub get_terraform_output {
-    my ($self, $jq_query) = @_;
-    # cuurent dir saved
-    my $dir = script_output("pwd");
+    my ($self, $jq_query, $tf_dir) = @_;
     # terraform state file search first matching
-    my $cd = script_output("(find ~ -name *.tfstate -print | head -1 | xargs dirname) 2>/dev/null");
+    my $start = ($tf_dir) ? $tf_dir : '~';
+    $tf_dir = script_output("find $start -name \*.tfstate -exec dirname {} + -quit 2>/dev/null");
     # state file missing: no data found
-    return "" if ($cd eq "");
-    # enter terraform dir. found
-    script_run("cd $cd") if ($cd ne $dir);
-    # get data
-    my $res = script_output("terraform output -no-color -json | jq -Mr '$jq_query'", proceed_on_failure => 1);
-    # restore saved dir
-    script_run("cd $dir") if ($cd ne $dir);
-    # return data or empty when "null" found
-    return ($res =~ /^null$/) ? "" : $res;
+    return undef unless ($tf_dir);
+    # set terraform dir. and get data
+    my $res = script_output("terraform -chdir=$tf_dir output -no-color -json | jq -Mr '$jq_query'", proceed_on_failure => 1);
+    # return undef on jq 'null'
+    return ($res eq "null") ? undef : $res;
 }
 
 sub escape_single_quote {

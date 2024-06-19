@@ -170,14 +170,14 @@ sub cleanup {
 
     my $region = $self->{provider_client}->{region};
     my $project = $self->{provider_client}->{project_id};
-    my $query = check_var('PUBLIC_CLOUD_SLES4SAP', 1) ? ".hana_name.value[0]" : ".vm_name.value[0]";
+    my $query = ".vm_name.value[0]";
     my $instance_id = $self->get_terraform_output($query);
     # gce provides full serial log, so extended timeout
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        if ($instance_id ne "") {
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1)) {
+        if ($instance_id) {
             my $res = script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
             script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --port=1 -> instance_serial.txt", timeout => 180)
-              if ($res != 0);    # zone::region mismatch, retry without zone
+              if ($res);    # zone::region mismatch, retry without zone
             upload_logs("instance_serial.txt", failok => 1);
         } else {
             record_info("Warn", "instance_id empty", result => 'fail');
