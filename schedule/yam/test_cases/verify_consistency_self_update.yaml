@@ -1,0 +1,11 @@
+name: verify_consistency_self_update
+description:    >
+    Verify consistency of a given self update channel by adding just the self update repo to
+    a GA system, using zypper dup to update the system and the opening YaST2 control center using
+    both the Qt and ncurses interfaces.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - console/setup_libyui_running_system
+    - yam/verify_consistency_self_update
