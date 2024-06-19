@@ -2936,6 +2936,8 @@ sub ping_size_check {
     my $target = shift;
     my $size = shift;
     # Check connectivity with different packet size to target
+    assert_script_run('command -v ping >/dev/null', fail_message => 'ping application not found. Needed for ping_size_check');
+    assert_script_run("ping -M do -s 0 -c 1 $target", fail_message => "ping failed trying to reach target '$target'. Check network configuration on worker host'");
     # Fragmentation is disabled, maximum size is 1352 to fit in 1380 MTU in GRE tunel
     my $max_mtu = get_var('MM_MTU', 1380);
     my @sizes = $size ? $size : (100, 1000, 1252, 1350, 1352, 1400, 1430);
