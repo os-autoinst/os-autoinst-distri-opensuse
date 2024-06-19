@@ -51,6 +51,7 @@ use constant {
           is_bootloader_grub2
           is_bootloader_sdboot
           is_plasma6
+          is_bci
           requires_role_selection
           check_version
           get_os_release
@@ -973,3 +974,11 @@ sub is_community_jeos {
     return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
 }
 
+=head2 is_bci
+
+Check if the product under test is a BCI
+=cut
+
+sub is_bci {
+    return (check_var('DISTRI', 'bci'));
+}
