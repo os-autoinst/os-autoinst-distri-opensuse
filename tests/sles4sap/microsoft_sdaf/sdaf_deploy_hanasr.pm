@@ -41,19 +41,28 @@ sub run {
     );
 
     # List of playbooks (and their options) to be executed. Keep them in list to be ordered. Each entry must be an ARRAYREF.
+    # Playbook description is here as well: https://learn.microsoft.com/en-us/azure/sap/automation/run-ansible?tabs=linux
     my @execute_playbooks = (
+        # Fetches SSH key from Workload zone keyvault for accesssing SUTs
         {playbook_filename => 'pb_get-sshkey.yaml', timeout => 90},
+        # Validate parameters
         {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 120},
+        # Base operating system configuration
         {playbook_filename => 'playbook_01_os_base_config.yaml'},
+        # SAP-specific operating system configuration
         {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'},
-        {playbook_filename => 'playbook_04_00_00_db_install.yaml'},
-        {playbook_filename => 'playbook_04_00_01_db_ha.yaml'},
-        {playbook_filename => 'playbook_07_00_00_post_installation.yaml'},
-        {playbook_filename => 'playbook_08_00_00_post_configuration_actions.yaml'}
+        # SAP Bill of Materials processing - this also mounts install media storage
+        {playbook_filename => 'playbook_03_bom_processing.yaml'},
+        # SAP HANA database installation
+        {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 1800},
+        # SAP HANA high-availability configuration
+        {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800},
     );
 
     connect_target_to_serial();
     load_os_env_variables();
+    # Some playbooks use azure cli
+    az_login();
 
     for my $playbook_options (@execute_playbooks) {
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
