@@ -156,8 +156,7 @@ sub get_3rd_party_images {
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "public.ecr.aws/docker/library/alpine",
-        "public.ecr.aws/debian/debian",
+        "ghcr.io/linuxcontainers/alpine:latest"
     );
 
     # Following images are not available on 32-bit arm
@@ -180,13 +179,6 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi-micro",
         "registry.access.redhat.com/ubi9/ubi-init"
     ) unless (is_arm || is_s390x || is_ppc64le || !is_x86_64_v2);
-
-    # - poo#72124 Ubuntu image (occasionally) fails on s390x.
-    # - CentOS image not available on s390x.
-    push @images, (
-        "public.ecr.aws/ubuntu/ubuntu",
-        "public.ecr.aws/docker/library/centos"
-    ) unless (is_arm || is_s390x || is_ppc64le);
 
     # RedHat UBI7 images are not built for aarch64 and 32-bit arm
     push @images, (
