@@ -175,7 +175,9 @@ sub cleanup {
     # gce provides full serial log, so extended timeout
     if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
         if ($instance_id ne "") {
-            script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
+            my $res = script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
+            script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --port=1 -> instance_serial.txt", timeout => 180)
+              if ($res != 0);    # zone::region mismatch, retry without zone
             upload_logs("instance_serial.txt", failok => 1);
         } else {
             record_info("Warn", "instance_id empty", result => 'fail');
