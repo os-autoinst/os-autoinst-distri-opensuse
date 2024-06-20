@@ -24,6 +24,7 @@ schedule:
     - fips/openssh/openssh_fips
     # ssh disabled in env mode, see poo#125648
     - '{{ssh}}'
+    - fips/mozilla_nss/nss_smoke
 conditional_schedule:
     repo_setup:
         BETA:

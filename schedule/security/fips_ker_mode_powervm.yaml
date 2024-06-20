@@ -39,6 +39,7 @@ schedule:
     - console/links_https
     - console/lynx_https
     - console/apache_ssl
+    - fips/mozilla_nss/nss_smoke
     - fips/mozilla_nss/apache_nssfips
     - fips/mozilla_nss/firefox_nss
     - x11/x3270_ssl
