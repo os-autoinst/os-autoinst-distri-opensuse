@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
-use containers::utils qw(get_podman_version registry_url);
+use containers::utils qw(get_podman_version);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
@@ -104,6 +104,8 @@ sub run {
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blame/master/lib/containers/common.pm#L303
     assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=0';
 
+    assert_script_run('curl ' . data_url('containers/nginx.conf') . ' -o nginx.conf');
+
     ## TEST1
     record_info('TEST1', 'set static IP, and MAC addresses on a per-network basis');
     my $net1 = {
@@ -114,10 +116,7 @@ sub run {
         subnet_v6 => 'fd00::1:8:0/112'
     };
     my $ctr1 = {
-        # Temporary workaround due to https://progress.opensuse.org/issues/161276
-        # We should dog food ourselves more, but as of now opensuse images (httpd, nginx) are not suitable
-        # for this test, either they do not start or missing ipv6 support
-        image => registry_url('httpd'),
+        image => 'registry.opensuse.org/opensuse/nginx',
         name => 'webserver_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',
@@ -126,7 +125,7 @@ sub run {
     };
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
-    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
     if (is_container_running($ctr1->{name})) {
         validate_script_output("curl --head --silent $ctr1->{ip}:80", sub { /HTTP.* 200 OK/ });
@@ -153,7 +152,7 @@ sub run {
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman network create --gateway $net2->{gateway} --subnet $net2->{subnet} $net2->{name}");
-    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -dt --name $ctr1->{name} $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -dt --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
     assert_script_run("podman run --network $net2->{name}:ip=$ctr2->{ip},mac=$ctr2->{mac} --network $net1->{name}:ip=$ctr2->{ip_sec},mac=$ctr2->{mac_sec} -dt --name $ctr2->{name} $ctr2->{image}");
 
     # second container should have 2 interfaces
@@ -176,8 +175,8 @@ sub run {
     record_info('TEST3', 'create a dual stack network');
     $net1->{name} = 'test_dual_stack';
     assert_script_run("podman network create --ipv6 --gateway $net1->{gateway_v6} --subnet $net1->{subnet_v6} --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
-    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name6} --ip6 $ctr1->{ip6} -p 8080:80 $ctr1->{image}");
-    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name} --ip $ctr1->{ip} -p 8888:80 $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name6} --ip6 $ctr1->{ip6} -p 8080:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name} --ip $ctr1->{ip} -p 8888:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
 
     if (is_container_running($ctr1->{name})) {
         foreach my $req ((
