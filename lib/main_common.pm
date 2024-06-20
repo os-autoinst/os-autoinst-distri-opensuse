@@ -2447,18 +2447,20 @@ sub load_hypervisor_tests {
 
     if (check_var('ENABLE_VM_INSTALL', 1)) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/prepare_guests";
-        loadtest "virtualization/universal/waitfor_guests";
-        if (check_var('PATCH_WITH_ZYPPER', 1)) {
-            loadtest "virtualization/universal/patch_and_reboot";
-            if (my $update_package = get_var('UPDATE_PACKAGE')) {
-                if ($update_package eq 'kernel-default') {
-                    loadtest "virt_autotest/login_console";
-                    loadtest "virtualization/universal/list_guests";
-                    loadtest "virtualization/universal/patch_guests";
-                } elsif ($update_package eq 'xen' || $update_package eq 'qemu') {
-                    loadtest "virt_autotest/login_console";
-                    loadtest "virtualization/universal/list_guests";
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            loadtest "virtualization/universal/prepare_guests";
+            loadtest "virtualization/universal/waitfor_guests";
+            if (check_var('PATCH_WITH_ZYPPER', 1)) {
+                loadtest "virtualization/universal/patch_and_reboot";
+                if (my $update_package = get_var('UPDATE_PACKAGE')) {
+                    if ($update_package eq 'kernel-default') {
+                        loadtest "virt_autotest/login_console";
+                        loadtest "virtualization/universal/list_guests";
+                        loadtest "virtualization/universal/patch_guests";
+                    } elsif ($update_package eq 'xen' || $update_package eq 'qemu') {
+                        loadtest "virt_autotest/login_console";
+                        loadtest "virtualization/universal/list_guests";
+                    }
                 }
             }
         }
@@ -2502,6 +2504,17 @@ sub load_hypervisor_tests {
             next unless is_sle('>15');
         }
         check_and_load_mu_virt_features($module_switch, $function_modules, $host_hypervisor);
+    }
+
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_SOURCE', '1')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_source";
+    }
+
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+        loadtest "virt_autotest/parallel_guest_migration_barrier";
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_destination";
     }
 }
 
