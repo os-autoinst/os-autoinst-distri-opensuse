@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
-use containers::utils qw(get_podman_version registry_url);
+use containers::utils qw(get_podman_version);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
@@ -25,7 +25,7 @@ sub is_cni_in_tw {
 # podman >=4.8.0 defaults to netavark
 sub is_cni_default {
     my $podman_version = get_podman_version();
-    return package_version_cmp($podman_version, '4.8.0') < 0 || is_sle_micro('<5.5') || (is_sle_micro('=5.5') && !is_public_cloud);
+    return package_version_cmp($podman_version, '4.8.0') < 0 || (is_sle_micro('=5.5') && !is_public_cloud);
 }
 
 sub remove_subtest_setup {
@@ -110,7 +110,7 @@ sub run {
     };
     my $ctr1 = {
         # Temporary workaround due to https://progress.opensuse.org/issues/161276
-        image => is_sle_micro('<5.3') ? registry_url('httpd') : 'registry.opensuse.org/opensuse/httpd',
+        image => 'registry.opensuse.org/opensuse/httpd',
         name => 'webserver_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',
