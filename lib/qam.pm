@@ -12,7 +12,7 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call handle_screen zypper_repos);
+use utils qw(zypper_call handle_screen zypper_repos upload_y2logs);
 use JSON;
 use List::Util qw(max);
 use version_utils qw(is_sle is_transactional);
@@ -27,10 +27,7 @@ use constant ZYPPER_STATUS_COL => 5;
 sub capture_state {
     my ($state, $y2logs) = @_;
     if ($y2logs) {    #save y2logs if needed
-        my $compression = is_sle('=12-sp1') ? 'bz2' : 'xz';
-        assert_script_run "save_y2logs /tmp/y2logs_$state.tar.$compression";
-        upload_logs "/tmp/y2logs_$state.tar.$compression";
-        save_screenshot();
+        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz");
     }
     #upload ip status
     script_run("ip a | tee /tmp/ip_a_$state.log");

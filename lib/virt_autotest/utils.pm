@@ -28,7 +28,7 @@ use Carp;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
   is_monolithic_libvirtd turn_on_libvirt_debugging_log
-  print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
+  print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
   check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons get_guest_regcode);
@@ -604,13 +604,6 @@ sub ensure_online {
             }
         }
     }
-}
-
-sub upload_y2logs {
-    # Create and Upload y2log for analysis
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2", 180;
-    upload_logs("/tmp/y2logs.tar.bz2");
-    save_screenshot;
 }
 
 sub ensure_default_net_is_active {

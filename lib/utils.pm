@@ -119,6 +119,7 @@ our @EXPORT = qw(
   is_usb_boot
   remove_efiboot_entry
   empty_usb_disks
+  upload_y2logs
 );
 
 our @EXPORT_OK = qw(
@@ -3032,6 +3033,25 @@ sub empty_usb_disks {
         assert_script_run("echo y | mkfs.ext4 /dev/$_", timeout => 120);
         record_info("USB disk /dev/$_ emptied");
     }
+}
+
+=head2 upload_y2logs
+
+  upload_y2logs(file => '/tmp/y2logs123.tar.bz2', failok => 1);
+
+No arguments are required, y2logs can be created and uploaded with custom C<file>
+name, upload_logs can fail and continue with failok C<failok> set to 1
+
+=cut
+
+sub upload_y2logs {
+    my (%args) = @_;
+    $args{file} //= '/tmp/y2logs.tar.xz';
+    $args{failok} //= 0;
+    # Create and Upload y2log for analysis
+    script_retry("save_y2logs $args{file}", timeout => 180, retry => 3);
+    upload_logs($args{file}, failok => $args{failok});
+    save_screenshot;
 }
 
 1;
