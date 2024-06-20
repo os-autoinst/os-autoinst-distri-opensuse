@@ -204,7 +204,7 @@ sub ipaddr2_azure_deployment {
             resource_group => $rg,
             ipconfig_name => $ip_config,
             nic_name => $nic_name,
-            ip => $priv_ip_range . '4' . $i);
+            ip => ipaddr2_get_internal_vm_private_ip(id => $i));
 
         # Add the IpConfig to the LB pool
         az_ipconfig_pool_add(
@@ -323,7 +323,7 @@ sub ipaddr2_deployment_sanity {
     my $count = grep(/$rg/, @$res);
     die "There are not exactly one but $count resource groups with name $rg" unless $count eq 1;
 
-    $res = az_vm_name_get(resource_group => $rg);
+    $res = az_vm_list(resource_group => $rg, query => '[].name');
     $count = grep(/$bastion_vm_name/, @$res);
     die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) eq 3;
     die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count eq 1;
@@ -378,8 +378,7 @@ Destroy the deployment by deleting the resource group
 =cut
 
 sub ipaddr2_destroy {
-    my $rg = ipaddr2_azure_resource_group();
-    assert_script_run("az group delete --name $rg -y", timeout => 600);
+    az_group_delete(name => ipaddr2_azure_resource_group(), timeout => 600);
 }
 
 =head2 ipaddr2_get_internal_vm_name
@@ -393,6 +392,19 @@ sub ipaddr2_get_internal_vm_name {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
     return DEPLOY_PREFIX . "-vm-0$args{id}";
+}
+
+=head2 ipaddr2_get_internal_vm_private_ip
+
+    my $private_ip = ipaddr2_get_internal_vm_private_ip(42);
+
+compose and return a string representing the VM private IP
+=cut
+
+sub ipaddr2_get_internal_vm_private_ip {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+    return $priv_ip_range . '0.4' . $args{id};
 }
 
 1;

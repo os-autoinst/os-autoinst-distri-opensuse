@@ -23,6 +23,7 @@ our @EXPORT = qw(
   az_version
   az_group_create
   az_group_name_get
+  az_group_delete
   az_network_vnet_create
   az_network_nsg_create
   az_network_nsg_rule_create
@@ -33,7 +34,7 @@ our @EXPORT = qw(
   az_network_lb_rule_create
   az_vm_as_create
   az_vm_create
-  az_vm_name_get
+  az_vm_list
   az_vm_openport
   az_vm_wait_cloudinit
   az_vm_instance_view_get
@@ -87,7 +88,7 @@ sub az_group_create {
 
     my $ret = az_group_name_get();
 
-Get the name of all existing Resource groups in the current subscription
+Get the name of all existing Resource Group in the current subscription
 
 =cut
 
@@ -97,6 +98,31 @@ sub az_group_name_get {
         '--query "[].name"',
         '-o json');
     return decode_json(script_output($az_cmd));
+}
+
+=head2 az_group_delete
+
+    az_group_delete( name => 'openqa-rg' );
+
+Delete a resource group with a specific name
+
+=over 1
+
+=item B<name> - full name of the resource group
+
+=item B<timeout> - timeout, default 60
+
+=back
+=cut
+
+sub az_group_delete {
+    my (%args) = @_;
+    croak("Argument < name > missing") unless $args{name};
+    $args{timeout} //= 60;
+    my $az_cmd = join(' ',
+        'az group delete',
+        '--name', $args{name}, '-y');
+    assert_script_run($az_cmd, timeout => $args{timeout});
 }
 
 =head2 az_network_vnet_create
@@ -130,23 +156,31 @@ Create a virtual network
 
 sub az_network_vnet_create {
     my (%args) = @_;
-    foreach (qw(resource_group region vnet snet)) {
+    foreach (qw(resource_group region vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
-    $args{address_prefixes} //= '192.168.0.0/16';
-    $args{subnet_prefixes} //= '192.168.0.0/24';
+    if ($args{snet}) {
+        $args{address_prefixes} //= '192.168.0.0/32';
+        $args{subnet_prefixes} //= '192.168.0.0/32';
+    }
     foreach (qw(address_prefixes subnet_prefixes)) {
-        croak "Invalid IP range $args{$_} in $_"
-          unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+        if ($args{$_}) {
+            croak "Invalid IP range $args{$_} in $_"
+              unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+        }
     }
 
-    my $az_cmd = join(' ', 'az network vnet create',
-        '--resource-group', $args{resource_group},
-        '--location', $args{region},
-        '--name', $args{vnet},
-        '--address-prefixes', $args{address_prefixes},
-        '--subnet-name', $args{snet},
-        '--subnet-prefixes', $args{subnet_prefixes});
-    assert_script_run($az_cmd);
+    my @az_cmd_list = (' ', 'az network vnet create');
+    push @az_cmd_list, '--resource-group'; push @az_cmd_list, $args{resource_group};
+    push @az_cmd_list, '--location'; push @az_cmd_list, $args{region};
+    push @az_cmd_list, '--name'; push @az_cmd_list, $args{vnet};
+    if ($args{address_prefixes}) {
+        push @az_cmd_list, '--address-prefixes'; push @az_cmd_list, $args{address_prefixes};
+    }
+    if ($args{snet}) {
+        push @az_cmd_list, '--subnet-name'; push @az_cmd_list, $args{snet};
+        push @az_cmd_list, '--subnet-prefixes'; push @az_cmd_list, $args{subnet_prefixes};
+    }
+    assert_script_run(join(' ', @az_cmd_list));
 }
 
 =head2 az_network_nsg_create
@@ -190,7 +224,7 @@ Just few parameters are configurable here, like the port number
 
 =over 2
 
-=item B<resource_group> - existing resource group where to create the NSG
+=item B<resource_group> - existing resource group where to create the NSG rule
 
 =item B<nsg> - existing security group name
 
@@ -369,7 +403,7 @@ Create a load balancer health probe.
 
 =over 5
 
-=item B<resource_group> - existing resource group where to create lb
+=item B<resource_group> - existing resource group where to create lb probe
 
 =item B<lb_name> - existing load balancer name
 
@@ -415,7 +449,7 @@ Configure the load balancer behavior.
 
 =over 8
 
-=item B<resource_group> - existing resource group where to create lb
+=item B<resource_group> - existing resource group where to create lb rule
 
 =item B<lb_name> - existing load balancer name
 
@@ -565,26 +599,31 @@ sub az_vm_create {
     assert_script_run($az_cmd, timeout => 600);
 }
 
-=head2 az_vm_name_get
+=head2 az_vm_list
 
-    my $ret = az_vm_name_get(resource_group => 'openqa-rg');
+    my $ret = az_vm_list(resource_group => 'openqa-rg', query => '[].name');
 
-Get the name of all existing VMs within a Resource groups
+Get the info from all existing VMs within a Resource Group
+Return a decoded json hash according to the provided jmespath query
 
 =over 1
 
-=item B<resource_group> - existing resource group where to create the network
+=item B<resource_group> - existing resource group where to search for VMs
+
+=item B<query> - valid jmespath https://jmespath.org/
 
 =back
 =cut
 
-sub az_vm_name_get {
+sub az_vm_list {
     my (%args) = @_;
-    croak("Argument < resource_group > missing") unless $args{resource_group};
+    foreach (qw(resource_group query)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
     my $az_cmd = join(' ',
         'az vm list',
         "-g $args{resource_group}",
-        '--query "[].name"',
+        "--query \"$args{query}\"",
         '-o json');
     return decode_json(script_output($az_cmd));
 }
@@ -606,7 +645,7 @@ Json output looks like:
 
 =over 2
 
-=item B<resource_group> - existing resource group where to create the VM
+=item B<resource_group> - existing resource group where to look for a specific VM
 
 =item B<name> - name of an existing virtual machine
 
@@ -636,7 +675,7 @@ Open a port on an existing VM
 
 =over 3
 
-=item B<resource_group> - existing resource group where to create the Availability set
+=item B<resource_group> - existing resource group where to search for a specific VM
 
 =item B<name> - name of an existing VM
 
@@ -667,7 +706,7 @@ Wait cloud-init completion on a running VM
 
 =over 4
 
-=item B<resource_group> - existing resource group where to create the Availability set
+=item B<resource_group> - existing resource group where to search for a specific VM
 
 =item B<name> - name of an existing VM
 
@@ -706,7 +745,7 @@ Get the NIC ID of the first NIC of a given VM
 
 =over 2
 
-=item B<resource_group> - existing resource group where to create the Availability set
+=item B<resource_group> - existing resource group where to search for a specific NIC
 
 =item B<name> - name of an existing VM
 
@@ -821,6 +860,9 @@ sub az_ipconfig_update {
     my (%args) = @_;
     foreach (qw(resource_group ipconfig_name nic_name ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+
+    croak "Invalid IP address ip:$args{ip}"
+      unless ($args{ip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
 
     my $az_cmd = join(' ', 'az network nic ip-config update',
         '--resource-group', $args{resource_group},
