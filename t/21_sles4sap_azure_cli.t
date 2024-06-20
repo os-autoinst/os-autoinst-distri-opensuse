@@ -13,7 +13,9 @@ subtest '[az_group_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_group_create(name => 'Arlecchino', region => 'Pulcinella');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az group create/ } @calls), 'Correct composition of the main command');
     ok((any { /--location Pulcinella/ } @calls), '--location');
@@ -37,17 +39,48 @@ subtest '[az_group_name_get]' => sub {
     ok((any { /Arlecchino/ } @$res), 'Correct result decoding');
 };
 
+subtest '[az_group_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_group_delete(name => 'Arlecchino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az group delete/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_network_vnet_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_network_vnet_create(
+        resource_group => 'Arlecchino',
+        region => 'Pulcinella',
+        vnet => 'Pantalone');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet create/ } @calls), 'Correct composition of the main command');
+    ok((any { /--name Pantalone/ } @calls), 'Correct --name argument');
+};
+
+subtest '[az_network_vnet_create] vnet snet' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_vnet_create(
         resource_group => 'Arlecchino',
         region => 'Pulcinella',
         vnet => 'Pantalone',
         snet => 'Colombina');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az network vnet create/ } @calls), 'Correct composition of the main command');
+    ok((any { /--name Pantalone/ } @calls), 'Correct --name argument');
+    ok((any { /--address-prefixes/ } @calls), 'Present --address-prefixes argument');
+    ok((any { /--subnet-name/ } @calls), 'Present --subnet-name argument');
+    ok((any { /--subnet-prefixes/ } @calls), 'Present --subnet-prefixes argument');
 };
 
 subtest '[az_network_vnet_create] die on invalid IP' => sub {
@@ -240,16 +273,17 @@ subtest '[az_vm_create] with no public IP' => sub {
     ok((any { /--public-ip-address ""/ } @calls), 'empty Public IP address');
 };
 
-subtest '[az_vm_name_get]' => sub {
+subtest '[az_vm_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Mirandolina","Truffaldino"]'; });
 
-    my $res = az_vm_name_get(resource_group => 'Arlecchino');
+    my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm list/ } @calls), 'Correct composition of the main command');
     ok((any { /-g Arlecchino/ } @calls), 'Correct composition of the -g argument');
+    ok((any { /--query.*ZAMZAM/ } @calls), 'Correct composition of the --query argument');
     ok((any { /Mirandolina/ } @$res), 'Correct result decoding');
 };
 
