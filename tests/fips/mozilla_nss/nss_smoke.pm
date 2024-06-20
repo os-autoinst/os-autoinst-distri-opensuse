@@ -16,7 +16,7 @@ use utils 'zypper_call';
 
 sub run {
     select_serial_terminal;
-    my $zypper_options;
+    my $zypper_options = "";
     my $pass_file = '/root/password.txt';
     my $seed_file = '/root/seedfile.dat';
     my $cert_file = '/root/cert9.cer';
@@ -39,7 +39,7 @@ sub run {
     record_info('mozilla-nss', script_output('rpm -q mozilla-nss'));
     record_info('mozilla-nss-tools', script_output('rpm -q mozilla-nss-tools'));
 
-    assert_script_run('cat /dev/urandom | head -n 120 > /root/seedfile.dat');
+    assert_script_run('head -n 120 < /dev/urandom > /root/seedfile.dat');
     record_info('seedfile', script_output('cat /root/seedfile.dat'));
     assert_script_run('touch ' . $pass_file);
     assert_script_run('mkdir -p /root/nssdb');
