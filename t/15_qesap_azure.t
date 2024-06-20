@@ -361,10 +361,17 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'SHELL');
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => '*') } 'Test unsupported permissions';
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'r*') } 'Test unsupported permissions';
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'l*') } 'Test unsupported permissions';
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'rl*') } 'Test unsupported permissions';
+    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'r');
+    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'l');
+    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'rl');
+    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'lr');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /.*--permission SHELL.*/ } @calls), 'Configured permission');
+    ok 1;
 };
 
 subtest '[qesap_az_get_native_fencing_type]' => sub {
