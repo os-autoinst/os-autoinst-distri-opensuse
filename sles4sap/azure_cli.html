@@ -17,6 +17,7 @@
       <li><a href="#az_version">az_version</a></li>
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
+      <li><a href="#az_group_delete">az_group_delete</a></li>
       <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
       <li><a href="#az_network_nsg_create">az_network_nsg_create</a></li>
       <li><a href="#az_network_nsg_rule_create">az_network_nsg_rule_create</a></li>
@@ -27,7 +28,7 @@
       <li><a href="#az_network_lb_rule_create">az_network_lb_rule_create</a></li>
       <li><a href="#az_vm_as_create">az_vm_as_create</a></li>
       <li><a href="#az_vm_create">az_vm_create</a></li>
-      <li><a href="#az_vm_name_get">az_vm_name_get</a></li>
+      <li><a href="#az_vm_list">az_vm_list</a></li>
       <li><a href="#az_vm_instance_view_get">az_vm_instance_view_get</a></li>
       <li><a href="#az_vm_openport">az_vm_openport</a></li>
       <li><a href="#az_vm_wait_cloudinit">az_vm_wait_cloudinit</a></li>
@@ -73,7 +74,25 @@
 
 <pre><code>my $ret = az_group_name_get();</code></pre>
 
-<p>Get the name of all existing Resource groups in the current subscription</p>
+<p>Get the name of all existing Resource Group in the current subscription</p>
+
+<h2 id="az_group_delete">az_group_delete</h2>
+
+<pre><code>az_group_delete( name =&gt; &#39;openqa-rg&#39; );</code></pre>
+
+<p>Delete a resource group with a specific name</p>
+
+<dl>
+
+<dt id="name---full-name-of-the-resource-group1"><b>name</b> - full name of the resource group</dt>
+<dd>
+
+</dd>
+<dt id="timeout---timeout-default-60"><b>timeout</b> - timeout, default 60</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="az_network_vnet_create">az_network_vnet_create</h2>
 
@@ -147,7 +166,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-NSG1"><b>resource_group</b> - existing resource group where to create the NSG</dt>
+<dt id="resource_group---existing-resource-group-where-to-create-the-NSG-rule"><b>resource_group</b> - existing resource group where to create the NSG rule</dt>
 <dd>
 
 </dd>
@@ -283,7 +302,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-lb1"><b>resource_group</b> - existing resource group where to create lb</dt>
+<dt id="resource_group---existing-resource-group-where-to-create-lb-probe"><b>resource_group</b> - existing resource group where to create lb probe</dt>
 <dd>
 
 </dd>
@@ -321,7 +340,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-lb2"><b>resource_group</b> - existing resource group where to create lb</dt>
+<dt id="resource_group---existing-resource-group-where-to-create-lb-rule"><b>resource_group</b> - existing resource group where to create lb rule</dt>
 <dd>
 
 </dd>
@@ -455,15 +474,19 @@
 </dd>
 </dl>
 
-<h2 id="az_vm_name_get">az_vm_name_get</h2>
+<h2 id="az_vm_list">az_vm_list</h2>
 
-<pre><code>my $ret = az_vm_name_get(resource_group =&gt; &#39;openqa-rg&#39;);</code></pre>
+<pre><code>my $ret = az_vm_list(resource_group =&gt; &#39;openqa-rg&#39;, query =&gt; &#39;[].name&#39;);</code></pre>
 
-<p>Get the name of all existing VMs within a Resource groups</p>
+<p>Get the info from all existing VMs within a Resource Group Return a decoded json hash according to the provided jmespath query</p>
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-network1"><b>resource_group</b> - existing resource group where to create the network</dt>
+<dt id="resource_group---existing-resource-group-where-to-search-for-VMs"><b>resource_group</b> - existing resource group where to search for VMs</dt>
+<dd>
+
+</dd>
+<dt id="query---valid-jmespath-https:-jmespath.org"><b>query</b> - valid jmespath https://jmespath.org/</dt>
 <dd>
 
 </dd>
@@ -483,7 +506,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-VM1"><b>resource_group</b> - existing resource group where to create the VM</dt>
+<dt id="resource_group---existing-resource-group-where-to-look-for-a-specific-VM"><b>resource_group</b> - existing resource group where to look for a specific VM</dt>
 <dd>
 
 </dd>
@@ -504,7 +527,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set1"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-VM"><b>resource_group</b> - existing resource group where to search for a specific VM</dt>
 <dd>
 
 </dd>
@@ -528,7 +551,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set2"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-VM1"><b>resource_group</b> - existing resource group where to search for a specific VM</dt>
 <dd>
 
 </dd>
@@ -556,7 +579,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group-where-to-create-the-Availability-set3"><b>resource_group</b> - existing resource group where to create the Availability set</dt>
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-NIC"><b>resource_group</b> - existing resource group where to search for a specific NIC</dt>
 <dd>
 
 </dd>

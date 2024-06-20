@@ -23,6 +23,7 @@
       <li><a href="#ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</a></li>
       <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
       <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
+      <li><a href="#ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -128,6 +129,12 @@
 <pre><code>my $vm_name = ipaddr2_get_internal_vm_name(42);</code></pre>
 
 <p>compose and return a string for the vm name</p>
+
+<h2 id="ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</h2>
+
+<pre><code>my $private_ip = ipaddr2_get_internal_vm_private_ip(42);</code></pre>
+
+<p>compose and return a string representing the VM private IP</p>
 
 
 </body>
