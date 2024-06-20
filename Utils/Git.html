@@ -25,14 +25,20 @@
 
 <h2 id="git_clone">git_clone</h2>
 
-<pre><code>git_clone(&#39;https://github.com/myrepo/tree/main&#39; [, branch=&gt;&#39;development&#39;, quiet=&gt;&#39;1&#39;, skip_ssl_verification=&gt;&#39;true&#39;,
+<pre><code>git_clone(&#39;https://github.com/myrepo/tree/main&#39;
+    [, branch=&gt;&#39;development&#39;,
+    depth=&gt;1,
+    single_branch=&gt;1,
+    skip_ssl_verification=&gt;&#39;true&#39;,
     output_log_file=&gt;&#39;git_clone.log&#39;]);</code></pre>
 
 <p><b>repository</b>: Git repository url. Mandatory argument.</p>
 
-<p><b>branch</b>: Clone specific branch. Default: not defined</p>
+<p><b>branch</b>: Clone and checkout specific branch (or tag). Default: not defined</p>
 
-<p><b>quiet</b>: Minimize output verbosity. Default: false</p>
+<p><b>single_branch</b>: Enable cloning of branch (or tag) only. Branch is the one specified in `branch` argument. This can speed up cloning process by omitting unnecessary branches. Default: not defined</p>
+
+<p><b>depth</b>: Shallow clone with truncated history to the specified number of commits. This speeds up cloning process by not cloning whole commit history. Default: not defined</p>
 
 <p><b>skip_ssl_verification</b>: Disable SSL verification. Can be useful in case of self signed certificates. Define this parameter <b>ONLY</b> if you want to skip verification. Default: undef</p>
 
