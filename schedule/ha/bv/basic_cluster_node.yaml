@@ -69,6 +69,7 @@ schedule:
   - '{{remove_node}}'
   - '{{graceful_shutdown}}'
   - ha/check_logs
+  - '{{create_hdd_tests}}'
 conditional_schedule:
   cluster_setup:
     HA_CLUSTER_INIT:
@@ -97,3 +98,17 @@ conditional_schedule:
     HA_GRACEFUL_SHUTDOWN:
       1:
         - ha/graceful_shutdown
+  create_hdd_tests:
+    CREATE_HDD:
+      1:
+        - migration/deregister_system
+        - ha/prepare_shutdown
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
+        - '{{svirt_upload_assets}}'
+  svirt_upload_assets:
+    BACKEND:
+      svirt:
+        - shutdown/svirt_upload_assets
