@@ -9,6 +9,7 @@ schedule:
     - fips/fips_setup
     - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_1_1_fips_hash
     - fips/openssl/openssl_fips_cipher
     - fips/openssl/dirmngr_setup
     - fips/openssl/dirmngr_daemon
