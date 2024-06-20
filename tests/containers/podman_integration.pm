@@ -36,7 +36,7 @@ sub run_tests {
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    script_run "env BATS_TMPDIR=/var/tmp PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 6000;
+    script_run "env BATS_TMPDIR=/var/tmp PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 7000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     script_run 'kill %1' if ($remote);
@@ -55,7 +55,9 @@ sub run {
     my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib skopeo socat sudo systemd-container);
     push @pkgs, qw(go buildah) unless is_sle_micro;
     # podman-remote is not yet available & python3-PyYAML was dropped in SLM 6.0
-    push @pkgs, qw(podman-remote python3-PyYAML) unless is_sle_micro('>=6.0');
+    # https://bugzilla.suse.com/show_bug.cgi?id=1226596
+    # https://bugzilla.suse.com/show_bug.cgi?id=1224050
+    push @pkgs, qw(podman-remote python3-PyYAML) unless (is_sle_micro('>=6.0') || is_sle('<=15-SP3'));
     # passt requires podman 5.0
     push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos);
     # Needed for podman machine
