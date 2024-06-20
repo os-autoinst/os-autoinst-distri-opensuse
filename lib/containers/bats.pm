@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_transactional);
+use version_utils qw(is_transactional is_sle);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -77,7 +77,7 @@ sub delegate_controllers {
 sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
-    add_suseconnect_product(get_addon_fullname('python3'));
+    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
 }
 
 sub patch_logfile {
