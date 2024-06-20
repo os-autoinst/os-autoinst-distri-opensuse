@@ -40,9 +40,14 @@ sub is_container_running {
     my $out = script_output("podman container ps --format '{{.Names}}' --noheading");
 
     foreach my $cont (@containers) {
-        next if ($out =~ m/$cont/);
-        record_soft_failure('bsc#1211774 - podman fails to start container with SELinux');
-        return 0;
+        if ($out =~ m/$cont/) {
+            next;
+        } elsif (is_sle_micro) {
+            record_soft_failure('bsc#1211774 - podman fails to start container with SELinux');
+            return 0;
+        } else {
+            die "Container $cont is not running!";
+        }
     }
     return 1;
 }
@@ -110,7 +115,9 @@ sub run {
     };
     my $ctr1 = {
         # Temporary workaround due to https://progress.opensuse.org/issues/161276
-        image => is_sle_micro('<5.3') ? registry_url('httpd') : 'registry.opensuse.org/opensuse/httpd',
+        # We should dog food ourselves more, but as of now opensuse images (httpd, nginx) are not suitable
+        # for this test, either they do not start or missing ipv6 support
+        image => registry_url('httpd'),
         name => 'webserver_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',
@@ -146,7 +153,7 @@ sub run {
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman network create --gateway $net2->{gateway} --subnet $net2->{subnet} $net2->{name}");
-    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -dt --name $ctr1->{name} $ctr1->{image}");
     assert_script_run("podman run --network $net2->{name}:ip=$ctr2->{ip},mac=$ctr2->{mac} --network $net1->{name}:ip=$ctr2->{ip_sec},mac=$ctr2->{mac_sec} -dt --name $ctr2->{name} $ctr2->{image}");
 
     # second container should have 2 interfaces
@@ -174,10 +181,10 @@ sub run {
 
     if (is_container_running($ctr1->{name})) {
         foreach my $req ((
-                "-6 http://[$ctr1->{ip6}]:80",
-                "-4 http://$ctr1->{ip}:80",
                 'http://localhost:8080',
-                'http://localhost:8888'
+                'http://localhost:8888',
+                "-4 http://$ctr1->{ip}:80",
+                "-6 http://[$ctr1->{ip6}]:80"
         )) {
             validate_script_output("curl --retry 5 --head --silent $req", sub { /HTTP.* 200 OK/ }, timeout => 120);
         }
