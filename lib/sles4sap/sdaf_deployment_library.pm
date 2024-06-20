@@ -628,10 +628,14 @@ sub prepare_sdaf_project {
 
     git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
         branch => get_var('SDAF_GIT_AUTOMATION_BRANCH'),
+        depth => '1',
+        single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.log');
 
     git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
         branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
+        depth => '1',
+        single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_templates.log');
 
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");

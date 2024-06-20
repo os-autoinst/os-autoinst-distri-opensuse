@@ -18,9 +18,16 @@ subtest '[git_clone] Compose command' => sub {
     git_clone($repository);
     is join(' ', @calls), "git clone $repository", "Check base command composition";
 
-    git_clone($repository, skip_ssl_verification => 'true', output_log_file => 'output.log', branch => 'world_domination');
+    git_clone($repository, skip_ssl_verification => 'true',
+        output_log_file => 'output.log',
+        branch => 'world_domination',
+        single_branch => 'yes',
+        depth => 'not_too_deep'
+    );
     ok(grep(/git.*-c http.sslVerify=false.*clone/, @calls), 'Option "-c http.sslVerify=false " must be between "git" and "clone"');
-    ok(grep(/clone.*-b world_domination.*$repository/, @calls), 'Checkout branch - option must be between "clone" repository url');
+    ok(grep(/clone.*--branch world_domination.*$repository/, @calls), 'Checkout branch - option must be between "clone" repository url');
+    ok(grep(/clone.*--depth not_too_deep.*$repository/, @calls), 'Argument "--depth" for shallow clone - option must be between "clone" repository url');
+    ok(grep(/clone.*--single-branch.*$repository/, @calls), 'Argument "--single-branch" for cloning a single branch only');
     ok(grep(/2>&1 | tee output.log$/, @calls), 'Log output to a file');
     ok(grep(/^set -o pipefail;/, @calls), 'Set bash command to fail immediately with logging');
 };
