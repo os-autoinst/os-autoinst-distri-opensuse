@@ -23,14 +23,22 @@ C<Utils::Git> - Library for various git related functions
 
 =head2 git_clone
 
-    git_clone('https://github.com/myrepo/tree/main' [, branch=>'development', quiet=>'1', skip_ssl_verification=>'true',
+    git_clone('https://github.com/myrepo/tree/main'
+        [, branch=>'development',
+        depth=>1,
+        single_branch=>1,
+        skip_ssl_verification=>'true',
         output_log_file=>'git_clone.log']);
 
 B<repository>: Git repository url. Mandatory argument.
 
-B<branch>: Clone specific branch. Default: not defined
+B<branch>: Clone and checkout specific branch (or tag). Default: not defined
 
-B<quiet>: Minimize output verbosity. Default: false
+B<single_branch>:  Enable cloning of branch (or tag) only. Branch is the one specified in `branch` argument.
+    This can speed up cloning process by omitting unnecessary branches. Default: not defined
+
+B<depth>: Shallow clone with truncated history to the specified number of commits.
+    This speeds up cloning process by not cloning whole commit history. Default: not defined
 
 B<skip_ssl_verification>: Disable SSL verification. Can be useful in case of self signed certificates.
     Define this parameter B<ONLY> if you want to skip verification. Default: undef
@@ -52,7 +60,14 @@ sub git_clone {
     $git_cmd =~ s/git/git -c http.sslVerify=false/ if $args{skip_ssl_verification};
 
     # Checkout branch
-    $git_cmd .= " -b $args{branch}" if $args{branch};
+    $git_cmd .= " --branch $args{branch}" if $args{branch};
+
+    # Pro tip: cloning with --single-branch and --depth=1 gives you infinite cloning speed boost.
+    # Clone single branch
+    $git_cmd .= " --single-branch" if $args{single_branch};
+
+    # Shallow clone -  add --depth option
+    $git_cmd .= " --depth $args{depth}" if $args{depth};
 
     # Append repository
     $git_cmd .= " $repository";
