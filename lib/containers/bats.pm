@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_transactional);
+use version_utils qw(is_transactional is_sle);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -50,13 +50,32 @@ sub remove_mounts_conf {
     }
 }
 
+sub get_user_subuid {
+    my ($user) = shift;
+    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid", proceed_on_failure => 1);
+    return $start_range;
+}
+
 sub switch_to_user {
-    if (script_run("grep $testapi::username /etc/passwd") != 0) {
+    my $user = $testapi::username;
+
+    if (script_run("grep $user /etc/passwd") != 0) {
         my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
-        assert_script_run "useradd -m -G $serial_group $testapi::username";
-        assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
+        assert_script_run "useradd -m -G $serial_group $user";
+        assert_script_run "echo '${user}:$testapi::password' | chpasswd";
         ensure_serialdev_permissions;
     }
+
+    my $subuid_start = get_user_subuid($user);
+    if ($subuid_start eq '') {
+        # bsc#1185342 - YaST does not set up subuids/-gids for users
+        $subuid_start = 200000;
+        my $subuid_range = $subuid_start + 65535;
+        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
+    }
+    assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
+    assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
+
     if (is_transactional) {
         select_console "user-console";
     } else {
@@ -77,7 +96,7 @@ sub delegate_controllers {
 sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
-    add_suseconnect_product(get_addon_fullname('python3'));
+    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
 }
 
 sub patch_logfile {
