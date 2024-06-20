@@ -103,6 +103,7 @@ INSTALLONLY | boolean | false | Indicates that test suite conducts only installa
 INSTLANG | string | en_US | Installation locale settings.
 IPERF_REPO | string | | Link to repository with iperf tool for network performance testing. Currently used in Public Cloud Azure test
 IPXE | boolean | false | Indicates ipxe boot.
+IPXE_SET_HDD_BOOTSCRIPT | boolean | false | Upload second IPXE boot script for booting from HDD after the installation boot script gets executed. This is a workaround for cases where the installer fails to switch default boot order to HDD boot. See also PXE_BOOT_TIME.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
 IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine job
@@ -167,6 +168,7 @@ RMT_SERVER | string | Local server to be used in RMT registration.
 SALT_FORMULAS_PATH | string | | Used to point to a tarball with relative path to [/data/yast2](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/yast2) which contains all the needed files (top.sls, form.yml, ...) to support provisioning with Salt masterless mode.
 PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
+PXE_BOOT_TIME | integer | 120 | Approximate time that IPMI worker needs to load and execute PXE boot payload. Should be set in the IPMI worker configuration.
 QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
 QAM_MINIMAL | string | "full" or "small" | Full is adding patterns x11, gnome-basic, base, apparmor in minimal/install_patterns test. Small is just base.
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.

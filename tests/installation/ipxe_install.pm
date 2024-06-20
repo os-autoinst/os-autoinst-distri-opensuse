@@ -226,16 +226,7 @@ sub run {
     }
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
-    if (get_var('AUTOYAST')) {
-        # VIRT_AUTOTEST need not sleep and set_bootscript_hdd
-        return if get_var('VIRT_AUTOTEST');
-        # HANA PERF uses DELL R840 and R740, their UEFI IPXE boot need not set_bootscript_hdd
-        return if (get_var('HANA_PERF') && get_var('IPXE_UEFI'));
-        # make sure to wait for a while befor changing the boot device again, in order to not change it too early
-        sleep 120;
-        set_bootscript_hdd if get_var('IPXE_UEFI');
-    }
-    else {
+    unless (get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 1500;
         #for virtualization test, 9 minutes is enough to load installation system, 75 minutes is too long
         $ssh_vnc_wait_time = 180 if get_var('VIRT_AUTOTEST');
@@ -252,7 +243,7 @@ sub run {
             die "Do not catch needle with tag $ssh_vnc_tag!" if is_usb_boot;
         }
 
-        set_bootscript_hdd if get_var('IPXE_UEFI');
+        set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
 
         unless (get_var('HOST_INSTALL_AUTOYAST')) {
             select_console 'installation';
@@ -269,6 +260,21 @@ sub run {
             wait_still_screen;
         }
     }
+    elsif (get_var('IPXE_SET_HDD_BOOTSCRIPT')) {
+        # make sure to wait for a while befor changing the boot device again, in order to not change it too early
+        sleep get_var('PXE_BOOT_TIME', 120);
+        set_bootscript_hdd;
+    }
 }
 
 1;
+
+=head1 Configuration
+
+=head2 PXE_BOOT_TIME
+
+The time in seconds that the worker takes from power-on to starting execution
+of the PXE script or menu. Default is 120s. Setting the variable too high is
+safer than too low.
+
+=cut
