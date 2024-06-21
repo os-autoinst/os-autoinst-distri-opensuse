@@ -457,7 +457,7 @@ sub install_from_repo {
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {
-        assert_script_run("transactional-update -n -c pkg install " . join(' ', @pkgs), 180);
+        assert_script_run("transactional-update -n -c pkg install --recommends " . join(' ', @pkgs), 180);
     } else {
         zypper_call("in --recommends " . join(' ', @pkgs));
     }
