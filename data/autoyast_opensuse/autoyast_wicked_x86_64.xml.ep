@@ -16,6 +16,7 @@
     </mode>
   </general>
   <networking>
+    <backend>wicked</backend>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
   <bootloader>
@@ -35,8 +36,9 @@
       <package>zypper</package>
       <package>wicked</package>
       <package>wicked-service</package>
-      </packages>
-      <do_online_update config:type="boolean">true</do_online_update>
+      <package>iputils</package>
+    </packages>
+    <do_online_update config:type="boolean">true</do_online_update>
   </software>
   <users config:type="list">
     <user>
