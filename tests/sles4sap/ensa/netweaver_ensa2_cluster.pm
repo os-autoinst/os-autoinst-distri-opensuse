@@ -16,8 +16,6 @@ use lockapi;
 
 sub run {
     my ($self) = @_;
-    # Set maintenance to 'true'
-    assert_script_run("crm configure property maintenance-mode='true'");
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my $install_data = $self->netweaver_installation_data();
 
@@ -52,10 +50,12 @@ sub run {
         file_content_replace("$temp_dir/$template_file", '--sed-modifier' => 'g', %template_variables);
 
         upload_logs("$temp_dir/$template_file");
+        # Set maintenance to 'true'
+        assert_script_run("crm configure property maintenance-mode='true'");
         assert_script_run("crm configure load update $temp_dir/$template_file");
+        assert_script_run("crm configure property maintenance-mode='false'");
         barrier_wait('ENSA_CLUSTER_SETUP');
     }
-    assert_script_run("crm configure property maintenance-mode='false'");
     wait_until_resources_started();
     $self->sap_show_status_info(cluster => 1, netweaver => 1,
         instance_id => $install_data->{instances}{$instance_type}{instance_id});
