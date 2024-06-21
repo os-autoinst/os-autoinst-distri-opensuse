@@ -39,8 +39,9 @@ sub run {
     my $image = "registry.opensuse.org/opensuse/busybox:latest";
     assert_script_run "$runtime pull $image";
     assert_script_run "$runtime run -d --name $container_name -p 1234:1234 $image nc -l -p 1234";
+    script_retry "ss -tln sport = :1234", delay => 5, retry => 3;
     assert_script_run "echo Hola Mundo >/dev/tcp/127.0.0.1/1234";
-    assert_script_run "$runtime logs $container_name | grep Hola";
+    script_retry "$runtime logs $container_name | grep Hola", delay => 5, retry => 3;
 
     assert_script_run "$runtime stop $container_name ";
     assert_script_run "$runtime rm -vf $container_name ";
