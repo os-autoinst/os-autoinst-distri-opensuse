@@ -73,6 +73,8 @@ my @conflicting_packages = (
     'python-azure-agent-config-hpc', 'python-azure-agent-config-default',
     'regionServiceClientConfigAzure', 'regionServiceClientConfigEC2', 'regionServiceClientConfigGCE',
     'libcontainers-openSUSE-policy',
+    'mpich_4_0_2-gnu-hpc-macros-devel', 'mpich-ofi_4_0_2-gnu-hpc-macros-devel',
+    'openmpi4-config', 'pmix-mca-params',
     'rmt-server-pubcloud',
     'kernel-default-base', 'kernel-default-extra'
 );
