@@ -107,12 +107,14 @@ sub run {
     }
 
     if (get_var('HANA_ACCOUNT') && get_var('HANA_CONTAINER') && get_var('HANA_KEYNAME')) {
-        my $escaped_token = qesap_az_create_sas_token(storage => get_required_var('HANA_ACCOUNT'),
+        my $escaped_token = qesap_az_create_sas_token(
+            storage => get_required_var('HANA_ACCOUNT'),
             container => (split("/", get_required_var('HANA_CONTAINER')))[0],
             keyname => get_required_var('HANA_KEYNAME'),
             # lifetime has to be enough to reach the point of the test that
             # executes qe-sap-deployment Ansible playbook 'sap-hana-download-media.yaml'
-            lifetime => 90);
+            lifetime => 90,
+            permission => get_var('HANA_TOKEN_PERMISSION', 'r'));
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $escaped_token =~ s/\&/\\\&/g;

@@ -2280,8 +2280,9 @@ Return the token string
 sub qesap_az_create_sas_token {
     my (%args) = @_;
     foreach (qw(storage container keyname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{permission} //= 'r';
     $args{lifetime} //= 10;
+    $args{permission} //= 'r';
+    croak "$args{permission} : not supported permission in openQA" unless ($args{permission} =~ /^(?:r|l|rl|lr)$/);
 
     # Generated command is:
     #
