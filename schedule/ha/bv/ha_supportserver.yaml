@@ -33,3 +33,10 @@ schedule:
   - support_server/setup
   - ha/barrier_init
   - support_server/wait_children
+  - '{{create_hdd_tests}}'
+conditional_schedule:
+  create_hdd_tests:
+    CREATE_HDD:
+      1:
+        - support_server/clear_leases
+        - shutdown/shutdown
