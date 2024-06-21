@@ -1,0 +1,12 @@
+---
+name: bci_tests
+description:    >
+    Maintainer: qa-c@suse.de
+    Schedule for all the BCI tests
+
+schedule:
+    - boot/boot_to_desktop
+    - containers/host_configuration
+    - containers/bci_prepare
+    - containers/bci_test
+    - containers/bci_logs

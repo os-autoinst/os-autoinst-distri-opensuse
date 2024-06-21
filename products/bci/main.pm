@@ -22,7 +22,4 @@ if (load_yaml_schedule) {
     return 1;
 }
 
-main_micro_alp::load_tests();
-
-
 1;
