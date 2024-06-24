@@ -28,10 +28,10 @@ sub get_filesystem_repo {
     # The naming scheme of the filesystems repo depens on the version. See https://download.opensuse.org/repositories/filesystems/
     # For SLE<15-SP4 -     e.g. https://download.opensuse.org/repositories/filesystems/SLE_15_SP3
     # From 15-SP4 onwards: e.g. https://download.opensuse.org/repositories/filesystems/15.4
-    if (is_sle("<15-SP4")) {
+    if (is_sle("<15-SP5")) {
         $version =~ s/-/_/g;    # Version in repo-path needs an underscore instead of a dash
         return "https://download.opensuse.org/repositories/filesystems/SLE_${version}/";
-    } elsif (is_sle(">=15-SP4")) {
+    } elsif (is_sle(">=15-SP5")) {
         $version =~ s/-SP/./g;    # Unified versions with dot (e.g. 15.3)
         return "https://download.opensuse.org/repositories/filesystems/${version}/";
     } else {
