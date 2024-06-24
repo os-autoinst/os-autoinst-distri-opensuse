@@ -109,6 +109,7 @@
       <li><a href="#is_usb_boot">is_usb_boot</a></li>
       <li><a href="#remove_efiboot_entry">remove_efiboot_entry</a></li>
       <li><a href="#empty_usb_disks">empty_usb_disks</a></li>
+      <li><a href="#upload_y2logs">upload_y2logs</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -816,6 +817,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>empty_usb_disks(usb_disks =&gt; &#39;disk1 disk2&#39;);</code></pre>
 
 <p>Empty contents of all plugged-in usb disks by formatting them. Passed argument usb_disks takes value if the form of &quot;usb_disk1 usb_disk2 usb_disk3&quot;. Remove all plugged-in usb disks if usb_disks is empty.</p>
+
+<h2 id="upload_y2logs">upload_y2logs</h2>
+
+<pre><code>upload_y2logs(file =&gt; &#39;/tmp/y2logs123.tar.bz2&#39;, failok =&gt; 1);</code></pre>
+
+<p>No arguments are required, y2logs can be created and uploaded with custom <code>file</code> name, upload_logs can fail and continue with failok <code>failok</code> set to 1</p>
 
 
 </body>
