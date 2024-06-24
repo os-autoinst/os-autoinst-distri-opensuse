@@ -52,12 +52,14 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman python3-passlib skopeo socat sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman sudo systemd-container);
     push @pkgs, qw(go buildah) unless is_sle_micro;
-    # podman-remote is not yet available & python3-PyYAML was dropped in SLM 6.0
+    push @pkgs, qw(python3-passlib) if (is_tumbleweed || is_sle || is_sle_micro('=5.5'));
+    push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
+    push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
+    push @pkgs, qw(socat) unless is_sle_micro('=5.1');
     # https://bugzilla.suse.com/show_bug.cgi?id=1226596
-    # https://bugzilla.suse.com/show_bug.cgi?id=1224050
-    push @pkgs, qw(podman-remote python3-PyYAML) unless (is_sle_micro('>=6.0') || is_sle('<=15-SP3'));
+    push @pkgs, qw(podman-remote) unless (is_sle_micro('<5.5') || is_sle('<=15-SP3'));
     # passt requires podman 5.0
     push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos);
     # Needed for podman machine
