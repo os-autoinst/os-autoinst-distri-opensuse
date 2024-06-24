@@ -15,6 +15,7 @@ use hacluster;
 use lockapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils 'is_sle';
+use utils 'zypper_call';
 
 sub webmethod_checks {
     my ($self, $instance_id) = @_;
@@ -68,12 +69,17 @@ sub run {
     barrier_wait('ENSA_FAILOVER_DONE');    # sync nodes
 
     $self->webmethod_checks($instance_id);
+    # Use cs_wait_for_idle to wait until the cluster is idle before continuing the tests
+    if (is_sle('=12-SP5')) {
+        zypper_call('in ClusterTools2') if get_var('HA_CLUSTER');
+        wait_for_idle_cluster(timeout => 300);
+    }
     # Execute failover from ASCS instance - this will return resources to original host
     if ($instance_type eq 'ASCS') {
-        # Some delay needed here for 12-SP5, don't know why even webmethod_checks passed
+        # Use cs_wait_for_idle to wait until the cluster is idle before continuing the tests
         if (is_sle('=12-SP5')) {
-            sleep 300;
-            record_info "sleep 300s for 12-SP5";
+            zypper_call('in ClusterTools2') if get_var('HA_CLUSTER');
+            wait_for_idle_cluster(timeout => 300);
         }
         record_info('Failover', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
         $self->sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
