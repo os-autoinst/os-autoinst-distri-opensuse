@@ -293,7 +293,7 @@ sub load_container_tests {
 
     if (get_var('PODMAN_BATS_SKIP')) {
         if (!check_var('SKOPEO_BATS_SKIP', 'all')) {
-            loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle || is_leap || is_sle_micro);
+            loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle || is_leap || is_sle_micro('>=5.5'));
         }
         if (!check_var('PODMAN_BATS_SKIP', 'all')) {
             loadtest 'containers/podman_integration';
