@@ -109,9 +109,6 @@
       <pattern>fips</pattern>
       <pattern>ofed</pattern>
       <pattern>sap_server</pattern>
-      <pattern>wsl_base</pattern>
-      <pattern>wsl_gui</pattern>
-      <pattern>wsl_systemd</pattern>
     </patterns>
   </software>
   <networking>

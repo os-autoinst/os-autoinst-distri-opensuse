@@ -78,9 +78,6 @@ exit 0
       <pattern>sap_server</pattern>
       <pattern>sw_management</pattern>
       <pattern>sw_management-32bit</pattern>
-      <pattern>wsl_base</pattern>
-      <pattern>wsl_gui</pattern>
-      <pattern>wsl_systemd</pattern>
       <pattern>x11</pattern>
       <pattern>x11-32bit</pattern>
       <pattern>x11_yast</pattern>
