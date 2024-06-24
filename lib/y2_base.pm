@@ -13,6 +13,7 @@ use warnings;
 
 use ipmi_backend_utils;
 use network_utils;
+use utils qw(upload_y2logs);
 use y2_logs_helper 'get_available_compression';
 
 use testapi qw(is_serial_terminal :DEFAULT);
@@ -122,8 +123,7 @@ sub save_upload_y2logs {
     if (can_upload_logs() || (!$args{no_ntwrk_recovery} && recover_network())) {
         script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
         my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-        script_run "save_y2logs $filename", 180;
-        upload_logs($filename, failok => 1);
+        utils::upload_y2logs(file => $filename, failok => 1);
     } else {    # Redirect logs content to serial
         script_run("journalctl -b --no-pager -o short-precise > /dev/$serialdev");
         script_run("dmesg > /dev/$serialdev");

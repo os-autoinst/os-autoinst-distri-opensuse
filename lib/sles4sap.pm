@@ -1590,8 +1590,7 @@ sub post_fail_hook {
     select_console('root-console');
 
     # YaST logs
-    script_run "save_y2logs /tmp/y2logs.tar.xz";
-    upload_logs "/tmp/y2logs.tar.xz";
+    upload_y2logs;
 
     # HANA installation logs, if needed
     $self->upload_hana_install_log if get_var('HANA');

@@ -253,8 +253,7 @@ sub y2snapper_failure_analysis {
     export_logs;
 
     # Upload y2log for analysis if yast2 snapper fails
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";
-    upload_logs "/tmp/y2logs.tar.bz2";
+    upload_y2logs;
     save_screenshot;
     diag('check if at least snapper low-level commands still work');
     script_run('snapper ls');

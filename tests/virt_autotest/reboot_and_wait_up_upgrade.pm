@@ -14,6 +14,7 @@ use virt_utils 'clean_up_red_disks';
 use base 'reboot_and_wait_up';
 use virt_autotest::utils;
 use opensusebasetest;
+use utils qw(upload_y2logs);
 
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
@@ -60,7 +61,7 @@ sub post_fail_hook {
     if (get_var('VIRT_PRJ2_HOST_UPGRADE')) {
         if (get_var('OFFLINE_UPGRADE')) {
             #host offline upgrade
-            $self->upload_y2logs;
+            utils::upload_y2logs;
             upload_logs("/mnt/root/autoupg.xml", failok => 1);
         }
         else {

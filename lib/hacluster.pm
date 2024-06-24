@@ -631,8 +631,7 @@ sub ha_export_logs {
     upload_logs('/tmp/crm.txt');
 
     # Extract YaST logs and upload them
-    script_run 'save_y2logs /tmp/y2logs.tar.bz2', 120;
-    upload_logs('/tmp/y2logs.tar.bz2', failok => 1);
+    upload_y2logs(failok => 1);
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
