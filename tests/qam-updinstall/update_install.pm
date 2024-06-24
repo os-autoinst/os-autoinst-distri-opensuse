@@ -62,7 +62,7 @@ use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Data::Dumper qw(Dumper);
 
 my @conflicting_packages = (
@@ -168,6 +168,12 @@ sub run {
     }
 
     select_serial_terminal;
+
+    # remove phub repos on qemu update ppc64le https://progress.opensuse.org/issues/162704
+    if (get_var('BUILD') =~ /qemu/ && is_ppc64le) {
+        record_info('remove phub', 'known conflict on qemu ppc64le with phub repo poo#162704');
+        zypper_call('rr sle-module-packagehub-subpackages:15-SP5::pool sle-module-packagehub-subpackages:15-SP5::update');
+    }
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
