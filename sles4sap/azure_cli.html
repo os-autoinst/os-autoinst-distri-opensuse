@@ -38,6 +38,9 @@
       <li><a href="#az_ipconfig_name_get">az_ipconfig_name_get</a></li>
       <li><a href="#az_ipconfig_update">az_ipconfig_update</a></li>
       <li><a href="#az_ipconfig_pool_add">az_ipconfig_pool_add</a></li>
+      <li><a href="#az_vm_diagnostic_log_enable">az_vm_diagnostic_log_enable</a></li>
+      <li><a href="#az_vm_diagnostic_log_get">az_vm_diagnostic_log_get</a></li>
+      <li><a href="#az_storage_account_create">az_storage_account_create</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -689,6 +692,71 @@
 
 </dd>
 <dt id="address_pool---existing-Load-balancer-address-pool-name"><b>address_pool</b> - existing Load balancer address pool name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_diagnostic_log_enable">az_vm_diagnostic_log_enable</h2>
+
+<pre><code>az_vm_diagnostic_log_enable(resource_group =&gt; &#39;openqa-rg&#39;,
+                            storage_account =&gt; &#39;openqasa&#39;,
+                            vm_name =&gt; &#39;openqa-vm&#39;)</code></pre>
+
+<p>Enable diagnostic log for a specific VM</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-VM2"><b>resource_group</b> - existing resource group where to search for a specific VM</dt>
+<dd>
+
+</dd>
+<dt id="storage_account---existing-storage-account"><b>storage_account</b> - existing storage account</dt>
+<dd>
+
+</dd>
+<dt id="vm_name---existing-VM-name"><b>vm_name</b> - existing VM name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_diagnostic_log_get">az_vm_diagnostic_log_get</h2>
+
+<pre><code>my $list_of_logs = az_vm_diagnostic_log_get(resource_group =&gt; &#39;openqa-rg&#39;)</code></pre>
+
+<p>Call `az vm boot-diagnostics json` for each running VM in the resource group associated to this openQA job</p>
+
+<p>Return a list of diagnostic file paths on the JumpHost</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-VM3"><b>resource_group</b> - existing resource group where to search for a specific VM</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_storage_account_create">az_storage_account_create</h2>
+
+<pre><code>az_storage_account_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    region =&gt; &#39;northeurope&#39;
+    name =&gt; &#39;openqasa&#39;)</code></pre>
+
+<p>Create a storage account</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-storage-account"><b>resource_group</b> - existing resource group where to create the storage account</dt>
+<dd>
+
+</dd>
+<dt id="region---Azure-region2"><b>region</b> - Azure region</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-storage-account-to-be-created.-Storage-account-name-must-be-between-3-and-24-characters-in-length-and-use-numbers-and-lower-case-letters-only"><b>name</b> - name for the storage account to be created. Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.</dt>
 <dd>
 
 </dd>
