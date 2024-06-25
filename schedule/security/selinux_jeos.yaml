@@ -4,14 +4,8 @@ description: >
 schedule:
     - installation/bootloader_uefi
     - jeos/firstrun
-    - jeos/record_machine_id
     - console/force_scheduled_tasks
-    - jeos/grub2_gfxmode
-    - jeos/diskusage
-    - jeos/build_key
-    - console/prjconf_excluded_rpms
     - console/journal_check
-    - microos/libzypp_config
     - update/zypper_clear_repos
     - console/zypper_ar
     - console/zypper_ref
