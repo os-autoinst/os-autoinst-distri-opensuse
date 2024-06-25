@@ -8,12 +8,11 @@
 
 package security::openssl_fips_hash_common;
 
-use base Exporter;
-use Exporter;
-
 use strict;
 use warnings;
 use testapi;
+
+use base 'Exporter';
 
 our $tmp_file = "/tmp/hello.txt";
 
