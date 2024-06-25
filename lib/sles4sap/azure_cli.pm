@@ -38,11 +38,14 @@ our @EXPORT = qw(
   az_vm_openport
   az_vm_wait_cloudinit
   az_vm_instance_view_get
+  az_vm_diagnostic_log_enable
+  az_vm_diagnostic_log_get
   az_nic_id_get
   az_nic_name_get
   az_ipconfig_name_get
   az_ipconfig_update
   az_ipconfig_pool_add
+  az_storage_account_create
 );
 
 
@@ -169,7 +172,7 @@ sub az_network_vnet_create {
         }
     }
 
-    my @az_cmd_list = (' ', 'az network vnet create');
+    my @az_cmd_list = ('az network vnet create');
     push @az_cmd_list, '--resource-group'; push @az_cmd_list, $args{resource_group};
     push @az_cmd_list, '--location'; push @az_cmd_list, $args{region};
     push @az_cmd_list, '--name'; push @az_cmd_list, $args{vnet};
@@ -606,7 +609,7 @@ sub az_vm_create {
 Get the info from all existing VMs within a Resource Group
 Return a decoded json hash according to the provided jmespath query
 
-=over 1
+=over 2
 
 =item B<resource_group> - existing resource group where to search for VMs
 
@@ -907,3 +910,108 @@ sub az_ipconfig_pool_add {
         '--nic-name', $args{nic_name});
     assert_script_run($az_cmd);
 }
+
+=head2 az_vm_diagnostic_log_enable
+
+    az_vm_diagnostic_log_enable(resource_group => 'openqa-rg',
+                                storage_account => 'openqasa',
+                                vm_name => 'openqa-vm')
+
+Enable diagnostic log for a specific VM
+
+=over 3
+
+=item B<resource_group> - existing resource group where to search for a specific VM
+
+=item B<storage_account> - existing storage account
+
+=item B<vm_name> - existing VM name
+
+=back
+=cut
+
+sub az_vm_diagnostic_log_enable {
+    my (%args) = @_;
+    foreach (qw(resource_group storage_account vm_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az storage account show',
+        '-g', $args{resource_group},
+        '--name', $args{storage_account},
+        '--query "primaryEndpoints.blob"',
+        '-o tsv');
+    my $endpoint = script_output($az_cmd);
+
+    $az_cmd = join(' ', 'az vm boot-diagnostics enable',
+        '--name', $args{vm_name},
+        '--resource-group', $args{resource_group},
+        '--storage', $endpoint);
+    assert_script_run($az_cmd);
+}
+
+
+=head2 az_vm_diagnostic_log_get
+
+    my $list_of_logs = az_vm_diagnostic_log_get(resource_group => 'openqa-rg')
+
+Call `az vm boot-diagnostics json` for each running VM in the
+resource group associated to this openQA job
+
+Return a list of diagnostic file paths on the JumpHost
+
+=over 1
+
+=item B<resource_group> - existing resource group where to search for a specific VM
+
+=back
+=cut
+
+sub az_vm_diagnostic_log_get {
+    my (%args) = @_;
+    croak("Argument < resource_group > missing") unless $args{resource_group};
+
+    my @diagnostic_log_files;
+    my $vm_data = az_vm_list(resource_group => $args{resource_group}, query => '[].{id:id,name:name}');
+    my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
+    foreach (@{$vm_data}) {
+        #record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
+        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
+        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
+        push(@diagnostic_log_files, $boot_diagnostics_log);
+    }
+    return @diagnostic_log_files;
+}
+
+=head2 az_storage_account_create
+
+    az_storage_account_create(
+        resource_group => 'openqa-rg',
+        region => 'northeurope'
+        name => 'openqasa')
+
+Create a storage account
+
+=over 3
+
+=item B<resource_group> - existing resource group where to create the storage account
+
+=item B<region> - Azure region
+
+=item B<name> - name for the storage account to be created. Storage account name must be
+                between 3 and 24 characters in length and use numbers and lower-case letters only.
+
+=back
+=cut
+
+sub az_storage_account_create {
+    my (%args) = @_;
+    foreach (qw(resource_group region name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az storage account create',
+        '--resource-group', $args{resource_group},
+        '--location', $args{region},
+        '-n', $args{name});
+    assert_script_run($az_cmd);
+}
+

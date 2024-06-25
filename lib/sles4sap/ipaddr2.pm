@@ -27,6 +27,7 @@ our @EXPORT = qw(
   ipaddr2_destroy
   ipaddr2_get_internal_vm_name
   ipaddr2_deployment_sanity
+  ipaddr2_deployment_logs
   ipaddr2_bastion_pubip
 );
 
@@ -35,6 +36,8 @@ use constant DEPLOY_PREFIX => 'ip2t';
 our $user = 'cloudadmin';
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
+# Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
+our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
 our $key_id = 'id_rsa';
@@ -69,6 +72,8 @@ Create a deployment in Azure designed for this specific test.
 
 =item B<os> - existing Load balancer NAME
 
+=item B<diagnostic> - enable diagnostic features if 1
+
 =back
 =cut
 
@@ -76,6 +81,7 @@ sub ipaddr2_azure_deployment {
     my (%args) = @_;
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{diagnostic} //= 0;
 
     az_version();
 
@@ -137,6 +143,13 @@ sub ipaddr2_azure_deployment {
         region => $args{region},
         fault_count => 2);
 
+    if ($args{diagnostic}) {
+        az_storage_account_create(
+            resource_group => $rg,
+            region => $args{region},
+            name => $storage_account);
+    }
+
     # Create 2:
     #   - VMs
     #   - for each of them open port 80
@@ -165,6 +178,13 @@ sub ipaddr2_azure_deployment {
             custom_data => $cloud_init_file,
             ssh_pubkey => get_ssh_private_key_path() . '.pub',
             public_ip => "");
+
+        if ($args{diagnostic}) {
+            az_vm_diagnostic_log_enable(resource_group => $rg,
+                storage_account => $storage_account,
+                vm_name => $vm);
+        }
+
 
         az_vm_wait_cloudinit(
             resource_group => $rg,
@@ -368,6 +388,17 @@ run a command on the bastion using assert_script_run
                 "'$args{cmd}'"));
     }
 
+}
+
+=head2 ipaddr2_deployment_logs
+
+    ipaddr2_deployment_logs()
+
+Collect logs from the cloud infrastructure
+=cut
+
+sub ipaddr2_deployment_logs {
+    az_vm_diagnostic_log_get(resource_group => ipaddr2_azure_resource_group());
 }
 
 =head2 ipaddr2_destroy
