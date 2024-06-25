@@ -252,8 +252,9 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return $expected_res });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return $expected_res; });
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
@@ -284,6 +285,7 @@ subtest '[qesap_execute] simple call' => sub {
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
@@ -314,6 +316,7 @@ subtest '[qesap_execute] cmd_options' => sub {
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     qesap_execute(cmd => $cmd, cmd_options => $cmd_options, logname => 'WALLABY_STREET');
 
@@ -339,6 +342,7 @@ subtest '[qesap_execute] failure' => sub {
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
@@ -364,11 +368,21 @@ subtest '[qesap_execute] check_logs' => sub {
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
+    $qesap->redefine(enter_cmd => sub {
+            push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<END
+        terraform.init.log.txt
+        terraform.apply.log.txt
+END
+              ; });
 
     my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res[1] =~ /\/WALLABY_STREET/, "File pattern '$res[1]' is okay";
+    ok((any { /terraform.init.log.txt/ } @logs), 'terraform.init.log.txt in the list of uploaded logs');
 };
 
 subtest '[qesap_execute_conditional_retry] retry after fail with expected error message' => sub {
@@ -849,6 +863,7 @@ subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] defau
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     qesap_prepare_env(provider => 'DONALDUCK');
 
@@ -872,6 +887,7 @@ subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] user 
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     set_var('QESAP_DEPLOYMENT_DIR', '/SUN');
     qesap_prepare_env(provider => 'DONALDUCK');
