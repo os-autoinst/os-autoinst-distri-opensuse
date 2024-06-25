@@ -9,7 +9,7 @@ BEGIN {
 }
 use utils;
 use main_common qw(init_main);
-use main_containers qw(load_container_tests);
+use main_containers;
 
 init_main();
 
@@ -22,6 +22,6 @@ if (load_yaml_schedule) {
     return 1;
 }
 
-load_container_tests();
+main_containers::load_container_tests();
 
 1;
