@@ -24,7 +24,8 @@ sub run {
 
     ipaddr2_azure_deployment(
         region => $provider->provider_client->region,
-        os => get_required_var('CLUSTER_OS_VER'));
+        os => get_required_var('CLUSTER_OS_VER'),
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0));
     ipaddr2_deployment_sanity();
 }
 
@@ -34,6 +35,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_destroy();
     $self->SUPER::post_fail_hook;
 }

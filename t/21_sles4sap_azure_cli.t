@@ -430,4 +430,57 @@ subtest '[az_network_lb_rule_create]' => sub {
     ok((any { /az network lb rule create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_vm_diagnostic_log_enable]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'http://storage/Truffaldino'; });
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; });
+
+    az_vm_diagnostic_log_enable(resource_group => 'Arlecchino',
+        storage_account => 'Pantalone',
+        vm_name => 'Pulcinella');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /az storage account show/ } @calls), 'Correct composition of the account show command');
+    ok((any { /az vm boot-diagnostics enable/ } @calls), 'Correct composition of the enable command');
+    ok((any { /enable.*--storage.*Truffaldino/ } @calls), 'Correct argument from one to the other command');
+};
+
+subtest '[az_vm_diagnostic_log_get]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            # simulate 2 VM
+            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; });
+
+    az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
+    ok((any { /--ids 0001.*tee.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
+    ok((any { /--ids 0002.*tee.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
+};
+
+subtest '[az_storage_account_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_storage_account_create(
+        resource_group => 'Arlecchino',
+        region => 'Pulcinella',
+        name => 'Cassandro');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /az storage account create/ } @calls), 'Correct composition of the main command');
+
+};
+
 done_testing;

@@ -26,6 +26,26 @@ subtest '[ipaddr2_azure_deployment]' => sub {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok $#calls > 0, "There are some command calls";
+    ok((none { /az storage account create/ } @calls), 'Do not create storage');
+};
+
+subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
+
+    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci', diagnostic => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az storage account create/ } @calls), 'Create storage');
+    ok((any { /az vm boot-diagnostics enable.*vm-01/ } @calls), 'Enable diagnostic for VM1');
+    ok((any { /az vm boot-diagnostics enable.*vm-02/ } @calls), 'Enable diagnostic for VM2');
 };
 
 subtest '[ipaddr2_destroy]' => sub {
@@ -46,6 +66,7 @@ subtest '[ipaddr2_bastion_key_accept]' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
     my $ret = ipaddr2_bastion_key_accept();
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
