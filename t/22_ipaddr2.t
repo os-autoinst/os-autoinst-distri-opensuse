@@ -178,7 +178,7 @@ subtest '[ipaddr2_os_sanity]' => sub {
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub {
+    $ipaddr2->redefine(script_run => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(ipaddr2_ssh_assert_script_run_bastion => sub {
             my (%args) = @_;
