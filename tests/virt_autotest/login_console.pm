@@ -39,24 +39,30 @@ sub set_ssh_console_timeout_before_use {
 sub config_ssh_client {
     my $ssh_config_file = shift;
     $ssh_config_file //= '/etc/ssh/ssh_config';
-    if (script_run("ls $ssh_config_file") != 0) {
-        script_run qq(echo -e "StrictHostKeyChecking no\\nUserKnownHostsFile /dev/null" > $ssh_config_file);
+    my $ssh_dir = "/root/.ssh";
+    if (is_s390x) {
+        lpar_cmd("echo -e "StrictHostKeyChecking no" >> $ssh_config_file");
+        lpar_cmd("echo -e "UserKnownHostsFile /dev/null" >> $ssh_config_file");
     }
     else {
-        script_run("sed -i 's/#\\?\\([ \\t]\\+\\)\\(StrictHostKeyChecking\\)\\(.\\+\\)/\\1\\2 no/' $ssh_config_file");
-        script_run("sed -i 's!#\\?\\([ \\t]\\+\\)\\(UserKnownHostsFile\\)\\(.\\+\\)!\\1\\2 /dev/null!' $ssh_config_file");
+        if (script_run("ls $ssh_config_file") != 0) {
+            script_run qq(echo -e "StrictHostKeyChecking no\\nUserKnownHostsFile /dev/null" > $ssh_config_file);
+        }
+        else {
+            script_run("sed -i 's/#\\?\\([ \\t]\\+\\)\\(StrictHostKeyChecking\\)\\(.\\+\\)/\\1\\2 no/' $ssh_config_file");
+            script_run("sed -i 's!#\\?\\([ \\t]\\+\\)\\(UserKnownHostsFile\\)\\(.\\+\\)!\\1\\2 /dev/null!' $ssh_config_file");
+        }
+        script_run("mkdir -p -m 700 $ssh_dir");
+        # Replace the carrige return with string "CR" in original id_rsa key file manually
+        # Note the original key file cannot include "CR"
+        # Set the openqa setting '_SECRET_RSA_PUB_KEY' to be the one-line string in id_rsa
+        # Finally id_rsa is restored to be the original key after following commands
+        script_run("echo " . get_var('_SECRET_RSA_PRIV_KEY') . " > $ssh_dir/id_rsa");
+        script_run("sed -i 's/CR/\\n/g' $ssh_dir/id_rsa");
+        script_run("chmod 600 $ssh_dir/id_rsa");
+        script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " > $ssh_dir/id_rsa.pub");
+        script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
     }
-    my $ssh_dir = "/root/.ssh";
-    script_run("mkdir -p -m 700 $ssh_dir");
-    # Replace the carrige return with string "CR" in original id_rsa key file manually
-    # Note the original key file cannot include "CR"
-    # Set the openqa setting '_SECRET_RSA_PUB_KEY' to be the one-line string in id_rsa
-    # Finally id_rsa is restored to be the original key after following commands
-    script_run("echo " . get_var('_SECRET_RSA_PRIV_KEY') . " > $ssh_dir/id_rsa");
-    script_run("sed -i 's/CR/\\n/g' $ssh_dir/id_rsa");
-    script_run("chmod 600 $ssh_dir/id_rsa");
-    script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " > $ssh_dir/id_rsa.pub");
-    script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
 }
 
 #Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen domain0 kernel panic(bsc#1192258)
@@ -298,7 +304,7 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
-    config_ssh_client if get_var('VIRT_AUTOTEST') and !get_var('AUTOYAST') and !is_s390x;
+    config_ssh_client if get_var('VIRT_AUTOTEST') and !get_var('AUTOYAST');
 }
 
 sub post_fail_hook {
