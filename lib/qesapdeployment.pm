@@ -490,7 +490,23 @@ sub qesap_execute {
 
     my $exec_rc = qesap_venv_cmd_exec(cmd => $qesap_cmd, timeout => $args{timeout}, failok => 1);
 
+    my @qesap_logs;
+    my $qesap_log_find = 'find . -type f -name "*.log.txt"';
+    foreach my $log (split(/\n/, script_output($qesap_log_find, proceed_on_failure => 1))) {
+        push(@log_files, $log);
+        # Also record them in a dedicated list
+        # to be able to delete them as soon as they are uploaded.
+        # It is needed to not create duplicated uploads
+        # from different deployment stages (terraform, ansible, destroy, retry, ...)
+        push(@qesap_logs, $log);
+    }
+
     qesap_upload_logs();
+
+    foreach (@qesap_logs) {
+        enter_cmd("rm -f $_");
+    }
+
     my @results = ($exec_rc, $exec_log);
     return @results;
 }
