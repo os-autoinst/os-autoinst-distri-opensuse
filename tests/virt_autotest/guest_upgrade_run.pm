@@ -16,6 +16,7 @@ use virt_utils;
 use testapi;
 use Utils::Architectures;
 use virt_autotest::utils;
+use version_utils qw(is_sle);
 
 sub get_script_run {
     #NOTE:Found that s390x arch used with the svirt backend
@@ -119,6 +120,7 @@ sub run {
     my $self = shift;
     my $timeout = get_var('MAX_TEST_TIME', '36000') + 10;
     my $upload_log_name = 'guest-upgrade-logs';
+    record_info "DEBUG", "TIMEOUT of Guest Upgrade as $timeout" if is_sle('=12-sp5');
     if (is_s390x) {
         #ues die_on_timeout=> 0 as workaround for s390x test during call script_run, refer to poo#106765
         script_run("echo \"Debug info: max_test_time is $timeout\"", die_on_timeout => 0);
