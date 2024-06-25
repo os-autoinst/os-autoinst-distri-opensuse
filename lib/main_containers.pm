@@ -139,9 +139,9 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
-    unless (is_sle('<15-sp2') || is_openstack || is_public_cloud) {
+    unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
-        loadtest 'containers/podman_remote' if is_sle '>15-sp2';
+        loadtest 'containers/podman_remote';
     }
     load_secret_tests($run_args);
     load_volume_tests($run_args);
