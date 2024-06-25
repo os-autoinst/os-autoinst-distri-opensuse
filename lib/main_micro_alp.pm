@@ -15,6 +15,7 @@ use main_common;
 use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test);
 use main_publiccloud qw(load_publiccloud_download_repos);
+use main_security qw(load_security_tests is_security_test);
 use testapi qw(check_var get_required_var get_var set_var);
 use version_utils;
 use utils;
@@ -402,6 +403,8 @@ sub load_tests {
         # Container tests didn't execute journal check. However, if doing so, there
         # are some errors to be investigated. We need to remove this return;
         return 1;
+    } elsif (is_security_test) {
+        load_security_tests;
     } elsif (check_var('EXTRA', 'networking')) {
         load_network_tests;
     } elsif (check_var('EXTRA', 'provisioning')) {
