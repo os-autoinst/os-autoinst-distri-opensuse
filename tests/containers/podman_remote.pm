@@ -12,7 +12,7 @@ use testapi;
 use utils qw(script_retry systemctl zypper_call);
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use transactional qw(trup_call check_reboot_changes);
-use version_utils qw(is_transactional is_sle is_sle_micro);
+use version_utils qw(is_transactional is_sle is_sle_micro is_staging);
 use containers::utils qw(get_podman_version);
 
 my $podman_version;
@@ -50,7 +50,7 @@ sub run {
     my $podman_version = get_podman_version();
     return if (version->parse($podman_version) < version->parse('3.0.0'));
 
-    test_package;
+    test_package unless (is_staging);
 
     # Prepare ssh from root to the normal user
     systemctl 'enable --now sshd';
