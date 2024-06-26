@@ -73,10 +73,8 @@ sub check_suseconnect {
         foreach (@$json) {
             my $iden = $_->{identifier};
             my $status = $_->{status};
-            if ($iden eq 'sle-module-packagehub-subpackages') {
-                record_soft_failure('bsc#1176901 - openQA test fails in system_prepare - \'sle-module-packagehub-subpackages\' is not registered ');
-                next;
-            }
+            # the subpackages unregistered is by design, bsc#1226477
+            next if ($iden eq 'sle-module-packagehub-subpackages');
             push(@addons, $iden);
             die "$iden register status is: $status" if ($status ne 'Registered');
         }
