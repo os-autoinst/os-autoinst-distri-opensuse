@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>slm</guest_os_name>
-    <guest_version>6.0</guest_version>
+    <guest_version>6.1</guest_version>
     <guest_version_major>6</guest_version_major>
-    <guest_version_minor>0</guest_version_minor>
+    <guest_version_minor>1</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build/>
     <host_hypervisor_uri/>
@@ -27,7 +27,7 @@
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.0-Default-encrypted-Build12345.raw</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.1-Default-encrypted-Build12345.raw</guest_installation_media>
     <guest_installation_fine_grained/>
     <guest_os_variant>opensusetumbleweed</guest_os_variant>
     <guest_storage_path/>
