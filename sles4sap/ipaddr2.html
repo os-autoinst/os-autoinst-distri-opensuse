@@ -15,11 +15,13 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
+      <li><a href="#ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</a></li>
       <li><a href="#ipaddr2_azure_deployment">ipaddr2_azure_deployment</a></li>
       <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
       <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
       <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
       <li><a href="#ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</a></li>
+      <li><a href="#ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</a></li>
       <li><a href="#ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</a></li>
       <li><a href="#ipaddr2_deployment_logs">ipaddr2_deployment_logs</a></li>
       <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
@@ -38,6 +40,12 @@
 <pre><code>my $rg = ipaddr2_azure_resource_group();</code></pre>
 
 <p>Get the Azure resource group name for this test</p>
+
+<h2 id="ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</h2>
+
+<pre><code>my $storage account = ipaddr2_azure_storage_account();</code></pre>
+
+<p>Get a unique storage account name. Not including the jobId result in error like: The storage account named ip2tstorageaccount already exists under the subscription</p>
 
 <h2 id="ipaddr2_azure_deployment">ipaddr2_azure_deployment</h2>
 
@@ -103,6 +111,22 @@
 
 <p>Run some checks on the existing deployment using the az command line. die in case of failure</p>
 
+<h2 id="ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</h2>
+
+<pre><code>ipaddr2_os_connectivity_sanity()</code></pre>
+
+<p>Run some OS level checks about internal connectivity. die in case of failure</p>
+
+<p>- bastion has to be able to ping the internal VM using the internal private IP - bastion has to be able to ping the internal VM using the internal VM hostname</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</h2>
 
 <pre><code>ipaddr2_ssh_assert_script_run_bastion(
@@ -113,7 +137,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
