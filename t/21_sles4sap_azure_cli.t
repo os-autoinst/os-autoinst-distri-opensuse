@@ -276,15 +276,29 @@ subtest '[az_vm_create] with no public IP' => sub {
 subtest '[az_vm_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Mirandolina","Truffaldino"]'; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '["Mirandolina","Truffaldino"]'; });
 
-    my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
+    my $res = az_vm_list(resource_group => 'Arlecchino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm list/ } @calls), 'Correct composition of the main command');
     ok((any { /-g Arlecchino/ } @calls), 'Correct composition of the -g argument');
-    ok((any { /--query.*ZAMZAM/ } @calls), 'Correct composition of the --query argument');
     ok((any { /Mirandolina/ } @$res), 'Correct result decoding');
+};
+
+subtest '[az_vm_list] query' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '["Mirandolina","Truffaldino"]'; });
+
+    my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--query.*ZAMZAM/ } @calls), 'Correct composition of the --query argument');
 };
 
 subtest '[az_vm_instance_view_get]' => sub {

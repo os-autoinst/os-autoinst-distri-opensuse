@@ -620,8 +620,8 @@ Return a decoded json hash according to the provided jmespath query
 
 sub az_vm_list {
     my (%args) = @_;
-    foreach (qw(resource_group query)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
+    croak("Argument < resource_group > missing") unless $args{resource_group};
+    $args{query} //= '[].name';
 
     my $az_cmd = join(' ',
         'az vm list',

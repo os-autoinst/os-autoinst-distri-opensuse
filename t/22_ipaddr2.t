@@ -25,6 +25,8 @@ subtest '[ipaddr2_azure_deployment]' => sub {
     for my $call_idx (0 .. $#calls) {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
+
+    # Todo : expand it
     ok $#calls > 0, "There are some command calls";
     ok((none { /az storage account create/ } @calls), 'Do not create storage');
 };
@@ -79,6 +81,7 @@ subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
@@ -144,6 +147,24 @@ subtest '[ipaddr2_bastion_pubip]' => sub {
     $ipaddr2->redefine(az_network_publicip_get => sub { return '1.2.3.4'; });
     my $res = ipaddr2_bastion_pubip();
     ok(($res eq '1.2.3.4'), "Expect 1.2.3.4 and get $res");
+};
+
+subtest '[ipaddr2_os_connectivity_sanity]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_os_connectivity_sanity();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    my $count = 0;
+    foreach my $cmd (@calls) {
+        $count++ if $cmd =~ m/^ssh/;
+    }
+    ok(($count eq 12),
+        "Expected 2VM * 2address_forms * 3cmd = 12 commands from the bastion and get $count");
 };
 
 done_testing;

@@ -28,6 +28,7 @@ our @EXPORT = qw(
   ipaddr2_get_internal_vm_name
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
+  ipaddr2_os_connectivity_sanity
   ipaddr2_bastion_pubip
 );
 
@@ -51,6 +52,19 @@ Get the Azure resource group name for this test
 
 sub ipaddr2_azure_resource_group {
     return DEPLOY_PREFIX . get_current_job_id();
+}
+
+=head2 ipaddr2_azure_storage_account
+
+    my $storage account = ipaddr2_azure_storage_account();
+
+Get a unique storage account name. Not including the jobId
+result in error like:
+The storage account named ip2tstorageaccount already exists under the subscription
+=cut
+
+sub ipaddr2_azure_storage_account {
+    return $storage_account . get_current_job_id();
 }
 
 =head2 ipaddr2_azure_deployment
@@ -147,7 +161,7 @@ sub ipaddr2_azure_deployment {
         az_storage_account_create(
             resource_group => $rg,
             region => $args{region},
-            name => $storage_account);
+            name => ipaddr2_azure_storage_account());
     }
 
     # Create 2:
@@ -181,10 +195,9 @@ sub ipaddr2_azure_deployment {
 
         if ($args{diagnostic}) {
             az_vm_diagnostic_log_enable(resource_group => $rg,
-                storage_account => $storage_account,
+                storage_account => ipaddr2_azure_storage_account(),
                 vm_name => $vm);
         }
-
 
         az_vm_wait_cloudinit(
             resource_group => $rg,
@@ -318,7 +331,7 @@ sub ipaddr2_bastion_key_accept {
     # Not strictly needed in this context as each test
     # in openQA start from a clean environment
 
-    my $bastion_ssh_cmd = "ssh -oStrictHostKeyChecking=accept-new $bastion_ssh_addr";
+    my $bastion_ssh_cmd = "ssh -vvv -oStrictHostKeyChecking=accept-new $bastion_ssh_addr";
     assert_script_run(join(' ', $bastion_ssh_cmd, 'whoami'));
 
     # one more without StrictHostKeyChecking=accept-new just to verify it is ok
@@ -358,6 +371,50 @@ sub ipaddr2_deployment_sanity {
         $count = grep(/running/, @$res);
         die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
     }
+}
+
+=head2 ipaddr2_os_connectivity_sanity
+
+    ipaddr2_os_connectivity_sanity()
+
+Run some OS level checks about internal connectivity.
+die in case of failure
+
+- bastion has to be able to ping the internal VM using the internal private IP
+- bastion has to be able to ping the internal VM using the internal VM hostname
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_os_connectivity_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # proceed_on_failure needed as ping or nc
+    # coul dbe missing on the qcow2 running these commands
+    # (for example pc_tools)
+    script_run("ping -c 3 $args{bastion_ip}", proceed_on_failure => 1);
+    script_run("nc -vz -w 1 $args{bastion_ip} 22", proceed_on_failure => 1);
+
+    # Check if the bastion is able to ping
+    # the VM by hostname and private IP
+    foreach my $i (1 .. 2) {
+        foreach my $addr (ipaddr2_get_internal_vm_private_ip(id => $i), ipaddr2_get_internal_vm_name(id => $i)) {
+            foreach my $cmd ('ping -c 3 ', 'tracepath ', 'dig ') {
+                ipaddr2_ssh_assert_script_run_bastion(
+                    cmd => "$cmd $addr",
+                    bastion_ip => $args{bastion_ip});
+            }
+        }
+    }
+}
+
 =head2 ipaddr2_ssh_assert_script_run_bastion
 
     ipaddr2_ssh_assert_script_run_bastion(
@@ -377,17 +434,15 @@ run a command on the bastion using assert_script_run
 =back
 =cut
 
-    sub ipaddr2_ssh_assert_script_run_bastion {
-        my (%args) = @_;
-        croak("Argument < cmd > missing") unless $args{cmd};
-        $args{bastion_ip} //= ipaddr2_bastion_pubip();
+sub ipaddr2_ssh_assert_script_run_bastion {
+    my (%args) = @_;
+    croak("Argument < cmd > missing") unless $args{cmd};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-        assert_script_run(join(' ',
-                'ssh',
-                "$user\@" . $args{bastion_ip},
-                "'$args{cmd}'"));
-    }
-
+    assert_script_run(join(' ',
+            'ssh',
+            "$user\@" . $args{bastion_ip},
+            "'$args{cmd}'"));
 }
 
 =head2 ipaddr2_deployment_logs
