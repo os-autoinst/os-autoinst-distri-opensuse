@@ -51,7 +51,7 @@ sub test_nfs_instserver {
     # select nfs
     send_key_and_wait("alt-f", 2);
     send_key_and_wait("alt-n", 2);
-    assert_screen('yast2-instserver-nfs');
+    apply_workaround_poo124652('yast2-instserver-nfs', 200);
     # use default nfs config
     send_key_and_wait("alt-n", 2);
     is_sle('>=15-SP4') ? apply_workaround_poo124652('yast2-instserver-ui', 200) : assert_screen('yast2-instserver-ui', 200);
