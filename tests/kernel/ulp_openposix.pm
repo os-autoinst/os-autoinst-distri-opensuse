@@ -80,11 +80,22 @@ sub setup_ulp {
         record_info('Tools tests', "No incident provided, testing lastest livepatching tools.");
     }
 
+    # Find glibc versions targeted by livepatch package
     my $provides = script_output("zypper -n info --provides $repo_args $packname");
     my @versions = $provides =~ m/^\s*libc_([^_()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
 
     die "Package $packname contains no libc livepatches"
       unless scalar @versions;
+
+    # Find which targeted glibc versions can be installed. Livepatch RPMs
+    # get released for multiple SLE service packs and some old targeted glibc
+    # versions may be unavailable on the newer service packs.
+    my %glibc_map;
+    my $glibc_versions = zypper_search('-s -x -t package glibc');
+
+    $glibc_map{$$_{version}} = 1 for (@$glibc_versions);
+    @versions = grep { defined($glibc_map{$_}) } @versions;
+    die "No livepatchable glibc versions found" unless scalar @versions;
 
     prepare_ltp_env;
     return OpenQA::Test::RunArgs->new(run_id => 0,
