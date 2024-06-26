@@ -22,6 +22,9 @@ sub run {
     record_info("STAGE 1", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
     ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
+
+    # check basic stuff that has to work before to start
+    ipaddr2_os_connectivity_sanity(bastion_ip => $bastion_ip);
 }
 
 sub test_flags {
