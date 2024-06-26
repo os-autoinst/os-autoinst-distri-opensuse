@@ -19,12 +19,14 @@ sub run {
         record_info('out.bad', "$args->{outbad}");
         record_info('full', "$args->{fullog}");
         record_info('dmesg', "$args->{dmesg}");
+        record_info('softfail', "$args->{failinfo}");
     }
     elsif ($args->{status} =~ /^FAILED/) {
         $self->{result} = 'fail';
         record_info('out.bad', "$args->{outbad}");
         record_info('full', "$args->{fullog}");
         record_info('dmesg', "$args->{dmesg}");
+        record_info('known', "$args->{failinfo}") if defined($args->{failinfo});
     }
     else {
         $self->{result} = 'skip';
