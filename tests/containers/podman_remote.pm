@@ -23,7 +23,7 @@ sub test_package {
     # Allow installation failure so we can check for bsc#1126596 later on.
     if (is_transactional) {
         $ret = trup_call("pkg install podman-remote", proceed_on_failure => 1);
-        check_reboot_changes;
+        check_reboot_changes if ($ret == 0);
     } else {
         $ret = zypper_call("in podman-remote", exitcode => [0, 104]);
     }
