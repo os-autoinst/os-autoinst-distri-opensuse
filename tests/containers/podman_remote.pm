@@ -65,7 +65,11 @@ sub run {
     assert_script_run "podman run -d --rm --name test-root $image sleep infinity";
 
     # Run the podman daemon as normal user
-    select_user_serial_terminal();
+    if (is_transactional) {
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal();
+    }
     systemctl '--user enable --now podman.socket';
 
     # Pull and run a container named test-user
