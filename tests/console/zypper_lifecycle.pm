@@ -38,13 +38,8 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub lifecycle_output_check {
     my $output = shift;
-    if (is_sle('=15-sp1') && $output =~ /Python 2 Module.*2021-07-3(0|1)/) {
+    if (is_sle('=15-sp3') && $output =~ /Python 2 Module.*2021-07-3(0|1)/) {
         record_info 'poo#129026';
-        return;
-    }
-    # https://suse.slack.com/archives/C02D16TCP99/p1688366603014179
-    if (is_sle('=15-sp3') && $output =~ /Containers Module.*2023-06-30/) {
-        record_soft_failure 'jsc#MSC-658';
         return;
     }
     if (get_var('SCC_REGCODE_LTSS')) {
