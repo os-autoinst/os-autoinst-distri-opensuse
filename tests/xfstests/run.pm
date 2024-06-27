@@ -540,10 +540,6 @@ sub run {
         my $whitelist = LTP::WhiteList->new($issues);
         my %skipped = map { $_ => 1 } $whitelist->list_skipped_tests($whitelist_env, $TEST_SUITE);
         %black_list = (%black_list, %skipped);
-        my $known_issues = $whitelist->{whitelist}->{$TEST_SUITE};
-        my @soft_fail = keys(%$known_issues);
-        push @soft_fail, split(',', get_var('XFSTESTS_SOFTFAIL'));
-        set_var('XFSTESTS_SOFTFAIL', join(',', @soft_fail));
     }
 
     my $status_log_content = "";

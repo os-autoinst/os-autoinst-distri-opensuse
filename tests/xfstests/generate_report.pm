@@ -23,6 +23,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
 use filesystem_utils 'generate_xfstests_list';
+use LTP::utils;
+use LTP::WhiteList;
 
 my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR = '/opt/log';
@@ -56,7 +58,14 @@ sub analyze_result {
     my $skip_num = 0;
     my $total_time = 0;
     my $test_range = '';
+    my $whitelist;
+    my $whitelist_env = prepare_whitelist_environment();
+    my $whitelist_url = get_var('XFSTESTS_KNOWN_ISSUES');
+    my $suite = get_required_var('TEST');
     my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
+
+    $whitelist = LTP::WhiteList->new($whitelist_url) if $whitelist_url;
+
     foreach (split("\n", $text)) {
         my ($test_name, $test_status, $test_time);
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
@@ -73,31 +82,37 @@ sub analyze_result {
         my $test_path = '/opt/log/' . $generate_name;
         bmwqemu::fctinfo("$generate_name");
         if ($test_status =~ /FAILED|SKIPPED/) {
-            my $test_out_content = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600);
-            my $test_out_bad = '';
-            my $test_full_log = '';
-            my $test_dmesg = '';
+            my $targs = OpenQA::Test::RunArgs->new();
+            my $whitelist_entry;
+
+            $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600);
+            $targs->{name} = $test_name;
+            $targs->{time} = $test_time;
+            $targs->{status} = $test_status;
+
             if ($test_status =~ /FAILED/) {
-                $test_out_bad = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600);
-                $test_full_log = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600);
-                $test_dmesg = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600);
+                $targs->{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600);
+                $targs->{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600);
+                $targs->{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600);
                 $fail_num += 1;
-                $test_status = 'SOFTFAILED' if exists($softfail_list{$generate_name});
+
+                if (exists($softfail_list{$generate_name})) {
+                    $targs->{status} = 'SOFTFAILED';
+                    $targs->{failinfo} = 'XFSTESTS_SOFTFAIL';
+                }
+
+                $whitelist_entry = $whitelist->find_whitelist_entry($whitelist_env, $suite, $generate_name) if defined($whitelist);
+
+                if ($whitelist_entry) {
+                    # FIXME: check bugzilla status
+                    $targs->{status} = 'SOFTFAILED' unless $whitelist_entry->{keep_fail};
+                    $targs->{failinfo} = $whitelist_entry->{message};
+                }
             }
             else {
                 $skip_num += 1;
             }
             # show fail message
-            my $targs = OpenQA::Test::RunArgs->new();
-            $targs->{name} = $test_name;
-            $targs->{time} = $test_time;
-            $targs->{status} = $test_status;
-            $targs->{output} = $test_out_content;
-            if ($test_status =~ /FAILED|SOFTFAILED/) {
-                $targs->{outbad} = $test_out_bad;
-                $targs->{fullog} = $test_full_log;
-                $targs->{dmesg} = $test_dmesg;
-            }
             autotest::loadtest("tests/xfstests/xfstests_failed.pm", name => $test_name, run_args => $targs);
         }
         else {
