@@ -125,7 +125,7 @@ sub run {
     };
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
-    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
     if (is_container_running($ctr1->{name})) {
         validate_script_output("curl --head --silent $ctr1->{ip}:80", sub { /HTTP.* 200 OK/ });
@@ -152,7 +152,7 @@ sub run {
 
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman network create --gateway $net2->{gateway} --subnet $net2->{subnet} $net2->{name}");
-    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -dt --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -dt --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
     assert_script_run("podman run --network $net2->{name}:ip=$ctr2->{ip},mac=$ctr2->{mac} --network $net1->{name}:ip=$ctr2->{ip_sec},mac=$ctr2->{mac_sec} -dt --name $ctr2->{name} $ctr2->{image}");
 
     # second container should have 2 interfaces
@@ -175,8 +175,8 @@ sub run {
     record_info('TEST3', 'create a dual stack network');
     $net1->{name} = 'test_dual_stack';
     assert_script_run("podman network create --ipv6 --gateway $net1->{gateway_v6} --subnet $net1->{subnet_v6} --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
-    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name6} --ip6 $ctr1->{ip6} -p 8080:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
-    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name} --ip $ctr1->{ip} -p 8888:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name6} --ip6 $ctr1->{ip6} -p 8080:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
+    assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name} --ip $ctr1->{ip} -p 8888:80 -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
 
     if (is_container_running($ctr1->{name})) {
         foreach my $req ((
