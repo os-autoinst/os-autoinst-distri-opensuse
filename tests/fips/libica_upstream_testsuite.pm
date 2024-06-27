@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: run upstream libica testsuite (build time) on s390x with enabled FIPS mode
@@ -43,6 +43,10 @@ sub run {
 
 sub post_run_hook {
     zypper_call("rr libica-tests");
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

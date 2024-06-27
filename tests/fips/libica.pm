@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Smoke test for libica on s390x with enabled FIPS mode
@@ -46,6 +46,10 @@ sub run {
     validate_script_output('icainfo -c', qr/Built-in\s+FIPS\s+support:\s+FIPS\s+140-[3-9].*active/);
     assert_script_run('icastats -k');
     assert_script_run('icastats -S');
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;
