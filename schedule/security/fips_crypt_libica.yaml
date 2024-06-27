@@ -7,8 +7,8 @@ schedule:
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - fips/libica_upstream_testsuite
     - fips/libica
+    - fips/libica_upstream_testsuite
 conditional_schedule:
     repo_setup:
         BETA:
