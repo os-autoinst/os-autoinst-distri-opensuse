@@ -38,7 +38,7 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub lifecycle_output_check {
     my $output = shift;
-    if (is_sle('=15-sp3') && $output =~ /Python 2 Module.*2021-07-3(0|1)/) {
+    if (is_sle('=15-sp3') && $output =~ /Python 2 Module.*2023-12-3(0|1)/) {
         record_info 'poo#129026';
         return;
     }
