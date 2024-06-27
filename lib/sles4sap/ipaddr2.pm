@@ -28,6 +28,7 @@ our @EXPORT = qw(
   ipaddr2_get_internal_vm_name
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
+  ipaddr2_os_sanity
   ipaddr2_os_connectivity_sanity
   ipaddr2_bastion_pubip
 );
@@ -371,6 +372,29 @@ sub ipaddr2_deployment_sanity {
         $count = grep(/running/, @$res);
         die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
     }
+}
+
+=head2 ipaddr2_os_sanity
+
+    ipaddr2_os_sanity()
+
+Run some OS level checks on the various VMs composing the deployment.
+die in case of failure
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
+                      so not to have to query az each time
+
+=back
+=cut
+
+sub ipaddr2_os_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_os_connectivity_sanity

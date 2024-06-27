@@ -18,6 +18,7 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
+    ipaddr2_os_sanity();
 }
 
 sub test_flags {
