@@ -166,11 +166,18 @@ sub prepare_ltp_env {
     assert_script_run('cd $LTPROOT/testcases/bin');
 }
 
+sub parse_int {
+    my $val = shift;
+
+    return oct($val) if $val =~ m/^0/;
+    return $val + 0;
+}
+
 sub check_kernel_taint {
     my ($testmod, $softfail) = @_;
 
     my @flag_desc = (
-        undef,    # proprietary module, ignore
+        'Proprietary module was loaded',
         'Module was force loaded',
         'Kernel running on out of specification system',
         'Module was force unloaded',
@@ -181,38 +188,58 @@ sub check_kernel_taint {
         'ACPI table overridden by user',
         'Kernel issued warning',
         'Staging driver was loaded',
-        undef,    # platform firmware bug workaround, ignore
-        undef,    # out-of-tree module, ignore
+        'Workaround for platform firmware bug',
+        'Out of tree module was loaded',
         'Unsigned module was loaded',
         'Soft lockup occurred',
-        undef,    # livepatch, ignore
-        'Auxiliary taint',
-        undef,    # kernel built with struct randomization, ignore
-        'In-kernel test has been run'
+        'Kernel was live patched',
+        'Externally supported module was loaded or auxiliary taint',
+        'Kernel was built with struct randomization',
+        'In-kernel test has been run',
+        # currently unused taint flags
+        undef, undef, undef, undef, undef, undef, undef, undef, undef, undef,
+        undef, undef,
+        'Unsupported module was loaded'
     );
     my $flag = 1;
-    my @taint;
+    my $taint_undef = 0;
+    my $taint_mask = parse_int(get_var('LTP_TAINT_EXPECTED', 0x80019801));
+    my (@taint, @exp_taint);
 
     my $taint_val = script_output('cat /proc/sys/kernel/tainted');
 
     for my $desc (@flag_desc) {
-        push @taint, "- $desc" if defined($desc) && $flag & $taint_val;
+        if ($flag & $taint_val) {
+            unless (defined($desc)) {
+                $taint_undef = 1;
+            }
+            elsif ($flag & $taint_mask) {
+                push @exp_taint, "- $desc";
+            }
+            else {
+                push @taint, "- $desc";
+            }
+        }
+
         $flag <<= 1;
     }
 
-    push @taint, '- Unknown tainted state' if $taint_val >= $flag;
     my $message = sprintf("Kernel taint: 0x%x", $taint_val);
+    push @taint, '- Unknown tainted state' if $taint_undef;
+    $message = "$message (OK)" unless @taint;
+    $message .= "\n\nUnexpected taint:\n" . join("\n", @taint) if @taint;
+    $message .= "\n\nExpected taint:\n" . join("\n", @exp_taint) if @exp_taint;
 
     unless (@taint) {
-        $testmod->record_resultfile('Kernel taint OK', "$message (OK)",
+        $testmod->record_resultfile('Kernel taint OK', $message,
             result => 'ok');
     }
     elsif ($softfail) {
-        $testmod->record_soft_failure_result("$message:\n" . join("\n", @taint));
+        $testmod->record_soft_failure_result($message);
     }
     else {
-        $testmod->record_resultfile('Kernel tainted',
-            "$message\n" . join("\n", @taint), result => 'fail');
+        $testmod->record_resultfile('Kernel tainted', $message,
+            result => 'fail');
         $testmod->{result} = 'fail';
     }
 }
