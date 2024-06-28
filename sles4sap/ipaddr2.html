@@ -21,6 +21,7 @@
       <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
       <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
       <li><a href="#ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</a></li>
+      <li><a href="#ipaddr2_os_sanity">ipaddr2_os_sanity</a></li>
       <li><a href="#ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</a></li>
       <li><a href="#ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</a></li>
       <li><a href="#ipaddr2_deployment_logs">ipaddr2_deployment_logs</a></li>
@@ -111,6 +112,20 @@
 
 <p>Run some checks on the existing deployment using the az command line. die in case of failure</p>
 
+<h2 id="ipaddr2_os_sanity">ipaddr2_os_sanity</h2>
+
+<pre><code>ipaddr2_os_sanity()</code></pre>
+
+<p>Run some OS level checks on the various VMs composing the deployment. die in case of failure</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</h2>
 
 <pre><code>ipaddr2_os_connectivity_sanity()</code></pre>
@@ -121,7 +136,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
@@ -137,7 +152,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time2"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
