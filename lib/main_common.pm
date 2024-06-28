@@ -2415,8 +2415,35 @@ sub check_and_load_mu_virt_features {
     }
 }
 
+sub set_mu_virt_vars {
+    # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l)
+    my $BUILD = get_var('BUILD', '');
+    $BUILD =~ /^:(\d+):([^:]+)$/im;
+
+    die "BUILD value is $BUILD, but does not match required format." if (!$2);
+
+    my $_pkg = $2;
+    my $_update_package = '';
+    if ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
+        $_update_package = $_pkg;
+    } elsif ($_pkg =~ /libvirt/) {
+        $_update_package = 'libvirt-client';
+    } else {
+        $_update_package = 'kernel-default';
+    }
+
+    set_var('UPDATE_PACKAGE', $_update_package);
+    bmwqemu::save_vars();
+    diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
+
+    # Set PATCH_WITH_ZYPPER
+    set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
+}
+
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+
+    set_mu_virt_vars;
 
     if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
         if (get_var('AUTOYAST')) {
