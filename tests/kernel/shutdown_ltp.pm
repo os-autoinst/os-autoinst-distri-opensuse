@@ -14,6 +14,7 @@ use utils;
 use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
+use qam;
 
 sub export_to_json {
     my ($test_result_export) = @_;
@@ -33,7 +34,7 @@ sub run {
     }
 
     script_run('df -h');
-    check_kernel_taint($self, 1);
+    check_kernel_taint($self, has_published_assets() ? 1 : 0);
 
     if (get_var('LTP_COMMAND_FILE')) {
         my $ver_linux_log = '/tmp/ver_linux_after.txt';
