@@ -47,7 +47,7 @@ sub run {
     assert_script_run("az group create -n $resource_group --tags '$tags'");
 
     # Pint - command line tool to query pint.suse.com to get the current image name
-    my $image_name = script_output(qq/pint microsoft images --active --json | jq -r '[.images[] | select( .urn | contains("sles-15-sp5:gen2") )][0].urn'/);
+    my $image_name = script_output(qq/pint microsoft images --inactive --json | jq -r '[.images[] | select( .urn | contains("sles-15-sp5:gen2") )][0].urn'/);
     die("The pint query output is empty.") unless ($image_name);
     record_info("PINT", "Pint query: " . $image_name);
 
