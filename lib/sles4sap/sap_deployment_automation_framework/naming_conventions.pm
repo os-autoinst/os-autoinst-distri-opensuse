@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 use mmapi qw(get_current_job_id);
 
 =head1 SYNOPSIS
@@ -34,6 +35,7 @@ our @EXPORT = qw(
   generate_resource_group_name
   convert_region_to_long
   convert_region_to_short
+  generate_deployer_name
 );
 
 =head2 %sdaf_region_matrix
@@ -140,7 +142,8 @@ Optionally it can create directory if it does not exists.
 
 sub deployment_dir {
     my (%args) = @_;
-    my $deployment_dir = get_var('DEPLOYMENT_ROOT_DIR', '/tmp') . '/Azure_SAP_Automated_Deployment_' . get_current_job_id();
+    my $deployment_dir =
+      get_var('DEPLOYMENT_ROOT_DIR', '/tmp') . '/Azure_SAP_Automated_Deployment_' . find_deployment_id();
     assert_script_run("mkdir -p $deployment_dir") if $args{create};
     return $deployment_dir;
 }
@@ -268,7 +271,7 @@ sub get_tfvars_path {
     # Argument (%args) validation is done by 'get_sdaf_config_path()'
     my $config_root_path = get_sdaf_config_path(%args);
 
-    my $job_id = get_current_job_id();
+    my $job_id = find_deployment_id();
 
     my %file_names = (
         workload_zone => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-INFRASTRUCTURE-$job_id.tfvars",
@@ -297,7 +300,21 @@ sub generate_resource_group_name {
     my @supported_types = ('workload_zone', 'sap_system', 'library', 'deployer');
     croak "Unsupported deployment type: $args{deployment_type}\nCurrently supported ones are: @supported_types" unless
       grep(/^$args{deployment_type}$/, @supported_types);
-    my $job_id = get_current_job_id();
+    my $job_id = find_deployment_id();
 
     return join('-', 'SDAF', 'OpenQA', $args{deployment_type}, $job_id);
+}
+
+=head2 generate_deployer_name
+
+    generate_deployer_name();
+
+Generates resource name for deployer VM in format B<test_id-OpenQA_Deployer_VM>.
+
+=cut
+
+sub generate_deployer_name {
+    my (%args) = @_;
+    $args{job_id} //= get_current_job_id();
+    return "$args{job_id}-OpenQA_Deployer_VM";
 }

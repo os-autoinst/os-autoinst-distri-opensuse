@@ -4,9 +4,9 @@ description: |
   Deploy SAP Hana SR scenario using 'SAP deployment automation framework'
 schedule:
   - boot/boot_to_desktop
+  - sles4sap/sap_deployment_automation_framework/create_deployer_vm
   - sles4sap/sap_deployment_automation_framework/connect_to_deployer
   - sles4sap/sap_deployment_automation_framework/configure_deployer
   - sles4sap/sap_deployment_automation_framework/deploy_workload_zone
   - sles4sap/sap_deployment_automation_framework/deploy_sap_systems
   - sles4sap/sap_deployment_automation_framework/deploy_hanasr
-  - sles4sap/sap_deployment_automation_framework/cleanup
