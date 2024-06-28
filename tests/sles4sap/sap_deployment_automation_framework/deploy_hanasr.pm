@@ -17,11 +17,11 @@
 # Optional:
 #     'SDAF_ANSIBLE_VERBOSITY_LEVEL' Override default verbosity for 'ansible-playbook'.
 
-use parent 'sles4sap::microsoft_sdaf_basetest';
+use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use warnings;
-use sles4sap::sdaf_deployment_library;
-use sles4sap::sdaf_naming_conventions;
+use sles4sap::sap_deployment_automation_framework::deployment;
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;

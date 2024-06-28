@@ -6,16 +6,16 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use testapi;
-use sles4sap::sdaf_naming_conventions;
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 subtest '[homedir]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     $mock_lib->redefine(script_output => sub { return '/home/sweet/home' });
     is homedir(), '/home/sweet/home', 'Return path';
 };
 
 subtest '[deployment_dir]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     my @calls;
     $mock_lib->redefine(get_var => sub { return '/tmp' });
     $mock_lib->redefine(get_current_job_id => sub { return '42' });
@@ -30,7 +30,7 @@ subtest '[deployment_dir]' => sub {
 };
 
 subtest '[log_dir]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     my @calls;
     $mock_lib->redefine(deployment_dir => sub { return '/narnia' });
     $mock_lib->redefine(assert_script_run => sub { push(@calls, $_[0]); return });
@@ -44,19 +44,19 @@ subtest '[log_dir]' => sub {
 };
 
 subtest '[sdaf_scripts_dir]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     $mock_lib->redefine(deployment_dir => sub { return '/narnia' });
     is sdaf_scripts_dir(), '/narnia/sap-automation/deploy/scripts', 'Append scripts path to deployment root';
 };
 
 subtest '[env_variable_file]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     $mock_lib->redefine(deployment_dir => sub { return '/narnia' });
     is env_variable_file(), '/narnia/sdaf_variables', 'Append variables filename to deployment root path';
 };
 
 subtest '[get_tfvars_path] Test passing scenarios' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
         vnet_code => 'SAP04',
@@ -81,7 +81,7 @@ subtest '[get_tfvars_path] Test passing scenarios' => sub {
 
 
 subtest '[generate_resource_group_name]' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sdaf_naming_conventions', no_auto => 1);
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     $mock_lib->redefine(get_current_job_id => sub { return '0079'; });
     my @expected_failures = ('something_funky', 'workload', 'zone', 'sut', 'lib', 'deploy');
     my %expected_pass = (

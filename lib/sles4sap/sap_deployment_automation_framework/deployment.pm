@@ -6,7 +6,7 @@
 #
 # Library used for Microsoft SDAF deployment
 
-package sles4sap::sdaf_deployment_library;
+package sles4sap::sap_deployment_automation_framework::deployment;
 
 use strict;
 use warnings;
@@ -20,7 +20,7 @@ use File::Basename;
 use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
-use sles4sap::sdaf_naming_conventions;
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 =head1 SYNOPSIS
 

@@ -6,12 +6,12 @@
 #
 # Basetest used for Microsoft SDAF deployment
 
-package sles4sap::microsoft_sdaf_basetest;
+package sles4sap::sap_deployment_automation_framework::basetest;
 use strict;
 use warnings;
 use testapi;
 use parent 'opensusebasetest';
-use sles4sap::sdaf_deployment_library;
+use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 
 sub post_fail_hook {

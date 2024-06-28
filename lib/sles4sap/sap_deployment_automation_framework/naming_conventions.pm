@@ -6,7 +6,7 @@
 #
 # Library used to generate simple strings according to SDAF naming conventions
 
-package sles4sap::sdaf_naming_conventions;
+package sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 use strict;
 use warnings;
