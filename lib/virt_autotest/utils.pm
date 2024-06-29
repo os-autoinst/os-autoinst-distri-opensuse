@@ -216,7 +216,6 @@ sub turn_on_libvirt_debugging_log {
     my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtnwfilterd virtlockd);
     # For details, please refer to poo#137096
     push @libvirt_daemons, 'virtlogd' if is_kvm_host;
-    push @libvirt_daemons, 'virtproxyd' if is_sle;
 
     #turn on debug and log filter for libvirt services
     #disable log_level = 1 'debug' as it generage large output
