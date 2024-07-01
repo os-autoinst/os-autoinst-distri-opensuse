@@ -54,25 +54,25 @@
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>splash=silent quiet console=tty loglevel=5 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
+      <xen_append>splash=silent quiet console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
       <!-- For some special beremetal machines, such as unreal2/3, their serial console:
       SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1" -->
-      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console</xen_kernel_append>
       % }
       % if ($check_var->('SYSTEM_ROLE', 'kvm')) {
         % if ($check_var->('AMD', '1')) {
           % if ($check_var->('VIRT_SEV_ES_GUEST_INSTALL', '1')) {
             <!-- Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107 -->
             % if ($check_var->('VERSION', '15-SP6')) { 
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 kvm_amd.sev=1 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
             % } else {
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
             % }
           % } else {
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
           % }
         % } else { 
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 intel_iommu=on <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty intel_iommu=on <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
         % }
       % }
     </global>
@@ -324,6 +324,33 @@ sed -i 's/CR/\n/g' /root/.ssh/id_rsa
 chmod 600 /root/.ssh/id_rsa
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> > /root/.ssh/id_rsa.pub
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
+]]>
+        </source>
+      </script>
+      <script>
+        <!-- enable persistent kernel log as per ENABLE_PERSISTENT_KERNEL_LOG -->
+        <filename>enable_persistent_kernel_log.sh</filename>
+        <source><![CDATA[
+% if ($get_var->('ENABLE_PERSISTENT_KERNEL_LOG')) {
+    config_file="/etc/rsyslog.conf"
+    if [ -f $config_file ];then
+        if ! grep -q -e "^\$ModLoad imklog.so$" $config_file;then
+            echo "\$ModLoad imklog.so" >> $config_file
+        fi
+        if ! grep -q -e "^kern.*$" $config_file;then
+	    rm -f -r /var/log/kern.log
+            echo "kern.*                                  /var/log/kern.log" >> $config_file
+        fi		
+        echo "Enabled persistent kernel log" > /etc/issue.d/enable_persisten_kernel_log	
+        exit 0	    
+    else		
+        echo "Failed to enable kernel persistent log due to missing $config_file" > /etc/issue.d/enable_persisten_kernel_log	
+        exit 1		
+    fi
+% } else {
+    echo "Do not enable persistent kernel log because ENABLE_PERSISTENT_KERNEL_LOG=0" > /etc/issue.d/enable_persisten_kernel_log			
+    exit 0		
+% }
 ]]>
         </source>
       </script>
