@@ -88,6 +88,7 @@
       <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
       <li><a href="#qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</a></li>
       <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
+      <li><a href="#qesap_az_list_container_files">qesap_az_list_container_files</a></li>
       <li><a href="#qesap_az_diagnostic_log">qesap_az_diagnostic_log</a></li>
       <li><a href="#qesap_terraform_clean_up_retry">qesap_terraform_clean_up_retry</a></li>
       <li><a href="#qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</a></li>
@@ -1154,6 +1155,34 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 </dd>
 <dt id="LIFETIME---life-time-of-the-token-in-minutes-default-is-10min"><b>LIFETIME</b> - life time of the token in minutes, default is 10min</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="qesap_az_list_container_files">qesap_az_list_container_files</h2>
+
+<p>Returns a list of the files that exist inside a given path in a given container in Azure storage.</p>
+
+<p>Generated command looks like this:</p>
+
+<p>az storage blob list --account-name &lt;account_name&gt; --container-name &lt;container_name&gt; --sas-token &quot;&lt;my_token&gt;&quot; --prefix &lt;path_inside_container&gt; --query &quot;[].{name:name}&quot; --output tsv</p>
+
+<dl>
+
+<dt id="STORAGE---Storage-account-name-used-fur-the---account-name-argument-in-az-commands1"><b>STORAGE</b> - Storage account name used fur the --account-name argument in az commands</dt>
+<dd>
+
+</dd>
+<dt id="CONTAINER---container-name-within-the-storage-account1"><b>CONTAINER</b> - container name within the storage account</dt>
+<dd>
+
+</dd>
+<dt id="TOKEN---name-of-the-SAS-token-to-access-the-account-needs-to-have-l-permission"><b>TOKEN</b> - name of the SAS token to access the account (needs to have l permission)</dt>
+<dd>
+
+</dd>
+<dt id="PREFIX---the-local-path-inside-the-container-to-list-file-inside-a-folder-named-dir-this-would-be-dir"><b>PREFIX</b> - the local path inside the container (to list file inside a folder named &#39;dir&#39;, this would be &#39;dir&#39;)</dt>
 <dd>
 
 </dd>
