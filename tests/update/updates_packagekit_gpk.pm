@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
 
 sub setup_system {
@@ -103,6 +103,7 @@ sub run {
         }
 
         if (match_has_tag("updates_none")) {
+            wait_still_screen 10 if is_leap('=15.6') || is_sle('=15-sp6');
             send_key 'ret';
             close_pop_up_windows;
             return;
@@ -130,6 +131,7 @@ sub run {
                 }
             } while (match_has_tag 'Policykit');
             if (match_has_tag("updates_none")) {
+                wait_still_screen 10 if is_leap('=15.6') || is_sle('=15-sp6');
                 wait_screen_change { send_key 'ret'; };
                 if (check_screen "updates_installed-restart", 0) {
                     power_action 'reboot', textmode => 1;
