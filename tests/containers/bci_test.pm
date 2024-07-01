@@ -21,9 +21,19 @@ use serial_terminal 'select_serial_terminal';
 use containers::utils qw(reset_container_network_if_needed);
 use File::Basename;
 use utils qw(systemctl);
-use version_utils qw(get_os_release);
+use version_utils qw(get_os_release check_version);
 
 my $error_count;
+
+sub skip_testrun {
+    # Check if the current test run should be skipped.
+    # This check is needed here to allow for fine-grained control over BCI test runs, otherwise not possible via the job groups
+
+    # Skip Spack on SLES12-SP5 (https://bugzilla.suse.com/show_bug.cgi?id=1224345)
+    return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
+
+    return 0;
+}
 
 sub run_tox_cmd {
     my ($self, $env) = @_;
@@ -71,6 +81,7 @@ sub run {
         record_info('BCI skipped', 'BCI test skipped due to BCI_SKIP=1 setting');
         return;
     }
+    return if skip_testrun();
 
     $error_count = 0;
 
