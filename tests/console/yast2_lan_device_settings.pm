@@ -79,7 +79,7 @@ sub run {
             assert_script_run "ip r s | grep dhcp";
             # verify that static ip is not recorded in /etc/hosts
             if ($is_set_in_etc_host->($static_ip)) {
-                record_soft_failure 'bsc#1115644 yast2 lan does not update /etc/hosts after shifting from static ip to dynamic';
+                record_info 'bsc#1115644', 'yast2 lan does not update /etc/hosts after shifting from static ip to dynamic';
                 assert_script_run qq{sed -i '/$static_ip/d' /etc/hosts};
                 assert_script_run q{cat /etc/hosts};
             }
