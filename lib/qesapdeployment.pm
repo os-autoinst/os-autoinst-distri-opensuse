@@ -105,6 +105,7 @@ our @EXPORT = qw(
   qesap_az_get_tenant_id
   qesap_az_validate_uuid_pattern
   qesap_az_create_sas_token
+  qesap_az_list_container_files
   qesap_az_diagnostic_log
   qesap_terraform_clean_up_retry
   qesap_terrafom_ansible_deploy_retry
@@ -2325,6 +2326,51 @@ sub qesap_az_create_sas_token {
         '-o', 'tsv');
     record_info('GENERATE-SAS', $cmd);
     return script_output($cmd);
+}
+
+=head2 qesap_az_list_container_files
+
+Returns a list of the files that exist inside a given path in a given container
+in Azure storage.
+
+Generated command looks like this:
+
+az storage blob list 
+--account-name <account_name> 
+--container-name <container_name> 
+--sas-token "<my_token>" 
+--prefix <path_inside_container> 
+--query "[].{name:name}" --output tsv
+
+=over 4
+
+=item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
+
+=item B<CONTAINER> - container name within the storage account
+
+=item B<TOKEN> - name of the SAS token to access the account (needs to have l permission)
+
+=item B<PREFIX> - the local path inside the container (to list file inside a folder named 'dir', this would be 'dir')
+
+=back
+=cut
+
+sub qesap_az_list_container_files {
+    my (%args) = @_;
+    foreach (qw(storage container token prefix)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = join(' ',
+        'az storage blob list',
+        '--account-name', $args{storage},
+        '--container-name', $args{container},
+        '--sas-token', $args{token},
+        '--prefix', $args{prefix},
+        '--query "[].{name:name}" --output tsv');
+    my $ret = script_output($cmd);
+    if ($ret && $ret ne ' ') {
+        my @files = split(/\n/, $ret);
+        return join(',', @files);
+    }
+    croak "The list azure files command output is empty or undefined.";
 }
 
 =head2 qesap_az_diagnostic_log

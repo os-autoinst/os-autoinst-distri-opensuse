@@ -804,6 +804,12 @@ sub delete_network_peering {
 
 =item B<fencing> - select fencing mechanism
 
+=item B<ptf_files> - list of PTF files (optional)
+
+=item B<token> - SAS token to access the PTF files (optional)
+
+=item B<container> - name of the container for PTF files
+
 =back
 =cut
 
@@ -828,6 +834,13 @@ sub create_playbook_section_list {
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
         push @playbook_list, 'fully-patch-system.yaml';
+    }
+
+    # Add playbook to download and install PTFs, if any
+    if ($args{ptf_files} && $args{token} && $args{container}) {
+        $args{token} =~ s/\\\&/\&/g;
+        push @playbook_list, "ptf_installation.yaml -e ptf_files=$args{ptf_files} -e sas_token=$args{token} -e container=$args{container} -e storage=" . get_required_var('HANA_ACCOUNT');
+        push @playbook_list, "additional_fence_agent_tasks.yaml";
     }
 
     my $hana_cluster_playbook = 'sap-hana-cluster.yaml';

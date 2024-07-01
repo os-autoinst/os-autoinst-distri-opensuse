@@ -106,6 +106,13 @@ sub run {
         $azure_client->init();
     }
 
+    # variable to be conditionally used to hold ptf file names,
+    # in case a PTF is installed
+    my $ptf_files;
+    # variable to hold the top level container where the PTF directory
+    # is going to be
+    my $ptf_container;
+
     if (get_var('HANA_ACCOUNT') && get_var('HANA_CONTAINER') && get_var('HANA_KEYNAME')) {
         my $escaped_token = qesap_az_create_sas_token(
             storage => get_required_var('HANA_ACCOUNT'),
@@ -119,6 +126,16 @@ sub run {
         # but not implemented in file_content_replace() yet poo#120690
         $escaped_token =~ s/\&/\\\&/g;
         set_var("HANA_TOKEN", $escaped_token);
+
+        if (get_var('PTF_INSTALL')) {
+            $ptf_files = qesap_az_list_container_files(
+                storage => get_required_var('HANA_ACCOUNT'),
+                container => (split("/", get_required_var('HANA_CONTAINER')))[0],
+                token => get_required_var('HANA_TOKEN'),
+                prefix => 'ptf'
+            );
+            $ptf_container = (split("/", get_required_var('HANA_CONTAINER')))[0];
+        }
     }
 
     my $subscription_id = $provider->{provider_client}{subscription};
@@ -147,7 +164,13 @@ sub run {
     elsif (get_var('QESAP_FORCE_SUSECONNECT')) {
         $reg_mode = 'suseconnect';
     }
-    my $ansible_playbooks = create_playbook_section_list(ha_enabled => $ha_enabled, registration => $reg_mode, fencing => get_var('FENCING_MECHANISM'));
+    my $ansible_playbooks = create_playbook_section_list(
+        ha_enabled => $ha_enabled,
+        registration => $reg_mode,
+        fencing => get_var('FENCING_MECHANISM'),
+        ptf_files => $ptf_files,
+        token => get_var('HANA_TOKEN'),
+        container => $ptf_container);
     my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
 
     # Prepare QESAP deployment

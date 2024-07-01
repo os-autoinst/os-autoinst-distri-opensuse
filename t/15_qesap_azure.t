@@ -374,6 +374,36 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     ok 1;
 };
 
+subtest '[qesap_az_list_container_files] missing arguments' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    dies_ok { qesap_az_list_container_files(storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Missing container argument';
+    dies_ok { qesap_az_list_container_files(container => 'BALAMB', token => 'SAS', prefix => 'SQUALL') } 'Missing storage argument';
+    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', prefix => 'SQUALL') } 'Missing token argument';
+    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS') } 'Missing prefix argument';
+};
+
+subtest '[qesap_az_list_container_files] bad output' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $so_ret = '';
+    $qesap->redefine(script_output => sub { return $so_ret; });
+    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Empty return string';
+    $so_ret = ' ';
+    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Space-only return string';
+};
+
+subtest '[qesap_az_list_container_files] command composition' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'SQUALL/ifrit.rpm\nSQUALL/shiva.src.rpm' });
+    qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL');
+    ok((any { /az storage blob list.*/ } @calls), 'Main az command `az storage blob list` properly composed');
+    ok((any { /.*--account-name GALBADIA.*/ } @calls), 'storage argument is used for --account-name');
+    ok((any { /.*--container-name BALAMB.*/ } @calls), 'container argument is used for --container-name');
+    ok((any { /--sas-token SAS.*/ } @calls), 'token argument is used for --sas-token');
+    ok((any { /.*--prefix SQUALL*/ } @calls), 'prefix argument used for --prefix');
+};
+
 subtest '[qesap_az_get_native_fencing_type]' => sub {
     my $res_empty = qesap_az_get_native_fencing_type();
     ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
