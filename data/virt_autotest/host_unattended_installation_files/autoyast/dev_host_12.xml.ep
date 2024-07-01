@@ -42,10 +42,10 @@
       <secure_boot>false</secure_boot>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
-      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <xen_append>vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console</xen_kernel_append>
       % } else {
-      <append>loglevel=5 gfxpayload=1024x768 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>gfxpayload=1024x768 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
     </global>
     % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
@@ -334,6 +334,33 @@ sed -i 's/CR/\n/g' /root/.ssh/id_rsa
 chmod 600 /root/.ssh/id_rsa
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> > /root/.ssh/id_rsa.pub
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
+]]>
+        </source>
+      </script>
+      <script>
+        <!-- enable persistent kernel log as per ENABLE_PERSISTENT_KERNEL_LOG -->
+        <filename>enable_persistent_kernel_log.sh</filename>
+        <source><![CDATA[
+% if ($get_var->('ENABLE_PERSISTENT_KERNEL_LOG')) {
+    config_file="/etc/rsyslog.conf"
+    if [ -f $config_file ];then
+        if ! grep -q -e "^\$ModLoad imklog.so$" $config_file;then
+            echo "\$ModLoad imklog.so" >> $config_file
+        fi
+        if ! grep -q -e "^kern.*$" $config_file;then
+            rm -f -r /var/log/kern.log
+            echo "kern.*                                  /var/log/kern.log" >> $config_file
+        fi              
+        echo "Enabled persistent kernel log" > /etc/issue.d/enable_persisten_kernel_log 
+        exit 0      
+    else                
+        echo "Failed to enable kernel persistent log due to missing $config_file" > /etc/issue.d/enable_persisten_kernel_log     
+        exit 1      
+    fi
+% } else {
+    echo "Do not enable persistent kernel log because ENABLE_PERSISTENT_KERNEL_LOG=0" > /etc/issue.d/enable_persisten_kernel_log                        
+    exit 0              
+% }             
 ]]>
         </source>
       </script>

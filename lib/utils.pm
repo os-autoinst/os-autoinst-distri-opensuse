@@ -121,6 +121,8 @@ our @EXPORT = qw(
   remove_efiboot_entry
   empty_usb_disks
   upload_y2logs
+  enable_persistent_kernel_log
+  enable_console_kernel_log
 );
 
 our @EXPORT_OK = qw(
@@ -3068,6 +3070,62 @@ sub upload_y2logs {
     script_retry("save_y2logs $args{file}", timeout => 180, retry => 3);
     upload_logs($args{file}, failok => $args{failok});
     save_screenshot;
+}
+
+=head2 enable_persistent_kernel_log
+
+  enable_persistent_kernel_log(service => 'log_service_name',
+      config => 'config_file_path', log => 'log_file_path');
+
+For system that uses rsyslog to manage log facility, kernel log by default is not
+stored on persistent storage. In order to enable persistent kernel log, loading
+imklog.so module and specifying desired log file in config file /etc/rsyslog.conf
+should be performed. Arguments service, config and log provide flexibility to use
+different log management appliances. 
+=cut
+
+sub enable_persistent_kernel_log {
+    my %args = @_;
+    $args{service} //= 'rsyslog';
+    $args{config} //= '/etc/rsyslog.conf';
+    $args{log} //= '/var/log/kern.log';
+
+    assert_script_run("ls $args{config}");
+    if (script_run("grep -e \"^\\\$ModLoad imklog.so\$\" /etc/rsyslog.conf") != 0) {
+        assert_script_run("echo \"\\\$ModLoad imklog.so\" >> /etc/rsyslog.conf");
+    }
+
+    if (script_run("grep -e \"^kern.*\$\" /etc/rsyslog.conf") != 0) {
+        assert_script_run("rm -f -r $args{log}");
+        assert_script_run("echo \"kern.*                                  $args{log}\" >> /etc/rsyslog.conf");
+    }
+    record_info("Content of log config file $args{config}", script_output("cat $args{config}"));
+    systemctl("enable $args{service}.service");
+    systemctl("restart $args{service}.service");
+}
+
+=head2 enable_console_kernel_log
+
+ enable_console_kernel_log;
+
+By default only those kernel logs level of which is lower than default value will
+be printed out onto serial console. If user prefers to have all kernel messages
+printed out onto serial console, ignore_loglevel, loglvl or guest_loglvl setting
+should be put onto kernel command line and setting /proc/sys/kernel/printk should
+have value like 8 which is greater than the highest kernel log level. 
+=cut
+
+sub enable_console_kernel_log {
+    if (virt_autotest::utils::is_kvm_host()) {
+        assert_script_run("sed -i -r \'/linux\\s*.*boot/ s/\$/ ignore_loglevel/;\' /boot/grub2/grub.cfg");
+    }
+    elsif (virt_autotest::utils::is_xen_host()) {
+        assert_script_run("sed -i -r \'/module\\s*.*vmlinuz/ s/(loglvl|guest_loglvl)=[^ ]*//g;\' /boot/grub2/grub.cfg");
+        assert_script_run("sed -i -r \'/module\\s*.*vmlinuz/ s/\$/ loglvl=all guest_loglvl=all/;\' /boot/grub2/grub.cfg");
+    }
+    record_info("Content of /boot/grub2/grub.cfg", script_output("cat /boot/grub2/grub.cfg"));
+    assert_script_run("echo 8 > /proc/sys/kernel/printk");
+    record_info("Content of /proc/sys/kernel/printk", script_output("cat /proc/sys/kernel/printk"));
 }
 
 1;
