@@ -76,6 +76,7 @@ my @conflicting_packages = (
     'mpich_4_0_2-gnu-hpc-macros-devel', 'mpich-ofi_4_0_2-gnu-hpc-macros-devel',
     'openmpi4-config', 'pmix-mca-params',
     'rmt-server-pubcloud',
+    'systemtap-sdt-devel',
     'kernel-default-base', 'kernel-default-extra'
 );
 
