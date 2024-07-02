@@ -3,18 +3,17 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">false</do_registration>
-    <email/>
     <install_updates config:type="boolean">false</install_updates>
   </suse_register>
   <add-on t="map">
     <add_on_products t="list">
       <listentry t="map">
-        <media_url>cd:/?devices=/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00001</media_url>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
         <product>sle-module-basesystem</product>
         <product_dir>/Module-Basesystem</product_dir>
       </listentry>
       <listentry t="map">
-        <media_url>cd:/?devices=/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00001</media_url>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
         <product>sle-module-server-applications</product>
         <product_dir>/Module-Server-Applications</product_dir>
       </listentry>
