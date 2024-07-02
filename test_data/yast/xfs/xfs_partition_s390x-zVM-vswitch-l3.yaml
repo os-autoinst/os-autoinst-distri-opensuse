@@ -22,3 +22,4 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: SWAP
+table_type_parted: 1
