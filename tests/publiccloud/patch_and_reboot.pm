@@ -20,6 +20,16 @@ use version_utils qw(is_sle_micro);
 
 sub run {
     my ($self, $args) = @_;
+    if(get_var('PUBLIC_CLOUD_SKIP_ALL_UPDATES')) {
+        record_info("SKIP", "Skipping module due to PUBLIC_CLOUD_SKIP_ALL_UPDATES=1");
+        my $ref_timeout = check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') ? 3600 : 240;
+        my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+        # pkcon not present on SLE-micro
+        kill_packagekit($args->{my_instance}) unless (is_sle_micro);
+        $args->{my_instance}->ssh_script_retry("sudo zypper up -y python-azure-agent", timeout => $ref_timeout);
+        $self->result('skip');
+        return 1;
+    }
     select_host_console();    # select console on the host, not the PC instance
 
     my $cmd_time = time();
