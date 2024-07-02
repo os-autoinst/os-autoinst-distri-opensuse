@@ -109,7 +109,7 @@ tie our %guest_migration_matrix_kvm, 'Tie::IxHash', (
     virsh_live_native_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --undefinesource guest dsturi',
     virsh_live_tunnel_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --tunnelled --persistent --change-protection --unsafe --compressed --abort-on-error --undefinesource guest dsturi',
     virsh_live_native_p2p_auto_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --postcopy-after-precopy --undefinesource guest dsturi',
-    virsh_live_native_p2p_manual_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --undefinesource guest dsturi#virsh --connect=srcuri --debug=0 migrate-postcopy guest',
+    virsh_live_native_p2p_manual_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --undefinesource guest dsturi',
     virsh_offline_native_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --offline --p2p --persistent --unsafe --undefinesource guest dsturi');
 tie our %guest_migration_matrix_xen, 'Tie::IxHash', (
     xl_online => 'xl -vvv migrate guest dstip',
