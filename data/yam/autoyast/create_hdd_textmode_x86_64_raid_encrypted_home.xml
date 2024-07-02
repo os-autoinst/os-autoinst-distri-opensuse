@@ -1,0 +1,315 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on t="map">
+    <add_on_products t="list">
+      <listentry t="map">
+        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Basesystem/15-SP5/x86_64/product?uqBLT_zaCrKaPl66l5TOK5kz1Cm-wowzT03E-BxbbNN61C48hWiJ1-7NbkMAlNs-qLDTweuinZKLKOYb-KmIOI3X8uHyFpDJxBf_VePKxTpWdGbNYcOUum6IP-OykxLq-MU_z3vNOIl_Hephpy_xvA9myis34Y5X</media_url>
+        <product>SLE-Module-Basesystem15-SP5-Pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Server-Applications/15-SP5/x86_64/product?qKA5x9nh2ee-G2X0H6XSIVLXdT8cH8US1qQJyo9D1eOsLMBqNpY1R7-Qj_5BDQCidvaENJM9lKo7kKVXJm6QUyvdcxYrzLvAB-f-FUSjEFIF0aoWptANPknd0DIc5BrszSXm_foNwr3Q5n_Q-YxzvLcwFtax-XYMfia6jWrvUWK5</media_url>
+        <product>SLE-Module-Server-Applications15-SP5-Pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Python3/15-SP5/x86_64/product?4SZ0rt6mKcY6w2TlOlBq3LY4mqjxfU0YIDqjk9z8DB4h0EKIdhBCiqWLRFUHSMFNCaYTGvzCdejnr2zOGCEdN_wgZcZOMmE3pnF04GE6MXUI16Jb7WmLKKne4XcEPvhvYOQqyA1Xk2f_lYXMB4yh7mkJWyzj</media_url>
+        <product>SLE-Module-Python3-15-SP5-Pool</product>
+        <product_dir/>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader t="map">
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/md0</device>
+      <disklabel>none</disklabel>
+      <enable_snapshots t="boolean">false</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">false</create>
+          <filesystem t="symbol">xfs</filesystem>
+          <format t="boolean">false</format>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <resize t="boolean">false</resize>
+        </partition>
+      </partitions>
+      <raid_options t="map">
+        <chunk_size>0B</chunk_size>
+        <device_order t="list">
+          <device>/dev/vda2</device>
+          <device>/dev/vdb1</device>
+        </device_order>
+        <parity_algorithm>default</parity_algorithm>
+        <raid_type>raid1</raid_type>
+      </raid_options>
+      <type t="symbol">CT_MD</type>
+    </drive>
+    <drive t="map">
+      <device>/dev/md1</device>
+      <disklabel>none</disklabel>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">false</create>
+          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_method t="symbol">luks1</crypt_method>
+          <filesystem t="symbol">xfs</filesystem>
+          <format t="boolean">false</format>
+          <loop_fs t="boolean">true</loop_fs>
+          <mount>/home</mount>
+          <mountby t="symbol">device</mountby>
+          <resize t="boolean">false</resize>
+        </partition>
+      </partitions>
+      <raid_options t="map">
+        <chunk_size>0B</chunk_size>
+        <device_order t="list">
+          <device>/dev/vda3</device>
+          <device>/dev/vdb2</device>
+        </device_order>
+        <parity_algorithm>default</parity_algorithm>
+        <raid_type>raid1</raid_type>
+      </raid_options>
+      <type t="symbol">CT_MD</type>
+    </drive>
+    <drive t="map">
+      <device>/dev/md2</device>
+      <disklabel>none</disklabel>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">false</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">false</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <resize t="boolean">false</resize>
+        </partition>
+      </partitions>
+      <raid_options t="map">
+        <chunk_size>0B</chunk_size>
+        <device_order t="list">
+          <device>/dev/vda4</device>
+          <device>/dev/vdb3</device>
+        </device_order>
+        <parity_algorithm>default</parity_algorithm>
+        <raid_type>raid1</raid_type>
+      </raid_options>
+      <type t="symbol">CT_MD</type>
+    </drive>
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">263</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>8388608</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <raid_name>/dev/md0</raid_name>
+          <resize t="boolean">false</resize>
+          <size>13524533248</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <raid_name>/dev/md1</raid_name>
+          <resize t="boolean">false</resize>
+          <size>5793382400</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">4</partition_nr>
+          <raid_name>/dev/md2</raid_name>
+          <resize t="boolean">false</resize>
+          <size>2147466752</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+    <drive t="map">
+      <device>/dev/vdb</device>
+      <disklabel>gpt</disklabel>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <raid_name>/dev/md0</raid_name>
+          <resize t="boolean">false</resize>
+          <size>13524533248</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <raid_name>/dev/md1</raid_name>
+          <resize t="boolean">false</resize>
+          <size>5793382400</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">253</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <raid_name>/dev/md2</raid_name>
+          <resize t="boolean">false</resize>
+          <size>2147466752</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>kdump</service>
+        <service>kdump-early</service>
+        <service>wicked</service>
+        <service>sshd</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>xfsprogs</package>
+      <package>wicked</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-python3-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>openssh</package>
+      <package>mdadm</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>cryptsetup</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <email/>
+    <install_updates t="boolean">false</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <slp_discovery t="boolean">false</slp_discovery>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$/S326s/1NWnulfKB$s3haA6kPMz8UUOzhz8frF3HPuqT7xqdL4jysSQwZ5koqKuFJFMhym7Bj5t9d.SbUBZhtvXxarZoqLRhWYHtqD/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$gIFtIHCWKKyxmRga$LXzcVlLxfeiQun7DfAI22J8vk4gtaKUJH4Asrij/Tsvx2CU9zEw44dCIGX3CBZlUl.fGWm.qyH1bem1ZcbYwk0</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
