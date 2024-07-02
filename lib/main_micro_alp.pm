@@ -244,7 +244,8 @@ sub load_fips_tests {
     loadtest 'fips/openssl/openssl_fips_cipher';
     loadtest 'fips/openssl/openssl_fips_dhparam';
     loadtest 'fips/openssl/openssl_fips_hash';
-    loadtest 'fips/openssl/openssl_pubkey_dsa';
+    # https://bugzilla.suse.com/show_bug.cgi?id=1223200#c2
+    loadtest 'fips/openssl/openssl_pubkey_dsa' if is_sle_micro('<6.0');
     loadtest 'fips/openssl/openssl_pubkey_rsa';
     loadtest 'fips/gnutls/gnutls_base_check';
     loadtest 'fips/gnutls/gnutls_server';
