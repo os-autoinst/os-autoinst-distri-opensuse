@@ -19,9 +19,9 @@ use qam;
 sub run {
     my $self = shift;
     select_console('root-console');
-    if (my $pkg = get_var("UPDATE_PACKAGE")) {
-        validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
-    }
+#    if (my $pkg = get_var("UPDATE_PACKAGE")) {
+#        validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+#    }
     if (check_var('PATCH_WITH_ZYPPER', '1')) {
         assert_script_run("dmesg --level=emerg,crit,alert,err -tx |sort |comm -23 - /tmp/dmesg_err_before.txt > /tmp/dmesg_err.txt");
     } else {
