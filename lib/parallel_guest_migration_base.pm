@@ -109,7 +109,7 @@ tie our %guest_migration_matrix_kvm, 'Tie::IxHash', (
     virsh_live_native_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --undefinesource guest dsturi',
     virsh_live_tunnel_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --tunnelled --persistent --change-protection --unsafe --compressed --abort-on-error --undefinesource guest dsturi',
     virsh_live_native_p2p_auto_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --postcopy-after-precopy --undefinesource guest dsturi',
-    virsh_live_native_p2p_manual_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --undefinesource guest dsturi#virsh --connect=srcuri --debug=0 migrate-postcopy guest',
+    virsh_live_native_p2p_manual_postcopy => 'virsh --connect=srcuri --debug=0 migrate --verbose --live --p2p --persistent --change-protection --unsafe --compressed --abort-on-error --postcopy --undefinesource guest dsturi',
     virsh_offline_native_p2p => 'virsh --connect=srcuri --debug=0 migrate --verbose --offline --p2p --persistent --unsafe --undefinesource guest dsturi');
 tie our %guest_migration_matrix_xen, 'Tie::IxHash', (
     xl_online => 'xl -vvv migrate guest dstip',
@@ -1566,7 +1566,7 @@ sub virsh_migrate_manual_postcopy {
     select_console("root-ssh-virt");
     $testapi::serialdev = "virtsshserial";
     enter_cmd("clear");
-    $_ret = script_run("(set -x;unset migrate_postcopy;export migrate_postcopy=1; for i in `seq 87000`;do $_command[1];migrate_postcopy=\$?; if [ \$migrate_postcopy -eq 0 ];then set +x;break;fi; done; if [ \$migrate_postcopy -eq 0 ];then echo -e \"Migrate Postcopy Succeeded! \\n\";else command-not-found;fi)", timeout => 300);
+    $_ret = script_run("(set -x;unset migrate_postcopy;export migrate_postcopy=1; for i in `seq 87000`;do $_command[1];migrate_postcopy=\$?; if [ \$migrate_postcopy -eq 0 ];then set +x;break;fi; done; if [ \$migrate_postcopy -eq 0 ];then echo -e \"Migrate Postcopy Succeeded! \\n\";else echo -e \"Command not found! \\n\";fi)", timeout => 300);
     wait_still_screen(30);
     save_screenshot;
     select_console("root-ssh");
