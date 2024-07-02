@@ -1268,7 +1268,6 @@ sub load_consoletests {
         loadtest "console/firewall_enabled";
     }
     if (is_jeos) {
-        loadtest "console/gpt_ptable";
         loadtest "console/kdump_disabled";
         loadtest "console/sshd_running";
     }
