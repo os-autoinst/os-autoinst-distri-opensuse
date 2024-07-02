@@ -2,8 +2,6 @@
 name: addon_extensions_http_ftp
 description: |
   Test verifies that extensions can be added as addons via http and ftp.
-vars:
-  YUI_REST_API: 1
 schedule:
   add_on_product:
     - installation/add_on_product/add_add_on_http_repo_url
