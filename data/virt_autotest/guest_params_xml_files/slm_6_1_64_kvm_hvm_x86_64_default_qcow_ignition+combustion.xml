@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>slm</guest_os_name>
-    <guest_version>6.0</guest_version>
+    <guest_version>6.1</guest_version>
     <guest_version_major>6</guest_version_major>
-    <guest_version_minor>0</guest_version_minor>
+    <guest_version_minor>1</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build/>
     <host_hypervisor_uri/>
@@ -15,19 +15,19 @@
     <guest_domain_name/>
     <guest_memory>2048,maxmemory=4096</guest_memory>
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
-    <guest_cpumodel>mode=host-passthrough,check=none,migratable=on</guest_cpumodel>
+    <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata/>
-    <guest_boot_settings>uefi,arch=x86_64,firmware.feature0.name=secure-boot,firmware.feature0.enabled=yes,firmware.feature0.name=enrolled-keys,firmware.feature0.enabled=yes</guest_boot_settings>
+    <guest_boot_settings>hd</guest_boot_settings>
     <guest_xpath/>
-    <guest_installation_automation_method>ignition</guest_installation_automation_method>
-    <guest_installation_automation_platform>metal</guest_installation_automation_platform>
-    <guest_installation_automation_file>ignition_config_encrypted_image.ign</guest_installation_automation_file>
+    <guest_installation_automation_method>ignition+combustion</guest_installation_automation_method>
+    <guest_installation_automation_platform>qemu</guest_installation_automation_platform>
+    <guest_installation_automation_file>ignition_config_non_encrypted_image.ign#combustion_script</guest_installation_automation_file>
     <guest_installation_method>import</guest_installation_method>
     <guest_installation_method_others/>
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.0-Default-encrypted-Build12345.raw</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.1-Default-qcow-Build12345.qcow2</guest_installation_media>
     <guest_installation_fine_grained/>
     <guest_os_variant>opensusetumbleweed</guest_os_variant>
     <guest_storage_path/>
@@ -46,13 +46,13 @@
     <guest_ipaddr/>
     <guest_ipaddr_static>false</guest_ipaddr_static>
     <guest_macaddr/>
-    <guest_graphics>spice</guest_graphics>
+    <guest_graphics>vnc</guest_graphics>
     <guest_controller/>
     <guest_input/>
-    <guest_serial>pty,target.type=isa-serial</guest_serial>
+    <guest_serial>pty</guest_serial>
     <guest_parallel/>
-    <guest_channel>type=unix#spicevmc</guest_channel>
-    <guest_console>pty,target.type=serial</guest_console>
+    <guest_channel/>
+    <guest_console/>
     <guest_hostdev/>
     <guest_filesystem/>
     <guest_sound/>
@@ -60,9 +60,9 @@
     <guest_video/>
     <guest_smartcard/>
     <guest_redirdev/>
-    <guest_memballoon>virtio</guest_memballoon>
-    <guest_tpm>model=tpm-tis,backend.type=emulator,backend.version=2.0</guest_tpm>
-    <guest_rng>virtio,backend.model=random</guest_rng>
+    <guest_memballoon/>
+    <guest_tpm/>
+    <guest_rng/>
     <guest_panic/>
     <guest_memdev/>
     <guest_vsock/>
@@ -74,7 +74,7 @@
     <guest_memtune/>
     <guest_blkiotune/>
     <guest_memorybacking/>
-    <guest_features>vmport.state=off,smm=on</guest_features>
+    <guest_features/>
     <guest_clock/>
     <guest_power_management/>
     <guest_events/>
