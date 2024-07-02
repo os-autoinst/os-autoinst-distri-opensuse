@@ -313,6 +313,101 @@ subtest '[az_vm_instance_view_get]' => sub {
     ok((any { /VM running/ } @$res), 'Correct result decoding');
 };
 
+subtest '[az_vm_wait_running] running at first try' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
+
+    az_vm_wait_running(resource_group => 'Arlecchino',
+        name => 'Truffaldino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((scalar @calls == 1), 'Calls az cli only once if return is running');
+};
+
+subtest '[az_vm_wait_running] running at second try' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $is_first = 1;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            if ($is_first) {
+                $is_first = 0;
+                return '["PowerState/running","VM starting"]';
+            }
+            return '["PowerState/running","VM running"]'; });
+
+    az_vm_wait_running(resource_group => 'Arlecchino',
+        name => 'Truffaldino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((scalar @calls == 2), 'Calls az cli twice if return is not running');
+};
+
+subtest '[az_vm_wait_running] never running default timeout' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $is_first = 1;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '["PowerState/running","VM starting"]'; });
+
+    my $start_time = time();
+    dies_ok {
+        az_vm_wait_running(resource_group => 'Arlecchino',
+            name => 'Truffaldino');
+    } 'Die for timeout after ' . (time() - $start_time);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(((scalar @calls > 8) and (scalar @calls < 12)),
+        'Timeout default is 300, sleep is 30. Expected near 10 retry, get ' . (scalar @calls));
+};
+
+subtest '[az_vm_wait_running] never running long timeout' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $is_first = 1;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '["PowerState/running","VM starting"]'; });
+
+    my $start_time = time();
+    dies_ok {
+        az_vm_wait_running(resource_group => 'Arlecchino',
+            name => 'Truffaldino',
+            timeout => 600);
+    } 'Die for timeout after ' . (time() - $start_time);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(((scalar @calls > 19) and (scalar @calls < 22)),
+        'Timeout is 600, sleep is 30. Expected near 20 retry, get ' . (scalar @calls));
+};
+
+subtest '[az_vm_wait_running] never running short' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my $is_first = 1;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '["PowerState/running","VM starting"]'; });
+
+    my $start_time = time();
+    dies_ok {
+        az_vm_wait_running(resource_group => 'Arlecchino',
+            name => 'Truffaldino',
+            timeout => 10);
+    } 'Die for timeout after ' . (time() - $start_time);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(((scalar @calls > 1) and (scalar @calls < 4)),
+        'Timeout is 10, sleep is 5. Expected near 2 retry, get ' . (scalar @calls));
+};
+
+subtest '[az_vm_wait_running] missing args' => sub {
+    dies_ok { az_vm_wait_running(resource_group => 'Arlecchino') } 'Die for missing argument resource_group';
+    dies_ok { az_vm_wait_running(name => 'Truffaldino') } 'Die for missing argument name';
+};
+
 subtest '[az_vm_openport]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;

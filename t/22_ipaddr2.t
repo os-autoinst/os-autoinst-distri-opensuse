@@ -15,6 +15,7 @@ subtest '[ipaddr2_azure_deployment]' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -27,7 +28,7 @@ subtest '[ipaddr2_azure_deployment]' => sub {
     }
 
     # Todo : expand it
-    ok $#calls > 0, "There are some command calls";
+    ok(($#calls > 0), "There are some command calls");
     ok((none { /az storage account create/ } @calls), 'Do not create storage');
 };
 
@@ -37,6 +38,7 @@ subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
@@ -72,7 +74,7 @@ subtest '[ipaddr2_bastion_key_accept]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
-    ok scalar @calls eq 2, "Exactly 2 calls";
+    ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
 };
 
 subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
@@ -85,7 +87,7 @@ subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
-    ok scalar @calls eq 2, "Exactly 2 calls";
+    ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
 };
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
