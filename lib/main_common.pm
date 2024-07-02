@@ -2224,7 +2224,8 @@ sub load_security_tests_crypt_core {
     }
     loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
-    loadtest "fips/openssl/openssl_pubkey_dsa";
+    # https://bugzilla.suse.com/show_bug.cgi?id=1223200#c2
+    loadtest "fips/openssl/openssl_pubkey_dsa" if (is_sle('<15-SP6') || is_leap('<15.6'));
     loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
