@@ -151,7 +151,9 @@ sub remove_dropped_modules_packages {
 sub disable_installation_repos {
     if (is_s390x) {
         my $repos = script_output("zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.145.10.207|10.160.0.100/ {print \$1}'");
-        zypper_call "mr -d $repos" if (length $repos);
+        for my $repo (split(/\n/, $repos)) {
+            zypper_call "mr -d $repo";
+        }
     }
     else {
         zypper_call "mr -d -l";
