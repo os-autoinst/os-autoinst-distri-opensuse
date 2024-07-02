@@ -104,6 +104,12 @@ sub verify_bsc {
     }
 }
 
+sub verify_partition_label {
+    my $label = is_s390x ? 'msdos' : 'gpt';
+
+    script_output('parted -mls') =~ m|^/dev/:$label:| or die "Wrong partion label found, expected '$label'";
+}
+
 sub run {
     my ($self) = @_;
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
@@ -314,6 +320,7 @@ sub run {
     verify_hypervisor unless is_generalhw;
     verify_norepos unless is_opensuse;
     verify_bsc if is_jeos;
+    verify_partition_label;
 }
 
 sub test_flags {
