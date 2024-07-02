@@ -2,14 +2,17 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
-    <do_registration config:type="boolean">true</do_registration>
+    <do_registration config:type="boolean">false</do_registration>
     <email/>
-    <reg_code>{{SCC_REGCODE}}</reg_code>
-    <reg_server>{{SCC_URL}}</reg_server>
     <install_updates config:type="boolean">false</install_updates>
     <addons config:type="list">
       <addon>
         <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
@@ -35,7 +38,8 @@
     <instsource/>
     <patterns t="list">
       <pattern>base</pattern>
-      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
     </patterns>
     <products t="list">
       <product>SLES</product>
