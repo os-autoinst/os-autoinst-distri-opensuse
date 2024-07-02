@@ -397,6 +397,18 @@ END_CMD
     enter_cmd("$cmd");
 }
 
+# Add all above logs
+sub copy_all_log {
+    my ($category, $num) = @_;
+    copy_log($category, $num, 'out.bad');
+    copy_log($category, $num, 'full');
+    copy_log($category, $num, 'dmesg');
+    copy_fsxops($category, $num);
+    collect_fs_status($category, $num);
+    if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
+    if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
+}
+
 sub reload_loop_device {
     my $self = shift;
     assert_script_run("losetup -fP $INST_DIR/test_dev");
@@ -453,13 +465,7 @@ sub test_run_without_heartbeat {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
         sleep(2);
-        copy_log($category, $num, 'out.bad');
-        copy_log($category, $num, 'full');
-        copy_log($category, $num, 'dmesg');
-        copy_fsxops($category, $num);
-        collect_fs_status($category, $num);
-        if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
-        if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
+        copy_all_log($category, $num);
 
         prepare_system_shutdown;
         check_var('VIRTIO_CONSOLE', '1') ? power('reset') : send_key 'alt-sysrq-b';
@@ -490,6 +496,7 @@ sub test_run_without_heartbeat {
         }
         else {
             $test_status = 'FAILED';
+            copy_all_log($category, $num);
         }
     }
     # Add test status to STATUS_LOG file
@@ -565,15 +572,7 @@ sub run {
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
-            if ($status =~ /FAILED/) {
-                copy_log($category, $num, 'out.bad');
-                copy_log($category, $num, 'full');
-                copy_log($category, $num, 'dmesg');
-                copy_fsxops($category, $num);
-                collect_fs_status($category, $num);
-                if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
-            }
-            raw_dump($category, $num) if get_var('RAW_DUMP', 0);
+            copy_all_log($category, $num) if ($status =~ /FAILED/);
             next;
         }
 
