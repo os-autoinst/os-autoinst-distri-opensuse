@@ -611,7 +611,7 @@
         "type": "bug"
     },
     "bsc#1218181": {
-        "description": "Device luks is still in use",
+        "description": "Device luks is still in use|Job.* deleted to break ordering cycle starting with.*",
         "products": {
             "sle-micro": ["6.0"]
         },
