@@ -5,11 +5,11 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test initializes console redirection to cloud Deployer VM.
 
-use parent 'sles4sap::microsoft_sdaf_basetest';
+use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use warnings;
 use testapi;
-use sles4sap::sdaf_deployment_library;
+use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 

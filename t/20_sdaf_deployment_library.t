@@ -9,7 +9,7 @@ use List::MoreUtils qw(uniq);
 use List::Util qw(any none);
 use Data::Dumper;
 use testapi;
-use sles4sap::sdaf_deployment_library;
+use sles4sap::sap_deployment_automation_framework::deployment;
 
 
 sub undef_variables {
@@ -24,7 +24,7 @@ sub undef_variables {
 }
 
 subtest '[prepare_sdaf_project]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
         sdaf_region_code => 'SECE',
@@ -61,7 +61,7 @@ subtest '[prepare_sdaf_project]' => sub {
 };
 
 subtest '[prepare_sdaf_project] Check directory creation' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my %arguments = (
         sap_sid => 'QAS',
         sdaf_region_code => 'SECE',
@@ -90,7 +90,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
 };
 
 subtest '[prepare_tfvars_file] Test missing or incorrect args' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(data_url => sub { return 'openqa.suse.de/data/' . join('', @_); });
     my @incorrect_deployment_types = qw(funny_library eployer sap_ workload _zone);
 
@@ -100,7 +100,7 @@ subtest '[prepare_tfvars_file] Test missing or incorrect args' => sub {
 };
 
 subtest '[prepare_tfvars_file] Test curl commands' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $curl_cmd;
     $ms_sdaf->redefine(assert_script_run => sub { $curl_cmd = $_[0] if grep(/curl/, $_[0]); return 1; });
     $ms_sdaf->redefine(upload_logs => sub { return 1; });
@@ -123,7 +123,7 @@ subtest '[prepare_tfvars_file] Test curl commands' => sub {
 };
 
 subtest '[replace_tfvars_variables] Test correct variable replacement' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(assert_script_run => sub { return 1; });
     $ms_sdaf->redefine(script_output => sub { return '/somewhere/in/the/Shire'; });
     $ms_sdaf->redefine(upload_logs => sub { return 1; });
@@ -153,7 +153,7 @@ subtest '[replace_tfvars_variables] Test correct variable replacement' => sub {
 };
 
 subtest '[serial_console_diag_banner] ' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $printed_output;
     $ms_sdaf->redefine(script_run => sub { $printed_output = $_[0]; return 1; });
     my $correct_output = "#########################    Module: deploy_sdaf.pm    #########################";
@@ -165,7 +165,7 @@ subtest '[serial_console_diag_banner] ' => sub {
 };
 
 subtest '[sdaf_prepare_ssh_keys]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $get_ssh_command;
     my %private_key;
     my %pubkey;
@@ -198,7 +198,7 @@ LAB-SECE-DEP05-ssh
 };
 
 subtest '[sdaf_get_deployer_ip] Test passing behavior' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @script_output_commands;
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(script_output => sub {
@@ -219,7 +219,7 @@ subtest '[sdaf_get_deployer_ip] Test passing behavior' => sub {
 };
 
 subtest '[sdaf_get_deployer_ip] Test expected failures' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(record_info => sub { return; });
     my @incorrect_ip_addresses = (
         '192.168.0.500',
@@ -236,7 +236,7 @@ subtest '[sdaf_get_deployer_ip] Test expected failures' => sub {
 };
 
 subtest '[set_common_sdaf_os_env]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my %arguments = (
         sap_sid => 'RGM-79',
         deployer_vnet_code => 'RX-77-2',
@@ -282,7 +282,7 @@ subtest '[set_common_sdaf_os_env]' => sub {
 };
 
 subtest '[az_login]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     set_var('_SECRET_AZURE_SDAF_APP_ID', 'some-id');
     set_var('_SECRET_AZURE_SDAF_APP_PASSWORD', '$0me_paSSw0rdt');
     set_var('_SECRET_AZURE_SDAF_TENANT_ID', 'some-tenant-id');
@@ -303,7 +303,7 @@ subtest '[az_login]' => sub {
 };
 
 subtest '[sdaf_cleanup] Test correct usage' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $files_deleted;
 
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
@@ -318,7 +318,7 @@ subtest '[sdaf_cleanup] Test correct usage' => sub {
 };
 
 subtest '[sdaf_cleanup] Test remover script failures' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $files_deleted;
 
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
@@ -336,7 +336,7 @@ subtest '[sdaf_cleanup] Test remover script failures' => sub {
 subtest '[sdaf_execute_remover] Check command line arguments' => sub {
     # Tested indirectly via sdaf_cleanup()
 
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @script_run_calls;
     $ms_sdaf->redefine(upload_logs => sub { return; });
     $ms_sdaf->redefine(resource_group_exists => sub { return 'yes'; });
@@ -366,7 +366,7 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
 
 
 subtest '[sdaf_execute_deployment] Test expected failures' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { return 1; });
@@ -387,7 +387,7 @@ subtest '[sdaf_execute_deployment] Test expected failures' => sub {
 };
 
 subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $sdaf_command_no_log;
 
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
@@ -431,7 +431,7 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
 };
 
 subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { return 1; });
     $ms_sdaf->redefine(upload_logs => sub { return 0; });
@@ -448,7 +448,7 @@ subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
 };
 
 subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $croak_message;
     $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; die(); });
 
@@ -465,7 +465,7 @@ subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
 };
 
 subtest '[sdaf_execute_playbook] Command execution' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
 
     $ms_sdaf->redefine(upload_logs => sub { return; });
@@ -493,7 +493,7 @@ subtest '[sdaf_execute_playbook] Command execution' => sub {
 };
 
 subtest '[sdaf_execute_playbook] Command verbosity' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sdaf_deployment_library', no_auto => 1);
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
 
     $ms_sdaf->redefine(upload_logs => sub { return; });

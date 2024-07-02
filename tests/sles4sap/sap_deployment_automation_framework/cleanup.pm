@@ -9,11 +9,11 @@
 # Post run hooks are generally disabled during normal module run so the infrastructure persists between test modules.
 # Cleanup is triggered only with B<SDAF_DO_CLEANUP> set to true, which is done by scheduling this module at the end of test flow.
 
-use parent 'sles4sap::microsoft_sdaf_basetest';
+use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use testapi;
 use warnings;
-use sles4sap::sdaf_deployment_library;
+use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 
 sub test_flags {
