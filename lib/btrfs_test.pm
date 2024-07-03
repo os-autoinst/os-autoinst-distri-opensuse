@@ -129,6 +129,8 @@ sub get_last_snap_number {
     }
 
     my $snaps = decode_json(script_output('snapper --jsonout list --disable-used-space'));
+    record_info('debug1', script_output('snapper --jsonout list --disable-used-space'));
+    record_info('debug2', $snaps);
     my $last = (@{$snaps->{root}})[-1];
     return $last->{number};
 }
