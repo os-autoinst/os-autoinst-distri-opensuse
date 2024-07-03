@@ -24,6 +24,7 @@ use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_leap);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
+use serial_terminal 'select_serial_terminal';
 
 sub setup_system {
     x11_start_program('xterm');
@@ -113,6 +114,15 @@ sub run {
             next;
         }
         elsif (match_has_tag("updates_available")) {
+            if (check_screen('updates_not_installed') && $counter >= 2) {
+                send_key 'alt-f4';
+                select_serial_terminal;
+                quit_packagekit;
+                zypper_call('up');
+                systemctl 'unmask packagekit.service';
+                select_console 'x11', await_console => 0;
+                last;
+            }
             send_key "alt-i";    # install
 
             # Wait until installation is done
