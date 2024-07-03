@@ -30,6 +30,7 @@
       <li><a href="#az_vm_create">az_vm_create</a></li>
       <li><a href="#az_vm_list">az_vm_list</a></li>
       <li><a href="#az_vm_instance_view_get">az_vm_instance_view_get</a></li>
+      <li><a href="#az_vm_wait_running">az_vm_wait_running</a></li>
       <li><a href="#az_vm_openport">az_vm_openport</a></li>
       <li><a href="#az_vm_wait_cloudinit">az_vm_wait_cloudinit</a></li>
       <li><a href="#az_nic_id_get">az_nic_id_get</a></li>
@@ -514,6 +515,35 @@
 
 </dd>
 <dt id="name---name-of-an-existing-virtual-machine"><b>name</b> - name of an existing virtual machine</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_wait_running">az_vm_wait_running</h2>
+
+<pre><code>my $res = az_vm_wait_running(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    name =&gt; &#39;openqa-vm&#39;,
+    timeout =&gt; 300)</code></pre>
+
+<p>Get the VM state until status looks like:</p>
+
+<p>[ &quot;PowerState/running&quot;, &quot;VM running&quot; ]</p>
+
+<p>or reach timeout. Polling frequency is dynamically calculated based on the timeout</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-look-for-a-specific-VM1"><b>resource_group</b> - existing resource group where to look for a specific VM</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-an-existing-virtual-machine1"><b>name</b> - name of an existing virtual machine</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-default-300"><b>timeout</b> - optional, default 300</dt>
 <dd>
 
 </dd>
