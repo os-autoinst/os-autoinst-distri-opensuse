@@ -93,6 +93,7 @@ sub set_bootscript {
     $cmdline_extra .= " console=$console " if $console;
     $cmdline_extra .= " root=/dev/ram0 initrd=initrd " if (check_var('IPXE_UEFI', '1'));
     $cmdline_extra .= " textmode=1 " if get_var('IPXE_UEFI') or check_var('VIDEOMODE', 'text');
+    $cmdline_extra .= " self_update=0 " if (check_var("INSTALLER_NO_SELF_UPDATE", 1));
 
     # Support passing EXTRA_PXE_CMDLINE to bootscripts
     $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE') . ' ' if get_var('EXTRA_PXE_CMDLINE');
