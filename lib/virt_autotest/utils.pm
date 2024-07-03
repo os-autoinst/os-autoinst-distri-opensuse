@@ -57,7 +57,6 @@ sub check_modular_libvirt_daemons {
         @daemons = qw(network nodedev nwfilter secret storage lock);
         # For details, please refer to poo#137096
         (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
-        push @daemons, 'proxy' if is_sle;
     }
 
     foreach my $daemon (@daemons) {
@@ -83,7 +82,6 @@ sub restart_modular_libvirt_daemons {
         @daemons = qw(network nodedev nwfilter secret storage lock);
         # For details, please refer to poo#137096
         (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
-        push @daemons, 'proxy' if is_sle;
     }
 
     if (is_alp) {
@@ -216,7 +214,6 @@ sub turn_on_libvirt_debugging_log {
     my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtnwfilterd virtlockd);
     # For details, please refer to poo#137096
     push @libvirt_daemons, 'virtlogd' if is_kvm_host;
-    push @libvirt_daemons, 'virtproxyd' if is_sle;
 
     #turn on debug and log filter for libvirt services
     #disable log_level = 1 'debug' as it generage large output
