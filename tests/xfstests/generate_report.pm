@@ -25,6 +25,7 @@ use upload_system_log;
 use filesystem_utils 'generate_xfstests_list';
 use LTP::utils;
 use LTP::WhiteList;
+use bugzilla;
 
 my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR = '/opt/log';
@@ -102,12 +103,7 @@ sub analyze_result {
                 }
 
                 $whitelist_entry = $whitelist->find_whitelist_entry($whitelist_env, $suite, $generate_name) if defined($whitelist);
-
-                if ($whitelist_entry) {
-                    # FIXME: check bugzilla status
-                    $targs->{status} = 'SOFTFAILED' unless $whitelist_entry->{keep_fail};
-                    $targs->{failinfo} = $whitelist_entry->{message};
-                }
+                check_bugzilla_status($whitelist_entry, $targs) if ($whitelist_entry);
             }
             else {
                 $skip_num += 1;
@@ -122,6 +118,27 @@ sub analyze_result {
     }
     record_info('Summary', "Test number: $test_num\nPass: $pass_num\nSkip: $skip_num\nFail: $fail_num\nTotal time: $total_time seconds\n");
     record_info('Test Ranges', "$test_range");
+}
+
+sub check_bugzilla_status {
+    my ($entry, $targs) = @_;
+    if (exists $entry->{bugzilla}) {
+        my $info = bugzilla_buginfo($entry->{bugzilla});
+
+        if (!defined($info) || !exists $info->{bug_status}) {
+            $targs->{bugzilla} = "Bugzilla error:\n" .
+              "Failed to query bug #$entry->{bugzilla} status";
+            return;
+        }
+
+        if ($info->{bug_status} =~ /resolved/i || $info->{bug_status} =~ /verified/i) {
+            $targs->{bugzilla} = "Bug closed:\n" .
+              "Bug #$entry->{bugzilla} is closed, ignoring whitelist entry";
+            return;
+        }
+    }
+    $targs->{status} = 'SOFTFAILED' unless $entry->{keep_fail};
+    $targs->{failinfo} = $entry->{message};
 }
 
 sub run {

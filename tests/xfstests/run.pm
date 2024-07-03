@@ -541,7 +541,7 @@ sub run {
 
     heartbeat_start if $enable_heartbeat == 1;
 
-    # Generate xfstests blacklist and softfail list
+    # Generate xfstests blacklist
     my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist);
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
         my $whitelist = LTP::WhiteList->new($issues);

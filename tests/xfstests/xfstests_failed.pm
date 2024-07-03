@@ -27,6 +27,7 @@ sub run {
         record_info('full', "$args->{fullog}");
         record_info('dmesg', "$args->{dmesg}");
         record_info('known', "$args->{failinfo}") if defined($args->{failinfo});
+        record_info('bugzilla', "$args->{bugzilla}") if defined($args->{bugzilla});
     }
     else {
         $self->{result} = 'skip';
