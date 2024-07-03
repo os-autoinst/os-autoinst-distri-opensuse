@@ -49,6 +49,7 @@ architectures.
   <bootloader>
     <global>
       <timeout config:type="integer">45</timeout>
+      <terminal>serial</terminal>
     </global>
   </bootloader>
   <firewall>
