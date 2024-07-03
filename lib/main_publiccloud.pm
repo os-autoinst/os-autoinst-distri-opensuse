@@ -49,6 +49,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+            loadtest "publiccloud/check_services", run_args => $args;
             load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
@@ -135,6 +136,7 @@ sub load_latest_publiccloud_tests {
             loadtest "publiccloud/ssh_interactive_start", run_args => $args;
             loadtest "publiccloud/instance_overview", run_args => $args;
             if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+                loadtest "publiccloud/check_services", run_args => $args;
                 load_publiccloud_consoletests($args);
             }
             elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
