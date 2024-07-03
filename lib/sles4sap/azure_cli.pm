@@ -38,6 +38,7 @@ our @EXPORT = qw(
   az_vm_openport
   az_vm_wait_cloudinit
   az_vm_instance_view_get
+  az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
   az_nic_id_get
@@ -358,7 +359,8 @@ SKU Standard (and not Basic) is needed to get some Metrics
 
 =item B<backend> - name to assign to created backend pool
 
-=item B<frontend_ip_name> - name to assign to created frontend ip, will be reused in "az network lb rule create"
+=item B<frontend_ip_name> - name to assign to created frontend ip,
+                            will be reused in "az network lb rule create"
 
 =item B<sku> - default Basic
 
@@ -665,6 +667,61 @@ sub az_vm_instance_view_get {
         '--resource-group', $args{resource_group},
         '--query "instanceView.statuses[1].[code,displayStatus]"');
     return decode_json(script_output($az_cmd));
+}
+
+=head2 az_vm_wait_running
+
+    my $res = az_vm_wait_running(
+        resource_group => 'openqa-rg',
+        name => 'openqa-vm',
+        timeout => 300)
+
+Get the VM state until status looks like:
+
+[
+  "PowerState/running",
+  "VM running"
+]
+
+or reach timeout. Polling frequency is dynamically calculated based on the timeout
+
+=over 3
+
+=item B<resource_group> - existing resource group where to look for a specific VM
+
+=item B<name> - name of an existing virtual machine
+
+=item B<timeout> - optional, default 300
+
+=back
+=cut
+
+sub az_vm_wait_running {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 300;
+
+    # calculate a proper sleep time to be used at the end of each retry loop
+    #  - if the overall timeout is short then sleeps for
+    #    half of the timeout: it result in re-trying two times
+    #  - if the overall timeout is long then sleeps for
+    #    a fixed amount of 30secs
+    my $sleep_time = $args{timeout} < 60 ? int($args{timeout} / 2) : 30;
+    my $res;
+    my $count;
+    my $start_time = time();
+    while (time() - $start_time <= $args{timeout}) {
+        $res = az_vm_instance_view_get(
+            resource_group => $args{resource_group},
+            name => $args{name});
+        # Expected return is
+        # [ "PowerState/running", "VM running" ]
+        $count = grep(/running/, @$res);
+        return if ($count eq 2);
+        sleep $sleep_time;
+    }
+    die "VM not runnings after " . (time() - $start_time) . "seconds";
 }
 
 =head2 az_vm_openport

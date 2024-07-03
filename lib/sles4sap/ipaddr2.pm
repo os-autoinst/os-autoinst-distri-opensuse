@@ -81,7 +81,7 @@ Create a deployment in Azure designed for this specific test.
 5. Create 1 additional VM that get
 6. Create a Load Balancer with 2 VM in backend and with an IP as frontend
 
-=over 2
+=over 3
 
 =item B<region> - existing resource group
 
@@ -270,6 +270,12 @@ sub ipaddr2_azure_deployment {
         frontend_ip => $lb_fe,
         name => $lb . "_rule",
         port => '80');
+
+    foreach my $i (1 .. 2) {
+        az_vm_wait_running(
+            resource_group => $rg,
+            name => ipaddr2_get_internal_vm_name(id => $i));
+    }
 }
 
 =head2 ipaddr2_bastion_pubip
