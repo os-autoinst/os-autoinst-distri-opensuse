@@ -153,10 +153,12 @@ sub supports_image_arch {
 }
 
 sub get_3rd_party_images {
+    my $registry = get_var('REGISTRY', 'docker.io');
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "ghcr.io/linuxcontainers/alpine:latest",
+        "$registry/library/alpine",
+        "$registry/library/debian",
         "quay.io/centos/centos:stream9"
     );
 
@@ -180,6 +182,10 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi-micro",
         "registry.access.redhat.com/ubi9/ubi-init"
     ) unless (is_arm || is_s390x || is_ppc64le || !is_x86_64_v2);
+
+    push @images, (
+        "$registry/library/ubuntu"
+    ) if (is_x86_64);
 
     # RedHat UBI7 images are not built for aarch64 and 32-bit arm
     push @images, (
