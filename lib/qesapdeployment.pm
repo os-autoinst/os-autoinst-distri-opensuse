@@ -582,6 +582,12 @@ sub qesap_execute_conditional_retry {
         die "'qesap.py (after retry) $args{cmd}' return: $ret[0]";
     }
 
+    # Sleep $N for fixing ansible "Missing sudo password" issue on GCP
+    if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'GCE') {
+        sleep 60;
+        record_info('Workaround: "sleep 60" for fixing ansible "Missing sudo password" issue on GCP');
+    }
+
     return @ret;
 }
 
