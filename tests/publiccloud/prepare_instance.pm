@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openssh
