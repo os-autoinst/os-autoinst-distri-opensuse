@@ -11,6 +11,7 @@ use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use version_utils;
+use package_utils;
 use strict;
 use warnings;
 
@@ -51,7 +52,7 @@ sub prepare_test_data {
     }
 
     # Install software needed for this test module
-    zypper_call("in netcat-openbsd expect psmisc");
+    install_package("netcat-openbsd expect psmisc");
 }
 
 sub configure_service {
