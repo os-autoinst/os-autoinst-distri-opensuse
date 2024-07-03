@@ -116,6 +116,9 @@ sub test_network_interface {
         $target = script_output("dig +short libvirt.org");
         $target =~ /^[\d\.]+/ ? record_info("One more try succeed!") : die "Unable to test network connections!";
     }
+    else {
+        $target =~ s/\n.*//gm;
+    }
 
     record_info("Network test", "testing $mac");
     check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
