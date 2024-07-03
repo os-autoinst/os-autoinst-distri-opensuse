@@ -75,7 +75,6 @@ sub run {
 
     # Install prerequisite packages test
     zypper_call('-q in python311-img-proof python311-img-proof-tests');
-    assert_script_run("touch /usr/share/lib/img_proof/tests/pytest.ini");
     record_info('python exec', script_output("$python_exec --version"));
 
     assert_script_run("img-proof list");
