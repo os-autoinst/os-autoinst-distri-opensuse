@@ -156,7 +156,8 @@ sub get_3rd_party_images {
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "ghcr.io/linuxcontainers/alpine:latest"
+        "ghcr.io/linuxcontainers/alpine:latest",
+        "quay.io/centos/centos:stream9"
     );
 
     # Following images are not available on 32-bit arm
