@@ -18,7 +18,11 @@
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
       <li><a href="#az_group_delete">az_group_delete</a></li>
-      <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
+      <li><a href="#az_network_vnet_create">az_network_vnet_create</a>
+        <ul>
+          <li><a href="#az_network_vnet_get">az_network_vnet_get</a></li>
+        </ul>
+      </li>
       <li><a href="#az_network_nsg_create">az_network_nsg_create</a></li>
       <li><a href="#az_network_nsg_rule_create">az_network_nsg_rule_create</a></li>
       <li><a href="#az_network_publicip_create">az_network_publicip_create</a></li>
@@ -42,6 +46,9 @@
       <li><a href="#az_vm_diagnostic_log_enable">az_vm_diagnostic_log_enable</a></li>
       <li><a href="#az_vm_diagnostic_log_get">az_vm_diagnostic_log_get</a></li>
       <li><a href="#az_storage_account_create">az_storage_account_create</a></li>
+      <li><a href="#az_network_peering_create">az_network_peering_create</a></li>
+      <li><a href="#az_network_peering_list">az_network_peering_list</a></li>
+      <li><a href="#az_network_peering_delete">az_network_peering_delete</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -133,6 +140,24 @@
 
 </dd>
 <dt id="subnet_prefixes---subnet-ip-address-space.-Default-192.168.0.0-24"><b>subnet_prefixes</b> - subnet ip address space. Default 192.168.0.0/24</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="az_network_vnet_get">az_network_vnet_get</h3>
+
+<pre><code>my $res = az_network_vnet_get(resource_group =&gt; &#39;openqa-rg&#39;)</code></pre>
+
+<p>Return the output of az network vnet list</p>
+
+<dl>
+
+<dt id="resource_group---resource-group-name-to-query"><b>resource_group</b> - resource group name to query</dt>
+<dd>
+
+</dd>
+<dt id="query---valid-jmespath-https:-jmespath.org"><b>query</b> - valid jmespath https://jmespath.org/</dt>
 <dd>
 
 </dd>
@@ -490,7 +515,7 @@
 <dd>
 
 </dd>
-<dt id="query---valid-jmespath-https:-jmespath.org"><b>query</b> - valid jmespath https://jmespath.org/</dt>
+<dt id="query---valid-jmespath-https:-jmespath.org1"><b>query</b> - valid jmespath https://jmespath.org/</dt>
 <dd>
 
 </dd>
@@ -787,6 +812,90 @@
 
 </dd>
 <dt id="name---name-for-the-storage-account-to-be-created.-Storage-account-name-must-be-between-3-and-24-characters-in-length-and-use-numbers-and-lower-case-letters-only"><b>name</b> - name for the storage account to be created. Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_peering_create">az_network_peering_create</h2>
+
+<pre><code>az_network_peering_create(
+    name =&gt; &#39;openqa-fromVNET-toVNET&#39;,
+    source_rg =&gt; &#39;openqa-rg&#39;,
+    source_vnet =&gt; &#39;openqa-this-vnet&#39;,
+    target_rg =&gt; &#39;openqa-rg&#39;,
+    target_vnet =&gt; &#39;openqa-this-vnet&#39;)</code></pre>
+
+<p>Create network peering</p>
+
+<dl>
+
+<dt id="name---NAME-for-the-network-peering-to-create"><b>name</b> - NAME for the network peering to create</dt>
+<dd>
+
+</dd>
+<dt id="source_rg---existing-resource-group-that-contain-vnet-source-of-the-peering"><b>source_rg</b> - existing resource group that contain vnet source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="source_vnet---existing-vnet-in-source_rg-used-as-source-of-the-peering"><b>source_vnet</b> - existing vnet in source_rg, used as source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="target_rg---existing-resource-group-that-contain-vnet-target-of-the-peering"><b>target_rg</b> - existing resource group that contain vnet target of the peering</dt>
+<dd>
+
+</dd>
+<dt id="target_vnet---existing-vnet-in-target_rg-used-as-target-of-the-peering"><b>target_vnet</b> - existing vnet in target_rg, used as target of the peering</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_peering_list">az_network_peering_list</h2>
+
+<pre><code>my $res = az_network_peering_list(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    vnet =&gt; &#39;openqa-this-vnet&#39;)</code></pre>
+
+<p>Return HASH representing existing net peering</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-that-contain-vnet-source-of-the-peering"><b>resource_group</b> - existing resource group that contain vnet source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="vnet---existing-vnet-in-resource_group-used-as-source-of-the-peering"><b>vnet</b> - existing vnet in resource_group, used as source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="query---valid-jmespath-https:-jmespath.org2"><b>query</b> - valid jmespath https://jmespath.org/</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_peering_delete">az_network_peering_delete</h2>
+
+<pre><code>az_network_peering_delete(
+    name =&gt; &#39;openqa-fromVNET-toVNET&#39;,
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    vnet =&gt; &#39;openqa-this-vnet&#39;)</code></pre>
+
+<p>Delete a specific network peering</p>
+
+<dl>
+
+<dt id="name---name-of-the-existing-the-network-peering-to-delete"><b>name</b> - name of the existing the network peering to delete</dt>
+<dd>
+
+</dd>
+<dt id="resource_group---existing-resource-group-that-contain-vnet-source-of-the-peering1"><b>resource_group</b> - existing resource group that contain vnet source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="vnet---existing-vnet-in-resource_group-used-as-source-of-the-peering1"><b>vnet</b> - existing vnet in resource_group, used as source of the peering</dt>
 <dd>
 
 </dd>

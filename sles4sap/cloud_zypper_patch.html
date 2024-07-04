@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/cloud_zypper_patch.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#zp_azure_resource_group">zp_azure_resource_group</a></li>
+      <li><a href="#zp_azure_deploy">zp_azure_deploy</a></li>
+      <li><a href="#zp_azure_destroy">zp_azure_destroy</a></li>
+      <li><a href="#zp_ibsm2sut_peering_name">zp_ibsm2sut_peering_name</a></li>
+      <li><a href="#zp_azure_netpeering">zp_azure_netpeering</a></li>
+      <li><a href="#zp_ssh_connect">zp_ssh_connect</a></li>
+      <li><a href="#zp_add_repos">zp_add_repos</a></li>
+      <li><a href="#zp_zypper_patch">zp_zypper_patch</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/cloud_zypper_patch.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library to manage the sles4sap cloud zypper patch tests</p>
+
+<h2 id="zp_azure_resource_group">zp_azure_resource_group</h2>
+
+<pre><code>my $rg = zp_azure_resource_group();</code></pre>
+
+<p>Get the Azure resource group name for this test</p>
+
+<h2 id="zp_azure_deploy">zp_azure_deploy</h2>
+
+<pre><code>zp_azure_deploy(region =&gt; &#39;northeurope&#39;, os =&gt; &#39;SUSE:sles-sap-15-sp5:gen2:latest&#39;);</code></pre>
+
+<p>Create a deployment in Azure designed for this specific test.</p>
+
+<p>1. Create a resource group to contain all 2. Create a vnet and subnet in it 3. Create one Public IP 4. Create 1 VM</p>
+
+<dl>
+
+<dt id="region---existing-resource-group"><b>region</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="os---existing-Load-balancer-NAME"><b>os</b> - existing Load balancer NAME</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="zp_azure_destroy">zp_azure_destroy</h2>
+
+<pre><code>zp_azure_destroy();</code></pre>
+
+<p>Destroy the deployment by deleting the resource group and created network peering</p>
+
+<dl>
+
+<dt id="target_rg---optional-name-of-the-resource-group-of-the-IBSm"><b>target_rg</b> - (optional) name of the resource group of the IBSm</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="zp_ibsm2sut_peering_name">zp_ibsm2sut_peering_name</h2>
+
+<pre><code>my $peering_name = zp_ibsm2sut_peering_name(target_rg =&gt; get_required_var(&#39;ZP_IBSM_RG&#39;));</code></pre>
+
+<p>Get the Azure resource group name for this test</p>
+
+<dl>
+
+<dt id="target_rg---name-of-the-resource-group-of-the-IBSm"><b>target_rg</b> - name of the resource group of the IBSm</dt>
+<dd>
+
+</dd>
+<dt id="target_vnet_name---optional-name-of-the-VNET-of-the-IBSm-if-not-provided-it-is-calculated-internally"><b>target_vnet_name</b> - (optional) name of the VNET of the IBSm, if not provided it is calculated internally</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="zp_azure_netpeering">zp_azure_netpeering</h2>
+
+<pre><code>zp_azure_netpeering(target_rg =&gt; get_required_var(&#39;ZP_IBSM_RG&#39;))</code></pre>
+
+<dl>
+
+<dt id="target_rg---name-of-the-resource-group-of-the-IBSm1"><b>target_rg</b> - name of the resource group of the IBSm</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="zp_ssh_connect">zp_ssh_connect</h2>
+
+<pre><code>zp_ssh_connect()</code></pre>
+
+<p>First ssh connections</p>
+
+<h2 id="zp_add_repos">zp_add_repos</h2>
+
+<pre><code>zp_add_repos()</code></pre>
+
+<p>Add MU repos to the zypper list</p>
+
+<h2 id="zp_zypper_patch">zp_zypper_patch</h2>
+
+<pre><code>zp_zypper_patch()</code></pre>
+
+<p>Run zypper patch</p>
+
+
+</body>
+
+</html>
+
+
