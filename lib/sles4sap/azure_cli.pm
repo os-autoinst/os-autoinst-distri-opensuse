@@ -25,6 +25,7 @@ our @EXPORT = qw(
   az_group_name_get
   az_group_delete
   az_network_vnet_create
+  az_network_vnet_get
   az_network_nsg_create
   az_network_nsg_rule_create
   az_network_publicip_create
@@ -46,6 +47,9 @@ our @EXPORT = qw(
   az_ipconfig_update
   az_ipconfig_pool_add
   az_storage_account_create
+  az_network_peering_create
+  az_network_peering_list
+  az_network_peering_delete
 );
 
 
@@ -184,6 +188,33 @@ sub az_network_vnet_create {
         push @az_cmd_list, '--subnet-prefixes'; push @az_cmd_list, $args{subnet_prefixes};
     }
     assert_script_run(join(' ', @az_cmd_list));
+}
+
+=head3 az_network_vnet_get
+
+    my $res = az_network_vnet_get(resource_group => 'openqa-rg')
+
+Return the output of az network vnet list
+
+=over 2
+
+=item B<resource_group> - resource group name to query
+
+=item B<query> - valid jmespath https://jmespath.org/
+
+=back
+=cut
+
+sub az_network_vnet_get {
+    my (%args) = @_;
+    croak("Argument < resource_group > missing") unless $args{resource_group};
+    $args{query} //= '[].name';
+
+    my $az_cmd = join(' ', 'az network vnet list',
+        '-g', $args{resource_group},
+        "--query \"$args{query}\"",
+        '-o json');
+    return decode_json(script_output($az_cmd));
 }
 
 =head2 az_network_nsg_create
@@ -1012,6 +1043,120 @@ sub az_storage_account_create {
         '--resource-group', $args{resource_group},
         '--location', $args{region},
         '-n', $args{name});
+    assert_script_run($az_cmd);
+}
+
+=head2 az_network_peering_create
+
+    az_network_peering_create(
+        name => 'openqa-fromVNET-toVNET',
+        source_rg => 'openqa-rg',
+        source_vnet => 'openqa-this-vnet',
+        target_rg => 'openqa-rg',
+        target_vnet => 'openqa-this-vnet')
+
+Create network peering
+
+=over 5
+
+=item B<name> - NAME for the network peering to create
+
+=item B<source_rg> - existing resource group that contain vnet source of the peering
+
+=item B<source_vnet> - existing vnet in source_rg, used as source of the peering
+
+=item B<target_rg> - existing resource group that contain vnet target of the peering
+
+=item B<target_vnet> - existing vnet in target_rg, used as target of the peering
+
+=back
+=cut
+
+sub az_network_peering_create {
+    my (%args) = @_;
+    foreach (qw(name source_rg source_vnet target_rg target_vnet)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network vnet show',
+        '--query id',
+        '--output tsv',
+        '--resource-group', $args{target_rg},
+        '--name', $args{target_vnet});
+
+    my $target_vnet_id = script_output($az_cmd);
+
+    $az_cmd = join(' ', 'az network vnet peering create',
+        '--name', $args{name},
+        '--resource-group', $args{source_rg},
+        '--vnet-name', $args{source_vnet},
+        '--remote-vnet', $target_vnet_id,
+        '--allow-vnet-access',
+        '--output table');
+    assert_script_run($az_cmd);
+}
+
+=head2 az_network_peering_list
+
+    my $res = az_network_peering_list(
+        resource_group => 'openqa-rg',
+        vnet => 'openqa-this-vnet')
+
+Return HASH representing existing net peering
+
+=over 3
+
+=item B<resource_group> - existing resource group that contain vnet source of the peering
+
+=item B<vnet> - existing vnet in resource_group, used as source of the peering
+
+=item B<query> - valid jmespath https://jmespath.org/
+
+=back
+=cut
+
+sub az_network_peering_list {
+    my (%args) = @_;
+    foreach (qw(resource_group vnet)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{query} //= '[].name';
+
+    my $az_cmd = join(' ', 'az network vnet peering list',
+        '--resource-group', $args{resource_group},
+        '--vnet-name', $args{vnet},
+        "--query \"$args{query}\"",
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
+=head2 az_network_peering_delete
+
+    az_network_peering_delete(
+        name => 'openqa-fromVNET-toVNET',
+        resource_group => 'openqa-rg',
+        vnet => 'openqa-this-vnet')
+
+Delete a specific network peering
+
+=over 3
+
+=item B<name> - name of the existing the network peering to delete
+
+=item B<resource_group> - existing resource group that contain vnet source of the peering
+
+=item B<vnet> - existing vnet in resource_group, used as source of the peering
+
+=back
+=cut
+
+sub az_network_peering_delete {
+    my (%args) = @_;
+    foreach (qw(name resource_group vnet)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network vnet peering delete',
+        '--name', $args{name},
+        '--resource-group', $args{resource_group},
+        '--vnet-name', $args{vnet});
     assert_script_run($az_cmd);
 }
 

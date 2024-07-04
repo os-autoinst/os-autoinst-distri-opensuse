@@ -112,6 +112,17 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
     }
 };
 
+subtest '[az_network_vnet_get]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '{"name": "Arlecchino"}'; });
+
+    my $res = az_network_vnet_get(resource_group => 'Arlecchino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet list/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_network_nsg_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -495,6 +506,52 @@ subtest '[az_storage_account_create]' => sub {
 
     ok((any { /az storage account create/ } @calls), 'Correct composition of the main command');
 
+};
+
+subtest '[az_network_peering_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '/some/long/id/string'; });
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_network_peering_create(
+        name => 'Pantalone',
+        source_rg => 'ArlecchinoQui',
+        source_vnet => 'TruffaldinoQui',
+        target_rg => 'ArlecchinoLi',
+        target_vnet => 'TruffaldinoLi');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet show --query id/ } @calls), 'Correct composition of the main command');
+    ok((any { /az network vnet peering create/ } @calls), 'Correct composition of the main command');
+    ok((any { /--remote-vnet.*\/some\/long\/id\/string/ } @calls), 'Correct target ID');
+};
+
+subtest '[az_network_peering_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '{"name": "Arlecchino"}'; });
+
+    my $res = az_network_peering_list(
+        resource_group => 'ArlecchinoQui',
+        vnet => 'TruffaldinoQui');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet peering list/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_network_peering_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    my $res = az_network_peering_delete(
+        name => 'Pantalone',
+        resource_group => 'ArlecchinoQui',
+        vnet => 'TruffaldinoQui');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network vnet peering delete/ } @calls), 'Correct composition of the main command');
 };
 
 done_testing;
