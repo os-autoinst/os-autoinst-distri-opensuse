@@ -20,6 +20,7 @@ guided_open: []
 guided_hard_disks: []
 guided_scheme: []
 guided_filesystem: []
+expert_partitioning: []
 suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
 clock_and_timezone:

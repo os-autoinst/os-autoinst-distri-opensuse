@@ -7,9 +7,6 @@ description: >
     - Missing root partition;
     - Minimal size for the root with btrfs and snapshots
     - Missing boot partition (bios boot,/boot/zipl/,EFI, prep-boot).
-vars:
-  FILESYSTEM: btrfs
-  YUI_REST_API: 1
 schedule:
   expert_partitioning:
     - installation/partitioning/warning/no_root
