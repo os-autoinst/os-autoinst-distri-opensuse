@@ -31,6 +31,8 @@ has client_key_password => 'whatever';
 has netns_name => 'wifi_ref';
 has ref_ifc => 'wlan0';
 has ref_phy => 'phy0';
+has ref_ifc2 => 'wlan2';
+has ref_phy2 => 'phy2';
 sub ref_ip {
     return shift->get_ip(is_wicked_ref => 1, @_);
 }
@@ -188,20 +190,27 @@ sub prepare_packages {
 
 sub prepare_phys {
     my $self = shift;
-    assert_script_run('modprobe mac80211_hwsim radios=2');
+    my $bg_process_pid = -1;
+    assert_script_run('modprobe mac80211_hwsim radios=3');
     assert_script_run('ip netns add ' . $self->netns_name);
     assert_script_run('ip netns list');
     assert_script_run('iw dev');
 
-    my $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns name ' . $self->netns_name;
     if (is_sle('<15')) {
         my $output = script_output(sprintf(q(ip netns exec %s perl -MPOSIX -e '$0="netns_%s_dummy_process"; pause' & echo "BACKGROUND_PROCESS:-$!-"), $self->netns_name, $self->netns_name));
         die("Failed to get netns dummy pid") unless ($output =~ m/BACKGROUND_PROCESS:-(\d+)-/);
-        $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
+        $bg_process_pid = $1;
     }
     # Delay namespace setup of wlan device to avoid wickedd-nanny error message
     sleep 3;
-    assert_script_run($cmd_set_netns);
+
+    for my $phy ($self->ref_phy, $self->ref_phy2) {
+        my $cmd_set_netns = 'iw phy ' . $phy . ' set netns name ' . $self->netns_name;
+        if (is_sle('<15')) {
+            $cmd_set_netns = 'iw phy ' . $phy . ' set netns ' . $bg_process_pid;
+        }
+        assert_script_run($cmd_set_netns);
+    }
 
     assert_script_run('iw dev');
     $self->netns_exec('iw dev');
