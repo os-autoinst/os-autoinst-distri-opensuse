@@ -22,6 +22,8 @@ sub run {
     select_serial_terminal;
     my $timeout = 360;
 
+    record_info("mdadm build", script_output("rpm -q --qf '%{version}-%{release}' mdadm"));
+
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
     if (is_sle('<15')) {
         if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout)) {
