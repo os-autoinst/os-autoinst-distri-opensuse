@@ -21,6 +21,7 @@ sub run {
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
     my $count = 0;
+    my @zypper_cmd;
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
@@ -31,7 +32,11 @@ sub run {
         foreach my $instance (@{$self->{instances}}) {
             next if ($instance->{'instance_id'} !~ m/vmhana/);
             $self->wait_for_zypper(instance => $instance);
-            $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
+            @zypper_cmd = ('sudo zypper --no-gpg-checks ar -f');
+            push(@zypper_cmd, "-n TEST_$count");
+            push(@zypper_cmd, '--priority ' . get_var('REPO_PRIORITY')) if get_var('REPO_PRIORITY');
+            push(@zypper_cmd, "$maintrepo TEST_$count");
+            $instance->run_ssh_command(cmd => join(' ', @zypper_cmd),
                 username => 'cloudadmin');
         }
         $count++;
