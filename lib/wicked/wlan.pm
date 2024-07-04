@@ -385,12 +385,16 @@ sub assert_connection {
     my ($self, %args) = @_;
     $args{timeout} //= 0;
     $args{sleep} //= 1;
+    $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
+    $args{sut_ifc} //= $self->sut_ifc;
+    $args{ref_ip} //= $self->ref_ip(bss => $args{bss});
+    $args{sut_ip} //= $self->sut_ip(bss => $args{bss});
     my $endtime = time() + $args{timeout};
 
     while (1) {
         eval {
-            assert_script_run('ping -c 1 -I ' . $self->sut_ifc . ' ' . $self->ref_ip(bss => $args{bss}));
-            $self->netns_exec('ping -c 1 -I ' . $self->ref_bss(bss => $args{bss}) . ' ' . $self->sut_ip(bss => $args{bss}));
+            assert_script_run('ping -c 1 -I ' . $args{sut_ifc} . ' ' . $args{ref_ip});
+            $self->netns_exec('ping -c 1 -I ' . $args{ref_ifc} . ' ' . $args{sut_ip});
         };
         return 1 unless ($@);    # no error
         die($@) if (time() > $endtime || $args{timeout} == 0);
