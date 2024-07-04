@@ -22,7 +22,7 @@ sub run {
 
     assert_equals($md_name, $lsblk_output->{blockdevices}[0]{name}, "Multi-disk name not found");
     assert_equals('crypt', $lsblk_output->{blockdevices}[0]{children}[0]{type}, "Encrypted type not found");
-    assert_equals('\/home', $lsblk_output->{blockdevices}[0]{children}[0]{mountpoints}[0], "Encrypted mount point not found");
+    assert_equals('/home', $lsblk_output->{blockdevices}[0]{children}[0]{mountpoints}[0], "Encrypted mount point not found");
 }
 
 1;
