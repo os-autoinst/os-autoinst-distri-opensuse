@@ -62,7 +62,7 @@ use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
-use Utils::Architectures qw(is_aarch64 is_ppc64le);
+use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use Data::Dumper qw(Dumper);
 
 my @conflicting_packages = (
@@ -388,6 +388,12 @@ sub run {
             else {
                 zypper_call("in -l $solver_focus $_", exitcode => [0, 102, 103], log => "new_${_}_conflicts.log", timeout => 1500);
             }
+        }
+
+        if (is_s390x) {
+            # Make sure that openssh-server-config-disallow-rootlogin is not installed
+            # since in s390 we need to ssh to the system to reconnect to the tty after a reboot
+            zypper_call("rm openssh-server-config-disallow-rootlogin", exitcode => [0, 104]);
         }
 
         record_info 'Reboot after patch', "system is bootable after patch $patch";
