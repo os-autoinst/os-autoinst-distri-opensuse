@@ -158,8 +158,9 @@ sub get_3rd_party_images {
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
         "$registry/library/alpine",
-        "$registry/library/debian",
-        "quay.io/centos/centos:stream9"
+        "$registry/library/debian"
+        # Temporarily disabled as it needs x86-64-v2
+        # "quay.io/centos/centos:stream9"
     );
 
     # Following images are not available on 32-bit arm
