@@ -155,6 +155,7 @@ sub run {
     # during restart of the X/GDM stack
     if (is_sle_micro) {
         check_reboot_changes;
+        check_target_version;
     } else {
         power_action('reboot', textmode => 1);
         reconnect_mgmt_console if is_pvm;

@@ -28,6 +28,7 @@ use publiccloud::instances;
 our @EXPORT = qw(
   process_reboot
   check_reboot_changes
+  check_target_version
   rpmver
   trup_call
   trup_install
@@ -147,7 +148,13 @@ sub check_reboot_changes {
     process_reboot(trigger => 1) if $change_happened;
 }
 
+# Check target version after migration
+sub check_target_version {
+    my $release = script_output "cat /etc/os-release";
+    my $expected_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
 
+    die "Target version not found! Expected: $expected_version" if ($release !~ "VERSION=\"?$expected_version\"?");
+}
 
 =head2 record_kernel_audit_messages
 
