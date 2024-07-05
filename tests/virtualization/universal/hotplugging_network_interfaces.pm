@@ -28,7 +28,7 @@ sub add_virtual_network_interface {
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     my $mac = "$MAC_PREFIX:" . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-    unless ($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host) {
+    unless (($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host) || ($guest eq 'sles12sp5' && is_kvm_host)) {
         my $persistent_config_option = '';
         my $interface_model_option = '';
         if (get_var('VIRT_AUTOTEST') && is_kvm_host) {
@@ -44,7 +44,8 @@ sub add_virtual_network_interface {
             die "Failed to detach bridge interface for guest $guest." if (script_run("ssh root\@$guest ip l | grep " . $mac, 60) eq 0);
         }
     } else {
-        record_soft_failure 'bsc#959325 - Live NIC attachment on <=12-SP2 Xen hypervisor with HVM guests does not work correctly.';
+        record_soft_failure 'bsc#959325 - Live NIC attachment on <=12-SP2 Xen hypervisor with HVM guests does not work correctly.' if ($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host);
+        record_soft_failure 'bsc#1201778 - hotplug interface failed in KVM guest with "no MMIO resource" for sles12sp5.' if ($guest = 'sles12sp5' && is_kvm_host);
     }
     return $mac;
 }
