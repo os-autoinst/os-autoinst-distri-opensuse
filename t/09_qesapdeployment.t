@@ -405,6 +405,7 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
     # Simulate that qesap_execute has always 'AERIS'
     # in the log
     $qesap->redefine(qesap_file_find_string => sub { return 1; });
+    $qesap->redefine(get_required_var => sub { return ''; });
 
     my @res = qesap_execute_conditional_retry(
         cmd => 'TIFA',
