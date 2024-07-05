@@ -85,6 +85,7 @@ sub run {
             zypper_call("in gnome-packagekit", timeout => 90);
         }
     }
+    wait_still_screen 3;
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
 
