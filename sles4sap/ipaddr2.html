@@ -20,14 +20,19 @@
       <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
       <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
       <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
+      <li><a href="#ipaddr2_internal_key_accept">ipaddr2_internal_key_accept</a></li>
+      <li><a href="#ipaddr2_internal_key_gen">ipaddr2_internal_key_gen</a></li>
       <li><a href="#ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</a></li>
       <li><a href="#ipaddr2_os_sanity">ipaddr2_os_sanity</a></li>
       <li><a href="#ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</a></li>
       <li><a href="#ipaddr2_ssh_assert_script_run_bastion">ipaddr2_ssh_assert_script_run_bastion</a></li>
+      <li><a href="#ipaddr2_ssh_internal">ipaddr2_ssh_internal</a></li>
+      <li><a href="#ipaddr2_create_cluster">ipaddr2_create_cluster</a></li>
       <li><a href="#ipaddr2_deployment_logs">ipaddr2_deployment_logs</a></li>
       <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
       <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
       <li><a href="#ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</a></li>
+      <li><a href="#ipaddr2_get_worker_tmp_for_internal_vm">ipaddr2_get_worker_tmp_for_internal_vm</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -106,6 +111,34 @@
 </dd>
 </dl>
 
+<h2 id="ipaddr2_internal_key_accept">ipaddr2_internal_key_accept</h2>
+
+<pre><code>ipaddr2_internal_key_accept()</code></pre>
+
+<p>For the worker to accept the ssh key of the internal VMs</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided2"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_internal_key_gen">ipaddr2_internal_key_gen</h2>
+
+<pre><code>ipaddr2_internal_key_gen()</code></pre>
+
+<p>Create, on the /tmp folder of the Worker, two ssh key set. One ssk yey pair for each internal VM Then upload in each internal VM the ssh key pair using scp in Proxy mode</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="ipaddr2_deployment_sanity">ipaddr2_deployment_sanity</h2>
 
 <pre><code>ipaddr2_deployment_sanity()</code></pre>
@@ -120,7 +153,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
@@ -136,7 +169,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time1"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time2"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
@@ -152,11 +185,50 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time2"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time3"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
 <dt id="cmd---command-to-run-there"><b>cmd</b> - command to run there</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_ssh_internal">ipaddr2_ssh_internal</h2>
+
+<pre><code>ipaddr2_ssh_internal(
+    id =&gt; 2,
+    bastion_ip =&gt; &#39;1.2.3.4&#39;,
+    cmd =&gt; &#39;whoami&#39;);</code></pre>
+
+<p>run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
+
+<dl>
+
+<dt id="id---id-of-the-internal-VM-used-to-compose-its-name-used-as-address-for-ssh"><b>id</b> - id of the internal VM, used to compose its name, used as address for ssh</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time4"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
+<dd>
+
+</dd>
+<dt id="cmd---command-to-run-there1"><b>cmd</b> - command to run there</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_create_cluster">ipaddr2_create_cluster</h2>
+
+<pre><code>ipaddr2_create_cluster();</code></pre>
+
+<p>Initialize and configure the Pacemaker cluster on the two internal nodes</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-managed-as-argument-not-to-have-to-call-ipaddr2_bastion_pubip-many-time-so-not-to-have-to-query-az-each-time5"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. managed as argument not to have to call ipaddr2_bastion_pubip many time, so not to have to query az each time</dt>
 <dd>
 
 </dd>
@@ -180,11 +252,33 @@
 
 <p>compose and return a string for the vm name</p>
 
+<dl>
+
+<dt id="id---VM-id-number"><b>id</b> - VM id number</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</h2>
 
 <pre><code>my $private_ip = ipaddr2_get_internal_vm_private_ip(42);</code></pre>
 
 <p>compose and return a string representing the VM private IP</p>
+
+<dl>
+
+<dt id="id---VM-id-number1"><b>id</b> - VM id number</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_get_worker_tmp_for_internal_vm">ipaddr2_get_worker_tmp_for_internal_vm</h2>
+
+<pre><code>my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);</code></pre>
+
+<p>Return a path in /tmp of the worker used to store files associated two one of the internal VM</p>
 
 
 </body>
