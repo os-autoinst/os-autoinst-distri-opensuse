@@ -90,6 +90,36 @@ subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
     ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
 };
 
+subtest '[ipaddr2_internal_key_accept]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'artom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
+    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
+    ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
+};
+
+subtest '[ipaddr2_create_cluster]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+
+    ipaddr2_create_cluster();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*41.*cluster init/ } @calls), 'crm cluster init on VM1');
+    ok((any { /.*42.*cluster join/ } @calls), 'crm cluster join on VM2');
+};
+
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
@@ -143,6 +173,31 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
     ok((scalar @calls > 0), "Some calls to script_run and script_output");
 };
 
+subtest '[ipaddr2_os_sanity]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_assert_script_run_bastion => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}]; });
+
+    ipaddr2_os_sanity();
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
 subtest '[ipaddr2_bastion_pubip]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -167,6 +222,22 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
     }
     ok(($count eq 12),
         "Expected 2VM * 2address_forms * 3cmd = 12 commands from the bastion and get $count");
+};
+
+subtest '[ipaddr2_internal_key_gen]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    # return 1 means file does not exist.
+    #$ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+    $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_internal_key_gen();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /ssh-keygen/ } @calls), 'Generate the keys if they does not exist');
 };
 
 done_testing;

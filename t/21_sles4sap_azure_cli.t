@@ -291,7 +291,7 @@ subtest '[az_vm_list]' => sub {
             push @calls, $_[0];
             return '["Mirandolina","Truffaldino"]'; });
 
-    my $res = az_vm_list(resource_group => 'Arlecchino');
+    my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm list/ } @calls), 'Correct composition of the main command');
