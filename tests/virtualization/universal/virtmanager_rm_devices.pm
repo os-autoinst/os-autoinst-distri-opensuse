@@ -22,7 +22,7 @@ sub run_test {
     establish_connection();
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-        unless ($guest =~ m/hvm/i) {
+        unless (($guest =~ m/hvm/i) || ($guest =~ m/PV/i)) {
             record_info "$guest", "VM $guest will loose it's aditional HV";
 
             select_guest($guest);
@@ -61,6 +61,9 @@ sub run_test {
 
             detect_login_screen() if (!check_screen('virt-manager_viewer_disconnected', 5));
             close_guest();
+        }
+        else {
+            record_soft_failure 'bsc#1221917 - [MU]Core Dump Occurs on Bare Metal SLES15 SP5/SP6 with Xen Following Disk Detachment in sles15sp5PV Guest Environment.' if ($guest =~ m/PV/i);
         }
     }
 
