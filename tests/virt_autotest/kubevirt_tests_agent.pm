@@ -25,15 +25,11 @@ sub run {
 
     if (check_var('RUN_TEST_ONLY', 0)) {
         use_ssh_serial_console;
-        my $sut_ip = get_required_var('SUT_IP');
-
-        set_var('AGENT_IP', $sut_ip);
-        bmwqemu::save_vars();
 
         # Synchronize the server & agent node before setup
         barrier_wait('kubevirt_test_setup');
 
-        my $server_ip = $self->get_var_from_parent("SERVER_IP");
+        my $server_ip = $self->get_var_from_parent("SUT_IP");
         record_info('Server IP', $server_ip);
 
         $self->rke2_agent_setup($server_ip);
@@ -66,8 +62,8 @@ sub rke2_agent_setup {
 
     transactional::process_reboot(trigger => 1) if (is_transactional);
     record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
-    # Set long host name to avoid x509 server connection issue
-    assert_script_run('hostnamectl set-hostname $(hostname -s)');
+    # Set kernel hostname to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname $(uname -n)');
 
     # Install kubevirt packages complete
     barrier_wait('kubevirt_packages_install_complete');
@@ -90,10 +86,11 @@ sub rke2_agent_setup {
     barrier_wait('rke2_server_start_ready');
 
     # Configure rke2-agent service
+    my $server_hostname = script_output("ssh root\@$server_ip uname -n");
     my $server_node_token = script_output("ssh root\@$server_ip cat /var/lib/rancher/rke2/server/node-token");
     assert_script_run('mkdir -p /etc/rancher/rke2/');
     assert_script_run("cat > /etc/rancher/rke2/config.yaml <<__END
-server: https://$server_ip:9345
+server: https://$server_hostname:9345
 token: $server_node_token
 kubelet-arg:
   - cpu-manager-policy=static

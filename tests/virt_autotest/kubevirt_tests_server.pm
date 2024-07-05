@@ -72,15 +72,11 @@ sub run {
 
     if (check_var('RUN_TEST_ONLY', 0)) {
         use_ssh_serial_console;
-        my $sut_ip = get_required_var('SUT_IP');
-
-        set_var('SERVER_IP', $sut_ip);
-        bmwqemu::save_vars();
 
         # Synchronize the server & agent node before setup
         barrier_wait('kubevirt_test_setup');
 
-        my $agent_ip = $self->get_var_from_child("AGENT_IP");
+        my $agent_ip = $self->get_var_from_child("SUT_IP");
         record_info('Agent IP', $agent_ip);
 
         $self->rke2_server_setup($agent_ip);
@@ -116,8 +112,8 @@ sub rke2_server_setup {
 
     transactional::process_reboot(trigger => 1) if (is_transactional);
     record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
-    # Set long host name to avoid x509 server connection issue
-    assert_script_run('hostnamectl set-hostname $(hostname -s)');
+    # Set kernel hostname to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname $(uname -n)');
 
     $self->install_kubevirt_packages();
 
@@ -236,7 +232,7 @@ sub install_kubevirt_packages {
     zypper_call("in -f -r Virt-Tests-Repo kubevirt-tests");
 
     # Install Longhorn dependencies
-    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-tests");
+    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-manifests");
     record_info('Kubevirt test version', $kubevirt_ver);
     zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
 
@@ -265,6 +261,23 @@ sub deploy_kubevirt_manifests {
     my $self = shift;
     our $kubevirt_ver;
 
+    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
+
+    # Workaround for bsc#1199448
+    my $image1 = "quay.io/kubevirt/alpine-ext-kernel-boot-demo:v$kubevirt_ver";
+    my $tag1 = "registry:5000/kubevirt/alpine-ext-kernel-boot-demo:devel";
+    assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/pre-pull.sh");
+
+    my $pre_pull = script_output('sh pre-pull.sh');
+    assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/node-helper.yaml.in");
+    assert_script_run("sed -e 's#__IMAGE1__#$image1#g' -e 's#__TAG1__#$tag1#g' -e 's#__PRE_PULL__#$pre_pull#g' node-helper.yaml.in | kubectl apply -f -");
+
+    my $node_helper_patch = "node-helper-patch.yaml";
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$node_helper_patch") . " -o $node_helper_patch");
+    assert_script_run("kubectl -n kubevirt-ci patch daemonset node-helper --patch-file $node_helper_patch");
+    assert_script_run("kubectl -n kubevirt-ci rollout status daemonset node-helper --timeout=40m");
+
     # Deploy required kubevirt manifests
     record_info('Deploy kubevirt manifests', '');
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-operator.yaml");
@@ -275,17 +288,9 @@ sub deploy_kubevirt_manifests {
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
-    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
-    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
-    # Check all loop devices to see if they refer to deleted files
-    record_info('Check all loop devices', script_output('losetup -a -l'));
-    # Detach all loop devices, the disk-image-provider needs to use it to setup images
-    record_info('Detach all loop devices', script_output('losetup -D'));
-    # Remove existing local disks
-    record_info('Remove existing local disks', script_output('[ -d /tmp/hostImages -a -d /mnt/local-storage ] && rm -r /tmp/hostImages /mnt/local-storage', proceed_on_failure => 1));
-
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/rbac-for-testing.yaml");
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
+    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/uploadproxy-nodeport.yaml");
 
     if ($kubevirt_ver lt "0.50.0") {
         my $hostname = script_output('hostname');
@@ -331,7 +336,7 @@ sub setup_longhorn_csi {
     assert_script_run(qq(kubectl patch -n longhorn-system lhs storage-minimal-available-percentage --type merge -p '{"value": "5"}'));
 
     # Create storage classes
-    assert_script_run("kubectl apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-sc.yaml");
+    assert_script_run("kubectl apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/storage/longhorn-sc.yaml");
 
     # Ensure only one default storage class exists
     assert_script_run(qq(kubectl patch storageclass longhorn-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'));
@@ -340,10 +345,10 @@ sub setup_longhorn_csi {
 
     # Update storage profiles (give CDI some time to reconcile)
     script_retry('kubectl get StorageProfile longhorn-default longhorn-migratable longhorn-wffc', retry => 8, delay => 10, timeout => 90);
-    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-sp-patch.yaml");
+    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/storage/longhorn-sp-patch.yaml");
     assert_script_run("kubectl patch StorageProfile longhorn-default --type merge --patch-file longhorn-sp-patch.yaml");
     assert_script_run("kubectl patch StorageProfile longhorn-migratable --type merge --patch-file longhorn-sp-patch.yaml");
-    assert_script_run(qq(kubectl patch StorageProfile longhorn-wffc --type merge -p '{"spec": {"claimPropertySets": [{"accessModes": ["ReadWriteOnce"]}]}}'));
+    assert_script_run(qq(kubectl patch StorageProfile longhorn-wffc --type merge -p '{"spec": {"claimPropertySets": [{"accessModes": ["ReadWriteOnce"], "volumeMode": "Filesystem"}]}}'));
 
     # Enable snapshots support
     my @crd = (
@@ -379,9 +384,9 @@ EOF
 (exit \$?)");
 
     # Setup access to Longhorn UI (useful for debugging)
-    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-auth");
+    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/storage/longhorn-auth");
     assert_script_run("kubectl -n longhorn-system create secret generic basic-auth --from-file=auth=longhorn-auth || true");
-    assert_script_run("kubectl -n longhorn-system apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-ingress.yaml");
+    assert_script_run("kubectl -n longhorn-system apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/storage/longhorn-ingress.yaml");
 }
 
 sub apply_test_config {
@@ -485,14 +490,6 @@ EOF
     my ($go_test, $skip_test, $params, $server_ip, $nic_name);
     my ($artifacts, $junit_xml, $test_log, $test_cmd, $num_of_skipped);
     my $retry_times = get_var('FAILED_RETRY');
-
-    # Workaround for bsc#1199448
-    my $node_helper = 'node-helper.yaml';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$node_helper") . " -o $node_helper");
-    assert_script_run("sed -i 's/\${KUBEVIRT_VERSION}/$kubevirt_ver/g' $node_helper");
-    assert_script_run("kubectl apply -f $node_helper");
-    assert_script_run("kubectl -n kubevirt-tests rollout status daemonset node-helper --timeout=50m");
-
     my $pre_rel_reg = get_required_var('PREVIOUS_RELEASE_REGISTRY');
     my $pre_rel_tag = get_required_var('PREVIOUS_RELEASE_TAG');
     my $additional_reg_tag = "-previous-release-registry=$pre_rel_reg -previous-release-tag=$pre_rel_tag";
