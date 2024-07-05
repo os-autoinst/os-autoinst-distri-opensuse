@@ -376,7 +376,7 @@
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config|/UUID=)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
             "leap-micro": ["5.3"],
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0"],
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
             "microos":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
             "opensuse":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
             "sle": ["15-SP6"]
