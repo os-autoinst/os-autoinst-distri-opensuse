@@ -331,7 +331,7 @@ sub run {
     add_we_repo_if_available;
 
     # Enables repositories on full installation medium
-    zypper_enable_install_dvd if (get_var('FLAVOR') == 'Full-QR');
+    zypper_enable_install_dvd if (get_var('FLAVOR') eq 'Full-QR');
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
