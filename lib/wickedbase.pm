@@ -1112,14 +1112,13 @@ sub prepare_coredump {
         assert_script_run("echo '$core_pattern' > /etc/sysctl.d/50-coredump.conf");
     }
 
-
-    my $core_dump = script_output('coredumpctl -q --no-pager --no-legend', proceed_on_failure => 1);
+    my $core_dump = script_output('coredumpctl --no-pager --no-legend 2> /dev/null', proceed_on_failure => 1);
     if (length($core_dump) != 0) {
         if ($core_dump =~ m/wicked/) {
             record_info("CORE DUMP", $core_dump, result => 'fail');
             die("Wicked coredump found in before_test, cleanup your installation first!");
         } else {
-            record_info("CORE DUMP", $core_dump, result => 'warn');
+            record_info("CORE DUMP", $core_dump, result => 'softfail');
         }
     }
     for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
