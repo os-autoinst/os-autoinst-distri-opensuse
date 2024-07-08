@@ -9,14 +9,9 @@ vars:
   BOOT_HDD_IMAGE: 1
 
 conditional_schedule:
-  nfs_barriers:
-    IPXE:
-      1:
-        - kernel/nfs_barriers
   nfstest:
     ROLE:
       nfs_server:
-        - '{{nfs_barriers}}'
         - kernel/nfs_server
       nfs_client:
         - kernel/nfs_client
