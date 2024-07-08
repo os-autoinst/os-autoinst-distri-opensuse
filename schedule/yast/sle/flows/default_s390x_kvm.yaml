@@ -48,6 +48,7 @@ confirm_reboot:
   - installation/performing_installation/confirm_reboot
 reconnect_svirt:
   - installation/performing_installation/reconnect_after_reboot
+disk_passphrase: []
 grub:
   - installation/handle_reboot
 first_login:
