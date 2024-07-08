@@ -1,23 +1,42 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email><%= $get_var->('SCC_EMAIL') %></email>
+    <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    % if (keys %$addons) {
+    <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
+      <addon>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+      </addon>
+      % }
+    </addons>
+    % }
+  </suse_register>
   <add-on t="map">
     <add_on_products t="list">
-      <listentry t="map">
-        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Basesystem/15-SP5/x86_64/product?uqBLT_zaCrKaPl66l5TOK5kz1Cm-wowzT03E-BxbbNN61C48hWiJ1-7NbkMAlNs-qLDTweuinZKLKOYb-KmIOI3X8uHyFpDJxBf_VePKxTpWdGbNYcOUum6IP-OykxLq-MU_z3vNOIl_Hephpy_xvA9myis34Y5X</media_url>
-        <product>SLE-Module-Basesystem15-SP5-Pool</product>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Server-Applications/15-SP5/x86_64/product?qKA5x9nh2ee-G2X0H6XSIVLXdT8cH8US1qQJyo9D1eOsLMBqNpY1R7-Qj_5BDQCidvaENJM9lKo7kKVXJm6QUyvdcxYrzLvAB-f-FUSjEFIF0aoWptANPknd0DIc5BrszSXm_foNwr3Q5n_Q-YxzvLcwFtax-XYMfia6jWrvUWK5</media_url>
-        <product>SLE-Module-Server-Applications15-SP5-Pool</product>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <media_url>https://updates.suse.com/SUSE/Products/SLE-Module-Python3/15-SP5/x86_64/product?4SZ0rt6mKcY6w2TlOlBq3LY4mqjxfU0YIDqjk9z8DB4h0EKIdhBCiqWLRFUHSMFNCaYTGvzCdejnr2zOGCEdN_wgZcZOMmE3pnF04GE6MXUI16Jb7WmLKKne4XcEPvhvYOQqyA1Xk2f_lYXMB4yh7mkJWyzj</media_url>
-        <product>SLE-Module-Python3-15-SP5-Pool</product>
-        <product_dir/>
-      </listentry>
+      % for my $repo (@$repos) {
+        <listentry>
+          <media_url><%= $repo %></media_url>
+        </listentry>
+      % }
     </add_on_products>
   </add-on>
   <bootloader t="map">
@@ -239,37 +258,6 @@
       <product>SLES</product>
     </products>
   </software>
-  <suse_register t="map">
-    <addons t="list">
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>sle-module-server-applications</name>
-        <reg_code/>
-        <release_type>nil</release_type>
-        <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>sle-module-python3</name>
-        <reg_code/>
-        <release_type>nil</release_type>
-        <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>sle-module-basesystem</name>
-        <reg_code/>
-        <release_type>nil</release_type>
-        <version>{{VERSION}}</version>
-      </addon>
-    </addons>
-    <do_registration t="boolean">true</do_registration>
-    <email/>
-    <install_updates t="boolean">false</install_updates>
-    <reg_code>{{SCC_REGCODE}}</reg_code>
-    <reg_server>{{SCC_URL}}</reg_server>
-    <slp_discovery t="boolean">false</slp_discovery>
-  </suse_register>
   <users t="list">
     <user t="map">
       <authorized_keys t="list"/>

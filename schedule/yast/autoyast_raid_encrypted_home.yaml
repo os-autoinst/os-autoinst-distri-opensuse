@@ -8,6 +8,8 @@ schedule:
   - installation/boot_encrypt
   - installation/first_boot
   - console/system_prepare
+  - autoyast/repos
+  - autoyast/logs
   - console/hostname
   - console/force_scheduled_tasks
   - console/validate_md_raid
