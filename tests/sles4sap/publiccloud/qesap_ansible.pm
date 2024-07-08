@@ -37,9 +37,18 @@ sub run {
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
         my @ret = qesap_execute(
             cmd => 'ansible',
+            cmd_options => join(' ', '--profile', '--junit', '/tmp/results/'),
             logname => 'qesap_exec_ansible.log.txt',
             timeout => 3600,
             verbose => 1);
+        my $find_cmd = join(' ',
+            'find',
+            '/tmp/results/',
+            '-type', 'f',
+            '-iname', "*.xml");
+        for my $log (split(/\n/, script_output($find_cmd))) {
+            parse_extra_log("XUnit", $log);
+        }
         if ($ret[0]) {
             if (check_var('IS_MAINTENANCE', '1')) {
                 die("TEAM-9068 Ansible failed. Retry not supported for IBSM updates\n ret[0]: $ret[0]");
