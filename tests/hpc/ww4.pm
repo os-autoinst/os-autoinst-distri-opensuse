@@ -76,6 +76,8 @@ sub run ($self) {
     test_case('Service configuration', 'ww4', $rt);
     # Build overlay, mandatory since warewulf4 version 4.5
     assert_script_run "wwctl overlay build";
+    # Refresh repositories inside the container
+    validate_script_output("echo 'zypper -n refresh && echo warewulf-container-refreshed' | wwctl container shell warewulf-container", sub { m/warewulf-container-refreshed/ });
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
     mutex_unlock 'ww4_ready';
