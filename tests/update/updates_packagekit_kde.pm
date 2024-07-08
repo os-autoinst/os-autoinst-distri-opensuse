@@ -14,10 +14,12 @@ use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);
 use power_action_utils qw(power_action);
+use serial_terminal 'select_serial_terminal';
 
 # Update with Plasma applet for software updates using PackageKit
 sub run {
     my ($self) = @_;
+    my $counter = 0;
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
     turn_off_kde_screensaver;
@@ -26,7 +28,16 @@ sub run {
     if (match_has_tag 'updates_available-tray') {
         # First update package manager, then packages, then bsc#992773 (2x)
         while (1) {
+            $counter++;
             assert_and_click('updates_available-tray');
+            if (check_screen('updates_not_installed') && $counter >= 2) {
+                select_serial_terminal;
+                quit_packagekit;
+                zypper_call('up');
+                systemctl 'unmask packagekit.service';
+                select_console 'x11', await_console => 0;
+                last;
+            }
             assert_screen_change { assert_and_click('updates_click-install'); };
             assert_screen [qw(updates_click-install pkit_installing_state)];
             # Discover needs an additional confirmation
