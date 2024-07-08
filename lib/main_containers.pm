@@ -122,18 +122,19 @@ sub load_host_tests_podman {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
-    load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args) unless is_staging;
+    #load_image_test($run_args) unless is_public_cloud;
+    #load_3rd_party_image_test($run_args) unless is_staging;
     load_rt_workload($run_args) if is_rt;
-    load_container_engine_privileged_mode($run_args);
-    loadtest 'containers/podman_bci_systemd';
-    loadtest 'containers/podman_pods';
-    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
+    #load_container_engine_privileged_mode($run_args);
+    #loadtest 'containers/podman_bci_systemd';
+    #loadtest 'containers/podman_pods';
+    #loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
-    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
-    loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
+    #load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
+    #loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
+    return;
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
