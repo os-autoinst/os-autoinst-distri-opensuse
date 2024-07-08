@@ -1118,7 +1118,7 @@ sub prepare_coredump {
             record_info("CORE DUMP", $core_dump, result => 'fail');
             die("Wicked coredump found in before_test, cleanup your installation first!");
         } else {
-            record_info("CORE DUMP", $core_dump, result => 'warn');
+            record_info("CORE DUMP", $core_dump, result => 'softfail');
         }
     }
     for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
