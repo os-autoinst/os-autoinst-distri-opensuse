@@ -24,7 +24,8 @@ sub run {
     my $test_opts = {
         NO_BUILD => get_var('SYSTEMD_NO_BUILD', 1),
         TEST_PREFER_NSPAWN => get_var('SYSTEMD_NSPAWN', 1),
-        UNIFIED_CGROUP_HIERARCHY => get_var('SYSTEMD_UNIFIED_CGROUP', 'yes')
+        UNIFIED_CGROUP_HIERARCHY => get_var('SYSTEMD_UNIFIED_CGROUP', 'yes'),
+        TEST_NESTED_KVM => get_var('NESTED_KVM', 0)
     };
     my $testdir = '/usr/lib/systemd/tests/integration-tests/';
     my @pkgs = qw(
