@@ -37,6 +37,12 @@ sub firefox_crashreporter {
 
     assert_script_run("ls $firefox_crash_dir");
 
+    # poo#162971 fail if crashreporter.ini not found
+    if (script_run "test -f $crash_report") {
+        record_soft_failure "bsc#1223724";
+        force_soft_failure "bsc#1223724";
+    }
+
     assert_script_run("sed -i -e 's/EmailMe=0/EmailMe=1/g' $crash_report");
     assert_script_run("sed -i -e 's/SubmitReport=0/SubmitReport=1/g' $crash_report");
     assert_script_run("cat $crash_report");
