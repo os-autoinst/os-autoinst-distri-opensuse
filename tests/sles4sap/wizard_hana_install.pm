@@ -118,9 +118,12 @@ sub run {
     if (check_var('DESKTOP', 'textmode')) {
         wait_serial('yast2-sap-installation-wizard-status-0', $timeout) || die "'yast2 sap-installation-wizard' didn't finish";
     } else {
-        assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], $timeout;
+        assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error sap-wizard-missing-32bit-client)], $timeout;
         send_key $cmd{ok};
         if (match_has_tag 'sap-wizard-installation-summary') {
+            assert_screen 'generic-desktop', 600;
+        } elsif (match_has_tag 'sap-wizard-missing-32bit-client') {
+            record_soft_failure "bsc#1227390 - Missing 32-bit client happened";
             assert_screen 'generic-desktop', 600;
         } else {
             # Wait for SAP wizard to finish writing logs
