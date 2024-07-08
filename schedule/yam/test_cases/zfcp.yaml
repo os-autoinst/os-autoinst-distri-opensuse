@@ -3,8 +3,6 @@ description: >
   Test installation on machine with zfcp multipath disk.
   Only tests succesful detection of multipath and installation.
   No functional testing of multipath itself.
-vars:
-  YUI_REST_API: 1
 schedule:
   configure_dasd_disks:
     - installation/disk_activation/select_configure_zfcp_disks

@@ -1,13 +1,6 @@
 name:           sles+sdk+proxy_SCC_via_YaST
 description:    >
   Add add-on via SCC using YaST module.
-vars:
-  ADDONS: all-packages
-  DESKTOP: textmode
-  SCC_ADDONS: sdk
-  SCC_REGISTER: console
-  SYSTEM_ROLE: textmode
-  YUI_REST_API: 1
 schedule:
   registration:
     - installation/registration/skip_registration

@@ -2,8 +2,6 @@
 name: remote_vnc_controller
 description: >
   Install remote server (parallel job) with vnc.
-vars:
-  DESKTOP: gnome
 schedule:
   - support_server/login
   - support_server/setup
