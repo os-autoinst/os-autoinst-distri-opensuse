@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use version_utils;
 use publiccloud::utils;
 
 sub run {
@@ -54,9 +55,14 @@ sub run {
     }
 
     # cloud-netconfig
-    record_info('cloud-netconfig', script_output('systemctl --no-pager --full status cloud-netconfig*', proceed_on_failure => 1));
-    assert_script_run('systemctl is-enabled cloud-netconfig.service');
-    assert_script_run('systemctl is-active cloud-netconfig.timer');
+    if ((is_sle('=12-SP5') || is_sle('=15-SP3')) && is_gce) {
+        record_soft_failure('bsc#1227507 - 12-SP5 images are missing cloud-netconfig.service/timer');
+        record_soft_failure('bsc#1227508 - 15-SP3 images are missing cloud-netconfig.service/timer');
+    } else {
+        record_info('cloud-netconfig', script_output('systemctl --no-pager --full status cloud-netconfig*', proceed_on_failure => 1));
+        assert_script_run('systemctl is-enabled cloud-netconfig.service');
+        assert_script_run('systemctl is-active cloud-netconfig.timer');
+    }
 }
 
 sub test_flags {
