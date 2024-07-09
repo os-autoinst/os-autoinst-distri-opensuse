@@ -5,6 +5,7 @@ description:    >
   btrfs-progs test suite for SLE-Micro
 schedule:
     - microos/disk_boot
+    - transactional/host_config
     - btrfs-progs/install
     - btrfs-progs/run
     - btrfs-progs/generate_report
