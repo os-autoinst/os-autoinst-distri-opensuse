@@ -1,0 +1,33 @@
+---
+disks:
+  - name: vda
+    table_type: gpt
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: vda2
+        role: operating-system
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: vda3
+        role: data
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /home
+      - name: vda4
+        role: swap
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: swap
+        mounting_options:
+          should_mount: 1
+          mount_point: SWAP
