@@ -225,6 +225,7 @@ sub trup_call {
         enter_cmd($script);
         save_screenshot unless is_serial_terminal;
         wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) or die "transactional-update didn't finish";
+        process_reboot;
         return;
     }
 
