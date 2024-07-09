@@ -55,8 +55,11 @@ sub install_fips {
     # No crypto-policies in older SLE
     zypper_call("in -t pattern fips") if (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE"));
     # crypto-policies script reports Cannot handle transactional systems.
-    if (is_sle_micro) {
-        is_sle_micro('<6.0') ? trup_call("pkg install -t pattern fips") : trup_call("setup-fips");
+
+    if (is_sle_micro('<6.0')) {
+        trup_call("pkg install -t pattern microos-fips");
+    } else {
+        trup_call("setup-fips");
     }
 }
 
