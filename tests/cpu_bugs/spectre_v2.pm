@@ -20,7 +20,7 @@ use utils;
 use Mitigation;
 
 my $eibrs_string_on = "Mitigation: Enhanced IBRS, IBPB: always-on, RSB filling";
-my $eibrs_string_default = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
+my $eibrs_string_default = "Mitigation: Enhanced / Automatic IBRS; IBPB: conditional; RSB filling";
 my $retpoline_string = "Mitigation: Retpolines,";
 
 our %mitigations_list =
@@ -33,7 +33,7 @@ our %mitigations_list =
     sysfs_name => "spectre_v2",
     sysfs => {
         on => "${retpoline_string}.*IBPB: always-on, IBRS_FW, STIBP: forced.*",
-        off => "Vulnerable,.*IBPB: disabled,.*STIBP: disabled",
+        off => "Vulnerable; IBPB: disabled; STIBP: disabled; PBRSB-eIBRS: Vulnerable; BHI: Vulnerable .Syscall hardening enabled.",
         auto => "${retpoline_string}.*IBPB: conditional, IBRS_FW, STIBP: conditional,.*",
         retpoline => "Mitigation: Retpolines.*",
         default => "",
