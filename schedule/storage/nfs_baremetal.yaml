@@ -11,7 +11,7 @@ vars:
 conditional_schedule:
   ROLE:
     nfs_server:
-      - kernel/nfs_barriers'
+      - kernel/nfs_barriers
       - kernel/nfs_server
     nfs_client:
       - kernel/nfs_client
