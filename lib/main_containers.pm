@@ -131,7 +131,8 @@ sub load_host_tests_podman {
     load_container_engine_privileged_mode($run_args);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
-    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
+    # fresh install of sle-micro comes with netavark
+    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud) || (check_var('FLAVOR', 'DVD-Updates') && is_sle_micro));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args);
     loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
@@ -139,12 +140,13 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    loadtest 'containers/skopeo' unless (is_sle('<15') || is_sle_micro('<5.5'));
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
-        loadtest 'containers/podman_remote';
+        loadtest 'containers/podman_remote' if is_sle_micro('5.5+');
     }
     load_secret_tests($run_args);
     load_volume_tests($run_args);
@@ -179,7 +181,7 @@ sub load_host_tests_docker {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
-    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15'));
+    loadtest('containers/skopeo') unless (is_sle('<15') || is_sle_micro('<5.5'));
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');

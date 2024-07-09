@@ -23,9 +23,12 @@ sub is_cni_in_tw {
 }
 
 # podman >=4.8.0 defaults to netavark
+# fresh install of sle-micro comes with netavark
 sub is_cni_default {
     my $podman_version = get_podman_version();
-    return package_version_cmp($podman_version, '4.8.0') < 0 || is_sle_micro('<5.5') || (is_sle_micro('=5.5') && !is_public_cloud);
+    return package_version_cmp($podman_version, '4.8.0') < 0 ||
+      (is_sle_micro('<5.5') && !check_var('FLAVOR', 'DVD-Updates')) ||
+      (is_sle_micro('=5.5') && !is_public_cloud);
 }
 
 sub remove_subtest_setup {
