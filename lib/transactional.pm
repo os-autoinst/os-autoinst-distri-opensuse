@@ -75,7 +75,6 @@ sub process_reboot {
     my (%args) = @_;
     $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
-    $args{expected_grub} //= 1;
     $args{expected_passphrase} //= 0;
 
     if (is_public_cloud) {
@@ -103,7 +102,7 @@ sub process_reboot {
         if (is_s390x || is_pvm) {
             reconnect_mgmt_console(timeout => 500) unless $args{automated_rollback};
         }
-        if (!is_s390x && $args{expected_grub}) {
+        if (!is_s390x) {
             if (is_aarch64 && check_screen('tianocore-mainmenu', 30)) {
                 # Use firmware boot manager of aarch64 to boot HDD, when needed
                 opensusebasetest::handle_uefi_boot_disk_workaround();
