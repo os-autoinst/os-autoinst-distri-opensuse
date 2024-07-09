@@ -18,6 +18,11 @@ use partition_setup qw(%partition_roles is_storage_ng_newui);
 use utils 'type_string_slow';
 
 sub handle_common_criteria {
+    if (is_sle '<=15-SP5') {
+        assert_screen 'Common-Criteria-Evaluated-Configuration-RN-Next';
+        send_key 'alt-n';
+        return;
+    }
     wait_still_screen;
     assert_screen 'Common-Criteria-Disk-Encryption-Passphrase';
     send_key 'alt-e';
