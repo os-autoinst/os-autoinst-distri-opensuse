@@ -51,15 +51,18 @@ sub enable_fips {
 }
 
 sub install_fips {
-    zypper_call("in crypto-policies-scripts") if (((is_sle('>=15-SP4') || is_jeos || is_tumbleweed)) && !get_var("FIPS_ENV_MODE"));
-    # No crypto-policies in older SLE
-    zypper_call("in -t pattern fips") if (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE"));
-    # crypto-policies script reports Cannot handle transactional systems.
-
-    if (is_sle_micro('<6.0')) {
-        trup_call("pkg install -t pattern microos-fips");
-    } else {
-        trup_call("setup-fips");
+    if (is_transactional) {
+        if (is_sle_micro('<6.0')) {
+            trup_call("pkg install -t pattern microos-fips");
+        } else {
+            trup_call("setup-fips");
+        }
+        # crypto-policies script reports Cannot handle transactional systems.
+    } elsif (((is_sle('>=15-SP4') || is_jeos || is_tumbleweed)) && !get_var("FIPS_ENV_MODE")) {
+        zypper_call("in crypto-policies-scripts");
+    } elsif (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE")) {
+        # No crypto-policies in older SLE
+        zypper_call("in -t pattern fips");
     }
 }
 
