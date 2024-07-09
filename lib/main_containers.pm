@@ -114,6 +114,9 @@ sub load_compose_tests {
 }
 
 sub load_firewall_test {
+    return if (is_public_cloud || is_openstack || is_microos ||
+        get_var('FLAVOR') =~ /dvd/i && (is_sle_micro('<6.0') || is_leap_micro('<6.0'))
+    );
     my ($run_args) = @_;
     loadtest('containers/firewall', run_args => $run_args, name => $run_args->{runtime} . "_firewall");
 }
@@ -130,7 +133,7 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_pods';
     loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
-    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
+    load_firewall_test($run_args);
     loadtest 'containers/podman_ipv6' if (is_gce && is_sle('>=15-SP5'));
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
@@ -158,7 +161,7 @@ sub load_host_tests_docker {
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
-    load_firewall_test($run_args) unless (is_public_cloud || is_openstack || is_microos);
+    load_firewall_test($run_args);
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is only available on SLES < 15-SP6
