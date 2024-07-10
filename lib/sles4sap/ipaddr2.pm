@@ -29,7 +29,6 @@ our @EXPORT = qw(
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
-  ipaddr2_os_connectivity_sanity
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
@@ -305,6 +304,8 @@ in the deployment that has public IP.
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -324,6 +325,8 @@ For the worker to accept the ssh key of the bastion
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -358,6 +361,8 @@ For the worker to accept the ssh key of the internal VMs
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -423,8 +428,8 @@ scp in Proxy mode
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -555,8 +560,8 @@ die in case of failure
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -566,6 +571,21 @@ sub ipaddr2_os_sanity {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
+
+    foreach my $i (1 .. 2) {
+        # Check if ssh without password works between
+        # the bastion and each of the internal VMs
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "whoami | grep $user",
+            bastion_ip => $args{bastion_ip});
+
+        # check root
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'sudo whoami | grep root',
+            bastion_ip => $args{bastion_ip});
+    }
 }
 
 =head2 ipaddr2_os_connectivity_sanity
@@ -581,8 +601,8 @@ die in case of failure
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
@@ -600,13 +620,93 @@ sub ipaddr2_os_connectivity_sanity {
     # Check if the bastion is able to ping
     # the VM by hostname and private IP
     foreach my $i (1 .. 2) {
-        foreach my $addr (ipaddr2_get_internal_vm_private_ip(id => $i), ipaddr2_get_internal_vm_name(id => $i)) {
+        foreach my $addr (
+            ipaddr2_get_internal_vm_name(id => $i),
+            ipaddr2_get_internal_vm_private_ip(id => $i)) {
             foreach my $cmd ('ping -c 3 ', 'tracepath ', 'dig ') {
                 ipaddr2_ssh_assert_script_run_bastion(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
             }
         }
+    }
+}
+
+=head2 ipaddr2_os_network_sanity
+
+    ipaddr2_os_network_sanity()
+
+Check that private IP are in the network configuration on the internal VMs
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_network_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $i (1 .. 2) {
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'ip a show eth0 | grep -E "inet .*192\.168"',
+            bastion_ip => $args{bastion_ip});
+    }
+}
+
+=head2 ipaddr2_os_ssh_sanity
+
+    ipaddr2_os_ssh_sanity()
+
+Run some OS level checks on the various VMs ssh keys and configs.
+die in case of failure
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_ssh_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $user_ssh = "/home/$user/.ssh";
+    foreach my $i (1 .. 2) {
+        # Check if the folder /home/$user/.ssh
+        # exist in the $this internal VM
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "sudo [ -d $user_ssh ]",
+            bastion_ip => $args{bastion_ip});
+
+        # Check if the key /home/$user/.ssh/$key_id
+        # exists in this internal VM.
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "sudo [ -f $user_ssh/$key_id ]",
+            bastion_ip => $args{bastion_ip});
+
+        # Check authorized_keys content
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "cat $user_ssh/authorized_keys",
+            bastion_ip => $args{bastion_ip});
+
+        my $res = ipaddr2_ssh_internal_output(id => $i,
+            cmd => "cat $user_ssh/authorized_keys | wc -l",
+            bastion_ip => $args{bastion_ip});
+        die "User $user on internal VM $i should have 3 keys instead of $res" unless $res eq '3';
+
+        # Each internal VM has some pub keys from the pair
+        # generated by the test code during the configure step
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
+            bastion_ip => $args{bastion_ip});
     }
 }
 
@@ -621,8 +721,8 @@ run a command on the bastion using assert_script_run
 =over 2
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =item B<cmd> - command to run there
 
@@ -641,6 +741,45 @@ sub ipaddr2_ssh_assert_script_run_bastion {
             "'$args{cmd}'"));
 }
 
+=head2 ipaddr2_ssh_internal_cmd
+
+    script_run(ipaddr2_ssh_internal_cmd(
+        id => 2,
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami'));
+
+Compose an ssh command. Command is composed to be executed on one of the two internal VM.
+Command will use -J option to use the bastion as a proxy.
+This function does not really execute any command, it only return a string.
+Other functions can use result command string as input for various testapi functions,
+like assert_script_run or script_output.
+
+=over 3
+
+=item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<cmd> - Command to be run on the internal VM.
+
+=back
+=cut
+
+sub ipaddr2_ssh_internal_cmd {
+    my (%args) = @_;
+    foreach (qw(id cmd)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+
+    return join(' ',
+        'ssh', '-J', $bastion_ssh_addr,
+        "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
+        "'$args{cmd}'");
+}
+
 =head2 ipaddr2_ssh_internal
 
     ipaddr2_ssh_internal(
@@ -653,13 +792,13 @@ using the assert_script_run API
 
 =over 3
 
-=item B<id> - id of the internal VM, used to compose its name, used as address for ssh
+=item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
-=item B<cmd> - command to run there
+=item B<cmd> - Command to be run on the internal VM.
 
 =back
 =cut
@@ -669,12 +808,46 @@ sub ipaddr2_ssh_internal {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
-    assert_script_run(join(' ',
-            'ssh', '-J', $bastion_ssh_addr,
-            "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
-            "'$args{cmd}'"));
+    assert_script_run(ipaddr2_ssh_internal_cmd(
+            id => $args{id},
+            bastion_ip => $args{bastion_ip},
+            cmd => $args{cmd}));
+}
+
+=head2 ipaddr2_ssh_internal_output
+
+    ipaddr2_ssh_internal_output(
+        id => 2,
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+Runs $cmd  through the bastion on one of the two internal VMs using script_output.
+Return the command output.
+
+=over 3
+
+=item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<cmd> - Command to be run on the internal VM.
+
+=back
+=cut
+
+sub ipaddr2_ssh_internal_output {
+    my (%args) = @_;
+    foreach (qw(id cmd)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    return script_output(ipaddr2_ssh_internal_cmd(
+            id => $args{id},
+            bastion_ip => $args{bastion_ip},
+            cmd => $args{cmd}));
 }
 
 =head2 ipaddr2_create_cluster
@@ -686,8 +859,8 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
 =over 1
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      managed as argument not to have to call ipaddr2_bastion_pubip many time,
-                      so not to have to query az each time
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 =cut

@@ -190,6 +190,12 @@ subtest '[ipaddr2_os_sanity]' => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}]; });
 
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            # return exactly what ipaddr2_os_ssh_sanity needs
+            return 3; });
+
     ipaddr2_os_sanity();
 
     for my $call_idx (0 .. $#calls) {
@@ -206,24 +212,6 @@ subtest '[ipaddr2_bastion_pubip]' => sub {
     ok(($res eq '1.2.3.4'), "Expect 1.2.3.4 and get $res");
 };
 
-subtest '[ipaddr2_os_connectivity_sanity]' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    my @calls;
-    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-
-    ipaddr2_os_connectivity_sanity();
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    my $count = 0;
-    foreach my $cmd (@calls) {
-        $count++ if $cmd =~ m/^ssh/;
-    }
-    ok(($count eq 12),
-        "Expected 2VM * 2address_forms * 3cmd = 12 commands from the bastion and get $count");
-};
-
 subtest '[ipaddr2_internal_key_gen]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
@@ -238,6 +226,17 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
 
     ok((any { /ssh-keygen/ } @calls), 'Generate the keys if they does not exist');
+};
+
+subtest '[ipaddr2_deployment_logs]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $called = 0;
+    $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'Volta'; });
+    $ipaddr2->redefine(az_vm_diagnostic_log_get => sub { $called = 1; return; });
+
+    ipaddr2_deployment_logs();
+
+    ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
 
 done_testing;
