@@ -162,6 +162,7 @@ subtest "[stop_hana] crash" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
+    $sles4sap_publiccloud->redefine(wait_hana_node_up => sub { return; });
 
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();

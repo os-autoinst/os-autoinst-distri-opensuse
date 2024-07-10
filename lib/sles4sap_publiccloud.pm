@@ -14,6 +14,7 @@ package sles4sap_publiccloud;
 
 use base 'publiccloud::basetest';
 use strict;
+use JSON;
 use warnings FATAL => 'all';
 use Exporter 'import';
 use Scalar::Util 'looks_like_number';
@@ -299,6 +300,37 @@ sub is_hana_resource_running {
     }
 }
 
+=head2 is_hana_node_up
+    is_hana_node_up($my_instance, [timeout => 900]);
+
+    Waits until 'is_system_running' returns successfully on the target instance.
+
+=over 2
+
+=item B<instance> - the instance the test needs to wait for
+
+=item B<timeout> - how much time to wait for before aborting
+
+=back  
+=cut
+
+sub wait_hana_node_up {
+    my ($instance, %args) = @_;
+    $args{timeout} //= 900;
+    my $start_time = time();
+    my $out;
+    while ((time() - $start_time) < $args{timeout}) {
+        $out = $instance->run_ssh_command(
+            cmd => "sudo systemctl is-system-running",
+            timeout => 5,
+            proceed_on_failure => 1);
+        return if ($out =~ m/running/);
+        record_info("WAIT_FOR_SYSTEM", "System state: $out");
+        sleep 10;
+    }
+    die "Timeout reached. is_system_running returns \"$out\"";
+}
+
 =head2 stop_hana
     stop_hana([timeout => $timeout, method => $method]);
 
@@ -346,7 +378,8 @@ sub stop_hana {
         record_info("Wait ssh disappear start");
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
         record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
-        sleep 10;
+        # wait for node to be ready
+        wait_hana_node_up($self->{my_instance}, timeout => 900);
         $out = $self->{my_instance}->wait_for_ssh(timeout => 900);
         record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
     }
