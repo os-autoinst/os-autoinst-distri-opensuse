@@ -208,19 +208,8 @@ sub run {
         send_key 'ret';
     }
 
-    # Skip ssh key enrollment (for now)
-    unless (is_sle || is_sle_micro('<=6.0') || is_leap) {
-        assert_screen 'jeos-ssh-enroll-or-not';
-        send_key 'n';
-    }
-
-    if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
-        assert_screen 'jeos-please-configure-wifi';
-        send_key 'n';
-    }
-
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
-    if ((is_sle_micro('>=6.0')) && get_var("ENCRYPTED_IMAGE")) {
+    if (get_var('FLAVOR') =~ m/-encrypted/i) {
         # Select FDE with pass and tpm
         assert_screen "alp-fde-pass-tpm";
         # with the latest ALP 9.2/SLEM 3.4 build, this step takes more time than usual.
@@ -231,9 +220,21 @@ sub run {
         wait_still_screen 2;
         type_password;
         send_key "ret";
-        # Disk encryption is gonna take time. Once this is done we can proceed with login.
-        wait_still_screen 5;
+        # Disk encryption is gonna take time
+        assert_screen 're-encrypt-finished', 600;
     }
+
+    # Skip ssh key enrollment (for now)
+    unless (is_sle || is_sle_micro('<=6.0') || is_leap) {
+        assert_screen 'jeos-ssh-enroll-or-not', 120;
+        send_key 'n';
+    }
+
+    if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
+        assert_screen 'jeos-please-configure-wifi';
+        send_key 'n';
+    }
+
 
     if (is_bootloader_sdboot) {
         # Verify that /etc/issue shows the recovery key
