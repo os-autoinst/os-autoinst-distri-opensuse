@@ -697,6 +697,8 @@ sub initialize_test_result {
 
     $self->set_test_run_progress;
     my @_guest_migration_test = split(/,/, get_var('GUEST_MIGRATION_TEST', ''));
+    # Remove 'virsh_live_native_p2p_manual_postcopy' if present and record a soft failure
+    @_guest_migration_test = $self->filter_migration_tests(migration_tests => \@_guest_migration_test) if (is_sle('=15-sp6'));
     my $_full_test_matrix = is_kvm_host ? $parallel_guest_migration_base::guest_migration_matrix{kvm} : $parallel_guest_migration_base::guest_migration_matrix{xen};
     @_guest_migration_test = keys(%$_full_test_matrix) if (scalar @_guest_migration_test == 0);
     my $_localip = get_required_var('LOCAL_IPADDR');
@@ -1748,6 +1750,27 @@ sub check_peer_test_run {
     }
     $_peer_test_run_result = 'FAILED' if ($_peer_test_run_progress =~ /post_fail_hook/i);
     return $_peer_test_run_result;
+}
+
+=head2 filter_migration_tests
+
+Filters migration tests based on specified criteria.
+
+=cut
+
+sub filter_migration_tests {
+    my ($self, %args) = @_;
+    my @migration_tests = @{$args{migration_tests}};
+    my @guest_migration_test;
+
+    foreach (@migration_tests) {
+        if ($_ eq 'virsh_live_native_p2p_manual_postcopy') {
+            record_soft_failure('bsc#1221812 - qemu coredump when virsh migrate postcopy + virsh migrate-postcopy on sle15sp6 kvm host.');
+        } else {
+            push @guest_migration_test, $_;
+        }
+    }
+    return @guest_migration_test;
 }
 
 =head2 post_fail_hook
