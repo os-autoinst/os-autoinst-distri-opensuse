@@ -17,20 +17,20 @@ use utils;
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
-
+    my $server_node = get_var('SERVER_NODE', 'server-node00');
     my $local_nfs3 = "/home/localNFS3";
     my $local_nfs4 = "/home/localNFS4";
     my $local_nfs3_async = "/home/localNFS3async";
     my $local_nfs4_async = "/home/localNFS4async";
 
     barrier_wait("NFS_SERVER_ENABLED");
-    record_info("showmount", script_output("showmount -e server-node00"));
+    record_info("showmount", script_output("showmount -e $server_node"));
 
     assert_script_run("mkdir $local_nfs3 $local_nfs4 $local_nfs3_async $local_nfs4_async");
-    assert_script_run("mount -t nfs -o nfsvers=3 server-node00:/nfs/shared_nfs3 $local_nfs3");
-    assert_script_run("mount -t nfs -o nfsvers=4 server-node00:/nfs/shared_nfs4 $local_nfs4");
-    assert_script_run("mount -t nfs -o nfsvers=3 server-node00:/nfs/shared_nfs3_async $local_nfs3_async");
-    assert_script_run("mount -t nfs -o nfsvers=4 server-node00:/nfs/shared_nfs4_async $local_nfs4_async");
+    assert_script_run("mount -t nfs -o nfsvers=3 $server_node:/nfs/shared_nfs3 $local_nfs3");
+    assert_script_run("mount -t nfs -o nfsvers=4 $server_node:/nfs/shared_nfs4 $local_nfs4");
+    assert_script_run("mount -t nfs -o nfsvers=3 $server_node:/nfs/shared_nfs3_async $local_nfs3_async");
+    assert_script_run("mount -t nfs -o nfsvers=4 $server_node:/nfs/shared_nfs4_async $local_nfs4_async");
 
     barrier_wait("NFS_CLIENT_ENABLED");
 
