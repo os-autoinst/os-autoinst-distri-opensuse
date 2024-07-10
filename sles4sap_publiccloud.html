@@ -20,6 +20,7 @@
       <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
       <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
       <li><a href="#is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</a></li>
+      <li><a href="#is_hana_node_up-is_hana_node_up-my_instance-timeout-900">is_hana_node_up is_hana_node_up($my_instance, [timeout =&gt; 900]);</a></li>
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
@@ -138,6 +139,22 @@ otherwise it will be executed as root.</code></pre>
 <dl>
 
 <dt id="quiet---if-set-returns-the-value-without-recording-info-default:-0"><b>quiet</b> - if set, returns the value without recording info (default: 0)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="is_hana_node_up-is_hana_node_up-my_instance-timeout-900">is_hana_node_up is_hana_node_up($my_instance, [timeout =&gt; 900]);</h2>
+
+<pre><code>Waits until &#39;is_system_running&#39; returns successfully on the target instance.</code></pre>
+
+<dl>
+
+<dt id="instance---the-instance-the-test-needs-to-wait-for"><b>instance</b> - the instance the test needs to wait for</dt>
+<dd>
+
+</dd>
+<dt id="timeout---how-much-time-to-wait-for-before-aborting"><b>timeout</b> - how much time to wait for before aborting</dt>
 <dd>
 
 </dd>
