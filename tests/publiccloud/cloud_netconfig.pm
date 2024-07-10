@@ -64,8 +64,10 @@ sub run {
           . '&format=text"';
     }
     elsif (is_ec2()) {
+        my $access_token = $instance->ssh_script_output(cmd => "curl -X PUT http://$pc_meta_api_ip/latest/api/token -H \"X-aws-ec2-metadata-token-ttl-seconds: 60\"");
+        record_info("DEBUG", $access_token);
         $query_meta_ipv4_cmd =
-          "curl \"http://$pc_meta_api_ip/latest/meta-data/local-ipv4\"";
+          "curl -H \"X-aws-ec2-metadata-token: $access_token\" \"http://$pc_meta_api_ip/latest/meta-data/local-ipv4\"";
     }
     elsif (is_gce()) {
         $query_meta_ipv4_cmd =
@@ -77,6 +79,7 @@ sub run {
     }
     my $metadata_eth0_ip =
       $instance->ssh_script_output(cmd => $query_meta_ipv4_cmd);
+    die("Failed to get IP from metadata server") unless length($metadata_eth0_ip);
     assert_equals($metadata_eth0_ip, $local_eth0_ip,
         'Locally assigned IP does not equal the IP retrieved from CSP '
           . ' metadata service.');
