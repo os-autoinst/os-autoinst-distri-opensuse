@@ -2368,7 +2368,7 @@ sub qesap_az_list_container_files {
         'az storage blob list',
         '--account-name', $args{storage},
         '--container-name', $args{container},
-        '--sas-token', $args{token},
+        '--sas-token', "'$args{token}'",
         '--prefix', $args{prefix},
         '--query "[].{name:name}" --output tsv');
     my $ret = script_output($cmd);
