@@ -1,0 +1,10 @@
+---
+volume_groups:
+  - name: vg-system
+    devices:
+      - /dev/md0p1
+    logical_volumes:
+      - name: lv-root
+        role: operating-system
+lvpath: /dev/vg-system/lv-root
+pvname: /dev/md0p1

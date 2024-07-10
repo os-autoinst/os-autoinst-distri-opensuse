@@ -1,0 +1,24 @@
+---
+disks:
+  - name: dasda
+    table_type: dasd
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: dasda1
+        role: operating-system
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: dasda2
+        role: swap
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: swap
+        mounting_options:
+          should_mount: 1
+          mount_point: SWAP
