@@ -625,6 +625,23 @@ subtest '[create_playbook_section_list] registration => suseconnect' => sub {
 };
 
 
+subtest '[create_playbook_section_list] ptf' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(
+        ptf_files => 'Marcantonio Colonna',
+        ptf_token => 'Seb4sti4n0Ven1er',
+        ptf_container => 'VettorPisani',
+        ptf_account => 'LorenzoMarcello');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /ptf_installation\.yaml.*/ } @$ansible_playbooks), 'ptf_installation playbook');
+};
+
+
 subtest '[enable_replication]' => sub {
     my $self = sles4sap_publiccloud->new();
     $self->{my_instance}->{instance_id} = 'vmhana01';

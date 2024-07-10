@@ -376,10 +376,10 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
 
 subtest '[qesap_az_list_container_files] missing arguments' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    dies_ok { qesap_az_list_container_files(storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Missing container argument';
-    dies_ok { qesap_az_list_container_files(container => 'BALAMB', token => 'SAS', prefix => 'SQUALL') } 'Missing storage argument';
-    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', prefix => 'SQUALL') } 'Missing token argument';
-    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS') } 'Missing prefix argument';
+    dies_ok { qesap_az_list_container_files(storage => 'TAD', token => 'SAS', prefix => 'GURGLE') } 'Missing container argument';
+    dies_ok { qesap_az_list_container_files(container => 'BLOAT', token => 'SAS', prefix => 'GURGLE') } 'Missing storage argument';
+    dies_ok { qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', prefix => 'GURGLE') } 'Missing token argument';
+    dies_ok { qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', token => 'SAS') } 'Missing prefix argument';
 };
 
 subtest '[qesap_az_list_container_files] bad output' => sub {
@@ -387,21 +387,21 @@ subtest '[qesap_az_list_container_files] bad output' => sub {
     my @calls;
     my $so_ret = '';
     $qesap->redefine(script_output => sub { return $so_ret; });
-    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Empty return string';
+    dies_ok { qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', token => 'SAS', prefix => 'GURGLE') } 'Empty return string';
     $so_ret = ' ';
-    dies_ok { qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL') } 'Space-only return string';
+    dies_ok { qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', token => 'SAS', prefix => 'GURGLE') } 'Space-only return string';
 };
 
 subtest '[qesap_az_list_container_files] command composition' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'SQUALL/ifrit.rpm\nSQUALL/shiva.src.rpm' });
-    qesap_az_list_container_files(container => 'BALAMB', storage => 'GALBADIA', token => 'SAS', prefix => 'SQUALL');
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GURGLE/ifrit.rpm\nGURGLE/shiva.src.rpm' });
+    qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', token => 'SAS', prefix => 'GURGLE');
     ok((any { /az storage blob list.*/ } @calls), 'Main az command `az storage blob list` properly composed');
-    ok((any { /.*--account-name GALBADIA.*/ } @calls), 'storage argument is used for --account-name');
-    ok((any { /.*--container-name BALAMB.*/ } @calls), 'container argument is used for --container-name');
-    ok((any { /--sas-token SAS.*/ } @calls), 'token argument is used for --sas-token');
-    ok((any { /.*--prefix SQUALL*/ } @calls), 'prefix argument used for --prefix');
+    ok((any { /.*--account-name TAD.*/ } @calls), 'storage argument is used for --account-name');
+    ok((any { /.*--container-name BLOAT.*/ } @calls), 'container argument is used for --container-name');
+    ok((any { /--sas-token 'SAS'.*/ } @calls), 'token argument is used for --sas-token');
+    ok((any { /.*--prefix GURGLE*/ } @calls), 'prefix argument used for --prefix');
 };
 
 subtest '[qesap_az_get_native_fencing_type]' => sub {

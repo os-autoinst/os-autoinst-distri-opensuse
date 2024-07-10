@@ -826,7 +826,7 @@ sub delete_network_peering {
     Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
     in the "ansible: create:" section of config.yaml file.
 
-=over 3
+=over 7
 
 =item B<ha_enabled> - Enable the installation of HANA and the cluster configuration
 
@@ -839,9 +839,11 @@ sub delete_network_peering {
 
 =item B<ptf_files> - list of PTF files (optional)
 
-=item B<token> - SAS token to access the PTF files (optional)
+=item B<ptf_token> - SAS token to access the PTF files (optional)
 
-=item B<container> - name of the container for PTF files
+=item B<ptf_account> - name of the account for the ptf container
+
+=item B<ptf_container> - name of the container for PTF files
 
 =back
 =cut
@@ -870,9 +872,13 @@ sub create_playbook_section_list {
     }
 
     # Add playbook to download and install PTFs, if any
-    if ($args{ptf_files} && $args{token} && $args{container}) {
-        $args{token} =~ s/\\\&/\&/g;
-        push @playbook_list, "ptf_installation.yaml -e ptf_files=$args{ptf_files} -e sas_token=$args{token} -e container=$args{container} -e storage=" . get_required_var('HANA_ACCOUNT');
+    if ($args{ptf_files} && $args{ptf_token} && $args{ptf_container} && $args{ptf_account}) {
+        push @playbook_list, join(' ',
+            'ptf_installation.yaml',
+            "-e ptf_files=$args{ptf_files}",
+            "-e sas_token='$args{ptf_token}'",
+            "-e container=$args{ptf_container}",
+            "-e storage=$args{ptf_account}");
         push @playbook_list, "additional_fence_agent_tasks.yaml";
     }
 
