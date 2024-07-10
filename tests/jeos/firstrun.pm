@@ -105,7 +105,11 @@ sub verify_bsc {
 }
 
 sub verify_partition_label {
-    my $label = is_s390x ? 'dos' : 'gpt';
+    my $label = 'gpt';
+
+    if (is_s390x || (is_aarch64 && get_var('HDD_1') =~ /.*raw\.xz$/)) {
+        $label = 'dos';
+    }
 
     script_output('sfdisk -l') =~ m/Disklabel type:\s+$label/ or die "Wrong partion label found, expected '$label'";
 }
