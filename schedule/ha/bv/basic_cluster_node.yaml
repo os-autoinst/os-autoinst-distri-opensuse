@@ -39,11 +39,12 @@ vars:
   TIMEOUT_SCALE: '2'
   # LVM locking daemon used since SLE 15
   USE_LVMLOCKD: '1'
-  USE_SUPPORT_SERVER: '1'
   VIRTIO_CONSOLE: '0'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-HA-BV.qcow2
 schedule:
+  - '{{s390x_cluster_setup}}'
+  - '{{bootloader_zkvm}}'
   - boot/boot_to_desktop
   - ha/wait_barriers
   - console/system_prepare
@@ -53,6 +54,7 @@ schedule:
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
   - ha/iscsi_client
+  - '{{setup_hosts_and_luns}}'
   - ha/watchdog
   - '{{cluster_setup}}'
   - ha/check_hawk
@@ -71,6 +73,18 @@ schedule:
   - ha/check_logs
   - '{{create_hdd_tests}}'
 conditional_schedule:
+  setup_hosts_and_luns:
+    ARCH:
+      s390x:
+        - ha/setup_hosts_and_luns
+  s390x_cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/barrier_init
+  bootloader_zkvm:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
   cluster_setup:
     HA_CLUSTER_INIT:
       yes:
