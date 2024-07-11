@@ -39,6 +39,8 @@ $software{'update-test-feature'} = {    # See poo#36451
     repo => is_sle('15+') ? 'Basesystem' : 'SLES',
     installed => 0,
     available => sub { get_var('BETA') },
+    # Skip the check on sle15sp6 due to bsc#1225970
+    condition => sub { is_sle('<15-SP6') },
 };
 # Define more packages with the same set of expectations
 $software{'update-test-interactive'} = $software{'update-test-feature'};
