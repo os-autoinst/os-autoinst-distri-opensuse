@@ -45,10 +45,11 @@ sub run {
     }
 
     if (get_var('TDUP')) {
-        my $unresolved_config = script_output('rpmconfigcheck');
         my $cont_storage = '/etc/containers/storage.conf';
-        if ($unresolved_config =~ m|$cont_storage|) {
-            assert_script_run(sprintf('mv  %s.rpmnew %s', $cont_storage, $cont_storage));
+
+        # use only packaged storage config in /usr/share/containers/storage.conf
+        if (!script_run("test -f $cont_storage &> /dev/null")) {
+            assert_script_run("rm -rf $cont_storage");
             assert_script_run('rm -rf /var/lib/containers/storage');
             assert_script_run('podman system reset -f');
         }
