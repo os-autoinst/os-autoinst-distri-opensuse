@@ -44,6 +44,7 @@ sub run {
     }
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
+    assert_script_run('mkdir -p /etc/systemd/journald.conf.d/');
     $self->write_cfg('/etc/systemd/journald.conf.d/99-openqa-wicked-tests.conf', <<EOT);
         [Journal]
         # see: https://github.com/systemd/systemd/commit/f0367da7d1a61ad698a55d17b5c28ddce0dc265a
