@@ -195,10 +195,10 @@ EOT
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
         $self->reboot() if $need_reboot;
-        record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
         record_info('ps', script_output(q(ps -aux)));
         wicked::wlan::prepare_sut() if (check_var('WICKED', 'wlan'));
     }
+    record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 }
 
 sub switch_to_wicked {
