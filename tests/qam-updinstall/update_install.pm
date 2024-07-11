@@ -331,6 +331,7 @@ sub run {
                 assert_script_run("snapper rollback $rollback_number");
                 reboot_and_login;
             }
+            disable_test_repositories($repos_count);
         }
 
         # Install released version of installable binaries.
