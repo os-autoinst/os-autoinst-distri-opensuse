@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: wicked teamd
@@ -38,7 +38,7 @@ sub validate_team_port_config {
         die("Teamd configuration failed in $k: got:'" . ($val // 'undef') . "' expected: '" . ($v // 'undef') . "'")
           unless ((defined($val) && $val eq $v) || (!defined($val) && !defined($v)));
     }
-    $self->wicked_command('ifdown', 'team0');
+    $self->wicked_command('ifdown', "team0 $iface1 $iface2");
 }
 
 sub run {
