@@ -77,6 +77,8 @@ my @conflicting_packages = (
     'openmpi4-config', 'pmix-mca-params',
     'rmt-server-pubcloud',
     'systemtap-sdt-devel',
+    'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
     'kernel-default-base', 'kernel-default-extra'
 );
 
