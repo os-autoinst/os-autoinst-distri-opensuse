@@ -21,6 +21,7 @@ use repo_tools 'generate_version';
 use wicked::wlan;
 use mm_network;
 use power_action_utils 'power_action';
+use Mojo::Util 'trim';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -151,9 +152,8 @@ EOT
             ($repo_id) = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
             zypper_call("in --from $repo_id $resolv_options --force -y --force-resolution  wicked wicked-service", log => 'zypper_in_wicked.log');
             my ($zypper_in_output) = script_output('cat /tmp/zypper_in_wicked.log');
-            my @installed_packages;
-            my $reg = 'The following (\d+|NEW) packages? (are|is) going to be (installed|reinstalled|upgraded|downgraded):';
-            push(@installed_packages, split(/\s+/, $+{packages})) if ($zypper_in_output =~ m/(?s)($reg(?<packages>.*?))(?:\r*\n){2}/);
+            my $reg = 'The following (?:\d+ |NEW )?packages? (?:are|is) going to be (?:installed|reinstalled|upgraded|downgraded):';
+            my @installed_packages = map { split(/\s+/, trim($_)) } $zypper_in_output =~ m/(?s)(?:$reg(?<packages>.*?))(?:\r*\n){2}/g;
             record_info('INSTALLED', join("\n", @installed_packages));
             for my $pkg ('wicked', 'wicked-service') {
                 die("Missing installation of package $pkg!") unless grep { $_ eq $pkg } @installed_packages;
