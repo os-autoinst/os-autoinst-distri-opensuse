@@ -166,19 +166,34 @@ sub valgrind_get_services {
 
 =head2 valgrind_cmd
 
-    valgrind_cmd([$service])
+    valgrind_cmd([service => undef, systemd => 0])
 
-Retrieves the valgrind command. If the C<$service> is given, the log file will contain
+Retrieves the valgrind command. If the C<service> is given, the log file will contain
 the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command.
+When the command is needed to rewrite the systemd service file, specify C<<systemd=>1>>.
 
 =cut
 
 sub valgrind_cmd {
-    my ($self, $service) = @_;
+    my ($self, %args) = @_;
+    $args{service} //= undef;
+    $args{systemd} //= 0;
 
-    my $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', '/usr/bin/valgrind --tool=memcheck --leak-check=yes');
-    if ($service) {
-        my $logfile = "/var/log/valgrind_$service.log";
+    my $valgrind_cmd = '/usr/bin/valgrind --verbose --tool=memcheck --leak-check=yes';
+
+    # Don't add environment variable to disable debuginfod when we retrive the
+    # command for the systemd service file.
+    # XXX We could use '--enable-debuginfod=no' but it comes with valgrind 3.20.0
+    # which isn't in sle-12-SP5 yet.
+    if ($args{systemd} == 0) {
+        $valgrind_cmd = "DEBUGINFOD_URLS='' $valgrind_cmd";
+    }
+
+    $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', $valgrind_cmd);
+    if ($args{service}) {
+        my $cnt = $self->{valgrind_log_file_counter}->{$args{service}} += 1;
+        my $logfile = "/var/log/valgrind_" . $args{service} . "_$cnt.log";
+        $self->add_post_log_file($logfile);
         $valgrind_cmd = "$valgrind_cmd --log-file=$logfile";
     }
     return $valgrind_cmd;
@@ -195,12 +210,13 @@ specified via WICKED_VALGRIND.
 
 sub valgrind_enable {
     my $self = shift;
-    my $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', '/usr/bin/valgrind --tool=memcheck --leak-check=yes');
 
     my @services = $self->valgrind_get_services();
     return 0 if (!@services);
 
-    record_info("valgrind enable", "services: @services\ncommand: $valgrind_cmd");
+
+    record_info("valgrind enable", "services: @services\ncommand: " . $self->valgrind_cmd);
+    assert_script_run(q(echo 'DEBUGINFOD_URLS=""' >> /etc/sysconfig/network/config));
 
     foreach my $service (@services) {
         my $service_file = "/etc/systemd/system/$service.service";
@@ -208,7 +224,7 @@ sub valgrind_enable {
         assert_script_run("systemctl cat $service > $service_file");
         # Add valgrind command prefix to `ExecStart=` in the custom service file
         assert_script_run(sprintf(q(sed -i -E 's@^(ExecStart=)(.*)$@\1%s \2@' '%s'),
-                $self->valgrind_cmd($service), $service_file));
+                $self->valgrind_cmd(service => $service, systemd => 1), $service_file));
 
         record_info("$service.service", script_output("cat $service_file"));
     }
@@ -231,7 +247,7 @@ sub valgrind_prerun {
 
     my @services = $self->valgrind_get_services();
     foreach my $service (@services) {
-        my $logfile = "/var/log/valgrind_$service.log";
+        my $logfile = "/var/log/valgrind_${service}_*.log";
 
         assert_script_run("rm -f $logfile");
     }
@@ -250,15 +266,13 @@ sub valgrind_postrun {
 
     my @services = $self->valgrind_get_services();
     foreach my $service (@services) {
-        my $logfile = "/var/log/valgrind_$service.log";
 
-        my @lines = split(/\r?\n/, script_output("test -r '$logfile' && grep 'ERROR SUMMARY' '$logfile' || true"));
-        foreach my $l (@lines) {
-            if ($l =~ /ERROR\s+SUMMARY:\s+(\d+)/) {
+        my @files = split(/\r?\n/, script_output("find /var/log -name 'valgrind_${service}_*.log' -print"));
+        foreach my $f (@files) {
+            if ((my $out = script_output("cat '$f'")) =~ /ERROR\s+SUMMARY:\s+(\d+)/) {
                 if ($1 > 0) {
-                    record_info("valgrind $service", "service:$service\n\n" . script_output("cat $logfile"), result => 'fail');
+                    record_info("valgrind $service", "service: $service\nfile: $f\n\n" . $out, result => 'fail');
                     $self->result('fail');
-                    last;
                 }
             }
         }
