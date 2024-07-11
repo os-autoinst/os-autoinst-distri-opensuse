@@ -310,6 +310,7 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/run_ltp", run_args => $args);
         }
         else {
+            loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
     }
