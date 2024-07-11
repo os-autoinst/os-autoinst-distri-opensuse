@@ -36,7 +36,7 @@
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
-      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
+      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV', 'ttyS1') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
       <secure_boot>false</secure_boot>
