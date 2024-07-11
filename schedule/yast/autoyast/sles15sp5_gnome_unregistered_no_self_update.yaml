@@ -1,0 +1,21 @@
+name: sles15sp5_gnome_unregistered_no_self_update
+description:    >
+  This test performs an AutoYaST installation and generates a QCOW image of a minimal SLES setup.
+  The installation includes X11 but excludes registration and updates, including self-updates.
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
