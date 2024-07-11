@@ -49,12 +49,12 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>false</secure_boot>
-      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
+      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV', 'ttyS1') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>splash=silent quiet console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
+      <xen_append>splash=silent quiet console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></xen_append>
       <!-- For some special beremetal machines, such as unreal2/3, their serial console:
       SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1" -->
       <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console</xen_kernel_append>
@@ -64,15 +64,15 @@
           % if ($check_var->('VIRT_SEV_ES_GUEST_INSTALL', '1')) {
             <!-- Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107 -->
             % if ($check_var->('VERSION', '15-SP6')) { 
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></append>
             % } else {
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></append>
             % }
           % } else {
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></append>
           % }
         % } else { 
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty intel_iommu=on <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty intel_iommu=on <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></append>
         % }
       % }
     </global>
@@ -278,6 +278,19 @@
     </user>
   </users>
   <scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <!-- Keep ssh connection alive for long-time run test -->
+        <chrooted t="boolean">true</chrooted>
+        <filename>configure_sshd.sh</filename>
+        <interpreter>/bin/bash -x</interpreter>
+        <source><![CDATA[
+sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
+echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
+]]>
+        </source>
+      </script>
+    </chroot-scripts>
     <post-scripts config:type="list">
       % if ($check_var->('SYSTEM_ROLE', 'xen') && $check_var->('XEN_DEFAULT_BOOT_IS_SET', 1)) {
       <script>

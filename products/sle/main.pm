@@ -620,6 +620,7 @@ sub load_virt_feature_tests {
     }
     loadtest "virt_autotest/xen_guest_irqbalance" if get_var("ENABLE_XEN_GUEST_IRQBALANCE");
     loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH");
+    loadtest "virt_autotest/vgpu" if get_var("VGPU_TEST");
     if (get_var('ENABLE_HOTPLUGGING')) {
         loadtest 'virtualization/universal/hotplugging_guest_preparation';
         loadtest 'virtualization/universal/hotplugging_network_interfaces';

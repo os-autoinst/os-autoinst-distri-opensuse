@@ -261,8 +261,8 @@ sub login_to_console {
 
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
-    # For TW hosts, sshd configurations have been created in its autoyast profiles
-    if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', '')) {
+    # For SLE15 and TW autoyast installation, sshd configurations have been created in its autoyast profiles
+    if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST') and !(is_sle('15+') and get_var('AUTOYAST'))) {
         if (is_sle) {
             set_ssh_console_timeout_before_use;
         }

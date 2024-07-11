@@ -121,8 +121,8 @@ sub setup_console_in_grub {
     elsif (${virt_type} eq "kvm") {
         #enable Intel VT-d for SR-IOV test running on intel SUTs
         my $intel_option = "";
-        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
-            $intel_option = "intel_iommu=on";
+        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") or get_var("VGPU_TEST")) {
+            $intel_option = "intel_iommu=on" if script_run("grep Intel /proc/cpuinfo") == 0;
         }
 
         $cmd
