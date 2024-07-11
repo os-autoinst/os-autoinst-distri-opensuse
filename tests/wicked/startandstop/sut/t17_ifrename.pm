@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: wicked
@@ -17,7 +17,7 @@ sub run {
     my $ifc = $ctx->iface();
     my $config = '/etc/sysconfig/network/ifcfg-' . $ifc;
     assert_script_run(q(echo -e "STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='10.0.2.11/15'" > ) . $config);
-    $self->get_from_data('wicked/ifrename-1.sh', '/tmp/ifrename-1.sh', executable => 1);
+    $self->get_from_data('wicked/scripts/ifrename-1.sh', '/tmp/ifrename-1.sh', executable => 1);
 
     script_run('touch /etc/udev/rules.d/70-persistent-net.rules', die_on_timeout => 1);
 

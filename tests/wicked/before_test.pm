@@ -180,7 +180,7 @@ EOT
             $package_list .= ' valgrind';
         }
         $package_list .= ' openvswitch iputils';
-        $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
+        $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate') || check_var('WICKED', 'startandstop');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
