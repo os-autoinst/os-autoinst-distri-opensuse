@@ -55,7 +55,7 @@ sub wicked_command {
     assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> ' . $serial_log);
     $cmd = $self->valgrind_cmd('wicked') . " $cmd" if (grep { /^wicked$/ } $self->valgrind_get_services());
     record_info('wicked cmd', $cmd);
-    assert_script_run($cmd . ' 2>&1 | tee -a ' . $serial_log);
+    assert_script_run('time ' . $cmd . ' 2>&1 | tee -a ' . $serial_log);
     assert_script_run(q(echo -e "\n# ip addr" >> ) . $serial_log);
     assert_script_run('ip addr 2>&1 | tee -a ' . $serial_log);
 }
