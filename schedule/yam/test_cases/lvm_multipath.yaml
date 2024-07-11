@@ -2,13 +2,6 @@
 name:           lvm_multipath
 description:    >
   Textmode installation test for lvm partitioning with no spearate home, on multipath with lvm validation.
-vars:
-  DESKTOP: textmode
-  MULTIPATH: 1
-  LVM: 1
-  SEPARATE_HOME: 0
-  HDDMODEL: scsi-hd
-  YUI_REST_API: 1
 schedule:
   system_probing:
     - installation/multipath
@@ -26,5 +19,3 @@ schedule:
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
-test_data:
-  <<: !include test_data/yast/multipath.yaml
