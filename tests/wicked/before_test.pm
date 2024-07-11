@@ -183,7 +183,7 @@ EOT
         }
         if (check_var('WICKED', 'startandstop')) {
             # No firewalld on sles 12-SP5 (bsc#1180116)
-            if (is_sle('>12-SP5')) {
+            if (!is_sle('<=12-SP5')) {
                 zypper_call('-q in firewalld', timeout => 400);
                 systemctl('disable --now firewalld');
             }
