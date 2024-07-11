@@ -363,6 +363,7 @@ sub get_ip {
         ipv6 => ['fd00:dead:beef:', 'fd00:dead:beef:'],
         dhcp6 => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
         dns_advice => ['fd00:dead:beef:6021::42', 'fd00:dead:beef:6021::42'],
+        vxlan => ['10.100.0.11/24', '10.100.0.10/24'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
     die "$args{type} not exists" unless $ip;
@@ -811,6 +812,34 @@ sub setup_team {
     file_content_replace($cfg_team0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip4 => $ping_ip4, ping_ip6 => $ping_ip6);
 
     $self->wicked_command('ifup', 'all');
+}
+
+sub setup_vxlan {
+    my ($self, $ctx) = @_;
+
+    my $remote_ip = $self->get_remote_ip(type => 'host');
+    my $local_ip = $self->get_ip(type => 'host', netmask => 1);
+    my $tunl_ip = $self->get_ip(type => 'vxlan', netmask => 1);
+
+    $self->write_cfg('/etc/sysconfig/network/ifcfg-vxlan1', <<EOT);
+STARTMODE=auto
+BOOTPROTO=static
+LLADDR={{unique_macaddr}}
+IPADDR=$tunl_ip
+VXLAN=yes
+VXLAN_ID=100
+VXLAN_REMOTE_IP=$remote_ip
+EOT
+
+    $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $ctx->iface(), <<EOT);
+STARTMODE=auto
+BOOTPROTO=static
+IPADDR=$local_ip
+EOT
+
+    $self->wicked_command('ifup', 'all');
+
+    $self->ping_with_timeout(type => 'vxlan', interface => 'vxlan1', count_success => 30, timeout => 4);
 }
 
 sub get_active_link {
