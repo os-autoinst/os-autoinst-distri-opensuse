@@ -49,6 +49,8 @@
       <li><a href="#az_network_peering_create">az_network_peering_create</a></li>
       <li><a href="#az_network_peering_list">az_network_peering_list</a></li>
       <li><a href="#az_network_peering_delete">az_network_peering_delete</a></li>
+      <li><a href="#az_disk_create">az_disk_create</a></li>
+      <li><a href="#az_resource_delete">az_resource_delete</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -900,6 +902,37 @@
 
 </dd>
 </dl>
+
+<h2 id="az_disk_create">az_disk_create</h2>
+
+<pre><code>az_disk_create(resource_group=&gt;$resource_group, name=&gt;$name
+    [, size_gb=&gt;60, source=$source, tags=&quot;tag1=value1 tag2=value2&quot;]);</code></pre>
+
+<p>Creates new disk device either by specifying <b>size_gb</b> or by cloning another disk device using argument <b>source</b>. Arguments <b>size_gb</b> and <b>source</b> are mutually exclusive.</p>
+
+<p><b>name</b> New disk name</p>
+
+<p><b>resource_group</b> Existing resource group name.</p>
+
+<p><b>source</b> Create disk by cloning snapshot</p>
+
+<p><b>size_gb</b> New disk size</p>
+
+<p><b>tags</b> Additional tags to add to the disk resource. key=value pairs must be separated by empty space. Example: az_disk_create(tags=&gt;&quot;some_tag=some_value another_tag=another_value&quot;)</p>
+
+<h2 id="az_resource_delete">az_resource_delete</h2>
+
+<pre><code>az_resource_delete(resource_group=&gt;$resource_group, name=&gt;$name);</code></pre>
+
+<p>Deletes resource from specified resource group. Single resource can be deleted by specifying <b>name</b> or list of resource IDs delimited by empty space using argument <b>ids</b>. Arguments <b>name</b> and <b>ids</b> are mutually exclusive.</p>
+
+<p><b>resource_group</b> Existing resource group name.</p>
+
+<p><b>name</b> Name of the resource to delete</p>
+
+<p><b>ids</b> list of resource IDs to delete</p>
+
+<p><b>timeout</b> Timeout for az command. Default: 60</p>
 
 
 </body>

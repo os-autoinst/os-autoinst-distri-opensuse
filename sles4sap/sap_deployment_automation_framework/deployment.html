@@ -21,7 +21,6 @@
       <li><a href="#get_os_variable">get_os_variable</a></li>
       <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
       <li><a href="#load_os_env_variables">load_os_env_variables</a></li>
-      <li><a href="#sdaf_get_deployer_ip">sdaf_get_deployer_ip</a></li>
       <li><a href="#sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
@@ -157,14 +156,6 @@ tee - writes output also into the log file</code></pre>
 <pre><code>load_os_env_variables();</code></pre>
 
 <p>Sources file containing OS env variables required for executing SDAF. Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing variables is not an option since tests would constantly overwrite variables between each other.</p>
-
-<h2 id="sdaf_get_deployer_ip">sdaf_get_deployer_ip</h2>
-
-<pre><code>sdaf_get_deployer_ip(deployer_resource_group=&gt;$deployer_resource_group);</code></pre>
-
-<p><b>deployer_resource_group</b>: Deployer key vault name</p>
-
-<p>Retrieves public IP of the deployer VM.</p>
 
 <h2 id="sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</h2>
 

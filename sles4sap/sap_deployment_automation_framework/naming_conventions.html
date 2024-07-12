@@ -25,6 +25,7 @@
       <li><a href="#get_sdaf_config_path">get_sdaf_config_path</a></li>
       <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
       <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
+      <li><a href="#generate_deployer_name">generate_deployer_name</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/naming_conventions.pm</h1>
@@ -145,6 +146,12 @@
 <p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
 
 <p>Returns name of the resource group for the deployment type specified by <b>$deployment_type</b> . Resource group pattern: <i>SDAF-OpenQA-[deployment type]-[deployment id]-[OpenQA job id]</i></p>
+
+<h2 id="generate_deployer_name">generate_deployer_name</h2>
+
+<pre><code>generate_deployer_name();</code></pre>
+
+<p>Generates resource name for deployer VM in format <b>test_id-OpenQA_Deployer_VM</b>.</p>
 
 
 </body>
