@@ -13,7 +13,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot is_community_jeos);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -107,7 +107,7 @@ sub verify_bsc {
 sub verify_partition_label {
     my $label = 'gpt';
 
-    if (is_s390x || (is_aarch64 && get_var('HDD_1') =~ /.*raw\.xz$/)) {
+    if (is_s390x || (is_aarch64 && get_var('HDD_1') =~ /.*raw\.xz$/ && !is_community_jeos)) {
         $label = 'dos';
     }
 
