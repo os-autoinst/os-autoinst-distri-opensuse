@@ -3,7 +3,7 @@ schedule:
   - boot/boot_to_desktop
   - migration/record_disk_info
   - yam/migration/setup_registration
-  - yam/migration/setup_upgrade
+  - yam/migration/setup_upgrade_env
   - yam/migration/reboot_to_boot_screen
   - autoyast/prepare_profile
   - installation/bootloader
