@@ -197,44 +197,6 @@ LAB-SECE-DEP05-ssh
     dies_ok { sdaf_prepare_ssh_keys(deployer_key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
 };
 
-subtest '[sdaf_get_deployer_ip] Test passing behavior' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @script_output_commands;
-    $ms_sdaf->redefine(record_info => sub { return; });
-    $ms_sdaf->redefine(script_output => sub {
-            push @script_output_commands, $_[0];
-            return 'vmhana01' if grep /vm\slist\s/, @_;
-            return '192.168.0.1'; });
-
-    my $ip_addr = sdaf_get_deployer_ip(deployer_resource_group => 'OpenQA_SDAF_0079');
-    is $script_output_commands[0], 'az vm list --resource-group OpenQA_SDAF_0079 --query [].name --output tsv',
-      'Pass using correct command for retrieving vm list';
-    is $script_output_commands[1],
-      'az vm list-ip-addresses --resource-group OpenQA_SDAF_0079 --name vmhana01 --query "[].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv',
-      'Pass using correct command for retrieving public IP addr';
-    is $ip_addr, '192.168.0.1', 'Pass returning correct IP addr';
-
-    dies_ok { sdaf_get_deployer_ip() } 'Fail with missing deployer resource group argument';
-    $ms_sdaf->redefine(script_output => sub { return '192.168.0.1'; });
-};
-
-subtest '[sdaf_get_deployer_ip] Test expected failures' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(record_info => sub { return; });
-    my @incorrect_ip_addresses = (
-        '192.168.0.500',
-        '192.168.o.5',
-        '192.168.0.',
-        '2001:db8:85a3::8a2e:370:7334'
-    );
-
-    dies_ok { sdaf_get_deployer_ip() } 'Fail with missing deployer resource group argument';
-    for my $ip_input (@incorrect_ip_addresses) {
-        $ms_sdaf->redefine(script_output => sub { return $ip_input; });
-        dies_ok { sdaf_get_deployer_ip(deployer_resource_group => 'Open_QA_DEPLOYER') } "Detect incorrect IP addr pattern: $ip_input";
-    }
-};
-
 subtest '[set_common_sdaf_os_env]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my %arguments = (
@@ -289,7 +251,6 @@ subtest '[az_login]' => sub {
 
     my $env_variable_file_content;
 
-    $ms_sdaf->redefine(get_current_job_id => sub { return '0097'; });
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });

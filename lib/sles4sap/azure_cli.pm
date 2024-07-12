@@ -51,6 +51,8 @@ our @EXPORT = qw(
   az_network_peering_create
   az_network_peering_list
   az_network_peering_delete
+  az_disk_create
+  az_resource_delete
 );
 
 
@@ -1217,3 +1219,73 @@ sub az_network_peering_delete {
     assert_script_run($az_cmd);
 }
 
+=head2 az_disk_create
+
+    az_disk_create(resource_group=>$resource_group, name=>$name
+        [, size_gb=>60, source=$source, tags="tag1=value1 tag2=value2"]);
+
+
+Creates new disk device either by specifying B<size_gb> or by cloning another disk device using argument B<source>.
+Arguments B<size_gb> and B<source> are mutually exclusive.
+
+B<name> New disk name
+
+B<resource_group> Existing resource group name.
+
+B<source> Create disk by cloning snapshot
+
+B<size_gb> New disk size
+
+B<tags> Additional tags to add to the disk resource. key=value pairs must be separated by empty space.
+    Example: az_disk_create(tags=>"some_tag=some_value another_tag=another_value")
+
+=cut
+
+sub az_disk_create {
+    my (%args) = @_;
+    foreach ('resource_group', 'name') { croak("Argument < $_ > missing") unless $args{$_}; }
+    croak "Arguments 'size_gb' and 'source' are mutually exclusive" if $args{size_gb} and $args{source};
+    croak "Argument 'size_gb' or 'source' has to be specified" unless $args{size_gb} or $args{source};
+
+    my @az_command = ('az disk create',
+        "--resource-group $args{resource_group}",
+        "--name $args{name}",
+    );
+    push @az_command, "--source $args{source}" if $args{source};
+    push @az_command, "--size-gb $args{size_gb}" if $args{size_gb};
+    push @az_command, "--tags $args{tags}" if $args{tags};
+    assert_script_run(join(' ', @az_command));
+}
+
+=head2 az_resource_delete
+
+    az_resource_delete(resource_group=>$resource_group, name=>$name);
+
+Deletes resource from specified resource group. Single resource can be deleted by specifying B<name> or list of resource IDs
+delimited by empty space using argument B<ids>.
+Arguments B<name> and B<ids> are mutually exclusive.
+
+B<resource_group> Existing resource group name.
+
+B<name> Name of the resource to delete
+
+B<ids> list of resource IDs to delete
+
+B<timeout> Timeout for az command. Default: 60
+
+=cut
+
+sub az_resource_delete {
+    my (%args) = @_;
+    $args{timeout} //= 60;
+    croak "Mandatory argument 'resource_group' missing" unless $args{resource_group};
+    croak "Arguments 'name' and 'ids' are mutually exclusive" if $args{ids} and $args{name};
+    croak "Argument 'name' or 'ids' has to be specified" unless $args{ids} or $args{name};
+    my @az_command = ('az resource delete',
+        "--resource-group $args{resource_group}"
+    );
+    push(@az_command, "--name $args{name}") if $args{name};
+    push(@az_command, "--ids $args{ids}") if $args{ids};
+
+    assert_script_run(join(' ', @az_command), timeout => $args{timeout});
+}

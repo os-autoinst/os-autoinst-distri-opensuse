@@ -20,9 +20,20 @@
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use warnings;
-use sles4sap::sap_deployment_automation_framework::deployment;
-use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::console_redirection;
+use sles4sap::sap_deployment_automation_framework::deployment
+  qw(serial_console_diag_banner
+  load_os_env_variables
+  az_login
+  sdaf_execute_playbook
+  );
+use sles4sap::sap_deployment_automation_framework::naming_conventions
+  qw(get_sdaf_config_path
+  convert_region_to_short
+  );
+use sles4sap::console_redirection
+  qw(connect_target_to_serial
+  disconnect_target_from_serial
+  );
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 

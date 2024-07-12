@@ -13,14 +13,23 @@ use warnings;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
-use mmapi qw(get_current_job_id);
 use utils qw(write_sut_file);
 use Utils::Git qw(git_clone);
 use File::Basename;
 use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
-use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use Mojo::JSON qw(decode_json);
+use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
+  homedir
+  deployment_dir
+  log_dir
+  sdaf_scripts_dir
+  env_variable_file
+  get_tfvars_path
+  generate_resource_group_name
+  convert_region_to_short
+);
 
 =head1 SYNOPSIS
 
@@ -54,7 +63,6 @@ B<SAP Systems>: Resource group containing SAP SUTs and related resources.
 our @EXPORT = qw(
   az_login
   sdaf_prepare_ssh_keys
-  sdaf_get_deployer_ip
   serial_console_diag_banner
   set_common_sdaf_os_env
   prepare_sdaf_project
@@ -120,8 +128,7 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 =cut
 
 sub az_login {
-    # SDAF tests execute on same jump VM, therefore each file needs unique ID
-    my $temp_file = '/tmp/az_login_' . get_current_job_id();
+    my $temp_file = '/tmp/az_login_tmp';
     my @variables = (
         'export ARM_CLIENT_ID=' . get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
         'export ARM_CLIENT_SECRET=' . get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
@@ -307,31 +314,7 @@ variables is not an option since tests would constantly overwrite variables betw
 =cut
 
 sub load_os_env_variables {
-    assert_script_run('source ' . env_variable_file);
-}
-
-=head2 sdaf_get_deployer_ip
-
-    sdaf_get_deployer_ip(deployer_resource_group=>$deployer_resource_group);
-
-B<deployer_resource_group>: Deployer key vault name
-
-Retrieves public IP of the deployer VM.
-
-=cut
-
-sub sdaf_get_deployer_ip {
-    my (%args) = @_;
-    croak 'Missing "deployer_resource_group" argument' unless $args{deployer_resource_group};
-
-    my $vm_name = script_output("az vm list --resource-group $args{deployer_resource_group} --query [].name --output tsv");
-    my $az_query_cmd = join(' ', 'az', 'vm', 'list-ip-addresses', '--resource-group', $args{deployer_resource_group},
-        '--name', $vm_name, '--query', '"[].virtualMachine.network.publicIpAddresses[0].ipAddress"', '-o', 'tsv');
-
-    my $ip_addr = script_output($az_query_cmd);
-    croak "Not a valid ip addr: $ip_addr" unless grep /^$RE{net}{IPv4}$/, $ip_addr;
-    record_info('Deployer data', "Deployer resource group: $args{deployer_resource_group} \nDeployer VM IP: $ip_addr");
-    return $ip_addr;
+    assert_script_run('source ' . env_variable_file());
 }
 
 =head2 sdaf_prepare_ssh_keys
@@ -758,8 +741,9 @@ sub sdaf_cleanup {
             die('SDAF remover script failed. Please check logs and delete resource groups manually');
         }
     }
-    assert_script_run('rm -Rf ' . deployment_dir);
-    record_info('Cleanup files', join(' ', 'Deployment directory', deployment_dir(), 'was deleted.'));
+    assert_script_run('cd');    # navigate out the directory you are about to delete
+    assert_script_run('rm -Rf ' . deployment_dir());
+    record_info('Cleanup files', join(' ', 'Deployment directory', deployment_dir, 'was deleted.'));
 }
 
 =head2 sdaf_execute_playbook
@@ -840,3 +824,4 @@ sub sdaf_ansible_verbosity_level {
     return '-' . 'v' x $verbosity_level if looks_like_number($verbosity_level) and $verbosity_level <= 6;
     return '-vvvv';    # Default set to "-vvvv"
 }
+
