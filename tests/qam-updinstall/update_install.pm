@@ -79,6 +79,7 @@ my @conflicting_packages = (
     'systemtap-sdt-devel',
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
+    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
     'kernel-default-base', 'kernel-default-extra'
 );
 
