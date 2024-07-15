@@ -4,8 +4,6 @@ description: >
   Basic installation test to confirm that installing and booting to an nvme as
   your root disk works. Installation is validated by successful boot and that
   YaST does not report any issue in first place. Smoke testing and validation of partitioning of NVMe.
-vars:
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop

@@ -2,8 +2,6 @@
 name: home_encrypted
 description: >
   Test interactive installation with encrypted home partition.
-vars:
-  YUI_REST_API: 1
 schedule:
   suggested_partitioning:
     - installation/partitioning/edit_proposal_encrypt

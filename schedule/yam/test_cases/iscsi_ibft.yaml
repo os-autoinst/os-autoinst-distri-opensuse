@@ -3,11 +3,6 @@ name: iscsi_ibft
 description: >
   Conduct installation on iSCSI device relying on iBFT. Validate iBFT hardcoded
   information in sysfs and provide basic details of iscsi connection and session.
-vars:
-  IBFT: '1'
-  NBF: iqn.2016-02.openqa.de:for.openqa
-  NICTYPE: user
-  YUI_REST_API: 1
 schedule:
   disk_activation:
     - installation/iscsi_configuration

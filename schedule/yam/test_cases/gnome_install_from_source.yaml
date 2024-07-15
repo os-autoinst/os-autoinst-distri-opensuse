@@ -5,9 +5,6 @@ description: >
   using a remote repository over http or https or samba.
   Scenario is thought to use Online medium to boot
   and Full medium for remote repositories.
-vars:
-  NETBOOT: 1
-  YUI_REST_API: 1
 schedule:
   product_selection:
     - installation/validation/validate_install_repo

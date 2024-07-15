@@ -5,10 +5,6 @@ description: >
   susetags. Installer is loaded from local DVD and installation packages are
   downloaded from repo during installation. Test covers linuxrc features.
   Validation of installation repository parameters before and after installation.
-vars:
-  DESKTOP: gnome
-  VALIDATE_INST_SRC: '1'
-  YUI_REST_API: 1
 schedule:
   product_selection:
     - installation/validation/repo_inst

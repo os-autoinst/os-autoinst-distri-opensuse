@@ -4,10 +4,6 @@ description: |
   Select LVM during installation and try to resize
   the root LV to span more than 40GB which is selected as default.
   See  bsc#989976, bsc#1000165
-vars:
-  DESKTOP: textmode
-  HDDSIZEGB: 50
-  YUI_REST_API: 1
 schedule:
   guided_partitioning:
     - installation/partitioning/select_guided_setup
