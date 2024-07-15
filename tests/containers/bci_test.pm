@@ -29,6 +29,9 @@ sub skip_testrun {
     # Check if the current test run should be skipped.
     # This check is needed here to allow for fine-grained control over BCI test runs, otherwise not possible via the job groups
 
+    # Skip due to test setting
+    return 1 if (get_var('BCI_SKIP'));
+
     # Skip Spack on SLES12-SP5 (https://bugzilla.suse.com/show_bug.cgi?id=1224345)
     return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
 
@@ -77,11 +80,10 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
-    if (get_var('BCI_SKIP')) {
-        record_info('BCI skipped', 'BCI test skipped due to BCI_SKIP=1 setting');
+    if (skip_testrun()) {
+        record_info('BCI skipped', 'BCI tests skipped');
         return;
     }
-    return if skip_testrun();
 
     $error_count = 0;
 
