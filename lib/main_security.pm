@@ -22,7 +22,7 @@ our @EXPORT = qw(
 );
 
 sub is_security_test {
-    return get_var('SECURITY', 1);
+    return get_var('SECURITY', 0);
 }
 
 sub load_selinux_tests {
