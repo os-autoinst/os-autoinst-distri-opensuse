@@ -13,7 +13,7 @@ use version_utils;
 use publiccloud::utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_s390x);
 use main_containers qw(load_container_tests);
 require bmwqemu;
 
@@ -181,6 +181,7 @@ sub load_create_publiccloud_tools_image {
 
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
+    loadtest 'installation/bootloader_zkvm' if (is_s390x);
     loadtest 'boot/boot_to_desktop';
     if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
         loadtest 'publiccloud/azure_more_cli';
@@ -188,7 +189,6 @@ sub load_publiccloud_cli_tools {
         loadtest 'publiccloud/azure_cli' if (is_azure());
         loadtest 'publiccloud/aws_cli' if (is_ec2());
     }
-    loadtest 'shutdown/shutdown';
 }
 
 sub load_publiccloud_download_repos {
