@@ -12,7 +12,7 @@ use Exporter;
 use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
-use testapi qw(get_var);
+use testapi qw(get_var check_var);
 use Utils::Architectures;
 use Utils::Backends;
 
