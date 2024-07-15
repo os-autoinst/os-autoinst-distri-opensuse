@@ -82,7 +82,6 @@
     </patterns>
     <packages t="list">
       <package>openssh</package>
-      <package>xorg-x11-Xvnc</package>
     </packages>
     <products t="list">
       <product>SLES</product>
