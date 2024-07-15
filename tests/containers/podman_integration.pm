@@ -58,8 +58,7 @@ sub run {
     push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(socat) unless is_sle_micro('=5.1');
-    # https://bugzilla.suse.com/show_bug.cgi?id=1226596
-    push @pkgs, qw(podman-remote) unless (is_sle_micro('<5.5') || is_sle('<=15-SP3'));
+    push @pkgs, qw(podman-remote) unless (is_sle_micro('<5.5') || is_sle('<=15-SP2'));
     # passt requires podman 5.0
     push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos);
     # Needed for podman machine
