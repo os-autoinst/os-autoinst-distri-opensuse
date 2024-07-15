@@ -662,5 +662,13 @@
             "sle-micro": ["6.0"]
         },
         "type": "ignore"
+    },
+    "minimal vm cloud image - gpt": {
+        "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|\\d+ != \\d+)",
+        "products": {
+            "sle": ["15-SP6"],
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
