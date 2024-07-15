@@ -78,7 +78,11 @@ sub run {
     } else {
         validate_script_output "sar -b", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
     }
-    validate_script_output "sar -B", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
+    if (version->parse(script_output('rpm --qf "%{VERSION}\n" -q sysstat')) >= version->parse('12.7.5')) {
+        validate_script_output "sar -B", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s  pgprom\/s   pgdem\/s/ };
+    } else {
+        validate_script_output "sar -B", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
+    }
     validate_script_output "sar -H", sub { /kbhugfree kbhugused  %hugused/ };
     validate_script_output "sar -S", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
 
