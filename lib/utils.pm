@@ -832,16 +832,29 @@ the second run will update the system.
 sub ssh_fully_patch_system {
     my $remote = shift;
     my $cmd_time = time();
+    my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
+    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
     # first run, possible update of packager -- exit code 103
-    my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
+    my $ret = script_run($cmd, 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
-
+    if ($ret != 0 && $ret != 102 && $ret != 103) {
+        if ($resolver_option) {
+            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
+            script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+            upload_logs('/tmp/solver.tar.gz', failok => 1);
+        }
+        croak("Zypper failed with $ret");
+    }
     $cmd_time = time();
     # second run, full system update
-    $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 6000);
+    $ret = script_run($cmd, 6000);
     record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
+    if ($resolver_option) {
+        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
+        script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+        upload_logs('/tmp/solver.tar.gz', failok => 1);
+    }
+    croak("Zypper failed with $ret") if ($ret != 0 && $ret != 102);
 }
 
 =head2 minimal_patch_system
