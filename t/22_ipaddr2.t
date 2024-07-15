@@ -23,13 +23,17 @@ subtest '[ipaddr2_azure_deployment]' => sub {
 
     ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci');
 
+    # push the list of commands in another list, this one withour the source
+    # In this way it is easier to inspect the content
+    my @cmds;
     for my $call_idx (0 .. $#calls) {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+        push @cmds, $calls[$call_idx][1];
     }
 
     # Todo : expand it
     ok(($#calls > 0), "There are some command calls");
-    ok((none { /az storage account create/ } @calls), 'Do not create storage');
+    ok((none { /az storage account create/ } @cmds), 'Do not create storage');
 };
 
 subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
@@ -183,13 +187,12 @@ subtest '[ipaddr2_os_sanity]' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_assert_script_run_bastion => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
             my (%args) = @_;
             push @calls, ['bastion', $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}]; });
-
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
