@@ -16,6 +16,7 @@ use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
 use Mojo::UserAgent;
+use Carp qw(croak);
 use zypper qw(wait_quit_zypper);
 use Storable qw(dclone);
 use Getopt::Long qw(GetOptionsFromString);
