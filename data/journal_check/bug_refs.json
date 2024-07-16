@@ -551,6 +551,13 @@
         },
         "type": "bug"
     },
+    "bsc#1227930": {
+        "description": "setroubleshoot.*.SELinux is preventing firewalld from ('read, write' accesses on the file icastats_0|read access on the chr_file).*",
+        "products": {
+            "sle-micro": ["6.0"]
+        },
+        "type": "bug"
+    },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
