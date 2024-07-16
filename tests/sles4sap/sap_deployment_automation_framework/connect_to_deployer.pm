@@ -12,7 +12,7 @@ use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner
   az_login
-  sdaf_prepare_ssh_keys
+  sdaf_prepare_private_key
   );
 use sles4sap::sap_deployment_automation_framework::deployment_connector
   qw(get_deployer_vm
@@ -40,7 +40,7 @@ sub run {
     # Variables to share data between test modules.
     set_var('REDIRECT_DESTINATION_USER', $ssh_user);
     set_var('REDIRECT_DESTINATION_IP', $deployer_ip);    # IP addr to redirect console to
-    sdaf_prepare_ssh_keys(deployer_key_vault => get_required_var('SDAF_KEY_VAULT'));
+    sdaf_prepare_private_key(key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'));
 
     # autossh is required for console redirection to work
     assert_script_run('zypper in -y autossh');
