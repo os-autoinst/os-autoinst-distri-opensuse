@@ -3,9 +3,6 @@ description:    >
   Test installation on machine with virtual multipath hardware.
   Tests successful detection of multipath and installation and
   validate multipath configuration and tools after booting.
-vars:
-  MULTIPATH: 1
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop
