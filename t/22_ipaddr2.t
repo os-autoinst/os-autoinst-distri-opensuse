@@ -94,9 +94,13 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            if ($_[0] =~ /ssh.*accept-new/) { return 0; }
+            return 1; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'artom@1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
     my $ret = ipaddr2_internal_key_accept();
 
@@ -105,6 +109,24 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
     ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
     ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
+};
+
+subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 1; }
+            if ($_[0] =~ /ssh.*accept-new/) { return 0; }
+            return 1; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    dies_ok { ipaddr2_internal_key_accept() } "die if ssh port 22 is not open";
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((none { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
 };
 
 subtest '[ipaddr2_create_cluster]' => sub {
@@ -183,13 +205,12 @@ subtest '[ipaddr2_os_sanity]' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_assert_script_run_bastion => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
             my (%args) = @_;
             push @calls, ['bastion', $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}]; });
-
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
