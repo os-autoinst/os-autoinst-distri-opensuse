@@ -272,10 +272,10 @@ sub ipaddr2_azure_deployment {
         name => $lb . "_rule",
         port => '80');
 
-    foreach my $i (1 .. 2) {
+    foreach (1 .. 2) {
         az_vm_wait_running(
             resource_group => $rg,
-            name => ipaddr2_get_internal_vm_name(id => $i));
+            name => ipaddr2_get_internal_vm_name(id => $_));
     }
 }
 
@@ -347,7 +347,7 @@ sub ipaddr2_bastion_key_accept {
     assert_script_run(join(' ', $bastion_ssh_cmd, 'whoami'));
 
     # one more without StrictHostKeyChecking=accept-new just to verify it is ok
-    ipaddr2_ssh_assert_script_run_bastion(
+    ipaddr2_ssh_bastion_assert_script_run(
         cmd => 'whoami',
         bastion_ip => $args{bastion_ip});
 }
@@ -538,8 +538,8 @@ sub ipaddr2_deployment_sanity {
     die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) eq 3;
     die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count eq 1;
 
-    foreach my $i (1 .. 2) {
-        my $vm = ipaddr2_get_internal_vm_name(id => $i);
+    foreach (1 .. 2) {
+        my $vm = ipaddr2_get_internal_vm_name(id => $_);
         $res = az_vm_instance_view_get(
             resource_group => $rg,
             name => $vm);
@@ -555,7 +555,8 @@ sub ipaddr2_deployment_sanity {
     ipaddr2_os_sanity()
 
 Run some OS level checks on the various VMs composing the deployment.
-die in case of failure
+die in case of failure. Tests are targeting all the VM.
+Tests are independent by the cluster status.
 
 =over 1
 
@@ -574,16 +575,9 @@ sub ipaddr2_os_sanity {
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
     ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
 
-    foreach my $i (1 .. 2) {
-        # Check if ssh without password works between
-        # the bastion and each of the internal VMs
-        ipaddr2_ssh_internal(id => $i,
-            cmd => "whoami | grep $user",
-            bastion_ip => $args{bastion_ip});
-
-        # check root
-        ipaddr2_ssh_internal(id => $i,
-            cmd => 'sudo whoami | grep root',
+    foreach (1 .. 2) {
+        ipaddr2_ssh_internal(id => $_,
+            cmd => 'sudo systemctl is-system-running',
             bastion_ip => $args{bastion_ip});
     }
 }
@@ -621,10 +615,10 @@ sub ipaddr2_os_connectivity_sanity {
     # the VM by hostname and private IP
     foreach my $i (1 .. 2) {
         foreach my $addr (
-            ipaddr2_get_internal_vm_name(id => $i),
-            ipaddr2_get_internal_vm_private_ip(id => $i)) {
+            ipaddr2_get_internal_vm_private_ip(id => $i),
+            ipaddr2_get_internal_vm_name(id => $i)) {
             foreach my $cmd ('ping -c 3 ', 'tracepath ', 'dig ') {
-                ipaddr2_ssh_assert_script_run_bastion(
+                ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
             }
@@ -651,8 +645,8 @@ sub ipaddr2_os_network_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    foreach my $i (1 .. 2) {
-        ipaddr2_ssh_internal(id => $i,
+    foreach (1 .. 2) {
+        ipaddr2_ssh_internal(id => $_,
             cmd => 'ip a show eth0 | grep -E "inet .*192\.168"',
             bastion_ip => $args{bastion_ip});
     }
@@ -708,11 +702,24 @@ sub ipaddr2_os_ssh_sanity {
             cmd => "cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
             bastion_ip => $args{bastion_ip});
     }
+
+    # Check if ssh without password works between
+    # the bastion and each of the internal VMs
+    foreach my $i (1 .. 2) {
+        ipaddr2_ssh_internal(id => $i,
+            cmd => "whoami | grep $user",
+            bastion_ip => $args{bastion_ip});
+
+        # check root
+        ipaddr2_ssh_internal(id => $i,
+            cmd => 'sudo whoami | grep root',
+            bastion_ip => $args{bastion_ip});
+    }
 }
 
-=head2 ipaddr2_ssh_assert_script_run_bastion
+=head2 ipaddr2_ssh_bastion_assert_script_run
 
-    ipaddr2_ssh_assert_script_run_bastion(
+    ipaddr2_ssh_bastion_assert_script_run(
         bastion_ip => '1.2.3.4',
         cmd => 'whoami');
 
@@ -729,13 +736,76 @@ run a command on the bastion using assert_script_run
 =back
 =cut
 
-sub ipaddr2_ssh_assert_script_run_bastion {
+sub ipaddr2_ssh_bastion_assert_script_run {
     my (%args) = @_;
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
     assert_script_run(join(' ',
+            'ssh',
+            $bastion_ssh_addr,
+            "'$args{cmd}'"));
+}
+
+
+=head2 ipaddr2_ssh_bastion_script_run
+
+    my $ret = ipaddr2_ssh_bastion_script_run(
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on the bastion using script_run
+
+=over 2
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+sub ipaddr2_ssh_bastion_script_run {
+    my (%args) = @_;
+    croak("Argument < cmd > missing") unless $args{cmd};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+
+    return script_run(join(' ',
+            'ssh',
+            $bastion_ssh_addr,
+            "'$args{cmd}'"));
+}
+
+=head2 ipaddr2_ssh_bastion_script_output
+
+    my $ret = ipaddr2_ssh_bastion_script_output(
+        bastion_ip => '1.2.3.4',
+        cmd => 'whoami');
+
+run a command on the bastion using script_output
+
+=over 2
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<cmd> - command to run there
+
+=back
+=cut
+
+sub ipaddr2_ssh_bastion_script_output {
+    my (%args) = @_;
+    croak("Argument < cmd > missing") unless $args{cmd};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+
+    return script_output(join(' ',
             'ssh',
             $bastion_ssh_addr,
             "'$args{cmd}'"));
@@ -936,7 +1006,7 @@ sub ipaddr2_destroy {
 
 =head2 ipaddr2_get_internal_vm_name
 
-    my $vm_name = ipaddr2_get_internal_vm_name(42);
+    my $vm_name = ipaddr2_get_internal_vm_name(id => 42);
 
 compose and return a string for the vm name
 
@@ -955,7 +1025,7 @@ sub ipaddr2_get_internal_vm_name {
 
 =head2 ipaddr2_get_internal_vm_private_ip
 
-    my $private_ip = ipaddr2_get_internal_vm_private_ip(42);
+    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 42);
 
 compose and return a string representing the VM private IP
 
