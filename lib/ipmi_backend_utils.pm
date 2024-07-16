@@ -516,6 +516,8 @@ sub set_grub_terminal_and_timeout {
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         $cmd = "sed -i -r \'s/^#{0,}GRUB_TERMINAL=.*\$/GRUB_TERMINAL=\"$args{terminals}\"/' $grub_default_file; "
+          . "sed -i -r \'s/^#{0,}GRUB_TERMINAL_INPUT=.*\$/GRUB_TERMINAL_INPUT=\"$args{terminals}\"/' $grub_default_file; "
+          . "sed -i -r \'s/^#{0,}GRUB_TERMINAL_OUTPUT=.*\$/GRUB_TERMINAL_OUTPUT=\"$args{terminals}\"/' $grub_default_file; "
           . "sed -i -r \'s/^#{0,}GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=$args{timeout}/' $grub_default_file";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         assert_script_run($cmd);
