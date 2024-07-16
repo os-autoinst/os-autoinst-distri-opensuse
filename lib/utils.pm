@@ -834,7 +834,7 @@ sub ssh_fully_patch_system {
     my $remote = shift;
     my $cmd_time = time();
     my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
-    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
+    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l --with-optional'";
     # first run, possible update of packager -- exit code 103
     my $ret = script_run($cmd, 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
