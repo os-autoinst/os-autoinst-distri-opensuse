@@ -57,6 +57,7 @@
       <li><a href="#create_junit_log">create_junit_log</a></li>
       <li><a href="#create_junit_element">create_junit_element</a></li>
       <li><a href="#check_peer_test_run">check_peer_test_run</a></li>
+      <li><a href="#filter_migration_tests">filter_migration_tests</a></li>
       <li><a href="#post_fail_hook">post_fail_hook</a></li>
     </ul>
   </li>
@@ -233,6 +234,10 @@
 <h2 id="check_peer_test_run">check_peer_test_run</h2>
 
 <p>Check progress of test run of peer job. This subroutine is called to verify whether peer job is destined to fail or not and return its test run result. This is usually called by paired job that is already in post_fail_hook to wait for peer job if it already failed or is about to fail, so the peer job can finish operations instead of being cancelled due to paired job fails and terminates. This can be achieved simply by barrier_wait on certain lock by both jobs if the peer fails as well. There are situations in which peer job needs to move pass current running subroutines like, do_guest_migration or post_run_test, before entering into post_fail_hook, so it is necessary to wait a period before having the final resolution. But if peer job still remains any earlier steps, it is not meaningful to wait anymore because locks ahead.</p>
+
+<h2 id="filter_migration_tests">filter_migration_tests</h2>
+
+<p>Filters migration tests based on specified criteria.</p>
 
 <h2 id="post_fail_hook">post_fail_hook</h2>
 
