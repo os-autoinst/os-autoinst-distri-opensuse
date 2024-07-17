@@ -58,8 +58,22 @@
       <!-- For some special beremetal machines, such as unreal2/3, their serial console:
       SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1" -->
       <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
-      % } else {
-      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 <%= $check_var->('AMD', '1') ? "" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      % }
+      % if ($check_var->('SYSTEM_ROLE', 'kvm')) {
+        % if ($check_var->('AMD', '1')) {
+          % if ($check_var->('VIRT_SEV_ES_GUEST_INSTALL', '1')) {
+            <!-- Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107 -->
+            % if ($check_var->('VERSION', '15-SP6')) { 
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 kvm_amd.sev=1 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+            % } else {
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+            % }
+          % } else {
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+          % }
+        % } else { 
+      <append>splash=silent console=<%= $get_var->('SERIALDEV') %>,115200 console=tty loglevel=5 intel_iommu=on <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+        % }
       % }
     </global>
     <loader_type>default</loader_type>
