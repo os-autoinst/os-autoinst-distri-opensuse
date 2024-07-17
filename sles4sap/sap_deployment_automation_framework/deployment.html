@@ -21,7 +21,7 @@
       <li><a href="#get_os_variable">get_os_variable</a></li>
       <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
       <li><a href="#load_os_env_variables">load_os_env_variables</a></li>
-      <li><a href="#sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</a></li>
+      <li><a href="#sdaf_prepare_private_key">sdaf_prepare_private_key</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
       <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
@@ -147,7 +147,7 @@ tee - writes output also into the log file</code></pre>
 
 <p><b>sdaf_tfstate_storage_account</b>: Storage account residing in library resource group. Location for stored tfstate files. Default &#39;SDAF_TFSTATE_STORAGE_ACCOUNT&#39;</p>
 
-<p><b>sdaf_key_vault</b>: Key vault name inside Deployer resource group. Default &#39;SDAF_KEY_VAULT&#39;</p>
+<p><b>sdaf_key_vault</b>: Key vault name inside Deployer resource group. Default &#39;SDAF_DEPLYOER_KEY_VAULT&#39;</p>
 
 <p>Creates a file with common OS env variables required to run SDAF. File is sourced afterwards to make the values active. Keep in mind that values are lost after user logout (for example after disconnecting console redirection). You can load them back using <i>load_os_env_variables()</i> function OS env variables are core of how to execute SDAF and many are used even internally by SDAF code. For detailed variable description check : <a href="https://learn.microsoft.com/en-us/azure/sap/automation/naming">https://learn.microsoft.com/en-us/azure/sap/automation/naming</a></p>
 
@@ -157,25 +157,25 @@ tee - writes output also into the log file</code></pre>
 
 <p>Sources file containing OS env variables required for executing SDAF. Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing variables is not an option since tests would constantly overwrite variables between each other.</p>
 
-<h2 id="sdaf_prepare_ssh_keys">sdaf_prepare_ssh_keys</h2>
+<h2 id="sdaf_prepare_private_key">sdaf_prepare_private_key</h2>
 
-<pre><code>sdaf_prepare_ssh_keys(deployer_key_vault=&gt;$deployer_key_vault);</code></pre>
+<pre><code>sdaf_prepare_private_key(key_vault=&gt;$key_vault);</code></pre>
 
-<p><b>deployer_key_vault</b>: Deployer key vault name</p>
+<p><b>key_vault</b>: Key vault name</p>
 
-<p>Retrieves public and private ssh key from DEPLOYER keyvault and sets up permissions.</p>
+<p>Retrieves public and private ssh key from specified keyvault and sets up permissions.</p>
 
 <h2 id="az_get_ssh_key">az_get_ssh_key</h2>
 
-<pre><code>az_get_ssh_key(deployer_key_vault=$deployer_key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);</code></pre>
+<pre><code>az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);</code></pre>
 
-<p><b>deployer_key_vault</b>: Deployer key vault name</p>
+<p><b>key_vault</b>: Key vault name</p>
 
 <p><b>ssh_key_name</b>: SSH key name residing on keyvault</p>
 
 <p><b>ssh_key_filename</b>: Target filename for SSH key</p>
 
-<p>Retrieves SSH key from DEPLOYER keyvault.</p>
+<p>Retrieves SSH key from specified keyvault.</p>
 
 <h2 id="serial_console_diag_banner">serial_console_diag_banner</h2>
 

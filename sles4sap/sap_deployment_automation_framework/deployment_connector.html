@@ -14,7 +14,7 @@
 <ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
-      <li><a href="#check_deployer_ssh">check_deployer_ssh</a></li>
+      <li><a href="#check_ssh_availability">check_ssh_availability</a></li>
       <li><a href="#get_deployer_ip">get_deployer_ip</a></li>
       <li><a href="#get_deployer_vm">get_deployer_vm</a></li>
       <li><a href="#get_parent_ids">get_parent_ids</a></li>
@@ -30,9 +30,9 @@
 
 <p><b>Example</b>: Job: 123456 - deployment module - created deployer VM tagged with &quot;deployment_id=123456&quot;, Job: 123457 (child of 123456) - some test module Deployment ID returned from both jobs: 123456 - because it matches with existing VM tagged with &quot;deployment_id=123456&quot;</p>
 
-<h2 id="check_deployer_ssh">check_deployer_ssh</h2>
+<h2 id="check_ssh_availability">check_ssh_availability</h2>
 
-<pre><code>check_deployer_ssh($deployer_ip_addr [, ssh_port=&gt;42 ,$wait_started=&gt;&#39;true&#39;, wait_timeout=&gt;&#39;42&#39;]);</code></pre>
+<pre><code>check_ssh_availability($deployer_ip_addr [, ssh_port=&gt;42 ,$wait_started=&gt;&#39;true&#39;, wait_timeout=&gt;&#39;42&#39;]);</code></pre>
 
 <p>Checks if deployer VM is running and listening on ssh port. Returns found state. Optionally function can wait till VM reaches requested state until timeout. Function dies only with internal errors, VM status should be evaluated and handled by caller.</p>
 
