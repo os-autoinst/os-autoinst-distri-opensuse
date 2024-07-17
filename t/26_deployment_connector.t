@@ -94,7 +94,7 @@ subtest '[get_deployer_ip]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
     $mock_function->redefine(record_info => sub { return; });
-    $mock_function->redefine(check_deployer_ssh => sub { return 1; });
+    $mock_function->redefine(check_ssh_availability => sub { return 1; });
     $mock_function->redefine(script_output => sub { push @calls, $_[0]; return '[
   "192.168.1.1",
   "192.168.1.2"
@@ -128,14 +128,14 @@ subtest '[get_deployer_ip] Test expected failures' => sub {
 };
 
 
-subtest '[check_deployer_ssh]' => sub {
+subtest '[check_ssh_availability]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
 
     $mock_function->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
     $mock_function->redefine(record_info => sub { return; });
 
-    my $ssh_avail = check_deployer_ssh('1.2.3.4');
+    my $ssh_avail = check_ssh_availability('1.2.3.4');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ssh_avail eq 1), "ssh_avail= $ssh_avail as expected 1");
@@ -143,13 +143,13 @@ subtest '[check_deployer_ssh]' => sub {
     ok((any { /nc.*\s+1\.2\.3\.4/ } @calls), 'IP in nc command');
 };
 
-subtest '[check_deployer_ssh] timeout but no wait_started' => sub {
+subtest '[check_ssh_availability] timeout but no wait_started' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
 
     $mock_function->redefine(script_run => sub { push(@calls, $_[0]); return 1; });
     $mock_function->redefine(record_info => sub { return; });
-    my $ssh_avail = check_deployer_ssh('1.2.3.4');
+    my $ssh_avail = check_ssh_availability('1.2.3.4');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ssh_avail eq 0), "ssh_avail=$ssh_avail as expected 0");
@@ -157,13 +157,13 @@ subtest '[check_deployer_ssh] timeout but no wait_started' => sub {
     ok((any { /nc.*\s+1\.2\.3\.4/ } @calls), 'IP in nc command');
 };
 
-subtest '[check_deployer_ssh] timeout and wait_started=0' => sub {
+subtest '[check_ssh_availability] timeout and wait_started=0' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
 
     $mock_function->redefine(script_run => sub { push(@calls, $_[0]); return 1; });
     $mock_function->redefine(record_info => sub { return; });
-    my $ssh_avail = check_deployer_ssh('1.2.3.4', wait_started => 0);
+    my $ssh_avail = check_ssh_availability('1.2.3.4', wait_started => 0);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ssh_avail eq 0), "ssh_avail=$ssh_avail as expected 0");
@@ -171,7 +171,7 @@ subtest '[check_deployer_ssh] timeout and wait_started=0' => sub {
     ok((any { /nc.*\s+1\.2\.3\.4/ } @calls), 'IP in nc command');
 };
 
-subtest '[check_deployer_ssh] Test command looping' => sub {
+subtest '[check_ssh_availability] Test command looping' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my $loop_count = 0;
     $mock_function->redefine(diag => sub { $loop_count++; return; });
@@ -180,7 +180,7 @@ subtest '[check_deployer_ssh] Test command looping' => sub {
 
     $mock_function->redefine(script_run => sub { return 1 if $loop_count == 2; $loop_count++; return 0 });
 
-    check_deployer_ssh($ip_addr, wait_started => '1');
+    check_ssh_availability($ip_addr, wait_started => '1');
     ok(($loop_count > 0), "Test retry loop with \$args{wait_started}. Loop count: $loop_count");
 
 };

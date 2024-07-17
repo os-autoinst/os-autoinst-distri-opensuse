@@ -34,14 +34,14 @@ use Data::Dumper;
 our @EXPORT = qw(
   get_deployer_vm
   get_deployer_ip
-  check_deployer_ssh
+  check_ssh_availability
   find_deployment_id
   find_deployer_resources
 );
 
-=head2 check_deployer_ssh
+=head2 check_ssh_availability
 
-    check_deployer_ssh($deployer_ip_addr [, ssh_port=>42 ,$wait_started=>'true', wait_timeout=>'42']);
+    check_ssh_availability($deployer_ip_addr [, ssh_port=>42 ,$wait_started=>'true', wait_timeout=>'42']);
 
 Checks if deployer VM is running and listening on ssh port. Returns found state.
 Optionally function can wait till VM reaches requested state until timeout.
@@ -57,7 +57,7 @@ B<ssh_port>: Specify custom SSH port number. Default: 22
 
 =cut
 
-sub check_deployer_ssh {
+sub check_ssh_availability {
     my ($deployer_ip_addr, %args) = @_;
     croak 'Deployer IP not specified.' unless $deployer_ip_addr;
     $args{wait_timeout} //= 180;
@@ -105,7 +105,7 @@ sub get_deployer_ip {
     my $ip_addr = decode_json(script_output($az_query_cmd));
     # Find first IP connection working
     for my $ip (@{$ip_addr}) {
-        return $ip if check_deployer_ssh($ip, wait_started => 'yes');
+        return $ip if check_ssh_availability($ip, wait_started => 'yes');
     }
     return undef;
 }
