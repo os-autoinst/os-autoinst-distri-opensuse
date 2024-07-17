@@ -247,7 +247,8 @@ sub ipaddr2_azure_deployment {
             lb_name => $lb,
             address_pool => $lb_be,
             ipconfig_name => $ip_config,
-            nic_name => $nic_name);
+            nic_name => $nic_name,
+            timeput => 120);
     }
 
     # Health probe is using the port exposed by the cluster RA azure-lb
