@@ -1,5 +1,4 @@
-# SUSE's openQA tests
-#
+# SUSE's openQA tests#
 # Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
@@ -14,6 +13,7 @@ use lockapi;
 
 sub run {
     my ($self) = @_;
+    my $role = get_required_var('ROLE');
 
     select_serial_terminal;
     systemctl 'stop ' . $self->firewall;
