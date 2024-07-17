@@ -73,6 +73,7 @@ our @EXPORT = qw(
   load_os_env_variables
   sdaf_cleanup
   sdaf_execute_playbook
+  ansible_hanasr_show_status
 );
 
 
@@ -825,3 +826,29 @@ sub sdaf_ansible_verbosity_level {
     return '-vvvv';    # Default set to "-vvvv"
 }
 
+=head2 ansible_hanasr_show_status
+
+    ansible_hanasr_show_status(sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
+
+Display simple command outputs from all DB hosts using B<ansible> command.
+
+B<sdaf_config_root_dir> SDAF Config directory containing SUT ssh keys
+
+B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=cut
+
+sub ansible_hanasr_show_status {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
+    $args{sap_sid} //= get_required_var('SAP_SID');
+
+    # Note: QES_DB is database host group in SDAF inventory file.
+    my @cmd = ('ansible', 'QES_DB',
+        "--private-key=$args{sdaf_config_root_dir}/sshkey",
+        "--inventory=$args{sap_sid}_hosts.yaml",
+        '--module-name=shell');
+
+    record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
+    record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
+}

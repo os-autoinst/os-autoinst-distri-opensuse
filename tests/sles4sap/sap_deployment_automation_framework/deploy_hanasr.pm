@@ -25,6 +25,7 @@ use sles4sap::sap_deployment_automation_framework::deployment
   load_os_env_variables
   az_login
   sdaf_execute_playbook
+  ansible_hanasr_show_status
   );
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(get_sdaf_config_path
@@ -78,6 +79,9 @@ sub run {
     for my $playbook_options (@execute_playbooks) {
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
     }
+
+    # Display deployment information
+    ansible_hanasr_show_status(sdaf_config_root_dir => $sdaf_config_root_dir);
 
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');
