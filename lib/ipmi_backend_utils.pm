@@ -400,7 +400,10 @@ sub enable_sev_in_kernel {
     $args{root_dir} //= '';
     $args{root_dir} .= '/' unless $args{root_dir} =~ /\/$/;
     croak("No AMD EPYC cpu on $args{dst_machine}, so sev can not be enabled in kernel.") unless (script_run("lscpu | grep -i \'AMD EPYC\'") == 0);
-    add_kernel_options(dst_machine => $args{dst_machine}, root_dir => $args{root_dir}, kernel_opts => 'mem_encrypt=on kvm_amd.sev=1');
+    # Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107
+    my $kernel_opts = "kvm_amd.sev=1";
+    $kernel_opts .= " mem_encrypt=on" if (!check_var('VERSION', '15-SP6'));
+    add_kernel_options(dst_machine => $args{dst_machine}, root_dir => $args{root_dir}, kernel_opts => $kernel_opts);
 }
 
 =head2 add_kernel_options
