@@ -2,13 +2,6 @@
 name:           lvm_multipath_encrypted
 description:    >
   Textmode installation test for encrypted lvm partitioning on multipath with lvm and encryption validation.
-vars:
-  DESKTOP: textmode
-  MULTIPATH: 1
-  LVM: 1
-  ENCRYPT: 1
-  SEPARATE_HOME: 0
-  YUI_REST_API: 1
 schedule:
   system_probing:
     - installation/multipath
@@ -16,9 +9,8 @@ schedule:
     - installation/partitioning/select_guided_setup
     - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
     - installation/partitioning/guided_setup/accept_default_fs_options
-  first_login:
+  disk_passphrase:
     - installation/boot_encrypt
-    - installation/first_boot
   system_preparation:
     - console/hostname
     - console/system_prepare
