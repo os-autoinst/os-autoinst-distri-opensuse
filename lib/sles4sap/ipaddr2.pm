@@ -374,19 +374,37 @@ sub ipaddr2_internal_key_accept {
 
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
-    my ($vm_name, $vm_addr);
+    my ($vm_name, $vm_addr, $ret, $start_time, $exit_code, $score);
     foreach my $i (1 .. 2) {
         $vm_name = ipaddr2_get_internal_vm_private_ip(id => $i);
         $vm_addr = "$user\@$vm_name";
 
-        # The worker reach the remote internal VM through
-        # the bastion using ssh proxy mode.
-        # This workers - internal_VM connection is only used
-        # for test purpose, to observe from the external
+        # The worker reaches the two remote internal VMs
+        # through the bastion VM, using ssh proxy mode.
+        # The connection between the worker and the internalVM
+        # is used for test purpose, to observe from the external
         # what is going on inside the SUT.
-        my $ret;
 
-        # Sometimes it fails, do not know why.
+        # Start by waiting that the ssh port is open
+        $start_time = time();
+        $exit_code = 1;
+        $score = 0;
+        while ((time() - $start_time) < 300) {
+            $exit_code = ipaddr2_ssh_bastion_script_run(
+                cmd => "nc -vz -w 1 $vm_name 22",
+                bastion_ip => $args{bastion_ip});
+            # sleep before to evaluate as, even if port is open,
+            # it could take more time to be able to extablish
+            # the first ssh connection.
+            sleep 10;
+
+            # this score mechanism panalize more those systems
+            # that are not ready when reaching this code.
+            $score += (defined($exit_code) && $exit_code eq 0) ? +1 : -1;
+            last if $score > 1;
+        }
+        die "ssh port 22 not available on VM $vm_name" if (!(defined($exit_code) && $exit_code eq 0));
+
         # Try two different variants of the same command.
         $ret = script_run(join(' ',
                 'ssh',
@@ -398,8 +416,6 @@ sub ipaddr2_internal_key_accept {
                 'whoami'));
 
         if ($ret) {
-            record_info("1 StrictHostKeyChecking", "ret:$ret");
-
             $ret = script_run(join(' ',
                     'ssh',
                     '-vvv',
