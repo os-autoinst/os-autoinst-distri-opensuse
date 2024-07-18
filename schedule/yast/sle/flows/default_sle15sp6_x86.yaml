@@ -1,6 +1,5 @@
 ---
-# Default ordered sequence of steps for sle15sp6 with maintenance updatesi,
-# add view_development_versions module.
+# Default ordered sequence of steps for sle15sp6 with maintenance updates
 bootloader:
   - installation/bootloader_start
 setup_libyui:
@@ -13,7 +12,6 @@ license_agreement:
 registration:
   - installation/registration/register_via_scc
 extension_module_selection:
-  - installation/module_registration/view_development_versions
   - installation/module_registration/register_extensions_and_modules
 additional_products:
   - installation/add_on_product_installation/add_additional_products
