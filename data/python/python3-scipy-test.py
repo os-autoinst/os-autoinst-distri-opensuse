@@ -8,7 +8,13 @@
 import math
 
 import numpy as np
-from scipy.integrate import quad, simps
+from scipy.integrate import quad
+# scipy.integrate.simps is deprecated but still used on older
+# SLES versions (bsc#1227405)
+try:
+    from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
 
 
 def max_difference(a1, a2):
@@ -51,7 +57,7 @@ if __name__ == "__main__":
     ## Test integration
     print("Test integrators  ... ")
     x = np.array([1, 2, 3, 4])
-    integral = simps(x ** 2, x)  # Integrate x^2 from 1..4. Exact result: 21
+    integral = simps(x ** 2, x=x)  # Integrate x^2 from 1..4. Exact result: 21
     if abs(integral - 21.0) > 0.5:
         raise ValueError("Simpson integration failed")
     integral = quad(lambda x: x ** 3, 1, 4)[
