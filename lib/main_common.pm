@@ -858,15 +858,15 @@ sub unregister_needle_tags {
 }
 
 sub load_bootloader_s390x {
-    return 0 unless is_s390x;
-
     if (is_backend_s390x) {
         loadtest "installation/bootloader_s390";
+        return 1;
     }
-    else {
+    if (is_s390x && is_svirt) {
         loadtest "installation/bootloader_zkvm";
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 sub boot_hdd_image {
