@@ -34,6 +34,7 @@
       <li><a href="#sdaf_cleanup">sdaf_cleanup</a></li>
       <li><a href="#sdaf_execute_playbook">sdaf_execute_playbook</a></li>
       <li><a href="#sdaf_ansible_verbosity_level">sdaf_ansible_verbosity_level</a></li>
+      <li><a href="#ansible_hanasr_show_status">ansible_hanasr_show_status</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment.pm</h1>
@@ -295,6 +296,16 @@ tee - writes output also into the log file</code></pre>
 <p><b>$verbosity_level</b> Change default verbosity value by either anything equal to &#39;true&#39; or int between 1-6. Default: false</p>
 
 <p>Returns string that is to be used as verbosity parameter <b>-v</b> for &#39;ansible-playbook&#39; command. This is controlled by positional argument <b>$verbosity_level</b>. Values can specify verbosity level using integer up to 6 (max supported by ansible) or just set to anything equal to <b>&#39;true&#39;</b> which will default to <b>-vvvv</b>. Value <b>-vvvv</b> should be enough to debug network connection problems according to ansible documentation: <a href="https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-v">https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-v</a></p>
+
+<h2 id="ansible_hanasr_show_status">ansible_hanasr_show_status</h2>
+
+<pre><code>ansible_hanasr_show_status(sdaf_config_root_dir=&gt;&#39;/some/path&#39; [, sap_sid=&gt;&#39;CAT&#39;]);</code></pre>
+
+<p>Display simple command outputs from all DB hosts using <b>ansible</b> command.</p>
+
+<p><b>sdaf_config_root_dir</b> SDAF Config directory containing SUT ssh keys</p>
+
+<p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
 
 
 </body>
