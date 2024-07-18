@@ -6,7 +6,8 @@ description:    >
     versions, features etc. on baremetal.
 vars:
     DESKTOP: textmode
-    MLX_PROTOCOL: 1
+    MLX_PROTOCOL: 2
+    NFS_MULTIPATH: 1
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
 
