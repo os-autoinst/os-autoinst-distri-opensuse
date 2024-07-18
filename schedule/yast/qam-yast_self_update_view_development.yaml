@@ -10,7 +10,6 @@ schedule:
   - installation/validate_self_update
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_registration/view_development_versions
   - installation/module_registration/register_extensions_and_modules
   - installation/add_update_test_repo
   - installation/addon_products_sle
