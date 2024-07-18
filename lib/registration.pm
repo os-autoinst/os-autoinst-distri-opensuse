@@ -209,7 +209,8 @@ sub add_suseconnect_product {
     if ($name =~ /PackageHub/ && check_var('BETA', '1')) {
         record_info('INFO', 'PackageHub installation might fail in early development');
     }
-    die "SUSEConnect failed activating module $name after $retry retries.";
+    # for WE we sometimes need 'zypper ref' to accept new key.
+    die "SUSEConnect failed activating module $name after $retry retries." if ($name !~ /we/);
 }
 
 =head2 ssh_add_suseconnect_product
