@@ -21,7 +21,6 @@ set -euxo pipefail
 detect_free_drive() {
     declare -a drives
     drives=( $(ls /sys/block/) )
-    empty=
 
     for d in ${drives[@]}; do
         blkid /dev/"$d" &> /dev/null || echo "/dev/$d"
