@@ -483,4 +483,26 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
     undef_variables();
 };
 
+subtest '[ansible_hanasr_show_status]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %calls;
+    $ms_sdaf->redefine(record_info => sub { return });
+    $ms_sdaf->redefine(script_output => sub {
+            $calls{crm_status} = $_[0] if grep /crm status/, @_;
+            $calls{saphanasr_showattr} = $_[0] if grep /SAPHanaSR-showAttr/, @_;
+            return; });
+
+    ansible_hanasr_show_status(sap_sid => 'CAT', sdaf_config_root_dir => '/cat/house');
+    note("crm status command:\n\t $calls{crm_status}");
+    ok(grep(/ansible QES_DB/, $calls{crm_status}), 'Execute main command');
+    ok(grep(/--private-key=\/cat\/house\/sshkey/, $calls{crm_status}), 'Check for "--private-key" argument');
+    ok(grep(/--inventory=CAT_hosts.yaml/, $calls{crm_status}), 'Check for "--inventory" argument');
+    ok(grep(/--module-name=shell/, $calls{crm_status}), 'Check for "--module-name" argument');
+    ok(grep(/--args="sudo crm status full"/, $calls{crm_status}), 'Check for executed "crm status" command');
+
+    note("SAPHanaSR-showAttr command:\n\t $calls{saphanasr_showattr}");
+    ok(grep(/--args="sudo SAPHanaSR-showAttr"/, $calls{saphanasr_showattr}), 'Check for executed "SAPHanaSR-showAttr" command');
+
+};
+
 done_testing;
