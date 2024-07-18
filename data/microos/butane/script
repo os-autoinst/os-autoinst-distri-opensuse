@@ -17,9 +17,22 @@
 #
 set -euxo pipefail
 
+# look for a drive that has no partition table or other information that blkid would return
+detect_free_drive() {
+    declare -a drives
+    drives=( $(ls /sys/block/) )
+    empty=
+
+    for d in ${drives[@]}; do
+        blkid /dev/"$d" &> /dev/null || echo "/dev/$d"
+    done
+}
+
 create_fs() {
-    DRIVE='/dev/vdc'
-    PART='/dev/vdc1'
+    DRIVE=$(detect_free_drive)
+    test -n "$DRIVE" || exit 2
+
+    PART="${DRIVE}1"
 
     # create partition and filesystem on additional drive
     echo "label: gpt" | sfdisk "$DRIVE"
@@ -127,5 +140,9 @@ if command -v wicked &> /dev/null && ! grep -q 'dhcp' "$IF_CFG" &> /dev/null; th
     echo -e "BOOTPROTO=dhcp\nSTARTMODE=auto" > "$IF_CFG"
 fi
 
+# leave a marker that combustion configure the system
 echo Combustion was here > /usr/share/combustion-welcome
 curl conncheck.opensuse.org
+
+# close outputs and wait for tee to finish
+exec 1>&- 2>&-; wait;
