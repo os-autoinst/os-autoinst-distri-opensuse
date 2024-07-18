@@ -81,7 +81,8 @@ my @conflicting_packages = (
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
-    'kernel-default-base', 'kernel-default-extra'
+    'kernel-default-base', 'kernel-default-extra',
+    'openssl-ibmca-engine', 'openssl-ibmca-provider', 'openssl-ibmca'
 );
 
 # https://progress.opensuse.org/issues/153388
