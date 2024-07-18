@@ -19,6 +19,13 @@ my $test_dir = "/var/tmp";
 my $netavark = "";
 my $netavark_version = "";
 
+sub install_ncat {
+    my $ncat_version = get_required_var("NCAT_VERSION");
+
+    assert_script_run "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm";
+    assert_script_run "ln -sf /usr/bin/ncat /usr/bin/nc";
+}
+
 sub run_tests {
     my $log_file = "netavark.tap";
 
@@ -38,13 +45,14 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld netcat-openbsd iproute2 iptables jq netavark);
+    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark);
     if (is_tumbleweed) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
     }
     install_packages(@pkgs);
+    install_ncat;
 
     switch_cgroup_version($self, 2);
 
