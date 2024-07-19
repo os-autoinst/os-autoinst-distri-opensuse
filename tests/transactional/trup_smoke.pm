@@ -29,7 +29,12 @@ sub run {
 
     select_serial_terminal;
 
-    action('bootloader', 'Reinstall bootloader');
+    if (get_var('FLAVOR') =~ m/-encrypted/i) {
+        record_soft_failure("bsc#1228126: Encrypted image fails to boot after reinstalling bootloader");
+    }
+    else {
+        action('bootloader', 'Reinstall bootloader');
+    }
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
     action('kdump', 'Regenerate kdump');
