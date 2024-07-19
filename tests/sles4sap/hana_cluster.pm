@@ -1,11 +1,11 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: hsqldb crmsh
 # Summary: Configure HANA-SR cluster
-# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base "sles4sap";
 use testapi;
@@ -38,7 +38,12 @@ sub run {
     if (is_node(1)) {
         # Create the resource configuration
         my $cluster_conf = 'hana_cluster.conf';
-        assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
+        if (check_var('ANGI', 'true')) {
+            assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/angi_$cluster_conf -o /tmp/$cluster_conf";
+        }
+        else {
+            assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
+        }
         $cluster_conf = "/tmp/" . $cluster_conf;
 
         # Initiate the template
@@ -60,10 +65,34 @@ sub run {
         barrier_wait "HANA_INIT_CONF_$cluster_name";
         barrier_wait "HANA_CREATED_CONF_$cluster_name";
 
+        # Chek for ANGI setup
+        if (check_var('ANGI', 'true')) {
+            assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem'";
+            # Setting up SAP HANA HA/DR providers
+            my $hadr_template = "angi_susHanaAIO.template";
+            assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$hadr_template -o /tmp/$hadr_template";
+            assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
+            # Adding SUDO permissions
+            my $sudo_saphanasr = "# SAPHanaSR-ScaleUp entries for writing srHook cluster attribute and SAPHanaSR-hookHelper\n" .
+              "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*.\n" .
+              "$sapadm ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("$sid") . " *\n";
+            assert_script_run qq(echo "$sudo_saphanasr" >> /etc/sudoers.d/SAPHanaSR);
+            my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
+            assert_script_run $start_cmd;
+        }
         # Upload the configuration into the cluster
-        my @crm_cmds = ("crm configure load update $cluster_conf",
-            "crm resource refresh msl_SAPHana_${sid}_HDB${instance_id}",
-            "crm resource maintenance msl_SAPHana_${sid}_HDB${instance_id} off");
+        if (check_var('ANGI', 'true')) {
+            my @crm_cmds = ("crm configure load update $cluster_conf",
+                "crm resource refresh mst_SAPHanaController_${sid}_HDB${instance_id}",
+                "cs_wait_for_idle -s 5",
+                "crm resource maintenance mst_SAPHanaController_${sid}_HDB${instance_id} off");
+        }
+        else {
+            my @crm_cmds = ("crm configure load update $cluster_conf",
+                "crm resource refresh msl_SAPHana_${sid}_HDB${instance_id}",
+                "cs_wait_for_idle -s 5",
+                "crm resource maintenance msl_SAPHana_${sid}_HDB${instance_id} off");
+        }
         foreach my $cmd (@crm_cmds) {
             wait_for_idle_cluster;
             assert_script_run $cmd;
@@ -78,6 +107,17 @@ sub run {
         sleep bmwqemu::scale_timeout(30);
         $self->do_hana_sr_register(node => $node1);
         sleep bmwqemu::scale_timeout(10);
+        if (check_var('ANGI', 'true')) {
+            # Setting up SAP HANA HA/DR providers
+            my $hadr_template = "angi_susHanaAIO.template";
+            assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$hadr_template -o /tmp/$hadr_template";
+            assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
+            # Adding SUDO permissions
+            my $sudo_saphanasr = "# SAPHanaSR-ScaleUp entries for writing srHook cluster attribute and SAPHanaSR-hookHelper\n" .
+              "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*.\n" .
+              "$sapadm ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("$sid") . " *\n";
+            assert_script_run qq(echo "$sudo_saphanasr" >> /etc/sudoers.d/SAPHanaSR);
+        }
         my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         assert_script_run $start_cmd;
         my $looptime = 90;
