@@ -232,7 +232,6 @@
       <package>xfsprogs</package>
       <package>wicked</package>
       <package>sle-module-server-applications-release</package>
-      <package>sle-module-python3-release</package>
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
       <package>mdadm</package>
