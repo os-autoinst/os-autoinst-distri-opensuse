@@ -18,7 +18,6 @@ use sles4sap::sap_deployment_automation_framework::deployment_connector
   qw(get_deployer_vm
   get_deployer_ip
   );
-use sles4sap::console_redirection qw(redirection_init);
 use serial_terminal qw(select_serial_terminal);
 
 sub test_flags {
@@ -41,10 +40,6 @@ sub run {
     set_var('REDIRECT_DESTINATION_USER', $ssh_user);
     set_var('REDIRECT_DESTINATION_IP', $deployer_ip);    # IP addr to redirect console to
     sdaf_prepare_private_key(key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'));
-
-    # autossh is required for console redirection to work
-    assert_script_run('zypper in -y autossh');
-    redirection_init();
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : end');
 }
 
