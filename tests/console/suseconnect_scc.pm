@@ -11,14 +11,13 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry script_output_retry);
-use version_utils qw(is_sle is_jeos is_sle_micro is_transactional);
+use version_utils qw(is_sle is_jeos is_sle_micro is_transactional is_staging);
 use registration qw(register_addons_cmd verify_scc investigate_log_empty_license);
-use transactional qw(process_reboot);
+use transactional qw(trup_call process_reboot);
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
-    my $reg_cmd = is_transactional ? "transactional-update register" : "SUSEConnect";
-    my $cmd = $reg_cmd . ' -r ' . get_required_var 'SCC_REGCODE';
+    my $cmd = ' -r ' . get_required_var 'SCC_REGCODE';
     my $scc_addons = get_var 'SCC_ADDONS', '';
     # fake scc url pointing to synced repos on openQA
     # valid only for products currently in development
@@ -31,17 +30,25 @@ sub run {
 
     select_serial_terminal;
     die 'SUSEConnect package is not pre-installed!' if script_run 'command -v SUSEConnect';
-    if ((is_jeos || is_sle_micro) && script_run(qq($reg_cmd --status-text | grep -i 'not registered'))) {
+    if ((is_jeos || is_sle_micro) && script_run(qq(SUSEConnect --status-text | grep -i 'not registered'))) {
         die 'System has been already registered!';
     }
 
     # There are sporadic failures due to the command timing out, so we increase the timeout
     # and make use of retries to overcome a possible sporadic network issue.
-    my $output = script_output_retry("$cmd", retry => $retries, delay => $delay, timeout => 180);
-    die($output) if ($output =~ m/error|timeout|problem retrieving/i);
-    process_reboot(trigger => 1) if is_transactional;
+    # script_output_retry is useless for `transactional-update` cmd because it returns 0 even with failure
+    # trup_call will raise a failure if the command fails
+    if (is_transactional) {
+        trup_call('register' . $cmd);
+        trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
+        process_reboot(trigger => 1);
+    }
+    else {
+        my $output = script_output_retry("SUSEConnect $cmd", retry => $retries, delay => $delay, timeout => 180);
+        die($output) if ($output =~ m/error|timeout|problem retrieving/i);
+    }
     # Check available extenstions (only present in sle)
-    my $extensions = script_output_retry("$reg_cmd --list-extensions", retry => $retries, delay => $delay, timeout => 180);
+    my $extensions = script_output_retry("SUSEConnect --list-extensions", retry => $retries, delay => $delay, timeout => 180);
     record_info('Extensions', $extensions);
 
     die("None of the modules are Activated") if ($extensions !~ m/Activated/ && is_sle);
