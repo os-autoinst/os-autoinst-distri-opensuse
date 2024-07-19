@@ -28,8 +28,9 @@ jobs:
         run: >-
           echo build=$(openqa-cli api
           --host ${OPENQA_HOST:-https://openqa.opensuse.org}
-          job_groups/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}/build_results limit_builds=1 only_tagged=1
-          | jq -r '[ .build_results[] | select(.tag.description=="published") | .build ][]'
+          job_groups/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}/build_results only_tagged=1
+          | jq -r '[ .build_results[] | select(.tag.description=="published") | .build ][0]'
+
           ) >> "$GITHUB_OUTPUT"
       - name: Trigger and monitor a basic openQA test on o3
         run: >-
