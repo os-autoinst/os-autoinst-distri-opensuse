@@ -11,9 +11,8 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_transactional is_sle_micro);
+use version_utils 'is_transactional';
 use transactional;
-use Utils::Architectures 'is_aarch64';
 
 use constant STATUS_LOG => '/opt/status.log';
 
@@ -52,7 +51,7 @@ sub run {
         zypper_ar($dep_url, name => 'dependency-repo', priority => 90);
         if (is_transactional) {
             trup_call("pkg install $btrfs_package_name");
-            (is_sle_micro(">=6.0") && is_aarch64) ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
+            reboot_on_changes;
         }
         else {
             zypper_call 'rm btrfsprogs' unless get_var('KEEP_DEFAULT_BTRFS_BINARY');
