@@ -37,6 +37,7 @@ use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 use validate_encrypt_utils "validate_encrypted_volume_activation";
+use power_action_utils 'power_action';
 
 my $confirmed_licenses = 0;
 my $stage = 'stage1';
@@ -127,7 +128,7 @@ sub run {
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if is_s390x || (is_pvm && !is_upgrade);
+    push @needles, 'autoyast-stage1-reboot-upcoming' if is_s390x || (is_pvm && !is_upgrade) || (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'hvm'));
     # Similar situation over IPMI backend, we can check against PXE menu
     push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi and !get_var('IPXE');
     # Import untrusted certification for SMT
@@ -320,6 +321,12 @@ sub run {
         }
     }
 
+    # For xen, need set hard-disk as the boot device, then reboot and connect to existing VNC.
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'hvm')) {
+        my $svirt = console('svirt');
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+        power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
+    }
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
     if (is_s390x) {
         reconnect_mgmt_console(timeout => 1400, grub_timeout => 360);
