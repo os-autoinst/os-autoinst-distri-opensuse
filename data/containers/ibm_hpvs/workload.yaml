@@ -1,0 +1,11 @@
+env: |
+  type: env
+  logging:
+    logDNA:
+      hostname: syslog-a.eu-de.logging.cloud.ibm.com
+      ingestionKey: INGESTIONKEY
+      port: 6514
+workload: |
+  type: workload
+  compose:
+    archive: ARCHIVE
