@@ -23,6 +23,9 @@ detect_free_drive() {
     drives=( $(ls /sys/block/) )
 
     for d in ${drives[@]}; do
+        # 64bit worker boots the image with cd-rom (sr0) device
+        # skip this device in case it is detected
+        [[ "$d" =~ ^sr[0-9]$ ]] && continue
         blkid /dev/"$d" &> /dev/null || echo "/dev/$d"
     done
 }
