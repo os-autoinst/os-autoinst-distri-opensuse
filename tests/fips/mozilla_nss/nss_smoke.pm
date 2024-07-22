@@ -7,7 +7,9 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 #             QE Security
 
-use Mojo::Base qw(consoletest);
+use strict;
+use warnings;
+use base "consoletest";
 use testapi;
 use version_utils qw(is_sle is_transactional);
 use transactional qw(trup_call process_reboot);
@@ -34,7 +36,7 @@ sub run {
         trup_call("pkg install $zypper_options mozilla-nss mozilla-nss-tools");
         process_reboot(trigger => 1);
     } else {
-        zypper_call("in $zypper_options mozilla-nss mozilla-nss-tools");
+        zypper_call("in $zypper_options mozilla-nss mozilla-nss-tools", timeout => 180);
     }
     record_info('mozilla-nss', script_output('rpm -q mozilla-nss'));
     record_info('mozilla-nss-tools', script_output('rpm -q mozilla-nss-tools'));
