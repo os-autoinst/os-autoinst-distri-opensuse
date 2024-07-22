@@ -28,12 +28,14 @@ use package_utils;
 sub check_kernel_package {
     my $kernel_name = shift;
 
+    enter_trup_shell(global_options => '-c') if is_transactional;
     script_run('ls -1 /boot/vmlinu[xz]*');
     # Only check versioned kernels in livepatch tests. Some old kernel
     # packages install /boot/vmlinux symlink but don't set package ownership.
     my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
     my $cmd = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
     my $packs = script_output($cmd);
+    exit_trup_shell if is_transactional;
 
     for my $packname (split /\s+/, $packs) {
         die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
@@ -191,8 +193,10 @@ sub override_shim {
     for my $pair (@$version_list) {
         if (package_version_cmp($version, $$pair[0]) <= 0) {
             my $shim = 'shim-' . $$pair[1];
+            enter_trup_shell(global_options => '-c') if is_transactional;
             zypper_call("in -f $shim");
             zypper_call("al $shim");
+            exit_trup_shell if is_transactional;
             return;
         }
     }
@@ -220,11 +224,13 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        push @packages, "kernel-devel-rt";
-    }
-    else {
-        push @packages, "kernel-devel";
+    unless (is_sle_micro) {
+        if (check_var('SLE_PRODUCT', 'slert')) {
+            push @packages, "kernel-devel-rt";
+        }
+        else {
+            push @packages, "kernel-devel";
+        }
     }
 
     # add explicit version to each package
@@ -237,8 +243,10 @@ sub install_lock_kernel {
       if is_sle('=12-SP5') && !check_var('SLE_PRODUCT', 'slert');
 
     # install and lock needed kernel
+    enter_trup_shell(global_options => '-c') if is_transactional;
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
+    exit_trup_shell if is_transactional;
 }
 
 sub prepare_kgraft {
@@ -443,7 +451,7 @@ sub run {
         downgrade_kernel(get_var('KERNEL_VERSION'));
         check_kernel_package($kernel_package);
         power_action('reboot', textmode => 1);
-        $self->wait_boot if get_var('LTP_BAREMETAL');
+        $self->wait_boot if get_var('LTP_BAREMETAL') || is_transactional;
         return;
     }
 
