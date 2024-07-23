@@ -26,8 +26,7 @@ sub run {
 
     # On the maintenance job group, we need to install yast2-bootloader, since
     # it's not present in the created ISO.
-    my $parent_job = get_var('START_AFTER_TEST');
-    if ($parent_job eq "mru-install-minimal-with-addons_security_uefi") {
+    if (get_var('START_AFTER_TEST') eq "mru-install-minimal-with-addons_security") {
         zypper_call("in yast2-bootloader");
     }
 
