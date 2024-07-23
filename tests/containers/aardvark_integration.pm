@@ -49,7 +49,7 @@ sub run {
     switch_cgroup_version($self, 2);
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
-    record_info("aardvark version", script_output("$aardvark --version"));
+    record_info("aardvark-dns version", script_output("$aardvark --version"));
 
     my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";

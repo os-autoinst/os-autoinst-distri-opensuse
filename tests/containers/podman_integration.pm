@@ -72,6 +72,8 @@ sub run {
     assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
     assert_script_run "chmod +x /usr/local/bin/htpasswd";
 
+    record_info("podman version", script_output("podman version"));
+
     delegate_controllers;
 
     assert_script_run "podman system reset -f";
