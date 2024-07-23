@@ -97,7 +97,7 @@ my $xpti_domu_false = {"domu=false" => {
 my $spec_ctrl_no = {no => {
         default => {
             #expection string. If it doesn't appear go die
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:$',
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: JMP, SPEC_CTRL: IBRS- STIBP- SSBD.*Other:$',
 'Support for HVM VMs: None', 'Support for PV VMs: None', '^(XEN)   XPTI (64-bit PV only): Dom0 disabled, DomU disabled (with PCID)$', '^(XEN)   PV L1TF shadowing: Dom0 disabled, DomU disabled$']},
             #unexpection string. If it appears go die.
             unexpected => {'xl dmesg' => ['']}
@@ -106,14 +106,21 @@ my $spec_ctrl_no = {no => {
 };
 my $spec_ctrl_no_xen = {"no-xen" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:$']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: JMP, SPEC_CTRL: IBRS- STIBP- SSBD.*Other:$']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_pv_on = {"pv=on" => {
         default => {
-            expected => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU VERW IBPB-entry']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_pv_on_for_icelake = {"pv=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB VERW IBPB-entry']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -125,9 +132,17 @@ my $spec_ctrl_pv_0 = {"pv=0" => {
         }
     }
 };
+
 my $spec_ctrl_hvm_on = {"hvm=on" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB EAGER_FPU IBPB-entry']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB EAGER_FPU']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_hvm_on_for_icelake = {"hvm=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB VERW IBPB-entry']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -139,9 +154,23 @@ my $spec_ctrl_hvm_0 = {"hvm=0" => {
         }
     }
 };
+my $spec_ctrl_hvm_0_for_icelake = {"hvm=0" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: None']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
 my $spec_ctrl_msr_sc_on = {"msr-sc=on" => {
         default => {
             expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL.*RSB EAGER_FPU', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU.*']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_msr_sc_on_for_icelake = {"msr-sc=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL', 'Support for PV VMs: MSR_SPEC_CTRL']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -153,6 +182,13 @@ my $spec_ctrl_msr_sc_off = {"msr-sc=off" => {
         }
     }
 };
+my $spec_ctrl_msr_sc_off_for_icelake = {"msr-sc=off" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: None', 'Support for PV VMs: None']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
 my $spec_ctrl_rsb_on = {"rsb=on" => {
         default => {
             expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL.*RSB EAGER_FPU.*', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU.*']},
@@ -160,9 +196,23 @@ my $spec_ctrl_rsb_on = {"rsb=on" => {
         }
     }
 };
+my $spec_ctrl_rsb_on_for_icelake = {"rsb=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: RSB', 'Support for PV VMs: RSB']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
 my $spec_ctrl_rsb_off = {"rsb=off" => {
         default => {
             expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL.*EAGER_FPU', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU.*']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_rsb_off_for_icelake = {"rsb=off" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: None', 'Support for PV VMs: None']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -175,72 +225,88 @@ my $spec_ctrl_md_clear_off = {"md-clear=off" => {
         }
     }
 };
-my $spec_ctrl_md_clear_on = {"md-clear=on" => {
+my $spec_ctrl_md_clear_off_for_icelake = {"md-clear=off" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB EAGER_FPU', 'Support for PV VMs: .*MD_CLEAR']},
+            #even md-clear=off
+            expected => {'xl dmesg' => ['Support for HVM VMs: None', 'Support for PV VMs: None']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
+my $spec_ctrl_md_clear_on = {"md-clear=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB EAGER_FPU', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU VERW']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+
 my $spec_ctrl_bti_thunk_retp_for_intel = {"bti-thunk=retpoline" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS. STIBP. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: RETPOLINE.*SPEC_CTRL: IBRS. STIBP. SSBD.*Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_bti_thunk_retp_for_amd = {"bti-thunk=lfence" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS\+ SSBD-,.* Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_bti_thunk_jmp = {"bti-thunk=jmp" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS. STIBP. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: JMP.*SPEC_CTRL: IBRS. STIBP. SSBD.*Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_off = {"ibrs=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS- STIBP- SSBD.*Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_on = {"ibrs=on" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ STIBP. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: JMP.*SPEC_CTRL: IBRS. STIBP. SSBD.*Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_ibrs_on_for_icelake = {"ibrs=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: RETPOLINE, BHB-Seq: SHORT, SPEC_CTRL: IBRS. STIBP. SSBD. PSFD- TSX., Other: IBPB-ctxt BRANCH_HARDEN']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibpb_off = {"ibpb=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP.* SSBD-.*, Other:']},
-            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. STIBP.* SSBD.*Other:']},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
         }
     }
 };
 my $spec_ctrl_ibpb_on = {"ibpb=on" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP. SSBD-.*, Other: IBPB']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. STIBP. SSBD.*Other: IBPB']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ssbd_off = {"ssbd=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP. SSBD-.*, Other:']},
-            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD\+.*(TSX|).*, Other:']}
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. STIBP. SSBD.*Other:']},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. SSBD\+.*(TSX|).*, Other:']}
         }
     }
 };
 my $spec_ctrl_ssbd_on = {"ssbd=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP. SSBD.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. STIBP. SSBD.*Other:']},
             unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
         }
     }
@@ -249,6 +315,13 @@ my $spec_ctrl_eager_fpu_off = {"eager-fpu=off" => {
         default => {
             expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL MSR_VIRT_SPEC_CTRL RSB', 'Support for PV VMs: MSR_SPEC_CTRL.*']},
             unexpected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
+        }
+    }
+};
+my $spec_ctrl_eager_fpu_on_for_icelake = {"eager-fpu=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: EAGER_FPU', 'Support for PV VMs: EAGER_FPU']},
+            unexpected => {},
         }
     }
 };
@@ -262,20 +335,20 @@ my $spec_ctrl_eager_fpu_on = {"eager-fpu=on" => {
 my $spec_ctrl_l1d_flsh_off = {"l1d-flush=off" => {
         default => {
             expected => {},
-            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*L1D_FLUSH']},
         }
     }
 };
 my $spec_ctrl_l1d_flsh_on = {"l1d-flush=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP.* SSBD-.*, Other: .*']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk: .*, SPEC_CTRL: IBRS. STIBP. SSBD-.*Other: .*']},
             unexpected => {},
         }
     }
 };
 my $spec_ctrl_branch_harden_on = {"branch-harden=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP. SSBD-.*, Other: .*BRANCH_HARDEN']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk.*SPEC_CTRL: IBRS. STIBP. SSBD.*Other.*BRANCH_HARDEN']},
             unexpected => {},
         }
     }
@@ -283,7 +356,7 @@ my $spec_ctrl_branch_harden_on = {"branch-harden=on" => {
 my $spec_ctrl_branch_harden_off = {"branch-harden=off" => {
         default => {
             expected => {},
-            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*BRANCH_HARDEN']},
         }
     }
 };
@@ -382,7 +455,19 @@ if (get_var('ARCH', '') =~ /amd/i) {
 } else {
     ${$spec_ctrl_hash}{'bti-thunk=retpoline'} = ${$spec_ctrl_bti_thunk_retp_for_intel}{'bti-thunk=retpoline'};
 }
-
+## Done for icelake machine
+if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Icelake/i) {
+    ${$spec_ctrl_hash}{'hvm=0'} = ${$spec_ctrl_hvm_0_for_icelake}{'hvm=0'};
+    ${$spec_ctrl_hash}{'pv=on'} = ${$spec_ctrl_pv_on_for_icelake}{'pv=on'};
+    ${$spec_ctrl_hash}{'md-clear=off'} = ${$spec_ctrl_md_clear_off_for_icelake}{'md-clear=off'};
+    ${$spec_ctrl_hash}{'eager-fpu=on'} = ${$spec_ctrl_eager_fpu_on_for_icelake}{'eager-fpu=on'};
+    ${$spec_ctrl_hash}{'hvm=on'} = ${$spec_ctrl_hvm_on_for_icelake}{'hvm=on'};
+    ${$spec_ctrl_hash}{'msr-sc=on'} = ${$spec_ctrl_msr_sc_on_for_icelake}{'msr-sc=on'};
+    ${$spec_ctrl_hash}{'msr-sc=off'} = ${$spec_ctrl_msr_sc_off_for_icelake}{'msr-sc=off'};
+    ${$spec_ctrl_hash}{'rsb=on'} = ${$spec_ctrl_rsb_on_for_icelake}{'rsb=on'};
+    ${$spec_ctrl_hash}{'rsb=off'} = ${$spec_ctrl_rsb_off_for_icelake}{'rsb=off'};
+    ${$spec_ctrl_hash}{'ibrs=on'} = ${$spec_ctrl_ibrs_on_for_icelake}{'ibrs=on'};
+}
 my $tsx_hash = {};
 if (get_var('FLAVOR', '') =~ /Haswell/i) {
     $tsx_hash = {%$tsx_off_for_haswell, %$tsx_on_for_haswell};
