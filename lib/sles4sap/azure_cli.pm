@@ -1067,10 +1067,9 @@ sub az_vm_diagnostic_log_get {
     my $vm_data = az_vm_list(resource_group => $args{resource_group}, query => '[].{id:id,name:name}');
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
     foreach (@{$vm_data}) {
-        #record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
-        push(@diagnostic_log_files, $boot_diagnostics_log);
+        push(@diagnostic_log_files, $boot_diagnostics_log) unless
+          script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
     }
     return @diagnostic_log_files;
 }
