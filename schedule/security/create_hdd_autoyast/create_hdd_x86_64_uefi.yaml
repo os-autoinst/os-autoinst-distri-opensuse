@@ -8,11 +8,16 @@ conditional_schedule:
         - update/zypper_clear_repos
         - console/zypper_ar
         - console/zypper_ref
+  opensuse_welcome:
+    VERSION:
+      Tumbleweed:
+        - installation/opensuse_welcome
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - installation/first_boot
+  - '{{opensuse_welcome}}'
   - console/system_prepare
   - '{{update_repos}}'
   - console/hostname
