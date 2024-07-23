@@ -11,7 +11,7 @@ use Scalar::Util qw(reftype);
 use List::Util qw(any none);
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 
-subtest '[get_deployer_vm] Test expected failures' => sub {
+subtest '[get_deployer_vm_name] Test expected failures' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     $mock_function->redefine(diag => sub { return; });
     $mock_function->redefine(script_output => sub { return '
@@ -21,11 +21,11 @@ subtest '[get_deployer_vm] Test expected failures' => sub {
 ]
 '; });
 
-    dies_ok { get_deployer_vm(deployer_resource_group => 'Char') } 'Croak with missing mandatory arg: deployment_id';
-    dies_ok { get_deployer_vm(deployer_resource_group => 'Char', deployment_id => '0079') } 'Die with multiple VMs tagged with same ID';
+    dies_ok { get_deployer_vm_name(deployer_resource_group => 'Char') } 'Croak with missing mandatory arg: deployment_id';
+    dies_ok { get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079') } 'Die with multiple VMs tagged with same ID';
 };
 
-subtest '[get_deployer_vm] Check command composition' => sub {
+subtest '[get_deployer_vm_name] Check command composition' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
     $mock_function->redefine(diag => sub { return; });
@@ -34,7 +34,7 @@ subtest '[get_deployer_vm] Check command composition' => sub {
 ]'
     });
 
-    my $result = get_deployer_vm(deployer_resource_group => 'Char', deployment_id => '0079');
+    my $result = get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((grep /az vm list/, @calls), 'Check main az command');
     ok((grep /--resource-group Char/, @calls), 'Check --resource-group argument');
@@ -43,21 +43,21 @@ subtest '[get_deployer_vm] Check command composition' => sub {
     is $result, '0079-Zaku_II', 'Return VM name';
 
     $mock_function->redefine(script_output => sub { push(@calls, @_); return '[]' });
-    is get_deployer_vm(deployer_resource_group => 'Char', deployment_id => '0079'), undef, 'Return empty string if no VM found';
+    is get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079'), undef, 'Return empty string if no VM found';
 };
 
 subtest '[find_deployment_id]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     $mock_function->redefine(get_current_job_id => sub { return '0079'; });
     $mock_function->redefine(get_parent_ids => sub { return ['0083', '0087']; });
-    $mock_function->redefine(get_deployer_vm => sub { return '0079' if grep(/0079/, @_); });
+    $mock_function->redefine(get_deployer_vm_name => sub { return '0079' if grep(/0079/, @_); });
 
     is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Current job ID belongs to VM';
 
     $mock_function->redefine(get_current_job_id => sub { return; });
     is find_deployment_id(deployer_resource_group => 'Char'), undef, 'Return undef if no ID found';
 
-    $mock_function->redefine(get_deployer_vm => sub { return '0083' if grep(/0083/, @_); });
+    $mock_function->redefine(get_deployer_vm_name => sub { return '0083' if grep(/0083/, @_); });
     is find_deployment_id(deployer_resource_group => 'Char'), '0083', 'Parent job ID belongs to VM';
 };
 
@@ -182,8 +182,22 @@ subtest '[check_ssh_availability] Test command looping' => sub {
 
     check_ssh_availability($ip_addr, wait_started => '1');
     ok(($loop_count > 0), "Test retry loop with \$args{wait_started}. Loop count: $loop_count");
-
 };
 
+subtest '[destroy_deployer_vm]' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    my $cleanup_triggered;
+    $mock_function->redefine(record_info => sub { return; });
+    $mock_function->redefine(az_resource_delete => sub { $cleanup_triggered = '1'; return; });
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Zabi');
+    $mock_function->redefine(find_deployer_resources => sub { return []; });
+    destroy_deployer_vm();
+    is $cleanup_triggered, undef, 'Do not trigger VM cleanup if VM not detected';
+
+    $mock_function->redefine(find_deployer_resources => sub { return ['Gihren', 'Garma', 'Dozle']; });
+    destroy_deployer_vm();
+    is $cleanup_triggered, '1', 'Trigger cleanup with resources detected';
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', undef);
+};
 
 done_testing;

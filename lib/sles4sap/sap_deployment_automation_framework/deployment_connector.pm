@@ -29,14 +29,16 @@ use Mojo::JSON qw(decode_json);
 use Scalar::Util qw(looks_like_number);
 use Carp qw(croak);
 use mmapi qw(get_parents get_job_autoinst_vars get_children get_job_info get_current_job_id);
+use sles4sap::azure_cli qw(az_resource_delete);
 use Data::Dumper;
 
 our @EXPORT = qw(
-  get_deployer_vm
+  get_deployer_vm_name
   get_deployer_ip
   check_ssh_availability
   find_deployment_id
   find_deployer_resources
+  destroy_deployer_vm
 );
 
 =head2 check_ssh_availability
@@ -110,9 +112,9 @@ sub get_deployer_ip {
     return undef;
 }
 
-=head2 get_deployer_vm
+=head2 get_deployer_vm_name
 
-    get_deployer_vm(deployer_resource_group=>$deployer_resource_group, deployment_id=>'123456');
+    get_deployer_vm_name(deployer_resource_group=>$deployer_resource_group, deployment_id=>'123456');
 
 Returns deployer VM name which is tagged with B<deployment_id> specified in parameter. This means that the VM was used
 to deploy the infrastructure under this ID and contains whole SDAF setup.
@@ -125,7 +127,7 @@ B<deployment_id>: Deployment ID
 
 =cut
 
-sub get_deployer_vm {
+sub get_deployer_vm_name {
     my (%args) = @_;
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
     $args{deployment_id} //= find_deployment_id();
@@ -192,7 +194,7 @@ sub find_deployment_id {
     my @ids_found;
     for my $deployment_id (@check_list) {
         my $vm_name =
-          get_deployer_vm(deployer_resource_group => $args{deployer_resource_group}, deployment_id => $deployment_id);
+          get_deployer_vm_name(deployer_resource_group => $args{deployer_resource_group}, deployment_id => $deployment_id);
         push(@ids_found, $deployment_id) if $vm_name;
     }
     die "More than one deployment found.\nJobs IDs: " .
@@ -234,4 +236,45 @@ sub find_deployer_resources {
     my @resource_list = @{decode_json(script_output($az_cmd))};
 
     return \@resource_list;
+}
+
+
+=head2 destroy_deployer_vm
+
+    destroy_deployer_vm([timeout=>900]);
+
+Collects resource id of all resources belonging to the deployer VM and deletes them.
+Cleanup deployer VM resources only, B<deployer resource group itself will stay intact>.
+
+B<timeout>: Timeout for destroy command. Default: 800
+
+=cut
+
+sub destroy_deployer_vm {
+    my (%args) = @_;
+    $args{timeout} //= '800';
+    my $retries = 3;    # retry to delete 3x
+
+    # Deployer VM is located in permanent deployer resource group. This RG **MUST STAY INTACT**
+    my @resource_cleanup_list = @{find_deployer_resources(return_value => 'id')};
+    unless (@resource_cleanup_list) {
+        record_info('Deployer cleanup', 'No resources related to deployer VM found');
+        return;
+    }
+
+    record_info('Deployer cleanup',
+        "Following resources are being destroyed:\n" . join("\n", @{find_deployer_resources()}));
+
+    for my $attempt (1 .. $retries) {
+        az_resource_delete(ids => join(' ', @resource_cleanup_list),
+            resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'), verbose => 'yes', timeout => $args{timeout});
+        sleep 5;    # Just give things few secs to avoid command spamming.
+
+        # Check if all resources were cleaned up
+        @resource_cleanup_list = @{find_deployer_resources()};
+        last unless @resource_cleanup_list;
+        die "Failed to clean up resources:\n" . join("\n", @resource_cleanup_list) if ($attempt == $retries);
+        $attempt++;
+    }
+    record_info('Deployer cleanup', 'All resources destroyed');
 }

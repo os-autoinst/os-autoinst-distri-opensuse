@@ -1274,6 +1274,8 @@ B<name> Name of the resource to delete
 
 B<ids> list of resource IDs to delete
 
+B<verbose> Enable az cli verbosity. Default: disabled
+
 B<timeout> Timeout for az command. Default: 60
 
 =cut
@@ -1289,6 +1291,7 @@ sub az_resource_delete {
     );
     push(@az_command, "--name $args{name}") if $args{name};
     push(@az_command, "--ids $args{ids}") if $args{ids};
+    push(@az_command, "--verbose") if $args{verbose};
 
     assert_script_run(join(' ', @az_command), timeout => $args{timeout});
 }

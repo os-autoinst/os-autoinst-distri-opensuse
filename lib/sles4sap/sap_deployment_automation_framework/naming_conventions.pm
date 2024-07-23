@@ -106,7 +106,7 @@ L<https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b
 sub convert_region_to_short {
     my ($region) = @_;
     croak 'Missing mandatory argument "$region"' unless $region;
-    croak "Abbreviation must use lowercase alphanumeric characters. Got: '$region'" unless $region =~ /^[a-z0-9]+$/;
+    croak "Region name must use lowercase alphanumeric characters. Got: '$region'" unless $region =~ /^[a-z0-9]+$/;
 
     my @found_results = grep { $_ if $sdaf_region_matrix{$_} eq $region } keys(%sdaf_region_matrix);
 
