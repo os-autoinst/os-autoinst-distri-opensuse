@@ -266,6 +266,8 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
+    loadtest 'containers/apparmor' unless is_transactional;
+
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
