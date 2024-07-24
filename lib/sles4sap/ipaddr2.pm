@@ -16,6 +16,7 @@ use mmapi 'get_current_job_id';
 use sles4sap::azure_cli;
 use publiccloud::utils;
 use utils qw(write_sut_file);
+use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 
 =head1 SYNOPSIS
@@ -32,14 +33,17 @@ our @EXPORT = qw(
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
+  ipaddr2_cluster_sanity
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_registeration_check
   ipaddr2_registeration_set
+  ipaddr2_os_cloud_init_logs
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
+use constant WEB_RSC => 'rsc_web_00';
 
 our $user = 'cloudadmin';
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
@@ -682,6 +686,55 @@ sub ipaddr2_os_sanity {
             cmd => 'sudo systemctl is-system-running',
             bastion_ip => $args{bastion_ip});
     }
+
+    ipaddr2_os_cloud_init_sanity(bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_cluster_sanity
+
+    ipaddr2_cluster_sanity()
+
+Run some cluster level checks...
+
+=over 2
+
+=item B<id> - ID of the internal VM where to run the crm commands. Default is 1.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_cluster_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{id} //= 1;
+
+    my $crm_status = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo crm status',
+        bastion_ip => $args{bastion_ip});
+
+    die "Issue in the cluster health" if cluster_status_matches_regex($crm_status);
+
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => $crm_mon_cmd,
+        bastion_ip => $args{bastion_ip});
+
+    my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo crm configure show',
+        bastion_ip => $args{bastion_ip});
+
+    my @resources = $crm_configure =~ /primitive/g;
+    die "Cluster on VM $args{id} has " . scalar @resources . " primitives instead of expected 3" unless (scalar @resources) eq 3;
+
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => '[ -f /usr/lib/ocf/resource.d/heartbeat/nginx ]',
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'rpm -qf /usr/lib/ocf/resource.d/heartbeat/nginx',
+        bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_os_connectivity_sanity
@@ -724,6 +777,82 @@ sub ipaddr2_os_connectivity_sanity {
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
             }
+        }
+    }
+}
+
+=head2 ipaddr2_os_cloud_init_sanity
+
+    ipaddr2_os_cloud_init_sanity()
+
+Run some checks about cloud-init
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_cloud_init_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $id (1 .. 2) {
+        foreach (
+            'grep -E "root|cloudadmin|hacluster" /etc/passwd',
+            'zypper se -s -i cloud-init',
+            'cloud-init -v',
+            'cloud-init status --wait --long',
+            'sudo systemctl status \
+              cloud-init-local.service \
+              cloud-init.service \
+              cloud-config.service \
+              cloud-final.service') {
+            ipaddr2_ssh_internal(id => $id,
+                cmd => $_,
+                bastion_ip => $args{bastion_ip});
+        }
+    }
+}
+
+=head2 ipaddr2_os_cloud_init_logs
+
+    ipaddr2_os_cloud_init_logs()
+
+Collect some cloud-init related logs
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_cloud_init_logs {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $id (1 .. 2) {
+        foreach (
+            'sudo cat /var/log/cloud-init.log',
+            'sudo cat /var/log/cloud-init-output.log',
+            'sudo cloud-init collect-logs',
+            'sudo cloud-init analyze show',
+            'sudo cloud-init analyze dump',
+            'sudo cloud-init analyze blame',
+            'sudo cloud-init analyze boot || echo "rc:$?"',
+            'sudo cloud-init schema --system',
+            'sudo dmesg -T | grep -i -e warning -e error -e fatal -e exception',
+            'tail -n 3 /run/cloud-init/ds-identify.log'
+        ) {
+            ipaddr2_ssh_internal(id => $id,
+                cmd => $_,
+                bastion_ip => $args{bastion_ip});
         }
     }
 }
