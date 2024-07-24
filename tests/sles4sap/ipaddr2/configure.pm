@@ -46,7 +46,6 @@ sub run {
         }
     }
 
-
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
     ipaddr2_create_cluster(bastion_ip => $bastion_ip);
 }
