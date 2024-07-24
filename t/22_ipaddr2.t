@@ -424,4 +424,5 @@ subtest '[ipaddr2_registeration_set]' => sub {
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
     ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
 };
+
 done_testing;

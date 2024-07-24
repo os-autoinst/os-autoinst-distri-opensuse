@@ -827,7 +827,6 @@ sub ipaddr2_ssh_bastion_assert_script_run {
             "'$args{cmd}'"));
 }
 
-
 =head2 ipaddr2_ssh_bastion_script_run
 
     my $ret = ipaddr2_ssh_bastion_script_run(
@@ -939,15 +938,17 @@ sub ipaddr2_ssh_internal_cmd {
 run a command on one of the two internal VM through the bastion
 using the assert_script_run API
 
-=over 3
+=over 4
 
 =item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
+
+=item B<cmd> - Command to be run on the internal VM.
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
-=item B<cmd> - Command to be run on the internal VM.
+=item B<timeout> - Execution timeout, default 90sec
 
 =back
 =cut
@@ -957,11 +958,14 @@ sub ipaddr2_ssh_internal {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{timeout} //= 90;
 
-    assert_script_run(ipaddr2_ssh_internal_cmd(
+    assert_script_run(
+        ipaddr2_ssh_internal_cmd(
             id => $args{id},
             bastion_ip => $args{bastion_ip},
-            cmd => $args{cmd}));
+            cmd => $args{cmd}),
+        timeout => $args{timeout});
 }
 
 =head2 ipaddr2_ssh_internal_output
@@ -974,15 +978,17 @@ sub ipaddr2_ssh_internal {
 Runs $cmd  through the bastion on one of the two internal VMs using script_output.
 Return the command output.
 
-=over 3
+=over 4
 
 =item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
+
+=item B<cmd> - Command to be run on the internal VM.
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
-=item B<cmd> - Command to be run on the internal VM.
+=item B<timeout> - Execution timeout, default 90sec
 
 =back
 =cut
@@ -992,11 +998,14 @@ sub ipaddr2_ssh_internal_output {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{timeout} //= 90;
 
-    return script_output(ipaddr2_ssh_internal_cmd(
+    return script_output(
+        ipaddr2_ssh_internal_cmd(
             id => $args{id},
             bastion_ip => $args{bastion_ip},
-            cmd => $args{cmd}));
+            cmd => $args{cmd}),
+        timeout => $args{timeout});
 }
 
 =head2 ipaddr2_create_cluster
@@ -1084,6 +1093,8 @@ sub ipaddr2_registeration_check {
     croak("Argument < id > missing") unless $args{id};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # Initially suppose is registered
     my $registered = 1;
     my $json = decode_json(ipaddr2_ssh_internal_output(
             id => $args{id},
