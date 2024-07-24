@@ -22,10 +22,13 @@ sub run {
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
 
-    ipaddr2_azure_deployment(
+    my %deployment = (
         region => $provider->provider_client->region,
         os => get_required_var('CLUSTER_OS_VER'),
-        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0));
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
+    $deployment{scc_code} = get_var('SCC_REGCODE_SLES4SAP') if (get_var('SCC_REGCODE_SLES4SAP'));
+    ipaddr2_azure_deployment(%deployment);
     ipaddr2_deployment_sanity();
 }
 
