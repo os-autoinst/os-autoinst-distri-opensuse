@@ -20,6 +20,7 @@ schedule:
     - console/system_prepare
     - console/consoletest_setup
   system_validation:
+    - console/verify_default_target
     - console/validate_installed_packages
     - console/validate_installed_patterns
     - console/yast2_i
