@@ -36,7 +36,7 @@ sub convert2numeric {
 sub run {
     my $test_data = get_test_suite_data();
     record_info("Check quota", "Verify that the percentage of root filesystem quota is less than 50%");
-    my $qgroup_space = script_output("btrfs qgroup show --sync --si / | grep \"1/0\" | awk \'{print \$3}\'");
+    my $qgroup_space = script_output("btrfs qgroup show --sync --si --gbytes / | grep \"1/0\" | awk \'{print \$3}\'");
     $qgroup_space = convert2numeric($qgroup_space);
     my $space_limit = $test_data->{snapper_config}->{SPACE_LIMIT};
     my $disk_size = convert2numeric(get_partition_size("/"));
