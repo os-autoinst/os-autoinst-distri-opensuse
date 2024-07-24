@@ -56,6 +56,7 @@ sub run {
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));
+    record_info("buildah package version", script_output("rpm -q buildah"));
 
     switch_to_user;
 
