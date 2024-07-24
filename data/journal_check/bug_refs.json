@@ -131,7 +131,7 @@
         "type": "bug"
     },
     "bsc#1190662": {
-        "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
+        "description": "/etc/udev/rules.d/41-.*Failed to write ATTR",
         "products": {
             "sle-micro": [ "5.1", "5.2", "5.3", "5.4" , "5.5" ]
         },
