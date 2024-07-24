@@ -84,6 +84,7 @@ sub run {
     switch_cgroup_version($self, 2);
 
     record_info("podman info", script_output("podman info"));
+    record_info("podman package version", script_output("rpm -q podman"));
 
     switch_to_user;
 

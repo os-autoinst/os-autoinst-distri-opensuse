@@ -57,6 +57,7 @@ sub run {
     assert_script_run "chmod +x /usr/local/bin/htpasswd";
 
     record_info("skopeo version", script_output("skopeo --version"));
+    record_info("skopeo package version", script_output("rpm -q skopeo"));
 
     remove_mounts_conf;
 
