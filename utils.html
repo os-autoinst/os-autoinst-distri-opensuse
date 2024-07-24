@@ -110,6 +110,8 @@
       <li><a href="#remove_efiboot_entry">remove_efiboot_entry</a></li>
       <li><a href="#empty_usb_disks">empty_usb_disks</a></li>
       <li><a href="#upload_y2logs">upload_y2logs</a></li>
+      <li><a href="#enable_persistent_kernel_log">enable_persistent_kernel_log</a></li>
+      <li><a href="#enable_console_kernel_log">enable_console_kernel_log</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -823,6 +825,19 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>upload_y2logs(file =&gt; &#39;/tmp/y2logs123.tar.bz2&#39;, failok =&gt; 1);</code></pre>
 
 <p>No arguments are required, y2logs can be created and uploaded with custom <code>file</code> name, upload_logs can fail and continue with failok <code>failok</code> set to 1</p>
+
+<h2 id="enable_persistent_kernel_log">enable_persistent_kernel_log</h2>
+
+<pre><code>enable_persistent_kernel_log(service =&gt; &#39;log_service_name&#39;,
+    config =&gt; &#39;config_file_path&#39;, log =&gt; &#39;log_file_path&#39;);</code></pre>
+
+<p>For system that uses rsyslog to manage log facility, kernel log by default is not stored on persistent storage. In order to enable persistent kernel log, loading imklog.so module and specifying desired log file in config file /etc/rsyslog.conf should be performed. Arguments service, config and log provide flexibility to use different log management appliances.</p>
+
+<h2 id="enable_console_kernel_log">enable_console_kernel_log</h2>
+
+<pre><code>enable_console_kernel_log;</code></pre>
+
+<p>By default only those kernel logs level of which is lower than default value will be printed out onto serial console. If user prefers to have all kernel messages printed out onto serial console, ignore_loglevel, loglvl or guest_loglvl setting should be put onto kernel command line and setting /proc/sys/kernel/printk should have value like 8 which is greater than the highest kernel log level.</p>
 
 
 </body>
