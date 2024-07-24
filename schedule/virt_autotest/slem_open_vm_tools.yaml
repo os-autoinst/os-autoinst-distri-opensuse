@@ -6,7 +6,6 @@ schedule:
     - installation/bootloader_svirt
     - installation/bootloader_uefi
     - jeos/firstrun
-    - transactional/host_config
     - console/suseconnect_scc
     - '{{install_updates}}'
     - console/system_prepare
