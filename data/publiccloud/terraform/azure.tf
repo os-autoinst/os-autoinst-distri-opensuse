@@ -63,6 +63,10 @@ variable "create-extra-disk" {
   default = false
 }
 
+variable "cloud_init" {
+  default = ""
+}
+
 variable "storage-account" {
   # Note: Don't delete the default value!!!
   # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
@@ -197,6 +201,8 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   timeouts {
     create = var.vm_create_timeout
   }
+
+  custom_data = var.cloud_init != "" ? filebase64(var.cloud_init) : null
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
