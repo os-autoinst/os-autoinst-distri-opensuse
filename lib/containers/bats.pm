@@ -21,7 +21,25 @@ use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
-our @EXPORT = qw(install_bats remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
+our @EXPORT = qw(install_bats install_htpasswd remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
+
+sub install_htpasswd {
+    return if (script_run("which htpasswd") == 0);
+
+    assert_script_run "mkdir /var/tmp/htpasswd";
+    assert_script_run "cd /var/tmp/htpasswd";
+
+    my @files = ("Dockerfile", "go.mod", "go.sum", "main.go");
+    foreach my $file (@files) {
+        assert_script_run "curl -o $file " . data_url("containers/htpasswd/$file");
+    }
+
+    assert_script_run "podman build -t htpasswd .";
+    assert_script_run "podman create --name htpasswd htpasswd";
+    assert_script_run "podman cp htpasswd:/htpasswd /usr/local/bin/htpasswd";
+    assert_script_run "podman rm -vf htpasswd";
+    assert_script_run "podman rmi htpasswd";
+}
 
 sub install_bats {
     return if (script_run("which bats") == 0);
