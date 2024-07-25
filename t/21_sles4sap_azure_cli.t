@@ -697,9 +697,10 @@ subtest '[az_resource_delete]' => sub {
     ok(grep(/--resource-group Pa_a_Pi/, @calls), 'Check for argument "--resource-group"');
     ok(grep(/--name Od_Kuka_do_Kuka/, @calls), 'Check for argument "--name"');
 
-    az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'od Kuka do Kuka');
+    az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'od Kuka do Kuka', verbose => 1);
     note("\n --> " . join("\n --> ", @calls));
     ok(grep(/--ids od Kuka do Kuka/, @calls), 'Check for argument "--ids"');
+    ok(grep(/--verbose/, @calls), 'Check for argument "--verbose"');
 };
 
 subtest '[az_resource_delete]' => sub {

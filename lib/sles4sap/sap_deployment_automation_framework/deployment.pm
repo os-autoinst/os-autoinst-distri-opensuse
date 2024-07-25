@@ -745,6 +745,7 @@ sub sdaf_cleanup {
     assert_script_run('cd');    # navigate out the directory you are about to delete
     assert_script_run('rm -Rf ' . deployment_dir());
     record_info('Cleanup files', join(' ', 'Deployment directory', deployment_dir, 'was deleted.'));
+    record_info('SDAF remover', 'Sdaf remover scripts finished');
 }
 
 =head2 sdaf_execute_playbook
