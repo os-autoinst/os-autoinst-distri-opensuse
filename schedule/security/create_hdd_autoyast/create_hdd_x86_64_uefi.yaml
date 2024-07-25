@@ -8,10 +8,16 @@ conditional_schedule:
         - update/zypper_clear_repos
         - console/zypper_ar
         - console/zypper_ref
+  opensuse_welcome_if_not_textmode:
+    DESKTOP:
+      gnome:
+        - installation/opensuse_welcome
+      kde:
+        - installation/opensuse_welcome
   opensuse_welcome:
     VERSION:
       Tumbleweed:
-        - installation/opensuse_welcome
+        - '{{opensuse_welcome_if_not_textmode}}'
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
