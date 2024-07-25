@@ -5,4 +5,4 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - security/crypto_policies/crypto_policies_setup
-    - security/crypto_policies/crypto_policies_sshd
+    - security/crypto_policies/crypto_policies_tests
