@@ -15,8 +15,6 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#handle_login_prompt">handle_login_prompt</a></li>
-      <li><a href="#redirection_init">redirection_init</a></li>
-      <li><a href="#remote_port_forward">remote_port_forward</a></li>
       <li><a href="#set_serial_term_prompt">set_serial_term_prompt</a></li>
       <li><a href="#connect_target_to_serial">connect_target_to_serial</a></li>
       <li><a href="#disconnect_target_from_serial">disconnect_target_from_serial</a></li>
@@ -27,64 +25,15 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<p>Library that enables console redirection and file transfers from worker based VM to another host. Can be used for cases where worker VM is not the target host for API calls and command execution, but serves only as a jumphost.</p>
+<p>Library that enables console redirection and file transfers from worker based VM to another host. Can be used for cases where worker VM is not the target host for API calls and command execution, but serves only as a jumphost. Console redirection is achieved by ssh remote port forwarding and redirecting remote VM ssh session stdin and stdout outputs into serial terminal of the worker VM.</p>
+
+<p><b>USAGE:</b> 1. Set mandatory OpenQA parameters (they can be as well provided directly as named arguments in functions): - REDIRECT_DESTINATION_USER: SSH user for remote SUT - REDIRECT_DESTINATION_IP: IP address for remote SUT 2. Establish console redirection to SUT host by calling function <b>connect_target_to_serial</b> - all test code is now transparently executed on SUT instead of worker VM - from OpenQA perspective SUT is the worker VM 3. Disable console redirection from SUT host by calling function <b>disconnect_target_from_serial</b></p>
 
 <h2 id="handle_login_prompt">handle_login_prompt</h2>
 
 <pre><code>handle_login_prompt();</code></pre>
 
 <p>Detects if login prompt appears and types the password. In case of ssh keys being in place and command prompt appears, the function does not type anything.</p>
-
-<h2 id="redirection_init">redirection_init</h2>
-
-<pre><code>redirection_init( [, ssh_user=&gt;$ssh_user, destination_ip=&gt;$destination_ip, ssh_tunnel_port=&gt;$ssh_tunnel_port]);</code></pre>
-
-<p><b>ssh_user</b>: SSH login user for <b>destination_ip</b> - default value is defined by OpenQA parameter REDIRECT_DESTINATION_USER</p>
-
-<p><b>destination_ip</b>: Destination host IP - default value is defined by OpenQA parameter REDIRECT_DESTINATION_IP</p>
-
-<p><b>ssh_tunnel_port</b>: Port on the <b>destination_ip</b> to forward ssh traffic to. Default: 22022</p>
-
-<p>Does initial setup for console redirection which includes:</p>
-
-<ul>
-
-<li><p>Takes machine id value from currently controlled VM and sets BASE_VM_ID. This is considered origin point of console redirection and a point where function disconnect_target_from_serial() stops &#39;logging out&#39;.</p>
-
-</li>
-<li><p>SSH key exchange for reverse ssh connection.</p>
-
-</li>
-<li><p>remote port forwarding for reverse SSH session</p>
-
-</li>
-<li><p>remote port forwarding of incoming traffic from <b>destination_ip</b> to OpenQA server resources (upload_logs, download from &#39;data&#39;)</p>
-
-</li>
-</ul>
-
-<h2 id="remote_port_forward">remote_port_forward</h2>
-
-<pre><code>remote_port_forward(destination_port=&gt;$destination_port, destination_ip=&gt;$destination_ip
-    [, source_port=&gt;$source_port, monitor_port=&gt;$monitor_port, source_ip=&gt;$source_ip]);</code></pre>
-
-<p><b>source_ip</b>: Source IP address or hostname to forward incoming traffic from. Default: REDIRECT_DESTINATION_IP</p>
-
-<p><b>destination_ip</b>: Destination IP or hostname where will the traffic be forwarded. Can be localhost as well.</p>
-
-<p><b>monitor_port</b>: Port for autossh to monitor tunnel status. Needs to be unique for each autossh instance. Default: off</p>
-
-<p><b>source_port</b>: <b>source_ip</b> port to forward traffic from. Default: source_port=destination_port</p>
-
-<p><b>destination_port</b>: port which <b>source_port</b> traffic should be forwarded to.</p>
-
-<p><b>ssh_user</b>: Login user for <b>source_ip</b> host.</p>
-
-<p>Forwards traffic from <b>source_ip</b>:<b>source_port</b> to <b>destination_ip</b>:<b>destination_port</b>. For example: It allows Cloud based SUT uploading logs directly to openQA instance without being able to resolve it directly. Default finction behavior is:</p>
-
-<p>- redirecting same port</p>
-
-<p>- not using autossh monitoring port</p>
 
 <h2 id="set_serial_term_prompt">set_serial_term_prompt</h2>
 
@@ -100,7 +49,7 @@
 
 <p><b>destination_ip</b>: Destination host IP - default value is defined by OpenQA parameter REDIRECT_DESTINATION_IP</p>
 
-<p>Establishes ssh connection to destination host and redirects serial output to serial console on worker VM. This allows OpenQA access to command return codes and output for evaluation by standard API call.</p>
+<p>Establishes ssh connection to destination host and redirects serial output to serial console on worker VM. Connection activates remote port forwarding of OpenQA QEMUPORT+1. This allows running standard OpenQA modules directly on a remote host accessed from worker VM via SSH.</p>
 
 <h2 id="disconnect_target_from_serial">disconnect_target_from_serial</h2>
 
