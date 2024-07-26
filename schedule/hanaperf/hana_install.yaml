@@ -1,135 +1,34 @@
 ---
-name: hanaperf_installation
-description: >
-  Maintainer: dawei.pang@suse.com
-  OS installation for HANA performance
+name: hana_install
+description:    >
+    Deploy hana-perf machines by ipxe and autoyast
+vars:
+  DESKTOP: textmode
 schedule:
+  - autoyast/prepare_profile
   - '{{pxe_bootloader}}'
-  - installation/welcome
-  - '{{scc_registration}}'
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
-  - '{{partition_for_systemrole_default}}'
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
-  - installation/resolve_dependency_issues
-  - '{{change_desktop}}'
-  - installation/installation_overview
-  - '{{disable_grub_graphics}}'
-  - installation/start_install
-  - installation/await_install
-  - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - '{{post_installation}}'
+  - autoyast/installation
+  - '{{postinstall}}'
+  - '{{full_run}}'
 conditional_schedule:
-  partition_for_systemrole_default:
-    SYSTEM_ROLE:
-      default:
-        - '{{fix_sle_15gm_multi_disks}}'
-        - '{{separate_home}}'
-        - '{{partitioning_method}}'
-      textmode:
-        - '{{fix_sle_15gm_multi_disks}}'
-        - '{{separate_home}}'
-        - '{{partitioning_method}}'
-      kvm:
-        - '{{fix_sle_15gm_multi_disks}}'
-        - '{{partitioning_method}}'
-  fix_sle_15gm_multi_disks:
-    VERSION:
-      15:
-        - '{{fix_sle_15gm_multi_disks_by_arch}}'
-  fix_sle_15gm_multi_disks_by_arch:
-    ARCH:
-      ppc64le:
-        - installation/partitioning_smalldisk_storageng
-  disable_grub_graphics:
-    ARCH:
-      x86_64:
-        - installation/disable_grub_graphics
   pxe_bootloader:
-    BACKEND:
-      ipmi:
-        - boot/boot_from_pxe
-      qemu:
-        - installation/bootloader
-      pvm_hmc:
-        - installation/bootloader
-  scc_registration:
-    SCC_REGISTER:
-      none:
-        - '{{multipath}}'
-        - installation/scc_registration
-      installation:
-        - installation/scc_registration
-        - '{{multipath}}'
-  multipath:
-    MULTIPATH:
-      1:
-        - installation/multipath
-  separate_home:
-    NO_SEPARATE_HOME:
-      1:
-        - installation/partitioning/no_separate_home
-        - '{{enlarge_swap}}'
-  enlarge_swap:
-    VERSION:
-      15:
-        - installation/partitioning/no_enlarge_swap
-      15-SP1:
-        - installation/partitioning/no_enlarge_swap
-      15-SP2:
-        - installation/partitioning/no_enlarge_swap
-      15-SP3:
-        - installation/partitioning/no_enlarge_swap
-      15-SP4:
-        - installation/partitioning/no_enlarge_swap
-      15-SP5:
-        - installation/partitioning/no_enlarge_swap
-  ppc64le_partitioning_smalldisk_storageng_by_version:
-    VERSION:
-      12-SP4:
-        - installation/partitioning_smalldisk_storageng
-      12-SP5:
-        - installation/partitioning_smalldisk_storageng
-      15-SP1:
-        - installation/partitioning_smalldisk_storageng
-      15-SP2:
-        - installation/partitioning_smalldisk_storageng
-      15-SP3:
-        - installation/partitioning_smalldisk_storageng
-      15-SP4:
-        - installation/partitioning_smalldisk_storageng
-      15-SP5:
-        - installation/partitioning_smalldisk_storageng
-  partitioning_method:
     ARCH:
       x86_64:
-        - installation/partitioning_firstdisk
+        - installation/ipxe_install
       ppc64le:
-        - '{{ppc64le_partitioning_smalldisk_storageng_by_version}}'
-  change_desktop:
-    VERSION:
-      12-SP4:
-        - installation/change_desktop
-      12-SP5:
-        - installation/change_desktop
-  post_installation:
+        - installation/bootloader
+  postinstall:
     ARCH:
       ppc64le:
-        - '{{login_console}}'
+        - autoyast/console
         - kernel_performance/install_qatestset
-        - '{{login_console}}'
-        - '{{full_run}}'
-  login_console:
-    BACKEND:
-      pvm_hmc:
         - boot/reconnect_mgmt_console
         - support_server/login
+      x86_64:
+        - autoyast/console
+        - kernel_performance/install_qatestset
   full_run:
     HANA_PERF_FULL_RUN:
       1:
+        - autoyast/console
         - kernel_performance/full_run

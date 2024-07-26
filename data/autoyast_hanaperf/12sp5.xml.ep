@@ -61,8 +61,8 @@
   </networking>
   <partitioning config:type="list">
     <drive>
-      % if ($check_var->('MACHINE', 'ppc64le_legolas_2')) {
-      <device>/dev/disk/by-id/wwn-0x5002538b72965a70</device>
+      % if ($get_var->('ARCH') =~ /^ppc64/ ) {
+      <device>/dev/disk/by-id/<%= $get_var->('OSDISK') %></device>
       <disklabel>msdos</disklabel>
       % } else {
       <device>/dev/sda</device>
