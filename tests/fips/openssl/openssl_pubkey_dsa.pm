@@ -26,6 +26,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
+use version_utils qw(is_transactional);
 
 sub run {
     select_serial_terminal;
@@ -67,6 +68,11 @@ sub run {
     }
 
     script_run 'cd - && rm -rf fips-test';
+}
+
+sub test_flags {
+    #poo160197 workaround since rollback seems not working with swTPM
+    return {no_rollback => is_transactional() ? 1 : 0};
 }
 
 1;
