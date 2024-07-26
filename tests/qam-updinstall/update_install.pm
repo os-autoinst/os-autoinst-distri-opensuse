@@ -176,9 +176,10 @@ sub run {
     select_serial_terminal;
 
     # remove phub repos on qemu update ppc64le https://progress.opensuse.org/issues/162704
-    if (get_var('BUILD') =~ /qemu/ && is_ppc64le) {
-        record_info('remove phub', 'known conflict on qemu ppc64le with phub repo poo#162704');
-        zypper_call('rr sle-module-packagehub-subpackages:15-SP5::pool sle-module-packagehub-subpackages:15-SP5::update');
+    if (get_var('BUILD') =~ /qemu/ && get_var('INCIDENT_REPO') !~ /Packagehub-Subpackages/) {
+        my $version = get_var('VERSION');
+        record_info('remove phub', 'known conflict on qemu update with phub repo poo#162704');
+        zypper_call("rr sle-module-packagehub-subpackages:${version}::pool sle-module-packagehub-subpackages:${version}::update");
     }
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
