@@ -33,6 +33,11 @@ sub run {
 
     # Verify that there is no unpartitioned space left
     my $left_sectors = (is_sle_micro("5.4+") && is_aarch64) ? 2048 : 0;
+    if (is_sle_micro("6.0+") && is_aarch64 && get_var("HDD_1") =~ /qcow2/) {
+        $left_sectors = 0;
+        record_soft_failure "bsc#1220722: no unpartitioned space left on aarch64";
+    }
+
     validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* $left_sectors sectors/);
 
     # Verify that the filesystem mounted at /var grew beyond the default 5GiB
