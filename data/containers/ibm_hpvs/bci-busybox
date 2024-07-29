@@ -1,0 +1,6 @@
+services:
+  busybox-nc-test:
+    image: registry.suse.com/bci/IMG@DGST
+    ports:
+      - "8222:5000"
+    command: /bin/sh -c 'while true;do /bin/echo -e "Have a lot of fun" | nc -n -v -l -p 5000; done'
