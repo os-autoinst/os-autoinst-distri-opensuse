@@ -23,7 +23,7 @@ my $ibm = {
     api => get_var('IBM_API'),
     region => 'eu-gb',
     ingestionKey => get_var('LOG_KEY'),
-    instance => 'testing-openqa',
+    instance => 'openqa-',
     vpc => 'vpc-openqa-testing'
 };
 
@@ -33,7 +33,7 @@ sub ibmcloud {
 
 sub get_image_digest {
     my $img = shift;
-    script_retry("podman pull registry.suse.com/bci/$img", retry => 3, delay => 30);
+    script_retry("podman pull --arch=s390x registry.suse.com/bci/$img", retry => 3, delay => 30);
 
     my $o = decode_json(script_output("podman inspect $img"));
     return $o->[0]->{Digest};
@@ -78,7 +78,7 @@ sub find_entity {
         },
         net => {
             query => 'ibmcloud is subnets --output json',
-            regex => qr/^openqa-net$/
+            regex => qr/^sn-20240729-\d{2}/
         },
         'float-ip' => {
             query => 'ibmcloud is ips --output json',
@@ -100,6 +100,7 @@ sub find_entity {
 
 sub run {
     select_serial_terminal();
+    $ibm->{instance} .= lc(sprintf("%08X", rand(0xFFFFFFFF)));
 
     # install ibm cloud cli
     script_retry('curl -fsSL https://clis.cloud.ibm.com/install/linux -o IBMCloud.sh', retry => 3, delay => 30);
@@ -109,6 +110,7 @@ sub run {
     # login and install VPC tools
     ibmcloud("config  --color false");
     ibmcloud("login -a https://cloud.ibm.com -r $ibm->{region} --apikey $ibm->{api}");
+    ibmcloud('target -g Default');
     ibmcloud("resources");
     ibmcloud("plugin install vpc-infrastructure");
 
@@ -134,7 +136,7 @@ sub run {
     # test needs to wait while hyper protect services are finished
     my $i;
     for ($i = 0; $i < 5; $i++) {
-        sleep 60;
+        sleep 30;
         my $state = decode_json(script_output("ibmcloud is instance $ibm->{instance} --output json", proceed_on_failure => 1));
         if ($state->{status} eq 'running') {
             last;
