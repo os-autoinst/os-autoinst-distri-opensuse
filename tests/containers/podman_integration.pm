@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats install_htpasswd patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -53,8 +53,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark netcat-openbsd openssl podman sudo systemd-container);
-    push @pkgs, qw(go buildah) unless is_sle_micro;
-    push @pkgs, qw(python3-passlib) if (is_tumbleweed || is_sle || is_sle_micro('=5.5'));
+    push @pkgs, qw(apache2-utils buildah go) unless is_sle_micro;
     push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(socat) unless is_sle_micro('=5.1');
@@ -68,9 +67,7 @@ sub run {
         push @pkgs, "qemu-arm";
     }
     install_packages(@pkgs);
-
-    assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
-    assert_script_run "chmod +x /usr/local/bin/htpasswd";
+    install_htpasswd if is_sle_micro;
 
     record_info("podman version", script_output("podman version"));
 
