@@ -3045,7 +3045,9 @@ sub empty_usb_disks {
     my %args = @_;
     $args{usb_disks} //= '';
 
-    my @usb_disks = $args{usb_disks} ? split(' ', $args{usb_disks}) : split('\n', script_output("ls /dev/disk/by-id/ -l | grep -i usb | grep -i -v -E \"generic|part|Virtual\" | sed \'s#^.*\\\/##\'"));
+    my $usb_disk_filter = get_var('USB_DISK_FILTER') ? get_var('USB_DISK_FILTER') : "grep -i usb | grep -i -v -E 'generic|part|Virtual'";
+    my $filter_cmd = "ls -l /dev/disk/by-id/ | " . $usb_disk_filter . " | sed 's#^.*\\/##'";
+    my @usb_disks = $args{usb_disks} ? split(' ', $args{usb_disks}) : split('\n', script_output($filter_cmd));
     record_info("USB disks to be emptied are @usb_disks", "All plugged-in usb disks are " . script_output("ls /dev/disk/by-id/ -l; fdisk -l"));
     foreach (@usb_disks) {
         assert_script_run("echo y | mkfs.ext4 /dev/$_", timeout => 120);
