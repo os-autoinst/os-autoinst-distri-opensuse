@@ -1,0 +1,7 @@
+name: validate_generate_image.yaml
+description: >
+  Test container image and extract Elemental ISO/HDD image.
+  Maintainer: elemental@suse.de
+schedule:
+  - microos/disk_boot
+  - elemental/container_validation

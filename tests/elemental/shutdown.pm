@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Power off Elemental OS server
