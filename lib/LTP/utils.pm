@@ -152,7 +152,11 @@ sub export_ltp_env {
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
-    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+    # $LTPROOT/testcases/realtime/func/sched_football/ is workaround for upstream build system isse:
+    # https://lore.kernel.org/ltp/20240729073226.GA1223191@pevik/
+    # https://github.com/linux-test-project/ltp/issues/1078
+    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n ' .
+          ' TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$LTPROOT/testcases/realtime/func/sched_football/:$PATH');
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");
