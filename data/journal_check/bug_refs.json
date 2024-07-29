@@ -135,7 +135,7 @@
         "products": {
             "sle-micro": [ "5.1", "5.2", "5.3", "5.4" , "5.5" ]
         },
-        "type": "bug"
+        "type": "ignore"
     },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_cpufreq/initstate': No such device",
