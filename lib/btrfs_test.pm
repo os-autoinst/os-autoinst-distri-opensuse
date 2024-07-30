@@ -76,7 +76,7 @@ it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` t
 =cut
 
 sub snapper_nodbus_restore {
-    my $ret = script_run('systemctl is-active dbus', timeout => 300, die_on_timeout => 1);
+    my $ret = script_run('systemctl is-active dbus', timeout => 300);
     die 'DBus service should be inactive, but it is active' if ($ret == 0);
     script_run('systemctl default', timeout => 600, die_on_timeout => 0);
     my $tty = get_root_console_tty;
@@ -84,7 +84,7 @@ sub snapper_nodbus_restore {
     if (is_sle('<15-SP3') && !defined(my $match = check_screen("tty$tty-selected", 120))) {
         record_soft_failure("bsc#1185098 - logind fails after return back from rescue");
         select_console('log-console');
-        if (script_run('systemctl is-active getty@tty2.service', die_on_timeout => 1) == 3) {
+        if (script_run('systemctl is-active getty@tty2.service') == 3) {
             systemctl('start getty@tty2');
             reset_consoles;
         }

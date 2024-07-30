@@ -19,7 +19,7 @@ sub run {
     assert_script_run(q(echo -e "STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='10.0.2.11/15'" > ) . $config);
     $self->get_from_data('wicked/scripts/ifrename-1.sh', '/tmp/ifrename-1.sh', executable => 1);
 
-    script_run('touch /etc/udev/rules.d/70-persistent-net.rules', die_on_timeout => 1);
+    script_run('touch /etc/udev/rules.d/70-persistent-net.rules');
 
     $self->run_test_shell_script("ifup dyn0", "time /tmp/ifrename-1.sh --apply ifup '$ifc' 'dyn0'");
     $self->run_test_shell_script("ifup $ifc", "time /tmp/ifrename-1.sh --apply ifup dyn0 '$ifc'");
