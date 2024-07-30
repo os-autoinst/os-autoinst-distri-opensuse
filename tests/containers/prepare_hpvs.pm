@@ -22,7 +22,7 @@ use serial_terminal 'select_serial_terminal';
 my $ibm = {
     api => get_var('IBM_API'),
     region => 'eu-gb',
-    ingestionKey => get_var('LOG_KEY'),
+    ingestionKey => get_var('IBM_LOG_KEY'),
     instance => 'openqa-',
     vpc => 'vpc-openqa-testing'
 };
@@ -41,7 +41,8 @@ sub get_image_digest {
 
 sub _create_compose {
     my $img = shift;
-    my $img_w_tag = $img . ':latest';
+    my $tag = get_var('VERSION') =~ s/-SP/\./r;
+    my $img_w_tag = "$img:$tag";
     assert_script_run("curl -f -v -O " . data_url("containers/ibm_hpvs/$img"));
 
     my $dgst = get_image_digest($img_w_tag);
