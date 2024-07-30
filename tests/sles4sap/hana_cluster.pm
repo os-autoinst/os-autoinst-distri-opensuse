@@ -76,8 +76,8 @@ sub run {
             my $sudo_saphanasr = "# SAPHanaSR-ScaleUp entries for writing srHook cluster attribute and SAPHanaSR-hookHelper\n" .
               "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*\n" .
               "$sapadm ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("$sid") . " *\n";
-            write_sut_file("/tmp/etc_sudoers_SAPHanaSR_$sid", "$sudo_saphanasr");
-            assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_$sid /etc/sudoers.d/SAPHanaSR_$sid";
+            write_sut_file("/tmp/etc_sudoers_SAPHanaSR_node_1_$sid", "$sudo_saphanasr");
+            assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_node_1_$sid /etc/sudoers.d/SAPHanaSR_$sid";
             my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
             assert_script_run $start_cmd;
         }
@@ -116,9 +116,10 @@ sub run {
             assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
             # Adding SUDO permissions
             my $sudo_saphanasr = "# SAPHanaSR-ScaleUp entries for writing srHook cluster attribute and SAPHanaSR-hookHelper\n" .
-              "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*.\n" .
+              "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*\n" .
               "$sapadm ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("$sid") . " *\n";
-            assert_script_run qq(echo "$sudo_saphanasr" >> /etc/sudoers.d/SAPHanaSR);
+            write_sut_file("/tmp/etc_sudoers_SAPHanaSR_node_2_$sid", "$sudo_saphanasr");
+            assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_node_2_$sid /etc/sudoers.d/SAPHanaSR_$sid";
         }
         my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         assert_script_run $start_cmd;
