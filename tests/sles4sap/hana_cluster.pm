@@ -69,7 +69,7 @@ sub run {
         if (check_var('ANGI', 'true')) {
             assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem'";
             # Setting up SAP HANA HA/DR providers
-            my $hadr_template = "angi_susHanaAIO.template";
+            my $hadr_template = "angi_susHanaHADR_AIO.template";
             assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$hadr_template -o /tmp/$hadr_template";
             assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
             # Adding SUDO permissions
@@ -110,7 +110,7 @@ sub run {
         sleep bmwqemu::scale_timeout(10);
         if (check_var('ANGI', 'true')) {
             # Setting up SAP HANA HA/DR providers
-            my $hadr_template = "angi_susHanaAIO.template";
+            my $hadr_template = "angi_susHanaHADR_AIO.template";
             assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$hadr_template -o /tmp/$hadr_template";
             assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
             # Adding SUDO permissions
