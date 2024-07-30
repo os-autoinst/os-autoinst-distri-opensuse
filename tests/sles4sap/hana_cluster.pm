@@ -65,7 +65,7 @@ sub run {
         barrier_wait "HANA_INIT_CONF_$cluster_name";
         barrier_wait "HANA_CREATED_CONF_$cluster_name";
 
-        # Chek for ANGI setup
+        # Check for ANGI setup
         if (check_var('ANGI', 'true')) {
             assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem'";
             # Setting up SAP HANA HA/DR providers
@@ -80,15 +80,16 @@ sub run {
             my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
             assert_script_run $start_cmd;
         }
-        # Upload the configuration into the cluster
+        # Commits configuration changes into the cluster
+        my @crm_cmds;
         if (check_var('ANGI', 'true')) {
-            my @crm_cmds = ("crm configure load update $cluster_conf",
+            @crm_cmds = ("crm configure load update $cluster_conf",
                 "crm resource refresh mst_SAPHanaController_${sid}_HDB${instance_id}",
                 "cs_wait_for_idle -s 5",
                 "crm resource maintenance mst_SAPHanaController_${sid}_HDB${instance_id} off");
         }
         else {
-            my @crm_cmds = ("crm configure load update $cluster_conf",
+            @crm_cmds = ("crm configure load update $cluster_conf",
                 "crm resource refresh msl_SAPHana_${sid}_HDB${instance_id}",
                 "cs_wait_for_idle -s 5",
                 "crm resource maintenance msl_SAPHana_${sid}_HDB${instance_id} off");
