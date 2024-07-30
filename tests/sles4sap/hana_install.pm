@@ -141,7 +141,8 @@ sub run {
 
     # Check for SAPHanaSR-angi package going to be used
     if (check_var('ANGI', 'true')) {
-        script_run("rpm -e --nodeps SAPHanaSR SAPHanaSR-doc");
+        script_run("[ $(rpm -q SAPHanaSR-doc) ] && rpm -e --nodeps SAPHanaSR-doc");
+        script_run("[ $(rpm -q SAPHanaSR) ] && rpm -e --nodeps SAPHanaSR");
         zypper_call('install SAPHanaSR-angi supportutils-plugin-ha-sap  ClusterTools2') if get_var('HA_CLUSTER');
     }
     else {
