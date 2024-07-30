@@ -12,7 +12,7 @@ our $serialdev = 'ttyS0';    # this is a global OpenQA variable
 
 # make cleaning vars easier at the end of the unit test
 sub unset_vars {
-    my @variables = qw(REDIRECT_DESTINATION_IP REDIRECT_DESTINATION_USER BASE_VM_ID QEMUPORT
+    my @variables = qw(REDIRECT_DESTINATION_IP REDIRECT_DESTINATION_USER QEMUPORT
       AUTOINST_URL_HOSTNAME_ORIGINAL AUTOINST_URL_HOSTNAME REDIRECTION_CONFIGURED);
     set_var($_, undef) foreach @variables;
 }
@@ -23,8 +23,6 @@ subtest '[connect_target_to_serial] Test exceptions' => sub {
     $redirect->redefine(handle_login_prompt => sub { return; });
     $redirect->redefine(record_info => sub { return; });
     $redirect->redefine(check_serial_redirection => sub { return 0; });
-
-    set_var('BASE_VM_ID', '7902847fcc554911993686a1d5eca2c8');
     set_var('QEMUPORT', '1988');
 
     dies_ok { connect_target_to_serial(target_ip => '192.168.1.1') } 'Fail with missing ssh user';
@@ -35,16 +33,12 @@ subtest '[connect_target_to_serial] Test exceptions' => sub {
     $redirect->redefine(check_serial_redirection => sub { return 1; });
     dies_ok { connect_target_to_serial(ssh_user => 'Totoro', target_ip => '192.168.1.1') }
     'Fail if function attempts redirect console second time';
-    set_var('BASE_VM_ID', undef);
-
-    dies_ok { connect_target_to_serial(ssh_user => 'Totoro', target_ip => '192.168.1.1') }
-    'Fail with "BASE_VM_ID" unset';
 
     dies_ok { connect_target_to_serial(ssh_user => ' ', target_ip => '192.168.1.1') } 'Fail with user defined as empty space';
     unset_vars();
 };
 
-subtest '[connect_target_to_serial] Check command composition' => sub {
+subtest '[connect_target_to_serial]' => sub {
     my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
     my @ssh_cmd;
     my $redirection_status;
@@ -54,7 +48,6 @@ subtest '[connect_target_to_serial] Check command composition' => sub {
     $redirect->redefine(record_info => sub { return; });
     $redirect->redefine(check_serial_redirection => sub { return $redirection_status; });
     $redirect->redefine(script_output => sub { return 'castleinthesky'; });
-    set_var('BASE_VM_ID', '7902847fcc554911993686a1d5eca2c8');
     set_var('QEMUPORT', '1988');
 
     connect_target_to_serial(destination_ip => '192.168.1.1', ssh_user => 'Totoro');
@@ -63,8 +56,11 @@ subtest '[connect_target_to_serial] Check command composition' => sub {
     ok(grep(/-o StrictHostKeyChecking=no/, @ssh_cmd), 'Disable strict host key checking');
     ok(grep(/-o ServerAliveInterval=60/, @ssh_cmd), 'Set option: "ServerAliveInterval"');
     ok(grep(/-o ServerAliveCountMax=120/, @ssh_cmd), 'Set option: "ServerAliveCountMax"');
+    ok(grep(/-o ConnectionAttempts=3/, @ssh_cmd), 'Set option: "ConnectionAttempts"');
     ok(grep(/Totoro\@192.168.1.1/, @ssh_cmd), 'Host login');
     ok(grep(/2>&1 | tee -a \/dev\/ttyS0/, @ssh_cmd), 'Redirect output to serial device');
+
+    is get_var('AUTOINST_URL_HOSTNAME'), 'localhost', 'Function must set "AUTOINST_URL_HOSTNAME" to "localhost"';
     unset_vars();
 };
 
@@ -77,8 +73,6 @@ subtest '[connect_target_to_serial] Scenario: console already redirected' => sub
     $redirect->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $redirect->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $redirect->redefine(script_output => sub { return 'Castle in the sky'; });
-
-    set_var('BASE_VM_ID', '7902847fcc554911993686a1d5eca2c8');
     set_var('QEMUPORT', '1988');
 
     connect_target_to_serial(destination_ip => '192.168.1.1', ssh_user => 'Totoro');
@@ -88,39 +82,37 @@ subtest '[connect_target_to_serial] Scenario: console already redirected' => sub
 
 subtest '[disconnect_target_from_serial]' => sub {
     my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
-    my $wait_serial_done = 0;    # Flag that code entered while loop
-    $redirect->redefine(record_info => sub { return 1; });
-    $redirect->redefine(wait_serial => sub { $wait_serial_done = 1; return ':~'; });
-    $redirect->redefine(enter_cmd => sub { return 1; });
-    $redirect->redefine(check_serial_redirection => sub { return $wait_serial_done; });
-    $redirect->redefine(set_serial_term_prompt => sub { return 1; });
+    my $redirection_status = 1;
+    $redirect->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $redirect->redefine(wait_serial => sub { return 1; });
+    # simulate redirection inactive after typing exit
+    $redirect->redefine(enter_cmd => sub { $redirection_status = 0; return; });
+    $redirect->redefine(check_serial_redirection => sub { return $redirection_status; });
+    $redirect->redefine(set_serial_term_prompt => sub { return '#'; });
     $redirect->redefine(script_output => sub { return ''; });
-
-    ok disconnect_target_from_serial(base_vm_machine_id => '7902847fcc554911993686a1d5eca2c8'), 'Pass with machine ID defined by positional argument';
-
-    set_var('BASE_VM_ID', '7902847fcc554911993686a1d5eca2c8');
     set_var('QEMUPORT', '1988');
-
-    ok disconnect_target_from_serial(), 'Pass with machine ID defined by parameter BASE_VM_ID';
+    set_var('AUTOINST_URL_HOSTNAME_ORIGINAL', 'Porco');
+    disconnect_target_from_serial();
+    is get_var('AUTOINST_URL_HOSTNAME'), 'Porco', 'Restore "AUTOINST_URL_HOSTNAME" to original value';
     unset_vars();
-
-    dies_ok { disconnect_target_from_serial() } 'Fail without specifying machine ID and BASE_VM_ID undefined';
 };
 
 subtest '[check_serial_redirection]' => sub {
     my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
     $redirect->redefine(script_output => sub { return '7902847fcc554911993686a1d5eca2c8'; });
-    $redirect->redefine(record_info => sub { return; });
+    $redirect->redefine(select_console => sub { return; });
+    $redirect->redefine(select_serial_terminal => sub { return; });
+    $redirect->redefine(set_serial_term_prompt => sub { return; });
+    $redirect->redefine(is_serial_terminal => sub { return; });
     set_var('QEMUPORT', '1988');
-    set_var('BASE_VM_ID', '7902847fcc554911993686a1d5eca2c8');
+
+    $redirect->redefine(script_run => sub { return '0'; });
     is check_serial_redirection(), '0', 'Return 0 if machine IDs match';
-    set_var('BASE_VM_ID', '999999999999999999999999');
+    my $executed_command;
+    $redirect->redefine(script_run => sub { $executed_command = $_[0]; return '1'; });
     is check_serial_redirection(), '1', 'Return 1 if machine IDs do not match';
-
+    is $executed_command, 'grep 7902847fcc554911993686a1d5eca2c8 /etc/machine-id', 'Check executed command';
     unset_vars();
-
-    is check_serial_redirection(base_vm_machine_id => '123456'), '1', 'Pass with specifying ID via positional argument';
-    dies_ok { check_serial_redirection() } 'Fail with BASE_VM_ID being unset';
 };
 
 done_testing;
