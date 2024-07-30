@@ -77,10 +77,14 @@ my @conflicting_packages = (
     'openmpi4-config', 'pmix-mca-params',
     'rmt-server-pubcloud',
     'systemtap-sdt-devel',
+    'xen-tools-domU',
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
-    'kernel-default-base', 'kernel-default-extra'
+    'kernel-default-base', 'kernel-default-extra',
+    'patterns-base-fips-certified',
+    'openssl-ibmca-engine', 'openssl-ibmca-provider', 'openssl-ibmca',
+    'openmpi3-config', 'openmpi2-config'
 );
 
 # https://progress.opensuse.org/issues/153388
@@ -174,9 +178,10 @@ sub run {
     select_serial_terminal;
 
     # remove phub repos on qemu update ppc64le https://progress.opensuse.org/issues/162704
-    if (get_var('BUILD') =~ /qemu/ && is_ppc64le) {
-        record_info('remove phub', 'known conflict on qemu ppc64le with phub repo poo#162704');
-        zypper_call('rr sle-module-packagehub-subpackages:15-SP5::pool sle-module-packagehub-subpackages:15-SP5::update');
+    if (get_var('BUILD') =~ /qemu/ && get_var('INCIDENT_REPO') !~ /Packagehub-Subpackages/) {
+        my $version = get_var('VERSION');
+        record_info('remove phub', 'known conflict on qemu update with phub repo poo#162704');
+        zypper_call("rr sle-module-packagehub-subpackages:${version}::pool sle-module-packagehub-subpackages:${version}::update");
     }
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
@@ -333,8 +338,8 @@ sub run {
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
                 assert_script_run("snapper rollback $rollback_number");
                 reboot_and_login;
+                disable_test_repositories($repos_count);
             }
-            disable_test_repositories($repos_count);
         }
 
         # Install released version of installable binaries.

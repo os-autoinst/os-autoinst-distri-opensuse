@@ -858,15 +858,15 @@ sub unregister_needle_tags {
 }
 
 sub load_bootloader_s390x {
-    return 0 unless is_s390x;
-
     if (is_backend_s390x) {
         loadtest "installation/bootloader_s390";
+        return 1;
     }
-    else {
+    if (is_s390x && is_svirt) {
         loadtest "installation/bootloader_zkvm";
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 sub boot_hdd_image {
@@ -2451,19 +2451,19 @@ sub load_hypervisor_tests {
 
     if (check_var('ENABLE_VM_INSTALL', 1)) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/prepare_guests";
-        loadtest "virtualization/universal/waitfor_guests";
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            loadtest "virtualization/universal/prepare_guests";
+            loadtest "virtualization/universal/waitfor_guests";
+        }
         if (check_var('PATCH_WITH_ZYPPER', 1)) {
             loadtest "virtualization/universal/patch_and_reboot";
-            if (my $update_package = get_var('UPDATE_PACKAGE')) {
-                if ($update_package eq 'kernel-default') {
-                    loadtest "virt_autotest/login_console";
-                    loadtest "virtualization/universal/list_guests";
-                    loadtest "virtualization/universal/patch_guests";
-                } elsif ($update_package eq 'xen' || $update_package eq 'qemu') {
-                    loadtest "virt_autotest/login_console";
-                    loadtest "virtualization/universal/list_guests";
-                }
+            if (check_var('UPDATE_PACKAGE', 'kernel-default')) {
+                loadtest "virt_autotest/login_console";
+                loadtest "virtualization/universal/list_guests";
+                loadtest "virtualization/universal/patch_guests";
+            } elsif (check_var('UPDATE_PACKAGE', 'xen') || check_var('UPDATE_PACKAGE', 'qemu')) {
+                loadtest "virt_autotest/login_console";
+                loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
         }
         loadtest "virtualization/universal/kernel";
@@ -2524,6 +2524,17 @@ sub load_hypervisor_tests {
     }
     # Load ENABLE_SNAPSHOTS at the end
     check_and_load_mu_virt_features('ENABLE_SNAPSHOTS', $virt_features{ENABLE_SNAPSHOTS}{modules}, $virt_features{ENABLE_SNAPSHOTS}{hypervisor});
+
+    # Guest migration tests
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_SOURCE', '1')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_source";
+    }
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+        loadtest "virt_autotest/parallel_guest_migration_barrier";
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_destination";
+    }
 }
 
 sub load_extra_tests_syscontainer {

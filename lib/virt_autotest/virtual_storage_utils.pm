@@ -90,6 +90,8 @@ sub destroy_virt_storage_pool {
 sub delete_physical_volume {
     my $lvm_disk_name = shift;
     my $timeout = 180;
+    # Enable NVME Hard Drive Support
+    $lvm_disk_name = ($lvm_disk_name =~ "nvme") ? "${lvm_disk_name}p" : $lvm_disk_name;
     validate_script_output("pvremove -y ${lvm_disk_name}1", sub { m/successfully wiped/ }, $timeout);
     assert_script_run 'pvdisplay';
     save_screenshot;

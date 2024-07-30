@@ -131,11 +131,11 @@
         "type": "bug"
     },
     "bsc#1190662": {
-        "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
+        "description": "/etc/udev/rules.d/41-.*Failed to write ATTR",
         "products": {
             "sle-micro": [ "5.1", "5.2", "5.3", "5.4" , "5.5" ]
         },
-        "type": "bug"
+        "type": "ignore"
     },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_cpufreq/initstate': No such device",
@@ -551,6 +551,13 @@
         },
         "type": "bug"
     },
+    "bsc#1227930": {
+        "description": "setroubleshoot.*.SELinux is preventing firewalld from ('read, write' accesses on the file icastats_0|read access on the chr_file).*",
+        "products": {
+            "sle-micro": ["6.0"]
+        },
+        "type": "bug"
+    },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
@@ -660,6 +667,14 @@
         "description": "Failed to start (e|E)lemental (r|R)egister",
         "products": {
             "sle-micro": ["6.0"]
+        },
+        "type": "ignore"
+    },
+    "minimal vm cloud image - gpt": {
+        "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|\\d+ != \\d+)",
+        "products": {
+            "sle": ["15-SP6"],
+            "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
     }

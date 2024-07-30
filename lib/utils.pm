@@ -12,6 +12,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
+use Carp qw(croak);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -120,6 +121,8 @@ our @EXPORT = qw(
   remove_efiboot_entry
   empty_usb_disks
   upload_y2logs
+  enable_persistent_kernel_log
+  enable_console_kernel_log
 );
 
 our @EXPORT_OK = qw(
@@ -832,16 +835,29 @@ the second run will update the system.
 sub ssh_fully_patch_system {
     my $remote = shift;
     my $cmd_time = time();
+    my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
+    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
     # first run, possible update of packager -- exit code 103
-    my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
+    my $ret = script_run($cmd, 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
-
+    if ($ret != 0 && $ret != 102 && $ret != 103) {
+        if ($resolver_option) {
+            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+            script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+            upload_logs('/tmp/solver.tar.gz', failok => 1);
+        }
+        croak("Zypper failed with $ret");
+    }
     $cmd_time = time();
     # second run, full system update
-    $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 6000);
+    $ret = script_run($cmd, 6000);
     record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
+    if ($resolver_option) {
+        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+        script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+        upload_logs('/tmp/solver.tar.gz', failok => 1);
+    }
+    croak("Zypper failed with $ret") if ($ret != 0 && $ret != 102);
 }
 
 =head2 minimal_patch_system
@@ -3054,6 +3070,62 @@ sub upload_y2logs {
     script_retry("save_y2logs $args{file}", timeout => 180, retry => 3);
     upload_logs($args{file}, failok => $args{failok});
     save_screenshot;
+}
+
+=head2 enable_persistent_kernel_log
+
+  enable_persistent_kernel_log(service => 'log_service_name',
+      config => 'config_file_path', log => 'log_file_path');
+
+For system that uses rsyslog to manage log facility, kernel log by default is not
+stored on persistent storage. In order to enable persistent kernel log, loading
+imklog.so module and specifying desired log file in config file /etc/rsyslog.conf
+should be performed. Arguments service, config and log provide flexibility to use
+different log management appliances. 
+=cut
+
+sub enable_persistent_kernel_log {
+    my %args = @_;
+    $args{service} //= 'rsyslog';
+    $args{config} //= '/etc/rsyslog.conf';
+    $args{log} //= '/var/log/kern.log';
+
+    assert_script_run("ls $args{config}");
+    if (script_run("grep -e \"^\\\$ModLoad imklog.so\$\" /etc/rsyslog.conf") != 0) {
+        assert_script_run("echo \"\\\$ModLoad imklog.so\" >> /etc/rsyslog.conf");
+    }
+
+    if (script_run("grep -e \"^kern.*\$\" /etc/rsyslog.conf") != 0) {
+        assert_script_run("rm -f -r $args{log}");
+        assert_script_run("echo \"kern.*                                  $args{log}\" >> /etc/rsyslog.conf");
+    }
+    record_info("Content of log config file $args{config}", script_output("cat $args{config}"));
+    systemctl("enable $args{service}.service");
+    systemctl("restart $args{service}.service");
+}
+
+=head2 enable_console_kernel_log
+
+ enable_console_kernel_log;
+
+By default only those kernel logs level of which is lower than default value will
+be printed out onto serial console. If user prefers to have all kernel messages
+printed out onto serial console, ignore_loglevel, loglvl or guest_loglvl setting
+should be put onto kernel command line and setting /proc/sys/kernel/printk should
+have value like 8 which is greater than the highest kernel log level. 
+=cut
+
+sub enable_console_kernel_log {
+    if (virt_autotest::utils::is_kvm_host()) {
+        assert_script_run("sed -i -r \'/linux\\s*.*boot/ s/\$/ ignore_loglevel/;\' /boot/grub2/grub.cfg");
+    }
+    elsif (virt_autotest::utils::is_xen_host()) {
+        assert_script_run("sed -i -r \'/module\\s*.*vmlinuz/ s/(loglvl|guest_loglvl)=[^ ]*//g;\' /boot/grub2/grub.cfg");
+        assert_script_run("sed -i -r \'/module\\s*.*vmlinuz/ s/\$/ loglvl=all guest_loglvl=all/;\' /boot/grub2/grub.cfg");
+    }
+    record_info("Content of /boot/grub2/grub.cfg", script_output("cat /boot/grub2/grub.cfg"));
+    assert_script_run("echo 8 > /proc/sys/kernel/printk");
+    record_info("Content of /proc/sys/kernel/printk", script_output("cat /proc/sys/kernel/printk"));
 }
 
 1;

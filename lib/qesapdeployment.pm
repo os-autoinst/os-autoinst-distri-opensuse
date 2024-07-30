@@ -1244,6 +1244,10 @@ sub qesap_cluster_log_cmds {
             Cmd => 'cat /var/log/zypp/history',
             Output => 'zypp.history.txt',
         },
+        {
+            Cmd => 'cat /var/log/cloudregister',
+            Output => 'cloudregister.txt',
+        }
     );
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         push @log_list, {

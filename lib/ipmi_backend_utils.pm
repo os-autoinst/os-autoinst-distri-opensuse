@@ -400,7 +400,10 @@ sub enable_sev_in_kernel {
     $args{root_dir} //= '';
     $args{root_dir} .= '/' unless $args{root_dir} =~ /\/$/;
     croak("No AMD EPYC cpu on $args{dst_machine}, so sev can not be enabled in kernel.") unless (script_run("lscpu | grep -i \'AMD EPYC\'") == 0);
-    add_kernel_options(dst_machine => $args{dst_machine}, root_dir => $args{root_dir}, kernel_opts => 'mem_encrypt=on kvm_amd.sev=1');
+    # Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107
+    my $kernel_opts = "kvm_amd.sev=1";
+    $kernel_opts .= " mem_encrypt=on" if (!check_var('VERSION', '15-SP6'));
+    add_kernel_options(dst_machine => $args{dst_machine}, root_dir => $args{root_dir}, kernel_opts => $kernel_opts);
 }
 
 =head2 add_kernel_options
@@ -516,6 +519,8 @@ sub set_grub_terminal_and_timeout {
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         $cmd = "sed -i -r \'s/^#{0,}GRUB_TERMINAL=.*\$/GRUB_TERMINAL=\"$args{terminals}\"/' $grub_default_file; "
+          . "sed -i -r \'s/^#{0,}GRUB_TERMINAL_INPUT=.*\$/GRUB_TERMINAL_INPUT=\"$args{terminals}\"/' $grub_default_file; "
+          . "sed -i -r \'s/^#{0,}GRUB_TERMINAL_OUTPUT=.*\$/GRUB_TERMINAL_OUTPUT=\"$args{terminals}\"/' $grub_default_file; "
           . "sed -i -r \'s/^#{0,}GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=$args{timeout}/' $grub_default_file";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         assert_script_run($cmd);

@@ -13,6 +13,14 @@ use testapi;
 use utils;
 use publiccloud::utils;
 
+sub validate_nvidia {
+    validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });    # depends on terraform setup
+        # nvidia-smi is delivered by nvidia-compute-utils-G06. Not available on PublicCloud
+        # Check device files and loaded modules instead.
+    validate_script_output("lsmod", sub { m/nvidia/ }, fail_message => "nvidia module not loaded");
+    assert_script_run("ls -la /dev/{nvidia-modeset,nvidia-uvm-tools,nvidiactl,nvidia-uvm,nvidia0}", fail_message => "nvidia device files are missing");
+}
+
 sub run {
     my ($self, $args) = @_;
     script_run("cat /etc/os-release");
@@ -20,16 +28,18 @@ sub run {
         zypper_call('--gpg-auto-import-keys addrepo -p 90 ' . get_required_var('NVIDIA_REPO') . ' nvidia_repo');
         zypper_call '--gpg-auto-import-keys ref';
     }
-    zypper_call("in nvidia-open-driver-G06-signed-kmp-default kernel-firmware-nvidia-gspx-G06 ", quiet => 1);
+    # First check cuda variant as is more important in PublicCloud enviroment
+    zypper_call("in nvidia-open-driver-G06-signed-cuda-kmp-default kernel-firmware-nvidia-gspx-G06-cuda", quiet => 1);
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    validate_nvidia;
+    # Check gfx nvidia driver
+    zypper_call("in nvidia-open-driver-G06-signed-kmp-default kernel-firmware-nvidia-gspx-G06 -nvidia-open-driver-G06-signed-cuda-kmp-default -kernel-firmware-nvidia-gspx-G06-cuda", quiet => 1);
+    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    validate_nvidia;
 
-    validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });    # depends on terraform setup
-        # nvidia-smi is delivered by nvidia-compute-utils-G06. Not available on PublicCloud
-        # Check device files and loaded modules instead.
-    validate_script_output("lsmod", sub { m/nvidia/ }, fail_message => "nvidia module not loaded");
-    assert_script_run("ls -la /dev/{nvidia-modeset,nvidia-uvm-tools,nvidiactl,nvidia-uvm,nvidia0}", fail_message => "nvidia device files are missing");
     assert_script_run("SUSEConnect --status-text", 300);
 }
+
 
 sub test_flags {
     return {publiccloud_multi_module => 1};

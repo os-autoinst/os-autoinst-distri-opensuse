@@ -62,7 +62,7 @@ B<SAP Systems>: Resource group containing SAP SUTs and related resources.
 
 our @EXPORT = qw(
   az_login
-  sdaf_prepare_ssh_keys
+  sdaf_prepare_private_key
   serial_console_diag_banner
   set_common_sdaf_os_env
   prepare_sdaf_project
@@ -73,6 +73,7 @@ our @EXPORT = qw(
   load_os_env_variables
   sdaf_cleanup
   sdaf_execute_playbook
+  ansible_hanasr_show_status
 );
 
 
@@ -252,7 +253,7 @@ B<sap_sid>: SAP system ID. Default: 'SAP_SID'
 B<sdaf_tfstate_storage_account>: Storage account residing in library resource group.
 Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
 
-B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_KEY_VAULT'
+B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLYOER_KEY_VAULT'
 
 Creates a file with common OS env variables required to run SDAF. File is sourced afterwards to make the values active.
 Keep in mind that values are lost after user logout (for example after disconnecting console redirection).
@@ -272,7 +273,7 @@ sub set_common_sdaf_os_env {
     $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     $args{sap_sid} //= get_required_var('SAP_SID');
     $args{sdaf_tfstate_storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
-    $args{sdaf_key_vault} //= get_required_var('SDAF_KEY_VAULT');
+    $args{sdaf_key_vault} //= get_required_var('SDAF_DEPLYOER_KEY_VAULT');
 
     # This is used later filling up tfvars files.
     set_var('SDAF_REGION_CODE', $args{sdaf_region_code});
@@ -317,23 +318,23 @@ sub load_os_env_variables {
     assert_script_run('source ' . env_variable_file());
 }
 
-=head2 sdaf_prepare_ssh_keys
+=head2 sdaf_prepare_private_key
 
-    sdaf_prepare_ssh_keys(deployer_key_vault=>$deployer_key_vault);
+    sdaf_prepare_private_key(key_vault=>$key_vault);
 
-B<deployer_key_vault>: Deployer key vault name
+B<key_vault>: Key vault name
 
-Retrieves public and private ssh key from DEPLOYER keyvault and sets up permissions.
+Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
 =cut
 
-sub sdaf_prepare_ssh_keys {
+sub sdaf_prepare_private_key {
     my (%args) = @_;
-    croak 'Missing mandatory argument $args{deployer_key_vault}' unless $args{deployer_key_vault};
+    croak 'Missing mandatory argument $args{key_vault}' unless $args{key_vault};
     my $home = homedir();
     my %ssh_keys;
     my $az_cmd_out = script_output(
-        "az keyvault secret list --vault-name $args{deployer_key_vault} --query [].name --output tsv | grep sshkey");
+        "az keyvault secret list --vault-name $args{key_vault} --query [].name --output tsv | grep sshkey");
 
     foreach (split("\n", $az_cmd_out)) {
         $ssh_keys{id_rsa} = $_ if grep(/sshkey$/, $_);
@@ -348,7 +349,7 @@ sub sdaf_prepare_ssh_keys {
     assert_script_run("chmod 700 $home/.ssh");
     for my $key_file (keys %ssh_keys) {
         az_get_ssh_key(
-            deployer_key_vault => $args{deployer_key_vault},
+            key_vault => $args{key_vault},
             ssh_key_name => $ssh_keys{$key_file},
             ssh_key_filename => $key_file
         );
@@ -359,15 +360,15 @@ sub sdaf_prepare_ssh_keys {
 
 =head2 az_get_ssh_key
 
-    az_get_ssh_key(deployer_key_vault=$deployer_key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);
+    az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);
 
-B<deployer_key_vault>: Deployer key vault name
+B<key_vault>: Key vault name
 
 B<ssh_key_name>: SSH key name residing on keyvault
 
 B<ssh_key_filename>: Target filename for SSH key
 
-Retrieves SSH key from DEPLOYER keyvault.
+Retrieves SSH key from specified keyvault.
 
 =cut
 
@@ -376,7 +377,7 @@ sub az_get_ssh_key {
     my $home = homedir();
     my $cmd = join(' ',
         'az', 'keyvault', 'secret', 'show',
-        '--vault-name', $args{deployer_key_vault},
+        '--vault-name', $args{key_vault},
         '--name', $args{ssh_key_name},
         '--query', 'value',
         '--output', 'tsv', '>', "$home/.ssh/$args{ssh_key_filename}");
@@ -384,7 +385,7 @@ sub az_get_ssh_key {
     my $rc = 1;
     my $retry = 3;
     while ($rc) {
-        $rc = script_run($cmd, output => 'Retrieving SSH keys from Deployer keyvault');
+        $rc = script_run($cmd, output => 'Retrieving SSH keys from keyvault');
         last unless $rc;
         die 'Failed to retrieve ssh key from keyvault' unless $retry;
         $retry--;
@@ -452,7 +453,7 @@ sub prepare_tfvars_file {
     assert_script_run($retrieve_tfvars_cmd);
     assert_script_run("test -f $tfvars_file");
     replace_tfvars_variables($tfvars_file);
-    upload_logs($tfvars_file, log_name => "$args{deployment_type}.tfvars");
+    upload_logs($tfvars_file, log_name => "$args{deployment_type}.tfvars.txt");
     return $tfvars_file;
 }
 
@@ -512,7 +513,7 @@ sub sdaf_execute_deployment {
 
     record_info('SDAF exe', "Executing '$args{deployment_type}' deployment: $deploy_command");
     my $rc;
-    my $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.log";
+    my $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
     my $attempt_no = 1;
     while ($attempt_no <= $args{retries}) {
         $output_log_file =~ s/attempt/attempt-$attempt_no/;
@@ -613,7 +614,7 @@ sub prepare_sdaf_project {
         branch => get_var('SDAF_GIT_AUTOMATION_BRANCH'),
         depth => '1',
         single_branch => 'yes',
-        output_log_file => log_dir() . '/git_clone_automation.log');
+        output_log_file => log_dir() . '/git_clone_automation.txt');
 
     git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
         branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
@@ -701,7 +702,7 @@ sub sdaf_execute_remover {
         '--auto-approve');
 
     # capture command output into log file
-    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}.log";
+    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}.txt";
     $remover_cmd = log_command_output(command => $remover_cmd, log_file => $output_log_file);
 
     # SDAF must be executed from the profile directory, otherwise it will fail
@@ -790,7 +791,7 @@ sub sdaf_execute_playbook {
         '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"'
     );
 
-    my $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.log/r;
+    my $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
     my $playbook_file = join('/', deployment_dir(), 'sap-automation', 'deploy', 'ansible', $args{playbook_filename});
     my $playbook_cmd = join(' ', 'ansible-playbook', $playbook_options, $playbook_file);
 
@@ -825,3 +826,29 @@ sub sdaf_ansible_verbosity_level {
     return '-vvvv';    # Default set to "-vvvv"
 }
 
+=head2 ansible_hanasr_show_status
+
+    ansible_hanasr_show_status(sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
+
+Display simple command outputs from all DB hosts using B<ansible> command.
+
+B<sdaf_config_root_dir> SDAF Config directory containing SUT ssh keys
+
+B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=cut
+
+sub ansible_hanasr_show_status {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
+    $args{sap_sid} //= get_required_var('SAP_SID');
+
+    # Note: QES_DB is database host group in SDAF inventory file.
+    my @cmd = ('ansible', 'QES_DB',
+        "--private-key=$args{sdaf_config_root_dir}/sshkey",
+        "--inventory=$args{sap_sid}_hosts.yaml",
+        '--module-name=shell');
+
+    record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
+    record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
+}

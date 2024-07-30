@@ -58,7 +58,7 @@ sub run_test {
 sub prepare_lvm_storage_pool_source {
     ## Physical Hard Disk preparation
     # Check with all existed Hard disks
-    my ($dev, $lvm_disk_name);
+    my ($dev, $lvm_disk_name, $disk_type, $disk_name);
     my @disks = split(/\n/, script_output("lsblk -n -l -o NAME -d -e 7,11"));
     my $scalar = @disks;
     #NOTE: Requires at least 2 physical hard disks for LVM Storage test
@@ -81,7 +81,9 @@ sub prepare_lvm_storage_pool_source {
         wipe_hard_disk($lvm_disk_name);
         ## About LVM volumes management
         # Create a Volume Group (VG) with LVM named 'lvm_vg'
-        remove_volume_group(disk => "${lvm_disk_name}1", vg => "${lvm_vg_name}");
+        $disk_type = ($lvm_disk_name =~ "nvme") ? "p" : "";
+        $disk_name = $lvm_disk_name . $disk_type;
+        remove_volume_group(disk => "${disk_name}1", vg => "${lvm_vg_name}");
         create_volume_group($lvm_disk_name);
         return ($lvm_disk_name);
     }
@@ -102,7 +104,13 @@ sub get_hard_disk_size {
 # Wipe Hard Disk Clean via dd
 sub wipe_hard_disk {
     my $hard_disk_name = shift;
+    my $timeout = 180;
+    record_info("Wipe Hard Drive $hard_disk_name forcibly");
     assert_script_run("dd if=/dev/zero of=$hard_disk_name count=1M", timeout => 1500, fail_message => "Failed to wipe hard disk clean on $hard_disk_name");
+    record_info("Remove GPT signature $hard_disk_name forcibly");
+    script_run("sgdisk --zap-all $hard_disk_name", timeout => $timeout);
+    assert_script_run 'fdisk -l $hard_disk_name';
+    save_screenshot;
 }
 
 # Reomve volume group associated with a disk partition
@@ -132,6 +140,8 @@ sub create_volume_group {
     # Create new disk partition for LVM volumes
     record_info "Create new disk partition for LVM volumes";
     assert_script_run 'echo -e "g\nn\n\n\n+20G\nt\n8e\np\nw" | fdisk ' . $lvm_disk_name;
+    # Enable NVME Hard Drive Support
+    $lvm_disk_name = ($lvm_disk_name =~ "nvme") ? "${lvm_disk_name}p" : $lvm_disk_name;
     # Create a Physical Volume (PV) with LVM
     record_info "Create a Physical Volume";
     validate_script_output("pvcreate ${lvm_disk_name}1", sub { m/successfully created/ }, $timeout);

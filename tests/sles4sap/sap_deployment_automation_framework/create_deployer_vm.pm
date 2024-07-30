@@ -77,10 +77,9 @@ sub run {
     # get_deployer_ip() also checks VM is listening to SSH port. This serves as an availability check.
     my $deployer_ip = get_deployer_ip(deployer_resource_group => $deployer_resource_group,
         deployer_vm_name => $new_deployer_vm_name);
+
     die 'Deployer public IP address not found or is not listening to SSH port.' unless $deployer_ip;
-
     record_info('VM created', "Deployer VM was created with public IP: $deployer_ip");
-
     serial_console_diag_banner('Module sdaf_clone_deployer.pm : stop');
 }
 

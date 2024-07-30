@@ -96,14 +96,35 @@ EOF
     }
 
     assert_screen("gpg-passphrase-enter");
-    enter_cmd "REALSECRETPHRASE";    # Input insecure passphrase
-    assert_screen("gpg-passphrase-insecure");
-    send_key 'tab';
-    send_key 'ret';
-    assert_screen("gpg-passphrase-enter");
-    enter_cmd "$passwd";
-    assert_screen("gpg-passphrase-reenter");
-    enter_cmd "$passwd";
+
+    # Different behavior for pinentry >= 1.3.0, which has a single dialog
+    # for passphrase entry and repetition with strength meter.
+    # Would use match_has_tag here, but old tags match the new screen as well.
+    if (check_screen "gpg-passphrase-enter-with-repeat") {
+        # Attempt an insecure passphrase first
+        type_string "REALSECRETPHRASE";
+        send_key 'tab';
+        type_string "REALSECRETPHRASE";
+        send_key 'ret';
+
+        assert_screen("gpg-passphrase-insecure");
+        send_key 'tab';
+        send_key 'ret';
+
+        type_string "$passwd";
+        send_key 'tab';
+        type_string "$passwd";
+        send_key 'ret';
+    } else {
+        enter_cmd "REALSECRETPHRASE";    # Input insecure passphrase
+        assert_screen("gpg-passphrase-insecure");
+        send_key 'tab';
+        send_key 'ret';
+        assert_screen("gpg-passphrase-enter");
+        enter_cmd "$passwd";
+        assert_screen("gpg-passphrase-reenter");
+        enter_cmd "$passwd";
+    }
 
     # According to FIPS PUB 186-4 Digital Signature Standard (DSS), only the
     # 2048 and 3072 key length should be supported by default.

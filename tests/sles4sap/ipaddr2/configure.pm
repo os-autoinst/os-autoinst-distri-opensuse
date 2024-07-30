@@ -19,13 +19,34 @@ sub run {
 
     select_serial_terminal;
 
-    record_info("STAGE 1", "Prepare all the ssh connections within the 2 internal VMs");
+    record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
     ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
     ipaddr2_internal_key_accept(bastion_ip => $bastion_ip);
     ipaddr2_internal_key_gen(bastion_ip => $bastion_ip);
 
-    record_info("STAGE 2", "Init and configure the Pacemaker cluster");
+    if (check_var('IPADDR2_CLOUDINIT', 0)) {
+        if (get_var('SCC_REGCODE_SLES4SAP')) {
+            # Register was not part of cloud-init
+            record_info("TEST STAGE", "Register");
+            foreach (1 .. 2) {
+                my $is_registered = ipaddr2_registeration_check(
+                    bastion_ip => $bastion_ip,
+                    id => $_);
+                record_info('is_registered', "$is_registered");
+                ipaddr2_registeration_set(
+                    bastion_ip => $bastion_ip,
+                    id => $_,
+                    scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
+            }
+        }
+        record_info("TEST STAGE", "Install the web server");
+        foreach (1 .. 2) {
+            ipaddr2_configure_web_server(bastion_ip => $bastion_ip, id => $_);
+        }
+    }
+
+    record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
     ipaddr2_create_cluster(bastion_ip => $bastion_ip);
 }
 

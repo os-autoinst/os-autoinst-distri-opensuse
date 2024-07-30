@@ -19,6 +19,7 @@ sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
 
+    my $client_node = get_var('CLIENT_NODE', 'client-node00');
     #TODO: configure nfs config as pleased, specifically:
     #USE_KERNEL_NFSD_NUMBER
     #NFS3_SERVER_SUPPORT
@@ -49,10 +50,10 @@ sub run {
     assert_script_run("mkdir -p $nfs_mount_nfs4_async");
     assert_script_run("chmod 777 $nfs_mount_nfs4_async");
 
-    assert_script_run("echo $nfs_mount_nfs3 client-node00\\($nfs_permissions\\) >> /etc/exports");
-    assert_script_run("echo $nfs_mount_nfs4 client-node00\\($nfs_permissions\\) >> /etc/exports");
-    assert_script_run("echo $nfs_mount_nfs3_async client-node00\\($nfs_permissions_async\\) >> /etc/exports");
-    assert_script_run("echo $nfs_mount_nfs4_async client-node00\\($nfs_permissions_async\\) >> /etc/exports");
+    assert_script_run("echo $nfs_mount_nfs3 $client_node\\($nfs_permissions\\) >> /etc/exports");
+    assert_script_run("echo $nfs_mount_nfs4 $client_node\\($nfs_permissions\\) >> /etc/exports");
+    assert_script_run("echo $nfs_mount_nfs3_async $client_node\\($nfs_permissions_async\\) >> /etc/exports");
+    assert_script_run("echo $nfs_mount_nfs4_async $client_node\\($nfs_permissions_async\\) >> /etc/exports");
 
     record_info("EXPORTS", script_output("cat /etc/exports"));
 

@@ -35,19 +35,6 @@ sub run {
     my $podman = $self->containers_factory('podman');
     install_packages('bind-utils');
 
-    my $host_if = script_output('ip -6 route show default | awk "{print \$5; exit}"');
-    record_info('HOST IF', $host_if);
-    my $host_addr = script_output("ip -6 addr show $host_if scope global | grep -oP 'inet6 \\K[^/]+' | head -n1");
-    record_info('HOST ADDR', $host_addr);
-    my $host_gw = script_output('ip -6 route show default | awk "{print \$3}"');
-    record_info('HOST GW', $host_gw);
-    my $subnet = $host_addr;
-    $subnet =~ s/::/:1:0\/112/g;
-    record_info('SUBNET', $subnet);
-    my $cont_addr = $subnet;
-    $cont_addr =~ s/:0\/112/:2/g;
-    record_info('CONT ADDR', $cont_addr);
-
     # Test host IPv6 connectivity
     assert_script_run('curl -sSf6 -o /dev/null https://opensuse.org');
     # Test openSUSE registry over IPv6
@@ -64,9 +51,16 @@ sub run {
     # Pull image from openSUSE registry (over IPv6 now)
     assert_script_run("podman pull $image", timeout => 300);
 
-    # Create the IPv6 network
-    assert_script_run(sprintf('podman network create --ipv6 --subnet %s podman-ipv6', $subnet));
-    assert_script_run("podman run --name test-ipv6 --network podman-ipv6 --ip6 $cont_addr -d -p 80:80 -p '[::]:80:80' $image sleep 999", timeout => 180);
+    # This is only needed for bsc#1222239 - Host loses default IPv6 route when podman IPv6 network is created
+    my $host_if = script_output('ip -6 route show default | awk "{print \$5; exit}"');
+    record_info('HOST IF', $host_if);
+    my $host_gw = script_output('ip -6 route show default | awk "{print \$3}"');
+    record_info('HOST GW', $host_gw);
+
+
+    # Create the IPv6 network and test container
+    assert_script_run('podman network create --ipv6 --subnet fd00:c0de:ba5e::/112 --gateway fd00:c0de:ba5e::1 podman-ipv6');
+    assert_script_run("podman run --name test-ipv6 --network podman-ipv6 --ip6 fd00:c0de:ba5e::2 -d $image sleep 999", timeout => 180);
 
     if (script_output('ip -6 r s default') !~ m/^default via/gi) {
         record_soft_failure('bsc#1222239 - Host loses default IPv6 route when podman IPv6 network is created');
@@ -75,10 +69,12 @@ sub run {
     }
 
     # Test host IPv6 connectivity
-    assert_script_run('curl -sSf6 -o /dev/null https://opensuse.org');
-    # check that the container has IPv6 connectivity
+    my $curl_test = '-w "Local: %{local_ip}:%{local_port}\nRemote: %{remote_ip}:%{remote_port}\nReturn: %{http_code}\n"';
+    assert_script_run("curl -sSf6 -o /dev/null $curl_test https://opensuse.org");
+
+    # Test container IPv6 connectivity
     #   there is iptables masquarade so the container appears under the host address
-    assert_script_run('podman exec -it test-ipv6 curl -sSf6 -o /dev/null https://opensuse.org');
+    assert_script_run("podman exec -it test-ipv6 curl -sSf6 -o /dev/null $curl_test https://opensuse.org");
 }
 
 sub post_run_hook {

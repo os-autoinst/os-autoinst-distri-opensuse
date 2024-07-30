@@ -1,0 +1,10 @@
+$TTL 2D
+@		IN SOA		susetest.	root.susetest. (
+				2024072601	; serial
+				3H		; refresh
+				1H		; retry
+				1W		; expiry
+				1D )		; minimum
+
+example.com.	IN NS		localhost.
+foobar.example.com. IN A         1.2.3.4

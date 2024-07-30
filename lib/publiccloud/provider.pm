@@ -233,7 +233,10 @@ sub run_img_proof {
     }
 
     # Tell img-proof to generate SCAP report on hardened images
-    $cmd = "SCAP_REPORT=/var/tmp/report.html " . $cmd if is_hardened;
+    if (is_hardened) {
+        my $scap_report = get_var("SCAP_REPORT", "skip");
+        $cmd = "SCAP_REPORT=$scap_report " . $cmd;
+    }
 
     $cmd .= $args{tests};
     record_info("img-proof cmd", $cmd);

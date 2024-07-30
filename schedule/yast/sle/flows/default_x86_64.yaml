@@ -50,6 +50,7 @@ confirm_reboot:
   - installation/performing_installation/confirm_reboot
 grub:
   - installation/grub_test
+disk_passphrase: []
 first_login:
   - installation/first_boot
 system_preparation: []

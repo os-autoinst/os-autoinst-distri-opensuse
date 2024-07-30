@@ -6,10 +6,15 @@ schedule:
     - installation/bootloader_svirt
     - installation/bootloader_uefi
     - jeos/firstrun
-    - transactional/host_config
     - console/suseconnect_scc
+    - '{{install_updates}}'
     - console/system_prepare
     - console/check_network
     - console/system_state
     - console/integration_services
     - virt_autotest/esxi_open_vm_tools
+conditional_schedule:
+    install_updates:
+        FLAVOR:
+            Default-VMware-Updates:
+                - transactional/install_updates

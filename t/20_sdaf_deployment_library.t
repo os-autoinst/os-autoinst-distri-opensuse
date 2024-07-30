@@ -164,7 +164,7 @@ subtest '[serial_console_diag_banner] ' => sub {
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
 };
 
-subtest '[sdaf_prepare_ssh_keys]' => sub {
+subtest '[sdaf_prepare_private_key]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $get_ssh_command;
     my %private_key;
@@ -185,16 +185,16 @@ LAB-SECE-DEP05-ssh
             %pubkey = @_ if grep /sshkey-pub$/, @_;
     });
 
-    sdaf_prepare_ssh_keys(deployer_key_vault => 'LABSECEDEP05userDDF');
+    sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF');
     is $get_ssh_command, 'az keyvault secret list --vault-name LABSECEDEP05userDDF --query [].name --output tsv | grep sshkey',
       'Return correct command for retrieving private key';
     is $pubkey{ssh_key_name}, 'LAB-SECE-DEP05-sshkey-pub', 'Public key';
     is $private_key{ssh_key_name}, 'LAB-SECE-DEP05-sshkey', 'Private key';
 
-    dies_ok { sdaf_prepare_ssh_keys() } 'Fail with missing deployer key vault argument';
+    dies_ok { sdaf_prepare_private_key() } 'Fail with missing "key_vault" argument';
 
     $ms_sdaf->redefine(script_output => sub { return 1 });
-    dies_ok { sdaf_prepare_ssh_keys(deployer_key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
+    dies_ok { sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
 };
 
 subtest '[set_common_sdaf_os_env]' => sub {
@@ -481,6 +481,28 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
     }
 
     undef_variables();
+};
+
+subtest '[ansible_hanasr_show_status]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %calls;
+    $ms_sdaf->redefine(record_info => sub { return });
+    $ms_sdaf->redefine(script_output => sub {
+            $calls{crm_status} = $_[0] if grep /crm status/, @_;
+            $calls{saphanasr_showattr} = $_[0] if grep /SAPHanaSR-showAttr/, @_;
+            return; });
+
+    ansible_hanasr_show_status(sap_sid => 'CAT', sdaf_config_root_dir => '/cat/house');
+    note("crm status command:\n\t $calls{crm_status}");
+    ok(grep(/ansible QES_DB/, $calls{crm_status}), 'Execute main command');
+    ok(grep(/--private-key=\/cat\/house\/sshkey/, $calls{crm_status}), 'Check for "--private-key" argument');
+    ok(grep(/--inventory=CAT_hosts.yaml/, $calls{crm_status}), 'Check for "--inventory" argument');
+    ok(grep(/--module-name=shell/, $calls{crm_status}), 'Check for "--module-name" argument');
+    ok(grep(/--args="sudo crm status full"/, $calls{crm_status}), 'Check for executed "crm status" command');
+
+    note("SAPHanaSR-showAttr command:\n\t $calls{saphanasr_showattr}");
+    ok(grep(/--args="sudo SAPHanaSR-showAttr"/, $calls{saphanasr_showattr}), 'Check for executed "SAPHanaSR-showAttr" command');
+
 };
 
 done_testing;

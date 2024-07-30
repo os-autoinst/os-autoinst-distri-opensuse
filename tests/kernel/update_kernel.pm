@@ -378,11 +378,15 @@ sub update_kgraft {
 
 sub install_kotd {
     my $repo = shift;
+    my $kernel_flavor = get_kernel_flavor;
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    my $kernel_flavor = get_kernel_flavor;
-    zypper_call("in -l ${kernel_flavor} kernel-devel");
+    if (is_transactional) {
+        trup_call("-c pkg install ${kernel_flavor} kernel-devel");
+    } else {
+        zypper_call("in -l ${kernel_flavor} kernel-devel");
+    }
 }
 
 sub boot_to_console {

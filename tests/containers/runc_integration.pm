@@ -52,6 +52,7 @@ sub run {
 
     record_info("runc version", script_output("runc --version"));
     record_info("runc features", script_output("runc features"));
+    record_info("runc package version", script_output("rpm -q runc"));
 
     switch_to_user;
 

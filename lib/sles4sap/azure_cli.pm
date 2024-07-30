@@ -825,7 +825,7 @@ sub az_vm_wait_cloudinit {
         '--run-as-user', $args{username},
         '--timeout-in-seconds', $args{timeout},
         '--script "sudo cloud-init status --wait"');
-    assert_script_run($az_cmd, timeout => ($args{timeout} + 10));
+    assert_script_run($az_cmd, timeout => ($args{timeout} + 300));
 }
 
 =head2 az_nic_id_get
@@ -976,13 +976,15 @@ sub az_ipconfig_update {
 
 Add the IpConfig to a LB address pool
 
-=over 3
+=over 4
 
 =item B<resource_group> - existing resource group
 
 =item B<lb_name> - existing Load balancer NAME
 
 =item B<address_pool> - existing Load balancer address pool name
+
+=item B<timeout> - timeout, default 60
 
 =back
 =cut
@@ -991,6 +993,7 @@ sub az_ipconfig_pool_add {
     my (%args) = @_;
     foreach (qw(resource_group lb_name address_pool ipconfig_name nic_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 60;
 
     my $az_cmd = join(' ', 'az network nic ip-config address-pool add',
         '--resource-group', $args{resource_group},
@@ -998,7 +1001,7 @@ sub az_ipconfig_pool_add {
         '--address-pool', $args{address_pool},
         '--ip-config-name', $args{ipconfig_name},
         '--nic-name', $args{nic_name});
-    assert_script_run($az_cmd);
+    assert_script_run($az_cmd, timeout => $args{timeout});
 }
 
 =head2 az_vm_diagnostic_log_enable
@@ -1064,10 +1067,9 @@ sub az_vm_diagnostic_log_get {
     my $vm_data = az_vm_list(resource_group => $args{resource_group}, query => '[].{id:id,name:name}');
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
     foreach (@{$vm_data}) {
-        #record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
-        push(@diagnostic_log_files, $boot_diagnostics_log);
+        push(@diagnostic_log_files, $boot_diagnostics_log) unless
+          script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
     }
     return @diagnostic_log_files;
 }

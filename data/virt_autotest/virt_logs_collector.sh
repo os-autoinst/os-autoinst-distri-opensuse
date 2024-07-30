@@ -354,6 +354,7 @@ function collect_extra_logs_from_host() {
 	local libvirt_daemon_logs="${libvirt_log}/*d.log"
 	local xen_log="/var/log/xen"
 	local xen_boot_log="${xen_log}/xen-boot.log"
+        local kernel_log="/var/log/kern.log"
 
 	if [[ ${release} -lt 12 ]];then
 	   cp --parent -f -r ${libvirt_log} ${extra_logs_folder}
@@ -385,6 +386,11 @@ function collect_extra_logs_from_host() {
               ret_result=$(( ${ret_result} | $? ))
            fi
 	fi
+        
+	if [ -f ${kernel_log} ];then
+            cp --parent -f -r ${kernel_log}* ${extra_logs_folder} 
+            ret_result=$(( ${ret_result} | $? ))
+        fi
 
 	return ${ret_result}
 }

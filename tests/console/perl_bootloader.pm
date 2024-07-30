@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
-use utils 'zypper_call';
+use utils;
 use package_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle check_version is_transactional);
@@ -43,8 +43,13 @@ sub run {
     }
 
     if (is_transactional) {
-        trup_call 'run pbl --install';
-        check_reboot_changes;
+        if (get_var('FLAVOR') =~ m/-encrypted/i) {
+            record_soft_failure("bsc#1228126: Encrypted image fails to boot after reinstalling bootloader");
+        }
+        else {
+            trup_call 'run pbl --install';
+            check_reboot_changes;
+        }
         trup_call 'run pbl --config';
         check_reboot_changes;
     }

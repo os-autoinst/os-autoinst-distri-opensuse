@@ -1,0 +1,4 @@
+name: hpvs
+schedule:
+  - boot/boot_to_desktop
+  - containers/prepare_hpvs

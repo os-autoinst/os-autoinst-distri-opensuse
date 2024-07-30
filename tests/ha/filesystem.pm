@@ -181,7 +181,8 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                 }
 
                 # Migrate resource on the node
-                assert_script_run "crm resource migrate ms_$resource $node", $default_timeout;
+                assert_script_run "crm resource move ms_$resource $node", $default_timeout;
+                wait_for_idle_cluster;
                 ensure_resource_running("$fs_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
 
                 # Do a check of the cluster with a screenshot

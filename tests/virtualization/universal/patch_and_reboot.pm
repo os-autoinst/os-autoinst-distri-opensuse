@@ -30,7 +30,9 @@ sub run {
 
     if (get_var("UPDATE_PACKAGE") =~ /xen|kernel-default|qemu/) {
         script_run("virsh list --all | grep -v Domain-0");
-        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        }
         script_run '( sleep 15 && reboot & )';
         save_screenshot;
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
@@ -39,7 +41,9 @@ sub run {
         restart_libvirtd;
         script_run("virsh list --all | grep -v Domain-0");
         # Check that all guests are still running
-        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        }
     }
 }
 sub post_run_hook {

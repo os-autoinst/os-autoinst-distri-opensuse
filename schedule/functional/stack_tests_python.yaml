@@ -4,55 +4,59 @@ schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
   - '{{add_phub_extension}}'
-  - console/python_scientific
   - '{{distri_version_specific}}'
+  - console/python_scientific
 conditional_schedule:
   distri_version_specific:
     DISTRI:
       sle:
         - '{{version_specific}}'
       opensuse:
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python_virtualenv
+        - console/python3_beautifulsoup4
+        - console/python3_websocket_client
         - console/python_flake8
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
         - console/rabbitmq
-        - console/python3_new_version_check
-        - console/python3_setuptools
-        - console/python3_beautifulsoup4
-        - console/python3_websocket_client
   version_specific:
     VERSION:
       15-SP6:
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python_virtualenv
+        - console/python3_beautifulsoup4
+        - console/python3_websocket_client
         - console/python_flake8
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
         - console/rabbitmq
-        - console/python3_new_version_check
-        - console/python3_setuptools
-        - console/python3_beautifulsoup4
-        - console/python3_websocket_client
       15-SP5:
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python_virtualenv
+        - console/python3_beautifulsoup4
+        - console/python3_websocket_client
         - console/python_flake8
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
         - console/rabbitmq
-        - console/python3_new_version_check
-        - console/python3_setuptools
-        - console/python3_beautifulsoup4
-        - console/python3_websocket_client
       15-SP4:
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python_virtualenv
+        - console/python3_websocket_client
+        - console/python3_beautifulsoup4
         - console/python_flake8
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
         - console/rabbitmq
-        - console/python3_new_version_check
-        - console/python3_setuptools
-        - console/python3_beautifulsoup4
-        - console/python3_websocket_client
       15-SP3:
         - console/python_flake8
         - console/django

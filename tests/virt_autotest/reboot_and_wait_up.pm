@@ -12,7 +12,6 @@ use warnings;
 use testapi;
 use ipmi_backend_utils;
 use base "proxymode";
-use power_action_utils 'power_action';
 use Utils::Architectures;
 use virt_autotest::utils;
 
@@ -23,7 +22,7 @@ sub reboot_and_wait_up {
     if (is_s390x) {
         record_info('INFO', 'Reboot LPAR');
         #Reboot s390x lpar
-        power_action('reboot', observe => 1, keepconsole => 1);
+        enter_cmd "reboot";
         my $svirt = select_console('svirt', await_console => 0);
         return;
     }

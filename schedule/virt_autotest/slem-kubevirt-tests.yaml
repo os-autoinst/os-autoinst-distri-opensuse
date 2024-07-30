@@ -15,7 +15,6 @@ conditional_schedule:
                 - installation/usb_install
                 - installation/bootloader_uefi
                 - microos/selfinstall
-                - transactional/host_config
                 - console/suseconnect_scc
     barrier_setup:
         SERVICE:
