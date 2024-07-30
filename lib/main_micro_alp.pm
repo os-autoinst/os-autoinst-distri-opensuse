@@ -47,11 +47,8 @@ sub load_config_tests {
 
 sub load_boot_from_disk_tests {
     # add additional image handling module for svirt workers
-    if (is_s390x()) {
+    if (is_s390 || is_vmware) {
         loadtest 'installation/bootloader_start';
-    } elsif (is_vmware()) {
-        loadtest 'installation/bootloader_svirt';
-        loadtest 'installation/bootloader_uefi';
     }
 
     # read FIRST_BOOT_CONFIG in order to know how the image will be configured
