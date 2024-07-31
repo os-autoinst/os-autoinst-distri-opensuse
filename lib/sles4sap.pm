@@ -1404,7 +1404,7 @@ sub sapcontrol {
         croak "Mandatory argument 'sidadm_password' not specified" unless $sidadm_password;
         $cmd = join(' ', $cmd, '-host', $remote_hostname, '-user', $sidadm, $sidadm_password);
     }
-    $cmd = join(' ', $cmd,, '-function', $webmethod);
+    $cmd = join(' ', $cmd, '-function', $webmethod);
     $cmd = join(' ', $cmd, $additional_args) if $additional_args;
 
     my $result = $return_output ? script_output($cmd, proceed_on_failure => 1) : script_run($cmd);

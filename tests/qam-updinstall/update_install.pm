@@ -330,7 +330,7 @@ sub run {
                     zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
                 }
                 else {
-                    sle12_zypp_resolve("zypper -v in -l -t patch $patch",, get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
+                    sle12_zypp_resolve("zypper -v in -l -t patch $patch", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
                 }
 
                 # Store version of installed binaries after update.
