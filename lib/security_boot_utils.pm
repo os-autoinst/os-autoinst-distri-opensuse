@@ -24,7 +24,10 @@ our @EXPORT = qw(
 );
 
 sub boot_has_no_video {
-    return (is_aarch64 && check_var('FULL_LVM_ENCRYPT', '1') && (check_var('FLAVOR', 'Online-QR') || check_var('FLAVOR', 'Full-QR')));
+    my $is_encrypted = check_var('FULL_LVM_ENCRYPT', '1');
+    my $is_qr = check_var('FLAVOR', 'Online-QR') || check_var('FLAVOR', 'Full-QR');
+    my $is_arch = is_aarch64() || (is_s390x() && check_var('BACKEND'), 'svirt');
+    return ($is_encrypted && $is_qr && $is_arch);
 }
 
 sub boot_encrypt_no_video {
