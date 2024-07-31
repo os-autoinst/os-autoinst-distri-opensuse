@@ -411,6 +411,33 @@ sub start_evolution {
     wait_still_screen(2);
 }
 
+sub start_evolution_from_backupfile {
+    my ($self, $mail_box) = @_;
+
+    # Clean up the past configuration and start Evolution
+    x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1 evolution-welcome-not_focused)]);
+
+    # Follow the wizard to setup mail account
+    if (match_has_tag 'evolution-default-client-ask') {
+        assert_and_click "evolution-default-client-agree";
+        assert_screen "test-evolution-1";
+    }
+    elsif (match_has_tag "evolution-welcome-not_focused") {
+        assert_and_click "evolution-welcome-not_focused";
+    }
+    send_key "super-up";
+    assert_and_click("evolution_welcome-max-window-click");
+
+    # restore from backup file and click next
+    assert_and_click("evolution_wizard-restore-backup-click");
+    assert_and_click("evolution_wizard-restore-backup-file");
+    assert_screen 'evolution_choose_backupfile_torestore';
+    assert_and_click 'evolution-home-directory';
+    assert_and_click 'evolution-select-backupfile', dclick => 1;
+    assert_and_click 'evolution_restore_backup_next';
+}
+
 sub evolution_add_self_signed_ca {
     my ($self, $account) = @_;
     # add self-signed CA with internal account
