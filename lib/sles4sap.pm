@@ -372,7 +372,8 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run 'saptune service takeover';
-        my $ret = script_run("saptune solution verify $profile", die_on_timeout => 0);
+        enter_cmd "saptune solution verify $profile; echo DONE-$\? > /dev/$serialdev";
+        my $ret = wait_serial qr/DONE-\d/, timeout => 30;
         if (!defined $ret) {
             # Command timed out. 'saptune service takeover' could have caused the SUT to
             # move out of root-console, so select root-console and try again

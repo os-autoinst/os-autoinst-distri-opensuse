@@ -19,7 +19,7 @@ sub run {
 
     # Stop packagekitd
     quit_packagekit;
-    script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
+    script_run("source /etc/bash.bashrc.local");
 }
 
 1;

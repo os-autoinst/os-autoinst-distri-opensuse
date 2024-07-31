@@ -1306,8 +1306,8 @@ sub wait_for_background_process {
     my ($self, $pid, %args) = @_;
     $args{proceed_on_failure} //= 0;
 
-    my $ret = script_run("wait $pid", die_on_timeout => 0, %args);
-    unless (defined($ret)) {
+    my $ret = script_run("waitpid --timeout 25 $pid", %args);
+    if ($ret == 3) {    # timeout
         if (is_serial_terminal()) {
             type_string(qq(\cc));
         }

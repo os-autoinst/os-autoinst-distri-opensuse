@@ -450,7 +450,7 @@ sub run {
 
     # merge logs from all patches into one which is testreport template expecting
     foreach (qw(prepare zypper new)) {
-        next if script_run("ls /tmp|grep ${_}_", die_on_timeout => 0);
+        next if script_run("timeout 20 ls /tmp|grep ${_}_");
         assert_script_run("cat /tmp/$_* > /tmp/$_.log");
         upload_logs("/tmp/$_.log");
     }
