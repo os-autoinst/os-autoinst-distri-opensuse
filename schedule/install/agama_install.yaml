@@ -1,0 +1,11 @@
+name:           leap16_agama_install
+description:    >
+    This is prepare install opensuse-16.0 agama installer
+schedule:
+  - installation/bootloader
+  - installation/agama
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - installation/opensuse_welcome
+  - console/system_prepare
