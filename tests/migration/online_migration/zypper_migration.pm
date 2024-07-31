@@ -18,6 +18,7 @@ use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_m
 use Utils::Backends 'is_pvm';
 use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
+use qam 'add_repo_if_not_present';
 
 sub run {
     my $self = shift;
@@ -41,6 +42,24 @@ sub run {
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
     if (is_sle_micro) {
+        # We set DEBUG_TARGET_OS_TEST_ISSUES and DEBUG_TARGET_OS_TEST_REPOS
+        # to add the target product's patch before migration.
+        # This is for debug using, for more info please check out poo#161156.
+        if (my @repos = split(/,/, get_var('DEBUG_TARGET_OS_TEST_REPOS', ''))) {
+            my $counter = 0;
+
+            for my $var (@repos) {
+                add_repo_if_not_present("$var", "DEBUG_$counter");
+                $counter++;
+            }
+
+            zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
+            record_info('Repos', script_output('zypper lr -u'));
+
+            # patch the system with TARGET_OS_TEST_REPOS
+            my $ret = trup_call('up', timeout => 300, proceed_on_failure => 1);
+            process_reboot(trigger => 1);
+        }
         # We need to stop and disable apparmor service before migration due to bsc#1197368
         if (script_run('systemctl is-active apparmor.service') == 0) {
             systemctl('disable --now apparmor.service');
