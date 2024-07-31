@@ -7,6 +7,7 @@
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -62,12 +63,18 @@ sub run_test {
             detect_login_screen() if (!check_screen('virt-manager_viewer_disconnected', 5));
             close_guest();
         }
-        else {
-            record_soft_failure 'bsc#1221917 - [MU]Core Dump Occurs on Bare Metal SLES15 SP5/SP6 with Xen Following Disk Detachment in sles15sp5PV Guest Environment.' if ($guest =~ m/PV/i);
+    }
+    wait_screen_change { send_key 'ctrl-q'; };
+
+    # Workaround to return guests to initial sate, related to bsc#1221917
+    shutdown_guests();
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if ($guest =~ m/PV/i) {
+            record_soft_failure 'bsc#1221917 - [MU]Core Dump Occurs on Bare Metal SLES15 SP4/SP5/SP6 with Xen Following Disk Detachment in PV Guest Environment.';
+            assert_script_run "virsh detach-disk $guest xvdb --config";
         }
     }
-
-    wait_screen_change { send_key 'ctrl-q'; };
+    start_guests();
 }
 
 1;
