@@ -9,7 +9,7 @@
 use Mojo::Base qw(windowsbasetest);
 use testapi;
 use utils qw(zypper_call enter_cmd_slow);
-use version_utils qw(is_opensuse);
+use version_utils qw(is_opensuse is_tumbleweed);
 use wsl qw(is_fake_scc_url_needed);
 
 sub run {
@@ -42,6 +42,8 @@ sub run {
             enter_cmd("exit");
         }
     );
+    # Hopefully temporary workaround for https://github.com/microsoft/WSL/issues/11857
+    $self->run_in_powershell(cmd => q(echo "[wsl2]`nkernelCommandLine = cgroup_no_v1=all" >> ~/.wslconfig)) if is_tumbleweed;
     $self->run_in_powershell(cmd => q(wsl --shutdown));
     $self->run_in_powershell(
         cmd => '$port.WriteLine($(wsl /bin/bash -c "systemctl is-system-running"))',
