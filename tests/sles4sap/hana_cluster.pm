@@ -85,9 +85,9 @@ sub run {
         my @crm_cmds;
         if (check_var('ANGI', 'true')) {
             @crm_cmds = ("crm configure load update $cluster_conf",
-                "crm resource refresh mst_SAPHanaController_${sid}_HDB${instance_id}",
+                "crm resource refresh mst_SAPHanaCtl_${sid}_HDB${instance_id}",
                 "cs_wait_for_idle -s 5",
-                "crm resource maintenance mst_SAPHanaController_${sid}_HDB${instance_id} off");
+                "crm resource maintenance mst_SAPHanaCtl_${sid}_HDB${instance_id} off");
         }
         else {
             @crm_cmds = ("crm configure load update $cluster_conf",
