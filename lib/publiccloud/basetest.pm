@@ -120,6 +120,7 @@ sub _cleanup {
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable and result == 'fail'
     if ($self->{result} && $self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE')) {
         upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+        upload_logs('/var/log/zypper.log', failok => 1, log_name => 'zypper.log');
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
@@ -149,6 +150,7 @@ sub _cleanup {
     }
 
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+    upload_logs('/var/log/zypper.log', failok => 1, log_name => 'zypper.log');
 }
 
 sub post_fail_hook {
