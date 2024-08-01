@@ -1,4 +1,4 @@
-# Copyright SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Trento restore stopped HANA DB
@@ -37,9 +37,16 @@ sub run {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     # vmhana01 hard-coded in place of the generic Ansible filter from $primary_host.
     # The Ansible generic filter is only valid for Ansible, here it is crm.
-    qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01",
-        provider => $prov,
-        filter => $primary_host);
+    if (check_var('ANGI', 'true')) {
+        qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHanaCtl_HDB_HDB00 vmhana01",
+            provider => $prov,
+            filter => $primary_host);
+    }
+    else {
+        qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01",
+            provider => $prov,
+            filter => $primary_host);
+    }
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+DEMOTED.+SOK/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
