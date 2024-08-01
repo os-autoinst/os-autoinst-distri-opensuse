@@ -16,7 +16,7 @@ conditional_schedule:
                 - x11/oomath
                 - x11/oocalc
                 - x11/gnome_music
-                - x11/evolution/evolution_smoke
+                - x11/evolution
                 - x11/inkscape
                 - x11/gimp
                 - x11/hexchat

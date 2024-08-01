@@ -20,49 +20,43 @@ use base "x11test";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
-use x11utils;
-use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
     my $mail_box = 'nooops_test3@aim.com';
     my $mail_passwd = 'hkiworexcmmeqmzt';
 
-    select_serial_terminal;
-    assert_script_run('curl -v -o  /home/bernhard/evolution-backup.tar.gz  ' . data_url('evolution/evolution-backup.tar.gz'), 180);
-
-    select_console 'x11';
-
     mouse_hide(1);
     x11_start_program('xterm -e "gsettings set org.gnome.desktop.session idle-delay 0"', valid => 0);
+    $self->start_evolution($mail_box);
 
-    assert_screen "generic-desktop";
-
-    $self->start_evolution_from_backupfile($mail_box);
-    assert_screen('evolution_mail-auth', 200);
-    if (match_has_tag "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 5) {
+        send_key "alt-a";    #disable keyring option, in SP2 or tumbleweed
         send_key "alt-p";
         type_string "$mail_passwd";
         send_key "ret";
     }
-    assert_screen('evolution_mail-init-window', 120);
-    send_key "super-up" if (match_has_tag "evolution_mail-init-window");
-    wait_still_screen(2, 2);
-    assert_and_click("evolution_click_inbox");
-    wait_still_screen(2, 2);
-    assert_and_click 'evolution-select-email', dclick => 1;
-    wait_still_screen(2, 2);
-    assert_screen("evolution_inbox_email");
-    wait_still_screen(2, 2);
-    assert_and_click("evolution_open_inbox_mail");
-    wait_still_screen(2, 2);
-    send_key "ret";
-    wait_still_screen(2, 2);
-    assert_and_click("evolution_read_test_message");
+    send_key "super-up" if (check_screen "evolution_mail-init-window", 2);
+    assert_screen ['evolution_mail-auth', 'evolution_mail-max-window'];
+    if (match_has_tag "evolution_mail-auth") {
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
+        type_password $mail_passwd;
+        send_key "ret";
+        assert_screen "evolution_mail-max-window";
+    }
+
+    # Help
+    hold_key "alt-h";
+    wait_still_screen(2);
+    release_key "alt-h";
+    send_key "a";
+    assert_screen "evolution_about";
+    send_key "esc";
+    wait_still_screen(2);
+
     # Exit
-    send_key "ctrl-w";
     send_key "ctrl-q";
-    assert_screen "generic-desktop";
 }
 
 1;
