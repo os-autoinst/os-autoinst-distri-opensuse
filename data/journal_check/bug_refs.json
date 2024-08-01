@@ -438,7 +438,7 @@
     "bsc#1200490": {
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
-            "sle-micro": ["5.2", "5.3", "5.4" , "5.5"],
+            "sle-micro": ["5.2", "5.3", "5.4" , "5.5", "6.0", "6.1"],
             "leap-micro": ["5.3"]
         },
         "type": "ignore"
@@ -677,5 +677,12 @@
             "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "bsc#1228559": {
+        "description": "kernel: I/O error, dev fd0|kernel: piix4_smbus",
+        "products": {
+            "sle-micro": ["6.0", "6.1"]
+        },
+        "type": "bug"
     }
 }

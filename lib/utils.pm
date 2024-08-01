@@ -842,7 +842,7 @@ sub ssh_fully_patch_system {
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     if ($ret != 0 && $ret != 102 && $ret != 103) {
         if ($resolver_option) {
-            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
             script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
             upload_logs('/tmp/solver.tar.gz', failok => 1);
         }
@@ -853,7 +853,7 @@ sub ssh_fully_patch_system {
     $ret = script_run($cmd, 6000);
     record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     if ($resolver_option) {
-        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
         script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
         upload_logs('/tmp/solver.tar.gz', failok => 1);
     }
@@ -2936,6 +2936,8 @@ sub ping_size_check {
     my $target = shift;
     my $size = shift;
     # Check connectivity with different packet size to target
+    assert_script_run('command -v ping >/dev/null', fail_message => 'ping application not found. Needed for ping_size_check');
+    assert_script_run("ping -M do -s 0 -c 1 $target", fail_message => "ping failed trying to reach target '$target'. Check network configuration on worker host'");
     # Fragmentation is disabled, maximum size is 1352 to fit in 1380 MTU in GRE tunel
     my $max_mtu = get_var('MM_MTU', 1380);
     my @sizes = $size ? $size : (100, 1000, 1252, 1350, 1352, 1400, 1430);
@@ -3045,7 +3047,9 @@ sub empty_usb_disks {
     my %args = @_;
     $args{usb_disks} //= '';
 
-    my @usb_disks = $args{usb_disks} ? split(' ', $args{usb_disks}) : split('\n', script_output("ls /dev/disk/by-id/ -l | grep -i usb | grep -i -v -E \"generic|part|Virtual\" | sed \'s#^.*\\\/##\'"));
+    my $usb_disk_filter = get_var('USB_DISK_FILTER') ? get_var('USB_DISK_FILTER') : "grep -i usb | grep -i -v -E 'generic|part|Virtual'";
+    my $filter_cmd = "ls -l /dev/disk/by-id/ | " . $usb_disk_filter . " | sed 's#^.*\\/##'";
+    my @usb_disks = $args{usb_disks} ? split(' ', $args{usb_disks}) : split('\n', script_output($filter_cmd));
     record_info("USB disks to be emptied are @usb_disks", "All plugged-in usb disks are " . script_output("ls /dev/disk/by-id/ -l; fdisk -l"));
     foreach (@usb_disks) {
         assert_script_run("echo y | mkfs.ext4 /dev/$_", timeout => 120);
