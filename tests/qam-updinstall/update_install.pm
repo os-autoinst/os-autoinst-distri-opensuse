@@ -83,6 +83,7 @@ my @conflicting_packages = (
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
     'kernel-default-base', 'kernel-default-extra',
     'patterns-base-fips-certified',
+    'gnu-compilers-hpc-macros-devel', 'gnu12-compilers-hpc-macros-devel',
     'openssl-ibmca-engine', 'openssl-ibmca-provider', 'openssl-ibmca',
     'openmpi3-config', 'openmpi2-config'
 );
