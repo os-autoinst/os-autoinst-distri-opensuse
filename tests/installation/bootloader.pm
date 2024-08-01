@@ -45,6 +45,9 @@ sub run {
     my $boot_cmd = 'ret';
     # Tumbleweed livecd has been switched to grub with kiwi 9.17.41 except 32bit
     # when LIVECD_LOADER has set grub2 then change the boot command for grub2
+    if (get_var('AGAMA')) {
+        return;
+    }
     if (is_livecd && check_var('LIVECD_LOADER', 'grub2')) {
         $boot_cmd = 'ctrl-x';
         uefi_bootmenu_params;
