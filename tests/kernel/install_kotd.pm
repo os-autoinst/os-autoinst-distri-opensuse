@@ -38,7 +38,9 @@ sub run {
     # Install latest kernel
     zypper_call("in -l kernel-default");
     # Check for multiple kernel installation
-    assert_script_run '[ "$(zypper se -s kernel-default | grep -c i+)" = "1" ]', fail_message => 'More than one kernel was installed';
+    my $packlist = zypper_search('-sx kernel-default');
+    die 'More than one kernel was installed'
+      unless 1 == scalar grep { $$_{status} =~ m/^i/ } @$packlist;
     # Reboot system after kernel installation
     power_action('reboot');
 }
