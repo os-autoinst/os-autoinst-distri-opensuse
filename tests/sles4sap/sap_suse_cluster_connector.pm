@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019, 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test sap_suse_cluster_connector command
@@ -29,7 +29,7 @@ sub exec_conn_cmd {
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
     if ($args{log_file}) {
         my $output = script_output("cat $args{log_file}", proceed_on_failure => 1);
-        record_info("Command output", "$output");
+        record_info("Command output", "${output}");
         return $output;
     }
 }
@@ -55,43 +55,33 @@ sub run {
 
     # Check HA config and list resources
     my @commands = get_var('NW') ? qw(hcc lsr) : qw(hcc);
-    exec_conn_cmd(binary => $binary, cmd => "$_ --sid $instance_sid --ino $instance_id", log_file => $log_file) foreach (@commands);
+    exec_conn_cmd(binary => $binary, cmd => "$_ --sid ${instance_sid} --ino ${instance_id}", log_file => $log_file) foreach (@commands);
 
     # Test Maintenance Mode
     foreach my $mod (1, 0) {
-        exec_conn_cmd(binary => $binary, cmd => "smm --sid $instance_sid --ino $instance_id --mod $mod", log_file => $log_file);
+        exec_conn_cmd(binary => $binary, cmd => "smm --sid ${instance_sid} --ino ${instance_id} --mod ${mod}", log_file => $log_file);
         # Wait to let enough time for the HA stack to change Maintenance Mode
         sleep 10;
     }
 
     # List nodes
-    my @resources;
-    if (check_var('ANGI', 'true')) {
-        @resources = get_var('NW') ? ('ip', 'fs', 'sap') : ('ip', 'SAPHanaTpg', 'SAPHanaCtl');
-    }
-    else {
-        @resources = get_var('NW') ? ('ip', 'fs', 'sap') : ('ip', 'SAPHanaTopology', 'SAPHana');
-    }
+    my $hana_resources = get_var('USE_SAP_HANA_SR_ANGI') ? ('ip', 'SAPHanaTpg', 'SAPHanaCtl') : ('ip', 'SAPHanaTopology', 'SAPHana');
+    my $resources = get_var('NW') ? ('ip', 'fs', 'sap') : $hana_resources;
     foreach my $rsc_type (@resources) {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_${instance_type}${instance_id}";
         wait_for_idle_cluster;
-        exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
+        exec_conn_cmd(binary => $binary, cmd => "lsn --res ${rsc}", log_file => $log_file);
     }
 
     # Test Stop/Start of SAP resource
-    my $rsc;
-    if (check_var('ANGI', 'true')) {
-        $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHanaCtl_${instance_sid}_${instance_type}${instance_id}";
-    }
-    else {
-        $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
-    }
+    my $hana_resource_name = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
+    my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : $hana_resource_name;
     wait_for_idle_cluster;
-    exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
+    exec_conn_cmd(binary => $binary, cmd => "$_ --res ${rsc} --act stop", timeout => 120) foreach qw(fra cpa);
     wait_until_resources_stopped(timeout => 1200);
     save_state;    # do a check of the cluster with a screenshot
     wait_for_idle_cluster;
-    exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act start", timeout => 120) foreach qw(fra cpa);
+    exec_conn_cmd(binary => $binary, cmd => "$_ --res ${rsc} --act start", timeout => 120) foreach qw(fra cpa);
 
     # Wait for the resources to be restarted
     wait_until_resources_started(timeout => 1200);

@@ -951,12 +951,7 @@ sub do_hana_takeover {
     }
     sleep bmwqemu::scale_timeout(10);
     if ($args{cluster}) {
-        if (check_var('ANGI', 'true')) {
-            assert_script_run "crm resource cleanup rsc_SAPHanaCtl_${sid}_HDB$instance_id", $args{timeout};
-        }
-        else {
-            assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", $args{timeout};
-        }
+        if (get_var('USE_SAP_HANA_SR_ANGI')) ? assert_script_run("crm resource cleanup rsc_SAPHanaCtl_${sid}_HDB${instance_id}", $args{timeout}) : assert_script_run("crm resource cleanup rsc_SAPHana_${sid}_HDB${instance_id}", $args{timeout});
         assert_script_run 'crm_resource --cleanup', $args{timeout};
     }
 }
