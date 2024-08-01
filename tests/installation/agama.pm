@@ -46,10 +46,10 @@ sub run {
     send_key 'tab';
     send_key 'ret';
 
-	# It seems that in lower resolutions agama hides list of tabs
-	# so we have to click on the top button to display them
+    # It seems that in lower resolutions agama hides list of tabs
+    # so we have to click on the top button to display them
     # Good thing is that tabs get hiden automatically again
-	# after you click one of the tabs
+    # after you click one of the tabs
     assert_and_click('agama-show-tabs');
 
     # default is just a minimal server style install
@@ -65,16 +65,16 @@ sub run {
 
     # TODO fetch agama logs before install (in case of dependency issues, or if further installation crashes)
 
-	# Show tabs again so we can click on overview
-	assert_and_click('agama-show-tabs');
+    # Show tabs again so we can click on overview
+    assert_and_click('agama-show-tabs');
     assert_and_click('agama-overview-tab');
 
-	# The ready to install button is at the bottom of the page on lowres screen
+    # The ready to install button is at the bottom of the page on lowres screen
     # Normally it's on the side
     wait_still_screen 5;
-	# takes you to bottom of the page, but you need to click on the page first
-    assert_and_click('agama-install-icon'); # WORKAROUND: not an install-button
-	send_key "ctrl-down";
+    # takes you to bottom of the page, but you need to click on the page first
+    assert_and_click('agama-install-icon');    # WORKAROUND: not an install-button
+    send_key "ctrl-down";
 
     assert_and_click('agama-install-button');
     # confirmation dialog if we keep default partitioning layout
@@ -83,19 +83,20 @@ sub run {
     # online-only installation  it might take long based on connectivity
     # We're using wrong repo for testing
     # BUG tracker: https://github.com/openSUSE/agama/issues/1474
-	# copied from await_install.pm
+    # copied from await_install.pm
     my $timeout = 2400;
     while (1) {
         die "timeout ($timeout) hit on during await_install" if $timeout <= 0;
         my $ret = check_screen 'agama-install-in-progress', 30;
-		sleep 30;
+        sleep 30;
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
         if (!$ret) {
-			# Handle any error dialogs that could happen
-			last;
-		}
-	}
+            # Handle any error dialogs that could happen
+            last;
+        }
+    }
+
 
     # installation done
     # TODO fetch agama logs after install see https://github.com/openSUSE/agama/issues/1447
