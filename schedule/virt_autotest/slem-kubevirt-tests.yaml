@@ -16,6 +16,7 @@ conditional_schedule:
                 - installation/bootloader_uefi
                 - microos/selfinstall
                 - console/suseconnect_scc
+                - '{{install_updates}}'
     barrier_setup:
         SERVICE:
             rke2-server:
@@ -26,3 +27,7 @@ conditional_schedule:
                 - virt_autotest/kubevirt_tests_server
             rke2-agent:
                 - virt_autotest/kubevirt_tests_agent
+    install_updates:
+        FLAVOR:
+            Default-qcow-Updates:
+                - transactional/install_updates
