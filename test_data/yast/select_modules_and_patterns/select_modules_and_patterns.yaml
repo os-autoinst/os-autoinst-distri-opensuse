@@ -1,4 +1,5 @@
 ---
+default_target: graphical.target
 software:
   packages:
     bash:
