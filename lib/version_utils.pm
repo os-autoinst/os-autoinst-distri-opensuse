@@ -318,7 +318,7 @@ Check if SLEM is in flavor of self installable iso
 =cut
 
 sub is_selfinstall {
-    return get_var('FLAVOR') =~ /selfinstall/i;
+    return get_var('FLAVOR') =~ /selfinstall/i || check_var('SELFINSTALL', '1');
 }
 
 =head2 is_tumbleweed
