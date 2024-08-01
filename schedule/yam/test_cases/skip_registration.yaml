@@ -1,6 +1,7 @@
 ---
-name: skip_registration
-description: >
+name:           skip_registration
+description:    >
+  Full Medium installation with skipped registration.
   Skipping registration for SLE 15, as requires network connection.
   This is default behavior for SLE 12.
 vars:
@@ -13,13 +14,21 @@ schedule:
   add_on_product:
     - installation/add_on_product_installation/accept_add_on_installation
   system_role:
-    - installation/release_notes_from_url
     - installation/system_role/accept_selected_role_SLES_with_GNOME
+    - installation/release_notes_from_url
   system_preparation:
     - console/hostname
     - console/system_prepare
     - console/force_scheduled_tasks
-    - shutdown/grub_set_bootargs
   system_validation:
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - update/zypper_up
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/consoletest_finish
+    - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
