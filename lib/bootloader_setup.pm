@@ -328,6 +328,9 @@ sub boot_into_snapshot {
 sub select_bootmenu_option {
     my ($timeout) = @_;
     assert_screen 'inst-bootmenu', $timeout;
+    if (get_var('AGAMA')) {
+        return 1;
+    }
     if (get_var('LIVECD')) {
         # live CDs might have a very short timeout of the initial bootmenu
         # (1-2s with recent kiwi versions) so better stop the timeout
