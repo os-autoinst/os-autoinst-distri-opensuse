@@ -842,7 +842,7 @@ sub ssh_fully_patch_system {
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     if ($ret != 0 && $ret != 102 && $ret != 103) {
         if ($resolver_option) {
-            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
             script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
             upload_logs('/tmp/solver.tar.gz', failok => 1);
         }
@@ -853,7 +853,7 @@ sub ssh_fully_patch_system {
     $ret = script_run($cmd, 6000);
     record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     if ($resolver_option) {
-        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase'");
         script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
         upload_logs('/tmp/solver.tar.gz', failok => 1);
     }
