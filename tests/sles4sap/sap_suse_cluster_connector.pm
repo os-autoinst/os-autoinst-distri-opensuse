@@ -65,8 +65,8 @@ sub run {
     }
 
     # List nodes
-    my $hana_resources = get_var('USE_SAP_HANA_SR_ANGI') ? ('ip', 'SAPHanaTpg', 'SAPHanaCtl') : ('ip', 'SAPHanaTopology', 'SAPHana');
-    my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : $hana_resources;
+    my @hana_resources = get_var('USE_SAP_HANA_SR_ANGI') ? ('ip', 'SAPHanaTpg', 'SAPHanaCtl') : ('ip', 'SAPHanaTopology', 'SAPHana');
+    my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : @hana_resources;
     foreach my $rsc_type (@resources) {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_${instance_type}${instance_id}";
         wait_for_idle_cluster;
