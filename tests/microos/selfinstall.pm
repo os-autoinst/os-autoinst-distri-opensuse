@@ -18,10 +18,12 @@ use ipmi_backend_utils qw(ipmitool);
 sub run {
     my ($self) = @_;
 
-    assert_screen 'selfinstall-screen', 180;
-    send_key 'down' unless check_screen 'selfinstall-select-drive';
-    assert_screen 'selfinstall-select-drive';
-    send_key 'ret';
+    if (get_var('NUMDISKS') > 1) {
+        assert_screen 'selfinstall-screen', 180;
+        send_key 'down' unless check_screen 'selfinstall-select-drive';
+        assert_screen 'selfinstall-select-drive';
+        send_key 'ret';
+    }
     assert_screen 'slem-selfinstall-overwrite-drive';
     send_key 'ret';
 
@@ -40,6 +42,10 @@ sub run {
         # Avoid booting into selfinstall again
         eject_cd() unless $no_cd;
         microos_login;
+    } elsif (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        wait_serial('The initial configuration takes', 180) or die "jeos-firstboot has not been reached";
+        eject_cd() unless ($no_cd || is_usb_boot);
+        return 1;
     } else {
         microos_login;
         # The installed system is definitely up now, so the CD can be ejected
@@ -52,6 +58,17 @@ sub run {
         empty_usb_disks;
         ipmitool("chassis bootdev disk options=persistent,efiboot") for (0 .. 2);
     }
+}
+
+sub post_run_hook {
+    # The system will continue with jeos-firstboot
+    # the console cannot be cleaned as we expect another dialog
+    # instead of console or login prompt
+    if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        return 1;
+    }
+
+    shift->SUPER::post_run_hook();
 }
 
 sub test_flags {

@@ -152,6 +152,9 @@ sub load_autoyast_installation_tests {
 sub load_selfinstall_boot_tests {
     loadtest 'installation/bootloader_uefi';
     loadtest 'microos/selfinstall';
+    if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        loadtest 'jeos/firstrun';
+    }
 }
 
 sub load_remote_target_tests {
