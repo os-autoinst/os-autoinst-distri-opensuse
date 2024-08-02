@@ -20,7 +20,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_sle_micro);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -29,6 +29,7 @@ use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends 'get_serial_console';
 use kdump_utils;
+use transactional;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -257,19 +258,24 @@ sub setup_network {
     # boo#1017616: missing link to ping6 in iputils >= s20150815
     assert_script_run('which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6');
 
-    # dhcpd
-    assert_script_run('touch /var/lib/dhcp/db/dhcpd.leases');
-    script_run('touch /var/lib/dhcp6/db/dhcpd6.leases');
+    unless (is_transactional) {
+        # dhcpd
+        assert_script_run('touch /var/lib/dhcp/db/dhcpd.leases');
+        script_run('touch /var/lib/dhcp6/db/dhcpd6.leases');
 
-    # echo/echoes, getaddrinfo_01
-    assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
+        # echo/echoes, getaddrinfo_01
+        assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
+    }
 
-    my @services = qw(auditd dnsmasq rpcbind vsftpd);
+    my @services = qw(auditd dnsmasq rpcbind);
+
+    # current sle-micro's default repo has no vsftpd package
+    push @services, 'vsftpd' unless is_transactional;
     # nfsd module is not included in kernel-default-base package
     push @services, 'nfs-server' unless get_var('KERNEL_BASE');
 
     foreach my $service (@services) {
-        if (!is_jeos && is_sle('12+') || is_opensuse) {
+        if (!is_jeos && is_sle('12+') || is_opensuse || is_sle_micro) {
             systemctl("reenable $service");
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
         }
@@ -372,7 +378,12 @@ sub run {
         add_grub_xen_replace_cmdline_settings("console=${serial_console},115200n", update_grub => 1);
     }
 
-    setup_network unless is_transactional;
+    # Make sure latest installed packages ready before enable service in setup_network
+    if (is_transactional) {
+        reboot_on_changes;
+    }
+
+    setup_network;
 
     # we don't run LVM tests in 32bit, thus not generating the runtest file
     # for 32 bit packages
