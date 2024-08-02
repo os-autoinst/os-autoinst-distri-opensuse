@@ -37,7 +37,8 @@ sub run {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     # vmhana01 hard-coded in place of the generic Ansible filter from $primary_host.
     # The Ansible generic filter is only valid for Ansible, here it is crm.
-    if (get_var('USE_SAP_HANA_SR_ANGI')) ? qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHanaCtl_HDB_HDB00 vmhana01", provider => $prov, filter => $primary_host) : qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01", provider => $prov, filter => $primary_host);
+    my $rsc_name = get_var('USE_SAP_HANA_SR_ANGI') ? "SAPHanaCtl" : "SAPHana";
+    qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_${rsc_name}_HDB_HDB00 vmhana01", provider => $prov, filter => $primary_host);
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+DEMOTED.+SOK/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
