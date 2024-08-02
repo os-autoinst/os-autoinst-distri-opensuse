@@ -17,6 +17,64 @@ use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;
 
+sub agama_set_root_password_dialog
+{
+    wait_still_screen 5;
+
+    type_password();
+    send_key 'tab';    # show password btn
+    send_key 'tab';
+    wait_still_screen 5;
+    type_password();
+    send_key 'tab';
+    send_key 'tab';    # show password btn
+    send_key 'ret';
+}
+
+sub agama_define_user_screen
+{
+    wait_still_screen 5;
+
+    # We need to click in the middle of the screen or similar
+    # to make screen active so we can start typing.
+    # This is not the case in e.g. root password dialog which gets auto active
+    mouse_set(600, 600);
+    mouse_click;
+
+
+    # Fullname
+    send_key 'tab';
+    type_string 'Bernhard M. Wiedemann';
+
+    # Username
+    send_key 'tab';
+    type_string 'bernhard';
+    wait_still_screen 5;
+
+    # Password - we have to send two tabs as there is a button to show typed password
+    send_key 'tab';
+    type_password();
+    wait_still_screen 5;
+    send_key 'tab';    # show password btn
+    send_key 'tab';
+
+    wait_still_screen 5;
+    type_password();
+    wait_still_screen 5;
+    send_key 'tab';    # show password btn
+    send_key 'tab';
+
+    # Autologin
+    if (!get_var("NOAUTOLOGIN")) {
+        send_key 'spc';    # checkbox
+        wait_still_screen 5;
+    }
+
+    send_key 'tab';    # Cancel btn
+    send_key 'tab';    # Accept btn
+    send_key 'ret';
+}
+
 sub run {
     my ($self) = @_;
 
@@ -33,23 +91,22 @@ sub run {
     # can take few minutes to get here
     assert_screen('agama-overview-screen');
 
-    assert_and_click('agama-defining-user');
-    assert_and_click('agama-set-root-password');
-    wait_still_screen 5;
-    # type password,  tab tab, repeat password, tab tab, enter
-    type_password();
-    send_key 'tab';
-    send_key 'tab';
-    wait_still_screen 5;
-    type_password();
-    send_key 'tab';
-    send_key 'tab';
-    send_key 'ret';
-
     # It seems that in lower resolutions agama hides list of tabs
     # so we have to click on the top button to display them
     # Good thing is that tabs get hiden automatically again
     # after you click one of the tabs
+    assert_and_click('agama-show-tabs');
+
+    assert_and_click('agama-users-tab');
+    assert_and_click('agama-set-root-password');
+    agama_set_root_password_dialog;
+
+
+    # Define user and set autologin on
+    assert_and_click('agama-define-user-button');
+    agama_define_user_screen;
+
+    # Show tabs again
     assert_and_click('agama-show-tabs');
 
     # default is just a minimal server style install
@@ -72,8 +129,11 @@ sub run {
     # The ready to install button is at the bottom of the page on lowres screen
     # Normally it's on the side
     wait_still_screen 5;
-    # takes you to bottom of the page, but you need to click on the page first
-    assert_and_click('agama-install-icon');    # WORKAROUND: not an install-button
+
+    # Ctrd+down takes you to bottom of the page,
+    # however, you need to click on the page first
+    mouse_set(600, 600);
+    mouse_click;
     send_key "ctrl-down";
 
     assert_and_click('agama-install-button');
