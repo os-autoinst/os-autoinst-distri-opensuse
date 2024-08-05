@@ -203,6 +203,7 @@ sub run {
         foreach my $disk_path (@disk_paths) {
             hyperv_cmd("$ps Add-VMHardDiskDrive -VMName $name -Path $disk_path");
         }
+        record_info(get_var('WORKER_HOSTNAME'));
         hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
         ($ret, $vmguid, undef) = console('svirt')->run_cmd(qq/$ps (Get-VM -VMName $name).id.guid/, wantarray => 1);
         die "Have not find any GUID for $name" if $ret != 0;
