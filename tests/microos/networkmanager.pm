@@ -11,14 +11,17 @@ use testapi;
 use utils;
 use transactional;
 use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_qemu);
+use version_utils qw(is_vmware);
+use virt_autotest::esxi_utils;
 
-my (%network_s390x, %network_qemu, %net_config, $nic_name);
+my (%network_s390x, %network_qemu, %network_vmware, %net_config, $nic_name);
 
 sub ping_check {
     assert_script_run("ping -c 5 $net_config{'dhcp_server'}");
     assert_script_run("ping -c 5 $net_config{'dns_server'}");
     # disconnect the device, skip the test on remote worker with ssh connection
-    unless (is_s390x) {
+    unless (is_s390x || is_vmware) {
         assert_script_run("nmcli device disconnect $nic_name");
         if (script_run("ping -c 5 $net_config{'dns_server'}") == 0) {
             die('The network is still up after disconnection');
@@ -65,7 +68,25 @@ sub run {
         'mac_addr' => get_var('NICMAC'),
         'local_ip' => '10.0.2.15'
     );
-    %net_config = is_s390x ? %network_s390x : %network_qemu;
+    # the below network confiration is used on svirt except s390x
+    %network_vmware = ();
+    if (is_vmware) {
+        my $vm_name = console('svirt')->name;
+        my $vm_id = esxi_vm_get_vmid($vm_name);
+        my $vm_ip = esxi_vm_public_ip($vm_id);
+        my $vm_mac = esxi_vm_mac_address($vm_id);
+        chomp($vm_mac);
+        chomp($vm_ip);
+        %network_vmware = (
+            'dhcp_server' => '10.168.192.2',
+            'dns_server' => '10.168.0.2',
+            'mac_addr' => $vm_mac,
+            'local_ip' => $vm_ip
+        );
+    }
+    %net_config = %network_s390x if (is_s390x);
+    %net_config = %network_qemu if (is_qemu);
+    %net_config = %network_vmware if (is_vmware);
     $nic_name = script_output("grep $net_config{'mac_addr'} /sys/class/net/*/address |cut -d / -f 5");
 
     # make sure 'sysconfig' and 'sysconfig-netconfig' are not installed by default
@@ -108,16 +129,18 @@ true'
     die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
     ping_check;
     # systemd-resolved
-    assert_script_run('rm -f /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
-    assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
-    systemctl('restart NetworkManager');
-    record_info('with systemd-resolved');
-    # DNS-Manager check
-    ($RcManager, $mode) = dns_mgr();
-    die 'wrong DNS-Manager is currently used for systemd-resolved' if ($RcManager !~ /unmanaged/ || $mode !~ /systemd-resolved/);
-    ping_check;
-    # Restore the original system config
-    restore_config;
+    unless (is_vmware) {
+        assert_script_run('rm -f /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
+        assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
+        systemctl('restart NetworkManager');
+        record_info('with systemd-resolved');
+        # DNS-Manager check
+        ($RcManager, $mode) = dns_mgr();
+        die 'wrong DNS-Manager is currently used for systemd-resolved' if ($RcManager !~ /unmanaged/ || $mode !~ /systemd-resolved/);
+        ping_check;
+        # Restore the original system config
+        restore_config;
+    }
 }
 
 sub test_flags {
