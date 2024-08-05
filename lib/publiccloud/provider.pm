@@ -517,7 +517,7 @@ sub terraform_apply {
             my $vpc_security_group_ids = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
             my $availability_zone = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
             my $subnet_id = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $availability_zone . "' --query 'Subnets[0].SubnetId' --output text");
-            my $ipv6_address_count = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 1);
+            my $ipv6_address_count = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
             $cmd .= "-var 'vpc_security_group_ids=$vpc_security_group_ids' ";
             $cmd .= "-var 'availability_zone=$availability_zone' ";
             $cmd .= "-var 'subnet_id=$subnet_id' ";
