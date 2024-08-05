@@ -111,7 +111,7 @@ sub run {
         }
         if ($looptime <= 0) {
             # sr_state is not online after 90 seconds. Start system again and retry
-            assert_script_run $start_cmd;
+            assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
             sleep bmwqemu::scale_timeout(10);
             assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
         }
