@@ -684,5 +684,12 @@
             "sle-micro": ["6.0", "6.1"]
         },
         "type": "bug"
+    },
+    "boo#1228854": {
+        "description": "Failed to start Monitoring of LVM2 mirrors, snapshots etc\\. using dmeventd or progress polling\\.",
+        "products": {
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
