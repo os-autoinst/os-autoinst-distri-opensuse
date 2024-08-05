@@ -30,8 +30,7 @@ sub hanasr_angi_hadr_providers_setup {
       "${sapadm} ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("${sid}") . " *\n";
     write_sut_file("/tmp/etc_sudoers_SAPHanaSR_${sid}", "${sudo_saphanasr}");
     assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_${sid} /etc/sudoers.d/SAPHanaSR_${sid}";
-    my $start_cmd = "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StartSystem HDB'";
-    assert_script_run $start_cmd;
+    assert_script_run "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StartSystem HDB'";
 }
 
 sub run {
