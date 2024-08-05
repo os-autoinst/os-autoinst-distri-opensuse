@@ -1,0 +1,12 @@
+name: fips_crypt_web
+description:    >
+    This is for the crypt_web fips tests.
+schedule:
+    - boot/boot_to_desktop
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/links_https
+    - console/lynx_https
+    - console/apache_ssl
+    - fips/mozilla_nss/apache_nssfips

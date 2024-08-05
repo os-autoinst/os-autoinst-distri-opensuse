@@ -1,0 +1,43 @@
+name: prepare_baremetal_fips_ipmi
+description: >
+  Install the OS on baremetal and enable FIPS (env/ker).
+schedule:
+  - installation/ipxe_install
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/no_enlarge_swap
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_graphics
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/consoletest_setup
+  - '{{repo_setup}}'
+  - fips/fips_setup
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  repo_setup:
+    BETA:
+      1:
+        - security/test_repo_setup
+    FLAVOR:
+      Online-QR:
+        - security/test_repo_setup

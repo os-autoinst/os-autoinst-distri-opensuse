@@ -1,0 +1,7 @@
+name: fips_crypt_kernel
+description:    >
+    This is for the crypt_kernel fips tests.
+schedule:
+    - boot/boot_to_desktop
+    - console/cryptsetup
+    - security/dm_crypt
