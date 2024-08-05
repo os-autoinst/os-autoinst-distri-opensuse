@@ -18,7 +18,8 @@
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
       <li><a href="#az_group_delete">az_group_delete</a></li>
-      <li><a href="#az_network_vnet_create">az_network_vnet_create</a>
+      <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
+      <li><a href="#az_network_vnet_subnet_update">az_network_vnet_subnet_update</a>
         <ul>
           <li><a href="#az_network_vnet_get">az_network_vnet_get</a></li>
         </ul>
@@ -27,6 +28,7 @@
       <li><a href="#az_network_nsg_rule_create">az_network_nsg_rule_create</a></li>
       <li><a href="#az_network_publicip_create">az_network_publicip_create</a></li>
       <li><a href="#az_network_publicip_get">az_network_publicip_get</a></li>
+      <li><a href="#az_network_nat_gateway_create">az_network_nat_gateway_create</a></li>
       <li><a href="#az_network_lb_create">az_network_lb_create</a></li>
       <li><a href="#az_network_lb_probe_create">az_network_lb_probe_create</a></li>
       <li><a href="#az_network_lb_rule_create">az_network_lb_rule_create</a></li>
@@ -67,7 +69,9 @@
 
 <h2 id="az_group_create">az_group_create</h2>
 
-<pre><code>az_group_create( name =&gt; &#39;openqa-rg&#39;, region =&gt; &#39;westeurope&#39;);</code></pre>
+<pre><code>az_group_create(
+    name =&gt; &#39;openqa-rg&#39;,
+    region =&gt; &#39;westeurope&#39;);</code></pre>
 
 <p>Create an Azure resource group in a specific region</p>
 
@@ -77,7 +81,7 @@
 <dd>
 
 </dd>
-<dt id="region---Azure-region"><b>region</b> - Azure region</dt>
+<dt id="region---Azure-region-where-to-create-the-resource-group"><b>region</b> - Azure region where to create the resource group</dt>
 <dd>
 
 </dd>
@@ -125,7 +129,7 @@
 <dd>
 
 </dd>
-<dt id="region---Azure-region1"><b>region</b> - Azure region</dt>
+<dt id="region---Azure-region-where-to-create-the-VNET"><b>region</b> - Azure region where to create the VNET</dt>
 <dd>
 
 </dd>
@@ -142,6 +146,36 @@
 
 </dd>
 <dt id="subnet_prefixes---subnet-ip-address-space.-Default-192.168.0.0-24"><b>subnet_prefixes</b> - subnet ip address space. Default 192.168.0.0/24</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_vnet_subnet_update">az_network_vnet_subnet_update</h2>
+
+<pre><code>az_network_vnet_subnet_update(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    vnet =&gt; &#39;openqa-vnet&#39;,
+    snet =&gt; &#39;openqa-subnet&#39;,
+    nat_gateway =&gt; &#39;openqa-nat&#39;)</code></pre>
+
+<p>Update a Subnet</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-network1"><b>resource_group</b> - existing resource group where to create the network</dt>
+<dd>
+
+</dd>
+<dt id="vnet---name-of-the-virtual-network1"><b>vnet</b> - name of the virtual network</dt>
+<dd>
+
+</dd>
+<dt id="snet---name-of-the-subnet1"><b>snet</b> - name of the subnet</dt>
+<dd>
+
+</dd>
+<dt id="nat_gateway---optional-argument-if-provided-the-update-is-about-associating-a-Subnet-th-a-NAT-gateway"><b>nat_gateway</b> - optional argument, if provided the update is about associating a Subnet th a NAT gateway</dt>
 <dd>
 
 </dd>
@@ -263,6 +297,36 @@
 
 </dd>
 <dt id="name---existing-public-IP-resource-name"><b>name</b> - existing public IP resource name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_nat_gateway_create">az_network_nat_gateway_create</h2>
+
+<pre><code>az_network_nat_gateway_create(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    region =&gt; &#39;westeurope&#39;,
+    name =&gt; &#39;openqa-nat-gateway&#39;,
+    public_ip =&gt; &#39;openqa-pubip&#39;)</code></pre>
+
+<p>Create a NAT Gateway</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-create-the-NAT-Gateway"><b>resource_group</b> - existing resource group where to create the NAT Gateway</dt>
+<dd>
+
+</dd>
+<dt id="region---Azure-region-where-to-create-the-NAT-Gateway"><b>region</b> - Azure region where to create the NAT Gateway</dt>
+<dd>
+
+</dd>
+<dt id="name---NAT-Gateway-resource-name"><b>name</b> - NAT Gateway resource name</dt>
+<dd>
+
+</dd>
+<dt id="public_ip---add-to-the-NAT-Gateway-a-public-IP"><b>public_ip</b> - add to the NAT Gateway a public IP</dt>
 <dd>
 
 </dd>
@@ -409,8 +473,8 @@
 
 <pre><code>az_vm_as_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-as&#39;,
     region =&gt; &#39;westeurope&#39;,
+    name =&gt; &#39;openqa-as&#39;,
     fault_count =&gt; 2)</code></pre>
 
 <p>Create an availability set. Later on VM can be assigned to it.</p>
@@ -439,19 +503,23 @@
 
 <pre><code>az_vm_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    name =&gt; &#39;openqa-vm&#39;,
     region =&gt; &#39;westeurope&#39;,
+    name =&gt; &#39;openqa-vm&#39;,
     image =&gt; &#39;SUSE:sles-sap-15-sp5:gen2:latest&#39;)</code></pre>
 
 <p>Create a virtual machine</p>
 
 <dl>
 
-<dt id="name---virtual-machine-name"><b>name</b> - virtual machine name</dt>
+<dt id="resource_group---existing-resource-group-where-to-create-the-VM"><b>resource_group</b> - existing resource group where to create the VM</dt>
 <dd>
 
 </dd>
-<dt id="resource_group---existing-resource-group-where-to-create-the-VM"><b>resource_group</b> - existing resource group where to create the VM</dt>
+<dt id="region---optional-region-where-to-create-the-VM"><b>region</b> - optional region where to create the VM</dt>
+<dd>
+
+</dd>
+<dt id="name---virtual-machine-name"><b>name</b> - virtual machine name</dt>
 <dd>
 
 </dd>
@@ -468,10 +536,6 @@
 
 </dd>
 <dt id="size---VM-size-default-Standard_B1s"><b>size</b> - VM size, default Standard_B1s</dt>
-<dd>
-
-</dd>
-<dt id="region---optional-region-where-to-create-the-VM"><b>region</b> - optional region where to create the VM</dt>
 <dd>
 
 </dd>
@@ -802,7 +866,7 @@
 
 <pre><code>az_storage_account_create(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    region =&gt; &#39;northeurope&#39;
+    region =&gt; &#39;westeurope&#39;
     name =&gt; &#39;openqasa&#39;)</code></pre>
 
 <p>Create a storage account</p>
@@ -813,7 +877,7 @@
 <dd>
 
 </dd>
-<dt id="region---Azure-region2"><b>region</b> - Azure region</dt>
+<dt id="region---Azure-region-where-to-create-the-storage"><b>region</b> - Azure region where to create the storage</dt>
 <dd>
 
 </dd>
