@@ -287,6 +287,12 @@ sub run {
     $svirt->add_interface(\%ifacecfg);
 
     $svirt->define_and_start;
+    if ($vmm_family eq 'xen') {
+        record_info('SUT hostname', get_var('VIRSH_HOSTNAME'));
+        record_info('VM instance', get_var('VIRSH_INSTANCE'));
+        record_info('VNC connection', get_var('VIRSH_HOSTNAME') . ':' . get_var('VIRSH_INSTANCE') . ' -Shared');
+    }
+
 
     # Variable set only in console (here sshVirtsh console) does not propagate
     # to test environment correctly and can be destroyed by bmwqemu::load_vars(),
