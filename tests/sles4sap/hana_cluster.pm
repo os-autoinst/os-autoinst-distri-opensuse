@@ -81,7 +81,7 @@ sub run {
         # Commits configuration changes into the cluster
         my $resource = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_${sid}_HDB$instance_id" : "msl_SAPHana_${sid}_HDB$instance_id";
         my @crm_cmds = ("crm configure load update $cluster_conf",
-            "crm resource refresh $resource",            
+            "crm resource refresh $resource",
             "crm resource maintenance $resource off");
         foreach my $cmd (@crm_cmds) {
             wait_for_idle_cluster;
@@ -99,11 +99,11 @@ sub run {
         sleep bmwqemu::scale_timeout(10);
         if (get_var('USE_SAP_HANA_SR_ANGI')) {
             hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm);
-        } 
+        }
         else {
             assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         }
-        my $looptime = 90;            
+        my $looptime = 90;
         while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
             sleep bmwqemu::scale_timeout(1);
             --$looptime;
