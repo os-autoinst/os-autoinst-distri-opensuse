@@ -649,22 +649,21 @@ subtest '[az_network_peering_delete]' => sub {
     ok((any { /az network vnet peering delete/ } @calls), 'Correct composition of the main command');
 };
 
-
-subtest '[az_disk_create] Create disk by cloning' => sub {
+subtest '[az_disk_create] Create disk by cloning with source' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
 
-    az_disk_create(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka', source => 'Harvepino');
+    az_disk_create(
+        resource_group => 'Pa_a_Pi',
+        name => 'Od_Kuka_do_Kuka',
+        source => 'Harvepino');
+
     note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/az disk create/, @calls), 'Test base command');
+    ok((any { /az disk create/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pa_a_Pi/, @calls), 'Check for argument "--resource-group"');
     ok(grep(/--name Od_Kuka_do_Kuka/, @calls), 'Check for argument "--name"');
     ok(grep(/--source Harvepino/, @calls), 'Check for argument "--source"');
-
-    az_disk_create(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka', size_gb => '42');
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--size-gb 42/, @calls), 'Check for argument "--size-gb"');
 };
 
 subtest '[az_disk_create] Create empty disk defining size' => sub {
@@ -672,11 +671,14 @@ subtest '[az_disk_create] Create empty disk defining size' => sub {
     my @calls;
     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
 
-    az_disk_create(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka', size_gb => '42');
+    az_disk_create(
+        resource_group => 'Pa_a_Pi',
+        name => 'Od_Kuka_do_Kuka',
+        size_gb => '42');
+
     note("\n --> " . join("\n --> ", @calls));
     ok(grep(/--size-gb 42/, @calls), 'Check for argument "--size-gb"');
 };
-
 
 subtest '[az_disk_create] Check exceptions' => sub {
     dies_ok { az_disk_create(resource_group => 'Pa_a_Pi', size_gb => '42') } "Croak with missing mandatory argument 'resource_group'";
@@ -686,20 +688,28 @@ subtest '[az_disk_create] Check exceptions' => sub {
     dies_ok { az_disk_create(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka', size_gb => '42', source => 'Slovenska_televizia') } "Croak with both 'size_gb' and 'source' defined at the same time";
 };
 
-subtest '[az_resource_delete]' => sub {
+subtest '[az_resource_delete] by name' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
 
     az_resource_delete(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka');
+
     note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/az resource delete/, @calls), 'Test base command');
+    ok((any { /az resource delete/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pa_a_Pi/, @calls), 'Check for argument "--resource-group"');
     ok(grep(/--name Od_Kuka_do_Kuka/, @calls), 'Check for argument "--name"');
+};
 
-    az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'od Kuka do Kuka');
+subtest '[az_resource_delete] by id' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'odKukadoKuka');
+
     note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--ids od Kuka do Kuka/, @calls), 'Check for argument "--ids"');
+    ok(grep(/--ids odKukadoKuka/, @calls), 'Check for argument "--ids"');
 };
 
 subtest '[az_resource_delete]' => sub {
@@ -708,6 +718,36 @@ subtest '[az_resource_delete]' => sub {
     dies_ok { az_resource_delete(resource_group => 'Pa_a_Pi') } "Dies with missing argument 'ids'";
     dies_ok { az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'od Kuka do Kuka', name => 'Od_Kuka_do_Kuka') }
     "Dies with both 'ids' and 'name' being defined";
+};
+
+subtest '[az_network_nat_gateway_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_nat_gateway_create(
+        resource_group => 'Arlecchino',
+        region => 'Pulcinella',
+        name => 'CavaliereDiRipafratta',
+        public_ip => 'Fulgenzio');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network nat gateway create/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_network_vnet_subnet_update]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_vnet_subnet_update(
+        resource_group => 'Arlecchino',
+        vnet => 'Pantalone',
+        snet => 'Colombina',
+        nat_gateway => 'Momolo');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network vnet subnet update/ } @calls), 'Correct composition of the main command');
 };
 
 done_testing;

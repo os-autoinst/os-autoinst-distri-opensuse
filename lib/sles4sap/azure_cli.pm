@@ -26,10 +26,12 @@ our @EXPORT = qw(
   az_group_delete
   az_network_vnet_create
   az_network_vnet_get
+  az_network_vnet_subnet_update
   az_network_nsg_create
   az_network_nsg_rule_create
   az_network_publicip_create
   az_network_publicip_get
+  az_network_nat_gateway_create
   az_network_lb_create
   az_network_lb_probe_create
   az_network_lb_rule_create
@@ -70,7 +72,9 @@ sub az_version {
 
 =head2 az_group_create
 
-    az_group_create( name => 'openqa-rg', region => 'westeurope');
+    az_group_create(
+        name => 'openqa-rg',
+        region => 'westeurope');
 
 Create an Azure resource group in a specific region
 
@@ -78,7 +82,7 @@ Create an Azure resource group in a specific region
 
 =item B<name> - full name of the resource group
 
-=item B<region> - Azure region
+=item B<region> - Azure region where to create the resource group
 
 =back
 =cut
@@ -151,7 +155,7 @@ Create a virtual network
 
 =item B<resource_group> - existing resource group where to create the network
 
-=item B<region> - Azure region
+=item B<region> - Azure region where to create the VNET
 
 =item B<vnet> - name of the virtual network
 
@@ -180,15 +184,58 @@ sub az_network_vnet_create {
     }
 
     my @az_cmd_list = ('az network vnet create');
-    push @az_cmd_list, '--resource-group'; push @az_cmd_list, $args{resource_group};
-    push @az_cmd_list, '--location'; push @az_cmd_list, $args{region};
-    push @az_cmd_list, '--name'; push @az_cmd_list, $args{vnet};
+    push @az_cmd_list, '--resource-group', $args{resource_group};
+    push @az_cmd_list, '--location', $args{region};
+    push @az_cmd_list, '--name', $args{vnet};
     if ($args{address_prefixes}) {
-        push @az_cmd_list, '--address-prefixes'; push @az_cmd_list, $args{address_prefixes};
+        push @az_cmd_list, '--address-prefixes', $args{address_prefixes};
     }
     if ($args{snet}) {
-        push @az_cmd_list, '--subnet-name'; push @az_cmd_list, $args{snet};
-        push @az_cmd_list, '--subnet-prefixes'; push @az_cmd_list, $args{subnet_prefixes};
+        push @az_cmd_list, '--subnet-name', $args{snet};
+        push @az_cmd_list, '--subnet-prefixes', $args{subnet_prefixes};
+    }
+    assert_script_run(join(' ', @az_cmd_list));
+}
+
+=head2 az_network_vnet_subnet_update
+
+    az_network_vnet_subnet_update(
+        resource_group => 'openqa-rg',
+        vnet => 'openqa-vnet',
+        snet => 'openqa-subnet',
+        nat_gateway => 'openqa-nat')
+
+Update a Subnet
+
+=over 4
+
+=item B<resource_group> - existing resource group where to create the network
+
+=item B<vnet> - name of the virtual network
+
+=item B<snet> - name of the subnet
+
+=item B<nat_gateway> - optional argument, if provided the update is about
+                       associating a Subnet th a NAT gateway
+
+=back
+=cut
+
+sub az_network_vnet_subnet_update {
+    my (%args) = @_;
+    foreach (qw(resource_group snet vnet)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my @az_cmd_list = ('az network vnet subnet update');
+    push @az_cmd_list, '--resource-group', $args{resource_group};
+    push @az_cmd_list, '--vnet-name', $args{vnet};
+    push @az_cmd_list, '--name', $args{snet};
+
+    # at the moment nat_gateway is optional,
+    # so without this argument the command is
+    # executed anyway, but probably it will not do so much.
+    if ($args{nat_gateway}) {
+        push @az_cmd_list, '--nat-gateway', $args{nat_gateway};
     }
     assert_script_run(join(' ', @az_cmd_list));
 }
@@ -333,7 +380,6 @@ sub az_network_publicip_create {
     assert_script_run($az_cmd);
 }
 
-
 =head2 az_network_publicip_get
 
     az_network_publicip_get(
@@ -361,6 +407,43 @@ sub az_network_publicip_get {
         "--query 'ipAddress'",
         '-o tsv');
     return script_output($az_cmd);
+}
+
+=head2 az_network_nat_gateway_create
+
+    az_network_nat_gateway_create(
+        resource_group => 'openqa-rg',
+        region => 'westeurope',
+        name => 'openqa-nat-gateway',
+        public_ip => 'openqa-pubip')
+
+Create a NAT Gateway
+
+=over 4
+
+=item B<resource_group> - existing resource group where to create the NAT Gateway
+
+=item B<region> - Azure region where to create the NAT Gateway
+
+=item B<name> - NAT Gateway resource name
+
+=item B<public_ip> - add to the NAT Gateway a public IP
+
+=back
+=cut
+
+sub az_network_nat_gateway_create {
+    my (%args) = @_;
+    foreach (qw(resource_group region name public_ip)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network nat gateway create',
+        '--resource-group', $args{resource_group},
+        '--location', $args{region},
+        '--name', $args{name},
+        '--public-ip-addresses', $args{public_ip},
+        '--idle-timeout 10');
+    assert_script_run($az_cmd);
 }
 
 =head2 az_network_lb_create
@@ -531,8 +614,8 @@ sub az_network_lb_rule_create {
 
     az_vm_as_create(
         resource_group => 'openqa-rg',
-        name => 'openqa-as',
         region => 'westeurope',
+        name => 'openqa-as',
         fault_count => 2)
 
 Create an availability set. Later on VM can be assigned to it.
@@ -569,17 +652,19 @@ sub az_vm_as_create {
 
     az_vm_create(
         resource_group => 'openqa-rg',
-        name => 'openqa-vm',
         region => 'westeurope',
+        name => 'openqa-vm',
         image => 'SUSE:sles-sap-15-sp5:gen2:latest')
 
 Create a virtual machine
 
 =over 14
 
-=item B<name> - virtual machine name
-
 =item B<resource_group> - existing resource group where to create the VM
+
+=item B<region> - optional region where to create the VM
+
+=item B<name> - virtual machine name
 
 =item B<image> - OS image name
 
@@ -588,8 +673,6 @@ Create a virtual machine
 =item B<snet> - optional name of the SubNet where to connect the VM
 
 =item B<size> - VM size, default Standard_B1s
-
-=item B<region> - optional region where to create the VM
 
 =item B<availability_set> - optional inclusion in an availability set
 
@@ -1068,7 +1151,7 @@ sub az_vm_diagnostic_log_get {
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
     foreach (@{$vm_data}) {
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        push(@diagnostic_log_files, $boot_diagnostics_log) unless
+        push @diagnostic_log_files, $boot_diagnostics_log unless
           script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
     }
     return @diagnostic_log_files;
@@ -1078,7 +1161,7 @@ sub az_vm_diagnostic_log_get {
 
     az_storage_account_create(
         resource_group => 'openqa-rg',
-        region => 'northeurope'
+        region => 'westeurope'
         name => 'openqasa')
 
 Create a storage account
@@ -1087,7 +1170,7 @@ Create a storage account
 
 =item B<resource_group> - existing resource group where to create the storage account
 
-=item B<region> - Azure region
+=item B<region> - Azure region where to create the storage
 
 =item B<name> - name for the storage account to be created. Storage account name must be
                 between 3 and 24 characters in length and use numbers and lower-case letters only.
@@ -1286,8 +1369,8 @@ sub az_resource_delete {
     my @az_command = ('az resource delete',
         "--resource-group $args{resource_group}"
     );
-    push(@az_command, "--name $args{name}") if $args{name};
-    push(@az_command, "--ids $args{ids}") if $args{ids};
+    push @az_command, "--name $args{name}" if $args{name};
+    push @az_command, "--ids $args{ids}" if $args{ids};
 
     assert_script_run(join(' ', @az_command), timeout => $args{timeout});
 }
