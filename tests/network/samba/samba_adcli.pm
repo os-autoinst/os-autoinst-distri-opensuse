@@ -44,6 +44,8 @@ sub samba_sssd_install {
     # 12-SP4 ships libini 1.2, and version 1.3.0 is required for this feature to be available in sssd
     my $sssd_config_location = "/etc/sssd/conf.d/suse.conf";
     $sssd_config_location = "/etc/sssd/sssd.conf" if is_sle('<=12-sp4');
+    # https://progress.opensuse.org/issues/164394
+    script_run("if [ ! -d '/etc/sssd/conf.d' ]; then mkdir -p /etc/sssd/conf.d; fi") if is_sle('>=15-SP6');
 
     # Copy config files enviroment.
     get_supportserver_file("kinit.exp", '$HOME/kinit.exp');

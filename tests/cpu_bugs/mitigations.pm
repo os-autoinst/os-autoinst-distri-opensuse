@@ -103,12 +103,17 @@ sub run {
         my $ret = $obj->vulnerabilities();
         if ($ret eq 1) {
             #off
-            $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
+            if (exists $current_list->{sysfs}->{off}) {
+                $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
+                if ($item eq 'spectre_v2' && get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
+                    $mitigations_list{sysfs}->{off}->{$item} = "Vulnerable; IBPB: disabled; STIBP: disabled; PBRSB-eIBRS: Not affected; BHI: Not affected";
+                }
+            }
             #auto
             if (exists $current_list->{sysfs}->{auto}) {
                 $mitigations_list{sysfs}->{auto}->{$item} = $current_list->{sysfs}->{auto};
                 if ($item eq 'spectre_v2' && get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
-                    $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: IBRS, IBPB: conditional, RSB filling.*";
+                    $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: IBRS; IBPB: conditional; STIBP: conditional; RSB filling; PBRSB-eIBRS: Not affected; BHI: Not affected";
                 }
             } elsif (exists $current_list->{sysfs}->{flush}) {
                 $mitigations_list{sysfs}->{auto}->{$item} = $current_list->{sysfs}->{flush};
@@ -135,7 +140,7 @@ sub run {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*";
                 }
                 if ($item eq 'spectre_v2' && get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
-                    $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: IBRS, IBPB: conditional, RSB filling.*";
+                    $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: IBRS; IBPB: conditional; RSB filling; PBRSB-eIBRS: Not affected; BHI: Not affected";
                 }
 
             }
@@ -195,8 +200,8 @@ sub run {
             $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Not affected";
             if ($item eq 'spectre_v2') {
                 record_info("EIBRS", "This machine support EIBRS on spectre_v2");
-                $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
-                $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
+                $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: Enhanced / Automatic IBRS; IBPB: conditional; RSB filling; PBRSB-eIBRS: SW sequence; BHI: SW loop, KVM: SW loop";
+                $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Enhanced / Automatic IBRS; IBPB: conditional; RSB filling; PBRSB-eIBRS: SW sequence; BHI: SW loop, KVM: SW loop";
                 $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
             }
         } else {

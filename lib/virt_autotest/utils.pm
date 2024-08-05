@@ -26,12 +26,12 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
-  is_monolithic_libvirtd turn_on_libvirt_debugging_log
-  print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages ensure_default_net_is_active ensure_guest_started
-  ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests
-  is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons get_guest_regcode);
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_sev_es_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
+  is_monolithic_libvirtd turn_on_libvirt_debugging_log restart_libvirtd check_libvirtd restart_modular_libvirt_daemons check_modular_libvirt_daemons
+  reset_log_cursor check_failures_in_journal check_host_health check_guest_health print_cmd_output_to_file collect_virt_system_logs setup_rsyslog_host download_script download_script_and_execute upload_virt_logs enable_nm_debug upload_nm_debug_log
+  ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
+  create_guest import_guest ssh_copy_id add_guest_to_hosts ensure_default_net_is_active ensure_guest_started remove_additional_disks remove_additional_nic start_guests is_guest_online ensure_online wait_guest_online restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests shutdown_guests wait_guests_shutdown remove_vm recreate_guests download_vm_import_disks get_guest_regcode
+);
 
 my %log_cursors;
 
@@ -1272,6 +1272,23 @@ sub get_guest_regcode {
     $regcode = join("$args{separator}", (get_var("SCC_REGCODE", "")) x $count) if (!$regcode);
     $regcode_ltss = join("$args{separator}", (get_var("SCC_REGCODE_LTSS_15", "")) x $count) if (!$regcode_ltss);
     return $regcode, $regcode_ltss;
+}
+
+sub wait_for_host_reboot {
+    select_console 'sol', await_console => 0;
+    # Wait for reboot and show screenshots
+    foreach (1 .. 10) {
+        save_screenshot;
+        sleep 20;
+    }
+    assert_screen([qw(sol-console-wait-typing-ret linux-login text-login)], 120);
+    if (match_has_tag('sol-console-wait-typing-ret')) {
+        send_key 'ret';
+        assert_screen([qw(inux-login text-login)], 120);
+    }
+    record_info("Host rebooted");
+    reset_consoles;
+    select_console('root-ssh');
 }
 
 1;
