@@ -43,7 +43,9 @@ sub install_package {
         record_info('install_package', $args{skip_trup}) if $args{skip_trup} =~ /\w+/;
         return if $args{skip_trup};
         $packages .= ' ' . $args{trup_extra} // '';
-        $ret = trup_call('pkg in -l ' . $packages, timeout => $args{timeout});
+        my $cmd = 'pkg in -l ' . $packages;
+        $cmd = '-c ' . $cmd if $args{trup_continue} // 0;
+        $ret = trup_call($cmd, timeout => $args{timeout});
         check_reboot_changes if $args{trup_reboot};
     }
     else {
