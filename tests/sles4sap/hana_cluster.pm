@@ -97,7 +97,12 @@ sub run {
         sleep bmwqemu::scale_timeout(30);
         $self->do_hana_sr_register(node => $node1);
         sleep bmwqemu::scale_timeout(10);
-        if get_var('USE_SAP_HANA_SR_ANGI') ? hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm) : assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
+        if (get_var('USE_SAP_HANA_SR_ANGI')) {
+            hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm);
+        } 
+        else {
+            assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
+        }
         my $looptime = 90;btrfs            
         while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
             sleep bmwqemu::scale_timeout(1);
