@@ -19,9 +19,7 @@ use warnings;
 sub hanasr_angi_hadr_providers_setup {
     # Setup SAPHanaSR-angi HA/DR providers and
     # add permissions to SAPHanaSR-angi scripts by SUDO
-    my $sid = $_[0];
-    my $instance_id = $_[1];
-    my $sapadm = $_[2];
+    my ($sid, $instance_id, $sapadm) = @_;
 
     assert_script_run "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StopSystem'";
     my $hadr_template = 'angi_susHanaHADR_AIO.template';
