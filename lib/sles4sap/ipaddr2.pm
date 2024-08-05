@@ -44,6 +44,7 @@ use constant DEPLOY_PREFIX => 'ip2t';
 our $user = 'cloudadmin';
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
+our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
 # Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our $priv_ip_range = '192.168.';
@@ -51,7 +52,7 @@ our $frontend_ip = $priv_ip_range . '0.50';
 our $key_id = 'id_rsa';
 our @nginx_cmds = (
     'sudo zypper install -y nginx',
-    'echo "I am $(hostname)" > /srv/www/htdocs/index.html',
+    'sudo echo "I am $(hostname)" > /srv/www/htdocs/index.html',
     'sudo systemctl enable --now nginx.service');
 
 =head2 ipaddr2_azure_resource_group
@@ -160,13 +161,35 @@ sub ipaddr2_azure_deployment {
         resource_group => $rg,
         name => $nsg);
 
-    # Create the only one public IP in this deployment,
-    # it will be assigned to the 3rd VM (bastion role)
+    # Create a public IP for external test access.
+    # It will be assigned to the 3rd VM (bastion role)
     az_network_publicip_create(
         resource_group => $rg,
         name => $bastion_pub_ip,
-        sku => 'Basic',
+        sku => 'Standard',
         allocation_method => 'Static');
+
+    # Create a public IP for the NAT Gateway
+    az_network_publicip_create(
+        resource_group => $rg,
+        name => $nat_pub_ip,
+        sku => 'Standard',
+        allocation_method => 'Static');
+
+    # Create the NAT Gateway
+    my $nat_name = DEPLOY_PREFIX . '-nat';
+    az_network_nat_gateway_create(
+        resource_group => $rg,
+        region => $args{region},
+        name => $nat_name,
+        public_ip => $nat_pub_ip);
+
+    # Associate one of the Public IP to the NAT Gateway
+    az_network_vnet_subnet_update(
+        resource_group => $rg,
+        vnet => $vnet,
+        snet => $subnet,
+        nat_gateway => $nat_name);
 
     # Create the load balancer entity.
     # Mostly this one is just a "group" definition
