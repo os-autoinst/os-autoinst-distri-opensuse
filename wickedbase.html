@@ -81,9 +81,9 @@
 
 <h2 id="valgrind_cmd">valgrind_cmd</h2>
 
-<pre><code>valgrind_cmd([$service])</code></pre>
+<pre><code>valgrind_cmd([service =&gt; undef, systemd =&gt; 0])</code></pre>
 
-<p>Retrieves the valgrind command. If the <code>$service</code> is given, the log file will contain the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command.</p>
+<p>Retrieves the valgrind command. If the <code>service</code> is given, the log file will contain the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command. When the command is needed to rewrite the systemd service file, specify <code>&lt;systemd=</code>1&gt;&gt;.</p>
 
 <h2 id="valgrind_enable">valgrind_enable</h2>
 
