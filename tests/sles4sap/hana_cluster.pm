@@ -20,17 +20,16 @@ sub hanasr_angi_hadr_providers_setup {
     # Setup SAPHanaSR-angi HA/DR providers and
     # add permissions to SAPHanaSR-angi scripts by SUDO
     my ($sid, $instance_id, $sapadm) = @_;
-
-    assert_script_run "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StopSystem'";
+    assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem'";
     my $hadr_template = 'angi_susHanaHADR_AIO.template';
-    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/${hadr_template} -o /tmp/${hadr_template}";
-    assert_script_run "su - ${sapadm} -c 'SAPHanaSR-manageProvider --sid ${sid} --add /tmp/${hadr_template}'";
+    assert_script_run 'curl -f -v ' . autoinst_url . "/data/sles4sap/$hadr_template -o /tmp/$hadr_template";
+    assert_script_run "su - $sapadm -c 'SAPHanaSR-manageProvider --sid $sid --add /tmp/$hadr_template'";
     my $sudo_saphanasr = "# SAPHanaSR-ScaleUp entries for writing srHook cluster attribute and SAPHanaSR-hookHelper\n" .
-      "${sapadm} ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("${sid}") . "_*\n" .
-      "${sapadm} ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("${sid}") . " *\n";
-    write_sut_file("/tmp/etc_sudoers_SAPHanaSR_${sid}", "${sudo_saphanasr}");
-    assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_${sid} /etc/sudoers.d/SAPHanaSR_${sid}";
-    assert_script_run "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StartSystem HDB'";
+      "$sapadm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_" . lc("$sid") . "_*\n" .
+      "$sapadm ALL=(ALL) NOPASSWD: /usr/bin/SAPHanaSR-hookHelper --sid=" . uc("$sid") . " *\n";
+    write_sut_file("/tmp/etc_sudoers_SAPHanaSR_$sid", "$sudo_saphanasr");
+    assert_script_run "cp /tmp/etc_sudoers_SAPHanaSR_$sid /etc/sudoers.d/SAPHanaSR_$sid";
+    assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
 }
 
 sub run {
@@ -45,7 +44,7 @@ sub run {
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Synchronize the nodes
-    barrier_wait "HANA_CLUSTER_INSTALL_${cluster_name}";
+    barrier_wait "HANA_CLUSTER_INSTALL_$cluster_name";
 
     select_serial_terminal;
 
@@ -55,8 +54,8 @@ sub run {
     if (is_node(1)) {
         # Create the resource configuration
         my $cluster_conf = get_var('USE_SAP_HANA_SR_ANGI') ? 'angi_hana_cluster.conf' : 'hana_cluster.conf';
-        assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/${cluster_conf} -o /tmp/${cluster_conf}";
-        $cluster_conf = "/tmp/" . $cluster_conf;
+        assert_script_run 'curl -f -v ' . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
+        $cluster_conf = '/tmp/' . $cluster_conf;
 
         # Initiate the template
         file_content_replace($cluster_conf, '--sed-modifier' => 'g',
@@ -70,21 +69,20 @@ sub run {
             add_to_known_hosts($_);
         }
         assert_script_run "scp -qr /usr/sap/${sid}/SYS/global/security/rsecssfs/* root\@${node2}:/usr/sap/${sid}/SYS/global/security/rsecssfs/";
-        assert_script_run qq(su - ${sapadm} -c "hdbsql -u system -p $sles4sap::instance_password -i ${instance_id} -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 900;
-        assert_script_run "su - ${sapadm} -c 'hdbnsutil -sr_enable --name=${node1}'";
+        assert_script_run qq(su - $sapadm -c "hdbsql -u system -p $sles4sap::instance_password -i $instance_id -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 900;
+        assert_script_run "su - $sapadm -c 'hdbnsutil -sr_enable --name=$node1'";
 
         # Synchronize the nodes
-        barrier_wait "HANA_INIT_CONF_${cluster_name}";
-        barrier_wait "HANA_CREATED_CONF_${cluster_name}";
+        barrier_wait "HANA_INIT_CONF_$cluster_name";
+        barrier_wait "HANA_CREATED_CONF_$cluster_name";
 
         hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm) if get_var('USE_SAP_HANA_SR_ANGI');
 
         # Commits configuration changes into the cluster
-        my $resource = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_${sid}_HDB${instance_id}" : "msl_SAPHana_${sid}_HDB${instance_id}";
-        my @crm_cmds = ("crm configure load update ${cluster_conf}",
-            "crm resource refresh ${resource}",
-            'cs_wait_for_idle -s 5',
-            "crm resource maintenance ${resource} off");
+        my $resource = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_${sid}_HDB$instance_id" : "msl_SAPHana_${sid}_HDB$instance_id";
+        my @crm_cmds = ("crm configure load update $cluster_conf",
+            "crm resource refresh $resource",            
+            "crm resource maintenance $resource off");
         foreach my $cmd (@crm_cmds) {
             wait_for_idle_cluster;
             assert_script_run $cmd;
@@ -92,20 +90,16 @@ sub run {
     }
     else {
         # Synchronize the nodes
-        barrier_wait "HANA_INIT_CONF_${cluster_name}";
+        barrier_wait "HANA_INIT_CONF_$cluster_name";
 
-        assert_script_run "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StopSystem HDB'";
-        assert_script_run "until su - ${sapadm} -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
+        assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
+        assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
         sleep bmwqemu::scale_timeout(30);
         $self->do_hana_sr_register(node => $node1);
         sleep bmwqemu::scale_timeout(10);
-
         hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm) if get_var('USE_SAP_HANA_SR_ANGI');
-
-        my $start_cmd = "su - ${sapadm} -c 'sapcontrol -nr ${instance_id} -function StartSystem HDB'";
-        assert_script_run $start_cmd;
         my $looptime = 90;
-        while (script_run "su - ${sapadm} -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
+        while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
             sleep bmwqemu::scale_timeout(1);
             --$looptime;
             last if ($looptime <= 0);
@@ -114,15 +108,15 @@ sub run {
             # sr_state is not online after 90 seconds. Start system again and retry
             assert_script_run $start_cmd;
             sleep bmwqemu::scale_timeout(10);
-            assert_script_run "until su - ${sapadm} -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
+            assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
         }
 
         # Synchronize the nodes
-        barrier_wait "HANA_CREATED_CONF_${cluster_name}";
+        barrier_wait "HANA_CREATED_CONF_$cluster_name";
     }
 
     # Synchronize the nodes
-    barrier_wait "HANA_LOADED_CONF_${cluster_name}";
+    barrier_wait "HANA_LOADED_CONF_$cluster_name";
     save_state;
 
     # Wait for resources to be started
