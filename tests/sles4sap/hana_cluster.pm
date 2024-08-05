@@ -103,7 +103,7 @@ sub run {
         else {
             assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         }
-        my $looptime = 90;btrfs            
+        my $looptime = 90;            
         while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'", timeout => 120) {
             sleep bmwqemu::scale_timeout(1);
             --$looptime;
