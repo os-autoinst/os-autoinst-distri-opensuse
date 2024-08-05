@@ -21,6 +21,7 @@ use repo_tools 'generate_version';
 use wicked::wlan;
 use mm_network;
 use power_action_utils 'power_action';
+use Mojo::Util 'trim';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -43,6 +44,7 @@ sub run {
     }
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
+    assert_script_run('mkdir -p /etc/systemd/journald.conf.d/');
     $self->write_cfg('/etc/systemd/journald.conf.d/99-openqa-wicked-tests.conf', <<EOT);
         [Journal]
         # see: https://github.com/systemd/systemd/commit/f0367da7d1a61ad698a55d17b5c28ddce0dc265a
@@ -76,13 +78,27 @@ EOT
     $self->prepare_coredump();
 
     my $package_list = 'openvpn';
+    if ($self->valgrind_enable()) {
+        $need_reboot = 1;
+        zypper_call("-q in valgrind", timeout => 400);
+    }
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
     if (check_var('IS_WICKED_REF', '1')) {
         $package_list .= ' radvd' if (check_var('WICKED', 'ipv6'));
         # Common REF Configuration
-        record_info('INFO', 'Setup DHCP server');
         $package_list .= ' dhcp-server';
         zypper_call("-q in $package_list", timeout => 400);
+        if ($need_reboot) {
+            $self->reboot();
+            if (check_var('WICKED', 'ipv6')) {
+                setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1, ipv6 =>
+                      $self->get_ip(type => 'dhcp6', netmask => 1));
+            } else {
+                setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1);
+            }
+        }
+
+        record_info('INFO', 'Setup DHCP server');
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         if (is_sle('<12-sp1')) {
             file_content_replace('/etc/dhcpd.conf', '^\s*ddns-update-style' => '# ddns-update-style', '^\s*dhcp-cache-threshold' => '# dhcp-cache-threshold');
@@ -137,9 +153,8 @@ EOT
             ($repo_id) = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
             zypper_call("in --from $repo_id $resolv_options --force -y --force-resolution  wicked wicked-service", log => 'zypper_in_wicked.log');
             my ($zypper_in_output) = script_output('cat /tmp/zypper_in_wicked.log');
-            my @installed_packages;
-            my $reg = 'The following (\d+|NEW) packages? (are|is) going to be (installed|reinstalled|upgraded|downgraded):';
-            push(@installed_packages, split(/\s+/, $+{packages})) if ($zypper_in_output =~ m/(?s)($reg(?<packages>.*?))(?:\r*\n){2}/);
+            my $reg = 'The following (?:\d+ |NEW )?packages? (?:are|is) going to be (?:installed|reinstalled|upgraded|downgraded):';
+            my @installed_packages = map { split(/\s+/, trim($_)) } $zypper_in_output =~ m/(?s)(?:$reg(?<packages>.*?))(?:\r*\n){2}/g;
             record_info('INSTALLED', join("\n", @installed_packages));
             for my $pkg ('wicked', 'wicked-service') {
                 die("Missing installation of package $pkg!") unless grep { $_ eq $pkg } @installed_packages;
@@ -168,27 +183,23 @@ EOT
         }
         if (check_var('WICKED', 'startandstop')) {
             # No firewalld on sles 12-SP5 (bsc#1180116)
-            if (is_sle('>12-SP5')) {
+            if (!is_sle('<=12-SP5')) {
                 zypper_call('-q in firewalld', timeout => 400);
                 systemctl('disable --now firewalld');
             }
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
 
-        if ($self->valgrind_enable()) {
-            $need_reboot = 1;
-            $package_list .= ' valgrind';
-        }
         $package_list .= ' openvswitch iputils';
-        $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
+        $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate') || check_var('WICKED', 'startandstop');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
         $self->reboot() if $need_reboot;
-        record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
         record_info('ps', script_output(q(ps -aux)));
         wicked::wlan::prepare_sut() if (check_var('WICKED', 'wlan'));
     }
+    record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 }
 
 sub switch_to_wicked {
