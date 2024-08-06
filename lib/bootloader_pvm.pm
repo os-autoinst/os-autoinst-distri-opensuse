@@ -228,8 +228,14 @@ sub boot_hmc_pvm {
     my $lpar_id = get_required_var('LPAR_ID');
     my $hmc = select_console 'powerhmc-ssh';
 
+    # print setup information
+    record_info('HMC hostname', get_var('HMC_HOSTNAME'));
+    record_info('HMC machine', "$hmc_machine_name");
+    record_info('LPAR id', "$lpar_id");
+    record_info('SUT ip', get_var('SUT_IP'));
+
     # Print the machine details before anything else, Firmware name might be useful when reporting bugs
-    record_info("Details", "See the next screen to get details on $hmc_machine_name");
+    record_info("HMC machine details", "See the next screen to get details on $hmc_machine_name");
     enter_cmd "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'";
 
     # Fail the job when a lpar is not available
@@ -292,6 +298,11 @@ Boot from spvm backend via novalink and switch to installation console (ssh or v
 sub boot_spvm {
     my $lpar_id = get_required_var('NOVALINK_LPAR_ID');
     my $novalink = select_console 'novalink-ssh';
+
+    # print setup information
+    record_info('NOVALINK hostname', get_var('NOVALINK_HOSTNAME'));
+    record_info('LPAR id', "$lpar_id");
+    record_info('SUT ip', get_var('SUT_IP'));
 
     # detach possibly attached terminals - might be left over
     enter_cmd "rmvterm --id $lpar_id && echo 'DONE'";
