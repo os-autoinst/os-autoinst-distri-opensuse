@@ -13,7 +13,7 @@ use base 'Exporter';
 use Exporter;
 use main_common;
 use main_ltp_loader 'load_kernel_tests';
-use main_containers qw(load_container_tests is_container_test);
+use main_containers qw(load_container_tests is_container_test load_container_engine_test);
 use main_publiccloud qw(load_publiccloud_download_repos);
 use main_security qw(load_security_tests is_security_test);
 use testapi qw(check_var get_required_var get_var set_var);
@@ -311,6 +311,19 @@ sub load_slem_on_pc_tests {
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
             loadtest("publiccloud/run_ltp", run_args => $args);
+        }
+        if (is_container_test) {
+            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+            loadtest("publiccloud/instance_overview", run_args => $args);
+            loadtest("publiccloud/slem_prepare", run_args => $args);
+            my $runtime = get_required_var('CONTAINER_RUNTIMES');
+            for (split(',\s*', $runtime)) {
+                my $run_args = OpenQA::Test::RunArgs->new();
+                $run_args->{runtime} = $_;
+                load_container_engine_test($run_args);
+            }
+
+            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         }
         else {
             loadtest "publiccloud/check_services", run_args => $args;
