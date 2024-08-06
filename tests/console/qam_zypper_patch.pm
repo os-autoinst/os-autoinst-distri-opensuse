@@ -14,6 +14,14 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
 
+    if (script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt") != 0) {
+        record_info('The packages to be released are new ones', 'We need to install them via zypper');
+        my $packages = get_var("INSTALL_PACKAGES");
+        script_run("echo $packages > \$XDG_RUNTIME_DIR/install_packages.txt");
+        assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 1400);
+        return;
+    }
+
     # NVIDIA repo needs new signing key, see poo#163094
     my $sign_key = get_var('BUILD') =~ /openSUSE-repos/ ? '--gpg-auto-import-keys' : '';
     zypper_call("$sign_key in -l -t patch " . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103], timeout => 1400);
