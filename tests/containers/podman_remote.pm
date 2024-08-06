@@ -18,6 +18,9 @@ use containers::utils qw(get_podman_version);
 my $podman_version;
 
 sub test_package {
+    # Skip on podman < 4.9.0
+    return if (version->parse($podman_version) < version->parse('4.9.0'));
+
     my $ret;
 
     # Allow installation failure so we can check for bsc#1126596 later on.
@@ -28,14 +31,8 @@ sub test_package {
         $ret = zypper_call("in podman-remote", exitcode => [0, 104]);
     }
 
-    if ($ret) {
-        if (is_sle_micro('>=5.1') && is_sle_micro('<=5.4') || is_sle('=15-SP3')) {
-            record_soft_failure("bsc#1226596 - podman-remote is not available");
-        } else {
-            # Fail only if podman > 4.9.0
-            die "podman-remote is not available!" if (version->parse($podman_version) > version->parse('4.9.0'));
-        }
-    }
+    # Fail only if podman > 4.9.0
+    die "podman-remote is not available!" if ($ret);
 }
 
 sub run {
