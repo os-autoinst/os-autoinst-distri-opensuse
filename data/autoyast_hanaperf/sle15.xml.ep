@@ -1,28 +1,28 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
- % if ($check_var->('SCC_REGISTER', 'installation')) {
- <suse_register>
+  % if ($check_var->('FLAVOR', 'Online')) {
+  <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email/>
     <reg_code><![CDATA[<%= $get_var->('SCC_REGCODE') %>]]></reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    <reg_server><![CDATA[http://all-<%= $get_var->('BUILD') %>.proxy.scc.suse.de]]></reg_server>
+    <reg_server><![CDATA[<%= $get_var->('SCC_URL') %>]]></reg_server>
     <addons config:type="list">
       <addon>
         <name>sle-module-server-applications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
+	<version>{{VERSION}}</version>
+	<arch>{{ARCH}}</arch>
       </addon>
       <addon>
         <name>sle-module-basesystem</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
+	<version>{{VERSION}}</version>
+	<arch>{{ARCH}}</arch>
       </addon>
       <addon>
         <name>sle-module-legacy</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
+	<version>{{VERSION}}</version>
+	<arch>{{ARCH}}</arch>
       </addon>
     </addons>
   </suse_register>
@@ -32,10 +32,10 @@
       <listentry>
         <alias>SLE-Module-Basesystem</alias>
         % if ($check_var->('VERSION', '15-SP1')) {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Basesystem-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Basesystem-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/Module-Basesystem</product_dir>
         % }
         <name>SLE-Module-Basesystem-GM</name>
@@ -44,10 +44,10 @@
       <listentry>
         <alias>SLE-Module-Server-Applications</alias>
         % if ($check_var->('VERSION', '15-SP1')) {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Server-Applications-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Server-Applications-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/Module-Server-Applications</product_dir>
         % }
         <name>SLE-Module-Server-Applications-GM</name>
@@ -56,10 +56,10 @@
       <listentry>
         <alias>SLE-Module-Legacy</alias>
         % if ($check_var->('VERSION', '15-SP1')) {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Legacy-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Legacy-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/Module-Legacy</product_dir>
         % }
         <name>SLE-Module-Legacy-GM</name>
@@ -73,7 +73,11 @@
       <append>showopts</append>
       <terminal>serial</terminal>
     </global>
+    % if ($check_var->('ARCH', 'x86_64')) {
     <loader_type>grub2-efi</loader_type>
+    % } else {
+    <loader_type>grub2</loader_type>
+    % }
   </bootloader>
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
@@ -109,7 +113,7 @@
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>
     </dns>
-    <ipv6 config:type="boolean">false</ipv6>
+    <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
   </networking>
@@ -120,11 +124,16 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
+      % if ($get_var->('ARCH') =~ /^ppc64/ ) {
+      <device>/dev/disk/by-id/<%= $get_var->('OSDISK') %></device>
+      % } else {
       <device>/dev/sda</device>
+      % }
       <disklabel>gpt</disklabel>
       <enable_snapshots config:type="boolean">true</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+	% if ($check_var->('ARCH', 'x86_64')) {
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">vfat</filesystem>
@@ -137,6 +146,7 @@
           <resize config:type="boolean">false</resize>
           <size>536870912</size>
         </partition>
+       % }
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
@@ -160,45 +170,6 @@
           <quotas config:type="boolean">true</quotas>
           <resize config:type="boolean">false</resize>
           <size>max</size>
-          <subvolumes config:type="list">
-            <subvolume>
-              <copy_on_write config:type="boolean">false</copy_on_write>
-              <path>var</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>usr/local</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>tmp</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>srv</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>root</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>opt</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>home</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>boot/grub2/x86_64-efi</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>boot/grub2/i386-pc</path>
-            </subvolume>
-          </subvolumes>
-          <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
@@ -227,7 +198,9 @@
       <package>wicked</package>
       <package>snapper</package>
       <package>numactl</package>
+      % if ($check_var->('ARCH', 'x86_64')) {
       <package>grub2-x86_64-efi</package>
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>minimal_base</pattern>
@@ -257,4 +230,22 @@
       <username>root</username>
     </user>
   </users>
+  % if ($check_var->('VERSION', '15-SP6')) {
+  <scripts>
+    <chroot-scripts config:type="list">
+     <script>
+       <chrooted config:type="boolean">true</chrooted>
+       <filename>chroot-post.sh</filename>
+       <interpreter>shell</interpreter>
+       <source><![CDATA[
+echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+echo "HostKeyAlgorithms = +ssh-rsa" >> /etc/ssh/sshd_config
+echo "PubkeyAcceptedAlgorithms = +ssh-rsa" >> /etc/ssh/sshd_config
+sed -i '/^Include / s/Include /#Include /g' /etc/ssh/sshd_config.d/40-suse-crypto-policies.conf
+]]>
+       </source>
+    </script>
+   </chroot-scripts>
+  </scripts>
+  % }
 </profile>
