@@ -164,7 +164,7 @@
     "bsc#1187613": {
         "description": "kernel: Grant table initialized",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "bug"
     },
@@ -267,7 +267,7 @@
         "description": "fail to add MMCONFIG information, can't access extended (PCI|.*configuration) space under this bridge|PCI: System does not support PCI",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -297,7 +297,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -307,7 +307,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -324,7 +324,7 @@
     "xen-trim-btrfs-on-mechaninal-drive": {
         "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -351,7 +351,8 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+
         },
         "type": "ignore"
     },
@@ -379,7 +380,7 @@
             "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
             "microos":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
             "opensuse":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
-            "sle": ["15-SP6"]
+            "sle": ["15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -394,7 +395,7 @@
         "description": "hibernation: the secret key is invalid",
         "products": {
             "opensuse": ["Tumbleweed", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -634,7 +635,7 @@
     "skip watchdog check": {
         "description": "clocksource: Long readout interval, skipping watchdog check:.*$",
         "products": {
-            "sle": ["15-SP6"]
+            "sle": ["15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
