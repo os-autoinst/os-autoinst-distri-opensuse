@@ -46,8 +46,7 @@ sub run {
     # Check for bsc#1165915
     zypper_call("ref");
     my $register = (is_sle_micro) ? "transactional-update register --status-text" : "SUSEConnect --status-text";
-    my $out = script_run($register, 300);
-    record_soft_failure('bsc#1227035 - RMT issues. Please add assert_ when fixed.') if ($out != 0);
+    assert_script_run($register, 300);
 
     zypper_call("lr -d");
 
