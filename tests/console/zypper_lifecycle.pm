@@ -33,6 +33,7 @@ use utils;
 use version_utils qw(is_sle is_jeos is_upgrade);
 use Utils::Architectures;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
@@ -58,6 +59,13 @@ sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
 
     select_serial_terminal;
+
+    if (get_var('SCC_REGCODE_LIVE')) {
+        # https://progress.opensuse.org/issues/133514
+        my $live_reg_code = get_var('SCC_REGCODE_LIVE');
+        add_suseconnect_product(get_addon_fullname('live'), undef, undef, "-r $live_reg_code");
+    }
+
     # First we'd make sure that we have a clean zypper cache env and all dirs have
     # 0755 and all files have 0644 pemmission.
     # For some reason the system will change the permission on /var/cache/zypp/{solv,raw}
