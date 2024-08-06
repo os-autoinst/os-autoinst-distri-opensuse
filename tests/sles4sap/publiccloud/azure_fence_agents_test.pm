@@ -28,6 +28,10 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
+
     my $instances = $self->{instances} = $run_args->{instances};
     my $provider_client = $run_args->{instances}[0]{provider}{provider_client};
     my $fence_agent_configuration = get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
