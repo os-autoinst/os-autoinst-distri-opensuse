@@ -382,11 +382,8 @@ sub install_kotd {
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    if (is_transactional) {
-        trup_call("-c pkg install -r KOTD ${kernel_flavor} kernel-devel");
-    } else {
-        zypper_call("in -lr KOTD ${kernel_flavor} kernel-devel");
-    }
+    install_package("-r KOTD $kernel_flavor", trup_continue => 1);
+    install_package('kernel-devel', trup_continue => 1);
 }
 
 sub boot_to_console {
