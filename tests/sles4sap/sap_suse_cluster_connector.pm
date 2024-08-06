@@ -29,7 +29,7 @@ sub exec_conn_cmd {
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
     if ($args{log_file}) {
         my $output = script_output("cat $args{log_file}", proceed_on_failure => 1);
-        record_info("Command output", "${output}");
+        record_info("Command output", "$output");
         return $output;
     }
 }
@@ -74,7 +74,7 @@ sub run {
     }
 
     # Test Stop/Start of SAP resource
-    my $hana_resource_name = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${instance_sid}_${instance_type}$instance_id" : "rsc_SAPHana_${instance_sid}_${instance_type}$instance_id";
+    my $hana_resource_name = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${instance_sid}_$instance_type$instance_id" : "rsc_SAPHana_${instance_sid}_$instance_type$instance_id";
     my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_$instance_type$instance_id" : $hana_resource_name;
     wait_for_idle_cluster;
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
