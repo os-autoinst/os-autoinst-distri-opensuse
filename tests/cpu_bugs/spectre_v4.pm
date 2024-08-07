@@ -29,10 +29,10 @@ our %mitigations_list =
     sysfs => {
         on => "Mitigation: Speculative Store Bypass disabled",
         off => "Vulnerable",
-        auto => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
+        auto => "Mitigation: Speculative Store Bypass disabled via prctl",
         prctl => "Mitigation: Speculative Store Bypass disabled via prctl",
         seccomp => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
-        default => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
+        default => "Mitigation: Speculative Store Bypass disabled via prctl",
     },
     cmdline => [
         "on",

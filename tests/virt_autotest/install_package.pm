@@ -15,7 +15,7 @@ use Utils::Architectures;
 use version_utils qw(is_sle);
 use virt_utils;
 use utils;
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use virt_autotest::utils qw(is_xen_host subscribe_extensions_and_modules);
 
 sub install_package {
@@ -34,39 +34,6 @@ sub install_package {
     else {
         script_run "zypper --non-interactive rr server-repo";
         zypper_call("--no-gpg-checks ar -f '$qa_server_repo' server-repo");
-    }
-
-    #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
-    #workaround for dependency on bridge-utils for qa_lib_virtauto on sles15sp0
-    my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
-    my $dependency_repo = '';
-    my $dependency_rpms = '';
-    if ($repo_0_to_install =~ /SLES-11-SP4/m) {
-        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-11:/Update/standard/';
-        $dependency_rpms = 'xmlstarlet';
-    }
-    elsif ($repo_0_to_install =~ /SLE-12-SP1/m) {
-        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/';
-        $dependency_rpms = 'xmlstarlet';
-    }
-    elsif ($repo_0_to_install =~ /SLE-15-Installer/m) {
-        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/';
-        $dependency_rpms = 'bridge-utils';
-    }
-
-    if ($dependency_repo) {
-        if (is_s390x) {
-            lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f ${dependency_repo} dependency_repo");
-            lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
-            lpar_cmd("zypper --non-interactive in $dependency_rpms");
-            lpar_cmd("zypper --non-interactive rr dependency_repo");
-        }
-        else {
-            zypper_call("--no-gpg-checks ar -f ${dependency_repo} dependency_repo");
-            zypper_call("--gpg-auto-import-keys ref", 180);
-            zypper_call("in $dependency_rpms");
-            zypper_call("rr dependency_repo");
-        }
     }
 
     #Install KVM role patterns for aarch64 virtualization host
@@ -119,6 +86,11 @@ sub install_package {
 }
 
 sub run {
+    # Only for x86_64
+    if (is_x86_64) {
+        select_console 'sol', await_console => 0;
+        use_ssh_serial_console;
+    }
     install_package;
 }
 
