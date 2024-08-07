@@ -15,7 +15,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/install_SLES
+  - '{{product_selection}}'
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
@@ -39,5 +39,12 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/validate_encrypt
+conditional_schedule:
+  product_selection:
+    ARCH:
+      x86_64:
+        - installation/product_selection/install_SLES
+      ppc64le:
+        - installation/product_selection/install_SLES
 test_data:
   <<: !include test_data/qam/QR/15-SP6/encryption/encrypt_no_lvm.yaml
