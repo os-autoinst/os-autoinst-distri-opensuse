@@ -414,7 +414,8 @@ sub wait_for_ssh {
         script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts");
         while (($duration = time() - $start_time) < $args{timeout}) {
             # timeout recalculated removing consumed time until now
-            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
+            # We don't support password authentication so it would just block the terminal
+            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => '-o PasswordAuthentication=no',
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
             # result check
             if ($sysout =~ m/initializing|starting/) {    # still starting
