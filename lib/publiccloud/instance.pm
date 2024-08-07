@@ -65,6 +65,10 @@ sub run_ssh_command {
     $args{no_quote} //= 0;
     my $rc_only = $args{rc_only} // 0;
     my $timeout = $args{timeout};
+    # Increase the hard timeout for script_run and script_output,
+    # otherwise possible error from 'timeout $args{timeout} ...'
+    # is not correctly processed, expecially in conjunction with proceed_on_failure
+    $args{timeout} += 20 unless ($args{timeout} == 0);
 
     my $cmd = $args{cmd};
     unless ($args{no_quote}) {
@@ -86,8 +90,6 @@ sub run_ssh_command {
         script_run($ssh_cmd, %args);
     }
     elsif ($rc_only) {
-        # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
-        $args{timeout} += 2;
         $args{quiet} = 0;
         $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
