@@ -4,4 +4,5 @@ StrictHostKeyChecking no
 HostKeyAlgorithms +ssh-rsa
 IdentityFile %SSH_KEY%
 ControlPersist 86400
+PasswordAuthentication no
 
