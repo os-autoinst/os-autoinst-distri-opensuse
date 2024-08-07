@@ -19,7 +19,7 @@ sub run {
     select_console "root-console";
     setup_web_browser_env();
     zypper_call("--no-refresh --no-gpg-checks in links");
-    run_web_browser_text_based("links", undef);
+    run_web_browser_text_based("links", "-dump");
 }
 
 sub test_flags {
