@@ -22,6 +22,7 @@ use warnings;
 our @EXPORT = qw(
   is_container_test
   load_container_tests
+  load_container_engine_test
 );
 
 sub is_container_test {
