@@ -47,7 +47,6 @@ sub run {
     my @deployment_tags = ("deployment_id=" . get_current_job_id());
 
     az_login();
-
     record_info('VM create', "Creating deployer vm with parameters:\n
     Resource group: $deployer_resource_group\n
     VM name: $new_deployer_vm_name\n
