@@ -325,7 +325,7 @@ sub downgrade_kernel {
 
 sub find_version {
     my ($packname, $version_fragment) = @_;
-    my $verlist = zypper_search("-s -x -t package $packname");
+    my $verlist = zypper_search("-s --match-exact -t package $packname");
     my $version_arg = $version_fragment;
 
     $version_fragment =~ s/\./\\./g;
