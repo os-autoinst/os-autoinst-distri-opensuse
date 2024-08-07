@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+  </suse_register>
+  <bootloader>
+    <global>
+      <terminal>console</terminal>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general>
+    <ask-list config:type="list"/>
+    <cio_ignore config:type="boolean">false</cio_ignore>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <final_reboot config:type="boolean">true</final_reboot>
+  </general>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <hostname>susetest</hostname>
+      <nameservers config:type="list">
+        <nameserver>10.144.53.53</nameserver>
+      </nameservers>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <searchlist config:type="list">
+        <search>suse.de</search>
+      </searchlist>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <name>eth0</name>
+        <startmode>auto</startmode>
+        <zone>public</zone>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <software>
+    <products config:type="list">
+      <product>{{SLE_PRODUCT}}</product>
+    </products>
+    <packages config:type="list">
+    </packages>
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>x11</pattern>
+    </patterns>
+  </software>
+  <services-manager>
+    <default_target>graphical</default_target>
+      <services>
+        <enable config:type="list">
+          <service>sshd</service>
+          <service>tigervnc</service>
+        </enable>
+      </services>
+  </services-manager>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
