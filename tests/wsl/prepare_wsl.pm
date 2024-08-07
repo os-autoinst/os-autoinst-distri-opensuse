@@ -62,7 +62,7 @@ sub run {
     assert_and_click 'windows-select-background-picture';
     assert_and_click 'windows-close-background-settings';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    
+
     $self->reboot_or_shutdown(is_reboot => 1);
     $self->wait_boot_windows;
 }
