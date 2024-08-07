@@ -51,7 +51,7 @@ sub load_kernel_tests {
         if (get_var('FLAVOR', '') =~ /Incidents-Kernel/) {
             loadtest_kernel 'update_kernel';
         }
-        if (is_transactional && (get_var('FLAVOR', '') =~ /-Staging/)) {
+        if (is_transactional && (get_var('FLAVOR', '') =~ /-Staging|-Updates/)) {
             loadtest 'transactional/install_updates';
         }
         loadtest_kernel 'install_ltp';
