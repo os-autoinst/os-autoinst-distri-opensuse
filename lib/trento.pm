@@ -1079,7 +1079,7 @@ sub podman_exec {
     croak 'Missing mandatory cmd argument' unless $args{cmd};
 
     return script_run("podman exec $args{name} $args{cmd}",
-        timeout => bmwqemu::scale_timeout(10), die_on_timeout => -1);
+        timeout => bmwqemu::scale_timeout(10));
 }
 
 =head3 cypress_configs
