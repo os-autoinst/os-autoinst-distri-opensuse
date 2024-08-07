@@ -9,7 +9,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/install_SLES
+  - '{{product_selection}}'
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
@@ -37,3 +37,10 @@ schedule:
   - console/yast2_i
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+conditional_schedule:
+  product_selection:
+    ARCH:
+      x86_64:
+        - installation/product_selection/install_SLES
+      ppc64le:
+        - installation/product_selection/install_SLES
