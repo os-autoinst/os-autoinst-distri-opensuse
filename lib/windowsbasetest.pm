@@ -161,7 +161,6 @@ sub wait_boot_windows {
         assert_and_click 'windows-close-lockscreen';
         wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
 
-
         # These commands disable notifications that Windows shows randomly and
         # make our windows lose focus
         $self->open_powershell_as_admin;
