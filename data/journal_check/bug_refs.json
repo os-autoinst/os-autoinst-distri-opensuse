@@ -236,7 +236,7 @@
     "bsc#1211719": {
         "description": "kernel: sclp_sd: Store Data request failed \\(eq=2, di=3, response=0x40f0, flags=0x00, status=0, rc=-5\\)",
         "products": {
-            "sle": ["15-SP6", "15-SP5"]
+            "sle": ["15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -317,7 +317,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -628,7 +628,7 @@
     "Truncating stdout of dmi_memory_id": {
         "description": "Truncating stdout of 'dmi_memory_id' up to .* byte",
         "products": {
-            "sle": ["15-SP6"]
+            "sle": ["15-SP6", "15-SP7"]
         },
         "type": "ignore"
     },
@@ -642,7 +642,7 @@
     "combustion_test_prepare": {
         "description": "combustion: test_prepare function ran OK",
         "products": {
-            "sle": ["15-SP5","15-SP6"],
+            "sle": ["15-SP5","15-SP6","15-SP7"],
             "sle-micro": ["5.4","5.5", "6.0"],
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
@@ -674,7 +674,7 @@
     "minimal vm cloud image - gpt": {
         "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|\\d+ != \\d+)",
         "products": {
-            "sle": ["15-SP6"],
+            "sle": ["15-SP6", "15-SP7"],
             "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
