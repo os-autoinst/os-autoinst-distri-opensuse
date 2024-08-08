@@ -63,10 +63,18 @@ sub run {
     # Start Firefox
     $self->start_firefox_with_profile;
 
+    # until is 128 version on all versions
+    send_key 'alt-tab';
+    wait_still_screen 1;
+    my $version = script_output q(firefox --version|awk -F "[ .]" '{print $3}');
+    my $key = ($version >= 128) ? 'd' : 'l';
+    send_key 'alt-tab';
+    wait_still_screen 1;
+
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
     send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
-    send_key 'spc';
+    send_key 'spc' if $version < 128;
     assert_screen('firefox-passwd-master_setting');
     # We should use strong password due to bsc#1208951
     type_string $masterpw, 150;
@@ -92,7 +100,14 @@ sub run {
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
-    send_key_until_needlematch 'firefox-saved-logins-button', 'alt-shift-l', 6, 1;
+    if ($version >= 128) {
+        # jump to logins, alt-shift-d does not rotate between multiple places :(
+        wait_still_screen(1);
+        send_key 'alt-shift-f';
+        send_key 'alt-shift-f';
+        send_key "alt-shift-$key";
+    }
+    send_key_until_needlematch 'firefox-saved-logins-button', "alt-shift-$key", 6, 1;
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
