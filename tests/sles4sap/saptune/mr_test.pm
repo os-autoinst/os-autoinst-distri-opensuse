@@ -9,7 +9,7 @@
 
 use strict;
 use warnings;
-use base "sles4sap";
+use base 'sles4sap';
 use autotest;
 use testapi;
 use serial_terminal 'select_serial_terminal';

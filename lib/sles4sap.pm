@@ -397,7 +397,7 @@ sub prepare_profile {
  _do_mount( $proto, $path, $target);
 
 Performs a call to the mount command (used by both C<mount_media> and C<copy_media>) with
-appropiate options depending on the protocol. Function internal to the class.
+appropriate options depending on the protocol. Function internal to the class.
 
 =cut
 
@@ -575,7 +575,8 @@ user cannot create as many processes as root.
 sub test_forkbomb {
     my $script = 'forkbomb.pl';
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$script -o /tmp/$script; chmod +x /tmp/$script";
-    # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
+    # The systemd-run command generates syslog output that may end up in the console,
+    # so save the output to a file
     assert_script_run "systemd-run --slice user -qt su - $sapadmin -c /tmp/$script | tr -d '\\r' > /tmp/user-procs", 600;
     my $user_procs = script_output "cat /tmp/user-procs";
     my $root_procs = script_output "/tmp/$script", 600;
@@ -618,7 +619,7 @@ sub test_instance_properties {
  $self->test_stop();
 
 Tests with B<sapcontrol> and functions B<Stop> and B<StopService> that the instance
-and services are succesfully stopped. Croaks on failure.
+and services are successfully stopped. Croaks on failure.
 
 =cut
 
@@ -1048,7 +1049,8 @@ sub startup_type {
     target_path=>$target_path);
 
 Unpacks and prepares swpm package from specified source dir into target directory using SAPCAR tool.
-After extraction it checks for 'sapinst' executable being present in target path. Croaks if executable is missing.
+After extraction it checks for 'sapinst' executable being present in target path.
+Croaks if executable is missing.
 
 B<sapcar_bin_path> Filename with full path to SAPCAR binary
 
@@ -1094,7 +1096,7 @@ Copies sapinst profile template from NFS to target dir and fills in required var
 
 B<profile_target_file> Full filename and path for sapinst install profile to be created
 
-B<profile_template_file> Template file location from which will the profile be sceated
+B<profile_template_file> Template file location from which will the profile be created
 
 B<sar_location_directory> Location of SAR files -  this is filled into template
 
@@ -1221,7 +1223,7 @@ sub get_nw_instance_name {
  $self->is_instance_type_supported($instance_type);
 
 Checks if instance type is supported.
-Returns $instance_type with sucess, croaks with missing argument or unsupported value detected.
+Returns $instance_type with success, croaks with missing argument or unsupported value detected.
 
 B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
 
@@ -1358,7 +1360,7 @@ Allows remote execution of webmethods between instances, however not all webmeth
 
 Sapcontrol return codes:
 
-    RC 0 = webmethod call was successfull
+    RC 0 = webmethod call was successful
     RC 1 = webmethod call failed
     RC 2 = last webmethod call in progress (processes are starting/stopping)
     RC 3 = all processes GREEN

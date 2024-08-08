@@ -6,7 +6,7 @@
 # Summary: Configure NetWeaver network
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
