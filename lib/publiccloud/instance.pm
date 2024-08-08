@@ -417,7 +417,7 @@ sub wait_for_ssh {
         while (($duration = time() - $start_time) < $args{timeout}) {
             # timeout recalculated removing consumed time until now
             # We don't support password authentication so it would just block the terminal
-            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => '-o PasswordAuthentication=no',
+            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => '-o PasswordAuthentication=no ' . $self->ssh_opts,
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
             # result check
             if ($sysout =~ m/initializing|starting/) {    # still starting
