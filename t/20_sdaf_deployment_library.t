@@ -154,12 +154,15 @@ subtest '[replace_tfvars_variables] Test correct variable replacement' => sub {
 
 subtest '[serial_console_diag_banner] ' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $printed_output;
-    $ms_sdaf->redefine(script_run => sub { $printed_output = $_[0]; return 1; });
-    my $correct_output = "#########################    Module: deploy_sdaf.pm    #########################";
+    my @printed_lines;
+    $ms_sdaf->redefine(enter_cmd => sub { push(@printed_lines, $_[0]); return 1; });
+    $ms_sdaf->redefine(wait_serial => sub { return 1; });
 
     serial_console_diag_banner('Module: deploy_sdaf.pm');
-    is $printed_output, $correct_output, "Print banner correctly in uppercase:\n$correct_output";
+    note("Banner:\n" . join("\n", @printed_lines));
+    is @printed_lines, 3, 'Banner consists of three text lines';
+    ok(grep { length($_) == length($printed_lines[1]) } @printed_lines, 'All banner lines must be equally long');
+    ok(grep(/Module: deploy_sdaf.pm/, @printed_lines), 'Banner must include message');
     dies_ok { serial_console_diag_banner() } 'Fail with missing test to be printed';
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
 };
