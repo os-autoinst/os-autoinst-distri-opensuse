@@ -101,7 +101,6 @@ sub cleanup {
     assert_script_run("deactivate");    # leave the virtual env
     assert_script_run("cd ..");
     script_run("rm -r data");
-
 }
 
 sub post_run_hook {
