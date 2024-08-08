@@ -7,7 +7,7 @@
 # Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;

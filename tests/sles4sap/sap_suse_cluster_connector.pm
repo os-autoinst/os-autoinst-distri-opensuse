@@ -6,7 +6,7 @@
 # Summary: Test sap_suse_cluster_connector command
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use hacluster;

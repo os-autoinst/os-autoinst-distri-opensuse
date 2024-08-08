@@ -7,7 +7,7 @@
 # Working both on plain SLE and SLES4SAP products
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_staging is_sle is_upgrade);

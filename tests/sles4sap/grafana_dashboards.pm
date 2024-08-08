@@ -6,7 +6,7 @@
 # Summary: Basic tests for HA & SAP grafana dashboards
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use strict;
 use warnings;

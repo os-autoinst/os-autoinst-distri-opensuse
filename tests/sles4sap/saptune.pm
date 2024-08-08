@@ -6,7 +6,7 @@
 # Summary: saptune availability test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils "zypper_call";

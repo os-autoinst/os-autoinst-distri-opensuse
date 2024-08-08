@@ -7,7 +7,7 @@
 # Requires: ENV variable NW pointing to installation media
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
