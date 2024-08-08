@@ -311,8 +311,7 @@ sub load_slem_on_pc_tests {
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
             loadtest("publiccloud/run_ltp", run_args => $args);
-        }
-        if (is_container_test) {
+        } elsif (is_container_test) {
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/instance_overview", run_args => $args);
             loadtest("publiccloud/slem_prepare", run_args => $args);
