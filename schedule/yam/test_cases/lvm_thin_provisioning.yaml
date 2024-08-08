@@ -5,8 +5,6 @@ description: >
   2 LVM and BIOS boot partitions. Thin pool and thin lv reside on the second
   LVM partition, where /home (XFS) is being mounted. Partitioning is validated
   in the booted system after the installation.
-vars:
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop
