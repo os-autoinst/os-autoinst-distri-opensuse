@@ -183,4 +183,17 @@ sub cleanup {
     $self->SUPER::cleanup();
 }
 
+sub query_metadata {
+    my ($self, $instance, %args) = @_;
+
+    # Cloud metadata service API is reachable at local destination
+    # 169.254.169.254 in case of all public cloud providers.
+    my $pc_meta_api_ip = '169.254.169.254';
+
+    my $query_meta_ipv4_cmd = qq(curl -H "Metadata-Flavor: Google" "http://$pc_meta_api_ip/computeMetadata/v1/instance/network-interfaces/0/ip");
+    my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
+
+    return $data;
+}
+
 1;

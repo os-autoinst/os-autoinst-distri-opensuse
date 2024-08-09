@@ -783,4 +783,8 @@ sub get_state_from_instance
     die('get_state_from_instance() isn\'t implemented');
 }
 
+sub query_metadata {
+    die('query_metadata() isn\'t implemented');
+}
+
 1;
