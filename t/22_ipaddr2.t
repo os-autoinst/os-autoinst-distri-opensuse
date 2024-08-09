@@ -41,8 +41,8 @@ subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
 
     ok(($#calls > 0), "There are some command calls");
     ok((none { /az storage account create/ } @cmds), 'Do not create storage');
-    ok((any { /az vm create.*custom-data/ } @cmds), 'Cloud-init enabled by default');
-    ok((any { /sudo cloud-init status/ } @cmds), 'Cloud-init enabled by default');
+    ok((any { /az vm create.*custom-data/ } @cmds), 'az vm create has custom-data. Cloud-init enabled by default');
+    ok((any { /sudo cloud-init status/ } @cmds), 'Wait cloud-init status. Cloud-init enabled by default');
     like($cloud_init_content, qr/nginx/, "cloud-init script is also about nginx");
     unlike($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
 };
@@ -101,6 +101,58 @@ subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
+    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
+
+    # push th elist of commands in another list, this one withour the source
+    # In this way it is easier to inspect the content
+    my @cmds;
+    for my $call_idx (0 .. $#calls) {
+        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+        push @cmds, $calls[$call_idx][1];
+    }
+
+    # Todo : expand it
+    ok(($#calls > 0), "There are some command calls");
+    ok((none { /az storage account create/ } @cmds), 'Do not create storage');
+    ok((none { /az vm create.*custom-data/ } @cmds), 'custom-data not in az vm create when cloud-init is disabled');
+    ok((none { /sudo cloud-init status/ } @cmds), 'No wait cloud-init when cloud-init is disabled');
+};
+
+subtest '[ipaddr2_azure_deployment] cloud-init and byos' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
+    $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
+    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    dies_ok {
+        ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS');
+    } "cloud-init is enabled by default and image is BYOS";
+
+    for my $call_idx (0 .. $#calls) {
+        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+
+    ok((!@calls), 'There are ' . $#calls . ' command calls and none expected');
+};
+
+subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
+    $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return; });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
@@ -355,6 +407,199 @@ subtest '[ipaddr2_deployment_logs]' => sub {
     ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
 
+subtest '[ipaddr2_crm_move]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub {
+            my (%args) = @_;
+            return 'UT-VM-' . $args{id}; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd}; });
+
+    ipaddr2_crm_move(destination => 24);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /crm resource move rsc_web_00.*24/ } @calls), "Expected crm command called");
+};
+
+subtest '[ipaddr2_wait_for_takeover]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am ip2t-vm-042'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = ipaddr2_wait_for_takeover(destination => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(($ret eq 1), "Expected result 1 get $ret");
+    ok((any { /ssh.*1.2.3.4.*curl.*http.*192.168.0.50/ } @calls), "Expected curl command called");
+};
+
+subtest '[ipaddr2_wait_for_takeover] timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am Galileo Galilei.'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = ipaddr2_wait_for_takeover(destination => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(($ret eq 0), "Expected result 1 get $ret");
+};
+
+subtest '[ipaddr2_test_master_vm]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return only good vibes
+            if ($args{cmd} =~ /crm resource failcount/) {
+                $out = 'value=0';
+            } elsif ($args{cmd} =~ /crm resource locate/) {
+                $out = 'is running on: ip2t-vm-042';
+            } elsif ($args{cmd} =~ /ip a show eth0/) {
+                $out = '192.168.0.50';
+            } elsif ($args{cmd} =~ /ps -xa/) {
+                $out = '12345   ?   S 12:34  nginx';
+            } else {
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    ipaddr2_test_master_vm(id => 42);
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
+subtest '[ipaddr2_test_master_vm] crm failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return non zero failcount
+            if ($args{cmd} =~ /crm resource failcount/) {
+                $out = "value=1";
+            } elsif ($args{cmd} =~ /crm resource locate/) {
+                $out = "is running on: ip2t-vm-042";
+            } elsif ($args{cmd} =~ /ip a show eth0/) {
+                $out = '192.168.0.50';
+            } else {
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_output => sub {
+            my (%args) = @_;
+            my $out = "nginx";
+            push @calls, ["BASTION", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for failcount";
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+};
+
+subtest '[ipaddr2_test_master_vm] web failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+
+    # Simulate a failure in curl response
+    $ipaddr2->redefine(ipaddr2_get_web => sub { return 0; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return only good vibes
+            if ($args{cmd} =~ /crm resource failcount/) {
+                $out = "value=0";
+            } elsif ($args{cmd} =~ /crm resource locate/) {
+                $out = "is running on: ip2t-vm-042";
+            } elsif ($args{cmd} =~ /ip a show eth0/) {
+                $out = '192.168.0.50';
+            } else {
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_output => sub {
+            my (%args) = @_;
+            my $out = "nginx";
+            push @calls, ["BASTION", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for web failure";
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+};
+
+subtest '[ipaddr2_test_master_vm] nginx not running' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return only good vibes
+            if ($args{cmd} =~ /crm resource failcount/) {
+                $out = "value=0";
+            } elsif ($args{cmd} =~ /crm resource locate/) {
+                $out = "is running on: ip2t-vm-042";
+            } else {
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_output => sub {
+            my (%args) = @_;
+            my $out = "galileo.galilei";
+            push @calls, ["BASTION", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for nginx not running";
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
 
 subtest '[ipaddr2_cluster_sanity]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);

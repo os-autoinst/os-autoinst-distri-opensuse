@@ -28,6 +28,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
+    ipaddr2_os_cloud_init_logs();
     ipaddr2_destroy();
     $self->SUPER::post_fail_hook;
 }

@@ -39,6 +39,9 @@ our @EXPORT = qw(
   ipaddr2_internal_key_gen
   ipaddr2_registeration_check
   ipaddr2_registeration_set
+  ipaddr2_crm_move
+  ipaddr2_wait_for_takeover
+  ipaddr2_test_master_vm
   ipaddr2_os_cloud_init_logs
 );
 
@@ -721,9 +724,9 @@ sub ipaddr2_cluster_sanity {
 
     die "Issue in the cluster health" if cluster_status_matches_regex($crm_status);
 
-    #ipaddr2_ssh_internal(id => $args{id},
-    #    cmd => $crm_mon_cmd,
-    #    bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => "sudo $crm_mon_cmd",
+        bastion_ip => $args{bastion_ip});
 
     my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
         cmd => 'sudo crm configure show',
@@ -1229,7 +1232,7 @@ sub ipaddr2_create_cluster {
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
             'sudo crm configure group',
-            'rsc_grp_00', 'rsc_alb_00', 'rsc_ip_00'),
+            'rsc_grp_00', 'rsc_alb_00', 'rsc_ip_00', WEB_RSC),
         bastion_ip => $args{bastion_ip});
 
     ipaddr2_ssh_internal(id => 1,
@@ -1424,6 +1427,193 @@ sub ipaddr2_get_worker_tmp_for_internal_vm {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
     return "/tmp/" . ipaddr2_get_internal_vm_name(id => $args{id});
+}
+
+=head2 ipaddr2_crm_move
+
+    ipaddr2_crm_move(destination => 2);
+
+move the rsc_web_00 resource to the indicated node
+
+=over 2
+
+=item B<destination> - VM id where to move the rsc_web_00 resource
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_crm_move {
+    my (%args) = @_;
+    croak("Argument < destination > missing") unless $args{destination};
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $cmd = join(' ',
+        'sudo crm resource move',
+        WEB_RSC,
+        ipaddr2_get_internal_vm_name(id => $args{destination}));
+    ipaddr2_ssh_internal(id => 1,
+        cmd => $cmd,
+        bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_wait_for_takeover
+
+    die "Takeover does not happens in time" unless  ipaddr2_wait_for_takeover(destination => 2);
+
+Wait that web server is responding from the node indicated by id.
+This check is implemented running a curl request from the bastion
+and using the virtual IP address ar URL.
+This is possible because the webserver on each node is configured 
+to return its hostname in the response.
+Return 1 as soon as it gets the id in the response. Return 0 if not within 10 minutes.
+
+=over 2
+
+=item B<destination> - VM id that from where the web server response is expected to come from
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_wait_for_takeover {
+    my (%args) = @_;
+    croak("Argument < destination > missing") unless $args{destination};
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $counter = 0;
+    my $dest_vm = ipaddr2_get_internal_vm_name(id => $args{destination});
+
+    while ($counter < 60) {
+        if (ipaddr2_get_web(
+                bastion_ip => $args{bastion_ip},
+                web_url => $frontend_ip,
+                str_match => $dest_vm)) {
+            record_info("TAKE_OVER", "Webserver now reply from $dest_vm");
+            return 1;
+        }
+        sleep 10;
+        $counter++;
+    }
+    return 0;
+}
+
+=head2 ipaddr2_get_web
+
+    ipaddr2_get_web(str_match => 'openqa_vm_01');
+
+Runs a curl request from the bastion and using the virtual IP address as URL.
+Return result of searching str_match in the curl response
+
+=over 3
+
+=item B<web_url> - webserver url
+
+=item B<str_match> - string to search in the curl output
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_get_web {
+    my (%args) = @_;
+    foreach (qw(web_url str_match)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $curl_ret = ipaddr2_ssh_bastion_script_output(
+        bastion_ip => $args{bastion_ip},
+        cmd => "curl -s http://$args{web_url}");
+
+    return ($curl_ret =~ m/$args{str_match}/);
+}
+
+=head2 ipaddr2_test_master_vm
+
+    ipaddr2_test_master_vm(id => 2);
+
+Check the status on the VM that is supposed to have
+the resources.
+
+=over 2
+
+=item B<id> - VM id that is expected to be master
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_test_master_vm {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    # check on the cluster side
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo crm status',
+        bastion_ip => $args{bastion_ip});
+
+    my $vm = ipaddr2_get_internal_vm_name(id => $args{id});
+    my $res;
+    foreach my $resource (qw(rsc_web_00 rsc_alb_00 rsc_ip_00)) {
+        $res = ipaddr2_ssh_internal_output(
+            id => $args{id},
+            cmd => "sudo crm resource failcount $resource show $vm",
+            bastion_ip => $args{bastion_ip});
+        die "Fail count is not 0 for resource $resource in $vm" unless ($res =~ m/value=0/);
+
+        $res = ipaddr2_ssh_internal_output(
+            id => $args{id},
+            cmd => "sudo crm resource locate $resource",
+            bastion_ip => $args{bastion_ip});
+        die "Resource $resource is not running on $vm" unless ($res =~ m/is running on: $vm/);
+    }
+
+    # check on the web server side
+    # test that the web page is reachable from the bastion
+    # using the Azure LB front end IP
+    die "The web server is not running on $vm" unless ipaddr2_get_web(
+        bastion_ip => $args{bastion_ip},
+        web_url => $frontend_ip,
+        str_match => $vm);
+    # test that the web page is reachable from the bastion
+    # using the VM hostname where the web server is supposed to run
+    die "The web server is not running on $vm" unless ipaddr2_get_web(
+        bastion_ip => $args{bastion_ip},
+        web_url => $vm,
+        str_match => $vm);
+
+    my $ps_ret = ipaddr2_ssh_internal_output(
+        id => $args{id},
+        cmd => 'ps -xa',
+        bastion_ip => $args{bastion_ip});
+    die "Nginx process not running on $vm" unless ($ps_ret =~ m/nginx/);
+
+    # check IP
+    $res = ipaddr2_ssh_internal_output(
+        id => $args{id},
+        cmd => 'ip a show eth0',
+        bastion_ip => $args{bastion_ip});
+    die "VirtualIP $frontend_ip should be on $vm" unless ($res =~ m/$frontend_ip/);
 }
 
 1;
