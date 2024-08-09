@@ -10,14 +10,9 @@ use strict;
 use warnings;
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner
-  az_login
-  sdaf_prepare_private_key
-  );
+  qw(serial_console_diag_banner az_login sdaf_prepare_private_key);
 use sles4sap::sap_deployment_automation_framework::deployment_connector
-  qw(get_deployer_vm
-  get_deployer_ip
-  );
+  qw(get_deployer_vm_name get_deployer_ip find_deployment_id);
 use serial_terminal qw(select_serial_terminal);
 
 sub test_flags {
@@ -28,7 +23,7 @@ sub run {
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : start');
     az_login();
 
-    my $deployer_vm_name = get_deployer_vm;
+    my $deployer_vm_name = get_deployer_vm_name(deployment_id => find_deployment_id());
     # VM can be created by scheduling 'tests/sles4sap/sap_deployment_automation_framework/create_deployer_vm.pm'
     die 'Deployer VM not found. Check if VM exists.' unless $deployer_vm_name;
     record_info('VM found', "Deployer VM found: $deployer_vm_name");
