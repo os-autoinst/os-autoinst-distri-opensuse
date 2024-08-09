@@ -12,19 +12,12 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats patch_logfile enable_modules);
+use containers::bats qw(install_bats install_ncat patch_logfile enable_modules);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
 my $netavark = "";
 my $netavark_version = "";
-
-sub install_ncat {
-    my $ncat_version = get_required_var("NCAT_VERSION");
-
-    assert_script_run "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm";
-    assert_script_run "ln -sf /usr/bin/ncat /usr/bin/nc";
-}
 
 sub run_tests {
     my $log_file = "netavark.tap";

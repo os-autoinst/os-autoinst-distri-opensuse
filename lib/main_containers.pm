@@ -302,7 +302,7 @@ sub load_container_tests {
             loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle || is_leap || is_sle_micro('>=5.5'));
         }
         if (!check_var('PODMAN_BATS_SKIP', 'all')) {
-            loadtest 'containers/podman_integration';
+            loadtest 'containers/podman_integration' if (is_x86_64);
         }
         if (!check_var('RUNC_BATS_SKIP', 'all')) {
             loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle || is_leap);

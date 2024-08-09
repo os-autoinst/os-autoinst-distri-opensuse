@@ -21,7 +21,14 @@ use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
-our @EXPORT = qw(install_bats install_htpasswd remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
+our @EXPORT = qw(install_bats install_htpasswd install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
+
+sub install_ncat {
+    my $ncat_version = get_required_var("NCAT_VERSION");
+
+    assert_script_run "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm";
+    assert_script_run "ln -sf /usr/bin/ncat /usr/bin/nc";
+}
 
 sub install_htpasswd {
     return if (script_run("which htpasswd") == 0);
