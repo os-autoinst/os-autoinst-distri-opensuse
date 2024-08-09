@@ -16,6 +16,7 @@ use mmapi 'get_current_job_id';
 use sles4sap::azure_cli;
 use publiccloud::utils;
 use utils qw(write_sut_file);
+use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 
 =head1 SYNOPSIS
@@ -32,27 +33,32 @@ our @EXPORT = qw(
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
+  ipaddr2_cluster_sanity
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_registeration_check
   ipaddr2_registeration_set
+  ipaddr2_os_cloud_init_logs
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
+use constant WEB_RSC => 'rsc_web_00';
 
 our $user = 'cloudadmin';
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
 our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
-# Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
+# Storage account name must be between 3 and 24 characters in length
+# and use numbers and lower-case letters only.
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
 our $key_id = 'id_rsa';
 our @nginx_cmds = (
     'sudo zypper install -y nginx',
-    'sudo echo "I am $(hostname)" > /srv/www/htdocs/index.html',
+    'echo "I am $(hostname)" > /tmp/index.html',
+    'sudo cp /tmp/index.html /srv/www/htdocs/index.html',
     'sudo systemctl enable --now nginx.service');
 
 =head2 ipaddr2_azure_resource_group
@@ -88,7 +94,7 @@ Create a deployment in Azure designed for this specific test.
 1. Create a resource group to contain all
 2. Create a vnet and subnet in it
 3. Create one Public IP
-4. Create 2 VM to run the cluster, both running a webserver and that are behind the LB
+4. Create 2 VM to run the cluster, both running a web server and that are behind the LB
 5. Create 1 additional VM that get
 6. Create a Load Balancer with 2 VM in backend and with an IP as frontend
 
@@ -107,7 +113,7 @@ Create a deployment in Azure designed for this specific test.
                       the image registration. This feature could be problematic
                       when testing maintenance update: problem is that the config file
                       also perform a `zypper patch`. It happens at the first boot
-                      during the deployment so before anyother part of the test can add
+                      during the deployment so before any other part of the test can add
                       additional repo to test.
 
 =item B<scc_code> - if cloudinit is enabled, it is also possible to add
@@ -648,7 +654,8 @@ sub ipaddr2_deployment_sanity {
         # Expected return is
         # [ "PowerState/running", "VM running" ]
         $count = grep(/running/, @$res);
-        die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
+        # 2 is two occurrence of the word 'running' for one VM
+        die "VM $vm is not fully running" unless $count eq 2;
     }
 }
 
@@ -682,6 +689,55 @@ sub ipaddr2_os_sanity {
             cmd => 'sudo systemctl is-system-running',
             bastion_ip => $args{bastion_ip});
     }
+
+    ipaddr2_os_cloud_init_sanity(bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_cluster_sanity
+
+    ipaddr2_cluster_sanity()
+
+Run some cluster level checks...
+
+=over 2
+
+=item B<id> - ID of the internal VM where to run the crm commands. Default is 1.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_cluster_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{id} //= 1;
+
+    my $crm_status = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo crm status',
+        bastion_ip => $args{bastion_ip});
+
+    die "Issue in the cluster health" if cluster_status_matches_regex($crm_status);
+
+    #ipaddr2_ssh_internal(id => $args{id},
+    #    cmd => $crm_mon_cmd,
+    #    bastion_ip => $args{bastion_ip});
+
+    my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo crm configure show',
+        bastion_ip => $args{bastion_ip});
+
+    my @resources = $crm_configure =~ /primitive/g;
+    die "Cluster on VM $args{id} has " . scalar @resources . " primitives instead of expected 3" unless (scalar @resources) eq 3;
+
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => '[ -f /usr/lib/ocf/resource.d/heartbeat/nginx ]',
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'rpm -qf /usr/lib/ocf/resource.d/heartbeat/nginx',
+        bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_os_connectivity_sanity
@@ -724,6 +780,82 @@ sub ipaddr2_os_connectivity_sanity {
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
             }
+        }
+    }
+}
+
+=head2 ipaddr2_os_cloud_init_sanity
+
+    ipaddr2_os_cloud_init_sanity()
+
+Run some checks about cloud-init
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_cloud_init_sanity {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $id (1 .. 2) {
+        foreach (
+            'grep -E "root|cloudadmin|hacluster" /etc/passwd',
+            'zypper se -s -i cloud-init',
+            'cloud-init -v',
+            'cloud-init status --wait --long',
+            'sudo systemctl status \
+              cloud-init-local.service \
+              cloud-init.service \
+              cloud-config.service \
+              cloud-final.service') {
+            ipaddr2_ssh_internal(id => $id,
+                cmd => $_,
+                bastion_ip => $args{bastion_ip});
+        }
+    }
+}
+
+=head2 ipaddr2_os_cloud_init_logs
+
+    ipaddr2_os_cloud_init_logs()
+
+Collect some cloud-init related logs
+
+=over 1
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_os_cloud_init_logs {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    foreach my $id (1 .. 2) {
+        foreach (
+            'sudo cat /var/log/cloud-init.log',
+            'sudo cat /var/log/cloud-init-output.log',
+            'sudo cloud-init collect-logs',
+            'sudo cloud-init analyze show',
+            'sudo cloud-init analyze dump',
+            'sudo cloud-init analyze blame',
+            'sudo cloud-init analyze boot || echo "rc:$?"',
+            'sudo cloud-init schema --system',
+            'sudo dmesg -T | grep -i -e warning -e error -e fatal -e exception',
+            'tail -n 3 /run/cloud-init/ds-identify.log'
+        ) {
+            ipaddr2_ssh_internal(id => $id,
+                cmd => $_,
+                bastion_ip => $args{bastion_ip});
         }
     }
 }
@@ -1076,6 +1208,18 @@ sub ipaddr2_create_cluster {
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
             'sudo crm configure primitive',
+            WEB_RSC,
+            'ocf:heartbeat:nginx',
+            'configfile=/etc/nginx/nginx.conf',
+            'op start timeout="40s" interval="0"',
+            'op stop timeout="60s" interval="0"',
+            'op monitor interval="10s" timeout="60s"',
+            'meta migration-threshold="10"'),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => join(' ',
+            'sudo crm configure primitive',
             'rsc_alb_00',
             'azure-lb',
             'port=62500',
@@ -1177,7 +1321,7 @@ sub ipaddr2_registeration_set {
 
 This function is in charge to:
     1. install the nginx package
-    2. create a webpage file
+    2. create a web page file
     3. enable and start the system
 
 =over 2
@@ -1199,6 +1343,7 @@ sub ipaddr2_configure_web_server {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
+        timeout => 180,
         bastion_ip =>
           $args{bastion_ip}) for (@nginx_cmds);
 }

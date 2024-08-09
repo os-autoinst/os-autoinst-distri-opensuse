@@ -355,6 +355,40 @@ subtest '[ipaddr2_deployment_logs]' => sub {
     ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
 
+
+subtest '[ipaddr2_cluster_sanity]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""];
+            return;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return only good vibes
+            if ($args{cmd} =~ /crm status/) {
+                $out = "Some generic string that is good for cluster_status_matches_regex";
+            } elsif ($args{cmd} =~ /crm configure show/) {
+                $out = "primitive primitive primitive that is what the ipaddr2_cluster_sanity wants";
+            } else {
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    ipaddr2_cluster_sanity();
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
 subtest '[ipaddr2_configure_web_server]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
@@ -423,6 +457,24 @@ subtest '[ipaddr2_registeration_set]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
     ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
+};
+subtest '[ipaddr2_os_cloud_init_logs]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}, ""];
+            return;
+    });
+
+    ipaddr2_os_cloud_init_logs();
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
 };
 
 done_testing;
