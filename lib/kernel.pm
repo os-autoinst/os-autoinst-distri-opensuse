@@ -46,6 +46,7 @@ sub remove_kernel_packages {
         push @packages, qw(kernel-xen kernel-xen-devel);
     }
 
+    my @retlist = @packages;
     push @packages, "multipath-tools"
       if is_sle('>=15-SP3') and !get_var('KGRAFT');
 
@@ -55,7 +56,7 @@ sub remove_kernel_packages {
         zypper_call('-n rm ' . join(' ', @packages), exitcode => [0, 104]);
     }
 
-    return @packages;
+    return @retlist;
 }
 
 1;

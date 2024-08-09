@@ -35,6 +35,7 @@ our @EXPORT = qw(
   trup_shell
   get_utt_packages
   enter_trup_shell
+  exit_trup_shell
   exit_trup_shell_and_reboot
   reboot_on_changes
   record_kernel_audit_messages
@@ -320,9 +321,27 @@ sub enter_trup_shell {
 
     $args{global_options} //= '';
     $args{shell_options} //= '';
-    enter_cmd("transactional-update $args{global_options} shell $args{shell_options}; echo trup_shell-status-\$? > /dev/$serialdev");
-    wait_still_screen;
+
+    script_start_io("transactional-update $args{global_options} shell $args{shell_options}");
+    wait_still_screen unless is_serial_terminal;
     assert_script_run("uname -a");
+}
+
+=head2 exit_trup_shell
+
+  exit_trup_shell()
+
+Quit transactional update shell without rebooting.
+
+=cut
+
+sub exit_trup_shell {
+    my %args = @_;
+
+    $args{exitcodes} //= [0];
+    enter_cmd("exit");
+    script_finish_io(%args);
+    wait_still_screen unless is_serial_terminal;
 }
 
 =head2 exit_trup_shell_and_reboot
@@ -335,9 +354,7 @@ reboot to take effect. This subroutine should be used together with enter_trup_s
 =cut
 
 sub exit_trup_shell_and_reboot {
-    enter_cmd("exit");
-    wait_serial('trup_shell-status-0') || croak("transactional-update shell did not finish");
-    wait_still_screen;
+    exit_trup_shell(@_);
     reboot_on_changes();
 }
 
