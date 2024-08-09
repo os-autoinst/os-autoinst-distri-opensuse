@@ -1,4 +1,4 @@
-# Copyright SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Trento restore stopped HANA DB
@@ -37,6 +37,10 @@ sub run {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     # vmhana01 hard-coded in place of the generic Ansible filter from $primary_host.
     # The Ansible generic filter is only valid for Ansible, here it is crm.
+    # # From SLE16 SAPHanaSR package will be deprecated and SAPHanaSR-angi takes it place
+    # # Then something like the following will be necessary to integrate to the code hereafter
+    # # my $rsc_name = get_var('USE_SAP_HANA_SR_ANGI') ? "SAPHanaCtl" : "SAPHana";
+    # # qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_${rsc_name}_HDB_HDB00 vmhana01", provider => $prov, filter => $primary_host);
     qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01",
         provider => $prov,
         filter => $primary_host);

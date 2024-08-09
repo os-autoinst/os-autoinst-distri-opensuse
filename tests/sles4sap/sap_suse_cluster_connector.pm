@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019, 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test sap_suse_cluster_connector command
@@ -65,15 +65,17 @@ sub run {
     }
 
     # List nodes
-    my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : ('ip', 'SAPHanaTopology', 'SAPHana');
+    my @hana_resources = get_var('USE_SAP_HANA_SR_ANGI') ? ('ip', 'SAPHanaFil', 'SAPHanaTpg', 'SAPHanaCtl') : ('ip', 'SAPHanaTpg', 'SAPHana');
+    my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : @hana_resources;
     foreach my $rsc_type (@resources) {
-        my $rsc = "rsc_${rsc_type}_${instance_sid}_${instance_type}${instance_id}";
+        my $rsc = "rsc_${rsc_type}_${instance_sid}_$instance_type$instance_id";
         wait_for_idle_cluster;
         exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
     }
 
     # Test Stop/Start of SAP resource
-    my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
+    my $hana_resource_name = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${instance_sid}_$instance_type$instance_id" : "rsc_SAPHana_${instance_sid}_$instance_type$instance_id";
+    my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_$instance_type$instance_id" : $hana_resource_name;
     wait_for_idle_cluster;
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
     wait_until_resources_stopped(timeout => 1200);
