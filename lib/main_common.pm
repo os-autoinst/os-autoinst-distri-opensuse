@@ -11,7 +11,7 @@ use base Exporter;
 use File::Basename;
 use File::Find;
 use Exporter;
-use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
+use testapi qw(check_var get_var get_required_var set_var check_var_array get_var_array diag);
 use autotest;
 use utils;
 use wicked::TestContext;
@@ -2435,8 +2435,80 @@ sub load_host_installation_modules {
     loadtest "installation/reboot_after_installation";
 }
 
+sub set_mu_virt_vars {
+    # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l)
+    my $BUILD = get_var('BUILD', '');
+    $BUILD =~ /^:(\d+):([^:]+)$/im;
+
+    die "BUILD value is $BUILD, but does not match required format." if (!$2);
+
+    my $_pkg = $2;
+    my $_update_package = '';
+    if ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
+        $_update_package = $_pkg;
+    } elsif ($_pkg =~ /libvirt/) {
+        $_update_package = 'libvirt-client';
+    } else {
+        $_update_package = 'kernel-default';
+    }
+
+    set_var('UPDATE_PACKAGE', $_update_package);
+    diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
+
+    # Set PATCH_WITH_ZYPPER
+    set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
+
+    # Set AUTOYAST
+    if (check_var('HOST_INSTALL_AUTOYAST', 1) or check_var('AUTOYAST', 1)) {
+        if (is_sle('15+')) {
+            set_var('AUTOYAST', 'virtualization/autoyast/host_15.xml.ep');
+        } elsif (is_sle('12+')) {
+            set_var('AUTOYAST', 'virtualization/autoyast/host_12.xml.ep');
+        }
+    }
+
+    # Set PXE_PRODUCT_NAME
+    my $pxe_product_name = "SLE-" . get_required_var('VERSION');
+    if (is_sle('15+')) {
+        $pxe_product_name .= "-Full-LATEST";
+    } elsif (is_sle('12+')) {
+        $pxe_product_name .= "-Server-GM";
+    }
+    set_var('PXE_PRODUCT_NAME', $pxe_product_name);
+
+    # Set SCC_REGCODE_LTSS(for host)
+    my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
+    # $product final format: 12.5, 15.4, 15
+    my $product = get_required_var('VERSION');
+    $product =~ s/-SP/\./i;
+    diag("Host product is $product.");
+    if (exists $ltss_products{"$product"}) {
+        set_var('SCC_REGCODE_LTSS', $ltss_products{"$product"});
+    }
+
+    # Set SCC_ADDONS
+    my $scc_addons = '';
+    $scc_addons .= 'ltss' if (exists $ltss_products{"$product"});
+    if (is_sle('15+')) {
+        $scc_addons .= ',' if ($scc_addons);
+        $scc_addons .= 'base,sdk,serverapp,desktop';
+    }
+    set_var('SCC_ADDONS', "$scc_addons");
+
+    # Set TERADATA
+    if (get_var('INCIDENT_REPO', '') =~ /TERADATA/) {
+        set_var('TERADATA', get_var('VERSION'));
+    }
+
+    # Save vars
+    bmwqemu::save_vars();
+}
+
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+
+    # Some vars will affect loadtest logic, so need to be run on top
+    set_mu_virt_vars;
 
     if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
         if (get_var('AUTOYAST')) {
