@@ -646,9 +646,10 @@ sub ha_export_logs {
     upload_logs($mdadm_conf, failok => 1);
 
     # supportconfig
-    my $ret = script_run "supportconfig -g -B $clustername", 300, die_on_timeout => 0;
+    enter_cmd "supportconfig -g -B $clustername; echo DONE-\$?- > /dev/$serialdev";
+    my $ret = wait_serial qr/DONE-\d+-/, timeout => 300;
     # Make it softfail for not blocking qem bot auto approvals on 12-SP5
-    # Command 'supportconfig' hangs on 12-SP5, script_run timed out and returned 'undef'
+    # Command 'supportconfig' hangs on 12-SP5, wait_serial times out and returns 'undef'
     if (!defined($ret) && is_sle("=12-SP5")) {
         record_soft_failure 'poo#151612';
         # Send 'ctrl-c' to kill 'supportconfig' as it hangs
@@ -780,7 +781,7 @@ sub wait_until_resources_started {
     push @cmds, "grep -iq 'no inactive resources' <($crm_mon_cmd)" if is_sle '12-sp3+';
     push @cmds, "! (grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting' <($crm_mon_cmd))";
 
-    # Execute each comnmand to validate that the cluster is running
+    # Execute each command to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
     foreach my $cmd (@cmds) {
         # Each command execution has its own timeout, so we need to reset the counter
@@ -1398,8 +1399,8 @@ sub crm_check_resource_location {
     my $out;
     my $current_location;
 
-    my $start_time = time;
-    while (time < ($start_time + $timeout)) {
+    my $start_time = time();
+    while (time() < ($start_time + $timeout)) {
         $out = script_output($cmd);
         $current_location = (split(': ', $out))[-1];
         return ($current_location) unless ($wait_for_target);
