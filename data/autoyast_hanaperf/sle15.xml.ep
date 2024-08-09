@@ -35,10 +35,10 @@
         <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Basesystem-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+	<media_url><![CDATA[<%= $get_var->('MIRROR_HTTP') %>]]></media_url>
         <product_dir>/Module-Basesystem</product_dir>
         % }
-        <name>SLE-Module-Basesystem-GM</name>
+        <name>SLE-Module-Basesystem</name>
         <product>sle-module-basesystem</product>
       </listentry>
       <listentry>
@@ -47,10 +47,10 @@
         <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Server-Applications-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+	<media_url><![CDATA[<%= $get_var->('MIRROR_HTTP') %>]]></media_url>
         <product_dir>/Module-Server-Applications</product_dir>
         % }
-        <name>SLE-Module-Server-Applications-GM</name>
+        <name>SLE-Module-Server-Applications</name>
         <product>sle-module-server-applications</product>
       </listentry>
       <listentry>
@@ -59,10 +59,10 @@
         <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Legacy-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         <product_dir>/</product_dir>
         % } else {
-        <media_url><![CDATA[http://dist.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+	<media_url><![CDATA[<%= $get_var->('MIRROR_HTTP') %>]]></media_url>
         <product_dir>/Module-Legacy</product_dir>
         % }
-        <name>SLE-Module-Legacy-GM</name>
+        <name>SLE-Module-Legacy</name>
         <product>sle-module-legacy</product>
       </listentry>
     </add_on_products>
