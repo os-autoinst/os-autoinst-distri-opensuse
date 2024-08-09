@@ -1,0 +1,331 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email><%= $get_var->('SCC_EMAIL') %></email>
+    <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    % if (keys %$addons) {
+    <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
+      <addon>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+      </addon>
+      % }
+    </addons>
+    % }
+  </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      % for my $repo (@$repos) {
+        <listentry>
+          <media_url><%= $repo %></media_url>
+        </listentry>
+      % }
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/md</device>
+      <disklabel>msdos</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_nr config:type="integer">0</partition_nr>
+          <raid_options>
+            <device_order config:type="list">
+              <device>/dev/vda2</device>
+              <device>/dev/vdb1</device>
+            </device_order>
+            <persistent_superblock config:type="boolean">false</persistent_superblock>
+            <raid_type>raid1</raid_type>
+          </raid_options>
+          <resize config:type="boolean">false</resize>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">true</crypt_fs>
+          <crypt_key>nots3cr3t</crypt_key>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <loop_fs config:type="boolean">true</loop_fs>
+          <mount>/home</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_nr config:type="integer">1</partition_nr>
+          <raid_options>
+            <device_order config:type="list">
+              <device>/dev/vda3</device>
+              <device>/dev/vdb2</device>
+            </device_order>
+            <persistent_superblock config:type="boolean">false</persistent_superblock>
+            <raid_type>raid1</raid_type>
+          </raid_options>
+          <resize config:type="boolean">false</resize>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <raid_options>
+            <device_order config:type="list">
+              <device>/dev/vda4</device>
+              <device>/dev/vdb3</device>
+            </device_order>
+            <persistent_superblock config:type="boolean">false</persistent_superblock>
+            <raid_type>raid1</raid_type>
+          </raid_options>
+          <resize config:type="boolean">false</resize>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_MD</type>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>msdos</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">142</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>8225280</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md0</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>17158012416</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md1</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>12880870912</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">4</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md2</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>2140306944</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/vdb</device>
+      <disklabel>msdos</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md0</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>17156963840</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md1</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>12880870912</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <format config:type="boolean">false</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">253</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <raid_name>/dev/md2</raid_name>
+          <resize config:type="boolean">false</resize>
+          <size>2148695552</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>kdump-early</service>
+        <service>kdump</service>
+        <service>sshd</service>
+        <service>SuSEfirewall2</service>
+        <service>SuSEfirewall2_init</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>xfsprogs</package>
+      <package>snapper</package>
+      <package>sles-release</package>
+      <package>mdadm</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>cryptsetup</package>
+      <package>btrfsprogs</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>sles-Minimal-32bit</pattern>
+      <pattern>sles-apparmor-32bit</pattern>
+      <pattern>sles-base-32bit</pattern>
+      <pattern>sles-documentation-32bit</pattern>
+      <pattern>sles-x11-32bit</pattern>
+      <pattern>sles-yast2</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$exckvfU.JUqK$HhEE5FYhzIgtN6yKYrc62DvVbAmwyT3rGmr5AeqVncoox6Zgc.uLB6buSHtoItqsvBBgTDMAfSBg0qCx0PVlQ1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$ElXtUn80HozK$IkW5yVkFHmFfxfNXN09c.Z.CuVFitR/iwXfwburAwLXVaGPIuUQZtiw86vGaMI/h0ipQn8AC2YGnMEWPONeyx1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
