@@ -448,10 +448,10 @@ sub prepare_tfvars_file {
         library => 'library_parameter_file'
     );
     my %tfvars_template_url = (
-        deployer => data_url('sles4sap/sdaf/DEPLOYER.tfvars'),
-        sap_system => data_url('sles4sap/sdaf/SAP_SYSTEM.tfvars'),
-        workload_zone => data_url('sles4sap/sdaf/WORKLOAD_ZONE.tfvars'),
-        library => data_url('sles4sap/sdaf/LIBRARY.tfvars')
+        deployer => data_url('sles4sap/sap_deployment_automation_framework/DEPLOYER.tfvars'),
+        sap_system => data_url('sles4sap/sap_deployment_automation_framework/SAP_SYSTEM.tfvars'),
+        workload_zone => data_url('sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars'),
+        library => data_url('sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars')
     );
     croak 'Deployment type not specified' unless $args{deployment_type};
     croak "Unknown deployment type: $args{deployment_type}" unless $tfvars_os_variable{$args{deployment_type}};

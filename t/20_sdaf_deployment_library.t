@@ -110,10 +110,10 @@ subtest '[prepare_tfvars_file] Test curl commands' => sub {
 
     # '-o' is only for checking if correct parameter gets picked from %tfvars_os_variable
     my %expected_results = (
-        deployer => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sdaf/DEPLOYER.tfvars -o deployer_parameter_file',
-        sap_system => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sdaf/SAP_SYSTEM.tfvars -o sap_system_parameter_file',
-        workload_zone => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sdaf/WORKLOAD_ZONE.tfvars -o workload_zone_parameter_file',
-        library => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sdaf/LIBRARY.tfvars -o library_parameter_file'
+        deployer => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/DEPLOYER.tfvars -o deployer_parameter_file',
+        sap_system => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/SAP_SYSTEM.tfvars -o sap_system_parameter_file',
+        workload_zone => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars -o workload_zone_parameter_file',
+        library => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars -o library_parameter_file'
     );
 
     for my $type (keys %expected_results) {
