@@ -1786,12 +1786,20 @@ sub qesap_is_job_finished {
 
     my $job_data = eval { decode_json($json_data) };
     if ($@) {
-        record_info("JSON error", "Failed to decode JSON data for job $job_id: $@");
-        return 0;    # Assume job is still running if we can't get its state
+        if ($json_data =~ /<h1>Page not found<\/h1>/) {
+            record_info(
+                "JOB NOT FOUND",
+                "Job $job_id was not found on the server " . get_required_var('OPENQA_HOSTNAME') .
+                  ". It may be deleted, from a different openqa server or from a manual deployment."
+            );
+        }
+        else {
+            record_info("OPENQA QUERY FAILED", "Failed to decode JSON data for job $job_id: $@");
+        }
+        return 0;    # assume job is still running if we can't get its info
     }
 
     my $job_state = $job_data->{job}->{state} // 'running';    # assume job is running if unable to get status
-
     return ($job_state ne 'running');
 }
 
