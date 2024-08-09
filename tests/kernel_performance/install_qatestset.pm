@@ -111,17 +111,16 @@ sub run {
 
     wait_for_children if ($project_m_role eq "PROJECT_M_DRIVER");
 
-    if (is_ppc64le) {
-        power_action('reboot', keepconsole => 1, textmode => 1);
-    } else {
-        if ($project_m_role eq "PROJECT_M_HANA" || $project_m_role eq "PROJECT_M_ABAP") {
-            power_action('reboot', textmode => 1);
+    if (get_var('HANA_PERF')) {
+        power_action('reboot', textmode => 1);
+        if (is_x86_64) {
+            # Handle x86_64 bare-metal reboot
             switch_from_ssh_to_sol_console(reset_console_flag => 'on');
             sleep 30;
             assert_screen("linux-login", 2400);
-        } else {
-            power_action('poweroff', keepconsole => 1, textmode => 1);
         }
+    } else {
+        power_action('poweroff', keepconsole => 1, textmode => 1);
     }
 }
 
