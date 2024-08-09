@@ -27,7 +27,7 @@ sub run {
     @health_status{(keys %virt_autotest::common::guests)} = ();
     $health_status{host} = check_host_health;
     foreach my $guest (grep { $_ ne 'host' } keys %health_status) {
-        script_run("virsh start $guest", die_on_timeout => 0);
+        script_run("timeout 20 virsh start $guest");
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 2, retry => 60, die => 0) == 0) {
             $health_status{$guest} = check_guest_health($guest);
         }
@@ -55,7 +55,8 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     diag("Module validate_system_health post fail hook starts.");
-    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
+    enter_cmd "rm -f /root/{commands_history,commands_failure}; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
         reconnect_when_ssh_console_broken;
         alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
     }

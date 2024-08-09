@@ -74,8 +74,8 @@ EOT
     path(sprintf('ulogs/%s_%s@%s_sysctl_wicked.txt', get_var('DISTRI'), get_var('VERSION'), get_var('ARCH')))->spew($out_wicked);
 
     # Disable wicked and reboot to get "systemd-sysctl" defaults
-    script_run('systemctl disable --now wicked', die_on_timeout => 1);
-    script_run('systemctl disable --now wickedd', die_on_timeout => 1);
+    script_run('systemctl disable --now wicked');
+    script_run('systemctl disable --now wickedd');
     $self->reboot();
 
     assert_script_run('modprobe dummy numdummies=0');

@@ -48,16 +48,20 @@ sub run_test {
     die('Please override this subroutine in children modules to run desired tests.');
 }
 
+sub reconnect_if_problematic {
+    enter_cmd "rm -f /root/{commands_history,commands_failure}; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial('DONE', timeout => 30))) {
+        reconnect_when_ssh_console_broken;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
+    }
+}
+
 sub prepare_run_test {
     my $self = shift;
 
     select_console 'sol', await_console => 0;
     use_ssh_serial_console;
-
-    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
-        reconnect_when_ssh_console_broken;
-        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
-    }
+    reconnect_if_problematic;
     assert_script_run("history -c");
 
     check_host_health;
@@ -179,11 +183,7 @@ sub post_fail_hook {
     my ($self) = shift;
 
     $self->{"stop_run"} = time();
-    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
-        reconnect_when_ssh_console_broken;
-        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
-    }
-
+    reconnect_if_problematic;
     check_host_health;
     virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine

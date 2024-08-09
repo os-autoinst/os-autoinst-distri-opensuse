@@ -29,8 +29,8 @@ sub run {
 
     # label system
     assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
-    script_run("restorecon -R /", timeout => 1800, die_on_timeout => 0);
-    script_run("restorecon -R /*", timeout => 1800, die_on_timeout => 0);
+    script_run("timeout 1780 restorecon -R /", timeout => 1800);
+    script_run("timeout 1780 restorecon -R /*", timeout => 1800);
 
     # enable enforcing mode from SELinux
     replace_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 'security=selinux selinux=1 enforcing=1', update_grub => 1);

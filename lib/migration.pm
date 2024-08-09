@@ -56,7 +56,7 @@ sub setup_sle {
 
     # Enable Y2DEBUG for error debugging
     enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
-    script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
+    script_run("source /etc/bash.bashrc.local");
     set_zypp_single_rpmtrans();
 }
 

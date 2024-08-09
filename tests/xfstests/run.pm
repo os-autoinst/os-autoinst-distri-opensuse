@@ -613,7 +613,7 @@ sub run {
     #Save status log before next step(if run.pm fail will load into a last good snapshot)
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
-    script_run("tar zcvf $local_file --absolute-names /opt/log/", timeout => 600, die_on_timeout => 0);
+    script_run("timeout 580 tar zcvf $local_file --absolute-names /opt/log/", timeout => 600);
     upload_logs($local_file, failok => 1, timeout => 180);
 }
 
@@ -624,7 +624,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     # Collect executed test logs
-    script_run('tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/', timeout => 600, die_on_timeout => 0);
+    script_run('timeout 580 tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/', timeout => 600);
     upload_logs('/tmp/opt_logs.tar.gz', failok => 1, timeout => 180);
 }
 

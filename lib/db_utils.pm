@@ -233,7 +233,7 @@ sub check_postgres_db {
     # Empty records will return  '{"results":[{"statement_id":0}]}'
     # Existing records will return '{"results":[{"statement_id":0,"series":[{"name":"size","columns":["time","value"],"values"' ...
     my $request = "curl -IfLv 'http://$db_ip:$db_port/$db_db'";
-    if (script_run("$request 2>&1 >/var/tmp/db_curl.tmp", timeout => 120, die_on_timeout => 0) != 0) {
+    if (script_run("timeout 100 $request 2>&1 >/var/tmp/db_curl.tmp", timeout => 120) != 0) {
         my $output = script_output("cat /var/tmp/db_curl.tmp");
         record_info("db error", "cannot reach POSTGREST database\n$request\n$output", result => 'fail');
         return 0;

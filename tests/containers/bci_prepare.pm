@@ -37,7 +37,7 @@ sub packages_to_install {
     my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
 
     # Avoid PackageKit to conflict about lock with zypper
-    script_run("pkcon quit", die_on_timeout => 0) if (is_sle || is_opensuse);
+    script_run("timeout 20 pkcon quit") if (is_sle || is_opensuse);
 
     # common packages
     my @packages = ('git-core', 'python3', 'gcc', 'jq');

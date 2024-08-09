@@ -37,7 +37,7 @@ sub check_registered_system {
     }
     suseconnect_ls($pro);
     my $ver = $system =~ s/\-SP/./r;
-    script_run("SUSEConnect -s | grep " . $ver, die_on_timeout => 0);
+    script_run("timeout 20 SUSEConnect -s | grep " . $ver);
 }
 
 sub check_registered_addons {

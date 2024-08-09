@@ -91,7 +91,6 @@ sub run_ssh_command {
     }
     elsif ($rc_only) {
         $args{quiet} = 0;
-        $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
         return script_run($ssh_cmd, %args);
     }

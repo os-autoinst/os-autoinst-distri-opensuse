@@ -242,7 +242,7 @@ sub trup_call {
         $ret = script_finish_io(timeout => $args{timeout});
     }
     else {
-        $ret = script_run($script, timeout => $args{timeout}, die_on_timeout => 0);
+        $ret = script_run($script, timeout => $args{timeout});
     }
 
     if ($args{proceed_on_failure}) {

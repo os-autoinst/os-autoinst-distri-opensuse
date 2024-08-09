@@ -119,12 +119,10 @@ sub run {
     my $self = shift;
     my $timeout = get_var('MAX_TEST_TIME', '36000') + 10;
     my $upload_log_name = 'guest-upgrade-logs';
-    if (is_s390x) {
-        #ues die_on_timeout=> 0 as workaround for s390x test during call script_run, refer to poo#106765
-        script_run("echo \"Debug info: max_test_time is $timeout\"", die_on_timeout => 0);
-    } else {
-        script_run("echo \"Debug info: max_test_time is $timeout\"");
-    }
+    enter_cmd "echo \"Debug info: max_test_time is $timeout\"; echo DONE > /dev/$serialdev";
+    my $ret = wait_serial 'DONE', timeout => 30;
+    # workaround for s390x test during call script_run, refer to poo#106765
+    die "Timeout exceeded on wait_serial" unless $ret or is_s390x;
     # Modify source configuration file sources.* of virtauto-data pkg on host
     # to use openqa daily build installer repo and module repo for guests,
     # and it will be copied into guests to be used during guest upgrade test
@@ -132,8 +130,8 @@ sub run {
 
     $self->{'package_name'} = 'Guest Upgrade Test';
     if (is_s390x) {
-        #ues die_on_timeout=> 0 as workaround for s390x test during call script_run, refer to poo#106765
-        script_run "[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /var/lib/libvirt/images/prj4_guest_upgrade ] && rm -r /var/lib/libvirt/images/prj4_guest_upgrade /tmp/full_guest_upgrade_test-* /tmp/kill_zypper_procs-* /tmp/update-guest-*", die_on_timeout => 0;
+        enter_cmd "[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /var/lib/libvirt/images/prj4_guest_upgrade ] && rm -r /var/lib/libvirt/images/prj4_guest_upgrade /tmp/full_guest_upgrade_test-* /tmp/kill_zypper_procs-* /tmp/update-guest-*; echo DONE > /dev/$serialdev";
+        wait_serial 'DONE', timeout => 30;
     }
     else {
         $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);

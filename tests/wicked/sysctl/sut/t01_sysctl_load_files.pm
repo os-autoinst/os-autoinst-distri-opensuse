@@ -49,7 +49,7 @@ sub sysctl_emu_file_order {
     }
 
     push @retval, $sysctl_d{$_} foreach (sort keys %sysctl_d);
-    push @retval, '/etc/sysctl.conf' if script_run('test -e /etc/sysctl.conf', die_on_timeout => 1) == 0;
+    push @retval, '/etc/sysctl.conf' if script_run('test -e /etc/sysctl.conf') == 0;
 
     return \@retval;
 }
@@ -109,7 +109,7 @@ sub check {
     # Check broken symlinks
     for my $dir (reverse @sysctl_d) {
         my $file = "$dir/20-test.conf";
-        next if (script_run('test -L /lib', die_on_timeout => 1) == 0);
+        next if (script_run('test -L /lib') == 0);
         assert_script_run("mkdir -p $dir && ln -s /I_do_not_exists $file");
         check_load_order();
         die("Missing broken '$file' in logs") unless grep { $_ eq $file } @{wicked_get_file_order()};
