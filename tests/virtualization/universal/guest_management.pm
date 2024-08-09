@@ -42,25 +42,27 @@ sub run {
         if (script_run("virsh shutdown $guest") != 0) {
             record_info('Softfail', "Guest $guest seems to be already down", result => 'softfail');
         }
-        if (script_retry("virsh list --all | grep $guest | grep \"shut off\"", delay => 15, retry => 6, die => 0)) {
+        if (script_retry("virsh list --all; virsh list --all | grep $guest | grep \"shut off\"", delay => 15, retry => 6, die => 0)) {
             record_info('Softfail', "Shutdown on $guest failed", result => 'softfail');
+            # Add some debug info when shutdown fails
+            script_run "virsh list --all";
             assert_script_run "virsh destroy $guest";
         }
     }
 
     record_info "START", "Start all guests";
     foreach my $guest (keys %virt_autotest::common::guests) {
-        if (script_retry("virsh start $guest", delay => 120, retry => 3, die => 0) != 0) {
+        if (script_retry("virsh list --all; virsh start $guest", delay => 120, retry => 5, die => 0) != 0) {
             # Note: TBD for modular libvirt. See poo#129086 for detail.
             restart_libvirtd;
-            script_retry("virsh start $guest", delay => 120, retry => 3);
+            script_retry("virsh list --all; virsh start $guest", delay => 120, retry => 5);
         }
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     }
 
     record_info "SUSPEND", "Suspend all guests";
     assert_script_run "virsh suspend $_" foreach (keys %virt_autotest::common::guests);
-    script_retry "virsh list --all | grep $_ | grep paused", delay => 15, retry => 12 foreach (keys %virt_autotest::common::guests);
+    script_retry "virsh list --all; virsh list --all | grep $_ | grep paused", delay => 15, retry => 12 foreach (keys %virt_autotest::common::guests);
 
     record_info "RESUME", "Resume all guests";
     assert_script_run "virsh resume $_" foreach (keys %virt_autotest::common::guests);
