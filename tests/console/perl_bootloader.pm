@@ -43,17 +43,13 @@ sub run {
     }
 
     if (is_transactional) {
-        if (get_var('FLAVOR') =~ m/-encrypted/i) {
-            record_soft_failure("bsc#1228126: Encrypted image fails to boot after reinstalling bootloader");
-        }
-        else {
-            trup_call 'run pbl --install';
-            check_reboot_changes;
-        }
+        trup_call 'run pbl --install';
+        # workaround bsc#1228126 poo#164021 poo#164156
+        script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl');
+        check_reboot_changes;
         trup_call 'run pbl --config';
         check_reboot_changes;
-    }
-    else {
+    } else {
         assert_script_run 'pbl --install';
         assert_script_run 'pbl --config';
         power_action('reboot', textmode => 1);
