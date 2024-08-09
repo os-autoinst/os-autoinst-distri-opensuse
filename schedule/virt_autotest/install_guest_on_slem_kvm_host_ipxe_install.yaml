@@ -1,0 +1,58 @@
+---
+name: install_guest_on_slem_kvm_host_ipxe_install.yaml
+description: |
+  Maintainer: Wayne Chen (wchen@suse.com) qe-virt@suse.de
+  Virtualization Guest Installation on SLE Micro KVM Host
+
+vars:
+  IPXE: 1
+  IPXE_UEFI: 1
+  USB_BOOT: 0
+  BOOT_HDD_IMAGE: 1
+  VIRT_AUTOTEST: 1
+  VIRT_PRJ1_GUEST_INSTALL: 1
+  VIRT_UNIFIED_GUEST_INSTALL: 1
+  VIDEOMODE: text
+  DO_NOT_INSTALL_HOST: 0
+  SKIP_GUEST_INSTALL: 0
+  SYSTEM_ROLE: kvm
+  HOST_HYPERVISOR: kvm
+  PATTERNS: default,kvm
+  MAX_JOB_TIME: 10800
+schedule:
+  - "{{install_preparation}}"
+  - "{{bootup_and_install}}"
+  - virt_autotest/login_console
+  - virt_autotest/prepare_transactional_server
+  - "{{install_guest}}"
+conditional_schedule:
+  install_preparation:
+    FIRST_BOOT_CONFIG:
+      ignition:
+        - jeos/prepare_firstboot_config
+      combustion:
+        - jeos/prepare_firstboot_config
+      ignition+combustion:
+        - jeos/prepare_firstboot_config
+  bootup_and_install:
+    DO_NOT_INSTALL_HOST:
+      0:
+        - "{{bootup}}"
+        - "{{install}}"
+        - microos/selfinstall
+  bootup:
+    IPXE:
+      1:
+        - installation/ipxe_install
+      0:
+        - boot/boot_from_pxe
+  install:
+    USB_BOOT:
+      1:
+        - installation/usb_install
+        - installation/bootloader_uefi
+  install_guest:
+    SKIP_GUEST_INSTALL:
+      0:
+        - virt_autotest/unified_guest_installation
+...

@@ -1,5 +1,5 @@
 ---
-name: install_guest_on_slem_kvm_host.yaml
+name: install_guest_on_slem_kvm_host_usb_install.yaml
 description: |
   Maintainer: Wayne Chen (wchen@suse.com) qe-virt@suse.de
   Virtualization Guest Installation on SLE Micro KVM Host

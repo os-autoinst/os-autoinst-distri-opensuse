@@ -24,8 +24,15 @@ sub run {
         assert_screen 'selfinstall-select-drive';
         send_key 'ret';
     }
-    assert_screen 'slem-selfinstall-overwrite-drive';
-    send_key 'ret';
+
+    unless (get_var('INSTALL_DISK_WWN')) {
+        assert_screen 'slem-selfinstall-overwrite-drive';
+        send_key 'ret';
+    }
+    else {
+        assert_screen('slem-selfinstall-write-drive', 350 / get_var('TIMEOUT_SCALE', 1));
+        check_screen('slem-selfinstall-verify-drive', 350 / get_var('TIMEOUT_SCALE', 1));
+    }
 
     my $no_cd;
     # workaround failed *kexec* execution on UEFI with SecureBoot
@@ -49,7 +56,7 @@ sub run {
     } else {
         microos_login;
         # The installed system is definitely up now, so the CD can be ejected
-        eject_cd() unless ($no_cd || is_usb_boot);
+        eject_cd() unless ($no_cd || is_usb_boot || is_ipxe_with_disk_image);
     }
 
     # Remove usb boot entry and empty usb disks to ensure installed system boots from hard disk
