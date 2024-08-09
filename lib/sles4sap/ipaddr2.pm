@@ -49,14 +49,16 @@ our $user = 'cloudadmin';
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
 our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
-# Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
+# Storage account name must be between 3 and 24 characters in length
+# and use numbers and lower-case letters only.
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
 our $key_id = 'id_rsa';
 our @nginx_cmds = (
     'sudo zypper install -y nginx',
-    'sudo echo "I am $(hostname)" > /srv/www/htdocs/index.html',
+    'echo "I am $(hostname)" > /tmp/index.html',
+    'sudo cp /tmp/index.html /srv/www/htdocs/index.html',
     'sudo systemctl enable --now nginx.service');
 
 =head2 ipaddr2_azure_resource_group
@@ -92,7 +94,7 @@ Create a deployment in Azure designed for this specific test.
 1. Create a resource group to contain all
 2. Create a vnet and subnet in it
 3. Create one Public IP
-4. Create 2 VM to run the cluster, both running a webserver and that are behind the LB
+4. Create 2 VM to run the cluster, both running a web server and that are behind the LB
 5. Create 1 additional VM that get
 6. Create a Load Balancer with 2 VM in backend and with an IP as frontend
 
@@ -111,7 +113,7 @@ Create a deployment in Azure designed for this specific test.
                       the image registration. This feature could be problematic
                       when testing maintenance update: problem is that the config file
                       also perform a `zypper patch`. It happens at the first boot
-                      during the deployment so before anyother part of the test can add
+                      during the deployment so before any other part of the test can add
                       additional repo to test.
 
 =item B<scc_code> - if cloudinit is enabled, it is also possible to add
@@ -652,7 +654,8 @@ sub ipaddr2_deployment_sanity {
         # Expected return is
         # [ "PowerState/running", "VM running" ]
         $count = grep(/running/, @$res);
-        die "VM $vm is not fully running" unless $count eq 2;    # 2 is two occurrence of the word 'running' for one VM
+        # 2 is two occurrence of the word 'running' for one VM
+        die "VM $vm is not fully running" unless $count eq 2;
     }
 }
 
@@ -718,9 +721,9 @@ sub ipaddr2_cluster_sanity {
 
     die "Issue in the cluster health" if cluster_status_matches_regex($crm_status);
 
-    ipaddr2_ssh_internal(id => $args{id},
-        cmd => $crm_mon_cmd,
-        bastion_ip => $args{bastion_ip});
+    #ipaddr2_ssh_internal(id => $args{id},
+    #    cmd => $crm_mon_cmd,
+    #    bastion_ip => $args{bastion_ip});
 
     my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
         cmd => 'sudo crm configure show',
@@ -1306,7 +1309,7 @@ sub ipaddr2_registeration_set {
 
 This function is in charge to:
     1. install the nginx package
-    2. create a webpage file
+    2. create a web page file
     3. enable and start the system
 
 =over 2
@@ -1328,6 +1331,7 @@ sub ipaddr2_configure_web_server {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
+        timeout => 180,
         bastion_ip =>
           $args{bastion_ip}) for (@nginx_cmds);
 }
