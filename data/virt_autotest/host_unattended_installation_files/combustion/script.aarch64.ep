@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+# combustion: network
 
 grub2_config() {
     file=/etc/default/grub
@@ -8,14 +8,23 @@ grub2_config() {
     sed -i -r 's/^(\s|#)*GRUB_TERMINAL_INPUT=.*$/GRUB_TERMINAL_INPUT="gfxterm console"/g' $file
     sed -i -r 's/^(\s|#)*GRUB_TERMINAL_OUTPUT=.*$/GRUB_TERMINAL_OUTPUT="gfxterm console"/g' $file
     sed -i 's/console=tty0//g' $file
-    sed -i 's/console=tty[^ ]*/console=SERIALCONSOLE,115200/g' $file
+    sed -i 's/console=tty[^ ]*/console={{SERIALCONSOLE}},115200/g' $file
     echo "DEBUG: now $file is,"
     cat $file
     grub2-mkconfig -o /boot/grub2/grub.cfg
 }
 
 # Redirect output to the console
-# Comment off to workaround https://bugzilla.suse.com/show_bug.cgi?id=1222411#c9
- exec > >(exec tee -a /dev/SERIALCONSOLE) 2>&1
-    grub2_config # Configure grub2 in the system
+exec > >(exec tee -a /dev/{{SERIALCONSOLE}}) 2>&1
 
+# Configure grub2 in the system
+grub2_config
+
+# Keyboard
+systemd-firstboot --force --keymap=us
+
+# Leave a marker
+echo "Configured aarch64 machine with combustion" > /etc/issue.d/combustion
+
+# Close outputs and wait for tee to finish.
+exec 1>&- 2>&-; wait;

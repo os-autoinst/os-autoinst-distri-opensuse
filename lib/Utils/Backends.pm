@@ -262,7 +262,8 @@ sub is_generalhw { check_var('BACKEND', 'generalhw'); }
 #The ssh connection timeout is counted as seconds
 sub set_ssh_console_timeout {
     my ($sshd_config_file, $sshd_timeout) = @_;
-    $sshd_config_file //= '/etc/ssh/sshd_config';
+    # Set defualt sshd_config_file if it is not provided or does not exist
+    $sshd_config_file = '/etc/ssh/sshd_config' if (!$sshd_config_file or script_run("ls $sshd_config_file") != 0);
     $sshd_timeout //= 28800;
     my $client_count_max = $sshd_timeout / 60;
     if (script_run("ls $sshd_config_file") == 0) {
