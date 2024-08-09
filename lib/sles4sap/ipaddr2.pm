@@ -1208,6 +1208,18 @@ sub ipaddr2_create_cluster {
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
             'sudo crm configure primitive',
+            WEB_RSC,
+            'ocf:heartbeat:nginx',
+            'configfile=/etc/nginx/nginx.conf',
+            'op start timeout="40s" interval="0"',
+            'op stop timeout="60s" interval="0"',
+            'op monitor interval="10s" timeout="60s"',
+            'meta migration-threshold="10"'),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
+        cmd => join(' ',
+            'sudo crm configure primitive',
             'rsc_alb_00',
             'azure-lb',
             'port=62500',
