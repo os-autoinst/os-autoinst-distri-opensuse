@@ -24,6 +24,8 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @EXPORT = qw(install_bats install_htpasswd install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
 
 sub install_ncat {
+    return if (script_run("rpm -q ncat") == 0);
+
     my $ncat_version = get_required_var("NCAT_VERSION");
 
     assert_script_run "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm";
