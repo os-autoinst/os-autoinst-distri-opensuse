@@ -52,7 +52,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit gpg2 jq make netavark openssl podman sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit gpg2 jq libcriu2 make netavark openssl podman sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah go) unless is_sle_micro;
     push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
