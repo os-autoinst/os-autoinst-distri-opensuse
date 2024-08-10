@@ -52,8 +52,8 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit gpg2 jq libcriu2 make netavark openssl podman sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah go) unless is_sle_micro;
+    my @pkgs = qw(aardvark-dns catatonit git-core gpg2 jq libcriu2 make netavark openssl podman sudo systemd-container);
+    push @pkgs, qw(apache2-utils buildah glibc-devel-static go libgpgme-devel libseccomp-devel) unless is_sle_micro;
     push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(socat) unless is_sle_micro('=5.1');
@@ -94,6 +94,9 @@ sub run {
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run("cd $test_dir/podman-$podman_version/");
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
+
+    # Compile helpers used by the tests
+    script_run "make podman-testing", timeout => 600;
 
     # user / local
     run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
