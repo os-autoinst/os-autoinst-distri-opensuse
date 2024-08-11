@@ -52,6 +52,9 @@ sub run {
     # Install tests dependencies
     my @pkgs = qw(jq openssl podman skopeo);
     push @pkgs, qw(apache2-utils) unless is_sle_micro;
+    # htpasswd clone dependency
+    push @pkgs, qw(python311-passlib) if is_sle_micro('>=6.0');
+    push @pkgs, qw(python3-passlib) if is_sle_micro('<6.0');
     install_packages(@pkgs);
     install_htpasswd if is_sle_micro;
 

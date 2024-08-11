@@ -35,19 +35,8 @@ sub install_ncat {
 sub install_htpasswd {
     return if (script_run("which htpasswd") == 0);
 
-    assert_script_run "mkdir /var/tmp/htpasswd";
-    assert_script_run "cd /var/tmp/htpasswd";
-
-    my @files = ("Dockerfile", "go.mod", "go.sum", "main.go");
-    foreach my $file (@files) {
-        assert_script_run "curl -o $file " . data_url("containers/htpasswd/$file");
-    }
-
-    assert_script_run "podman build -t htpasswd .";
-    assert_script_run "podman create --name htpasswd htpasswd";
-    assert_script_run "podman cp htpasswd:/htpasswd /usr/local/bin/htpasswd";
-    assert_script_run "podman rm -vf htpasswd";
-    assert_script_run "podman rmi htpasswd";
+    assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
+    assert_script_run "chmod +x /usr/local/bin/htpasswd";
 }
 
 sub install_bats {
