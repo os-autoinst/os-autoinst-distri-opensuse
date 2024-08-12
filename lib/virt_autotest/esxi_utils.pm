@@ -24,6 +24,7 @@ our @EXPORT = qw(
   esxi_vm_power_ops
   esxi_vm_network_binding
   esxi_vm_public_ip
+  esxi_vm_mac_address
   get_host_timestamp
   disable_vm_time_synchronization
   revert_vm_timesync_setting
@@ -102,6 +103,22 @@ sub esxi_vm_public_ip {
         $vm_ip = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
     }
     return $vm_ip;
+}
+
+sub esxi_vm_mac_address {
+    my $vmid = shift;
+    my $vim_cmd;
+    my $vm_mac;
+
+    if (is_svirt) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.guest $vmid | grep macAddress | sed -n 1p | cut -d'\"' -f2);
+        (undef, $vm_mac) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.guest $vmid | grep macAddress | sed -n 1p | cut -d'\\"' -f2);
+        $vm_mac = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
+    }
+    return $vm_mac;
 }
 
 sub get_host_timestamp {
