@@ -54,7 +54,8 @@ sub run {
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit git-core gpg2 jq make netavark openssl podman sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah glibc-devel-static go libcriu2 libgpgme-devel libseccomp-devel) unless is_sle_micro;
-    push @pkgs, qw(python3-PyYAML) unless is_sle_micro('>=6.0');
+    push @pkgs, qw(python311-passlib python311-PyYAML) if is_sle_micro('>=6.0');
+    push @pkgs, qw(python3-passlib python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(socat) unless is_sle_micro('=5.1');
     push @pkgs, qw(podman-remote) unless is_sle('<=15-SP2');
@@ -86,7 +87,6 @@ sub run {
 
     switch_to_user;
 
-    my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";
 
     # Download podman sources

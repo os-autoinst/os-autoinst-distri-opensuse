@@ -53,7 +53,6 @@ sub run {
     record_info("netavark version", script_output("$netavark --version"));
     record_info("netavark package version", script_output("rpm -q netavark"));
 
-    my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";
 
     # Download netavark sources
