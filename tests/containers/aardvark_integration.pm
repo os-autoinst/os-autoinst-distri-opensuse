@@ -52,7 +52,6 @@ sub run {
     record_info("aardvark-dns version", script_output("$aardvark --version"));
     record_info("aardvark-dns package version", script_output("rpm -q aardvark-dns"));
 
-    my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";
 
     # Download aardvark sources

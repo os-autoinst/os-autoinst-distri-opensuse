@@ -87,7 +87,6 @@ sub run {
 
     switch_to_user;
 
-    my $test_dir = "/var/tmp";
     assert_script_run "cd $test_dir";
 
     # Download podman sources
