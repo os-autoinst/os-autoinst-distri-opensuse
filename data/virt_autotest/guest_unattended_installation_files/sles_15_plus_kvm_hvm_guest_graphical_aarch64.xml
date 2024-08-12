@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on t="map">
+    <add_on_products t="list">
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Basesystem##</media_url>
+        <product>sle-module-basesystem</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Desktop-Applications##</media_url>
+        <product>sle-module-desktop-applications</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Legacy##</media_url>
+        <product>sle-module-legacy</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Server-Applications##</media_url>
+        <product>sle-module-server-applications</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Web-Scripting##</media_url>
+        <product>sle-module-web-scripting</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Development-Tools##</media_url>
+        <product>sle-module-development-tools</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Module-Python3##</media_url>
+        <product>sle-module-python3</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
+        <media_url>##Product-SLES##</media_url>
+        <product>sle-product-sles</product>
+        <product_dir>/</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader t="map">
+    <global t="map">
+      <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <secure_boot>##Secure-Boot##</secure_boot>
+      <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
+      <terminal>gfxterm serial</terminal>
+      <timeout t="integer">3</timeout>
+      <update_nvram>true</update_nvram>
+    </global>
+    <loader_type>##Boot-Loader-Type##</loader_type>
+  </bootloader>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+      <second_stage t="boolean">false</second_stage>
+      <final_reboot t="boolean">true</final_reboot>
+      <final_halt t="boolean">false</final_halt>
+      <final_restart_services t="boolean">true</final_restart_services>
+    </mode>
+    <signature-handling>
+      <accept_file_without_checksum t="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key t="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key t="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file t="boolean">true</accept_unsigned_file>
+      <accept_verification_failed t="boolean">true</accept_verification_failed>
+      <import_gpg_key t="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <start_multipath t="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <networking t="map">
+    <dns t="map">
+      <dhcp_hostname t="boolean">true</dhcp_hostname>
+      <domain>##Domain-Name##</domain>
+      <hostname>##Host-Name##</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+      <interface t="map">
+        <bootproto>static</bootproto>
+        <broadcast>127.255.255.255</broadcast>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <ipv6 t="boolean">true</ipv6>
+    <keep_install_network t="boolean">true</keep_install_network>
+    <managed t="boolean">false</managed>
+    <routing t="map">
+      <ipv4_forward t="boolean">true</ipv4_forward>
+      <ipv6_forward t="boolean">true</ipv6_forward>
+    </routing>
+  </networking>
+  <proxy t="map">
+    <enabled t="boolean">false</enabled>
+  </proxy>
+  <services-manager t="map">
+    <default_target>graphical</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>appstream-sync-cache</service>
+        <service>auditd</service>
+        <service>bluetooth</service>
+        <service>klog</service>
+        <service>cron</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>display-manager</service>
+        <service>irqbalance</service>
+        <service>issue-generator</service>
+        <service>kbdsettings</service>
+        <service>lvm2-monitor</service>
+        <service>wicked</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
+        <service>smartd</service>
+        <service>sshd</service>
+        <service>systemd-pstore</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+      <disable config:type="list">
+        <service>firewalld</service>
+        <service>apparmor</service>
+      </disable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>yast2-configuration-management</package>
+      <package>xfsprogs</package>
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sles-release</package>
+      <package>sle-module-web-scripting-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-python3-release</package>
+      <package>sle-module-legacy-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-desktop-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>shim</package>
+      <package>openssh</package>
+      <package>mokutil</package>
+      <package>kexec-tools</package>
+      <package>grub2-arm64-efi</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>dosfstools</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <ssh_import t="map">
+    <copy_config t="boolean">false</copy_config>
+    <import t="boolean">false</import>
+  </ssh_import>
+  <suse_register>
+    <do_registration config:type="boolean">##Do-Registration##</do_registration>
+    <email>##Registration-UserName##</email>
+    <reg_code>##Registration-Code##</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+    </addons>
+  </suse_register>
+  <timezone t="map">
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <user_defaults t="map">
+    <expire/>
+    <group>100</group>
+    <groups/>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <shell>/bin/bash</shell>
+    <umask>022</umask>
+  </user_defaults>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <authorized_keys t="list">
+        <listentry>##Authorized-Keys##</listentry>
+      </authorized_keys>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <scripts>
+    <!-- permit root login, password login and pubkeys login -->
+    <!-- /etc/ssh/sshd_config/sshd_config is the default sshd config file in sles  -->
+    <init-scripts config:type="list">
+      <script>
+        <source><![CDATA[
+sshd_config_file="/etc/ssh/sshd_config"
+if [ ! -f $sshd_config_file ]; then
+    mkdir -p `dirname $sshd_config_file`
+    echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > $sshd_config_file
+else
+    keys="PermitRootLogin PubkeyAuthentication PasswordAuthentication"
+    for key in $keys; do
+        sed -i "/^[# ]*$key */{h;s/^[# ]*$key *.*\$/$key yes/};\${x;/^\$/{s//$key yes/;H};x}" $sshd_config_file
+    done
+fi
+[ -d /root/.ssh ] || mkdir -p /root/.ssh; chmod 700 /root/.ssh
+touch /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys
+echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
+]]>
+        </source>
+      </script>
+      <!-- journal_config.sh works on sle15sp6+ guest only -->
+      <script>
+        <filename>journal_config.sh</filename>
+        <source><![CDATA[
+echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+]]>
+        </source>
+      </script>
+    </init-scripts>
+  </scripts>
+</profile>

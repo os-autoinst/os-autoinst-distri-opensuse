@@ -2306,7 +2306,7 @@ sub config_guest_unattended_installation {
         assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
 
         if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/im)) {
-            my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Product-SLES');
+            my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Python3', 'Product-SLES');
             my $_guest_installation_media_extension_url = '';
             foreach (@_guest_installation_media_extensions) {
                 $_guest_installation_media_extension_url = $self->{guest_installation_media} . '/' . $_;
