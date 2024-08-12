@@ -32,7 +32,6 @@ schedule:
     - console/install_packages_simple
     - console/scc_deregistration
     - console/firewalld_add_port
-    - console/setup_libyui_running_system
-    - x11/addon_products_via_SCC_yast2
+    - console/suseconnect_scc
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
