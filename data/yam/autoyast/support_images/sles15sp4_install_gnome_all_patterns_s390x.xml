@@ -85,7 +85,6 @@ exit 0
       <pattern>documentation</pattern>
       <pattern>enhanced_base</pattern>
       <pattern>file_server</pattern>
-      <pattern>fips</pattern>
       <pattern>fonts</pattern>
       <pattern>gateway_server</pattern>
       <pattern>hwcrypto</pattern>
