@@ -50,9 +50,11 @@ sub run {
 }
 
 sub clean_up {
-    assert_script_run "pip3.$python_sub_version uninstall pygit2 -y --break-system-packages";
+    zypper_call "rm python3$python_sub_version-pygit2";
+    my $out = script_output "python3.$python_sub_version pygit2_test.py", proceed_on_failure => 1;
     zypper_call "rm python3$python_sub_version";
     assert_script_run "rm -rf libgit2";
+    die("uninstalling of python3$python_sub_version-pygit2 failed") if (index($out, "ModuleNotFoundError") == -1);
 }
 
 sub post_fail_hook {
