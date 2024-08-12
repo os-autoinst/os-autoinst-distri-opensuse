@@ -28,8 +28,17 @@ sub install_ncat {
 
     my $ncat_version = get_required_var("NCAT_VERSION");
 
-    assert_script_run "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm";
-    assert_script_run "ln -sf /usr/bin/ncat /usr/bin/nc";
+    my @cmds = (
+        "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm",
+        "ln -sf /usr/bin/ncat /usr/bin/nc"
+    );
+    foreach my $cmd (@cmds) {
+        if (is_transactional) {
+            trup_call "--continue run $cmd";
+        } else {
+            assert_script_run "$cmd";
+        }
+    }
 }
 
 sub install_htpasswd {
