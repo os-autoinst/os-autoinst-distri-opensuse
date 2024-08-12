@@ -94,6 +94,7 @@ sub run {
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run("cd $test_dir/podman-$podman_version/");
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
+    assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
 
     # Compile helpers used by the tests
     script_run "make podman-testing", timeout => 600;
