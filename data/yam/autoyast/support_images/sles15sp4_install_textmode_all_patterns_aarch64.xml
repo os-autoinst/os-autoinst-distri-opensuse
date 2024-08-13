@@ -73,7 +73,6 @@ exit 0
       <pattern>minimal_base</pattern>
       <pattern>minimal_base-32bit</pattern>
       <pattern>ofed</pattern>
-      <pattern>oracle_server</pattern>
       <pattern>print_server</pattern>
       <pattern>sap_server</pattern>
       <pattern>sw_management</pattern>
@@ -81,12 +80,8 @@ exit 0
       <pattern>x11</pattern>
       <pattern>x11-32bit</pattern>
       <pattern>x11_yast</pattern>
-      <pattern>xen_server</pattern>
-      <pattern>xen_tools</pattern>
       <pattern>yast2_basis</pattern>
       <pattern>yast2_desktop</pattern>
-      <pattern>gnome_basic</pattern>
-      <pattern>x11_raspberrypi</pattern>
       <pattern>yast2_server</pattern>
     </patterns>
     <products t="list">
