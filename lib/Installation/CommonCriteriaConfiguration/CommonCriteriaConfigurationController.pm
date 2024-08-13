@@ -11,6 +11,7 @@
 package Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationController;
 use strict;
 use warnings;
+use testapi;
 use Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationPage;
 use Installation::Popups::YesNoPopup;
 use YuiRestClient;
@@ -32,7 +33,9 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{CommonCriteriaConfigurationPage} = Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordPopup} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    if (check_var('ENCRYPT', '1')) {
+        $self->{WeakPasswordPopup} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    }
     return $self;
 }
 

@@ -10,13 +10,19 @@
 package Installation::CommonCriteriaConfiguration::CommonCriteriaConfigurationPage;
 use parent 'Installation::Navigation::NavigationBase';
 use strict;
+use testapi;
 use warnings;
 
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{txb_password} = $self->{app}->textbox({id => 'passphrase'});
-    $self->{txb_repeat_password} = $self->{app}->textbox({id => 'repeat_passphrase'});
+    if (check_var('ENCRYPT', '1')) {
+        $self->{txb_password} = $self->{app}->textbox({id => 'passphrase'});
+        $self->{txb_repeat_password} = $self->{app}->textbox({id => 'repeat_passphrase'});
+    } else {
+        $self->{txt_cc} = $self->{app}->textbox({id => 'text'});
+    }
+
     return $self;
 }
 
@@ -32,7 +38,7 @@ sub enter_confirm_password {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{txb_password}->exist();
+    return check_var('ENCRYPT', '1') ? $self->{txb_password}->exist() : $self->{txt_cc}->exist();
 }
 
 1;
