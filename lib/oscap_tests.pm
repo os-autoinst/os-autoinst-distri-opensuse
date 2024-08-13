@@ -232,7 +232,7 @@ sub replace_ansible_file {
         # Copy built file to correct location
         assert_script_run("cp $ansible_local_full_file_path $full_ansible_file_path");
         record_info("Copied ansible file", "Copied file $ansible_local_full_file_path to $full_ansible_file_path");
-        upload_logs("$full_ansible_file_path") if script_run "! [[ -e $full_ansible_file_path ]]";
+        uload_log_file($full_ansible_file_path);
     }
     #  compliance-as-code-compiled
     elsif ($use_content_type == 2) {
@@ -418,6 +418,18 @@ sub find_ansible_cce_by_task_name_vv {
     $_[4] = \@cce_id_and_name;
     return $cce_ids_size;
 }
+
+sub uload_log_file {
+    # Compress and upload single file for reference
+    my $file_name = $_[0];
+
+    if (script_run "! [[ -e $file_name ]]") {
+        script_run "p7zip -k $file_name";
+        upload_logs($file_name . ".7z", timeout => 600);
+        script_run "rm $file_name.7z";
+    }
+}
+
 sub upload_logs_reports {
     # Upload logs & ouputs for reference
     my $files;
@@ -428,17 +440,16 @@ sub upload_logs_reports {
         $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
     }
     foreach my $file (split("\n", $files)) {
-        upload_logs("$file");
+        uload_log_file($file);
     }
-
-    upload_logs("$f_stdout") if script_run "! [[ -e $f_stdout ]]";
-    upload_logs("$f_stderr") if script_run "! [[ -e $f_stderr ]]";
+    uload_log_file($f_stdout);
+    uload_log_file($f_stderr);
 
     if (get_var('UPLOAD_REPORT_HTML')) {
-        upload_logs("$f_report", timeout => 600)
-          if script_run "! [[ -e $f_report ]]";
+        uload_log_file($f_report);
     }
 }
+
 sub download_file_from_https_repo {
     # Downloads file from provided url
     my $url = $_[0];
@@ -588,7 +599,7 @@ sub modify_ds_ansible_files {
         assert_script_run("rm $f_ssg_sle_ds");
         assert_script_run("cp /tmp/$ssg_sle_ds $f_ssg_sle_ds");
         record_info("Diasble excluded and fix missing rules in ds file", "Command $unselect_cmd");
-        upload_logs("$ansible_fix_missing") if script_run "! [[ -e $ansible_fix_missing ]]";
+        uload_log_file($ansible_fix_missing);
 
         # Generate new playbook without exclusions and fix_missing rules
         my $playbook_gen_cmd = "oscap xccdf generate fix --profile $profile_ID --fix-type ansible $f_ssg_sle_ds > playbook.yml";
@@ -603,7 +614,7 @@ sub modify_ds_ansible_files {
         # Modify and backup ansible playbook
         modify_ansible_playbook();
         # Upload generated playbook for evidence
-        upload_logs("$full_ansible_file_path") if script_run "! [[ -e $full_ansible_file_path ]]";
+        uload_log_file($full_ansible_file_path);
     }
     else {
         my $bash_f = join "\n", @bash_rules;
@@ -629,9 +640,9 @@ sub modify_ds_ansible_files {
         assert_script_run("rm $f_ssg_sle_ds");
         assert_script_run("cp /tmp/$ssg_sle_ds $f_ssg_sle_ds");
         record_info("Diasble excluded and fix missing rules in ds file", "Command $unselect_cmd");
-        upload_logs("$bash_fix_missing") if script_run "! [[ -e $bash_fix_missing ]]";
+        uload_log_file($bash_fix_missing);
     }
-    upload_logs("$f_ssg_sle_ds") if script_run "! [[ -e $f_ssg_sle_ds ]]";
+    uload_log_file($f_ssg_sle_ds);
 
     my $output_full_path = script_output("pwd", quiet => 1);
     $output_full_path =~ s/\r|\n//g;
@@ -677,7 +688,7 @@ sub generate_missing_rules {
     record_info("Profile missing stat", "Profile missing stat:\n $data");
 
     #Uplaod file to logs
-    upload_logs("$output_file") if script_run "! [[ -e $output_file ]]";
+    uload_log_file($output_file);
 
     assert_script_run("cd /root");
     my $output_full_path = script_output("pwd", quiet => 1);
@@ -804,7 +815,7 @@ sub get_test_expected_results {
         $return = download_file_from_https_repo($url, $expected_results_file_name);
     }
     if ($return == 1) {
-        upload_logs("$expected_results_file_name") if script_run "! [[ -e $expected_results_file_name ]]";
+        uload_log_file($expected_results_file_name);
         my $data = script_output("cat $expected_results_file_name", quiet => 1);
 
         # Phrase the expected results
@@ -869,7 +880,7 @@ sub get_test_exclusions {
             $return = download_file_from_https_repo($url, $exclusions_file_name);
         }
         if ($return == 1) {
-            upload_logs("$exclusions_file_name") if script_run "! [[ -e $exclusions_file_name ]]";
+            uload_log_file($exclusions_file_name);
             my $data = script_output("cat $exclusions_file_name", quiet => 1);
 
             # Phrase the expected results
@@ -1162,8 +1173,8 @@ sub oscap_remediate {
         }
 
         # Upload only stdout logs
-        upload_logs("$f_stdout") if script_run "! [[ -e $f_stdout ]]";
-        upload_logs("$f_stderr") if script_run "! [[ -e $f_stderr ]]";
+        uload_log_file($f_stdout);
+        uload_log_file($f_stderr);
     }
     # If doing bash remediation
     else {
@@ -1177,7 +1188,7 @@ sub oscap_remediate {
             $self->result('fail');
         }
         # Upload logs & ouputs for reference
-        upload_logs("$oval_results_fname") if script_run "! [[ -e $oval_results_fname ]]";
+        uload_log_file($oval_results_fname);
         upload_logs_reports();
     }
     $remediated++;
@@ -1227,7 +1238,7 @@ sub oscap_evaluate {
                 @$failed_rules_ref
             );
             # Upload logs & ouputs for reference
-            upload_logs("$oval_results_fname") if script_run "! [[ -e $oval_results_fname ]]";
+            uload_log_file($oval_results_fname);
             upload_logs_reports();
         }
         else {
@@ -1299,7 +1310,7 @@ sub oscap_evaluate {
             assert_script_run("printf \"" . (join "\n", @test_run_report) . "\" >> \"$test_run_report_name\"");
             # Upload logs & ouputs for reference
             upload_logs("$test_run_report_name") if script_run "! [[ -e $test_run_report_name ]]";
-            upload_logs("$oval_results_fname") if script_run "! [[ -e $oval_results_fname ]]";
+            uload_log_file($oval_results_fname);
             upload_logs_reports();
         }
         # Record the source pkgs' versions for reference
