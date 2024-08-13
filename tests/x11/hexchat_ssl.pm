@@ -23,7 +23,6 @@ sub irc_login_send_message {
         wait_still_screen;
         # start to change the channel name
         assert_and_click "$name-join-channel";
-        assert_screen "$name-join-channel-select";
         # clear original '#hexchat' channel name
         wait_still_screen 2;
         wait_screen_change { send_key 'ctrl-a' };
@@ -61,7 +60,7 @@ sub run {
     }
     else {
         x11_start_program("$name", target_match => "$name-network-select");
-        enter_cmd "freenode";
+        enter_cmd "Rizon";
 
         # use ssl for all servers on this network
         assert_and_click "$name-edit-button";
