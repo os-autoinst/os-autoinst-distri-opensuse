@@ -12,11 +12,11 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use power_action_utils;
 
 sub run {
     my ($self) = @_;
-    send_key "ctrl-alt-delete";    # reboot
-    assert_and_click 'sddm_reboot_option_btn';
+    power_action 'reboot';
     $self->wait_boot(bootloader_time => 300);
     # Ensure the desktop runner is reactive again before going into other test
     # modules
