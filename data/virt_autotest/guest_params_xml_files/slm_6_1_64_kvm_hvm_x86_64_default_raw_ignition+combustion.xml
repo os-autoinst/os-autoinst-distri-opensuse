@@ -28,7 +28,7 @@
   <guest_installation_wait/>
   <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.1-Default-Build12345.raw.xz</guest_installation_media>
   <guest_installation_fine_grained/>
-  <guest_os_variant>opensusetumbleweed</guest_os_variant>
+  <guest_os_variant>slm6.0</guest_os_variant>
   <guest_storage_path/>
   <guest_storage_type>disk</guest_storage_type>
   <guest_storage_format>qcow2</guest_storage_format>
