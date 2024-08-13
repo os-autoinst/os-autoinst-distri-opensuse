@@ -1,31 +1,24 @@
 # SUSE's openQA tests
 #
-# Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2018 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: splited wait_encrypt_prompt being a single step; harmonized once wait_encrypt_prompt obsoleted
-# Maintainer: Max Lin <mlin@suse.com>
+# Summary: Reboot from the running system into the bootloader
+# Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use base 'y2_installbase';
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use utils;
+use power_action_utils qw(power_action);
+use utils qw(unlock_bootloader);
 
 sub run {
-    # Eject the DVD
-    send_key "ctrl-alt-f3";
-    my $tty = get_root_console_tty;
-    assert_screen "tty$tty-selected";
-    send_key "ctrl-alt-delete";
-
-    # Bug in 13.1?
-    power('reset');
-
-    # eject_cd;
-
-    unlock_if_encrypted;
+    # While it makes sense to eject the CD here after install,
+    # this has always been commented out. No idea why.
+    # eject_cd
+    power_action 'reboot';
+    unlock_bootloader;
 }
 
 1;
