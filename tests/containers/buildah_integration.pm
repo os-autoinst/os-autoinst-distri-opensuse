@@ -28,14 +28,15 @@ sub run_tests {
 
     my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
 
-    my $tmp_dir = script_output("mktemp -d /var/tmp/tmp.XXXXXXXXXX");
+    my $tmp_dir = "/var/tmp";
+    script_run "rm -rf $tmp_dir/buildah_tests.*";
 
     assert_script_run "echo $log_file .. > $log_file";
     script_run "BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 4200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
-    assert_script_run "rm -rf $tmp_dir";
+    script_run "rm -rf $tmp_dir/buildah_tests.*";
     assert_script_run "buildah prune -a -f";
 }
 
