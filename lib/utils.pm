@@ -2487,6 +2487,8 @@ sub install_patterns {
         next if (($pt =~ /wsl_base|wsl_gui|wsl_systemd/) && check_var('PATTERNS', 'all'));
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
+        # if pattern is fips or fips-certified and PATTERNS is all, skip
+        next if (($pt =~ /fips|fips-certified/) && check_var('PATTERNS', 'all'));
         zypper_call("in -t pattern $pt", timeout => 1800);
     }
 }
