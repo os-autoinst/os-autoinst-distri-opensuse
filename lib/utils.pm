@@ -2489,6 +2489,8 @@ sub install_patterns {
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
         # if pattern is fips or fips-certified and PATTERNS is all, skip
         next if (($pt =~ /fips|fips-certified/) && check_var('PATTERNS', 'all'));
+        # if pattern is x11_raspberrypi and PATTERNS is all for aarch64, skip
+        next if (($pt =~ /x11_raspberrypi/) && check_var('PATTERNS', 'all') && is_aarch64);
         zypper_call("in -t pattern $pt", timeout => 1800);
     }
 }
