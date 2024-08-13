@@ -72,7 +72,7 @@ sub prepare_system_shutdown {
 
  reboot_x11();
 
-Reboot from Gnome Desktop and handle authentification scenarios during shutdown.
+Reboot from a desktop session and handle authentication scenarios during shutdown.
 
 Run C<prepare_system_shutdown> if shutdown needs authentification.
 
@@ -116,6 +116,14 @@ sub reboot_x11 {
 
             send_key 'ret';    # Confirm
         }
+    }
+    elsif (check_var('DESKTOP', 'kde')) {
+        # Open the reboot/logout greeter and select the reboot option
+        send_key 'ctrl-alt-delete';
+        assert_and_click 'sddm_reboot_option_btn';
+    }
+    else {
+        die 'Unhandled desktop';
     }
 }
 
