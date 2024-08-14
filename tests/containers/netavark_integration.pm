@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats qw(install_bats install_ncat patch_logfile enable_modules);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_microos);
 
 my $test_dir = "/var/tmp";
 my $netavark = "";
@@ -39,7 +39,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark);
-    if (is_tumbleweed) {
+    if (is_tumbleweed || is_microos) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);

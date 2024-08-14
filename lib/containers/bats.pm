@@ -16,20 +16,40 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_transactional is_sle);
+use version_utils qw(is_transactional is_sle is_sle_micro is_tumbleweed);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use Utils::Architectures 'is_aarch64';
 
 our @EXPORT = qw(install_bats install_htpasswd install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
 
-    my $ncat_version = get_required_var("NCAT_VERSION");
+    my $version = "SLE_15";
+    if (is_sle_micro('<6.0')) {
+        if (is_sle_micro('=5.5')) {
+            $version = "SLE_15_SP5";
+        } elsif (is_sle_micro('>5.2')) {
+            $version = "SLE_15_SP4";
+        } else {
+            $version = "SLE_15_SP3";
+        }
+    } elsif (is_sle('<15-SP6')) {
+        $version = get_required_var("VERSION");
+        $version =~ s/-/_/g;
+        $version = "SLE_" . $version;
+    } elsif (is_tumbleweed) {
+        $version = "openSUSE_Factory";
+        $version .= "_ARM" if (is_aarch64);
+    }
+
+    my $repo = "https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo";
 
     my @cmds = (
-        "rpm -vhU https://nmap.org/dist/ncat-$ncat_version.x86_64.rpm",
+        "zypper addrepo $repo",
+        "zypper --gpg-auto-import-keys -n install ncat",
         "ln -sf /usr/bin/ncat /usr/bin/nc"
     );
     foreach my $cmd (@cmds) {
