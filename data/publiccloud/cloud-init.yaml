@@ -1,0 +1,22 @@
+#cloud-config
+
+bootcmd:
+- [sh, -c, "echo pookie >> /root/test_cloud-init.txt"]
+
+runcmd:
+- [ sh, -c, "echo Mithrandir >> /root/test_cloud-init.txt" ]
+
+write_files:
+- content: snickerdoodle
+  path: /root/test_cloud-init.txt
+  append: true
+
+packages:
+- ed
+
+final_message: |
+  cloud-init qa has finished
+  version: $version
+  timestamp: $timestamp
+  datasource: $datasource
+  uptime: $uptime

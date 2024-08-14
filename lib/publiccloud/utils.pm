@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro);
 use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
@@ -38,12 +38,14 @@ our @EXPORT = qw(
   is_gce
   is_container_host
   is_hardened
+  is_cloudinit_supported
   registercloudguest
   register_addon
   register_openstack
   register_addons_in_pc
   gcloud_install
   get_ssh_private_key_path
+  permit_root_passwordless
   prepare_ssh_tunnel
   kill_packagekit
   allow_openqa_port_selinux
@@ -192,6 +194,10 @@ sub is_hardened() {
     return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
 }
 
+sub is_cloudinit_supported {
+    return ((is_azure || is_ec2) && !is_sle_micro);
+}
+
 # Get credentials from the Public Cloud micro service, which requires user
 # and password. The resulting json will be stored in a file.
 sub get_credentials {
@@ -260,6 +266,20 @@ sub get_ssh_private_key_path {
     return (is_azure() || is_openstack() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
+sub permit_root_passwordless {
+    my ($instance) = @_;
+
+    # Permit root passwordless login over SSH
+    $instance->ssh_assert_script_run('sudo mkdir -p /etc/ssh/sshd_config.d/');
+    $instance->ssh_assert_script_run('echo "PermitRootLogin prohibit-password" | sudo tee /etc/ssh/sshd_config.d/001_sshd_openqa.conf');
+    $instance->ssh_assert_script_run('echo "AllowTcpForwarding yes" | sudo tee -a /etc/ssh/sshd_config.d/001_sshd_openqa.conf') if (is_hardened());
+    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
+
+    # Copy SSH settings for remote root
+    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
+    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+}
+
 sub prepare_ssh_tunnel {
     my ($instance) = @_;
 
@@ -278,15 +298,7 @@ sub prepare_ssh_tunnel {
     # Skip setting root password for img_proof, because it expects the root password to NOT be set
     $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
 
-    # Permit root passwordless login over SSH
-    $instance->ssh_assert_script_run('sudo cat /etc/ssh/sshd_config');
-    $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-    $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
-    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
-
-    # Copy SSH settings for remote root
-    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
-    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+    permit_root_passwordless($instance);
 
     # Create remote user and set him a password
     my $path = (is_sle('>15') && is_sle('<15-SP3')) ? '/usr/sbin/' : '';
