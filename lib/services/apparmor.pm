@@ -77,7 +77,7 @@ sub check_aa_enforce {
     # Recalculate profile name in case
     $named_profile = $self->get_named_profile($profile_name);
 
-    if (is_sle('=15-SP3') && script_run("aa-disable $executable_name") == 1) {
+    if (is_sle('=15-SP3') && check_var('TEST', 'qam-allpatterns+addons') && script_run("aa-disable $executable_name") == 1) {
         record_soft_failure('bsc#1229029');
         return;
     }
@@ -114,7 +114,7 @@ sub check_aa_complain {
     assert_script_run "cp -r /etc/apparmor.d $aa_tmp_prof";
 
     foreach my $cmd (@aa_complain_cmds) {
-        if (is_sle('=15-SP3') && script_run("$cmd") == 1) {
+        if (is_sle('=15-SP3') && check_var('TEST', 'qam-allpatterns+addons') && script_run("$cmd") == 1) {
             record_soft_failure('bsc#1229029');
             return;
         }
