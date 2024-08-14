@@ -486,9 +486,10 @@ sub select_first_hard_disk {
               if ($matched_needle && $matched_needle->{needle}->has_tag("hard-disk-dev-$device-selected"));
         }
     }
-    # Check if sda is still/already selected, if not select it
-    assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected)];
+    # Check if sda is still/already selected, if not select it, select the first disk device if none selected
+    assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected select-hard-disks-none-selected)];
     assert_and_click 'hard-disk-dev-sda-not-selected' if match_has_tag('hard-disk-dev-sda-not-selected');
+    assert_and_click 'hard-disk-dev-first-select' if (match_has_tag('select-hard-disks-none-selected') && !match_has_tag('hard-disk-dev-sda-not-selected'));
     save_screenshot;
     send_key $cmd{next};
 }
