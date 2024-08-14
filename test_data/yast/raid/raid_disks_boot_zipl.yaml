@@ -13,7 +13,7 @@ disks:
       - size: 8000mb
         role: raw-volume
         id: linux-raid
-      - size: 100mb
+      - size: 512mb
         role: raw-volume
         id: linux-raid
   - name: vdb
@@ -21,7 +21,7 @@ disks:
       - size: 8000mb
         role: raw-volume
         id: linux-raid
-      - size: 100mb
+      - size: 512mb
         role: raw-volume
         id: linux-raid
   - name: vdc
@@ -29,7 +29,7 @@ disks:
       - size: 8000mb
         role: raw-volume
         id: linux-raid
-      - size: 100mb
+      - size: 512mb
         role: raw-volume
         id: linux-raid
   - name: vdd
@@ -37,6 +37,6 @@ disks:
       - size: 8000mb
         role: raw-volume
         id: linux-raid
-      - size: 100mb
+      - size: 512mb
         role: raw-volume
         id: linux-raid
