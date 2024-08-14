@@ -635,7 +635,8 @@
     "skip watchdog check": {
         "description": "clocksource: Long readout interval, skipping watchdog check:.*$",
         "products": {
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": ["15-SP6", "15-SP7"],
+            "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
     },
@@ -692,5 +693,26 @@
             "opensuse": ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "boo#1227900": {
+        "description": "Speculative Return Stack Overflow: IBPB-extending microcode not applied!|Speculative Return Stack Overflow: WARNING: See https://kernel.org/doc/html/latest/admin-guide/hw-vuln/srso.html for mitigation options.",
+        "products": {
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
+    "boo#1227908": {
+        "description": "Option builtin_af_unix line \\d+ is obsolete - using /sbin/audisp-af_unix|Option builtin line \\d+ is obsolete - update it",
+        "products": {
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "boo#1229139": {
+        "description": "amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled",
+        "products": {
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
