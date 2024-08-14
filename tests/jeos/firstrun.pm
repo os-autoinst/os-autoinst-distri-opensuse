@@ -245,6 +245,13 @@ sub run {
         wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
+    # Skip additional user account creation for SL Micro 6.1 onwards
+    if (is_sle_micro('>=6.1')) {
+        check_screen 'additional-user-creation', 120;
+        send_key 'tab' for (0 .. 1);
+        send_key 'ret';
+    }
+
     # Our current Hyper-V host and it's spindles are quite slow. Especially
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
