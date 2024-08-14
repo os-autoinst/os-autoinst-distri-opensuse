@@ -224,6 +224,7 @@ VIDEOMODE | string | | Indicates/defines video mode used for the installation. E
 VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the svirt host (only relevant for the svirt backend).
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
+WIZARD_SKIP_USER | boolean | false | Skip non-root user creation in jeos-firstboot. This feature was added from sle-micro 6.1
 XDMUSED | boolean | false | Indicates availability of xdm.
 XFS_MKFS_OPTIONS | string | | Define additional mkfs parameters. Used only in publiccloud test runs.
 XFS_TEST_DEVICE | string | | Define the device used for xfs tests. Used only in publiccloud test runs.

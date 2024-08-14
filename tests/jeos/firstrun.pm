@@ -20,6 +20,7 @@ use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
 
+my $user_created = 0;
 
 sub post_fail_hook {
     assert_script_run('timedatectl');
@@ -114,6 +115,54 @@ sub verify_partition_label {
     script_output('sfdisk -l') =~ m/Disklabel type:\s+$label/ or die "Wrong partion label found, expected '$label'";
 }
 
+sub create_user_in_terminal {
+    if ($user_created) {
+        record_info('user', sprintf("%s has already been created", script_output("getent passwd $username")));
+        return;
+    }
+
+    assert_script_run "useradd -m $username -c '$realname'";
+    assert_script_run "echo $username:$password | chpasswd";
+
+    $user_created = 1;
+}
+
+sub enter_root_passwd {
+    foreach my $password_needle (qw(jeos-root-password jeos-confirm-root-password)) {
+        assert_screen $password_needle;
+        type_password;
+        send_key 'ret';
+    }
+}
+
+sub create_user_in_ui {
+    assert_screen 'jeos-create-non-root';
+
+    if (get_var('WIZARD_SKIP_USER', 0)) {
+        record_info('skip user', 'skipping user creation in wizard');
+        for (1 .. 2) {
+            wait_screen_change(sub {
+                    send_key 'tab';
+            }, 10);
+        }
+        send_key 'ret';
+        return;
+    }
+
+    assert_screen_change { type_string $username };
+    send_key "down";
+    assert_screen_change { type_string $realname };
+    assert_screen 'jeos-create-non-root-check';
+    send_key "down";
+
+    type_password;
+    wait_screen_change(sub { send_key "down" }, 25);
+    type_password;
+    send_key 'ret';
+
+    $user_created = 1;
+}
+
 sub run {
     my ($self) = @_;
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
@@ -187,11 +236,7 @@ sub run {
     send_key 'ret';
 
     # Enter password & Confirm
-    foreach my $password_needle (qw(jeos-root-password jeos-confirm-root-password)) {
-        assert_screen $password_needle;
-        type_password;
-        send_key 'ret';
-    }
+    enter_root_passwd;
 
     if (is_bootloader_sdboot) {
         send_key_until_needlematch 'jeos-fde-option-enroll-root-pw', 'down' unless check_screen('jeos-fde-option-enroll-root-pw', 1);
@@ -232,6 +277,10 @@ sub run {
     unless (is_sle || is_sle_micro('<=6.0') || is_leap) {
         assert_screen 'jeos-ssh-enroll-or-not', 120;
         send_key 'n';
+    }
+
+    if ((is_tumbleweed && check_var('STAGING', 'K')) || is_sle_micro('>6.0')) {
+        create_user_in_ui();
     }
 
     if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
@@ -296,10 +345,8 @@ sub run {
 
     # Create user account, if image doesn't already contain user
     # (which is the case for SLE images that were already prepared by openQA)
-    if (script_run("getent passwd $username") != 0) {
-        assert_script_run "useradd -m $username -c '$realname'";
-        assert_script_run "echo $username:$password | chpasswd";
-    }
+    # new jeos-firstboot supports non-root user creation
+    create_user_in_terminal;
 
     if (check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/permit-root-login.conf");
