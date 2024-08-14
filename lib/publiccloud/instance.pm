@@ -604,47 +604,6 @@ sub network_speed_test() {
     record_info("curl $rmt_host", $self->run_ssh_command(cmd => "curl -w '$write_out' -o /dev/null -v https://$rmt_host/", proceed_on_failure => 1));
 }
 
-sub cleanup_cloudinit() {
-    my ($self) = @_;
-    $self->ssh_assert_script_run('sudo cloud-init clean --logs');
-    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
-        $self->ssh_assert_script_run('sudo rm /root/test_cloud-init.txt');
-        $self->ssh_assert_script_run('sudo zypper -n rm ed');
-    }
-}
-
-sub check_cloudinit() {
-    my ($self) = @_;
-
-    # cloud-init status
-    $self->ssh_script_retry(cmd => "sudo cloud-init status", timeout => 90, retry => 12, delay => 15);
-    $self->ssh_script_retry(cmd => "sudo cloud-init status --long", timeout => 90, retry => 12, delay => 15);
-
-    # cloud-id
-    my $cloud_id = (is_azure) ? 'azure' : 'aws';
-    $self->ssh_script_output(cmd => "sudo cloud-id | grep '^$cloud_id\$'");
-
-    # cloud-init collect-logs
-    $self->ssh_assert_script_run('sudo cloud-init collect-logs');
-    $self->upload_log('~/cloud-init.tar.gz', failok => 1);
-
-    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
-        # Check for bootcmd, runcmd and write_files module
-        $self->ssh_assert_script_run('sudo grep pookie /root/test_cloud-init.txt');
-        $self->ssh_assert_script_run('sudo grep Mithrandir /root/test_cloud-init.txt');
-        $self->ssh_assert_script_run('sudo grep snickerdoodle /root/test_cloud-init.txt');
-
-        # Check for packages module
-        $self->ssh_assert_script_run('ed -V');
-
-        # Check for final_message module
-        $self->ssh_assert_script_run('sudo journalctl -b | grep "cloud-init qa has finished"');
-
-        # cloud-init schema
-        $self->ssh_assert_script_run('sudo cloud-init schema --system') unless (is_sle('=12-SP5'));
-    }
-}
-
 =head2 measure_boottime
 
     measure_boottime();

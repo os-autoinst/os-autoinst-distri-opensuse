@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use strict;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_passwordless);
+use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system);
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(is_sle_micro);
 
@@ -38,13 +38,7 @@ sub run {
     record_info('UNAME', $args->{my_instance}->ssh_script_output(cmd => 'uname -a'));
     $args->{my_instance}->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm-qa.txt');
     $args->{my_instance}->upload_log('/tmp/rpm-qa.txt');
-    $args->{my_instance}->cleanup_cloudinit() if (is_cloudinit_supported);
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-
-    if (is_cloudinit_supported) {
-        $args->{my_instance}->check_cloudinit();
-        permit_root_passwordless($args->{my_instance});
-    }
 }
 
 sub test_flags {
