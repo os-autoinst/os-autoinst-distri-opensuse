@@ -308,7 +308,7 @@ sub upload_tcpdump {
         $old_console = current_console();
         select_console('root-console');
 
-        unless (defined(script_run("kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done", die_on_timeout => 0))) {
+        unless (defined(script_run("timeout 20 sh -c \"kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done\""))) {
             select_console($old_console, await_console => 0);
             return;
         }

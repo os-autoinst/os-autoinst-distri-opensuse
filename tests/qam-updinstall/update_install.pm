@@ -330,7 +330,7 @@ sub run {
                     zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
                 }
                 else {
-                    sle12_zypp_resolve("zypper -v in -l -t patch $patch",, get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
+                    sle12_zypp_resolve("zypper -v in -l -t patch $patch", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
                 }
 
                 # Store version of installed binaries after update.
@@ -450,7 +450,7 @@ sub run {
 
     # merge logs from all patches into one which is testreport template expecting
     foreach (qw(prepare zypper new)) {
-        next if script_run("ls /tmp|grep ${_}_", die_on_timeout => 0);
+        next if script_run("timeout 20 ls /tmp|grep ${_}_");
         assert_script_run("cat /tmp/$_* > /tmp/$_.log");
         upload_logs("/tmp/$_.log");
     }

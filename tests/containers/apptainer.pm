@@ -31,7 +31,7 @@ sub run {
     assert_script_run(qq{apptainer build --sandbox my_os/ docker://$image});
     assert_script_run('ls -la my_os');
     assert_script_run('apptainer exec --writable my_os touch /foo');
-    validate_script_output('apptainer exec my_os/ ls -l /foo',, sub { /foo/ });
+    validate_script_output('apptainer exec my_os/ ls -l /foo', sub { /foo/ });
 
     record_info('Build with def file', 'Build from definition file');
     assert_script_run "curl " . data_url('containers/apptainer_container.def') . " -o ./apptainer_container.def";

@@ -49,8 +49,6 @@ Class constructor
 sub new {
     my ($class) = @_;
     my $self = $class->SUPER::new(@_);
-
-    $self->{script_run_die_on_timeout} = 1;
     return $self;
 }
 

@@ -307,7 +307,9 @@ sub check_failures_in_journal {
             record_soft_failure("Found new failures: " . $failures . " please take actions as described in poo#151361.\n");
             record_info("Found failures in journal log", "Found new failures: " . $failures . " please take actions as described in poo#151361.\n", result => 'fail');
         }
-        script_run("rsync root\@$machine:$logfile $logfile", die_on_timeout => 0) if $machine ne 'localhost';
+        # ignore the attempt timing out with "timeout 20" which exits before
+        # the script_run internal timeout
+        script_run("timeout 20 rsync root\@$machine:$logfile $logfile") if $machine ne 'localhost';
         upload_logs($logfile);
     }
     return $failures;

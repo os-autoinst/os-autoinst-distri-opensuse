@@ -129,7 +129,7 @@ sub run_test {
             assert_script_run("virsh nodedev-reattach $vfs[$i]->{host_id}", 60);
             record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[$i]->{host_id}");
             save_network_device_status_logs($guest, $passthru_vf_count + 4 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
-            script_run("ssh root\@$guest 'dmesg' >> $log_dir/dmesg_$guest 2>&1", die_on_timeout => 0) if $i == $passthru_vf_count - 1;
+            script_run("timeout 20 ssh root\@$guest 'dmesg' >> $log_dir/dmesg_$guest 2>&1") if $i == $passthru_vf_count - 1;
         }
         script_run "lspci | grep Ethernet";
         save_screenshot;
@@ -390,7 +390,7 @@ sub save_network_device_status_logs {
     my ($vm, $test_step) = @_;
 
     #vm configuration file
-    script_run("virsh dumpxml $vm > $log_dir/${vm}_${test_step}.xml", die_on_timeout => 0);
+    script_run("timeout 20 virsh dumpxml $vm > $log_dir/${vm}_${test_step}.xml");
 
     my $log_file = "log.txt";
     script_run "echo `date` > $log_file";
@@ -402,7 +402,7 @@ sub save_network_device_status_logs {
     script_run "echo '***** Status & logs inside $vm *****' >> $log_file";
     my $debug_script = "sriov_network_guest_logging.sh";
     download_script($debug_script, machine => $vm, proceed_on_failure => 1) if (${test_step} eq "1-initial");
-    script_run("ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1", die_on_timeout => 0);
+    script_run("timeout 20 ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1");
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 
@@ -414,7 +414,7 @@ sub post_fail_hook {
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
     foreach (keys %virt_autotest::common::guests) {
         save_network_device_status_logs($_, "post_fail_hook");
-        script_run("ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1", die_on_timeout => 0);
+        script_run("timeout 20 ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1");
         check_guest_health($_);
     }
     virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");

@@ -469,7 +469,7 @@ Disable screensaver in gnome. To be called from a command prompt, for example an
 =cut
 
 sub turn_off_gnome_screensaver {
-    script_run 'gsettings set org.gnome.desktop.session idle-delay 0', die_on_timeout => 0, timeout => 90;
+    script_run 'timeout 80 gsettings set org.gnome.desktop.session idle-delay 0', timeout => 90;
 }
 
 =head2 turn_off_gnome_screensaver_for_gdm
