@@ -33,7 +33,8 @@ my $install_debug_info_timeout = 4000;
 
 sub install_transactional_kernel_debuginfo {
     return undef if get_var('SKIP_KERNEL_DEBUGINFO');
-    my $cmd = 'transactional-update --continue --non-interactive pkg install kernel-default-debuginfo';
+    my $debuginfo = determine_kernel_debuginfo_package;
+    my $cmd = "transactional-update --continue --non-interactive pkg install ${debuginfo}";
     assert_script_run($cmd, timeout => $install_debug_info_timeout);
 }
 
@@ -437,7 +438,8 @@ sub check_function {
         elsif (!get_var('SKIP_KERNEL_DEBUGINFO')) {
             my $vmcore = script_output("ls -1t $vmcore_glob");
             my $vmlinux = script_output("ls -1t $vmlinux_glob");
-            my $vmlinuxd = script_output('rpm -ql kernel-default-debuginfo | grep vmlinux');
+            my $debuginfo = determine_kernel_debuginfo_package;
+            my $vmlinuxd = script_output("rpm -ql ${debuginfo} | grep vmlinux");
             my $zypper_call = 'zypper -n in crash';
             my $crash_call = "echo exit | crash /host/$vmcore /host/$vmlinux /host/$vmlinuxd";
             my $bash_cmd = "$zypper_call && $crash_call";
