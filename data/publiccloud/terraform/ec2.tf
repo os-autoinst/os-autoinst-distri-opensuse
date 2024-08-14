@@ -35,10 +35,6 @@ variable "image_id" {
   default = ""
 }
 
-variable "cloud_init" {
-  default = ""
-}
-
 variable "extra-disk-size" {
   default = "1000"
 }
@@ -129,8 +125,6 @@ resource "aws_instance" "openqa" {
       amd_sev_snp = var.enable_confidential_vm
     }
   }
-
-  user_data = var.cloud_init != "" ? file(var.cloud_init) : null
 }
 
 resource "aws_volume_attachment" "ebs_att" {

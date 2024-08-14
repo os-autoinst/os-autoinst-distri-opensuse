@@ -37,7 +37,7 @@ sub run {
 
     # cloud-init
     # cloud-init is notavailable in Micro
-    if (is_cloudinit_supported) {
+    if ((is_azure || is_ec2) && !is_sle_micro) {
         record_info('cloud-init', $instance->ssh_script_output('systemctl --no-pager --full status cloud-init*', proceed_on_failure => 1));
         $instance->ssh_assert_script_run('systemctl is-active cloud-init.service');
         $instance->ssh_assert_script_run('systemctl is-active cloud-init.target');
