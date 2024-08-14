@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use strict;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_passwordless);
+use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_login);
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(is_sle_micro);
 
@@ -42,8 +42,9 @@ sub run {
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     if (is_cloudinit_supported) {
+        record_info 'BOOM';
         $args->{my_instance}->check_cloudinit();
-        permit_root_passwordless($args->{my_instance});
+        permit_root_login($args->{my_instance});
     }
 }
 

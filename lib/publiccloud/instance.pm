@@ -622,7 +622,7 @@ sub check_cloudinit() {
 
     # cloud-id
     my $cloud_id = (is_azure) ? 'azure' : 'aws';
-    $self->ssh_script_output(cmd => "sudo cloud-id | grep '^$cloud_id\$'");
+    $self->ssh_assert_script_run(cmd => "sudo cloud-id | grep '^$cloud_id\$'");
 
     # cloud-init collect-logs
     $self->ssh_assert_script_run('sudo cloud-init collect-logs');
