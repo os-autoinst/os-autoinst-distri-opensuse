@@ -80,8 +80,7 @@ sub run {
         assert_screen("inst-packageinstallationstarted", $started_timeout);
     }
     else {
-        my $time_out = is_ipmi ? 10 : 3;
-        wait_still_screen($time_out);    # wait so alt-i is pressed when installation overview is not being generated
+        wait_still_screen(3);    # wait so alt-i is pressed when installation overview is not being generated
         send_key $cmd{install};
         if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
             assert_screen 'installation-proposal-error';
