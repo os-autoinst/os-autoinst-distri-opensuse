@@ -44,7 +44,6 @@ sub run {
     $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default
 
     $instance->network_speed_test();
-    $instance->check_cloudinit() if (is_cloudinit_supported);
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
