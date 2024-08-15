@@ -39,13 +39,14 @@
 # Tags: poo#48773, tc#1695946, poo#111036
 
 
-use base apparmortest;
+use base "apparmortest";
 use strict;
 use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use registration qw(add_suseconnect_product register_product);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = shift;
@@ -90,12 +91,16 @@ sub run {
     # Restart apparmor
     systemctl("restart apparmor");
 
+    select_console('root-console');
+
     # Install Mariadb and setup database test account
     $self->mariadb_setup();
+    select_serial_terminal;
 
     # Set up Web environment for running Adminer
     # Note that adminer_setup() also does a test run - at this stage, with Apache running unconfined
     $self->adminer_setup();
+    select_serial_terminal;
 
     # Stop unconfined Apache instance before loading the AppArmor profile for it.
     # This is needed to avoid that a confined Apache process ("restart" after loading the AppArmor profile)
@@ -145,6 +150,7 @@ sub run {
 
     # Do some operations on Adminer web, e.g., log in, select/delete a database
     $self->adminer_database_delete();
+    select_serial_terminal;
 
     # Verify audit log contains no "DENIED" "adminer" change hat opertions.
     # NOTE: There may have some "DENIED" records but we only interest in
