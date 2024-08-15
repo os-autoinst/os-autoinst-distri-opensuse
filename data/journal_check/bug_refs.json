@@ -721,5 +721,12 @@
             "sle": ["15-SP6", "15-SP7"]
         },
         "type": "bug"
+    },
+    "wicked-warning": {
+        "description": "wicked.*: Interface wait time \\(30s\\) reached",
+        "products": {
+            "sle": ["15-SP6", "15-SP7"]
+        },
+        "type": "ignore"
     }
 }
