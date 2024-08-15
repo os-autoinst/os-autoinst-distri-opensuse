@@ -109,6 +109,20 @@ sub run {
     assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image",
         fail_message => 'Failed to inspect local image.');
 
+    ######### Compare remote image to local image
+    # using JQ to omit any repository-specific fields which are expected to be different
+    record_info('Verify Remote Image', 'Inspect remote image and save results.');
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$remote_image | jq 'del( .[\"Name\", \"Digest\", \"RepoTags\"])' >> $workdir/inspect_remote.json",
+        fail_message => 'Failed to inspect remote image.');
+
+    record_info('Verify Local Image', 'Inspect local image and save results.');
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq 'del( .[\"Name\", \"Digest\", \"RepoTags\"])' >> $workdir/inspect_local.json",
+        fail_message => 'Failed to inspect local image.');
+
+    record_info('Compare local and remote images', 'Compare local and remote images.');
+    assert_script_run("diff $workdir/inspect_remote.json $workdir/inspect_local.json",
+        fail_message => 'Images are not identical!');
+
     # Add cleanup routine.
     record_info('Cleanup', 'Delete copied image directories');
     assert_script_run("rm -rf $workdir/dir1/ dir2/", fail_message => 'Failed to remove temporary files.');
