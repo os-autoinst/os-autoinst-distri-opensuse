@@ -333,7 +333,7 @@
 
 <pre><code>is_not_maintenance_update( $package );</code></pre>
 
-<p>Checks if the package specified in <b>$package</b> is not targeted by a maintenance update. Returns true if the package is not targeted, i.e., package name does not appear in the <b>BUILD</b> setting and the <b>MAINTENANCE</b> setting is active, or false in all other cases.</p>
+<p>Checks if the package specified in <b>$package</b> is not targeted by a maintenance update. Returns true if the package is not targeted, i.e., <b>MAINTENANCE</b> setting is active and package name does not appear in the <b>BUILD</b> setting nor is it in the list of packages in the related <b>INCIDENT_ID</b>. Returns false in all other cases. Besides the package <b>$package</b>, it also checks for <b>kernel</b> in the <b>BUILD</b> setting and the list of packages, as the tests should always run with updates to the kernel.</p>
 
 <h2 id="activate_ntp">activate_ntp</h2>
 
