@@ -17,6 +17,7 @@ use utils;
 use testapi;
 use lockapi;
 use isotovideo;
+use maintenance_smelt qw(get_incident_packages);
 use x11utils qw(ensure_unlocked_desktop);
 use Utils::Logging qw(export_logs);
 use Carp qw(croak);
@@ -1007,16 +1008,25 @@ sub test_flags {
  is_not_maintenance_update( $package );
 
 Checks if the package specified in B<$package> is not targeted by a maintenance
-update. Returns true if the package is not targeted, i.e., package name does not
-appear in the B<BUILD> setting and the B<MAINTENANCE> setting is active, or false
-in all other cases.
+update. Returns true if the package is not targeted, i.e., B<MAINTENANCE> setting
+is active and package name does not appear in the B<BUILD> setting nor is it
+in the list of packages in the related B<INCIDENT_ID>. Returns false in all other
+cases. Besides the package B<$package>, it also checks for B<kernel> in the B<BUILD>
+setting and the list of packages, as the tests should always run with updates to the
+kernel.
 
 =cut
 
 sub is_not_maintenance_update {
     my $package = shift;
     # Allow to skip an openQA module if package is not targeted by maintenance update
-    if (get_var('MAINTENANCE') && get_var('BUILD') !~ /$package/) {
+    if (get_var('MAINTENANCE')) {
+        # If package is listed in BUILD, no need to check for more
+        return 0 if (get_var('BUILD') =~ /$package|kernel/);
+        # Package name is not in BUILD setting, but it can still be targeted by the
+        # incident, so let's query SMELT to confirm
+        my @incident_packages = get_incident_packages(get_required_var('INCIDENT_ID'));
+        return 0 if (grep(/$package|kernel/, @incident_packages));
         record_info('Skipped - MU', "$package test not needed here");
         return 1;
     }

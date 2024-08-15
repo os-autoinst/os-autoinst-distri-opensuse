@@ -23,8 +23,8 @@ sub run {
     my $haproxy_rsc = 'haproxy';
     my $haproxy_cfg = '/etc/haproxy/haproxy.cfg';
     my $apache_file = '/srv/www/htdocs/index.html';
-    my $vip_ip = '10.0.2.20';
-    my $vip_rsc = 'vip';
+    my $vip_ip = '10.0.2.30';
+    my $vip_rsc = 'vip_haproxy';
     my $node_01 = choose_node(1);
     my $node_02 = choose_node(2);
     my $node_01_ip = get_ip($node_01);
