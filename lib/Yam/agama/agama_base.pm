@@ -21,7 +21,7 @@ sub pre_run_hook {
 sub post_fail_hook {
     select_console 'root-console';
     # "agama logs store" gathers output from dmesg, journalctl and y2logs.
-    save_and_upload_log('agama logs store', "/tmp/agama_logs.tar.bz2");
+    save_and_upload_log('agama logs store', "/tmp/agama-logs.tar.gz");
     upload_traces();
 }
 
