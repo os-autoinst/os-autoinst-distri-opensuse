@@ -714,5 +714,12 @@
             "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "bsc#1225914": {
+        "description": "Audit daemon is low on disk space for logging",
+        "products": {
+            "sle": ["15-SP6", "15-SP7"]
+        },
+        "type": "bug"
     }
 }
