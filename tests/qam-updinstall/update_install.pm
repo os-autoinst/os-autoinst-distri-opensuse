@@ -94,7 +94,10 @@ push(@conflicting_packages, ('dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22
 
 my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-example-pages', 'apache2-utils', 'apache2-worker',
     'apache2-tls13', 'apache2-tls13-doc', 'apache2-tls13-example-pages', 'apache2-tls13-prefork', 'apache2-tls13-worker',
-    'apache2-tls13-utils'
+    'apache2-tls13-utils',
+    # can't be installed in parallel, Conflicts: otherproviders(waagent-config) see python-azure-agent.spec
+    'python-azure-agent-config-server', 'python-azure-agent-config-micro',
+    'python-azure-agent-config-hpc', 'python-azure-agent-config-default'
 );
 
 # rpm-ndb can't be installed, it will remove rpm and break rpmdb2solv -> zypper
