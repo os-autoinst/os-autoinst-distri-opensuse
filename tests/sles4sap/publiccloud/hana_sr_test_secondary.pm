@@ -33,7 +33,7 @@ sub run {
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
     my $site_b = $run_args->{$hana_sites[1]};
-    my $sbd_delay;
+    my $sbd_delay = 0;
     select_serial_terminal;
 
     # Switch to control Site B (currently replica mode)
@@ -67,7 +67,7 @@ sub run {
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     # SBD delay is active only after reboot
-    if ($db_action eq 'crash' and $sbd_delay != 0) {
+    if ($db_action eq 'crash' || $db_action eq 'stop') {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # sleep needs to be a little longer than sbd start delay
         sleep($sbd_delay + 30);

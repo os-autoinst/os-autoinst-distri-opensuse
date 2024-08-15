@@ -1286,7 +1286,7 @@ sub wait_for_idle {
 
     my $rc = $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1, proceed_on_failure => 1);
     if ($rc == 124) {
-        record_info("cs_wait_for_idle", "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
+        record_info("WARN cs_wait_for_idle", "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
         $self->run_cmd(cmd => 'cs_clusterstate', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'crm_mon -r -R -n -N -1', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1);
