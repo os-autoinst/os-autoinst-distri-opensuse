@@ -22,6 +22,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_tumbleweed is_sle is_leap);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
@@ -63,7 +64,9 @@ sub run {
     # Upload audit.log for reference
     upload_logs "$log_file";
 
+    select_console 'root-console';
     script_run_interactive("aa-logprof -d $aa_tmp_prof", $interactive_str, 30);
+    select_serial_terminal;
 
     foreach my $item (@aa_logprof_items) {
         validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub { m/$item/ };
@@ -80,7 +83,9 @@ sub run {
         my $testfile = "/usr/bin/ls";
         my $test_special = '/usr/bin/l\(s';
         $self->create_log_content_is_special("$testfile", "$test_special");
+        select_console 'root-console';
         script_run_interactive("aa-logprof -f $log_file", $interactive_str, 30);
+        select_serial_terminal;
 
         # Verify "https://bugs.launchpad.net/apparmor/+bug/1848227"
         $self->test_profile_content_is_special("aa-logprof", "Reading log entries from.*");

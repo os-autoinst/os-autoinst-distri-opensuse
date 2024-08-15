@@ -23,6 +23,7 @@ use warnings;
 use base "apparmortest";
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -56,12 +57,14 @@ sub run {
         m/
             Name:\s+\/etc\/nscd\.conf.*
             Denied:\s+r.*
-            AppArmor\sdenials:\s+[0-9]+\s+\(since/sxx
+            AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
     };
 
     # Make sure it could restore to the default profile
     assert_script_run "aa-disable -d $tmp_prof nscd";
     assert_script_run "aa-enforce nscd";
+    my $time = is_sle('=12-sp3') || is_sle('=15-sp3') ? 10 : 2;
+    sleep $time;
     systemctl("restart nscd");
 
     $self->aa_tmp_prof_clean("$tmp_prof");

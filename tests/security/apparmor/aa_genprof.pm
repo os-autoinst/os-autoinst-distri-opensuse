@@ -21,6 +21,7 @@ use warnings;
 use base "apparmortest";
 use testapi;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
@@ -39,6 +40,7 @@ sub run {
 
     # Run aa-genprof command in screen so that we could restart nscd at the
     # same time while it is waiting for scan
+    select_console 'root-console';
     script_run("screen -m ; echo '$sc_dtch_msg' > /dev/$serialdev", 0);
 
     # Confirm it is in the screen
@@ -82,6 +84,7 @@ sub run {
     # Exit screen
     send_key 'ctrl-d';
     wait_serial("$sc_term_msg", 10);    # confirm terminated
+    select_serial_terminal;
 
     # Not all rules will be checked here, only the critical ones.
     validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {

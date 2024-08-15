@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = shift;
@@ -48,6 +49,7 @@ sub run {
 
     # Restart Dovecot
     systemctl("restart dovecot");
+    sleep 3;
 
     # cleanup audit log
     assert_script_run("echo > $audit_log");
@@ -57,7 +59,9 @@ sub run {
     assert_script_run("echo > $mail_info_log");
 
     # Retrieve email with a POP3 account
+    select_console('root-console');
     $self->retrieve_mail_pop3();
+    select_serial_terminal;
 
     # Verify audit log contains no related error
     my $script_output = script_output "cat $audit_log";

@@ -20,7 +20,6 @@ use services::apparmor;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
     services::apparmor::check_aa_enforce($self);
 
     # Verify "https://bugs.launchpad.net/apparmor/+bug/1848227"
