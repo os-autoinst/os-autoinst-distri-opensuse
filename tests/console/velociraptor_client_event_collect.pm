@@ -22,17 +22,13 @@ sub run {
 
     select_serial_terminal;
 
-    # get python version
-    my $system_python_version = get_system_python_version();
-
     # get os version
     my ($version, $sp, $host_distri) = get_os_release;
     my $sp_version = "$version.$sp";
+    # install necessary packages
+    zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Factory:/Head/standard/ yq");
+    zypper_call "in yq";
 
-    # setup repositories
-    zypper_call "ar -p 90 -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/SLE-15:/Update/standard/ sle15update";
-    zypper_call "ar -p 90 -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/Update/standard/ sle15SP4update";
-    zypper_call "ar -p 90 -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update/standard/ sle15SP1update";
     if (is_sle) {
         if (is_sle('=15-SP6') || $sp_version == '15.6') {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP6/ sensor");
@@ -49,53 +45,52 @@ sub run {
         }
     }
 
-    # create config dir to run server container
-    assert_script_run "cd /root";
-    assert_script_run "mkdir -p vrr/config vrr/data vrr/logs vrr/definitions";
-
-    # install podman and required dependencies
-    zypper_call "in cni podman";
-
-    # run server as container
-    assert_script_run "podman run -d --rm     --name vrr     -v /root/vrr/data:/data:Z     -v /root/vrr/config:/config:Z     -v /root/vrr/logs:/logs:Z     -v /root/vrr/definitions:/definitions:Z     -p 8001:8001     -p 8889:8889     -p 8000:8000     -p 8003:8003     registry.opensuse.org/security/sensor/containers/linux-security-sensor";
-
-    # verify container running
-    validate_script_output("podman ps", qr/vrr/);
-    validate_script_output("podman container inspect --format='{{.State.Running}}' vrr", qr/true/);
 
     # velociraptor client install
     zypper_call "in velociraptor-client";
-
     systemctl "enable velociraptor-client";
     systemctl "is-enabled velociraptor-client";
 
+    # generate config files
+    assert_script_run "velociraptor-client config generate > server.conf";
+    script_output 'yq -i ".defaults.event_max_wait = 1" server.conf';
+    script_output 'yq -i ".defaults.event_max_wait_jitter = 1" server.conf';
+    script_output 'yq -i ".defaults.event_change_notify_all_clients = true" server.conf';
+    background_script_run "velociraptor-client frontend -v --config server.conf > /dev/null 2>&1 &";
+    assert_script_run "velociraptor-client config client --config server.conf > client.conf";
+
+    # update config file
+    script_output 'yq -i ".Client.max_poll = 1" client.conf';
+    script_output 'yq -i ".Client.max_poll_std = 1" client.conf';
+    script_output 'yq -i ".Client.min_poll = 1" client.conf';
+    script_output 'yq -i ".Client.default_max_wait = 1" client.conf';
+
     # copy config files
-    assert_script_run "cp /root/vrr/config/client.conf  /etc/velociraptor/client.config";
-    assert_script_run "sed -i \"s/sensor-frontend/localhost/g\" /etc/velociraptor/client.config";
+    assert_script_run "cp client.conf  /etc/velociraptor/client.config";
 
     # start client
-    systemctl "start velociraptor-client";
+    sleep 10;
+    systemctl "restart velociraptor-client";
     systemctl "status velociraptor-client";
-
     # check server accessible
-    assert_script_run "curl --insecure --user admin:admin https://localhost:8889/app/index.html";
+    assert_script_run "curl -k https://localhost:8000/server.pem";
 
     # generate server api config
-    assert_script_run "sed -i 's/sensor-frontend/localhost/g' vrr/config/server.conf";
-    assert_script_run "velociraptor-client --config vrr/config/server.conf config api_client --name admin --role administrator api.config.yaml";
+    assert_script_run "velociraptor-client --config server.conf config api_client --name admin --role administrator api.config.yaml";
     # get client info from server
     assert_script_run "velociraptor-client --api_config ~/api.config.yaml query 'SELECT * FROM info()'";
 
     # get client id
     my $clientid = script_output('velociraptor-client --api_config ~/api.config.yaml query \'SELECT *, os_info.hostname as Hostname, client_id FROM clients()\' | grep -oP \'"client_id": "\K.*(?=")\'', 120);
 
-    # install virtualenv
-    assert_script_run "$system_python_version  -m venv vrr-api";
-    assert_script_run "vrr-api/bin/pip install pyvelociraptor";
     # add client monitoring
-    assert_script_run('vrr-api/bin/pyvelociraptor --config api.config.yaml \'SELECT add_client_monitoring(artifact="SUSE.Linux.Events.ExecutableFiles") FROM scope()\'');
-    sleep 90;
+    my @artifacts = qw(SUSE.Linux.Audit.SystemLogins SUSE.Linux.Events.DNS SUSE.Linux.Events.ExecutableFiles SUSE.Linux.Events.ImmutableFile SUSE.Linux.Events.NewFiles SUSE.Linux.Events.NewFilesNoOwner SUSE.Linux.Events.NewHiddenFile SUSE.Linux.Events.NewZeroSizeLogFile SUSE.Linux.Events.Packages SUSE.Linux.Events.ProcessStatuses SUSE.Linux.Events.SSHLogin SUSE.Linux.Events.Services SUSE.Linux.Events.SshAuthorizedKeys SUSE.Linux.Events.SystemLogins SUSE.Linux.Events.TCPConnections SUSE.Linux.Events.Timers SUSE.Linux.Events.UserAccount SUSE.Linux.Events.UserGroupMembershipUpdates);
+    foreach my $artifact (@artifacts) {
+        assert_script_run("velociraptor-client --api_config ~/api.config.yaml query 'SELECT add_client_monitoring(artifact=\"$artifact\") FROM scope()'");
+    }
+
     # generetae client events
+    sleep 10;
     my $i = 0;
     while ($i < 10) {
         assert_script_run "echo 'Client Event exec' >> /home/genfile$i.sh";
@@ -104,15 +99,19 @@ sub run {
         assert_script_run "chmod +x /tmp/genfile$i.sh";
         $i++;
     }
-
-    # wait for event collection
-    sleep 180;
+    sleep 60;
     # check for collected event on server
-    script_output "ls /root/vrr/data/clients/$clientid/";
-    script_output "ls /root/vrr/data/clients/$clientid/monitoring_logs/";
-    script_output "ls /root/vrr/data/clients/$clientid/monitoring/";
-    assert_script_run "grep -r -i genfile* /root/vrr/data/clients/$clientid/*";
-
+    script_output "ls -la /var/tmp/velociraptor/clients/$clientid/monitoring_logs/";
+    script_output "ls -la /var/tmp/velociraptor/clients/$clientid/monitoring/";
+    my $files = script_output "find /var/tmp/velociraptor/clients/$clientid/monitoring/ -type f -name '*.json' | awk -F/ '{print \$F}'";
+    my @names = split /\s+/, $files;
+    for (@names) {
+        my @name = split /\//, $_;
+        upload_logs($_, log_name => "artifact-$name[7].json");
+    }
+    # skipping validation on s390x due to https://jira.suse.com/browse/SENS-122
+    if (!is_s390x) {
+        script_output "grep -r -i genfile* /var/tmp/velociraptor/clients/$clientid/*";
+    }
 }
-
 1;
