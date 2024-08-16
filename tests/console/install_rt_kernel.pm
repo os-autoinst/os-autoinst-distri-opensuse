@@ -18,6 +18,7 @@ sub run {
 
     zypper_call('rm kernel-default');
     zypper_call('in kernel-rt');
+    assert_script_run('sed -ie "s/^NAME=.*\$/NAME=\"SLE_RT\"/" /etc/os-release');
 }
 
 sub test_flags {
