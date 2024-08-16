@@ -7,4 +7,3 @@ schedule:
   - yam/agama/auto
   - yam/validate/validate_product
   - yam/validate/validate_user
-  - security/selinux/sestatus
