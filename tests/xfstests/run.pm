@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright 2018-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: xfsprogs
-# Summary: Run tests
+# Summary: Run xfstests
 # - Shuffle the list of xfs tests to run
 # - Create heartbeat script, directorie
 # - Start heartbeat, setup environment variables
@@ -14,7 +14,7 @@
 # - Save kdump data, unless NO_KDUMP is set to 1
 # - Stop heartbeat after last test on list
 # - Collect all logs
-# Maintainer: Yong Sun <yosun@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
 package run;
 
 use 5.018;
@@ -33,17 +33,10 @@ use mmapi;
 use version_utils 'is_public_cloud';
 use LTP::utils;
 use LTP::WhiteList;
+use xfstests_utils;
 
-# Heartbeat variables
-my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT') || 200;
-my $HB_PATN = '<h>';    #shorter label <heartbeat> to getting stable under heavy stress
-my $HB_DONE = '<d>';    #shorter label <done> to getting stable under heavy stress
-my $HB_DONE_FILE = '/opt/test.done';
-my $HB_EXIT_FILE = '/opt/test.exit';
-my $HB_SCRIPT = '/opt/heartbeat.sh';
 
-# xfstests variables
+# xfstests general variables
 # - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
 # - XFSTESTS_BLACKLIST: Set sub tests not run in XFSTESTS_RANGES. e.g. XFSTESTS_BLACKLIST=generic/010,generic/019,generic/038
 # - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
@@ -52,456 +45,45 @@ my $HB_SCRIPT = '/opt/heartbeat.sh';
 my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
 my $BLACKLIST = get_var('XFSTESTS_BLACKLIST');
+my $GROUPLIST = get_var('XFSTESTS_GROUPLIST');
 my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
 my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
-my $MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
+my $SUBTEST_MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
 my $TEST_SUITE = get_var('TEST');
+my $ENABLE_KDUMP = check_var('NO_KDUMP', '1') ? 0 : 1;
+my $VIRTIO_CONSOLE = get_var('VIRTIO_CONSOLE');
 
-# Variables use for no heartbeat mode
+# variables set by previous steps
+my $TEST_DEV = get_var('XFSTESTS_TEST_DEV');
+my $SCRATCH_DEV = get_var('XFSTESTS_SCRATCH_DEV');
+my $SCRATCH_DEV_POOL = get_var('XFSTESTS_SCRATCH_DEV_POOL');
+my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
+
+# Debug variables
+# - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
+# - BTRFS_DUMP: set it a non-zero value to enable btrfs dump.
+# - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
+# - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
+#     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
+my $INJECT_INFO = get_var('INJECT_INFO', '');
+my $BTRFS_DUMP = get_var('BTRFS_DUMP', 0);
+my $RAW_DUMP = get_var('RAW_DUMP', 0);
+my $DEBUG_INFO = get_var('XFSTESTS_DEBUG', '');
+
+# Heartbeat mode variables
+# - XFSTESTS_HEARTBEAT_INTERVAL: Set how long to send/receive a heartbeat
+# - XFSTESTS_HEARTBEAT_TIMEOUT: Set the threshold to decide lose heartbeat
+my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
+my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT') || 200;
+my $HB_DONE = '<d>';
+
+# None heartbeat mode variables
+# - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
-my ($test_status, $test_start, $test_duration);
 
-my $TEST_FOLDER = '/opt/test';
-my $SCRATCH_FOLDER = '/opt/scratch';
-
-# Create heartbeat script, directories(Call it only once)
-sub heartbeat_prepare {
-    my $redir = " >> /dev/$serialdev";
-    my $script = <<END_CMD;
-#!/bin/sh
-rm -f $HB_DONE_FILE $HB_EXIT_FILE
-declare -i c=0
-while [[ ! -f $HB_EXIT_FILE ]]; do
-    if [[ -f $HB_DONE_FILE ]]; then
-        c=0
-        echo "$HB_DONE" $redir
-        sleep 2
-    elif [[ \$c -ge $HB_INTVL ]]; then
-        c=0
-        echo "$HB_PATN" $redir
-    else
-        c+=1
-    fi
-    sleep 1
-done
-END_CMD
-    assert_script_run("cat > $HB_SCRIPT <<'END'\n$script\nEND\n( exit \$?)");
-}
-
-# Start heartbeat, setup environment variables(Call it everytime SUT reboots)
-sub heartbeat_start {
-    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
-}
-
-# Stop heartbeat
-sub heartbeat_stop {
-    check_var('VIRTIO_CONSOLE', '1') ? type_string "\n" : send_key 'ret';
-    assert_script_run("touch $HB_EXIT_FILE");
-}
-
-# Wait for heartbeat
-sub heartbeat_wait {
-    # When under heavy load, the SUT might be unable to send
-    # heartbeat messages to serial console. That's why HB_TIMEOUT
-    # is set to 200 by default: waiting for such tests to finish.
-    my $ret = wait_serial([$HB_PATN, $HB_DONE], $HB_TIMEOUT);
-    if ($ret) {
-        if ($ret =~ /$HB_PATN/) {
-            return ($HB_PATN, '');
-        }
-        else {
-            my $status;
-            check_var('VIRTIO_CONSOLE', '1') ? type_string "\n" : send_key 'ret';
-            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
-            $ret =~ s/^\s+|\s+$//g;
-            if ($ret == 0) {
-                $status = 'PASSED';
-            }
-            elsif ($ret == 22) {
-                $status = 'SKIPPED';
-            }
-            else {
-                $status = 'FAILED';
-            }
-            return ($HB_DONE, $status);
-        }
-    }
-    return ('', 'FAILED');
-}
-
-# Wait for test to finish
-sub test_wait {
-    my $timeout = shift;
-    my $begin = time();
-    my ($type, $status) = heartbeat_wait;
-    my $delta = time() - $begin;
-    # In case under heavy stress, only match first 2 words in label is enough
-    my $hb_label = substr($HB_PATN, 0, 2);
-    while ($type =~ /$hb_label/ and $delta < $timeout) {
-        ($type, $status) = heartbeat_wait;
-        $delta = time() - $begin;
-    }
-    if ($type eq $HB_PATN) {
-        return ('', 'FAILED', $delta);
-    }
-    return ($type, $status, $delta);
-}
-
-# Return the name of a test(e.g. xfs-005)
-# test - specific test(e.g. xfs/005)
-sub test_name {
-    my $test = shift;
-    return $test =~ s/\//-/gr;
-}
-
-# Add one test result to log file
-# file   - log file
-# test   - specific test(e.g. xfs/008)
-# status - test status
-# time   - time consumed
-sub log_add {
-    my ($file, $test, $status, $time) = @_;
-    my $name = test_name($test);
-    unless ($name and $status) { return; }
-    my $cmd = "echo '$name ... ... $status (${time}s)' | tee -a $file";
-    my $ret = script_output($cmd);
-    return $ret;
-}
-
-# Return all the tests of a specific xfstests category
-# category - xfstests category(e.g. generic)
-# dir      - xfstests installation dir(e.g. /opt/xfstests)
-sub tests_from_category {
-    my ($category, $dir) = @_;
-    my $cmd = "find '$dir/tests/$category' -regex '.*/[0-9]+'";
-    my $output = script_output($cmd, 60);
-    my @tests = split(/\n/, $output);
-    foreach my $test (@tests) {
-        $test = basename($test);
-    }
-    return @tests;
-}
-
-# Return matched exclude tests from groups in XFSTESTS_GROUPLIST
-# return structure - hash
-# Group name start with ! will exclude in test, and expected to use to update blacklist
-# If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
-sub exclude_grouplist {
-    my %tests_list = ();
-    return unless get_var('XFSTESTS_GROUPLIST');
-    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
-    my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
-    foreach my $group_name (@group_list) {
-        next if ($group_name !~ /^\!/);
-        $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/' $INST_DIR/tests/$FSTYPE/group.list | awk '{printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' >> tmp.group";
-        script_run($cmd) if ($test_folder eq "generic" and $TEST_RANGES =~ /$FSTYPE/);
-        $cmd = "cat tmp.group";
-        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
-        %tests_list = (%tests_list, %tmp_list);
-    }
-    return %tests_list;
-}
-
-# Return matched include tests from groups in XFSTESTS_GROUPLIST
-# return structure - array
-# Group name start without ! will include in test, and expected to use to update test ranges
-# If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder
-sub include_grouplist {
-    my @tests_list;
-    return unless get_var('XFSTESTS_GROUPLIST');
-    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
-    my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
-    foreach my $group_name (@group_list) {
-        next if ($group_name =~ /^\!/);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/' $INST_DIR/tests/$FSTYPE/group.list | awk '{printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' >> tmp.group";
-        script_run($cmd) if ($test_folder eq "generic" and $TEST_RANGES =~ /$FSTYPE/);
-        $cmd = "cat tmp.group";
-        my $tests = substr(script_output($cmd), 0, -1);
-        foreach my $single_test (split(/,/, $tests)) {
-            push(@tests_list, $single_test);
-        }
-    }
-    return @tests_list;
-}
-
-# Return a list of tests to run from given test ranges
-# ranges - test ranges(e.g. xfs/001-100,btrfs/100-159)
-# dir    - xfstests installation dir(e.g. /opt/xfstests)
-sub tests_from_ranges {
-    my ($ranges, $dir) = @_;
-    if ($ranges !~ /\w+(\/\d+-\d+)?(,\w+(\/\d+-\d+)?)*/) {
-        die "Invalid test ranges: $ranges";
-    }
-    my %cache;
-    my @tests;
-    foreach my $range (split(/,/, $ranges)) {
-        my ($min, $max) = (0, 99999);
-        my ($category, $min_max) = split(/\//, $range);
-        unless (defined($min_max)) {
-            next;
-        }
-        if ($min_max =~ /\d+-\d+/) {
-            ($min, $max) = split(/-/, $min_max);
-        }
-        else {
-            $min = $max = $min_max;
-        }
-        unless (exists($cache{$category})) {
-            $cache{$category} = [tests_from_category($category, $dir)];
-            assert_script_run("mkdir -p $LOG_DIR/$category");
-        }
-        foreach my $num (@{$cache{$category}}) {
-            if ($num >= $min and $num <= $max) {
-                push(@tests, "$category/$num");
-            }
-        }
-    }
-    return @tests;
-}
-
-# Run a single test and write log to file
-# test - test to run(e.g. xfs/001)
-sub test_run {
-    my $test = shift;
-    my ($category, $num) = split(/\//, $test);
-    my $run_options = '';
-    if (check_var('XFSTESTS', 'nfs')) {
-        $run_options = '-nfs';
-    }
-    elsif (check_var('XFSTESTS', 'overlay')) {
-        $run_options = '-overlay';
-    }
-    my $inject_code = get_var('INJECT_INFO', '');
-    my $cmd = "\n$TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; ";
-    $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
-    type_string($cmd);
-}
-
-# Save kdump data for further uploading
-# test   - corresponding test(e.g. xfs/009)
-# dir    - Save kdump data to this dir
-# vmcore - include vmcore file
-# kernel - include kernel
-sub save_kdump {
-    my ($test, $dir, %args) = @_;
-    $args{vmcore} ||= 0;
-    $args{kernel} ||= 0;
-    $args{debug} ||= 0;
-    my $name = test_name($test);
-    my $ret = script_run("mv /var/crash/* $dir/$name");
-    if ($args{debug}) {
-        $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz --absolute-names /usr/lib/debug/boot; fi");
-    }
-    return 0 if $ret != 0;
-
-    my $removed = "";
-    unless ($args{vmcore}) {
-        $removed .= " $dir/$name/vmcore";
-    }
-    unless ($args{kernel}) {
-        $removed .= " $dir/$name/*.{gz,bz2,xz}";
-    }
-    if ($removed) {
-        assert_script_run("rm -f $removed");
-    }
-    return 1;
-}
-
-# Kunth shuffle
-sub shuffle {
-    my @arr = @_;
-    srand(time());
-    for (my $i = $#arr; $i > 0; $i--) {
-        my $j = int(rand($i + 1));
-        ($arr[$i], $arr[$j]) = ($arr[$j], $arr[$i]);
-    }
-    return @arr;
-}
-
-# Log & Must included: Copy log to ready to save
-sub copy_log {
-    my ($category, $num, $log_type) = @_;
-    my $cmd = "if [ -e /opt/xfstests/results/$category/$num.$log_type ]; then cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type; fi";
-    script_run($cmd);
-}
-
-# Log: Copy junk.fsxops for fails fsx tests included in subtests
-sub copy_fsxops {
-    my ($category, $num) = @_;
-    my $cmd = "if [ -e $TEST_FOLDER/junk.fsxops ]; then cp $TEST_FOLDER/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
-    script_run($cmd);
-}
-
-# Log: Only run in test Btrfs, collect image dump for inconsistent error
-sub dump_btrfs_img {
-    my ($category, $num) = @_;
-    my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
-    my $ret = script_output("grep -E -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
-    if ($ret =~ /filesystem on (.+) is inconsistent/) { $cmd = "umount $1;btrfs-image $1 $LOG_DIR/$category/$num.img"; }
-    script_run($cmd);
-}
-
-# Log: Raw dump from SCRATCH_DEV via dd
-sub raw_dump {
-    my ($category, $num) = @_;
-    my $dev = get_var('XFSTESTS_SCRATCH_DEV') ? get_var('XFSTESTS_SCRATCH_DEV') : (split(/ /, get_var("XFSTESTS_SCRATCH_DEV_POOL")))[0];
-    assert_script_run("umount $dev;dd if=$dev of=$LOG_DIR/$category/$num.raw bs=512 count=1000");
-}
-
-# Log: Collect fs runtime status for XFS, Btrfs and Ext4
-sub collect_fs_status {
-    my ($category, $num) = @_;
-    my $cmd = <<END_CMD;
-mount \$TEST_DEV \$TEST_DIR &> /dev/null
-[ -n "\$SCRATCH_DEV" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null
-END_CMD
-    if ($FSTYPE eq 'xfs') {
-        $cmd = <<END_CMD;
-$cmd
-echo "==> /sys/fs/$FSTYPE/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
-cat /sys/fs/$FSTYPE/stats/stats >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$FSTYPE/*/log/* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$FSTYPE/*/stats/stats >> $LOG_DIR/$category/$num.fs_stat
-xfs_info $TEST_FOLDER > $LOG_DIR/$category/$num.xfsinfo
-xfs_info $SCRATCH_FOLDER >> $LOG_DIR/$category/$num.xfsinfo
-END_CMD
-    }
-    elsif ($FSTYPE eq 'btrfs') {
-        $cmd = <<END_CMD;
-$cmd
-tail -n +1 /sys/fs/$FSTYPE/*/allocation/data/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$FSTYPE/*/allocation/metadata/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$FSTYPE/*/allocation/metadata/dup/* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$FSTYPE/*/allocation/*/single/* >> $LOG_DIR/$category/$num.fs_stat
-END_CMD
-    }
-    elsif ($FSTYPE eq 'ext4') {
-        $cmd = <<END_CMD;
-$cmd
-tail -n +1 /sys/fs/$FSTYPE/*/* >> $LOG_DIR/$category/$num.fs_stat
-END_CMD
-    }
-    $cmd = <<END_CMD;
-$cmd
-umount \$TEST_DEV &> /dev/null
-[ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
-END_CMD
-    enter_cmd("$cmd");
-}
-
-# Add all above logs
-sub copy_all_log {
-    my ($category, $num) = @_;
-    copy_log($category, $num, 'out.bad');
-    copy_log($category, $num, 'full');
-    copy_log($category, $num, 'dmesg');
-    copy_fsxops($category, $num);
-    collect_fs_status($category, $num);
-    if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
-    if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
-}
-
-sub reload_loop_device {
-    my $self = shift;
-    assert_script_run("losetup -fP $INST_DIR/test_dev");
-    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
-    my $scratch_num = 1;
-    while ($scratch_amount >= $scratch_num) {
-        assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
-        $scratch_num += 1;
-    }
-    script_run('losetup -a');
-    format_partition("$INST_DIR/test_dev", $FSTYPE);
-}
-
-# Umount TEST_DEV and SCRATCH_DEV
-sub umount_xfstests_dev {
-    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null') if get_var('XFSTESTS_TEST_DEV');
-    script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
-    if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
-        script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
-    }
-}
-
-sub config_debug_option {
-    script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
-    script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
-    if (get_var('XFSTESTS_DEBUG')) {
-        # e.g. XFSTESTS_DEBUG could be one or more parameter in following
-        # [hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall...]
-        script_run("echo 1 > /proc/sys/kernel/$_ ") foreach (split ' ', get_var('XFSTESTS_DEBUG'));
-    }
-}
-
-# Run a single test and write log to file but without heartbeat
-sub test_run_without_heartbeat {
-    my ($self, $test) = @_;
-    my ($category, $num) = split(/\//, $test);
-    my $run_options = '';
-    my $status_num = 1;
-    if (check_var('XFSTESTS', 'nfs')) {
-        $run_options = '-nfs';
-    }
-    elsif (check_var('XFSTESTS', 'overlay')) {
-        $run_options = '-overlay';
-    }
-    my $inject_code = get_var('INJECT_INFO', '');
-    eval {
-        $test_start = time();
-        # Send kill signal 3 seconds after sending the default SIGTERM to avoid some tests refuse to stop after timeout
-        assert_script_run("timeout -k 3 " . ($TIMEOUT_NO_HEARTBEAT - 5) . " $TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $TIMEOUT_NO_HEARTBEAT);
-        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
-        $test_duration = time() - $test_start;
-    };
-    if ($@) {
-        $test_status = 'FAILED';
-        $test_duration = time() - $test_start;
-        sleep(2);
-        copy_all_log($category, $num);
-
-        prepare_system_shutdown;
-        check_var('VIRTIO_CONSOLE', '1') ? power('reset') : send_key 'alt-sysrq-b';
-        reconnect_mgmt_console if is_pvm;
-        $self->wait_boot;
-
-        sleep 1;
-        select_console('root-console');
-        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
-        unless (check_var('NO_KDUMP', '1')) {
-            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
-                # If no kdump data found, write warning to log
-                my $msg = "Warning: $test crashed SUT but has no kdump data";
-                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
-            }
-        }
-
-        # Reload loop device after a reboot
-        reload_loop_device if get_var('XFSTESTS_LOOP_DEVICE');
-    }
-    else {
-        $status_num =~ s/^\s+|\s+$//g;
-        if ($status_num == 0) {
-            $test_status = 'PASSED';
-        }
-        elsif ($status_num == 22) {
-            $test_status = 'SKIPPED';
-        }
-        else {
-            $test_status = 'FAILED';
-            copy_all_log($category, $num);
-        }
-    }
-    # Add test status to STATUS_LOG file
-    return log_add($STATUS_LOG, $test, $test_status, $test_duration);
-}
 
 sub run {
     my $self = shift;
@@ -510,7 +92,7 @@ sub run {
     my $enable_heartbeat = 1;
     $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
 
-    config_debug_option;
+    config_debug_option($DEBUG_INFO);
 
     # Load whitelist environment
     my $whitelist_env = prepare_whitelist_environment();
@@ -522,7 +104,7 @@ sub run {
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);
     my %uniq;
-    @tests = (@tests, include_grouplist);
+    @tests = (@tests, include_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
     @tests = grep { ++$uniq{$_} < 2; } @tests;
 
     # Shuffle tests list
@@ -530,7 +112,7 @@ sub run {
         @tests = shuffle(@tests);
     }
 
-    heartbeat_prepare if $enable_heartbeat == 1;
+    heartbeat_prepare($HB_INTVL) if $enable_heartbeat == 1;
     assert_script_run("mkdir -p $KDUMP_DIR $LOG_DIR");
 
     # wait until nfs service is ready
@@ -542,7 +124,7 @@ sub run {
     heartbeat_start if $enable_heartbeat == 1;
 
     # Generate xfstests blacklist
-    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist);
+    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
         my $whitelist = LTP::WhiteList->new($issues);
         my %skipped = map { $_ => 1 } $whitelist->list_skipped_tests($whitelist_env, $TEST_SUITE);
@@ -558,21 +140,21 @@ sub run {
             next;
         }
 
-        umount_xfstests_dev unless get_var('XFSTESTS_HIGHSPEED');
+        umount_xfstests_dev($TEST_DEV, $SCRATCH_DEV, $SCRATCH_DEV_POOL) unless get_var('XFSTESTS_HIGHSPEED');
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
         enter_cmd("echo $test > /dev/$serialdev");
         if ($enable_heartbeat == 0) {
-            $status_log_content = test_run_without_heartbeat($self, $test);
+            $status_log_content = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE);
             next;
         }
-        test_run($test);
-        my ($type, $status, $time) = test_wait($MAX_TIME);
+        test_run($test, $FSTYPE, $INJECT_INFO);
+        my ($type, $status, $time) = test_wait($SUBTEST_MAX_TIME, $HB_TIMEOUT, $VIRTIO_CONSOLE);
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
-            copy_all_log($category, $num) if ($status =~ /FAILED/);
+            copy_all_log($category, $num, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL) if ($status =~ /FAILED/);
             next;
         }
 
@@ -591,7 +173,7 @@ sub run {
         sleep(1);
         select_console('root-console');
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
-        unless (check_var('NO_KDUMP', '1')) {
+        if ($ENABLE_KDUMP) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
                 # If no kdump data found, write warning to log
                 my $msg = "Warning: $test crashed SUT but has no kdump data";
@@ -603,12 +185,12 @@ sub run {
         log_add($STATUS_LOG, $test, $status, $time);
 
         # Reload loop device after a reboot
-        reload_loop_device if get_var('XFSTESTS_LOOP_DEVICE');
+        reload_loop_device($self, $FSTYPE) if get_var('XFSTESTS_LOOP_DEVICE');
 
         # Prepare for the next test
         heartbeat_start;
     }
-    heartbeat_stop if $enable_heartbeat == 1;
+    heartbeat_stop($VIRTIO_CONSOLE) if $enable_heartbeat == 1;
 
     #Save status log before next step(if run.pm fail will load into a last good snapshot)
     save_tmp_file('status.log', $status_log_content);
