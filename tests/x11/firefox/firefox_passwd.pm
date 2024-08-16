@@ -73,8 +73,13 @@ sub run {
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
-    send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
-    send_key 'spc' if $version < 128;
+    if (is_sle('<=15')) {
+        send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
+        send_key 'spc' if $version < 128;
+    }
+    else {
+        send_key 'alt-shift-u';
+    }
     assert_screen('firefox-passwd-master_setting');
     # We should use strong password due to bsc#1208951
     type_string $masterpw, 150;
