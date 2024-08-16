@@ -559,6 +559,13 @@
         },
         "type": "bug"
     },
+    "bsc#1229146": {
+        "description": "Job cockpit-ws-user\\.service/stop deleted to break ordering cycle starting with basic\\.target/stop",
+        "products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "bug"
+    },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
