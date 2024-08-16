@@ -920,7 +920,7 @@ sub oscap_security_guide_setup {
     }
 
     zypper_call('ref -s', timeout => 180);
-    zypper_call('in openscap-utils scap-security-guide', timeout => 180);
+    zypper_call('in openscap-utils scap-security-guide p7zip', timeout => 180);
     set_ds_file();
 
     $f_ssg_ds = is_sle ? $f_ssg_sle_ds : $f_ssg_tw_ds;
