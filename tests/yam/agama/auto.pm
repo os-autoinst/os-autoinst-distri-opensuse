@@ -12,11 +12,13 @@ use testapi;
 use utils 'clear_console';
 
 sub run {
-    assert_screen('agama-install-finished', 1200);
-
-    select_console 'root-console';
-    clear_console;
-    enter_cmd "reboot";
+    assert_screen([qw(agama-signing-key agama-install-finished)], 1200);
+    if (match_has_tag 'agama-signing-key') {
+        record_info('Softfail', "opensuse signing keys are not imported", result => 'softfail');
+        assert_and_click('trust');
+        assert_screen('agama-install-finished', 1000);
+    }
+    assert_and_click('reboot');
 
     # For agama test, it is too short time to match the grub2, so we create
     # a new needle to avoid too much needles loaded.

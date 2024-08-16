@@ -1,14 +1,13 @@
 {
-   "software": {
-      "product": "Tumbleweed"
-   },
-   "user": {
-      "fullName": "Bernhard M. Wiedemann",
-      "password": "nots3cr3t",
-      "userName": "bernhard"
-   },
-   "root": {
-      "password": "nots3cr3t"
-   }
+  "product": {
+    "id": "Tumbleweed"
+  },
+  "user": {
+    "fullName": "Bernhard M. Wiedemann",
+    "password": "nots3cr3t",
+    "userName": "bernhard"
+  },
+  "root": {
+    "password": "nots3cr3t"
+  }
 }
-
