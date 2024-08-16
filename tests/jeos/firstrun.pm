@@ -279,7 +279,7 @@ sub run {
         send_key 'n';
     }
 
-    if ((is_tumbleweed && check_var('STAGING', 'K')) || is_sle_micro('>6.0')) {
+    if (is_tumbleweed || is_sle_micro('>6.0')) {
         create_user_in_ui();
     }
 
