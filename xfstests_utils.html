@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/xfstests_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#heartbeat_prepare">heartbeat_prepare</a></li>
+      <li><a href="#heartbeat_start">heartbeat_start</a></li>
+      <li><a href="#heartbeat_stop">heartbeat_stop</a></li>
+      <li><a href="#heartbeat_wait">heartbeat_wait</a></li>
+      <li><a href="#test_wait">test_wait</a></li>
+      <li><a href="#test_name">test_name</a></li>
+      <li><a href="#log_add">log_add</a></li>
+      <li><a href="#tests_from_category">tests_from_category</a></li>
+      <li><a href="#exclude_grouplist">exclude_grouplist</a></li>
+      <li><a href="#include_grouplist">include_grouplist</a></li>
+      <li><a href="#tests_from_ranges">tests_from_ranges</a></li>
+      <li><a href="#test_run">test_run</a></li>
+      <li><a href="#save_kdump">save_kdump</a></li>
+      <li><a href="#shuffle">shuffle</a></li>
+      <li><a href="#copy_log">copy_log</a></li>
+      <li><a href="#copy_fsxops">copy_fsxops</a></li>
+      <li><a href="#dump_btrfs_img">dump_btrfs_img</a></li>
+      <li><a href="#raw_dump">raw_dump</a></li>
+      <li><a href="#collect_fs_status">collect_fs_status</a></li>
+      <li><a href="#copy_all_log">copy_all_log</a></li>
+      <li><a href="#reload_loop_device">reload_loop_device</a></li>
+      <li><a href="#umount_xfstests_dev">umount_xfstests_dev</a></li>
+      <li><a href="#config_debug_option">config_debug_option</a></li>
+      <li><a href="#test_run_without_heartbeat">test_run_without_heartbeat</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/xfstests_utils.pm</h1>
+
+<h2 id="heartbeat_prepare">heartbeat_prepare</h2>
+
+<p>Create heartbeat script and directories (Call it only once)</p>
+
+<h2 id="heartbeat_start">heartbeat_start</h2>
+
+<p>Start heartbeat, setup environment variables (Call it everytime SUT reboots)</p>
+
+<h2 id="heartbeat_stop">heartbeat_stop</h2>
+
+<p>Stop heartbeat</p>
+
+<h2 id="heartbeat_wait">heartbeat_wait</h2>
+
+<p>Wait for heartbeat</p>
+
+<h2 id="test_wait">test_wait</h2>
+
+<p>Wait for test to finish</p>
+
+<h2 id="test_name">test_name</h2>
+
+<p>Format the name of a subtest, because we don&#39;t want / to be seen like directory (e.g. xfs-005) test - specific test (e.g. xfs/005)</p>
+
+<h2 id="log_add">log_add</h2>
+
+<p>Add one test result to log file file - log file test - specific test (e.g. xfs/008) status - test status time - time consumed</p>
+
+<h2 id="tests_from_category">tests_from_category</h2>
+
+<p>Return all the tests of a specific xfstests category category - xfstests category (e.g. generic) dir - xfstests installation dir (e.g. /opt/xfstests)</p>
+
+<h2 id="exclude_grouplist">exclude_grouplist</h2>
+
+<p>Return matched exclude tests from groups in XFSTESTS_GROUPLIST return structure - hash Group name start with ! will exclude in test, and expected to use to update blacklist If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder</p>
+
+<h2 id="include_grouplist">include_grouplist</h2>
+
+<p>Return matched include tests from groups in XFSTESTS_GROUPLIST return structure - array Group name start without ! will include in test, and expected to use to update test ranges If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder</p>
+
+<h2 id="tests_from_ranges">tests_from_ranges</h2>
+
+<p>Return a list of tests to run from given test ranges ranges - test ranges (e.g. xfs/001-100,btrfs/100-159) dir - xfstests installation dir (e.g. /opt/xfstests)</p>
+
+<h2 id="test_run">test_run</h2>
+
+<p># Run a single test and write log to file # test - test to run (e.g. xfs/001)</p>
+
+<h2 id="save_kdump">save_kdump</h2>
+
+<p>Save kdump data for further uploading test - corresponding test(e.g. xfs/009) dir - Save kdump data to this dir vmcore - include vmcore file kernel - include kernel</p>
+
+<h2 id="shuffle">shuffle</h2>
+
+<p>mess up the order of test queue</p>
+
+<h2 id="copy_log">copy_log</h2>
+
+<p>Log &amp; Must included: Copy log to ready to save</p>
+
+<h2 id="copy_fsxops">copy_fsxops</h2>
+
+<p>Log: Copy junk.fsxops for fails fsx tests included in subtests</p>
+
+<h2 id="dump_btrfs_img">dump_btrfs_img</h2>
+
+<p>Log: Only run in test Btrfs, collect image dump for inconsistent error</p>
+
+<h2 id="raw_dump">raw_dump</h2>
+
+<p>Log: Raw dump from SCRATCH_DEV via dd</p>
+
+<h2 id="collect_fs_status">collect_fs_status</h2>
+
+<p>Log: Collect fs runtime status for XFS, Btrfs and Ext4</p>
+
+<h2 id="copy_all_log">copy_all_log</h2>
+
+<p>Add all above logs</p>
+
+<h2 id="reload_loop_device">reload_loop_device</h2>
+
+<p>Reload loop device for xfstests</p>
+
+<h2 id="umount_xfstests_dev">umount_xfstests_dev</h2>
+
+<p>Umount TEST_DEV and SCRATCH_DEV</p>
+
+<h2 id="config_debug_option">config_debug_option</h2>
+
+<p>Enable softlockup panic collection and could manually enable other setting by XFSTESTS_DEBUG</p>
+
+<h2 id="test_run_without_heartbeat">test_run_without_heartbeat</h2>
+
+<p>Run a single test and write log to file but without heartbeat, return log_add output</p>
+
+
+</body>
+
+</html>
+
+
