@@ -125,7 +125,7 @@ sub run {
 
     # Add cleanup routine.
     record_info('Cleanup', 'Delete copied image directories');
-    assert_script_run("rm -rf $workdir/dir1/ dir2/ $workdir/inspect_local.json $workdir/inspect_remote.json", fail_message => 'Failed to remove temporary files.');
+    assert_script_run("rm -rf $workdir", fail_message => 'Failed to remove temporary files.');
     
     record_info('Cleanup Registry', 'Remove local image Registry');
     assert_script_run("podman stop skopeo-registry", fail_message => 'Failed to stop local image registry.')
