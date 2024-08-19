@@ -112,11 +112,11 @@ sub run {
     ######### Compare remote image to local image
     # using JQ to omit any repository-specific fields which are expected to be different
     record_info('Verify Remote Image', 'Inspect remote image and save results.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$remote_image | jq 'del( .[\"Name\", \"Digest\", \"RepoTags\"])' >> $workdir/inspect_remote.json",
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$remote_image | jq .Layers[] >> $workdir/inspect_remote.json",
         fail_message => 'Failed to inspect remote image.');
 
     record_info('Verify Local Image', 'Inspect local image and save results.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq 'del( .[\"Name\", \"Digest\", \"RepoTags\"])' >> $workdir/inspect_local.json",
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq .Layers[] >> $workdir/inspect_local.json",
         fail_message => 'Failed to inspect local image.');
 
     record_info('Compare local and remote images', 'Compare local and remote images.');
@@ -125,7 +125,7 @@ sub run {
 
     # Add cleanup routine.
     record_info('Cleanup', 'Delete copied image directories');
-    assert_script_run("rm -rf $workdir/dir1/ dir2/", fail_message => 'Failed to remove temporary files.');
+    assert_script_run("rm -rf $workdir/dir1/ dir2/ $workdir/inspect_local.json $workdir/inspect_remote.json", fail_message => 'Failed to remove temporary files.');
     
     record_info('Cleanup Registry', 'Remove local image Registry');
     assert_script_run("podman stop skopeo-registry", fail_message => 'Failed to stop local image registry.')
