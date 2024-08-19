@@ -1303,11 +1303,13 @@ sub need_network_tweaks() {
 }
 
 sub wait_for_background_process {
-    my ($self, $pid, %args) = @_;
-    $args{proceed_on_failure} //= 0;
+    my ($self, $pid) = @_;
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/19853/files#r1718454521
 
-    my $ret = script_run("waitpid --timeout 25 $pid", %args);
-    if ($ret == 3) {    # timeout
+    enter_cmd "wait $pid; echo wait-DONE-\$?- | tee /dev/$serialdev";
+    my $ret = wait_serial "wait-DONE-\\d+-";
+    # wait pid timeout
+    unless (defined($ret)) {
         if (is_serial_terminal()) {
             type_string(qq(\cc));
         }
@@ -1318,8 +1320,8 @@ sub wait_for_background_process {
 
         die("wait_for_background_process() failed, process $pid wasn't ready yet");
     }
-
-    return $ret if ($ret == 0 || $args{proceed_on_failure});
+    ($ret) = $ret =~ /wait-DONE-(\d+)-/;
+    return $ret if ($ret == 0);
     die("Background process $pid exit with $ret");
 }
 1;
