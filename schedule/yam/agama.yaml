@@ -1,0 +1,7 @@
+---
+name: agama
+description: >
+  Perform interactive installation with agama.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/agama_is_visible
