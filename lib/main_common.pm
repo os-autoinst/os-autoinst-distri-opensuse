@@ -210,12 +210,14 @@ sub any_desktop_is_applicable {
 }
 
 sub opensuse_welcome_applicable {
+    # No libqt5-qtwebengine on ppc64/ppc64le and s390.
+    return 0 if get_var('ARCH') =~ /ppc64|s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
+    return 0 unless is_tumbleweed || is_leap(">=15.3");
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
-    # except for ppc64/ppc64le because not built libqt5-qtwebengine sr#323144
-    my $desktop = shift // get_var('DESKTOP', '');
-    return ((($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed) || ($desktop =~ /xfce/ && is_leap("=15.2"))) && (get_var('ARCH') !~ /ppc64/)) || (($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_leap(">=15.3")) && (get_var('ARCH') !~ /ppc64|s390/));
+    return 0 unless get_var('DESKTOP') =~ /gnome|kde|lxde|lxqt|mate|xfce/;
+    return 1;
 }
 
 sub logcurrentenv {
