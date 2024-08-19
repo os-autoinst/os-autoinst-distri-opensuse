@@ -42,7 +42,8 @@ sub run {
     # Check Recent Documents
     wait_still_screen;
     x11_start_program('oowriter');
-
+    # Make sure it's loaded and accepts input.
+    wait_still_screen(2);
     send_key "alt-f";
     # The menu may disappear due to boo#1156745, so we wait here
     wait_still_screen(2);
