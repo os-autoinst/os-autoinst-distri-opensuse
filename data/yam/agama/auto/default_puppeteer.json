@@ -1,0 +1,13 @@
+{
+  "product": {
+    "id": "Tumbleweed"
+  },
+  "user": {
+    "fullName": "bernhard",
+    "password": "nots3cr3t",
+    "userName": "bernhard"
+  },
+  "root": {
+    "password": "nots3cr3t"
+  }
+}

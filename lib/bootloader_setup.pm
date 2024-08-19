@@ -596,7 +596,10 @@ sub bootmenu_default_params {
     }
     if (get_var('AGAMA_AUTO')) {
         my $path = data_url(get_var('AGAMA_AUTO'));
-        set_var('EXTRABOOTPARAMS', "agama.auto=\"$path\"");
+	my $agama_params = get_var('EXTRABOOTPARAMS');
+	$agama_params .= " agama.auto=\"$path\"";
+	#set_var('EXTRABOOTPARAMS', "agama.auto=\"$path\"");
+        set_var('EXTRABOOTPARAMS', $agama_params);
     }
 
     if (!get_var("NICEVIDEO")) {
