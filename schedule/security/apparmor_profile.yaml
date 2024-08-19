@@ -12,8 +12,7 @@ schedule:
     - security/apparmor_profile/usr_sbin_traceroute
     - security/apparmor_profile/usr_sbin_nscd
     - security/apparmor_profile/mailserver_setup
-    - security/apparmor_profile/usr_lib_dovecot_pop3
-    - security/apparmor_profile/usr_lib_dovecot_imap
+    - security/apparmor_profile/usr_lib_dovecot
 conditional_schedule:
     prepare:
         TEST:
