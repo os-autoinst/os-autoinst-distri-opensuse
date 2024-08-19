@@ -309,7 +309,7 @@ sub load_container_tests {
             loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle || is_leap);
         }
         if (!check_var('NETAVARK_BATS_SKIP', 'all')) {
-            loadtest 'containers/netavark_integration' if (is_x86_64 && (is_tumbleweed || is_sle || is_leap));
+            loadtest 'containers/netavark_integration' if (is_tumbleweed || is_sle || is_leap);
         }
         if (!check_var('AARDVARK_BATS_SKIP', 'all')) {
             loadtest 'containers/aardvark_integration' if (is_tumbleweed);
