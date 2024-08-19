@@ -279,7 +279,7 @@ sub run {
         send_key 'n';
     }
 
-    if (is_tumbleweed || is_sle_micro('>6.0')) {
+    if (is_tumbleweed || is_sle_micro('>6.0') || is_microos) {
         create_user_in_ui();
     }
 
