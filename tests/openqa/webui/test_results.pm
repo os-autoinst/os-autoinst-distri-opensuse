@@ -11,8 +11,6 @@ use warnings;
 use base "x11test";
 use testapi;
 
-my $tutorial_disabled;
-
 sub upload_autoinst_log {
     assert_script_run 'openqa-client jobs/1/cancel post';
     for my $i (1 .. 10) {
@@ -29,20 +27,7 @@ sub upload_autoinst_log {
     }
 }
 
-sub handle_notify_popup {
-    assert_screen 'openqa-dont-notify-me';
-    for my $i (1 .. 5) {
-        assert_and_click 'openqa-dont-notify-me';
-        if (check_screen('openqa-tutorial-confirm', 15)) {
-            last;
-        }
-    }
-    assert_and_click 'openqa-tutorial-confirm';
-    assert_screen 'openqa-tutorial-closed';
-}
-
 sub run {
-    handle_notify_popup;
     assert_screen 'openqa-tests';
     assert_and_click 'openqa-tests';
     # At this point the openQA job might still be running or already finished.
