@@ -73,9 +73,8 @@ sub run {
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
-    send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
-    send_key 'spc' if $version < 128;
-    assert_screen('firefox-passwd-master_setting');
+    send_key_until_needlematch([qw(firefox-primary-passwd-selected firefox-passwd-master_setting)], 'alt-shift-u', 4, 2);
+    send_key 'spc' unless check_screen('firefox-passwd-master_setting', 3);
     # We should use strong password due to bsc#1208951
     type_string $masterpw, 150;
     send_key "tab";
@@ -102,18 +101,19 @@ sub run {
     assert_and_click('firefox-passwd-security');
     if ($version >= 128) {
         # jump to logins, alt-shift-d does not rotate between multiple places :(
-        wait_still_screen(1);
+        wait_still_screen(3);
         send_key 'alt-shift-f';
         send_key 'alt-shift-f';
         send_key "alt-shift-$key";
     }
-    send_key_until_needlematch 'firefox-saved-logins-button', "alt-shift-$key", 6, 1;
+    send_key_until_needlematch 'firefox-saved-logins-button', "alt-shift-$key", 6, 2;
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
     assert_and_click('firefox-saved-logins-remove');
+    wait_still_screen 1;
     send_key 'spc';
-    send_key_until_needlematch('firefox-passwd-auto_filled', 'ctrl-w', 4, 2);
+    send_key_until_needlematch('firefox-passwd-auto_filled', 'ctrl-tab', 4, 2);
     send_key 'f5';
     assert_screen('firefox-passwd-removed');
 
