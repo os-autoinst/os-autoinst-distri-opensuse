@@ -13,11 +13,14 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_desktop_installed is_sles4sap is_sle);
+use Utils::Backends qw(is_pvm);
+use power_action_utils qw(power_action);
 use qam qw(add_test_repositories remove_test_repositories);
-use x11utils 'ensure_unlocked_desktop';
-use migration 'modify_kernel_multiversion';
+use x11utils qw(ensure_unlocked_desktop);
+use migration qw(modify_kernel_multiversion);
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     # print repos to screen and serial console after online migration
@@ -42,7 +45,7 @@ sub run {
         modify_kernel_multiversion("enable");
     }
 
-    add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
+    $self->add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
     # we need to ensure that desktop is unlocked on SLE15+ but not on any SLES4SAP
     if (is_desktop_installed && !is_sles4sap && is_sle('15+')) {
@@ -58,11 +61,18 @@ sub test_flags {
 }
 
 sub add_maintenance_repos {
+    my ($self) = @_;
     set_var('PATCH_TEST_REPO', '');
     add_test_repositories();
     # avoid reboot during fully_patch_system
     zypper_call('in pacemaker') if is_sle('=15-sp1');
-    fully_patch_system();
+    if (fully_patch_system() == 102) {    # zypper suggests a reboot
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        # Do not log in if SUT is SLES4SAP
+        $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 500, ready_time => 600, nologin => is_sles4sap);
+    }
+
 }
 
 1;
