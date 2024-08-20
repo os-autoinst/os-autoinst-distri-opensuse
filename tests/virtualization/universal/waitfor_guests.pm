@@ -53,12 +53,15 @@ sub run {
         }
     }
 
-    # Update guests hash with IPs and /etc/hosts
+    # Update guests hash with IP/macaddress and add guests to /etc/hosts
     foreach my $guest (@guests) {
         my $guest_ip = script_output("cat /tmp/guests_ip/$guest");
-        record_info("IP: $guest_ip", "$guest IP: $guest_ip");
         # Update the guests hash with the current IP address for migration testing
         $virt_autotest::common::guests{$guest}{ip} = "$guest_ip";
+        # Update the guests hash with the guest macaddress
+        my $guest_mac = script_output("virsh domiflist $guest | awk 'NR>2 {print \$5}'");
+        $virt_autotest::common::guests{$guest}{macaddress} = "$guest_mac";
+        record_info("$guest networking", "$guest IP: $guest_ip MAC: $guest_mac");
         # Fill the current pairs of hostname & address to the /etc/hosts file
         add_guest_to_hosts($guest, $guest_ip);
     }
