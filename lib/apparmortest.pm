@@ -18,6 +18,7 @@ use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils 'turn_off_gnome_screensaver';
+use serial_terminal qw(select_serial_terminal);
 
 use base 'consoletest';
 
@@ -169,7 +170,7 @@ sub aa_status_stdout_check {
     my $total_line = script_output("aa-status | grep 'profiles are in' | grep $profile_mode | cut -d ' ' -f1");
     my $lines = $start_line + $total_line;
 
-    assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
+    script_output("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
 }
 
 =head2 ip_fetch
@@ -628,9 +629,11 @@ sub adminer_database_delete {
     send_key "tab";
     send_key "tab";
     send_key "ret";
+    wait_still_screen(2, 2);
     assert_and_click("adminer-save-passwd", timeout => 180);
     assert_screen("adminer-select-database");
     assert_and_click("adminer-click-database-test");
+    sleep 1;
     assert_and_click("adminer-click-drop-database-test");
     # Confirm drop
     send_key_until_needlematch("adminer-database-dropped", 'ret', 11, 1);
@@ -787,7 +790,7 @@ Restart auditd and apparmor in root-console
 sub pre_run_hook {
     my ($self) = @_;
 
-    select_console 'root-console';
+    select_serial_terminal;
     systemctl('restart auditd');
     systemctl('restart apparmor');
     $self->SUPER::pre_run_hook;
@@ -806,6 +809,7 @@ sub post_fail_hook {
 
     return if get_var('NOLOGS');
     # Exit x11 and turn to console in case
+    select_console('x11');
     send_key("alt-f4");
     select_console("root-console");
     if (script_run("! [[ -e $audit_log ]]")) {

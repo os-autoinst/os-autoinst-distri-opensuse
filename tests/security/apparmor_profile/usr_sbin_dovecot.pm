@@ -32,8 +32,11 @@ sub run {
 
     # verify "dovecot" service
     assert_script_run("systemctl stop dovecot.service");
+    sleep 1;
     assert_script_run("systemctl start dovecot.service");
+    sleep 1;
     assert_script_run("systemctl restart dovecot.service");
+    sleep 1;
     assert_script_run("systemctl status --no-pager dovecot.service", sub { m/Active: active (running)./ });
 
     # verify audit log contains no related error
