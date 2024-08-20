@@ -19,7 +19,8 @@ use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
-  add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present);
+  add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present
+  has_published_assets);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -241,6 +242,11 @@ sub check_patch_variables {
     elsif (!$patch && !$incident_id) {
         die("Missing INCIDENT_PATCH or INCIDENT_ID");
     }
+}
+
+# Return count of PUBLISH_* job variables
+sub has_published_assets {
+    return scalar grep { m/^PUBLISH_/ } keys %bmwqemu::vars;
 }
 
 1;
