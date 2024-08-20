@@ -424,9 +424,12 @@ sub uload_log_file {
     my $file_name = $_[0];
 
     if (script_run "! [[ -e $file_name ]]") {
+        $file_name =~ s/\s//g;    # remove whitespaces
         script_run "p7zip -k $file_name";
-        upload_logs($file_name . ".7z", timeout => 600);
-        script_run "rm $file_name.7z";
+        if (script_run "! [[ -e $file_name.7z ]]") {
+            upload_logs($file_name . ".7z", timeout => 600);
+            script_run "rm $file_name.7z";
+        }
     }
 }
 
