@@ -16,19 +16,6 @@ use version_utils 'is_sle_micro';
 use serial_terminal;
 use utils qw(script_retry fully_patch_system);
 
-sub soft_fail_rt_scriptlet {
-    return if (get_var('FLAVOR') !~ /rt/i);
-
-    if (script_run("grep '%post(kernel-rt-5.14.21-150400.15.46.1.x86_64) scriptlet failed, exit status 1' /var/log/zypp/history") == 0) {
-        record_soft_failure('bsc#1213991 - %post(kernel-rt-5.14.21-150400.15.40.1.x86_64) scriptlet failed');
-        select_console 'root-console';
-        trup_shell 'zypper -n update', timeout => 1800;
-    } else {
-        die "Transactional update failed with different error cause";
-    }
-}
-
-
 sub run {
     my ($self) = @_;
 
@@ -53,7 +40,6 @@ sub run {
     add_test_repositories;
     record_info('Updates', script_output('zypper lu'));
     my $ret = trup_call('up', timeout => 300, proceed_on_failure => 1);
-    soft_fail_rt_scriptlet if ($ret != 0);
     process_reboot(trigger => 1);
 }
 
