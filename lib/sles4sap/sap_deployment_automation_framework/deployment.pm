@@ -142,7 +142,7 @@ sub az_login {
     assert_script_run("source $temp_file");
 
     my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID}; do sleep 10; done';
-    assert_script_run($login_cmd, timeout => 5 * 60);
+    assert_script_run($login_cmd, timeout => 30);
 
     my $subscription_id = script_output('az account show -o tsv --query id');
     record_info('AZ login', "Subscription id: $subscription_id");
@@ -717,7 +717,8 @@ sub sdaf_execute_remover {
     # SDAF must be executed from the profile directory, otherwise it will fail
     assert_script_run("cd " . $tfvars_path);
     record_info('SDAF destroy', "Executing SDAF remover:\n$remover_cmd");
-    my $rc = script_run($remover_cmd, timeout => 3600);
+    # Keep the timeout high, definitely above 1H. Azure tends to be slow.
+    my $rc = script_run($remover_cmd, timeout => 7200);
     upload_logs($output_log_file, log_name => $output_log_file);
 
     # Do not kill the test, only return RC. There are still files to be cleaned up on deployer VM side.
@@ -754,6 +755,7 @@ sub sdaf_cleanup {
     assert_script_run('cd');    # navigate out the directory you are about to delete
     assert_script_run('rm -Rf ' . deployment_dir());
     record_info('Cleanup files', join(' ', 'Deployment directory', deployment_dir, 'was deleted.'));
+    record_info('SDAF remover', 'SDAF remover scripts finished');
 }
 
 =head2 sdaf_execute_playbook

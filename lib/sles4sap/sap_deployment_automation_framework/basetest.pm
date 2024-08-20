@@ -7,39 +7,84 @@
 # Basetest used for Microsoft SDAF deployment
 
 package sles4sap::sap_deployment_automation_framework::basetest;
+use parent 'opensusebasetest';
+
 use strict;
 use warnings;
 use testapi;
-use parent 'opensusebasetest';
+use Exporter qw(import);
 use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployer_resources);
-use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
-use sles4sap::azure_cli qw(az_resource_delete);
+use sles4sap::sap_deployment_automation_framework::deployment_connector
+  qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip);
+use sles4sap::console_redirection;
 
+our @EXPORT = qw(full_cleanup);
 
-sub post_fail_hook {
+=head1 SYNOPSIS
+
+Basetest for SDAF deployment. It includes full cleanup routine and post_fail hook.
+Post run hook is not necessary as cleanup should not be triggered at the end of each test module.
+
+=cut
+
+=head2 full_cleanup
+
+    full_cleanup();
+
+Function performs full SDAF cleanup. First, it checks which stages of deployment are applied to avoid executing
+unnecessary cleanup commands. Cleanup is done in following order:
+- execute SDAF remover script - destroys existing sap-systems and workload zone deployments
+- destroy deployer VM and related resources like OS disk, NIC, Security group, etc.
+- keeps control plane intact (Control plane must not be deleted)
+
+=cut
+
+sub full_cleanup {
     if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
         record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
         return;
     }
 
-    record_info('Post fail', 'Executing post fail hook');
+    # Disable any stray redirection being active. This resets the console to the worker VM.
+    disconnect_target_from_serial if check_serial_redirection();
+    az_login();
+
+    # Check if deployer VM exists and collect required data
+    my $deployment_id = find_deployment_id();
+    my $deployer_vm_name = $deployment_id ? get_deployer_vm_name(deployment_id => find_deployment_id()) : undef;
+    my $deployer_ip = $deployer_vm_name ? get_deployer_ip(deployer_vm_name => $deployer_vm_name) : undef;
+
+    # If deployer exists, check if console redirection is possible
+    my $redirection_works;
+    if ($deployer_ip) {
+        set_var('REDIRECT_DESTINATION_USER', get_var('PUBLIC_CLOUD_USER', 'azureadm'));
+        set_var('REDIRECT_DESTINATION_IP', $deployer_ip);
+        # Do not fail even if connection is not successful
+        $redirection_works = connect_target_to_serial(fail_ok => '1');
+    }
+    my $sut_cleanup_message = $redirection_works ?
+      'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.' :
+      'Console redirection works, proceeding with SUT cleanup';
+    record_info('SUT cleanup', $sut_cleanup_message);
+
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
     # Clean up all config files, keys, etc.. on deployer VM
-    connect_target_to_serial();
-    load_os_env_variables();
-    az_login();
-    sdaf_cleanup();
-    disconnect_target_from_serial();
+    if ($redirection_works) {
+        load_os_env_variables();
+        az_login();
+        sdaf_cleanup();
+        disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
+    }
+    # Do not make cleanup fail here, we still need to destroy deployer VM and its resources.
+    record_info('SUT cleanup', 'Failed to set up redirection, skipping SDAF cleanup scripts.') unless $redirection_works;
 
-    # Cleanup deployer VM resources only
-    # Deployer VM is located in permanent deployer resource group. This RG **MUST STAY INTACT**
-    my @resource_cleanup_list = @{find_deployer_resources(return_value => 'id')};
-    record_info('Resources destroy',
-        "Following resources are being destroyed:\n" . join("\n", @{find_deployer_resources()}));
+    # Destroys deployer VM and its resources
+    destroy_deployer_vm();
+}
 
-    az_resource_delete(ids => join(' ', @resource_cleanup_list),
-        resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'), timeout => '600');
+sub post_fail_hook {
+    record_info('Post fail', 'Executing post fail hook');
+    full_cleanup();
 }
 
 1;
