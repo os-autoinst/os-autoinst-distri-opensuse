@@ -1,0 +1,51 @@
+---
+name: qam-textmode-libyui
+vars:
+  YUI_REST_API: 1
+  DUD_ADDONS: sdk
+schedule:
+  self_update:
+    - installation/validate_self_update
+  system_role:
+    - installation/system_role/select_role_text_mode
+  system_validation:
+    - qa_automation/patch_and_reboot
+    - locale/keymap_or_locale
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/hostname
+    - console/installation_snapshots
+    - console/zypper_in
+    - console/zypper_lifecycle
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/firewall_enabled
+    - console/glibc_sanity
+    - console/salt
+    - network/snmp
+    - console/sshd
+    - console/ssh_cleanup
+    - console/ncurses
+    - console/yast2_bootloader
+    - console/yast2_i
+    - console/yast2_lan
+    - console/yast2_nfs_server
+    - console/mtab
+    - console/mariadb_srv
+    - console/rsync
+    - console/curl_https
+    - console/http_srv
+    - console/dns_srv
+    - console/apache
+    - console/shibboleth
+    - console/apache_ssl
+    - console/apache_nss
+    - console/postgresql_server
+    - console/orphaned_packages_check
+    - console/coredump_collect
+...
