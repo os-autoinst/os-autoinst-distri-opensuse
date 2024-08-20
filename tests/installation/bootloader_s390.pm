@@ -79,7 +79,7 @@ sub prepare_parmfile {
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
 
-    $params .= remote_install_bootmenu_params;
+    # $params .= remote_install_bootmenu_params;
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
@@ -89,7 +89,8 @@ sub prepare_parmfile {
         $params .= " info=" . create_infofile("install: $instsrc");
     }
     else {
-        $params .= " install=" . $instsrc . $repo . " ";
+        # $params .= " install=" . $instsrc . $repo . " ";
+        $params .= " root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_var('ISO');
     }
 
     if (get_var('UPGRADE')) {
@@ -175,10 +176,23 @@ EO_frickin_boot_parms
     $s3270->sequence_3270(qw( String(FILE) ENTER ));
 
     # linuxrc
+    # $r = $s3270->expect_3270(
+    #     output_delim => qr/Loading Installation System/,
+    #     timeout => 300
+    # ) || die "Installation system was not found";
+
+    # linuxrc
     $r = $s3270->expect_3270(
-        output_delim => qr/Loading Installation System/,
-        timeout => 300
-    ) || die "Installation system was not found";
+        output_delim => qr/o3zvm003 login/,
+        timeout => 400
+    ) || die "Login was not found";
+    $s3270->sequence_3270(qw(String("root") ENTER));
+
+    $r = $s3270->expect_3270(
+        output_delim => qr/Password/,
+        timeout => 30
+    ) || die "Password was not found";
+    $s3270->sequence_3270("String(\"$testapi::password\")", "ENTER");
 
     # set up display_mode for textinstall
     my $display_type;
@@ -193,15 +207,15 @@ EO_frickin_boot_parms
         $display_type = "VNC";
     }
 
-    my $output_delim
-      = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
-      : $display_type eq "VNC" ? qr/\*\*\* Starting YaST(2|) \*\*\*/
-      : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
+    # my $output_delim
+    #   = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
+    #   : $display_type eq "VNC" ? qr/\*\*\* Starting YaST(2|) \*\*\*/
+    #   : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
-    $r = $s3270->expect_3270(
-        output_delim => $output_delim,
-        timeout => 300
-    ) || die "Loading Installation system tooks too long";
+    # $r = $s3270->expect_3270(
+    #     output_delim => $output_delim,
+    #     timeout => 300
+    # ) || die "Loading Installation system tooks too long";
 
 }
 
