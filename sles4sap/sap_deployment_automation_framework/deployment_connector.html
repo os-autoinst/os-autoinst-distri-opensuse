@@ -16,10 +16,11 @@
     <ul>
       <li><a href="#check_ssh_availability">check_ssh_availability</a></li>
       <li><a href="#get_deployer_ip">get_deployer_ip</a></li>
-      <li><a href="#get_deployer_vm">get_deployer_vm</a></li>
+      <li><a href="#get_deployer_vm_name">get_deployer_vm_name</a></li>
       <li><a href="#get_parent_ids">get_parent_ids</a></li>
       <li><a href="#find_deployment_id">find_deployment_id</a></li>
       <li><a href="#get_deployer_resources">get_deployer_resources</a></li>
+      <li><a href="#destroy_deployer_vm">destroy_deployer_vm</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment_connector.pm</h1>
@@ -54,9 +55,9 @@
 
 <p><b>deployer_vm_name</b>: Deployer VM resource name</p>
 
-<h2 id="get_deployer_vm">get_deployer_vm</h2>
+<h2 id="get_deployer_vm_name">get_deployer_vm_name</h2>
 
-<pre><code>get_deployer_vm(deployer_resource_group=&gt;$deployer_resource_group, deployment_id=&gt;&#39;123456&#39;);</code></pre>
+<pre><code>get_deployer_vm_name(deployer_resource_group=&gt;$deployer_resource_group, deployment_id=&gt;&#39;123456&#39;);</code></pre>
 
 <p>Returns deployer VM name which is tagged with <b>deployment_id</b> specified in parameter. This means that the VM was used to deploy the infrastructure under this ID and contains whole SDAF setup. Function returns VM name or undef if no VM was found. Function dies if there is more than one VM found, because two VM&#39;s must not have same ID.</p>
 
@@ -91,6 +92,14 @@
 <p><b>deployment_id</b>: Deployment ID</p>
 
 <p><b>return_value</b>: Control the content of the returned array. It can either return array of resource IDs or resource names. Values allowed: id, name Default: name</p>
+
+<h2 id="destroy_deployer_vm">destroy_deployer_vm</h2>
+
+<pre><code>destroy_deployer_vm([timeout=&gt;900]);</code></pre>
+
+<p>Collects resource id of all resources belonging to the deployer VM and deletes them. Cleanup deployer VM resources only, <b>deployer resource group itself will stay intact</b>.</p>
+
+<p><b>timeout</b>: Timeout for destroy command. Default: 800</p>
 
 
 </body>
