@@ -53,6 +53,10 @@ variable "project" {
   default = "suse-sle-qa"
 }
 
+variable "root-disk-size" {
+  default = 20
+}
+
 variable "extra-disk-size" {
   default = "1000"
 }
@@ -124,7 +128,7 @@ resource "google_compute_instance" "openqa" {
     device_name = "${var.name}-${element(random_id.service.*.hex, count.index)}"
     initialize_params {
       image = var.image_id
-      size  = 20
+      size  = var.root-disk-size 
     }
   }
 
