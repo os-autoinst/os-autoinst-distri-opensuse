@@ -321,10 +321,12 @@ sub load_slem_on_pc_tests {
                 $run_args->{runtime} = $_;
                 load_container_engine_test($run_args);
             }
-
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        else {
+	} elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
+            my $args = OpenQA::Test::RunArgs->new();
+            loadtest('publiccloud/upload_image', run_args => $args);
+            loadtest('publiccloud/aistack_basic', run_args => $args);
+        } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_basic", run_args => $args);
         }

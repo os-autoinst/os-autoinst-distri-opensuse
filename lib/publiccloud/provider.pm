@@ -86,6 +86,7 @@ Retrieves the image-id by given image C<name>.
 =cut
 
 sub find_img {
+    record_info('DEBUG', "find_image is not implemented");
     die('find_image() isn\'t implemented');
 }
 
@@ -294,7 +295,16 @@ sub get_image_id {
     return $self->{image_cache}->{$img_name} if ($self->{image_cache}->{$img_name});
 
     my $image_id = $self->find_img($img_name);
-    die("Image $img_name is not available in the cloud provider") unless ($image_id);
+    record_info('DEBUG', "Searching for image: $img_name");
+    unless ($image_id) {
+       # Log a message if the image ID is not found
+       record_info('ERROR', "Image $img_name is not available in the cloud provider");
+       die("Image $img_name is not available in the cloud provider");
+    } else {
+       # Log the found image ID
+       record_info('DEBUG', "Found image ID: $image_id for image: $img_name");
+    }
+    # die("Image $img_name is not available in the cloud provider") unless ($image_id);
     $self->{image_cache}->{$img_name} = $image_id;
     return $image_id;
 }
@@ -457,10 +467,15 @@ Calls terraform tool and applies the corresponding configuration .tf file
 sub terraform_apply {
     my ($self, %args) = @_;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
+    record_info('DEBUG', "Terraform timeout: $terraform_timeout");
     my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT');
+    record_info('DEBUG', "Terraform VM create timeout: $terraform_vm_create_timeout");
+
 
     my $image_uri = $self->get_image_uri();
+    record_info('DEBUG', "Image URI: $image_uri");
     my $image_id = $self->get_image_id();
+    record_info('DEBUG', "Image ID: $image_id");
 
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
