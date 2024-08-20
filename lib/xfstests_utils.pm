@@ -515,8 +515,8 @@ sub copy_all_log {
     copy_log($category, $num, 'dmesg');
     copy_fsxops($category, $num);
     collect_fs_status($category, $num, $fstype);
-    if (($btrfs_dump == 0) && ($fstype == 'btrfs')) { dump_btrfs_img($category, $num); }
-    if ($raw_dump == 0) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
+    if (($btrfs_dump) && ($fstype == 'btrfs')) { dump_btrfs_img($category, $num); }
+    if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
 =head2 reload_loop_device
