@@ -58,7 +58,7 @@ sub is_container_running {
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
     my $podman = shift->containers_factory('podman');
-    select_console 'log-console';
+    select_console 'root-console';
     remove_subtest_setup;
 
     if (is_cni_default) {
@@ -94,6 +94,7 @@ sub run {
         return 1;
     }
 
+    # Note: The TW upgrade scenario still uses CNI!
     if (is_cni_default || is_cni_in_tw) {
         switch_to_netavark;
     } else {
