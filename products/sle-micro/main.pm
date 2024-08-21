@@ -15,10 +15,6 @@ use DistributionProvider;
 
 init_main();
 
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
-
 $needle::cleanuphandler = sub {
     unregister_needle_tags('ENV-BACKEND-ipmi');
     unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
