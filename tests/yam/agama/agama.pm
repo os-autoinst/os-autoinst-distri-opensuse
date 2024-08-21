@@ -14,13 +14,17 @@ use testapi qw(
   assert_screen
   get_required_var
   enter_cmd
+  select_console
 );
 
 sub run {
     my $self = shift;
-    my $test = get_required_var('AGAMA_TEST');
+    #my $test = get_required_var('AGAMA_TEST');
 
-    assert_script_run("playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright tests/" . $test . ".spec.ts", timeout => 1200);
+    assert_screen('select_product', 120);
+    select_console('root-console');
+    assert_script_run("./agama-integration-tests tests/test_root_password.js", timeout => 1200);
+    #assert_script_run("playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright tests/" . $test . ".spec.ts", timeout => 1200);
     $self->upload_traces();
     enter_cmd 'reboot';
 }
