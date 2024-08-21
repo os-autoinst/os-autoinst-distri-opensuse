@@ -11,6 +11,7 @@ use utils;
 use testapi;
 use main_common qw(init_main is_updates_test_repo unregister_needle_tags join_incidents_to_repo);
 use main_micro_alp;
+use known_bugs;
 use DistributionProvider;
 
 init_main();
@@ -59,8 +60,8 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 testapi::set_distribution(DistributionProvider->provide());
 
 # set failures
-#$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
-#$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
+$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 if (load_yaml_schedule) {
     if (YuiRestClient::is_libyui_rest_api) {
