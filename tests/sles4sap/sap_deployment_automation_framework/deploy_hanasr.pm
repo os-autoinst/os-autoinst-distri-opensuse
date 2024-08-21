@@ -9,7 +9,6 @@
 
 # Required OpenQA variables:
 #     'SDAF_ENV_CODE'  Code for SDAF deployment env.
-#     'SDAF_WORKLOAD_VNET_CODE' Virtual network code for workload zone.
 #     'PUBLIC_CLOUD_REGION' SDAF internal code for azure region.
 #     'SAP_SID' SAP system ID.
 #     'SDAF_DEPLOYER_RESOURCE_GROUP' Existing deployer resource group - part of the permanent cloud infrastructure.
@@ -28,9 +27,7 @@ use sles4sap::sap_deployment_automation_framework::deployment
   ansible_hanasr_show_status
   );
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(get_sdaf_config_path
-  convert_region_to_short
-  );
+  qw(get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
 use sles4sap::console_redirection
   qw(connect_target_to_serial
   disconnect_target_from_serial
@@ -46,7 +43,7 @@ sub run {
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : start');
     my $sdaf_config_root_dir = get_sdaf_config_path(
         deployment_type => 'sap_system',
-        vnet_code => get_required_var('SDAF_WORKLOAD_VNET_CODE'),
+        vnet_code => get_workload_vnet_code(),
         env_code => get_required_var('SDAF_ENV_CODE'),
         sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
         sap_sid => get_required_var('SAP_SID')
