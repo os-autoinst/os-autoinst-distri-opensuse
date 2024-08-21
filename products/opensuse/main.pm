@@ -24,6 +24,7 @@ use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumblewee
 use main_common;
 use main_ltp_loader 'load_kernel_tests';
 use known_bugs;
+use Utils::Architectures qw(is_aarch64);
 use YuiRestClient;
 
 init_main();
@@ -339,7 +340,12 @@ else {
         }
         load_boot_tests();
         loadtest "installation/finish_desktop";
-        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable;
+        # Not available on the TW aarch64 kde live (poo#157174).
+        # Can't be part of opensuse_welcome_applicable because it's present after
+        # live installation.
+        unless (check_var('FLAVOR', 'KDE-Live') && is_tumbleweed && is_aarch64) {
+            loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable;
+        }
         if (get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
             loadtest "installation/live_installation";
             load_inst_tests();

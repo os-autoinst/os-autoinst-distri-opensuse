@@ -254,8 +254,6 @@ sub opensuse_welcome_applicable {
     return 0 unless is_tumbleweed || is_leap(">=15.3");
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
     return 0 unless $desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/;
-    # Not available on the TW aarch64 kde live (poo#157174).
-    return 0 if (is_tumbleweed && is_kde_live && is_aarch64);
     return 1;
 }
 
