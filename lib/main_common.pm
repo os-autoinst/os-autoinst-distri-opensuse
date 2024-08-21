@@ -246,13 +246,14 @@ sub kdestep_is_applicable {
 }
 
 sub opensuse_welcome_applicable {
+    my $desktop = shift // get_var('DESKTOP', '');
     # No libqt5-qtwebengine on ppc64/ppc64le and s390.
     return 0 if get_var('ARCH') =~ /ppc64|s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     return 0 unless is_tumbleweed || is_leap(">=15.3");
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
-    return 0 unless get_var('DESKTOP') =~ /gnome|kde|lxde|lxqt|mate|xfce/;
+    return 0 unless $desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/;
     # Not available on the TW aarch64 kde live (poo#157174).
     return 0 if (is_tumbleweed && is_kde_live && is_aarch64);
     return 1;
