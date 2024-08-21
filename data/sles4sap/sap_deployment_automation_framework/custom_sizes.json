@@ -10,14 +10,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 128,
+          "size_gb": 50,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 3,
           "disk_type": "Premium_LRS",
-          "size_gb": 128,
+          "size_gb": 40,
           "caching": "None",
           "write_accelerator": false,
           "lun_start": 0
@@ -26,7 +26,7 @@
           "name": "log",
           "count": 1,
           "disk_type": "UltraSSD_LRS",
-          "size_gb": 128,
+          "size_gb": 16,
           "caching": "None",
           "write_accelerator": false,
           "disk_iops_read_write": 1800,
@@ -37,7 +37,7 @@
           "name": "shared",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 256,
+          "size_gb": 32,
           "caching": "ReadOnly",
           "write_accelerator": false,
           "lun_start": 6
@@ -46,7 +46,7 @@
           "name": "backup",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 256,
+          "size_gb": 40,
           "caching": "ReadWrite",
           "write_accelerator": false,
           "lun_start": 13
@@ -55,7 +55,7 @@
           "name": "sap",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 128,
+          "size_gb": 50,
           "caching": "ReadOnly",
           "write_accelerator": false,
           "lun_start": 14
