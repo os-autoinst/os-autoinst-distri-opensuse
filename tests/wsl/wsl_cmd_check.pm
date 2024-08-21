@@ -19,8 +19,8 @@ my %expected = (
 sub run {
     my $self = shift;
 
-    assert_screen(['windows_desktop', 'powershell-as-admin-window']);
-    $self->open_powershell_as_admin if match_has_tag('windows_desktop');
+    assert_screen(['windows-desktop', 'powershell-as-admin-window']);
+    $self->open_powershell_as_admin if match_has_tag('windows-desktop');
     $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
     $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}", timeout => 60);
     $self->run_in_powershell(cmd => qq{wsl ls $expected{mount}}, timeout => 60);

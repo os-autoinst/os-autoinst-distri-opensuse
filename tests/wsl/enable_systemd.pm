@@ -15,8 +15,8 @@ use wsl qw(is_fake_scc_url_needed);
 sub run {
     my $self = shift;
 
-    assert_screen(['windows_desktop', 'powershell-as-admin-window']);
-    $self->open_powershell_as_admin if match_has_tag('windows_desktop');
+    assert_screen(['windows-desktop', 'powershell-as-admin-window']);
+    $self->open_powershell_as_admin if match_has_tag('windows-desktop');
 
     # Check that systemd is not enabled by default.
     $self->run_in_powershell(
