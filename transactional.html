@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#record_kernel_audit_messages">record_kernel_audit_messages</a></li>
       <li><a href="#enter_trup_shell">enter_trup_shell</a></li>
+      <li><a href="#exit_trup_shell">exit_trup_shell</a></li>
       <li><a href="#exit_trup_shell_and_reboot">exit_trup_shell_and_reboot</a></li>
       <li><a href="#reboot_on_changes">reboot_on_changes</a></li>
     </ul>
@@ -31,6 +32,12 @@
 <pre><code>enter_trup_shell(global_options =&gt; $global_options, shell_options =&gt; $shell_options)</code></pre>
 
 <p>Enter into transactional update shell by entering command on transactional server: transactional-update $global_options shell $shell_options. The two arguments for this subroutine, global_options and shell_options, are all text strings that are composed of space separated options for transactional-update and shell respectively.</p>
+
+<h2 id="exit_trup_shell">exit_trup_shell</h2>
+
+<pre><code>exit_trup_shell()</code></pre>
+
+<p>Quit transactional update shell without rebooting.</p>
 
 <h2 id="exit_trup_shell_and_reboot">exit_trup_shell_and_reboot</h2>
 
