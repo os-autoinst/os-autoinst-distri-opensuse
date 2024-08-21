@@ -32,7 +32,7 @@ sub install_extra_packages_requested {
 sub toggle_mode {
     wait_still_screen(3);
     if (is_pre_15()) {
-        record_soft_failure 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
+        record_info 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
         # try out with second element in the list
         send_key 'tab';
         wait_still_screen(2);
