@@ -39,6 +39,10 @@ variable "cloud_init" {
   default = ""
 }
 
+variable "root-disk-size" {
+  default = 20
+}
+
 variable "extra-disk-size" {
   default = "1000"
 }
@@ -115,7 +119,7 @@ resource "aws_instance" "openqa" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    volume_size = 20
+    volume_size = var.root-disk-size 
     volume_type = "gp3"
   }
 

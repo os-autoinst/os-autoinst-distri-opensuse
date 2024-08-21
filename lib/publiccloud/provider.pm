@@ -431,8 +431,7 @@ sub terraform_prepare_env {
     else {
         $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
         assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
-        my $cloud_init = get_var('PUBLIC_CLOUD_CLOUD_INIT');
-        assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if ($cloud_init);
+        assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
     }
     $self->terraform_env_prepared(1);
 }
@@ -539,11 +538,12 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
         $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        my $cloud_init = get_var('PUBLIC_CLOUD_CLOUD_INIT');
-        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if ($cloud_init);
+        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+        $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
         $cmd .= "-var 'enable_confidential_vm=true' " if ($args{confidential_compute} && is_gce());
         $cmd .= "-var 'enable_confidential_vm=enabled' " if ($args{confidential_compute} && is_ec2());
-        $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
+        my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
+        $cmd .= "-var 'root-disk-size=" . $root_size . "' " if ($root_size);
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
@@ -649,8 +649,7 @@ sub terraform_destroy {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
-        my $cloud_init = get_var('PUBLIC_CLOUD_CLOUD_INIT');
-        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if ($cloud_init);
+        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
         unless (is_openstack) {
             $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
         }
