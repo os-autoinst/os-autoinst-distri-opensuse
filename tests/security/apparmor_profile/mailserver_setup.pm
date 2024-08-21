@@ -28,7 +28,6 @@ sub run {
     zypper_call("--no-refresh in telnet");
 
     unless (is_sle('<=12-sp2')) {
-        select_console('root-console');
 
         # Create a testing mail with telnet smtp
         $self->send_mail_smtp();

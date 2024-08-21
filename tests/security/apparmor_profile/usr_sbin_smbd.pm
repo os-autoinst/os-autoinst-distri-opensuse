@@ -20,7 +20,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#48776, poo#134780
 
-use base "apparmortest";
+use base apparmortest;
 use strict;
 use warnings;
 use testapi;
@@ -41,7 +41,7 @@ sub samba_server_setup {
         path = /home/testdir
         read only = No
 EOF
-    script_output("echo '$smb_config' >> /etc/samba/smb.conf");
+    assert_script_run("echo '$smb_config' >> /etc/samba/smb.conf");
     assert_script_run("mkdir /home/$apparmortest::testdir");
     systemctl("restart smb");
 }
@@ -78,6 +78,8 @@ sub run {
     my $testdir = $apparmortest::testdir;
     my $pw = $apparmortest::pw;
     my $ip = "";
+
+    select_serial_terminal;
 
     # Set up samba server
     $self->samba_server_setup();
