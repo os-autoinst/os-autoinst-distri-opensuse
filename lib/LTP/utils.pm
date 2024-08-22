@@ -209,8 +209,8 @@ sub check_kernel_taint {
     # - Out of tree module was loaded (0x1000)
     # - Kernel was live patched (0x8000)
     # - Externally supported module was loaded or auxiliary taint (0x10000)
-    # - Unsupported module was loaded (0x80000000)
-    my $taint_mask = parse_int(get_var('LTP_TAINT_EXPECTED', 0x80019801));
+    # - Unsupported module was loaded (0x80000000) (SLE & Leap kernel specific, not in Tumbleweed kernel)
+    my $taint_mask = parse_int(get_var('LTP_TAINT_EXPECTED', is_tumbleweed ? 0x8001b801 : 0x80019801));
     my $taint_val = script_output('cat /proc/sys/kernel/tainted');
 
     for my $desc (@flag_desc) {
