@@ -53,6 +53,7 @@ sub run {
 
     upload_logs($output_result);
 
+    select_console 'root-console';
     validate_script_output "cat $output_result|tee /dev/$serialdev", sub {
         m/
                           Author.*SUSE\sTester.*

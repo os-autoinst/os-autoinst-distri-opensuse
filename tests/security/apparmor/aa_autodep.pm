@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_opensuse);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
@@ -50,6 +51,7 @@ sub run {
         assert_script_run "ls -1 $test_binfiles | tee /dev/$serialdev";
     }
 
+    select_console 'root-console';
     script_run_interactive(
         "aa-autodep -d $aa_tmp_prof /usr/bin/pam*",
         [
@@ -60,6 +62,7 @@ sub run {
         ],
         90
     );
+    select_serial_terminal;
 
     # Output generated profiles list to serial console
     # Check the new genrated test files exist, double check to avoid perfomance issue

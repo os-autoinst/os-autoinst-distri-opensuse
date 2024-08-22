@@ -83,7 +83,7 @@ sub check_aa_enforce {
 
     # Check if /usr/sbin/ntpd is really disabled
     die "$executable_name should be disabled"
-      if (script_run("aa-status | sed 's/[ \t]*//g' | grep -x $named_profile") == 0);
+      if (script_run("aa-status | grep -x $named_profile") == 0);
 
     validate_script_output "aa-enforce $executable_name", sub {
         m/Setting.*nscd to enforce mode/;

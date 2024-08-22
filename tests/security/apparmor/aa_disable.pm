@@ -13,7 +13,6 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
 
     $self->test_profile_content_is_special("aa-disable", "Disabling.*");
 }

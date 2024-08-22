@@ -19,11 +19,11 @@ use utils;
 use services::apparmor;
 use apparmortest qw(create_a_test_profile aa_status_stdout_check);
 use version_utils qw(is_leap is_sle);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
-
-    select_console 'root-console';
+    select_serial_terminal;
     services::apparmor::check_service();
     services::apparmor::check_aa_status();
 

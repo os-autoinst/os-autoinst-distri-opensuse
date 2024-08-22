@@ -17,9 +17,10 @@ use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos);
 use services::apparmor;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     zypper_call 'in -t pattern apparmor';
     if (is_jeos) {
         record_info 'JeOS', 'Some packages needed by the tests are not pre-installed by default in JeOS.';

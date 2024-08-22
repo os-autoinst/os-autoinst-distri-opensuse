@@ -1,9 +1,9 @@
-# Copyright 2019 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: apparmor-utils apparmor-parser dovecot
-# Summary: Test with "usr.lib.dovecot.*" (mainly *.imap*) & "usr.sbin.dovecot"
-#          are in "enforce" mode retrieve mails with imap should have no error.
+# Summary: Test with "usr.lib.dovecot.*" (mainly *.(imap|pop3)*) & "usr.sbin.dovecot"
+#          are in "enforce" mode retrieve mails with imap & pop3 should have no error.
 # - Start apparmor service
 # - Run "aa-enforce usr.sbin.dovecot" and check output for enforce mode is set
 # - Run "aa-enforce /etc/apparmor.d/usr.lib.dovecot*" and check output for enforce mode is set
@@ -13,13 +13,14 @@
 # - Check audit.log for existence of errors related to dovecot
 
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#46235, tc#1695943
+# Tags: poo#46235, tc#1695943, poo#46238, tc#1695947
 
 use base "apparmortest";
 use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = shift;
@@ -35,30 +36,36 @@ sub run {
     systemctl("start apparmor");
 
     # Set the AppArmor security profile to enforce mode
-    $profile_name = "usr.sbin.dovecot";
-    validate_script_output("aa-enforce $profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
-
     $profile_name = "usr.lib.dovecot.*";
     validate_script_output("aa-enforce /etc/apparmor.d/$profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
 
-    # Recalculate profile name in case
-    $profile_name = "usr.lib.dovecot.imap";
-    $named_profile = $self->get_named_profile($profile_name);
-    # Check if $profile_name is in "enforce" mode
-    $self->aa_status_stdout_check($named_profile, "enforce");
+    $profile_name = "usr.sbin.dovecot";
+    validate_script_output("aa-enforce $profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
 
-    # Restart Dovecot
-    systemctl("restart dovecot");
+    for my $protocol (qw(imap pop3)) {
+        # Recalculate profile name in case
+        $profile_name = "usr.lib.dovecot.$protocol";
+        $named_profile = $self->get_named_profile($profile_name);
+        # Check if $profile_name is in "enforce" mode
+        $self->aa_status_stdout_check($named_profile, "enforce");
 
-    # cleanup audit log
-    assert_script_run("echo > $audit_log");
-    # cleanup mail logs
-    assert_script_run("echo > $mail_err_log");
-    assert_script_run("echo > $mail_warn_log");
-    assert_script_run("echo > $mail_info_log");
+        # Restart Dovecot
+        systemctl("restart dovecot");
+        sleep 3;
 
-    # Retrieve email with a IMAP account
-    $self->retrieve_mail_imap();
+        # cleanup audit log
+        assert_script_run("echo > $audit_log");
+        # cleanup mail logs
+        assert_script_run("echo > $mail_err_log");
+        assert_script_run("echo > $mail_warn_log");
+        assert_script_run("echo > $mail_info_log");
+
+        # Retrieve email with a $protocol account
+        select_console('root-console');
+        my $retrieve = "retrieve_mail_$protocol";
+        $self->$retrieve;
+        select_serial_terminal;
+    }
 
     # Verify audit log contains no related error
     my $script_output = script_output "cat $audit_log";
