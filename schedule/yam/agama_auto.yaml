@@ -3,7 +3,7 @@ name: agama_auto
 description: >
   Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
 schedule:
-  - installation/bootloader_start
+  - yam/agama/boot_agama
   - yam/agama/auto
   - yam/validate/validate_product
   - yam/validate/validate_user

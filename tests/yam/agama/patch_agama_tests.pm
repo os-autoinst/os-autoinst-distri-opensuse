@@ -1,7 +1,8 @@
-## Copyright 2023 SUSE LLC
+## Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: This module use yupdate patch the Agama on Live Medium
+# Summary: Patch Agama on Live Medium using yupdate in order to copy
+# integration test from GitHub.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::agama::patch_agama_base;
