@@ -571,8 +571,10 @@ sub init_consoles {
             my $packed_ip = gethostbyname($s390_guest_fqdn);
             die "Failed to get host by name for '$s390_guest_fqdn' (on " . hostname . ")" unless $packed_ip;
             my $s390_guest_ip = inet_ntoa($packed_ip);
-            $s390_params .= " HostIP=${s390_guest_ip}/${s390_guest_subnetmask}";
-            $s390_params .= " Hostname=${s390_guest_hostname}";
+            my $host_ip = get_var("AGAMA") ? 'hostip' : 'HostIP';
+            my $host_name = get_var("AGAMA") ? 'hostname' : 'Hostname';
+            $s390_params .= " $host_ip" . "=${s390_guest_ip}/${s390_guest_subnetmask}";
+            $s390_params .= " $host_name" . "=${s390_guest_hostname}";
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             $hostname = $s390_guest_fqdn;

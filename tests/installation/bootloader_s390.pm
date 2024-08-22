@@ -79,7 +79,7 @@ sub prepare_parmfile {
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
 
-    $params .= remote_install_bootmenu_params;
+    $params .= remote_install_bootmenu_params unless (get_var('AGAMA'));
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
@@ -89,7 +89,12 @@ sub prepare_parmfile {
         $params .= " info=" . create_infofile("install: $instsrc");
     }
     else {
-        $params .= " install=" . $instsrc . $repo . " ";
+        if (get_var('AGAMA')) {
+            $params .= " root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_var('ISO');
+        }
+        else {
+            $params .= " install=" . $instsrc . $repo . " ";
+        }
     }
 
     if (get_var('UPGRADE')) {
@@ -174,11 +179,26 @@ EO_frickin_boot_parms
     # save the parmfile.  ftpboot then starts the installation.
     $s3270->sequence_3270(qw( String(FILE) ENTER ));
 
-    # linuxrc
-    $r = $s3270->expect_3270(
-        output_delim => qr/Loading Installation System/,
-        timeout => 300
-    ) || die "Installation system was not found";
+    if (get_var('AGAMA')) {
+        $r = $s3270->expect_3270(
+            output_delim => qr/o3zvm003 login/,
+            timeout => 400
+        ) || die "Login was not found";
+        $s3270->sequence_3270(qw(String("root") ENTER));
+
+        $r = $s3270->expect_3270(
+            output_delim => qr/Password/,
+            timeout => 30
+        ) || die "Password was not found";
+        $s3270->sequence_3270("String(\"$testapi::password\")", "ENTER");
+    }
+    else {
+        # linuxrc
+        $r = $s3270->expect_3270(
+            output_delim => qr/Loading Installation System/,
+            timeout => 300
+        ) || die "Installation system was not found";
+    }
 
     # set up display_mode for textinstall
     my $display_type;
@@ -192,17 +212,17 @@ EO_frickin_boot_parms
     else {
         $display_type = "VNC";
     }
+    unless (get_var('AGAMA')) {
+        my $output_delim
+          = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
+          : $display_type eq "VNC" ? qr/\*\*\* Starting YaST(2|) \*\*\*/
+          : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
-    my $output_delim
-      = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
-      : $display_type eq "VNC" ? qr/\*\*\* Starting YaST(2|) \*\*\*/
-      : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
-
-    $r = $s3270->expect_3270(
-        output_delim => $output_delim,
-        timeout => 300
-    ) || die "Loading Installation system tooks too long";
-
+        $r = $s3270->expect_3270(
+            output_delim => $output_delim,
+            timeout => 300
+        ) || die "Loading Installation system tooks too long";
+    }
 }
 
 sub show_debug {
@@ -311,16 +331,18 @@ sub run {
 
     select_console("installation", timeout => 180);
 
-    # We have textmode installation via ssh and the default vnc installation so far
-    if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-        # If libyui REST API is used, we set it up in installation/setup_libyui
-        unless (get_var('YUI_REST_API')) {
-            # Workaround for bsc#1142040
-            # enter_cmd("yast.ssh");
-            enter_cmd("QT_XCB_GL_INTEGRATION=none yast.ssh") && record_soft_failure('bsc#1142040');
+    unless (get_var('AGAMA')) {
+        # We have textmode installation via ssh and the default vnc installation so far
+        if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
+            # If libyui REST API is used, we set it up in installation/setup_libyui
+            unless (get_var('YUI_REST_API')) {
+                # Workaround for bsc#1142040
+                # enter_cmd("yast.ssh");
+                enter_cmd("QT_XCB_GL_INTEGRATION=none yast.ssh") && record_soft_failure('bsc#1142040');
+            }
         }
+        wait_still_screen;
     }
-    wait_still_screen;
 
     $self->result('ok');
 }
