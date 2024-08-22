@@ -728,5 +728,13 @@
             "sle": ["15-SP6", "15-SP7"]
         },
         "type": "ignore"
+    },
+    "boo#1227081": {
+        "description": "Activation request for 'org\\.freedesktop\\.nm_dispatcher' failed\\.",
+	"products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
