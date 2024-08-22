@@ -77,15 +77,9 @@ sub check_aa_enforce {
     # Recalculate profile name in case
     $named_profile = $self->get_named_profile($profile_name);
 
-    if (is_sle('=15-SP3') && check_var('TEST', 'qam-allpatterns+addons') && script_run("aa-disable $executable_name") == 1) {
-        record_soft_failure('bsc#1229029');
-        return;
-    }
-    else {
-        validate_script_output "aa-disable $executable_name", sub {
-            m/Disabling.*nscd/;
-        }, timeout => 180;
-    }
+    validate_script_output "aa-disable $executable_name", sub {
+        m/Disabling.*nscd/;
+    }, timeout => 180;
 
     # Check if /usr/sbin/ntpd is really disabled
     die "$executable_name should be disabled"
@@ -114,18 +108,12 @@ sub check_aa_complain {
     assert_script_run "cp -r /etc/apparmor.d $aa_tmp_prof";
 
     foreach my $cmd (@aa_complain_cmds) {
-        if (is_sle('=15-SP3') && check_var('TEST', 'qam-allpatterns+addons') && script_run("$cmd") == 1) {
-            record_soft_failure('bsc#1229029');
-            return;
-        }
-        else {
-            validate_script_output $cmd, sub {
-                m/Setting.*nscd to complain mode/s;
-            }, timeout => 180;
+        validate_script_output $cmd, sub {
+            m/Setting.*nscd to complain mode/s;
+        }, timeout => 180;
 
-            # Restore to the enforce mode
-            assert_script_run "aa-enforce usr.sbin.nscd";
-        }
+        # Restore to the enforce mode
+        assert_script_run "aa-enforce usr.sbin.nscd";
     }
 
     # Clean Up
