@@ -2748,11 +2748,11 @@ sub load_ha_cluster_tests {
             loadtest 'sles4sap/netweaver_filesystems';
             loadtest 'sles4sap/netweaver_install';
             loadtest 'sles4sap/netweaver_cluster';
+            loadtest 'sles4sap/sap_suse_cluster_connector' if (check_var('HA_CLUSTER_INIT', 'yes'));
         } elsif (get_var('HANA')) {
             loadtest 'sles4sap/hana_install';
             loadtest 'sles4sap/hana_cluster';
         }
-        loadtest 'sles4sap/sap_suse_cluster_connector' if (check_var('HA_CLUSTER_INIT', 'yes'));
     }
     else {
         # Test Hawk Web interface

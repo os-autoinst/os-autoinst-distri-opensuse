@@ -16,7 +16,6 @@ schedule:
   - ha/ha_cluster_init
   - sles4sap/hana_install
   - sles4sap/hana_cluster
-  - sles4sap/sap_suse_cluster_connector
   - ha/fencing
   - boot/boot_to_desktop
   - ha/check_after_reboot

@@ -26,6 +26,7 @@ sub exec_conn_cmd {
     my $cmd = $args{cmd};
     $cmd .= " --out $args{log_file}" if ($args{log_file});
 
+    script_run("rm -f $args{log_file}") if ($args{log_file});
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
     if ($args{log_file}) {
         my $output = script_output("cat $args{log_file}", proceed_on_failure => 1);
@@ -59,9 +60,14 @@ sub run {
 
     # Test Maintenance Mode
     foreach my $mod (1, 0) {
-        exec_conn_cmd(binary => $binary, cmd => "smm --sid $instance_sid --ino $instance_id --mod $mod", log_file => $log_file);
+        my $retval = exec_conn_cmd(binary => $binary, cmd => "smm --sid $instance_sid --ino $instance_id --mod $mod", log_file => $log_file);
+        # Return code in general:
+        # 0: successfull command termination or "yes" to a yes-no-query
+        # 1: unsucessfull command termination or "no" to a yes-no-query
+        # 2: error occurred during command termination - mostly bad parameters
+        die "Commad 'smm' failed and returns $retval" if ($retval == 2);
         # Wait to let enough time for the HA stack to change Maintenance Mode
-        sleep 10;
+        wait_for_idle_cluster;
     }
 
     # List nodes
@@ -71,6 +77,7 @@ sub run {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_$instance_type$instance_id";
         wait_for_idle_cluster;
         exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
+        validate_script_output("cat $log_file 2>&1", sub { m/$rsc/ });
     }
 
     # Test Stop/Start of SAP resource

@@ -54,7 +54,6 @@ schedule:
   - '{{cluster_setup}}'
   - sles4sap/hana_cluster
   - sles4sap/monitoring_services
-  - '{{sap_suse_cluster_connector}}'
   - '{{wmp_check_process}}'
   - sles4sap/hana_test
   - ha/fencing
@@ -73,10 +72,6 @@ conditional_schedule:
         - ha/ha_cluster_init
       no:
         - ha/ha_cluster_join
-  sap_suse_cluster_connector:
-    HA_CLUSTER_INIT:
-      yes:
-        - sles4sap/sap_suse_cluster_connector
   boot_to_desktop_node01:
     HA_CLUSTER_INIT:
       yes:
