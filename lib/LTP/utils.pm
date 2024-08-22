@@ -20,6 +20,7 @@ use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use utils;
 use kernel 'get_kernel_flavor';
+use transactional;
 
 our @EXPORT = qw(
   check_kernel_taint
@@ -97,6 +98,9 @@ sub log_versions {
       (is_rt ? 'kernel-rt' : get_kernel_flavor);
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
+
+    enter_trup_shell(global_options => '-c') if is_transactional;
+
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
 
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
@@ -139,6 +143,7 @@ sub log_versions {
 
     script_run('env');
     script_run('aa-enabled; aa-status');
+    exit_trup_shell if is_transactional;
 }
 
 sub export_ltp_env {

@@ -133,8 +133,8 @@ sub add_custom_grub_entries {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
     }
 
-    bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
-    script_run('/sbin/purge-kernels');
+    bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu (if /sbin/purge-kernels installed)");
+    script_run('[ -x /sbin/purge-kernels ] && /sbin/purge-kernels');
 
     assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
