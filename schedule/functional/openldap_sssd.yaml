@@ -1,0 +1,15 @@
+name: openldap_sssd
+description:    >
+    This is for openldap and sssd authentication test
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - network/setup_multimachine
+    - '{{openldap_sssd}}'
+conditional_schedule:
+    openldap_sssd:
+        HOSTNAME:
+            ldapserver:
+                - console/openldap/openldap_server
+            ldapclient:
+                - console/openldap/openldap_client
