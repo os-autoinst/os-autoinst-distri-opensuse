@@ -31,7 +31,7 @@ sub run {
     my $target_site = $run_args->{$site_name};
     die("Target site '$site_name' data is missing. This might indicate deployment issue.")
       unless $target_site;
-    my $sbd_delay;
+    my $sbd_delay = 0;
 
     # Switch to control to target site (currently PROMOTED)
     $self->{my_instance} = $target_site;
@@ -63,9 +63,9 @@ sub run {
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     # SBD delay is active only after reboot
-    if (($takeover_action eq 'crash' and $sbd_delay != 0) ||
-        # Add SBD delay for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
-        ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2'))) {
+    if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
+        # Add SBD delay for to fix sporadic 'takeover failed to complete' issue on EC2
+        # Also fix sporadic issues (ssh timed out) mentioned in TEAM-9601
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # test needs to wait a little more than sbd delay
         sleep($sbd_delay + 30);
