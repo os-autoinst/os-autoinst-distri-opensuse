@@ -5,4 +5,3 @@ description: >
 schedule:
   - installation/bootloader_start
   - yam/agama/patch_agama_tests
-  - yam/agama/agama_is_visible
