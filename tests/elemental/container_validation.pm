@@ -36,17 +36,18 @@ sub get_filename {
 sub run {
     select_serial_terminal;
 
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $flavor = get_required_var('FLAVOR');
     my $arch = get_required_var('ARCH');
+    my $flavor = get_required_var('FLAVOR');
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+    my $version = get_required_var('VERSION');
     my $cnt_name = 'elemental_image';
+    my $img_filename = "elemental-$version-$flavor-$arch";
     my $shared = '/var/shared';
-    my $build_raw_cmd = "elemental --debug build-disk --expandable --squash-no-compression -n $flavor-$arch -o /host --system dir:/";
 
     # Create shared directory
     assert_script_run("mkdir -p $shared");
 
-    if ($image =~ m/os-container/) {
+    if (lc($flavor) =~ m/image/) {
         assert_script_run("podman pull $image");
         assert_script_run("podman run --name $cnt_name -v $shared:/host:Z -dt $image sleep infinity");
 
@@ -62,44 +63,50 @@ sub run {
         validate_script_output("podman exec $cnt_name /bin/sh -c 'zypper lr' 2>&1", sub { m/No repositories defined/ }, proceed_on_failure => 1);
         assert_script_run("podman exec $cnt_name /bin/sh -c '[[ -z \"\$(ls -A /etc/zypp/repos.d)\" ]]'");
 
-        unless ($image =~ m/(base|kvm)-os-container/) {
+        unless ($image =~ m/(base|kvm)/) {
             record_info('Firmware', 'Test that /lib/firmware directory is not empty');
             assert_script_run("podman exec $cnt_name /bin/sh -c 'test -d /lib/firmware'");
             assert_script_run("podman exec $cnt_name /bin/sh -c '[[ -n \"\$(ls -A /lib/firmware)\" ]]'");
         }
 
-        record_info('QCOW2', 'Generate and upload QCOW2 image');
+        # For now OS image based on SLMicro5.5 has broken 'build-disk' command, so we cannot test it
+        # NOTE: keep support for this older image in the following code to be able to test it if 'build-disk' will be fixed
+        if (is_sle_micro('>=6.0')) {
+            record_info('QCOW2', 'Generate and upload QCOW2 image');
 
-        # Installation files
-        my @config_files = ("$shared/install.yaml", "$shared/cloud-config.yaml");
-        my $grub_env_path = '/host/build/efi';
+            # Installation files
+            my @config_files = ("$shared/install.yaml", "$shared/cloud-config.yaml");
+            my $grub_env_path = is_sle_micro('<6.0') ? '/host/build/state' : '/host/build/efi';
 
-        # Encode root password
-        my $rootpwd = script_output('openssl passwd -6 ' . get_required_var('TEST_PASSWORD'));
+            # Encode root password
+            my $rootpwd = script_output('openssl passwd -6 ' . get_required_var('TEST_PASSWORD'));
 
-        # Add configuration files
-        foreach my $config_file (@config_files) {
-            assert_script_run('curl ' . data_url('elemental/' . get_filename(file => $config_file)) . ' -o ' . $config_file);
-            file_content_replace($config_file, '%TEST_PASSWORD%' => $rootpwd);
-            file_content_replace($config_file, '%STEP%' => 'disk');
-            file_content_replace($config_file, '%PATH%' => $grub_env_path);
+            # Add configuration files
+            foreach my $config_file (@config_files) {
+                assert_script_run('curl ' . data_url('elemental/' . get_filename(file => $config_file)) . ' -o ' . $config_file);
+                file_content_replace($config_file, '%TEST_PASSWORD%' => $rootpwd);
+                file_content_replace($config_file, '%STEP%' => 'disk');
+                file_content_replace($config_file, '%PATH%' => $grub_env_path);
+            }
+
+            # Move install.yaml in /oem
+            assert_script_run("podman exec $cnt_name /bin/sh -c 'mv /host/install.yaml /oem/'");
+
+            # Create and upload QCOW2 image (forced to 20GB to allow enough space for creating active partition)
+            my $build_opts = is_sle_micro('<6.0') ? "--unprivileged dir:/" : "--system dir:/";
+            my $build_raw_cmd = "elemental --debug build-disk --expandable --squash-no-compression --name $img_filename --cloud-init /host/*.yaml --output /host $build_opts";
+            assert_script_run("podman exec $cnt_name /bin/sh -c '$build_raw_cmd'");
+            assert_script_run("qemu-img convert -f raw -O qcow2 $shared/$img_filename.raw $shared/$img_filename.qcow2");
+            assert_script_run("qemu-img resize $shared/$img_filename.qcow2 20G");
+            upload_asset("$shared/$img_filename.qcow2", 1);
         }
-
-        # Move install.yaml in /oem
-        assert_script_run("podman exec $cnt_name /bin/sh -c 'mv /host/install.yaml /oem/'");
-
-        # Create and upload QCOW2 image (forced to 20GB to allow enough space for creating active partition)
-        assert_script_run("podman exec $cnt_name /bin/sh -c '$build_raw_cmd --cloud-init /host/*.yaml'");
-        assert_script_run("qemu-img convert -f raw -O qcow2 $shared/$flavor-$arch.raw $shared/elemental-$flavor-$arch.qcow2");
-        assert_script_run("qemu-img resize $shared/elemental-$flavor-$arch.qcow2 20G");
-        upload_asset("$shared/elemental-$flavor-$arch.qcow2", 1);
     }
 
-    if ($image =~ m/iso-image/) {
+    if (lc($flavor =~ m/iso/)) {
         # Create and upload ISO image
         record_info('ISO', 'Generate and upload ISO');
-        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/elemental-$flavor-$arch.iso'");
-        upload_asset("$shared/elemental-$flavor-$arch.iso", 1);
+        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'");
+        upload_asset("$shared/$img_filename.iso", 1);
     }
 }
 
