@@ -65,8 +65,6 @@ sub create_list_of_serial_failures {
         push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted', pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
         push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: failure at'};
         push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta '-[ cut here ]-'};
-        # bsc#1229025, but must be soft because any LTP test which intentionally triggers OOM killer will produce this call trace as well
-        push @$serial_failures, {type => 'soft', message => 'Kernel Call Trace found', pattern => quotemeta 'Call Trace:'};
     }
 
     push @$serial_failures, {type => 'soft', message => 'Low memory problem detected bsc#1166955', pattern => quotemeta 'kswapd0 Kdump'};
