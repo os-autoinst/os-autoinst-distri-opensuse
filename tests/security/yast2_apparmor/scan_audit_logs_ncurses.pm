@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = shift;
@@ -20,6 +21,9 @@ sub run {
     my $test_profile_bk = "/tmp/usr.sbin.nscd";
     my $entry = 'include <abstractions\/base>';
     my $audit_log = $apparmortest::audit_log;
+
+    zypper_call('in nscd');
+    systemctl('start nscd');
 
     # Set the testing profile to "enforce" mode
     assert_script_run("aa-enforce $test_file");
@@ -31,6 +35,7 @@ sub run {
     systemctl("is-active apparmor");
 
     # Enter "yast2 apparmor"
+    select_console 'root-console';
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     assert_screen("yast2_apparmor");
 
@@ -93,6 +98,7 @@ sub run {
     # Wait till app is closed
     wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
     enter_cmd("reset");
+    select_serial_terminal;
 
     # Upload test profile for reference
     upload_logs($test_profile);

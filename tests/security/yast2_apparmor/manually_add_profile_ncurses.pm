@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = shift;
@@ -36,6 +37,7 @@ sub run {
     # Enter "Manually Add Profile" to generate a profile for a program
     # "marked as a program that should not have its own profile",
     # it should be failed
+    select_console 'root-console';
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     assert_screen("yast2_apparmor");
     wait_screen_change { send_key "down" };
@@ -111,6 +113,7 @@ sub run {
     # Wait till app is closed
     wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
     enter_cmd("reset");
+    select_serial_terminal;
 
     # Check the profiles were generated, e.g., cat it for reference
     assert_script_run("cat $test_profile_bk");

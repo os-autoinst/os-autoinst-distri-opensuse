@@ -678,6 +678,7 @@ sub yast2_apparmor_cleanup {
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
+    select_serial_terminal;
 
     # Upload logs for reference
     upload_logs("$audit_log");
