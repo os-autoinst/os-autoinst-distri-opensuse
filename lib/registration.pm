@@ -11,11 +11,12 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(is_qemu);
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry wait_for_purge_kernels);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 use YaST::workarounds;
 use y2_logs_helper qw(accept_license);
+use transactional;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -197,7 +198,11 @@ sub add_suseconnect_product {
 
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
-        eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
+        if (is_transactional) {
+            eval { trup_call("register -p $name/" . get_var('VERSION') . '/' . get_var('ARCH')) };
+        } else {
+            eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
+        }
         if ($@) {
             record_info('retry', "SUSEConnect failed to activate the module $name. Retrying...");
             sleep 60 * $try_cnt;    # we wait a bit longer for each retry
