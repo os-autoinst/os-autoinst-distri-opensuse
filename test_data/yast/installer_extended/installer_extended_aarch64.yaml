@@ -34,11 +34,10 @@ modules:
   - sle-module-containers
   - sle-module-desktop-applications
   - sle-module-development-tools
+  - sle-module-hpc
   - sle-module-legacy
-  - sle-module-NVIDIA-compute
   - sle-module-public-cloud
   - sle-module-python3
-  - PackageHub
   - sle-module-server-applications
   - sle-module-transactional-server
   - sle-module-web-scripting

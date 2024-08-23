@@ -30,14 +30,18 @@ beta_text: 'You are accessing our Beta Distribution'
 modules:
   - sle-ha
   - sle-module-live-patching
+  - sle-we
   - sle-module-basesystem
   - sle-module-certifications
+  - sle-module-confidential-computing
   - sle-module-containers
   - sle-module-desktop-applications
   - sle-module-development-tools
+  - sle-module-hpc
   - sle-module-legacy
   - sle-module-public-cloud
   - sle-module-python3
+  - sle-module-sap-business-one
   - sle-module-server-applications
   - sle-module-transactional-server
   - sle-module-web-scripting
