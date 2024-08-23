@@ -127,7 +127,6 @@ tee - writes output also into the log file</code></pre>
     subscription_id=&gt;$subscription_id
     [, env_code=&gt;$env_code]
     [, deployer_vnet_code=&gt;$deployer_vnet_code]
-    [, workload_vnet_code=&gt;$workload_vnet_code]
     [, sdaf_region_code=&gt;$sdaf_region_code]
     [, sap_sid=&gt;$sap_sid]
     [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
@@ -139,8 +138,6 @@ tee - writes output also into the log file</code></pre>
 <p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
 
 <p><b>deployer_vnet_code</b>: Deployer virtual network code. Default: &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
-
-<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
 
 <p><b>sdaf_region_code</b>: SDAF internal code for azure region. Default: &#39;PUBLIC_CLOUD_REGION&#39; - converted to SDAF format</p>
 
@@ -229,8 +226,7 @@ tee - writes output also into the log file</code></pre>
 <pre><code>prepare_sdaf_project(
      [, env_code=&gt;$env_code]
      [, sdaf_region_code=&gt;$sdaf_region_code]
-     [, workload_vnet_code=&gt;$workload_vnet_code]
-     [, deployer_vnet_code=&gt;$workload_vnet_code]
+     [, deployer_vnet_code=&gt;$deployer_vnet_code]
      [, sap_sid=&gt;$sap_sid]);</code></pre>
 
 <p>Prepares directory structure and Clones git repository for SDAF samples and automation code.</p>
@@ -238,8 +234,6 @@ tee - writes output also into the log file</code></pre>
 <p><b>env_code</b>: Code for SDAF deployment env. Default: &#39;SDAF_ENV_CODE&#39;</p>
 
 <p><b>deployer_vnet_code</b>: Deployer virtual network code. Default &#39;SDAF_DEPLOYER_VNET_CODE&#39;</p>
-
-<p><b>workload_vnet_code</b>: Virtual network code for workload zone. Default: &#39;SDAF_WORKLOAD_VNET_CODE&#39;</p>
 
 <p><b>sdaf_region_code</b>: SDAF internal code for azure region. Default: &#39;PUBLIC_CLOUD_REGION&#39; converted to SDAF format</p>
 

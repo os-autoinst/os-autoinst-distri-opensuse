@@ -26,6 +26,7 @@
       <li><a href="#get_tfvars_path">get_tfvars_path</a></li>
       <li><a href="#generate_resource_group_name">generate_resource_group_name</a></li>
       <li><a href="#generate_deployer_name">generate_deployer_name</a></li>
+      <li><a href="#get_workload_vnet_code">get_workload_vnet_code</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/naming_conventions.pm</h1>
@@ -149,9 +150,19 @@
 
 <h2 id="generate_deployer_name">generate_deployer_name</h2>
 
-<pre><code>generate_deployer_name();</code></pre>
+<pre><code>generate_deployer_name([job_id=&gt;$job_id]);</code></pre>
+
+<p><b>$job_id</b>: Specify job id to be used. Default: current job ID</p>
 
 <p>Generates resource name for deployer VM in format <b>test_id-OpenQA_Deployer_VM</b>.</p>
+
+<h2 id="get_workload_vnet_code">get_workload_vnet_code</h2>
+
+<pre><code>get_workload_vnet_code([job_id=&gt;$job_id]);</code></pre>
+
+<p><b>$job_id</b>: Specify job id to be used. Default: current job ID</p>
+
+<p>Returns VNET code used for workload zone and sap systems resources. VNET code must be unique for each landscape, therefore it contains test ID as an identifier.</p>
 
 
 </body>
