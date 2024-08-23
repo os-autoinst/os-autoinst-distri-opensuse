@@ -1,0 +1,12 @@
+---
+name: test
+description: >
+  test
+  https://progress.opensuse.org/issues/
+schedule:
+  - microos/disk_boot
+  - transactional/host_config
+  - rt/rt_is_realtime
+  - console/suseconnect_scc
+  - transactional/install_updates
+  - console/systemctl_hibernate

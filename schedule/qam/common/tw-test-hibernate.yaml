@@ -1,0 +1,11 @@
+---
+name: test
+description: >
+  test
+  https://progress.opensuse.org/issues/
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/finish_desktop
+  - console/system_prepare
+  - console/systemctl_hibernate
