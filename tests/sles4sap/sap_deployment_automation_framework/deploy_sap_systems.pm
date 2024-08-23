@@ -15,7 +15,7 @@ use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner load_os_env_variables prepare_tfvars_file sdaf_execute_deployment az_login);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(generate_resource_group_name get_sdaf_config_path convert_region_to_short);
+  qw(generate_resource_group_name get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -29,7 +29,7 @@ sub run {
     select_serial_terminal();
     my $env_code = get_required_var('SDAF_ENV_CODE');
     my $sap_sid = get_required_var('SAP_SID');
-    my $workload_vnet_code = get_required_var('SDAF_WORKLOAD_VNET_CODE');
+    my $workload_vnet_code = get_workload_vnet_code();
     my $sdaf_region_code = convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
 
     # SAP systems use same VNET as workload zone

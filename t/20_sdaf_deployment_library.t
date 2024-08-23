@@ -37,6 +37,7 @@ subtest '[prepare_sdaf_project]' => sub {
     my %vnet_checks;
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(git_clone => sub { return; });
+    $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(assert_script_run => sub {
             push(@git_commands, join('', $_[0])) if grep(/git/, $_[0]);
@@ -78,6 +79,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(git_clone => sub { return; });
+    $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
 
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
     set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
@@ -216,6 +218,8 @@ subtest '[set_common_sdaf_os_env]' => sub {
     $ms_sdaf->redefine(create_sdaf_os_var_file => sub { @file_content = @{$_[0]}; });
     $ms_sdaf->redefine(get_tfvars_path => sub { return 'RB-79'; });
     $ms_sdaf->redefine(deployment_dir => sub { return 'FF-4'; });
+    $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'RX-77D'; });
+
 
     my @required_variables = (
         'env_code',

@@ -36,6 +36,7 @@ our @EXPORT = qw(
   convert_region_to_long
   convert_region_to_short
   generate_deployer_name
+  get_workload_vnet_code
 );
 
 =head2 %sdaf_region_matrix
@@ -307,7 +308,9 @@ sub generate_resource_group_name {
 
 =head2 generate_deployer_name
 
-    generate_deployer_name();
+    generate_deployer_name([job_id=>$job_id]);
+
+B<$job_id>: Specify job id to be used. Default: current job ID
 
 Generates resource name for deployer VM in format B<test_id-OpenQA_Deployer_VM>.
 
@@ -317,4 +320,22 @@ sub generate_deployer_name {
     my (%args) = @_;
     $args{job_id} //= get_current_job_id();
     return "$args{job_id}-OpenQA_Deployer_VM";
+}
+
+=head2 get_workload_vnet_code
+
+    get_workload_vnet_code([job_id=>$job_id]);
+
+B<$job_id>: Specify job id to be used. Default: current job ID
+
+Returns VNET code used for workload zone and sap systems resources. VNET code must be unique for each landscape,
+therefore it contains test ID as an identifier.
+
+=cut
+
+sub get_workload_vnet_code {
+    my (%args) = @_;
+    $args{job_id} //= find_deployment_id();
+    die('no deployment ID found') unless $args{job_id};
+    return ("SUT$args{job_id}");
 }

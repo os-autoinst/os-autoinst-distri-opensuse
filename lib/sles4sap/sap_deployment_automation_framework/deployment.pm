@@ -29,6 +29,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   get_tfvars_path
   generate_resource_group_name
   convert_region_to_short
+  get_workload_vnet_code
 );
 
 =head1 SYNOPSIS
@@ -231,7 +232,6 @@ sub get_os_variable {
         subscription_id=>$subscription_id
         [, env_code=>$env_code]
         [, deployer_vnet_code=>$deployer_vnet_code]
-        [, workload_vnet_code=>$workload_vnet_code]
         [, sdaf_region_code=>$sdaf_region_code]
         [, sap_sid=>$sap_sid]
         [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
@@ -243,8 +243,6 @@ B<subscription_id>: Azure subscription ID
 B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
 
 B<deployer_vnet_code>: Deployer virtual network code. Default: 'SDAF_DEPLOYER_VNET_CODE'
-
-B<workload_vnet_code>: Virtual network code for workload zone. Default: 'SDAF_WORKLOAD_VNET_CODE'
 
 B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' - converted to SDAF format
 
@@ -269,11 +267,11 @@ sub set_common_sdaf_os_env {
 
     $args{env_code} //= get_required_var('SDAF_ENV_CODE');
     $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
-    $args{workload_vnet_code} //= get_required_var('SDAF_WORKLOAD_VNET_CODE');
     $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     $args{sap_sid} //= get_required_var('SAP_SID');
     $args{sdaf_tfstate_storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
     $args{sdaf_key_vault} //= get_required_var('SDAF_DEPLYOER_KEY_VAULT');
+    my $workload_vnet_code = get_workload_vnet_code();
 
     # This is used later filling up tfvars files.
     set_var('SDAF_REGION_CODE', $args{sdaf_region_code});
@@ -281,7 +279,7 @@ sub set_common_sdaf_os_env {
     my @variables = (
         "export env_code=$args{env_code}",
         "export deployer_vnet_code=$args{deployer_vnet_code}",
-        "export workload_vnet_code=$args{workload_vnet_code}",
+        "export workload_vnet_code=$workload_vnet_code",
         "export sap_env_code=$args{env_code}",
         "export deployer_env_code=$args{env_code}",
         "export sdaf_region_code=$args{sdaf_region_code}",
@@ -292,8 +290,8 @@ sub set_common_sdaf_os_env {
         "export CONFIG_REPO_PATH=$deployment_dir/WORKSPACES",
         'export deployer_parameter_file=' . get_tfvars_path(deployment_type => 'deployer', vnet_code => $args{deployer_vnet_code}, %args),
         'export library_parameter_file=' . get_tfvars_path(deployment_type => 'library', %args),
-        'export sap_system_parameter_file=' . get_tfvars_path(deployment_type => 'sap_system', vnet_code => $args{workload_vnet_code}, %args),
-        'export workload_zone_parameter_file=' . get_tfvars_path(deployment_type => 'workload_zone', vnet_code => $args{workload_vnet_code}, %args),
+        'export sap_system_parameter_file=' . get_tfvars_path(deployment_type => 'sap_system', vnet_code => $workload_vnet_code, %args),
+        'export workload_zone_parameter_file=' . get_tfvars_path(deployment_type => 'workload_zone', vnet_code => $workload_vnet_code, %args),
         "export tfstate_storage_account=$args{sdaf_tfstate_storage_account}",
         # Deployer state is a file existing in LIBRARY storage account, default value is SDAF default.
 'export deployerState=' . get_var('SDAF_DEPLOYER_TFSTATE', '${deployer_env_code}-${sdaf_region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate'),
@@ -588,8 +586,7 @@ sub get_sdaf_deployment_command {
    prepare_sdaf_project(
         [, env_code=>$env_code]
         [, sdaf_region_code=>$sdaf_region_code]
-        [, workload_vnet_code=>$workload_vnet_code]
-        [, deployer_vnet_code=>$workload_vnet_code]
+        [, deployer_vnet_code=>$deployer_vnet_code]
         [, sap_sid=>$sap_sid]);
 
 Prepares directory structure and Clones git repository for SDAF samples and automation code.
@@ -597,8 +594,6 @@ Prepares directory structure and Clones git repository for SDAF samples and auto
 B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
 
 B<deployer_vnet_code>: Deployer virtual network code. Default 'SDAF_DEPLOYER_VNET_CODE'
-
-B<workload_vnet_code>: Virtual network code for workload zone. Default: 'SDAF_WORKLOAD_VNET_CODE'
 
 B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' converted to SDAF format
 
@@ -610,9 +605,9 @@ sub prepare_sdaf_project {
     my (%args) = @_;
     $args{env_code} //= get_required_var('SDAF_ENV_CODE');
     $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
-    $args{workload_vnet_code} //= get_required_var('SDAF_WORKLOAD_VNET_CODE');
     $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     $args{sap_sid} //= get_required_var('SAP_SID');
+    my $workload_vnet_code = get_workload_vnet_code();
 
     my $deployment_dir = deployment_dir(create => 'yes');
 
@@ -634,8 +629,8 @@ sub prepare_sdaf_project {
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
-        workload_zone => $args{workload_vnet_code},
-        sap_system => $args{workload_vnet_code},
+        workload_zone => $workload_vnet_code,
+        sap_system => $workload_vnet_code,
         library => '',    # SDAF Library is not part of any VNET
         deployer => $args{deployer_vnet_code}
     );

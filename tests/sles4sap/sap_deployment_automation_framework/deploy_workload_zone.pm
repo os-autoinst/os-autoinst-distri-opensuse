@@ -5,9 +5,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Deployment of the workload zone using SDAF automation
 
-# Required OpenQA variables:
-#     'SDAF_WORKLOAD_VNET_CODE' Virtual network code for workload zone.
-
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use strict;
@@ -32,9 +29,11 @@ sub run {
 
     # Setup Workload zone openQA variables - used for tfvars template
     set_var('SDAF_RESOURCE_GROUP', generate_resource_group_name(deployment_type => 'workload_zone'));
-    set_var('SDAF_VNET_CODE', get_required_var('SDAF_WORKLOAD_VNET_CODE'));
+
+    my $workload_vnet_code = get_workload_vnet_code();
+    set_var('SDAF_VNET_CODE', $workload_vnet_code);
     # 'vnet_code' variable changes with deployment type.
-    set_os_variable('vnet_code', get_required_var('SDAF_WORKLOAD_VNET_CODE'));
+    set_os_variable('vnet_code', $workload_vnet_code);
     prepare_tfvars_file(deployment_type => 'workload_zone');
     az_login();
     sdaf_execute_deployment(deployment_type => 'workload_zone');

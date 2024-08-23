@@ -126,6 +126,13 @@ subtest '[convert_region_to_short] Test invalid input' => sub {
     dies_ok { convert_region_to_short($_) } "Croak with invalid region name: $_" foreach @invalid_region_names;
 };
 
+subtest '[get_workload_vnet_code] ' => sub {
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
+    dies_ok { get_workload_vnet_code() } 'Die with with no job id found';
 
+    $mock_lib->redefine(find_deployment_id => sub { return '0079'; });
+    is get_workload_vnet_code(), 'SUT0079', 'Return correct VNET code with default values';
+    is get_workload_vnet_code(job_id => '0087'), 'SUT0087', 'Return correct VNET code defined by named argument';
+};
 
 done_testing;
