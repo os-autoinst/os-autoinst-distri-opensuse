@@ -37,7 +37,9 @@
 
 <p>Returns the list of known bug patterns on the serial logs <code>my $list = create_list_of_serial_failures();</code> This will be used in main.pm to initialize the backend with that list: <code>$testapi::distri-</code>set_expected_serial_failures($list);&gt;</p>
 
-<p>To add a known bug simply copy and adapt the following line: <code>push @$serial_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; }&gt;</p>
+<p>To add a known bug simply copy and adapt the following line: <code>push @$serial_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39;, post_boot_type =&gt; soft/hard }&gt;</p>
+
+<p>LTP tests use post_boot_type to change failure type during job runtime so that kernel warnings during boot don&#39;t immediately terminate LTP jobs but warnings triggered by LTP tests get reported as failures.</p>
 
 <h2 id="create_list_of_autoinst_failures">create_list_of_autoinst_failures</h2>
 
