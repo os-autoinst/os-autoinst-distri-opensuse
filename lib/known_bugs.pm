@@ -39,7 +39,11 @@ This will be used in main.pm to initialize the backend with that list:
 C<$testapi::distri->set_expected_serial_failures($list);>
 
 To add a known bug simply copy and adapt the following line:
-C<push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }>
+C<push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern', post_boot_type => soft/hard }>
+
+LTP tests use post_boot_type to change failure type during job runtime so that
+kernel warnings during boot don't immediately terminate LTP jobs but warnings
+triggered by LTP tests get reported as failures.
 
 =cut
 
@@ -59,12 +63,12 @@ sub create_list_of_serial_failures {
 
     if (is_kernel_test()) {
         my $type = is_ltp_test() ? 'soft' : 'hard';
-        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta 'Oops:'};
-        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => qr/kernel BUG at/i};
-        push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
-        push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted', pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
-        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: failure at'};
-        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta '-[ cut here ]-'};
+        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta 'Oops:', post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => qr/kernel BUG at/i, post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU', post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted', pattern => quotemeta 'stack-protector: Kernel stack is corrupted', post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: failure at', post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta '-[ cut here ]-', post_boot_type => 'hard'};
         # bsc#1229025, but must be soft because any LTP test which intentionally triggers OOM killer will produce this call trace as well
         push @$serial_failures, {type => 'soft', message => 'Kernel Call Trace found', pattern => quotemeta 'Call Trace:'};
     }
