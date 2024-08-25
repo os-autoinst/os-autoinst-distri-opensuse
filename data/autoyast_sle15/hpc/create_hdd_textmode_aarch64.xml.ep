@@ -41,7 +41,7 @@
       % unless ($check_var->('VERSION', '15')) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
-        % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5') || $check_var->('VERSION', '15-SP6')) {
+        % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5') || $check_var->('VERSION', '15-SP6') || $check_var->('VERSION', '15-SP7')) {
         <name>sle-module-python2</name>
         % } else {
         <name>sle-module-python3</name>
@@ -425,7 +425,7 @@
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
       % unless ($check_var->('VERSION', '15')) {
-      % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5') || $check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5') || $check_var->('VERSION', '15-SP6') || $check_var->('VERSION', '15-SP7')) {
       <package>sle-module-python2-release</package>
       % } else {
       <package>sle-module-python3-release</package>
@@ -448,7 +448,7 @@
       <package>dosfstools</package>
       <package>btrfsprogs</package>
       <package>autoyast2</package>
-      % unless ($check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15-SP6') || $check_var->('VERSION', '15-SP7')) {
       <package>SLE_HPC-release</package>
       % }
     </packages>

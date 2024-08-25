@@ -43,7 +43,7 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
-      % unless ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7')) {
       <addon>
         <name>sle-module-python2</name>
         <version>{{VERSION}}</version>
@@ -105,7 +105,7 @@
       <package>sle-module-basesystem-release</package>
       <package>sle-module-web-scripting-release</package>
       <package>sle-module-hpc-release</package>
-      % unless ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7')) {
       <package>sle-module-python2-release</package>
       % }
     </packages>
