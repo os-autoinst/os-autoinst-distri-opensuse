@@ -117,6 +117,11 @@ sub prepare_parmfile {
         $params .= " autoyast=" . $url;
         set_var('AUTOYAST', $url);
     }
+    if (get_var('AGAMA_AUTO')) {
+        my $url = data_url(get_var('AGAMA_AUTO'));
+        $params .= " agama.auto=" . $url;
+        set_var('AGAMA_AUTO', $url);
+    }
     return split_lines($params);
 }
 
