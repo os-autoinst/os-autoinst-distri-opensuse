@@ -59,6 +59,8 @@ sub run {
     $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
     script_retry("curl -sL https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/netavark-$netavark_version/";
+    # Force use of /var/tmp as default
+    assert_script_run "sed -i '/NETAVARK_TMPDIR=/s%/tmp%/var&%' test/helpers.bash";
 
     run_tests;
 }
