@@ -67,7 +67,7 @@ sub run {
     get_utt_packages;
 
     record_info 'Install ptf', 'Install package - snapshot #1';
-    trup_call "ptf install" . rpmver('security');
+    trup_call("ptf install" . rpmver('security'), timeout => 500);
     check_reboot_changes;
     check_package(stage => 'in');
 

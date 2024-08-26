@@ -15,7 +15,7 @@ use utils;
 sub run {
     my $self = shift;
     select_console('root-console');
-    systemctl 'list-timers --all';
+    systemctl('list-timers --all', timeout => 300);
     power_action('poweroff');
 }
 

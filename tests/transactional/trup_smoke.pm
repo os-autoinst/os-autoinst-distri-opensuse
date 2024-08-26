@@ -20,7 +20,8 @@ sub action {
     my ($target, $text, $reboot) = @_;
     $reboot //= 1;
     record_info('TEST', $text);
-    trup_call($target);
+    trup_call($target, timeout => 100);
+    sleep 100;
     check_reboot_changes if $reboot;
 }
 

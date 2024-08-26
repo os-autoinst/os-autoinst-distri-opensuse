@@ -12,15 +12,18 @@ use warnings;
 use base "consoletest";
 use utils;
 use testapi;
+use Utils::Architectures 'is_ppc64le';
 
 my %services_for = (
-    default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],
+    default => [qw(sshd issue-generator issue-add-ssh-keys)],
     cloud => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
     admin => [qw(docker kubelet etcd)],
     worker => [qw(salt-minion systemd-timesyncd)],
     plain => undef
 );
+
+push @{$services_for{default}}, "transactional-update.timer" unless is_ppc64le;
 
 sub check_services {
     my $services = shift;
