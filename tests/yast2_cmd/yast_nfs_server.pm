@@ -41,15 +41,6 @@ use utils qw(systemctl zypper_call);
 my $tmp_dir = "/my_nfs_tmp";
 my $bsc_dir = "/test_nfs_server_bsc";
 
-sub check_bsc1142979 {
-    my $grep_cmd = script_run("grep -i $bsc_dir /etc/exports");
-    if ($grep_cmd != 0) {
-        my $ret_val = script_run("yast nfs-server delete mountpoint=$bsc_dir");
-        if ($ret_val == 0) {
-            record_soft_failure "Nfs-server bug: bsc#1142979 - Remove a mount directory that does not exist return value error"; }
-    }
-}
-
 sub run {
     select_serial_terminal;
 
@@ -71,8 +62,6 @@ sub run {
     # 4. Displays a summary of the NFS server configuration
     validate_script_output("echo \$(yast nfs-server summary 2>&1)",
         sub { m#NFS\s+server\s+is\s+enabled#; m#\*\s+$tmp_dir#; m#NFSv4\s+support\s+is\s+enabled#; m#NFS\s+Security\s+using\s+GSS\s+is\s+enabled#; });
-
-    check_bsc1142979;
 
     # 5. Restore nfs-server settings and used summary parameter verify
     my $ret_del = script_run("yast nfs-server delete mountpoint=$tmp_dir");
