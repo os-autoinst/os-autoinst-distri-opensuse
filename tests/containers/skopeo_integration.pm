@@ -37,7 +37,7 @@ sub run_tests {
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "BATS_TMPDIR=/var/tmp SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
+    script_run "env BATS_TMPDIR=/var/tmp SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 }
