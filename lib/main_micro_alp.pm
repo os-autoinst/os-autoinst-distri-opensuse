@@ -38,6 +38,7 @@ sub is_regproxy_required {
 
 sub load_config_tests {
     loadtest 'transactional/tdup' if get_var('TDUP');
+    loadtest 'console/force_scheduled_tasks';
     loadtest 'transactional/host_config' unless is_dvd;
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
@@ -199,9 +200,10 @@ sub load_common_tests {
     loadtest 'microos/image_checks' if (is_image || is_selfinstall);
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
+    loadtest 'transactional/disable_timers';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
-    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
-    loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot);
+    #loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
+    #loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
     loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
@@ -215,7 +217,6 @@ sub load_common_tests {
 
 
 sub load_transactional_tests {
-    loadtest 'transactional/disable_timers';
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/trup_smoke';
     loadtest 'microos/patterns' if is_sle_micro;

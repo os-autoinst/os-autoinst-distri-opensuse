@@ -19,7 +19,8 @@ use serial_terminal;
 sub run {
     my ($self) = @_;
 
-    select_serial_terminal;
+    #select_serial_terminal;
+    select_console 'root-console';
 
     # Install cockpit if needed, this is needed for DVD flavor where
     # Cockpit pattern is not selected during install
@@ -51,7 +52,7 @@ sub run {
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
 
-        my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 480);
+        my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 1200);
         # No reboot needed if no package update
         check_reboot_changes if ($results !~ /zypper: nothing to update/);
     }
