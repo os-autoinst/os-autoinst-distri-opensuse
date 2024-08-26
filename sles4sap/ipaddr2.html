@@ -45,6 +45,10 @@
       <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
       <li><a href="#ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</a></li>
       <li><a href="#ipaddr2_get_worker_tmp_for_internal_vm">ipaddr2_get_worker_tmp_for_internal_vm</a></li>
+      <li><a href="#ipaddr2_crm_move">ipaddr2_crm_move</a></li>
+      <li><a href="#ipaddr2_wait_for_takeover">ipaddr2_wait_for_takeover</a></li>
+      <li><a href="#ipaddr2_get_web">ipaddr2_get_web</a></li>
+      <li><a href="#ipaddr2_test_master_vm">ipaddr2_test_master_vm</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -529,6 +533,82 @@
 <pre><code>my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);</code></pre>
 
 <p>Return a path in /tmp of the worker used to store files associated two one of the internal VM</p>
+
+<h2 id="ipaddr2_crm_move">ipaddr2_crm_move</h2>
+
+<pre><code>ipaddr2_crm_move(destination =&gt; 2);</code></pre>
+
+<p>move the rsc_web_00 resource to the indicated node</p>
+
+<dl>
+
+<dt id="destination---VM-id-where-to-move-the-rsc_web_00-resource"><b>destination</b> - VM id where to move the rsc_web_00 resource</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it21"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_wait_for_takeover">ipaddr2_wait_for_takeover</h2>
+
+<pre><code>die &quot;Takeover does not happens in time&quot; unless  ipaddr2_wait_for_takeover(destination =&gt; 2);</code></pre>
+
+<p>Wait that web server is responding from the node indicated by id. This check is implemented running a curl request from the bastion and using the virtual IP address ar URL. This is possible because the webserver on each node is configured to return its hostname in the response. Return 1 as soon as it gets the id in the response. Return 0 if not within 10 minutes.</p>
+
+<dl>
+
+<dt id="destination---VM-id-that-from-where-the-web-server-response-is-expected-to-come-from"><b>destination</b> - VM id that from where the web server response is expected to come from</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it22"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_get_web">ipaddr2_get_web</h2>
+
+<pre><code>ipaddr2_get_web(str_match =&gt; &#39;openqa_vm_01&#39;);</code></pre>
+
+<p>Runs a curl request from the bastion and using the virtual IP address as URL. Return result of searching str_match in the curl response</p>
+
+<dl>
+
+<dt id="web_url---webserver-url"><b>web_url</b> - webserver url</dt>
+<dd>
+
+</dd>
+<dt id="str_match---string-to-search-in-the-curl-output"><b>str_match</b> - string to search in the curl output</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it23"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_test_master_vm">ipaddr2_test_master_vm</h2>
+
+<pre><code>ipaddr2_test_master_vm(id =&gt; 2);</code></pre>
+
+<p>Check the status on the VM that is supposed to have the resources.</p>
+
+<dl>
+
+<dt id="id---VM-id-that-is-expected-to-be-master"><b>id</b> - VM id that is expected to be master</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it24"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
