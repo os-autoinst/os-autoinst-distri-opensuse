@@ -31,7 +31,7 @@ sub run {
         return;
     }
 
-    my $grub_menu = $testapi::distri->get_grub();
+    my $grub_menu = $testapi::distri->get_grub_menu();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
     my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
 
