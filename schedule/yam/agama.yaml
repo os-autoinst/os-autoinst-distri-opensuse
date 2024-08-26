@@ -3,5 +3,5 @@ name: agama
 description: >
   Perform interactive installation with agama.
 schedule:
-  - installation/bootloader_start
+  - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
