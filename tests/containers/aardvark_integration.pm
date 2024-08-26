@@ -25,7 +25,7 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "AARDVARK=$aardvark BATS_TMPDIR=/var/tmp bats --tap test | tee -a $log_file", 2000;
+    script_run "env AARDVARK=$aardvark BATS_TMPDIR=/var/tmp bats --tap test | tee -a $log_file", 2000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 }
