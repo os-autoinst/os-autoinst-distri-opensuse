@@ -13,6 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud);
 use containers::common qw(install_packages);
 use publiccloud::utils 'is_gce';
+use utils 'script_retry';
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
@@ -49,7 +50,7 @@ sub run {
     # Test that access to openSUSE registry still works (IPv6 should work)
     assert_script_run('curl -sSf https://registry.opensuse.org/v2/');
     # Pull image from openSUSE registry (over IPv6 now)
-    assert_script_run("podman pull $image", timeout => 300);
+    script_retry("podman pull $image", timeout => 300, delay => 15, retry => 3);
 
     # This is only needed for bsc#1222239 - Host loses default IPv6 route when podman IPv6 network is created
     my $host_if = script_output('ip -6 route show default | awk "{print \$5; exit}"');
@@ -75,6 +76,13 @@ sub run {
     # Test container IPv6 connectivity
     #   there is iptables masquarade so the container appears under the host address
     assert_script_run("podman exec -it test-ipv6 curl -sSf6 -o /dev/null $curl_test https://opensuse.org");
+
+    # Check if a IPv6-only container can be reached
+    $image = 'registry.opensuse.org/opensuse/nginx:latest';
+    assert_script_run('curl ' . data_url('containers/nginx.conf') . ' -o nginx.conf');
+    script_retry("podman pull $image", timeout => 300, delay => 15, retry => 3);
+    assert_script_run("podman run --name http-ipv6 -d -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z --network podman-ipv6 --ip6 fd00:c0de:ba5e::3 $image", timeout => 180);
+    script_retry("curl -v http://[fd00:c0de:ba5e::3]:80/", delay => 15, retry => 3);
 }
 
 sub post_run_hook {
