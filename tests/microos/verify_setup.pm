@@ -15,7 +15,8 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl);
 use YAML::PP;
 use File::Basename qw(basename);
-use version_utils qw(is_tumbleweed is_microos is_jeos is_sle is_leap is_leap_micro is_sle_micro);
+use version_utils qw(is_tumbleweed is_microos is_jeos is_sle is_leap is_leap_micro is_sle_micro is_vmware);
+use Utils::Architectures qw(is_aarch64);
 
 my $data;
 my $fail = 0;
@@ -95,7 +96,6 @@ sub disk_tests {
         foreach my $p (@{$disk->{partitions}}) {
             $partitions->{$p->{label}} = $disk->{device} . $p->{number};
         }
-
     }
 
     foreach my $fs (@$filesystems) {
@@ -103,7 +103,11 @@ sub disk_tests {
             delete $fs->{wipe_filesystem};
 
             my $label = basename($fs->{device});
-            if (script_run("readlink -e $fs->{device} | grep $partitions->{$label}")) {
+            ## vmware does not add a third drive as provisioning information is passed via guestinfo options
+            ## aarch64 can swap the drive labels
+            if (is_aarch64 || is_vmware) {
+                $partitions->{$label} = script_output("readlink -e $fs->{device}");
+            } elsif (script_run("readlink -e $fs->{device} | grep $partitions->{$label}")) {
                 push @errors, "Partition label $label is assigned to wrong partition or drive";
             }
             delete $fs->{device};
