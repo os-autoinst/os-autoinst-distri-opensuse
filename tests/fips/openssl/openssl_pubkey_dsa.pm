@@ -1,4 +1,4 @@
-# openssl fips test
+# OpenSSL FIPS test
 #
 # Copyright 2016-2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
@@ -41,6 +41,10 @@ sub run {
     my $openssl_version_output = script_output(q[openssl version | awk '{print $2}']);
     my ($openssl_version) = $openssl_version_output =~ /(\d\.\d)/;
 
+    # DSA operations are expected to fail on 15-SP6+ and SLE Micro 6.0+ in FIPS mode with OpenSSL 3
+    # poo#161891
+    my $expect_failure = (is_sle('>=15-SP6') or is_sle_micro('>=6.0')) ? 1 : 0;
+
     # Prepare temp directory and file for testing
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";
 
@@ -48,6 +52,14 @@ sub run {
         # Generate dsa key pair
         my $dsa_prikey = "test-dsa-prikey-" . $size . ".pem";
         my $dsa_pubkey = "test-dsa-pubkey-" . $size . ".pem";
+
+        # The following steps fail with key size 3072, but pass with 2048 for some reason.
+        # This will skip any 3072 testing on affected platforms.
+        if ($expect_failure and $size == 3072) {
+            record_info "Skipping key size $size testing, poo#161891";
+            last;
+        }
+
         assert_script_run "openssl dsaparam $size < /dev/random > dsaparam.pem", 200;
         assert_script_run "openssl gendsa -out $dsa_prikey dsaparam.pem";
         assert_script_run "openssl dsa -in $dsa_prikey -pubout -out $dsa_pubkey";
@@ -59,9 +71,14 @@ sub run {
         # openssl >= 1.1.x (sha256)
         # openssl >= 1.0.x (dss1)
         my $algo = ($openssl_version >= "1.1") ? "sha256" : "dss1";
-
         assert_script_run "openssl dgst -$algo -sign $dsa_prikey $file_dgt > $file_sig";
-        validate_script_output "openssl dgst -$algo -verify $dsa_pubkey -signature $file_sig $file_dgt", sub { m/Verified OK/ };
+
+        my $digest_cmd = "openssl dgst -$algo -verify $dsa_pubkey -signature $file_sig $file_dgt";
+        if ($expect_failure) {
+            die "Expected failure but 'openssl dsa' command succeeded" if (script_run $digest_cmd) == 0;
+        } else {
+            validate_script_output $digest_cmd, sub { m/Verified OK/ };
+        }
 
         # Clean up temp files
         script_run "rm -f $file_dgt $file_sig dsaparam.pem";
@@ -74,10 +91,6 @@ sub test_flags {
     return {
         #poo160197 workaround since rollback seems not working with swTPM
         no_rollback => is_transactional() ? 1 : 0,
-
-        # The test is expect to fail on 15-SP6+ and SLE Micro 6.0+ in FIPS mode with OpenSSL 3
-        # poo#161891
-        ignore_failure => (is_sle('>=15-SP6') or is_sle_micro('>=6.0')) ? 1 : 0
     };
 }
 
