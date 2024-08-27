@@ -33,10 +33,14 @@ sub run {
     ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 2);
     sleep 30;
 
-    # use curl to probe the webserver using the frontend IP
+    # probe the webserver using the frontend IP
     # until the reply come from the VM-02
     die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(bastion_ip => $bastion_ip, destination => 2);
-    #test_connectivity
+
+    ipaddr2_os_connectivity_sanity();
+
+    # Check the status on the VM that is supposed to be
+    # the master for the webservice
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
     #test_other_vm "${MYNAME}-vm-01"
 
@@ -44,20 +48,20 @@ sub run {
     #ssh_node1 'sudo crm configure show' | grep -c cli-prefer- | grep 1 || test_die "Cluster should now have one cli-prefer-"
 
     # Slow down, take a break, then check again, nothing should be changed.
-    #test_step "Check again later"
-    #sleep 30
-    #test_connectivity
-    #test_web "${MYNAME}-vm-02"
+    sleep 60;
+    ipaddr2_os_connectivity_sanity();
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
 
 #################################################################################
     # Repeat the same but this time from VM-02 to VM-01
     #test_step "Move back the IpAddr2 resource to VM1"
-    #ssh_node1 'sudo crm resource move '"${MY_MOVE_RES} ${MYNAME}-vm-01" || test_die "Error in resource move"
-    #sleep 30
+    ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 1);
+    sleep 30;
 
-    #wait_for_takeover "${MYNAME}-vm-01"
-    #test_connectivity
-    #test_on_vm "${MYNAME}-vm-01"
+    die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(bastion_ip => $bastion_ip, destination => 1);
+
+    ipaddr2_os_connectivity_sanity();
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
     #test_other_vm "${MYNAME}-vm-02"
 
     #test_step "Clear all location constrain used during the test"
@@ -69,12 +73,9 @@ sub run {
     #ssh_node1 'sudo crm status'
 
     # Slow down, take a break, then check again, nothing should be changed.
-    #test_step "Check again later"
-    #sleep 30
-    #test_connectivity
-    #test_web "${MYNAME}-vm-01"
-
-
+    sleep 60;
+    ipaddr2_os_connectivity_sanity();
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
 }
 
 sub test_flags {

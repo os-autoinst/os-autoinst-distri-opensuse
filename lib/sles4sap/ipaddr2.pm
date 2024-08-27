@@ -33,6 +33,7 @@ our @EXPORT = qw(
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
+  ipaddr2_os_connectivity_sanity
   ipaddr2_cluster_sanity
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
@@ -765,26 +766,43 @@ die in case of failure
 sub ipaddr2_os_connectivity_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $ping_cmd = 'ping -c 3';
 
     # proceed_on_failure needed as ping or nc
     # could be missing on the qcow2 running these commands
     # (for example pc_tools)
-    script_run("ping -c 3 $args{bastion_ip}", proceed_on_failure => 1);
+    script_run("$ping_cmd $args{bastion_ip}", proceed_on_failure => 1);
     script_run("nc -vz -w 1 $args{bastion_ip} 22", proceed_on_failure => 1);
 
-    # Check if the bastion is able to ping
-    # the VM by hostname and private IP
+
     foreach my $i (1 .. 2) {
+        # Check if the bastion is able to ping
+        # the VM by hostname and private IP
         foreach my $addr (
             ipaddr2_get_internal_vm_private_ip(id => $i),
             ipaddr2_get_internal_vm_name(id => $i)) {
-            foreach my $cmd ('ping -c 3 ', 'tracepath ', 'dig ') {
+            foreach my $cmd ($ping_cmd, 'tracepath', 'dig') {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
             }
         }
+        # Check if each internal VM can ping the virtual IP
+        ipaddr2_ssh_internal(
+            id => $i,
+            cmd => join(' ', $ping_cmd, $frontend_ip),
+            bastion_ip => $args{bastion_ip});
     }
+
+    ipaddr2_ssh_internal(
+        id => 1,
+        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2)),
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(
+        id => 2,
+        cmd => 'ping -c 3 ' . ipaddr2_get_internal_vm_private_ip(id => 1),
+        bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_os_cloud_init_sanity
@@ -1346,7 +1364,7 @@ sub ipaddr2_configure_web_server {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
-        timeout => 180,
+        timeout => 240,
         bastion_ip =>
           $args{bastion_ip}) for (@nginx_cmds);
 }
