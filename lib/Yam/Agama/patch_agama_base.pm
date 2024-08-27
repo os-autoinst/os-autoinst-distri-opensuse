@@ -4,16 +4,12 @@
 # Summary: base class for Patch Agama tests
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-package Yam::agama::patch_agama_base;
+package Yam::Agama::patch_agama_base;
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use y2_base 'save_upload_y2logs';
-
-sub pre_run_hook {
-    $testapi::password = 'linux';
-}
 
 sub post_fail_hook {
     my ($self) = @_;

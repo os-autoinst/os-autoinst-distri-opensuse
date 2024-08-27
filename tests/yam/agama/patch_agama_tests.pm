@@ -5,7 +5,7 @@
 # integration test from GitHub.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base Yam::agama::patch_agama_base;
+use base Yam::Agama::patch_agama_base;
 use strict;
 use warnings;
 use testapi;
