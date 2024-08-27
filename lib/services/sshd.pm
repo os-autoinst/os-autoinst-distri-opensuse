@@ -51,8 +51,12 @@ sub prepare_test_data {
         zypper_call("in psmisc -busybox-psmisc");
     }
 
+    # on Micro, the 'expect' package is in the IBS QA:Head repo
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_transactional();
+
     # Install software needed for this test module
     install_package("netcat-openbsd expect psmisc");
+
 }
 
 sub configure_service {
