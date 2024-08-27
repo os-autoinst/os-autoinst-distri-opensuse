@@ -7,7 +7,7 @@
 # Requires: sles4sap/ase_install
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base "sles4sap";
+use base 'sles4sap';
 use strict;
 use warnings;
 use Carp qw(croak);

@@ -9,7 +9,7 @@
 
 package mr_test_run;
 
-use base "sles4sap";
+use base 'sles4sap';
 use testapi;
 use Utils::Backends;
 use utils;
