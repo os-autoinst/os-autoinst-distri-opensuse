@@ -68,7 +68,7 @@ sub load_boot_from_disk_tests {
         if (is_s390x()) {
             loadtest 'boot/boot_to_desktop';
         } elsif (is_vmware) {
-            ;
+            loadtest 'installation/first_boot';
         } else {
             loadtest 'microos/disk_boot';
         }
