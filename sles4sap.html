@@ -153,7 +153,7 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <pre><code>_do_mount( $proto, $path, $target);</code></pre>
 
-<p>Performs a call to the mount command (used by both <code>mount_media</code> and <code>copy_media</code>) with appropiate options depending on the protocol. Function internal to the class.</p>
+<p>Performs a call to the mount command (used by both <code>mount_media</code> and <code>copy_media</code>) with appropriate options depending on the protocol. Function internal to the class.</p>
 
 <h2 id="copy_media">copy_media</h2>
 
@@ -205,7 +205,7 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <pre><code>$self-&gt;test_stop();</code></pre>
 
-<p>Tests with <b>sapcontrol</b> and functions <b>Stop</b> and <b>StopService</b> that the instance and services are succesfully stopped. Croaks on failure.</p>
+<p>Tests with <b>sapcontrol</b> and functions <b>Stop</b> and <b>StopService</b> that the instance and services are successfully stopped. Croaks on failure.</p>
 
 <h2 id="test_start">test_start</h2>
 
@@ -327,7 +327,7 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p><b>profile_target_file</b> Full filename and path for sapinst install profile to be created</p>
 
-<p><b>profile_template_file</b> Template file location from which will the profile be sceated</p>
+<p><b>profile_template_file</b> Template file location from which will the profile be created</p>
 
 <p><b>sar_location_directory</b> Location of SAR files - this is filled into template</p>
 
@@ -361,7 +361,7 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <pre><code>$self-&gt;is_instance_type_supported($instance_type);</code></pre>
 
-<p>Checks if instance type is supported. Returns $instance_type with sucess, croaks with missing argument or unsupported value detected.</p>
+<p>Checks if instance type is supported. Returns $instance_type with success, croaks with missing argument or unsupported value detected.</p>
 
 <p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS)</p>
 
@@ -418,7 +418,7 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p>Sapcontrol return codes:</p>
 
-<pre><code>RC 0 = webmethod call was successfull
+<pre><code>RC 0 = webmethod call was successful
 RC 1 = webmethod call failed
 RC 2 = last webmethod call in progress (processes are starting/stopping)
 RC 3 = all processes GREEN
