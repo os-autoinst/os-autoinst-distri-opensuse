@@ -1,15 +1,19 @@
 ---
 name: create_hdd_common_criteria
 description: >
-  Installation using the Common Criteria role without full disk
-  encryption on QR SLES 15-SP4.
+  Installation using the Common Criteria role and full disk
+  encryption on QR SLES.
 schedule:
-  access_beta:
-    - installation/product_selection/install_SLES
-  license_agreement: []
+  access_beta: []
+  product_selection: []
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
+  suggested_partitioning:
+    - installation/partitioning/new_partitioning_gpt
+  grub: []
+  first_login:
+    - security/boot_disk
   system_preparation:
     - console/hostname
     - console/system_prepare
@@ -18,4 +22,3 @@ schedule:
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
-    - shutdown/svirt_upload_assets
