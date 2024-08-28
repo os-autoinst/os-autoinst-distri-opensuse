@@ -24,9 +24,14 @@ detect_free_drive() {
 
     for d in ${drives[@]}; do
         # 64bit worker boots the image with cd-rom (sr0) device
-        # skip this device in case it is detected
-        [[ "$d" =~ ^sr[0-9]$ ]] && continue
-        blkid /dev/"$d" &> /dev/null || echo "/dev/$d"
+        # vmware adds floppy drive
+        # skip any of this device in case it is detected
+        [[ "$d" =~ ^(sr|fd)[0-9]$ ]] && continue
+        blkid /dev/"$d" &> /dev/null
+        if [[ "$?" -eq 2 ]]; then
+            printf "%s" "/dev/$d"
+            return 0
+        fi
     done
 }
 
