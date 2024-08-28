@@ -102,7 +102,7 @@ sub run {
         }
     }
 
-    if (lc($flavor =~ m/iso/)) {
+    if (lc($flavor) =~ m/iso/) {
         # Create and upload ISO image
         record_info('ISO', 'Generate and upload ISO');
         assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'");
