@@ -49,6 +49,7 @@ schedule:
   - sles4sap/ensa/netweaver_ensa2_cluster
   - sles4sap/ensa/netweaver_ensa2_cluster_connector
   - sles4sap/ensa/netweaver_ensa2_web_methods
+  - sles4sap/sap_suse_cluster_connector
   - ha/check_logs
 conditional_schedule:
   cluster_setup:

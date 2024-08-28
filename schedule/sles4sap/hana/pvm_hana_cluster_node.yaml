@@ -73,7 +73,6 @@ schedule:
   - sles4sap/hana_install
   - '{{cluster_setup}}'
   - sles4sap/hana_cluster
-  - '{{sap_suse_cluster_connector}}'
   - ha/fencing
   - '{{boot_to_desktop}}'
   - ha/check_after_reboot
@@ -96,10 +95,6 @@ conditional_schedule:
         - ha/ha_cluster_init
       no:
         - ha/ha_cluster_join
-  sap_suse_cluster_connector:
-    HA_CLUSTER_INIT:
-      yes:
-        - sles4sap/sap_suse_cluster_connector
   boot_to_desktop:
     HA_CLUSTER_INIT:
       yes:
