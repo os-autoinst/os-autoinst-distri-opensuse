@@ -4,6 +4,7 @@ description: >
   Installation using the Common Criteria role and full disk
   encryption on QR SLES.
 schedule:
+  access_beta: []
   product_selection:
     - installation/product_selection/install_SLES
   system_role:
