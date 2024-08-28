@@ -17,6 +17,15 @@ use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;
 
+# Borrowed from grub2_tests.pm
+sub edit_cmdline {
+    send_key 'e';
+    my $jump_down = is_sle('<15-sp4') ? '12' : '8';
+    for (1 .. $jump_down) { send_key 'down'; }
+    send_key_until_needlematch 'grub2-edit-linux-line', 'down';
+    send_key 'end';
+}
+
 sub agama_set_root_password_dialog
 {
     wait_still_screen 5;
