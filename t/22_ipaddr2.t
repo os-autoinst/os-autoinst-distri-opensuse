@@ -703,6 +703,7 @@ subtest '[ipaddr2_registeration_set]' => sub {
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
     ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
 };
+
 subtest '[ipaddr2_os_cloud_init_logs]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
@@ -720,6 +721,20 @@ subtest '[ipaddr2_os_cloud_init_logs]' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
+subtest '[ipaddr2_os_connectivity_sanity]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_os_connectivity_sanity();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok 1;
 };
 
 done_testing;
