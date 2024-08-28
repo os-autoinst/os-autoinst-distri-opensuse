@@ -35,6 +35,11 @@ subtest '[prepare_sdaf_project]' => sub {
 
     my @git_commands;
     my %vnet_checks;
+
+    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
+    $ms_sdaf->redefine(file_content_replace => sub { return; });
+    $ms_sdaf->redefine(record_soft_failure => sub { return; });
+
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
@@ -73,6 +78,11 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     );
     my $tfvars_file = 'Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE/LAB-SECE-DEP05-INFRASTRUCTURE.tfvars';
     my @mkdir_commands;
+
+    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
+    $ms_sdaf->redefine(file_content_replace => sub { return; });
+    $ms_sdaf->redefine(record_soft_failure => sub { return; });
+
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(assert_script_run => sub { push(@mkdir_commands, $_[0]) if grep(/mkdir/, @_); return 1; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
