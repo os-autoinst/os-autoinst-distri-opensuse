@@ -60,7 +60,7 @@ sub load_boot_from_disk_tests {
         loadtest 'jeos/firstrun';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         unless (is_s390x) {
-            loadtest 'installation/bootloader_uefi';
+            loadtest 'installation/bootloader_uefi' unless is_vmware;
             loadtest 'installation/first_boot';
         }
         loadtest 'jeos/verify_cloudinit';
