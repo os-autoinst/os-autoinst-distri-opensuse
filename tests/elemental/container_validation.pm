@@ -37,11 +37,11 @@ sub run {
     select_serial_terminal;
 
     my $arch = get_required_var('ARCH');
+    my $build = get_required_var('BUILD');
     my $flavor = get_required_var('FLAVOR');
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $version = get_required_var('VERSION');
     my $cnt_name = 'elemental_image';
-    my $img_filename = "elemental-$version-$flavor-$arch";
+    my $img_filename = "elemental-$build-$arch";
     my $shared = '/var/shared';
 
     # Create shared directory
