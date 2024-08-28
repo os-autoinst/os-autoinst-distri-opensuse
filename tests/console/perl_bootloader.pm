@@ -3,7 +3,7 @@
 # Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: perl-Bootloader
+# Package: update-bootloader
 # Summary: Basic functional test for pbl package
 # Maintainer: QE Core <qe-core@suse.de>
 
@@ -15,19 +15,22 @@ use warnings;
 use utils;
 use package_utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle check_version is_transactional);
+use version_utils qw(is_sle is_leap is_sle_micro check_version is_transactional);
 use transactional;
 
 sub run {
     my ($self) = @_;
+    # https://progress.opensuse.org/issues/165686
+    # package name is now 'update-bootloader', it will remain 'perl-Bootloader' for older products
+    my $package = (!is_sle("<=15-SP6") && !is_leap("<=15.6") && !is_sle_micro("<=6.0")) ? 'update-bootloader' : 'perl-Bootloader';
     select_serial_terminal;
 
-    if (script_run 'rpm -q perl-Bootloader') {
-        install_package 'perl-Bootloader';
+    if (script_run "rpm -q $package") {
+        install_package "$package";
     }
 
     # version older than 1.1 does not support option default-settings
-    my $pbl_version = script_output("rpm -q --qf '%{version}' perl-Bootloader");
+    my $pbl_version = script_output("rpm -q --qf '%{version}' $package");
     my $new_pbl = check_version('>=1.1', $pbl_version);
 
     # pbl --loader is not available on <15-SP3
