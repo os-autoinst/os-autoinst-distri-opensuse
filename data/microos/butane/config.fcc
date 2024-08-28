@@ -36,7 +36,7 @@ systemd:
         WantedBy=multi-user.target
 storage:
   disks:
-    - device: /dev/vdc
+    - device: /dev/disk/by-id/virtio-hd2
       wipe_table: true
       partitions:
       - number: 1
