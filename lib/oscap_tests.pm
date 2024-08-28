@@ -49,6 +49,7 @@ our @EXPORT = qw(
   oscap_remediate
   oscap_evaluate
   oscap_evaluate_remote
+  oscap_upload_debug_logs
 );
 
 # The file names of scap logs and reports
@@ -61,6 +62,7 @@ our $f_fregex = '\\bfail\\b';
 our $ansible_exclusions;
 our $ansible_playbook_modified = 0;
 our $compliance_as_code_path;
+our $oscap_upload_debug_logs = 0;
 
 # Set default value for 'scap-security-guide' ds file
 our $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle15-ds.xml';
@@ -435,15 +437,17 @@ sub uload_log_file {
 
 sub upload_logs_reports {
     # Upload logs & ouputs for reference
-    my $files;
-    if (is_sle) {
-        $files = script_output('ls | grep "^ssg-sle.*.xml"');
-    }
-    else {
-        $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
-    }
-    foreach my $file (split("\n", $files)) {
-        uload_log_file($file);
+    if ($oscap_upload_debug_logs) {    # Upload xml logs only if debug needed. Can be set in test command line OSCAP_UPLOAD_DEBUG_LOGS = 1
+        my $files;
+        if (is_sle) {
+            $files = script_output('ls | grep "^ssg-sle.*.xml"');
+        }
+        else {
+            $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
+        }
+        foreach my $file (split("\n", $files)) {
+            uload_log_file($file);
+        }
     }
     uload_log_file($f_stdout);
     uload_log_file($f_stderr);
@@ -660,13 +664,8 @@ sub install_python311 {
     # Install python 3.11 needed for script execution
     # Ansible playbook still executed by python 3.6 because 3.11 breaks many rules
     zypper_call("in python311 python311-rpm");
-    # Set alias persistent
-    my $alias_cmd = "alias python='/usr/bin/python3.11'";
-    my $bashrc_path = "/root/.bashrc";
-    assert_script_run("rm /usr/bin/python3");
-    assert_script_run("ln -s python3.11 /usr/bin/python3");
-    assert_script_run("printf \"" . $alias_cmd . "\" >> \"$bashrc_path\"");
-    assert_script_run("alias python=python3.11");
+    # Set sl for scap scripts
+    assert_script_run("ln -s python3.11 /usr/bin/python");
 }
 sub generate_missing_rules {
     # Generate text file that contains rules that missing implimentation for profile
@@ -721,11 +720,11 @@ sub get_cac_code {
     # In case of use CaC master as source - building content
     if ($use_content_type == 3) {
         zypper_call('in cmake libxslt-tools', timeout => 180);
-        my $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pandas pcre2 cmakelint sphinx";
+        my $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pandas pcre2 cmakelint sphinx Jinja2";
         # On s390x pip requires packages to build modules
         if (is_s390x) {
             zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
-            $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pcre2 cmakelint sphinx";
+            $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pcre2 cmakelint sphinx Jinja2";
             assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
         }
         else {
@@ -733,6 +732,9 @@ sub get_cac_code {
         }
         # Building CaC content
         assert_script_run("cd $compliance_as_code_path");
+        # Set python to version 3.11
+        my $python_ver_fix_cmd = "sed -i \'s/Python_ADDITIONAL_VERSIONS 3/Python_ADDITIONAL_VERSIONS 3.11/g\' CMakeLists.txt";
+        assert_script_run("$python_ver_fix_cmd");
         assert_script_run("sh build_product $sle_version", timeout => 9000);
         record_info("build_product", "sh build_product $sle_version");
         assert_script_run("cd /root");
@@ -1038,12 +1040,18 @@ sub oscap_security_guide_setup {
         my $ansible_version = script_output("ansible --version");
         record_info("ansible version", "Ansible version:\n $ansible_version");
     }
-    # Record python3 version for reference
-    my $python3_version = script_output("python3 -VV");
-    record_info("python3 version", "python3 version:\n $python3_version");
-    # Record pip version for reference
-    my $pip_version = script_output("pip -V");
-    record_info("pip version", "pip version:\n $pip_version");
+    # Record python3.6 version for reference
+    my $python36_version = script_output("python3 -VV");
+    record_info("python3.6 version", "python3.6 version:\n $python36_version");
+    # Record python3.11 version for reference
+    my $python311_version = script_output("python3.11 -VV");
+    record_info("python3.11 version", "python3.11 version:\n $python311_version");
+    # Record pip3.6 version for reference
+    my $pip36_version = script_output("pip3.6 -V");
+    record_info("pip3.6 version", "pip3.6 version:\n $pip36_version");
+    # Record pip3.11 version for reference
+    my $pip311_version = script_output("pip3.11 -V");
+    record_info("pip3.11 version", "pip3.11 version:\n $pip311_version");
 }
 
 =ansible return codes
