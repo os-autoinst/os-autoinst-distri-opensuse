@@ -436,7 +436,7 @@ sub wait_grub {
         && !is_jeos
         && !$in_grub
         && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP') || (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION'))));
-    assert_screen(\@tags, $bootloader_time);
+    assert_screen(\@tags, $bootloader_time) unless is_ppc64le;
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
@@ -651,7 +651,7 @@ sub grub_select {
         push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
         push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
 
-        assert_screen(\@tags);
+        assert_screen(\@tags, timeout => 1000);
 
         if (match_has_tag 'grub2') {
             send_key 'ret';

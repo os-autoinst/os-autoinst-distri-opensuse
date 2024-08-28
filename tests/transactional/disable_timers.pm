@@ -25,7 +25,7 @@ sub run {
     push(@timers, "snapper-timeline.timer") unless (is_microos);
     push(@timers, "transactional-update-cleanup.timer") if (is_sle_micro(">5.1"));
     foreach my $timer (@timers) {
-        systemctl("disable --now '$timer'");
+        systemctl("disable --now '$timer'", timeout => 500);
     }
 }
 

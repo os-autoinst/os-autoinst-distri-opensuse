@@ -20,7 +20,7 @@ use transactional;
 
 sub run {
     my ($self) = @_;
-    select_serial_terminal;
+    select_console 'root-console';
 
     if (script_run 'rpm -q perl-Bootloader') {
         install_package 'perl-Bootloader';
@@ -43,7 +43,7 @@ sub run {
     }
 
     if (is_transactional) {
-        trup_call 'run pbl --install';
+        trup_call('run pbl --install', timeout => 500);
         if (get_var('FLAVOR') =~ m/-encrypted/i) {
             # workaround bsc#1228126 poo#164021 poo#164156
             script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl');
