@@ -69,6 +69,9 @@ sub setup_environment {
         assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh HANA $mitigation_switch $qaset_kernel_tag");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
 
+        # workaround to prevent network interface random order
+        assert_script_run('dracut -f --add-drivers "tg3"') if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP'));
+
         return if (get_var('PROJECT_M_ROLE', "") =~ /PROJECT_M_HANA|PROJECT_M_ABAP/);
 
         if (my $qaset_config = get_var("QASET_CONFIG")) {
