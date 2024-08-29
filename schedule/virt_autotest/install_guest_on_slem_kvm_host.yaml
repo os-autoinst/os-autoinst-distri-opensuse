@@ -12,7 +12,6 @@ vars:
   VIRT_PRJ1_GUEST_INSTALL: 1
   VIRT_UNIFIED_GUEST_INSTALL: 1
   VIDEOMODE: text
-  DO_NOT_INSTALL_HOST: 0
   SKIP_GUEST_INSTALL: 0
   SYSTEM_ROLE: kvm
   HOST_HYPERVISOR: kvm
@@ -20,7 +19,7 @@ vars:
   MAX_JOB_TIME: 10800
 schedule:
   - "{{bootup_and_install}}"
-  - virt_autotest/login_console
+  - "{{login_or_install_updates}}"
   - virt_autotest/prepare_transactional_server
   - "{{install_guest}}"
 conditional_schedule:
@@ -41,6 +40,13 @@ conditional_schedule:
         - installation/usb_install
         - installation/bootloader_uefi
         - microos/selfinstall
+  login_or_install_updates:
+    FLAVOR:
+      Default-qcow-Updates:
+        - console/suseconnect_scc
+        - transactional/install_updates
+      Default-SelfInstall:
+        - virt_autotest/login_console
   install_guest:
     SKIP_GUEST_INSTALL:
       0:
