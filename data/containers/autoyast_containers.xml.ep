@@ -88,7 +88,7 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
     % }
   </networking>
-  % if ($get_var->('VERSION') =~ /15-SP[456]$/) {
+  % if ($get_var->('VERSION') =~ /15-SP[4567]$/) {
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
@@ -99,6 +99,7 @@
           <interface>eth0</interface>
         </interfaces>
         <services config:type="list">
+          <service>vnc-server</service>
           <service>ssh</service>
         </services>
         <ports config:type="list">
