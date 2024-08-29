@@ -28,7 +28,7 @@ sub run {
     # This step is using crm to explicitly move rsc_ip_00 to VM-02
     # as the IP resource is grouped with the az loadbalancer one,
     # the load balancer entity in Azure is notified about the move
-    # and change the routing from the frontend IP to the
+    # and should change the routing from the frontend IP to the
     # backend IP of the VM-02
     ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 2);
     sleep 30;
@@ -42,17 +42,14 @@ sub run {
     # Check the status on the VM that is supposed to be
     # the master for the webservice
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
-    #test_other_vm "${MYNAME}-vm-01"
-
-    #ssh_node1 'sudo crm configure show' | grep -E "cli-prefer-.*${MYNAME}-vm-02" || test_die "Cluster should now have one cli-prefer- with ${MYNAME}-vm-02"
-    #ssh_node1 'sudo crm configure show' | grep -c cli-prefer- | grep 1 || test_die "Cluster should now have one cli-prefer-"
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1);
 
     # Slow down, take a break, then check again, nothing should be changed.
     sleep 60;
     ipaddr2_os_connectivity_sanity();
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1);
 
-#################################################################################
     # Repeat the same but this time from VM-02 to VM-01
     #test_step "Move back the IpAddr2 resource to VM1"
     ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 1);
@@ -62,20 +59,16 @@ sub run {
 
     ipaddr2_os_connectivity_sanity();
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
-    #test_other_vm "${MYNAME}-vm-02"
-
-    #test_step "Clear all location constrain used during the test"
-    #ssh_node1 'sudo crm resource clear '"${MY_MOVE_RES}"
-    #sleep 30
-
-    #test_step "Check cluster after the clear"
-    #ssh_node1 'sudo crm configure show' | grep -c cli-prefer- | grep 0 || test_die "Cluster should no more have some cli-prefer-"
-    #ssh_node1 'sudo crm status'
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2);
 
     # Slow down, take a break, then check again, nothing should be changed.
     sleep 60;
     ipaddr2_os_connectivity_sanity();
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2);
+
+    #test_step "Clear all location constrain used during the test"
+    #ssh_node1 'sudo crm resource clear '"${MY_MOVE_RES}"
 }
 
 sub test_flags {
