@@ -49,6 +49,7 @@
       <li><a href="#ipaddr2_wait_for_takeover">ipaddr2_wait_for_takeover</a></li>
       <li><a href="#ipaddr2_get_web">ipaddr2_get_web</a></li>
       <li><a href="#ipaddr2_test_master_vm">ipaddr2_test_master_vm</a></li>
+      <li><a href="#ipaddr2_test_other_vm">ipaddr2_test_other_vm</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -605,6 +606,24 @@
 
 </dd>
 <dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it24"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_test_other_vm">ipaddr2_test_other_vm</h2>
+
+<pre><code>ipaddr2_test_other_vm(id =&gt; 1);</code></pre>
+
+<p>Check the status on the VM that is supposed not to have the resources.</p>
+
+<dl>
+
+<dt id="id---VM-id-that-is-expected-not-to-be-master"><b>id</b> - VM id that is expected not to be master</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it25"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
