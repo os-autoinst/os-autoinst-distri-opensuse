@@ -21,6 +21,20 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
+use version_utils qw(is_sle is_sle_micro);
+
+sub ensure {
+    my $command = shift;
+    my $rc = script_run $command;
+    my $use_oaep_padding = (is_sle_micro '>=6.0' or is_sle '>=15-SP6');
+    # on SLE 15.6+ and Micro 6.0+ this is expected to fail, as default PKCS padding is deprecated in favor of OAEP
+    if ($use_oaep_padding) {
+        die "rsa encrypt/decrypt with PKCS padding should fail" if $rc == 0;
+        assert_script_run $command . ' -oaep';    # should succeed with OAEP padding
+    } else {
+        die "rsa encrypt/decrypt failed" if $rc;
+    }
+}
 
 sub run {
     select_serial_terminal;
@@ -43,10 +57,10 @@ sub run {
         assert_script_run "openssl rsa -in $rsa_prikey -pubout -out $rsa_pubkey";
 
         # Encrypt with public key
-        assert_script_run "openssl rsautl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc";
+        ensure "openssl rsautl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc";
 
         # Decrypt with private key
-        assert_script_run "openssl rsautl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec";
+        ensure "openssl rsautl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec";
         validate_script_output "cat $file_dec", sub { m/^Hello$/ };
 
         # Sign message with private key
