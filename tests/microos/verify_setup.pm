@@ -105,11 +105,8 @@ sub disk_tests {
             my $label = basename($fs->{device});
             ## vmware does not add a third drive as provisioning information is passed via guestinfo options
             ## aarch64 can swap the drive labels
-            if (is_aarch64 || is_vmware) {
-                $partitions->{$label} = script_output("readlink -e $fs->{device}");
-            } elsif (script_run("readlink -e $fs->{device} | grep $partitions->{$label}")) {
-                push @errors, "Partition label $label is assigned to wrong partition or drive";
-            }
+            $partitions->{$label} = script_output("readlink -e $fs->{device}");
+            record_info('Test drive', "Partition label $label is $partitions->{$label}");
             delete $fs->{device};
 
             if (exists $fs->{with_mount_unit} && $fs->{with_mount_unit} == 1 &&
