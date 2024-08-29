@@ -63,6 +63,11 @@ sub run {
     upload_logs('/tmp/kernel_changelog.log');
     upload_logs('/tmp/repos_list.txt');
 
+    if (get_var('SAVE_LIST_OF_PACKAGES')) {
+        assert_script_run("rpm -qa > /tmp/rpm_packages_list_after_patch.txt");
+        upload_logs('/tmp/rpm_packages_list_after_patch.txt');
+    }
+
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
     reconnect_mgmt_console if is_pvm;

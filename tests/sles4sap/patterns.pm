@@ -76,6 +76,11 @@ sub run {
 
     # Workaround for textmode based test, as there is no SAP profiles with textmode yet
     zypper_call 'in libgomp1' if check_var('SYSTEM_ROLE', 'textmode');
+
+    if (get_var('SAVE_LIST_OF_PACKAGES')) {
+        script_run("rpm -qa > /tmp/rpm_packages_list.txt");
+        upload_logs("/tmp/rpm_packages_list.txt");
+    }
 }
 
 sub test_flags {
