@@ -222,7 +222,7 @@
     "bsc#1197679": {
         "description": "route ipv4 0.0.0.0/0 via.*dev eth0#2 type unicast table main scope universe protocol dhcp covered by a ipv4:dhcp lease",
         "products": {
-            "sle": ["15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP4", "15-SP5", "15-SP6", "15-SP7"]
         },
         "type": "bug"
     },
@@ -743,5 +743,12 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "vmware-RETBleed": {
+        "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!",
+        "products": {
+            "sle": ["15-SP6", "15-SP7"]
+        },
+        "type": "ignore"
     }
 }
