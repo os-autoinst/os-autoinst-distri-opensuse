@@ -462,16 +462,19 @@ subtest '[ipaddr2_test_master_vm]' => sub {
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             my $out;
-            # return only good vibes
+            # return only good vibes for expected commands ...
             if ($args{cmd} =~ /crm resource failcount/) {
                 $out = 'value=0';
             } elsif ($args{cmd} =~ /crm resource locate/) {
                 $out = 'is running on: ip2t-vm-042';
+            } elsif ($args{cmd} =~ /crm configure show/) {
+                $out = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
                 $out = '192.168.0.50';
             } elsif ($args{cmd} =~ /ps -xa/) {
                 $out = '12345   ?   S 12:34  nginx';
             } else {
+                # ... otherwise !!!
                 $out = "Galileo Galilei";
             }
             push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
@@ -502,6 +505,8 @@ subtest '[ipaddr2_test_master_vm] crm failure' => sub {
                 $out = "value=1";
             } elsif ($args{cmd} =~ /crm resource locate/) {
                 $out = "is running on: ip2t-vm-042";
+            } elsif ($args{cmd} =~ /crm configure show/) {
+                $out = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
                 $out = '192.168.0.50';
             } else {
@@ -542,6 +547,8 @@ subtest '[ipaddr2_test_master_vm] web failure' => sub {
                 $out = "value=0";
             } elsif ($args{cmd} =~ /crm resource locate/) {
                 $out = "is running on: ip2t-vm-042";
+            } elsif ($args{cmd} =~ /crm configure show/) {
+                $out = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
                 $out = '192.168.0.50';
             } else {
@@ -580,6 +587,8 @@ subtest '[ipaddr2_test_master_vm] nginx not running' => sub {
                 $out = "value=0";
             } elsif ($args{cmd} =~ /crm resource locate/) {
                 $out = "is running on: ip2t-vm-042";
+            } elsif ($args{cmd} =~ /crm configure show/) {
+                $out = 'cli-prefer-ip2t-vm-042';
             } else {
                 $out = "Galileo Galilei";
             }
@@ -733,8 +742,34 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
     ipaddr2_os_connectivity_sanity();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
+};
 
-    ok 1;
+subtest '[ipaddr2_test_other_vm]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ["VM???", $_[0], '']; return; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $out;
+            # return only good vibes for expected commands ...
+            if ($args{cmd} =~ /crm resource locate/) {
+                $out = 'is running on: ip2t-vm-01';
+            } else {
+                # ... otherwise !!!
+                $out = "Galileo Galilei";
+            }
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
+            return $out;
+    });
+
+    ipaddr2_test_other_vm(id => '42');
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+    }
+    ok((scalar @calls > 0), "Some calls");
 };
 
 done_testing;

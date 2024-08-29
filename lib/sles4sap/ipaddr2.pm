@@ -43,6 +43,7 @@ our @EXPORT = qw(
   ipaddr2_crm_move
   ipaddr2_wait_for_takeover
   ipaddr2_test_master_vm
+  ipaddr2_test_other_vm
   ipaddr2_os_cloud_init_logs
 );
 
@@ -58,6 +59,7 @@ our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
+our $ping_cmd = 'ping -c 3';
 our $key_id = 'id_rsa';
 our @nginx_cmds = (
     'sudo zypper install -y nginx',
@@ -684,8 +686,8 @@ sub ipaddr2_os_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
     ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
@@ -766,14 +768,12 @@ die in case of failure
 sub ipaddr2_os_connectivity_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $ping_cmd = 'ping -c 3';
 
-    # proceed_on_failure needed as ping or nc
+    # intentionally ignore the return as ping or nc
     # could be missing on the qcow2 running these commands
     # (for example pc_tools)
-    script_run("$ping_cmd $args{bastion_ip}", proceed_on_failure => 1);
-    script_run("nc -vz -w 1 $args{bastion_ip} 22", proceed_on_failure => 1);
-
+    script_run("$ping_cmd $args{bastion_ip}");
+    script_run("nc -vz -w 1 $args{bastion_ip} 22");
 
     foreach my $i (1 .. 2) {
         # Check if the bastion is able to ping
@@ -787,13 +787,9 @@ sub ipaddr2_os_connectivity_sanity {
                     bastion_ip => $args{bastion_ip});
             }
         }
-        # Check if each internal VM can ping the virtual IP
-        ipaddr2_ssh_internal(
-            id => $i,
-            cmd => join(' ', $ping_cmd, $frontend_ip),
-            bastion_ip => $args{bastion_ip});
     }
 
+    # Check if the two internal VM can ping one to each other
     ipaddr2_ssh_internal(
         id => 1,
         cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2)),
@@ -801,7 +797,7 @@ sub ipaddr2_os_connectivity_sanity {
 
     ipaddr2_ssh_internal(
         id => 2,
-        cmd => 'ping -c 3 ' . ipaddr2_get_internal_vm_private_ip(id => 1),
+        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 1)),
         bastion_ip => $args{bastion_ip});
 }
 
@@ -1585,7 +1581,8 @@ sub ipaddr2_test_master_vm {
     croak("Argument < id > missing") unless $args{id};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    # check on the cluster side
+
+    # checks on the cluster side
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo crm status',
         bastion_ip => $args{bastion_ip});
@@ -1606,7 +1603,15 @@ sub ipaddr2_test_master_vm {
         die "Resource $resource is not running on $vm" unless ($res =~ m/is running on: $vm/);
     }
 
-    # check on the web server side
+    my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo crm configure show',
+        bastion_ip => $args{bastion_ip});
+
+    my @preferred = $crm_configure =~ /cli-prefer-.*/g;
+    die "Cluster has " . scalar @preferred . " resources with preferred location instead of expected 1"
+      unless (scalar @preferred) eq 1;
+    #ssh_node1 'sudo crm configure show' | grep -E "cli-prefer-.*${MYNAME}-vm-02" || test_die "Cluster should now have one cli-prefer- with ${MYNAME}-vm-02"
+
     # test that the web page is reachable from the bastion
     # using the Azure LB front end IP
     die "The web server is not running on $vm" unless ipaddr2_get_web(
@@ -1632,6 +1637,53 @@ sub ipaddr2_test_master_vm {
         cmd => 'ip a show eth0',
         bastion_ip => $args{bastion_ip});
     die "VirtualIP $frontend_ip should be on $vm" unless ($res =~ m/$frontend_ip/);
+
+    # Check if the master internal VM can ping the virtual IP
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => join(' ', $ping_cmd, $frontend_ip),
+        bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_test_other_vm
+
+    ipaddr2_test_other_vm(id => 1);
+
+Check the status on the VM that is supposed not to have
+the resources.
+
+=over 2
+
+=item B<id> - VM id that is expected not to be master
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_test_other_vm {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # checks on the cluster side
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo crm status',
+        bastion_ip => $args{bastion_ip});
+
+    my $vm = ipaddr2_get_internal_vm_name(id => $args{id});
+    my $res;
+    foreach my $resource (qw(rsc_web_00 rsc_alb_00 rsc_ip_00)) {
+        $res = ipaddr2_ssh_internal_output(
+            id => $args{id},
+            cmd => "sudo crm resource locate $resource",
+            bastion_ip => $args{bastion_ip});
+        die "Resource $resource is running on $vm and should not" if ($res =~ m/is running on: $vm/);
+    }
 }
 
 1;
