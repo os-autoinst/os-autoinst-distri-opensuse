@@ -36,7 +36,7 @@ systemd:
         WantedBy=multi-user.target
 storage:
   disks:
-    - device: /dev/disk/by-id/virtio-hd2
+    - device: /dev/disk/by-id/ata-VMware_Virtual_IDE_Hard_Drive_01000000000000000001
       wipe_table: true
       partitions:
       - number: 1

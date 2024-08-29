@@ -44,7 +44,7 @@
     ],
     "disks": [
       {
-        "device": "/dev/vdc",
+        "device": "/dev/disk/by-id/ata-VMware_Virtual_IDE_Hard_Drive_01000000000000000001",
         "partitions": [
           {
             "label": "testing_part",
