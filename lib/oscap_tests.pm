@@ -674,8 +674,7 @@ sub generate_missing_rules {
     # Installing python libs to be able to run profile_tool.py
     zypper_call('in python311-Jinja2 python311-PyYAML python311-pytest python311-pytest-cov python311-setuptools', timeout => 180);
     my $py_libs = "jinja2 ninja";
-    assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
-    assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
+    assert_script_run("pip3.11 install $py_libs", timeout => 600);
 
     assert_script_run("cd $compliance_as_code_path");
     assert_script_run("source .pyenv.sh");
@@ -725,10 +724,10 @@ sub get_cac_code {
         # On s390x pip requires packages to build modules
         if (is_s390x) {
             zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
-            assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
+            assert_script_run("pip3.11 install $py_libs", timeout => 600);
         }
         else {
-            assert_script_run("pip3 --quiet install $py_libs pandas", timeout => 600);
+            assert_script_run("pip3.11 install $py_libs pandas", timeout => 600);
         }
         # Building CaC content
         assert_script_run("cd $compliance_as_code_path");
@@ -988,7 +987,7 @@ sub oscap_security_guide_setup {
         record_info("$pkg Pkg_ver", "$pkg packages' version:\n $out");
         $out = "";
         #install ansible.posix
-        assert_script_run("pip3 install ansible");
+        assert_script_run("pip3.11 install ansible");
         assert_script_run("ansible-galaxy collection install ansible.posix");
     }
     if (($remove_rules_missing_fixes == 1) or ($use_content_type == 3)) {
