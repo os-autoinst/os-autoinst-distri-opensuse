@@ -8,8 +8,14 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use Test::Assert ':all';
+use testapi;
+use Utils::Backends;
 
 sub run {
+    unless (is_qemu) {
+        record_info('Skip', 'Switch keyboard not testeable for non-qemu scenarios');
+        return;
+    }
     my $language_keyboard = $testapi::distri->get_language_keyboard();
     # wait for the English (US) to be pre-selected as on slow architectures it takes some time
     $language_keyboard->wait_for_keyboard_layout_to_be_selected('English (US)');

@@ -7,13 +7,11 @@ description: >
      - License translations (except SLE 15 due to missing translations in the
        beta phase).
      - Check available and selected by default modules for installation.
-vars:
-  CHECK_PRESELECTED_MODULES: '1'
-  CHECK_RELEASENOTES: '1'
-  EXIT_AFTER_START_INSTALL: '1'
-  EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
-  YUI_REST_API: 1
 schedule:
+  access_beta:
+    - installation/validate_beta_message
+    - installation/access_beta_distribution
+    - installation/language_keyboard/switch_keyboard_layout
   license_agreement:
     - installation/licensing/verify_license_translations
     - installation/licensing/verify_license_has_to_be_accepted
@@ -25,16 +23,6 @@ schedule:
   clock_and_timezone:
     - installation/releasenotes
     - installation/clock_and_timezone/accept_timezone_configuration
-  local_user:
-    - installation/authentication/default_user_simple_pwd
-    - installation/authentication/root_simple_pwd
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
-  installation:
-    - installation/launch_installation
-    - installation/confirm_installation
-  stop_timeout_system_reboot: []
-  installation_logs: []
   confirm_reboot: []
   reconnect_svirt: []
   grub: []
