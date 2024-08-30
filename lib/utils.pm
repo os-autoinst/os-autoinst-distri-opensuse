@@ -388,7 +388,7 @@ So this function will simply type C<clear\n>.
 =cut
 
 sub clear_console {
-    enter_cmd "clear";
+    enter_cmd "clear" unless is_serial_terminal;
 }
 
 =head2 assert_gui_app
