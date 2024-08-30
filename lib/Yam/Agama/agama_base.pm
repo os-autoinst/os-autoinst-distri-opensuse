@@ -23,7 +23,7 @@ sub test_flags {
 }
 
 sub upload_traces {
-    my ($dest, $sources) = ("/tmp/traces.tar.gz", "test-results/");
+    my ($dest, $sources) = ("/tmp/puppeteer-log.tar.gz", "log/");
     script_run("tar czf $dest $sources");
     upload_logs($dest, failok => 1);
 }
