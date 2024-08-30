@@ -10,7 +10,7 @@ provider: 'azure'
 apiver: 3
 terraform:
   variables:
-    # GENERAL VARIABLES #
+    # GENERAL VARIABLES
     vnet_address_range: '%VNET_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
     az_region: '%PUBLIC_CLOUD_REGION%'
@@ -22,6 +22,6 @@ terraform:
     # HANA
     hana_count: '%NODE_COUNT%'
     hana_ha_enabled: '%HA_CLUSTER%'
-    vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
+    hana_vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
 
