@@ -159,9 +159,9 @@ sub create_user_in_ui {
     assert_screen 'jeos-create-non-root-check';
     send_key "down";
 
-    type_password;
+    type_password $testapi::password, max_interval => 50, wait_screen_change => 15, wait_still_screen => 10;
     wait_screen_change(sub { send_key "down" }, 25);
-    type_password;
+    type_password $testapi::password, max_interval => 50, wait_screen_change => 15, wait_still_screen => 10;
     send_key 'ret';
 
     $user_created = 1;
