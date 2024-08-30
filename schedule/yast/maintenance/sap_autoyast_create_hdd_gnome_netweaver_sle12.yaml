@@ -15,7 +15,6 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_SID: QAD
   INSTANCE_TYPE: ASCS
-  PUBLISH_HDD_1: autoyast_SLES-%VERSION%-%ARCH%-SAP-updated.qcow2
   ROOTONLY: '1'
   SCC_DEREGISTER: '1'
   SCC_REGISTER: installation
