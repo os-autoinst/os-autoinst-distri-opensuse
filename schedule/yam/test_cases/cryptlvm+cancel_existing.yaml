@@ -4,10 +4,6 @@ description: >
   encrypted lvm setup from scratch. Using pre-partitioned disk image to validate
   encrypted partitions activation and that we can re-ecnrypt the disk.
 name: cryptlvm+cancel_existing
-vars:
-  ENCRYPT: 1
-  LVM: 1
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop
