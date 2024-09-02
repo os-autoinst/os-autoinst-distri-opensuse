@@ -12,10 +12,7 @@ use testapi;
 
 use testapi qw(
   assert_script_run
-  assert_screen
   get_required_var
-  enter_cmd
-  select_console
 );
 
 sub run {
@@ -26,11 +23,9 @@ sub run {
     assert_script_run("/usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
     script_run("dmesg --console-on");
 
-    select_console 'displaymanager';
-    save_screenshot();
-
-    assert_screen('agama-install-finished', 10);
-    assert_and_click('reboot');
+    my $reboot_page = $testapi::distri->get_reboot_page();
+    $reboot_page->expect_is_shown();
+    $reboot_page->reboot();
 }
 
 sub post_run_hook {

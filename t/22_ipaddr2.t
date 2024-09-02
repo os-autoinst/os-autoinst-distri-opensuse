@@ -424,6 +424,23 @@ subtest '[ipaddr2_crm_move]' => sub {
     ok((any { /crm resource move rsc_web_00.*24/ } @calls), "Expected crm command called");
 };
 
+subtest '[ipaddr2_crm_clear]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub {
+            my (%args) = @_;
+            return 'UT-VM-' . $args{id}; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd}; });
+
+    ipaddr2_crm_clear(destination => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /crm resource clear rsc_web_00/ } @calls), "Expected crm command called");
+};
+
 subtest '[ipaddr2_wait_for_takeover]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
