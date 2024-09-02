@@ -8,8 +8,20 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
-use sles4sap::ipaddr2;
+use serial_terminal qw( select_serial_terminal );
+use sles4sap::ipaddr2 qw(
+  ipaddr2_bastion_key_accept
+  ipaddr2_bastion_pubip
+  ipaddr2_configure_web_server
+  ipaddr2_create_cluster
+  ipaddr2_deployment_logs
+  ipaddr2_destroy
+  ipaddr2_internal_key_accept
+  ipaddr2_internal_key_gen
+  ipaddr2_os_cloud_init_logs
+  ipaddr2_registeration_check
+  ipaddr2_registeration_set
+);
 
 sub run {
     my ($self) = @_;
