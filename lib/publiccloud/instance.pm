@@ -34,7 +34,7 @@ has image_id => undef;    # image from where the VM is booted
 has type => undef;
 has region => undef;    # provider region, filled by provider::terraform_apply
 has provider => undef, weak => 1;    # back reference to the provider
-has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
+has ssh_opts => '';
 
 =head2 run_ssh_command
 
@@ -58,7 +58,7 @@ sub run_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     die('Argument <cmd> missing') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts();
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
     $args{quiet} //= 1;
@@ -138,7 +138,7 @@ sub retry_ssh_command {
 sub _prepare_ssh_cmd {
     my ($self, %args) = @_;
     die('No command defined') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts();
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
 
@@ -148,7 +148,7 @@ sub _prepare_ssh_cmd {
         $cmd = "\$'$cmd'";
     }
 
-    my $ssh_cmd = sprintf('ssh -tvE /var/tmp/ssh_sut.log %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    my $ssh_cmd = sprintf('ssh -E /var/tmp/ssh_sut.log %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
     return $ssh_cmd;
 }
 
@@ -242,7 +242,7 @@ sub scp {
     $from =~ s/^remote:/$url/;
     $to =~ s/^remote:/$url/;
 
-    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"', $self->ssh_opts, $self->provider->ssh_key, $from, $to);
+    my $ssh_cmd = sprintf('scp %s "%s" "%s"', $self->ssh_opts, $from, $to);
 
     return script_run($ssh_cmd, %args);
 }
@@ -412,11 +412,11 @@ sub wait_for_ssh {
     if ($args{systemup_check} and isok($exit_code)) {
         # Install server's ssh publicckeys to prevent authentication interactions
         # or instance address changes during VM reboots.
-        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts");
+        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
         while (($duration = time() - $start_time) < $args{timeout}) {
             # timeout recalculated removing consumed time until now
             # We don't support password authentication so it would just block the terminal
-            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => '-o PasswordAuthentication=no ' . $self->ssh_opts,
+            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
             # result check
             if ($sysout =~ m/initializing|starting/) {    # still starting

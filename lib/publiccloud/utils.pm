@@ -280,11 +280,6 @@ sub permit_root_login {
 sub prepare_ssh_tunnel {
     my ($instance) = @_;
 
-    # configure ssh client
-    my $ssh_config_url = data_url('publiccloud/ssh_config');
-    assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
-    file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
-
     # Create the ssh alias
     assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
 

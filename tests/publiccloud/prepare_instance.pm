@@ -41,7 +41,6 @@ sub run {
     $args->{my_provider} = $provider;
     my $instance = $provider->create_instance(%instance_args);
     $args->{my_instance} = $instance;
-    $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default
 
     $instance->network_speed_test();
     $instance->check_cloudinit() if (is_cloudinit_supported);
