@@ -21,6 +21,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
+use version_utils qw (package_version_cmp);
 
 sub run {
     select_serial_terminal;
@@ -42,11 +43,19 @@ sub run {
         assert_script_run "openssl genrsa -out $rsa_prikey $size", 200;
         assert_script_run "openssl rsa -in $rsa_prikey -pubout -out $rsa_pubkey";
 
-        # Encrypt with public key
-        assert_script_run "openssl rsautl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc";
+        my $openssl_version = script_output(q[openssl version -v | awk '{print $2}']);
+        if (package_version_cmp($openssl_version, '3.0.0') > 0) {
+            # Encrypt with public key
+            assert_script_run "openssl pkeyutl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc -pkeyopt rsa_padding_mode:oaep";
+            # Decrypt with private key
+            assert_script_run "openssl pkeyutl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec -pkeyopt rsa_padding_mode:oaep";
+        } else {
+            # Encrypt with public key
+            assert_script_run "openssl rsautl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc";
+            # Decrypt with private key
+            assert_script_run "openssl rsautl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec";
+        }
 
-        # Decrypt with private key
-        assert_script_run "openssl rsautl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec";
         validate_script_output "cat $file_dec", sub { m/^Hello$/ };
 
         # Sign message with private key
