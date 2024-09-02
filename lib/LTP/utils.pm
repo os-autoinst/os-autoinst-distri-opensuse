@@ -213,7 +213,9 @@ sub check_kernel_taint {
     my $taint_mask = parse_int(get_var('LTP_TAINT_EXPECTED', 0x80019801));
     my $taint_val = script_output('cat /proc/sys/kernel/tainted');
 
+    my $i = 0;
     for my $desc (@flag_desc) {
+        $desc .= sprintf(" (0x%x, 1 << $i)", $flag);
         if ($flag & $taint_val) {
             unless (defined($desc)) {
                 $taint_undef = 1;
@@ -227,6 +229,7 @@ sub check_kernel_taint {
         }
 
         $flag <<= 1;
+        $i += 1;
     }
 
     my $message = sprintf("Kernel taint: 0x%x", $taint_val);
