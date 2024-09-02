@@ -9,13 +9,13 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use Carp qw(croak);
+use Carp qw( croak );
 use Exporter qw(import);
-use Mojo::JSON qw(decode_json);
-use mmapi 'get_current_job_id';
+use Mojo::JSON qw( decode_json );
+use mmapi qw( get_current_job_id );
 use sles4sap::azure_cli;
-use publiccloud::utils;
-use utils qw(write_sut_file);
+use publiccloud::utils qw( get_ssh_private_key_path );
+use utils qw( write_sut_file );
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 
@@ -41,6 +41,7 @@ our @EXPORT = qw(
   ipaddr2_registeration_check
   ipaddr2_registeration_set
   ipaddr2_crm_move
+  ipaddr2_crm_clear
   ipaddr2_wait_for_takeover
   ipaddr2_test_master_vm
   ipaddr2_test_other_vm
@@ -1449,9 +1450,11 @@ sub ipaddr2_get_worker_tmp_for_internal_vm {
 
 move the rsc_web_00 resource to the indicated node
 
-=over 2
+=over 3
 
 =item B<destination> - VM id where to move the rsc_web_00 resource
+
+=item B<id> - VM id where to run the command, not so important as long as it is in the cluster. Default 1.
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -1466,12 +1469,45 @@ sub ipaddr2_crm_move {
     croak("Argument < destination > missing") unless $args{destination};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{id} //= 1;
 
     my $cmd = join(' ',
         'sudo crm resource move',
         WEB_RSC,
         ipaddr2_get_internal_vm_name(id => $args{destination}));
-    ipaddr2_ssh_internal(id => 1,
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => $cmd,
+        bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_crm_clear
+
+    ipaddr2_crm_clear();
+
+clear all location constrain used during the test
+
+=over 2
+
+=item B<id> - VM id where to run the command, not so important as long as it is in the cluster. Default 1.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=back
+
+=cut
+
+sub ipaddr2_crm_clear {
+    my (%args) = @_;
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{id} //= 1;
+
+    my $cmd = join(' ',
+        'sudo crm resource clear',
+        WEB_RSC);
+    ipaddr2_ssh_internal(id => $args{id},
         cmd => $cmd,
         bastion_ip => $args{bastion_ip});
 }

@@ -8,8 +8,19 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
-use sles4sap::ipaddr2;
+use serial_terminal qw( select_serial_terminal );
+use sles4sap::ipaddr2 qw(
+  ipaddr2_bastion_pubip
+  ipaddr2_crm_clear
+  ipaddr2_crm_move
+  ipaddr2_deployment_logs
+  ipaddr2_destroy
+  ipaddr2_os_cloud_init_logs
+  ipaddr2_os_connectivity_sanity
+  ipaddr2_test_master_vm
+  ipaddr2_test_other_vm
+  ipaddr2_wait_for_takeover
+);
 
 sub run {
     my ($self) = @_;
@@ -67,8 +78,8 @@ sub run {
     ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
     ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2);
 
-    #test_step "Clear all location constrain used during the test"
-    #ssh_node1 'sudo crm resource clear '"${MY_MOVE_RES}"
+    # Clear all location constrain used during the test
+    ipaddr2_crm_clear(bastion_ip => $bastion_ip);
 }
 
 sub test_flags {
