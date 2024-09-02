@@ -12,6 +12,7 @@
 use base "opensusebasetest";
 use strict;
 use warnings;
+use lockapi qw(mutex_create mutex_wait);
 use testapi;
 use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot is_community_jeos);
 use Utils::Architectures;
@@ -273,10 +274,24 @@ sub run {
         assert_screen 're-encrypt-finished', 600;
     }
 
-    # Skip ssh key enrollment (for now)
     unless (is_sle || is_sle_micro('<=6.0') || is_leap) {
         assert_screen 'jeos-ssh-enroll-or-not', 120;
-        send_key 'n';
+
+        if (get_var('SSH_ENROLL_PAIR')) {
+            mutex_wait 'dhcp';
+            sleep 30;    # make sure we have an IP
+            mutex_create 'SSH_ENROLL_PAIR';
+            send_key 'y';
+            assert_screen 'jeos-ssh-enroll-pairing', 600;
+            assert_screen 'jeos-ssh-enroll-paired', 120;
+            send_key 'y';
+            assert_screen 'jeos-ssh-enroll-import', 120;
+            send_key 'y';
+            assert_screen 'jeos-ssh-enroll-imported', 120;
+            send_key 'ret';
+        } else {
+            send_key 'n';
+        }
     }
 
     if (is_tumbleweed || is_sle_micro('>6.0') || is_microos) {
