@@ -23,6 +23,7 @@ sub run {
     my $test = get_required_var('AGAMA_TEST');
 
     script_run("dmesg --console-off");
+    assert_script_run("export AGAMA_SLOWMO=50");
     assert_script_run("/usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
     script_run("dmesg --console-on");
 
