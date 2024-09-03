@@ -1,0 +1,12 @@
+---
+name: qam-dracut-testsuite
+description:
+vars:
+  COLLECT_COREDUMPS: '1'
+  TEST: qam-dracut-testsuite
+schedule:
+- boot/boot_to_desktop
+- console/consoletest_setup
+- console/dracut_testsuite
+- console/coredump_collect
+...
