@@ -190,7 +190,7 @@ sub query_metadata {
     # 169.254.169.254 in case of all public cloud providers.
     my $pc_meta_api_ip = '169.254.169.254';
 
-    my $query_meta_ipv4_cmd = qq(curl -H "Metadata-Flavor: Google" "http://$pc_meta_api_ip/computeMetadata/v1/instance/network-interfaces/0/ip");
+    my $query_meta_ipv4_cmd = qq(curl -sw "\\n" -H "Metadata-Flavor: Google" "http://$pc_meta_api_ip/computeMetadata/v1/instance/network-interfaces/0/ip");
     my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
 
     return $data;

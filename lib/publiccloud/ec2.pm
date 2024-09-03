@@ -299,9 +299,9 @@ sub query_metadata {
     # 169.254.169.254 in case of all public cloud providers.
     my $pc_meta_api_ip = '169.254.169.254';
 
-    my $access_token = $instance->ssh_script_output(qq(curl -X PUT http://$pc_meta_api_ip/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds:60"));
+    my $access_token = $instance->ssh_script_output(qq(curl -sw "\\n" -X PUT http://$pc_meta_api_ip/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds:60"));
     record_info("DEBUG", $access_token);
-    my $query_meta_ipv4_cmd = qq(curl -H "X-aws-ec2-metadata-token: $access_token" "http://$pc_meta_api_ip/latest/meta-data/local-ipv4");
+    my $query_meta_ipv4_cmd = qq(curl -sw "\\n" -H "X-aws-ec2-metadata-token: $access_token" "http://$pc_meta_api_ip/latest/meta-data/local-ipv4");
     my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
 
     die("Failed to get data from metadata server") unless length($data);
