@@ -25,9 +25,10 @@ sub run_tests
     my $env = prepare_whitelist_environment();
     $env->{kernel} = script_output('uname -r');
 
+    my $suite = get_var('KSELFTESTS_SUITE', '');
     my $issues = get_var('KSELFTESTS_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
-    my @skipped = $whitelist->list_skipped_tests($env, 'kselftests');
+    my @skipped = $whitelist->list_skipped_tests($env, $suite);
     my $skip_tests;
     if (@skipped) {
         $skip_tests = join("|", @skipped);
@@ -43,8 +44,6 @@ sub run_tests
         {src => $root, dst => $root},
         {src => "/tmp", dst => "/tmp"}
     );
-
-    my $suite = get_var('KSELFTESTS_SUITE', '');
 
     LTP::kirk->run(
         framework => "kselftests:root=$root",
