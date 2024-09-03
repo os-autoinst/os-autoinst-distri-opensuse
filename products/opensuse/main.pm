@@ -15,7 +15,7 @@ use File::Basename;
 use DistributionProvider;
 use scheduler 'load_yaml_schedule';
 use main_containers;
-
+use main_security;
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
@@ -314,7 +314,7 @@ elsif (get_var('CPU_BUGS')) {
 }
 elsif (get_var('SECURITY_TEST')) {
     prepare_target();
-    load_security_tests;
+    load_security_tests();
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target();

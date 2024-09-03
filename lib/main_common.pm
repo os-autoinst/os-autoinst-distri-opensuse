@@ -83,7 +83,6 @@ our @EXPORT = qw(
   load_applicationstests
   load_mitigation_tests
   load_vt_perf_tests
-  load_security_tests
   load_shutdown_tests
   load_slepos_tests
   load_sles4sap_tests
@@ -2203,42 +2202,6 @@ sub load_applicationstests {
     return 0;
 }
 
-sub load_security_console_prepare {
-    loadtest "console/consoletest_setup";
-    # Add this setup only in product testing
-    loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse && (get_var("BETA") || check_var("FLAVOR", "Online-QR")));
-    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
-    loadtest "console/openssl_alpn" if (get_var("FIPS_ENABLED") && get_var("JEOS"));
-    loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
-}
-
-# Used by fips-jeos on o3
-sub load_security_tests_crypt_core {
-    load_security_console_prepare;
-
-    if (get_var('FIPS_ENABLED')) {
-        loadtest "fips/openssl/openssl_fips_alglist";
-        loadtest "fips/openssl/openssl_fips_hash";
-        loadtest "fips/openssl/openssl_fips_cipher";
-        loadtest "fips/openssl/dirmngr_setup";
-        loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
-        loadtest "fips/gnutls/gnutls_base_check";
-        loadtest "fips/gnutls/gnutls_server";
-        loadtest "fips/gnutls/gnutls_client";
-    }
-    loadtest "fips/openssl/openssl_tlsv1_3";
-    loadtest "fips/openssl/openssl_pubkey_rsa";
-    # https://bugzilla.suse.com/show_bug.cgi?id=1223200#c2
-    loadtest "fips/openssl/openssl_pubkey_dsa" if (is_sle('<15-SP6') || is_leap('<15.6'));
-    loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
-    loadtest "console/sshd";
-    loadtest "console/ssh_cleanup";
-}
-
-sub load_security_tests_fips_setup {
-    # Setup system into fips mode
-    loadtest "fips/fips_setup";
-}
 
 sub load_vt_perf_tests {
     loadtest "virt_autotest/login_console";
@@ -2328,27 +2291,6 @@ sub load_mitigation_tests {
     }
     if (get_var('MITIGATION_PERF')) {
         loadtest "cpu_bugs/mitigation_perf";
-    }
-}
-
-sub load_security_tests {
-    my @security_tests = qw(
-      fips_setup
-      crypt_core
-      apparmor
-    );
-
-    # Check SECURITY_TEST and call the load functions iteratively.
-    # The value of "SECURITY_TEST" should be same with the last part of the
-    # function name by this way.
-    foreach my $test_name (@security_tests) {
-        next unless (check_var("SECURITY_TEST", $test_name));
-        if (my $test_to_run = main_common->can("load_security_tests_$test_name")) {
-            $test_to_run->();
-        }
-        else {
-            diag "unknown scenario for SECURITY_TEST value $test_name";
-        }
     }
 }
 
@@ -2988,23 +2930,6 @@ sub load_nfs_tests {
 
 sub load_upstream_systemd_tests {
     loadtest 'systemd_testsuite/prepare_systemd_and_testsuite';
-}
-
-sub load_security_tests_apparmor {
-    load_security_console_prepare;
-
-    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
-        loadtest "security/apparmor/aa_prepare";
-    }
-    loadtest "security/apparmor/aa_status";
-    loadtest "security/apparmor/aa_enforce";
-    loadtest "security/apparmor/aa_complain";
-    loadtest "security/apparmor/aa_genprof";
-    loadtest "security/apparmor/aa_autodep";
-    loadtest "security/apparmor/aa_logprof";
-    loadtest "security/apparmor/aa_easyprof";
-    loadtest "security/apparmor/aa_notify";
-    loadtest "security/apparmor/aa_disable";
 }
 
 1;

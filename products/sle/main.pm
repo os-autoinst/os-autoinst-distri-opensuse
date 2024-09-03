@@ -21,6 +21,7 @@ use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm is_ipmi);
 use main_containers;
 use main_publiccloud;
+use main_security;
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -739,7 +740,7 @@ elsif (get_var('VT_PERF')) {
 }
 elsif (get_var("SECURITY_TEST")) {
     prepare_target();
-    load_security_tests;
+    load_security_tests();
 }
 elsif (get_var('SMT')) {
     prepare_target();
