@@ -654,7 +654,7 @@ sub query_metadata {
     # 169.254.169.254 in case of all public cloud providers.
     my $pc_meta_api_ip = '169.254.169.254';
 
-    my $query_meta_ipv4_cmd = qq(curl -H Metadata:true "http://$pc_meta_api_ip/metadata/instance/network/interface/$ifNum/ipv4/ipAddress/$addrCount/privateIpAddress?api-version=2023-07-01&format=text");
+    my $query_meta_ipv4_cmd = qq(curl -sw "\\n" -H Metadata:true "http://$pc_meta_api_ip/metadata/instance/network/interface/$ifNum/ipv4/ipAddress/$addrCount/privateIpAddress?api-version=2023-07-01&format=text");
     my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
 
     die("Failed to get interface IPs from metadata server") unless length($data);
