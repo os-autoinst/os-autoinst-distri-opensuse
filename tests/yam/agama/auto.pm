@@ -12,8 +12,10 @@ use warnings;
 use testapi;
 
 sub run {
-    assert_screen('agama-install-finished', 1200);
-    assert_and_click('reboot');
+    my $reboot_page = $testapi::distri->get_reboot_page();
+
+    $reboot_page->expect_is_shown(timeout => 1200);
+    $reboot_page->reboot();
 
     # For agama test, it is too short time to match the grub2, so we create
     # a new needle to avoid too much needles loaded.
