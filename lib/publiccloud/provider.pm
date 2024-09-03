@@ -41,6 +41,7 @@ has ssh_key => get_ssh_private_key_path();
 sub init {
     my ($self) = @_;
     $self->create_ssh_key();
+    $self->place_ssh_config();
 }
 
 =head2 generate_basename
@@ -185,6 +186,19 @@ sub create_ssh_key {
         assert_script_run('SSH_DIR=`dirname ' . $self->ssh_key . '`; mkdir -p $SSH_DIR');
         assert_script_run('ssh-keygen -t ' . $alg . ' -q -N "" -C "" -m pem -f ' . $self->ssh_key);
     }
+}
+
+=head2 place_ssh_config
+
+Creates ~/.ssh/config file with all the common ssh client settings
+
+=cut
+
+sub place_ssh_config {
+    # configure ssh client
+    my $ssh_config_url = data_url('publiccloud/ssh_config');
+    assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
+    file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
 }
 
 =head2 run_img_proof
@@ -352,8 +366,6 @@ sub create_instances {
         if ($args{check_connectivity}) {
             $instance->wait_for_ssh(timeout => $args{timeout},
                 proceed_on_failure => $args{proceed_on_failure});
-            # Install server's ssh publicckeys to prevent authenticity interactions
-            assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});

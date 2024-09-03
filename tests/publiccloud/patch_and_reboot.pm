@@ -42,7 +42,6 @@ sub run {
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     if (is_cloudinit_supported) {
-        record_info 'BOOM';
         $args->{my_instance}->check_cloudinit();
         permit_root_login($args->{my_instance});
     }

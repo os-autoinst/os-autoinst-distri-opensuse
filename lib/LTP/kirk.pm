@@ -99,7 +99,7 @@ sub run
     $cmd .= "--suite-timeout $args{timeout} ";
     $cmd .= "--framework $args{framework} " if $args{framework};
     $cmd .= "--sut $args{sut} " if $args{sut};
-    $cmd .= "--skip-tests $args{skip} " if $args{skip};
+    $cmd .= "--skip-tests '$args{skip}' " if $args{skip};
     $cmd .= "--env $args{envs} " if $args{envs};
     $cmd .= "--run-suite $args{suite} " if $args{suite};
     $cmd .= "$args{opts} " if $args{opts};

@@ -1,8 +1,8 @@
 ControlMaster auto
 ControlPath /tmp/ssh_%r_%h_%p
-StrictHostKeyChecking no
 HostKeyAlgorithms +ssh-rsa
 IdentityFile %SSH_KEY%
 ControlPersist 86400
 PasswordAuthentication no
+LogLevel VERBOSE
 

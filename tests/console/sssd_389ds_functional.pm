@@ -79,7 +79,7 @@ sub run {
     my $container_run_389_ds = "$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver";
 
     if ($docker eq "docker") {
-        $container_run_389_ds .= " --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always";
+        $container_run_389_ds .= " --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:rw --restart=always";
     }
 
     assert_script_run("$container_run_389_ds ds389_image");

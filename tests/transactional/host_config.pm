@@ -15,6 +15,8 @@ use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
 use utils qw(ensure_ca_certificates_suse_installed zypper_call);
 use version_utils qw(is_bootloader_grub2 is_bootloader_sdboot);
+use serial_terminal 'prepare_serial_console';
+use Utils::Architectures 'is_ppc64le';
 
 sub run {
     select_console 'root-console';
@@ -41,6 +43,8 @@ sub run {
     }
 
     record_info('REPOS', script_output('zypper lr --url', proceed_on_failure => 1));
+
+    prepare_serial_console if is_ppc64le;
 }
 
 sub test_flags {
