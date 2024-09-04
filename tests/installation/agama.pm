@@ -21,7 +21,7 @@ use utils;
 sub edit_cmdline {
     send_key 'e';
     my $jump_down = is_sle('<15-sp4') ? '12' : '8';
-    for (1 .. $jump_down) { send_key 'down'; }
+    send_key 'down' for (1 .. $jump_down);
     send_key_until_needlematch 'grub2-edit-linux-line', 'down';
     send_key 'end';
 }
