@@ -218,6 +218,8 @@
       <package>dhcp-client</package>
       <package>guestfs-tools</package>
       <package>nmap</package>
+      <package>iputils</package>
+      <package>bind-utils</package>
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>

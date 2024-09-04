@@ -12,6 +12,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
+use package_utils 'install_package';
 
 sub new() {
     my ($class, %args) = @_;
@@ -37,7 +38,7 @@ sub create_host_key_algorithm_array() {
 
     # If nmap is not installed, install it
     if (script_run("which nmap")) {
-        zypper_call("in nmap");
+        install_package("nmap", trup_reboot => 1);
     }
 
     # Get all the algorithms supported by the server side
