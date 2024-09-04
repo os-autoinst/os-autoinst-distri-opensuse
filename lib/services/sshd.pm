@@ -55,7 +55,7 @@ sub prepare_test_data {
     zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_transactional();
 
     # Install software needed for this test module
-    install_package("netcat-openbsd expect psmisc");
+    install_package("netcat-openbsd expect psmisc", trup_reboot => 1);
 
 }
 
