@@ -597,6 +597,7 @@ sub bootmenu_default_params {
             # agama.install_url supports comma separated list if more repos are needed ...
             push @params, "agama.install_url=$host/assets/repo/$repo";
         }
+        push @params, "live.password=$testapi::password";
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.

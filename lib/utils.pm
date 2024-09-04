@@ -1525,6 +1525,7 @@ the session.
 
 sub get_x11_console_tty {
     my $new_sddm = (!is_sle('<15-SP6') && !is_leap('<15.6')) || is_krypton_argon;
+    # Agama uses tty7 for graphical install
     if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'lxqt')) {
         return $new_sddm ? 2 : 7;
     }
