@@ -68,6 +68,10 @@ test_pod_errors:
 test-yaml-valid:
 	tools/check_yaml
 
+.PHONY: test-hardcode-password
+test-hardcode-password:
+	export PERL5LIB=${PERL5LIB_} ; tools/check_data_hardcode_password
+
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
 	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code origin/master | grep '^schedule/*'`
@@ -106,7 +110,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
+test-static: tidy-check test-yaml-valid test-hardcode-password test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
 
 .PHONY: test
 ifeq ($(TESTS),compile)
