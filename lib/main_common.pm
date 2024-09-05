@@ -1106,7 +1106,8 @@ sub load_inst_tests {
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
-        loadtest "installation/enable_selinux" if get_var('SELINUX');
+        # Do not run enable_selinux in tumbleweed as it is selected as default (bsc#1230118)
+        loadtest "installation/enable_selinux" if get_var('SELINUX') && !is_tumbleweed;
 
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
