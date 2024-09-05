@@ -1,0 +1,5 @@
+name: jeos-ssh-enroll
+description: >
+  Test the first boot wizard ssh enrollment. Maintainer: qa-c@suse.de
+schedule:
+  - jeos/firstrun
