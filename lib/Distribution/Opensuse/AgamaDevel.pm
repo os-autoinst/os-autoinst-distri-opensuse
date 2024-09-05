@@ -13,8 +13,7 @@ use warnings FATAL => 'all';
 use parent 'susedistribution';
 
 use Yam::Agama::Pom::GrubMenuPage;
-use Yam::Agama::Pom::GrubEntryEdition::GrubEntryEditionPage;
-use Yam::Agama::Pom::GrubEntryEdition::ppc64le::GrubEntryEditionPage;
+use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
 
 use Utils::Architectures;
@@ -24,11 +23,10 @@ sub get_grub_menu {
 }
 
 sub get_grub_entry_edition {
-    my $grub_entry_edition = Yam::Agama::Pom::GrubEntryEdition::GrubEntryEditionPage->new();
-    return is_ppc64le() ?
-      Yam::Agama::Pom::GrubEntryEdition::ppc64le::GrubEntryEditionPage->new({
-            grub_entry_edition => $grub_entry_edition}) :
-      $grub_entry_edition;
+    return is_ppc64le() ? Yam::Agama::Pom::GrubEntryEditionPage->new({
+            number_kernel_line => 3,
+            max_interval => utils::VERY_SLOW_TYPING_SPEED})
+      : Yam::Agama::Pom::GrubEntryEditionPage->new();
 }
 
 sub get_agama_up_an_running {
