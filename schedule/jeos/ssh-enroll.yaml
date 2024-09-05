@@ -1,5 +1,16 @@
 name: jeos-ssh-enroll
+
 description: >
   Test the first boot wizard ssh enrollment. Maintainer: qa-c@suse.de
+
+vars:
+  DESKTOP: textmode
+  FIRST_BOOT_CONFIG: wizard
+  HDD_2: ''
+  NICTYPE: tap
+  NUMDISKS: '1'
+  SSH_ENROLL_PAIR: '1'
+  WORKER_CLASS: tap
+
 schedule:
   - jeos/firstrun

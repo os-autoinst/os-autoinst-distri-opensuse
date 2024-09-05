@@ -1,11 +1,25 @@
 name: jeos-supportserver
 description: >
   Create a support server for multimachine tests. Maintainer: qa-c@suse.de
+
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: gnome
+  NICTYPE: tap
+  NUMDISKS: '1'
+  SSH_ENROLL_PAIR: '1'
+  SUPPORT_SERVER: '1'
+  SUPPORT_SERVER_ROLES: dhcp,dns
+  WORKER_CLASS: tap
+  # add this one to the scenario in openqa or the group yaml:
+  # +HDD_1: 'support_server_tumbleweed@64bit.qcow2'
+
 conditional_schedule:
   ssh_enroll:
     SSH_ENROLL_PAIR:
       '1':
         - jeos/ssh_enroll
+
 schedule:
   - support_server/login
   - support_server/setup
