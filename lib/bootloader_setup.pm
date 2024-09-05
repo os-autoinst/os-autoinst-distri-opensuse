@@ -328,8 +328,11 @@ sub boot_into_snapshot {
 sub select_bootmenu_option {
     my ($timeout) = @_;
     assert_screen 'inst-bootmenu', $timeout;
+
+    # Special handling for Agama
     if (get_var('AGAMA')) {
-        return 1;
+        send_key_until_needlematch 'boot-agama-installation', 'up', 11, 5;
+        return 0;
     }
     if (get_var('LIVECD')) {
         # live CDs might have a very short timeout of the initial bootmenu
@@ -342,7 +345,6 @@ sub select_bootmenu_option {
         boot_local_disk;
         return 3;
     }
-
     if (get_var('UPGRADE')) {
         # OFW has contralily oriented menu behavior
         send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 11, 5;
@@ -580,6 +582,21 @@ sub bootmenu_default_params {
             push @params, "textmode=1";
         }
         push @params, "Y2DEBUG=1";
+    }
+    elsif (get_var('AGAMA')) {
+        wait_screen_change { send_key "e" };
+        send_key "down";
+        send_key "down";
+        send_key "down";
+        send_key "down";
+        wait_screen_change { send_key "end" };
+        # REPO_0 should be set everywhere where we rsync repo (aside from iso)
+        if (get_var('REPO_0')) {
+            my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
+            my $repo = get_var('REPO_0');
+            # agama.install_url supports comma separated list if more repos are needed ...
+            push @params, "agama.install_url=$host/assets/repo/$repo";
+        }
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
