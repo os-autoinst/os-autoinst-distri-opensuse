@@ -70,7 +70,7 @@ sub configure_hanadb_exporter {
     # Add monitoring resource in the HA stack
     wait_for_idle_cluster;
     if (get_var('HA_CLUSTER') and is_node(1)) {
-        my $hanadb_msl = "msl_SAPHana_$args{rsc_id}";
+        my $hanadb_msl = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_$args{rsc_id}" : "msl_SAPHana_$args{rsc_id}";
         my $hanadb_exp_rsc = "rsc_exporter_$args{rsc_id}";
         $hanadb_exporter_port = 9668;
         $check_exporter = 'true';
