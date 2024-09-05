@@ -1,6 +1,6 @@
-name: microos_supportserver
+name: jeos-supportserver
 description: >
-  Create a support server for multimachine tests
+  Create a support server for multimachine tests. Maintainer: qa-c@suse.de
 conditional_schedule:
   ssh_enroll:
     SSH_ENROLL_PAIR:
