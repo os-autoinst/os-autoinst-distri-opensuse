@@ -3,12 +3,12 @@
 # Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Installation of Leap or Tumblweed with Agama
+# Summary: Installation of Leap or Tumbleweed with Agama
 # https://github.com/openSUSE/agama/
 
 # Setting agama live media root password
 # https://github.com/openSUSE/agama/blob/master/doc/live_iso.md#the-access-password
-# Maintainer:  Maintainer: Lubos Kocmman <lubos.kocman@suse.com>,
+# Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
 use strict;
 use warnings;
@@ -16,6 +16,8 @@ use base "installbasetest";
 use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;
+use Utils::Logging qw(export_healthcheck_basic);
+use x11utils 'ensure_unlocked_desktop';
 
 # Borrowed from grub2_tests.pm
 sub edit_cmdline {
@@ -26,8 +28,7 @@ sub edit_cmdline {
     send_key 'end';
 }
 
-sub agama_set_root_password_dialog
-{
+sub agama_set_root_password_dialog {
     wait_still_screen 5;
 
     type_password();
@@ -40,8 +41,7 @@ sub agama_set_root_password_dialog
     send_key 'ret';
 }
 
-sub agama_define_user_screen
-{
+sub agama_define_user_screen {
     wait_still_screen 5;
 
     # We need to click in the middle of the screen or similar
@@ -57,7 +57,7 @@ sub agama_define_user_screen
 
     # Username
     send_key 'tab';
-    type_string 'bernhard';
+    type_string $testapi::username;
     wait_still_screen 5;
 
     # Password - we have to send two tabs as there is a button to show typed password
@@ -84,9 +84,21 @@ sub agama_define_user_screen
     send_key 'ret';
 }
 
+sub upload_agama_logs {
+    return if (get_var('NOLOGS'));
+    select_console("root-console");
+    # stores logs in /tmp/agma-logs.tar.gz
+    script_run('agama logs store');
+    upload_logs('/tmp/agama-logs.tar.gz');
+}
+
+sub get_agama_install_console_tty {
+    # get_x11_console_tty would otherwise autodetermine 2
+    return 7;
+}
+
 sub run {
     my ($self) = @_;
-
     assert_screen('agama-inst-welcome-product-list');
 
     if (is_leap('>=16.0')) {
@@ -102,18 +114,18 @@ sub run {
 
     # It seems that in lower resolutions agama hides list of tabs
     # so we have to click on the top button to display them
-    # Good thing is that tabs get hiden automatically again
+    # Good thing is that tabs get hidden automatically again
     # after you click one of the tabs
     assert_and_click('agama-show-tabs');
 
     assert_and_click('agama-users-tab');
     assert_and_click('agama-set-root-password');
-    agama_set_root_password_dialog;
+    agama_set_root_password_dialog();
 
 
     # Define user and set autologin on
     assert_and_click('agama-define-user-button');
-    agama_define_user_screen;
+    agama_define_user_screen();
 
     # Show tabs again
     assert_and_click('agama-show-tabs');
@@ -139,7 +151,7 @@ sub run {
     # Normally it's on the side
     wait_still_screen 5;
 
-    # Ctrd+down takes you to bottom of the page,
+    # Ctrl+down takes you to bottom of the page,
     # however, you need to click on the page first
     mouse_set(600, 600);
     mouse_click;
@@ -153,9 +165,9 @@ sub run {
     # We're using wrong repo for testing
     # BUG tracker: https://github.com/openSUSE/agama/issues/1474
     # copied from await_install.pm
-    my $timeout = 2400;
+    my $timeout = 2400;    # 40 minutes timeout for installation process
     while (1) {
-        die "timeout ($timeout) hit on during await_install" if $timeout <= 0;
+        die "timeout ($timeout) hit during await_install" if $timeout <= 0;
         my $ret = check_screen 'agama-install-in-progress', 30;
         sleep 30;
         $timeout -= 30;
@@ -166,12 +178,31 @@ sub run {
         }
     }
 
-
-    # installation done
-    # TODO fetch agama logs after install see https://github.com/openSUSE/agama/issues/1447
     assert_screen('agama-congratulations');
+    console('installation')->set_tty(get_agama_install_console_tty());
+    upload_agama_logs();
+    select_console('installation', await_console => 0);
     assert_and_click('agama-reboot-after-install');
 
+}
+
+=head2 post_fail_hook
+
+ post_fail_hook();
+
+When the test module fails, this method will be called.
+It will try to fetch logs from agama.
+
+=cut
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    return if (get_var('NOLOGS'));
+
+    select_console("root-console");
+    export_healthcheck_basic();
+    upload_agama_logs();
 }
 
 1;
