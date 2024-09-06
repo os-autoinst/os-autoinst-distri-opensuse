@@ -95,6 +95,7 @@ conditional_schedule:
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/year_2038_detection
+                - console/libjpeg_turbo
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
