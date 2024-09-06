@@ -1,0 +1,19 @@
+name: vendor_affirmation_validation
+description: >
+    This is for vendor affirmation
+schedule:
+    - installation/bootloader_start
+    - security/boot_disk
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_1_1_fips_hash
+    - fips/gnutls/gnutls_base_check
+    - console/import_gpg_keys
+    - console/gpg
+    - fips/mozilla_nss/nss_smoke
+    - '{{ica}}'
+conditional_schedule:
+    ica:
+        ARCH:
+            s390x:
+                - fips/libica
