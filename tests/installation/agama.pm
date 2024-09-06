@@ -131,13 +131,19 @@ sub run {
     assert_and_click('agama-show-tabs');
 
     # default is just a minimal server style install
-    if (check_var('DESKTOP', 'gnome')) {
+    if (get_var('DESKTOP')) {
         assert_and_click('agama-software-tab');
 
-        wait_still_screen 5;
+        wait_still_screen(5);
         assert_and_click('agama-change-software-selection');
-        wait_still_screen 5;
-        assert_and_click('agama-software-selection-gnome-desktop-wayland');
+        wait_still_screen(5);
+
+        if (check_var('DESKTOP', 'gnome')) {
+            assert_and_click('agama-software-selection-gnome-desktop-wayland');
+        } elsif (check_var('DESKTOP', 'kde')) {
+            assert_and_click('agama-software-selection-kde-desktop-wayland');
+        }
+
         assert_and_click('agama-software-selection-close');
     }
 
