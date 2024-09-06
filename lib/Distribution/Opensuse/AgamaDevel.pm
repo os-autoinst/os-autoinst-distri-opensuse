@@ -15,6 +15,7 @@ use parent 'susedistribution';
 use Yam::Agama::Pom::GrubMenuPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
+use Yam::Agama::Pom::RebootPage;
 
 use Utils::Architectures;
 
@@ -31,6 +32,10 @@ sub get_grub_entry_edition {
 
 sub get_agama_up_an_running {
     return Yam::Agama::Pom::AgamaUpAndRunningPage->new();
+}
+
+sub get_reboot_page {
+    return Yam::Agama::Pom::RebootPage->new();
 }
 
 1;
