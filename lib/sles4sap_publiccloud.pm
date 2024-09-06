@@ -372,7 +372,12 @@ sub stop_hana {
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
             timeout => "0",
             # Try only extending ssh_opts
-            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
+            ssh_opts => join(' ',
+                '-o ServerAliveInterval=2',
+                '-o UserKnownHostsFile=/dev/null',
+                '-o StrictHostKeyChecking=no',
+                #'-o LogLevel=ERROR',
+                '-o ControlPath=none'),
             %args);
         # It is better to wait till ssh disappear
         record_info("Wait ssh disappear start");
