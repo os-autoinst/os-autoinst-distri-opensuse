@@ -262,11 +262,14 @@ sub format_dasd {
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
 
-    # bring dasd online
-    # exit status 0 -> everything ok
-    # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-    $r = script_run("dasd_configure $dasd_path 1");
-    die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
+    # agama dasd is already online due it is specified in parmfile
+    unless (get_var('AGAMA')) {
+        # bring dasd online
+        # exit status 0 -> everything ok
+        # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
+        $r = script_run("dasd_configure $dasd_path 1");
+        die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
+    }
 
     # make sure that there is a dasda device
     $r = script_run("lsdasd");
