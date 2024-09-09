@@ -53,7 +53,6 @@ sub setup_web_browser_env {
             script_run("SUSEConnect -p PackageHub/$version/$arch", 300);
         }
     }
-    zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
 }
 
 =head2 run_web_browser_text_based
