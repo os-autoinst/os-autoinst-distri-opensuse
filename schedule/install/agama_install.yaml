@@ -6,5 +6,4 @@ schedule:
   - installation/agama
   - installation/first_boot
   - installation/opensuse_welcome
-  - installation/system_workarounds
   - console/system_prepare
