@@ -369,6 +369,8 @@ sub stop_hana {
         # Crash needs to be executed as root and wait for host reboot
         $self->{my_instance}->wait_for_ssh(timeout => $timeout);
         $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
+        # Close SSH mux file before Crash test
+        $self->{my_instance}->run_ssh_command(cmd => " ", timeout => "0", ssh_opts => "-O exit");
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
             timeout => "0",
             # Try only extending ssh_opts
