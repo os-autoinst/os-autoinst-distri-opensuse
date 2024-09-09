@@ -188,6 +188,8 @@ sub run {
     console('installation')->set_tty(get_agama_install_console_tty());
     upload_agama_logs();
     select_console('installation', await_console => 0);
+    # make sure newly booted system does not expect we're still logged in console
+    reset_consoles();
     assert_and_click('agama-reboot-after-install');
 
 }
