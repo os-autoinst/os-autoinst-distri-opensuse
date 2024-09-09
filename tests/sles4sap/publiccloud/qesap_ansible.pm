@@ -29,6 +29,14 @@ sub run {
 
     my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
     select_serial_terminal;
+
+    # Record packages list before deploying ansible if needed
+    if (get_var('SAVE_LIST_OF_PACKAGES')) {
+        my $in = $self->{instances}->[0];
+        $in->ssh_script_run(cmd => 'rpm -qa > /tmp/rpm-qa-before-patch-system.txt');
+        $in->upload_log('/tmp/rpm-qa-before-patch-system.txt');
+    }
+
     # mark as done in advance and also in case of
     # QESAP_DEPLOYMENT_IMPORT as the status flag is mostly
     # used to decide if to call the cleanup

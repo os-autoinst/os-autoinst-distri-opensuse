@@ -1247,6 +1247,10 @@ sub qesap_cluster_log_cmds {
         {
             Cmd => 'cat /var/log/cloudregister',
             Output => 'cloudregister.txt',
+        },
+        {
+            Cmd => 'rpm -qa',
+            Output => 'rpm-qa.txt',
         }
     );
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {

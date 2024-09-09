@@ -27,6 +27,13 @@ sub run {
     my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
     # pkcon not present on SLE-micro
     kill_packagekit($args->{my_instance}) unless (is_sle_micro);
+
+    # Record package list before fully patch system
+    if (get_var('SAVE_LIST_OF_PACKAGES')) {
+        $args->{my_instance}->ssh_script_run(cmd => 'rpm -qa > /tmp/rpm-qa-before-patch-system.txt');
+        $args->{my_instance}->upload_log('/tmp/rpm-qa-before-patch-system.txt');
+    }
+
     $args->{my_instance}->ssh_script_retry("sudo zypper -n --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60);
     record_info('zypper ref time', 'The command zypper -n ref took ' . (time() - $cmd_time) . ' seconds.');
     record_soft_failure('bsc#1195382 - Considerable decrease of zypper performance and increase of registration times') if ((time() - $cmd_time) > 240);
