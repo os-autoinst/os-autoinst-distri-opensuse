@@ -16,8 +16,11 @@ sub run {
 
     if (script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt") != 0) {
         record_info('The packages to be released are new ones', 'We need to install them via zypper');
-        my $packages = get_var("INSTALL_PACKAGES");
-        script_run("echo $packages > \$XDG_RUNTIME_DIR/install_packages.txt");
+        # Only one package per line in the file
+        my @packages = split(/ /, get_var("INSTALL_PACKAGES"));
+        foreach my $item (@packages) {
+            script_run("echo $item >> \$XDG_RUNTIME_DIR/install_packages.txt");
+        }
         assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 1400);
         return;
     }
