@@ -74,7 +74,6 @@ sub run {
 
     # Collect OpenQA variables and default values
     set_var_output('NODE_COUNT', 1) unless ($ha_enabled);
-    set_var_output('HANA_OS_MAJOR_VERSION', (split('-', get_var('VERSION')))[0]);
     # Cluster needs at least 2 nodes
     die "HA cluster needs at least 2 nodes. Check 'NODE_COUNT' parameter." if ($ha_enabled && (get_var('NODE_COUNT') <= 1));
 
