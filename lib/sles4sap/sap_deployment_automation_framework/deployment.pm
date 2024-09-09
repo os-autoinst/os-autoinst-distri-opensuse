@@ -400,9 +400,7 @@ B<input_text>: string that will be printed in uppercase surrounded by '#' to mak
 Prints a banner in serial console that highlights a point in output to make it more readable.
 Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.
 Below is an example of the printed banner:
-# ###############
 # # $input_text #
-# ###############
 
 =cut
 
@@ -418,11 +416,8 @@ sub serial_console_diag_banner {
     # max_length - length of the text - 4x2 dividing spaces
     my $symbol_fill = ($max_length - length($input_text) - 8) / 2;
     $input_text = '#' x $symbol_fill . ' ' x 4 . $input_text . ' ' x 4 . '#' x $symbol_fill;
-    my $fill_line = '#' x length($input_text);
 
-    foreach ($fill_line, $input_text, $fill_line) {
-        enter_cmd($_);
-    }
+    enter_cmd($input_text);
     wait_serial(qr/:~|#|>/, timeout => 5, quiet => 1);
 }
 

@@ -172,8 +172,6 @@ subtest '[serial_console_diag_banner] ' => sub {
 
     serial_console_diag_banner('Module: deploy_sdaf.pm');
     note("Banner:\n" . join("\n", @printed_lines));
-    is @printed_lines, 3, 'Banner consists of three text lines';
-    ok(grep { length($_) == length($printed_lines[1]) } @printed_lines, 'All banner lines must be equally long');
     ok(grep(/Module: deploy_sdaf.pm/, @printed_lines), 'Banner must include message');
     dies_ok { serial_console_diag_banner() } 'Fail with missing test to be printed';
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
