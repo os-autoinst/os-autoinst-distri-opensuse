@@ -180,6 +180,9 @@ EOF
 sub run {
     select_console 'root-console';
 
+    my $gpg_fips_string = check_var('FIPS_ENABLED', '1') ? "fips-mode:y::Libgcrypt" : "fips-mode:n::";
+    validate_script_output("gpgconf --show-versions", sub { m/.*$gpg_fips_string.*/ }) if is_sle('15+');
+
     # increase entropy for key generation for s390x on svirt backend
     if (is_s390x && ((is_sle('15+') || is_transactional) && (is_svirt))) {
         if (is_transactional) {
