@@ -9,5 +9,5 @@ schedule:
     - sles4sap/ipaddr2/deploy
     - sles4sap/ipaddr2/configure
     - sles4sap/ipaddr2/sanity
-    - sles4sap/ipaddr2/test
+    - sles4sap/ipaddr2/test_move_resource
     - sles4sap/ipaddr2/destroy
