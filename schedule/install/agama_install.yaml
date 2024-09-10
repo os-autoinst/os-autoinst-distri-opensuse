@@ -4,6 +4,7 @@ description:    >
 schedule:
   - installation/bootloader
   - installation/agama
+  - installation/agama_reboot
   - installation/grub_test
   - installation/first_boot
   - installation/opensuse_welcome

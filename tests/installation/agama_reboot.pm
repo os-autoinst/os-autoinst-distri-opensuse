@@ -11,7 +11,7 @@
 # 1) Switch from installer to console to Upload logs
 # 2) Switch back to X11/Wayland and reset_console s
 #    so newly booted system does not think that we're still logged in console
-# 3) workaround for no ability to disable grub timeout in agama 
+# 3) workaround for no ability to disable grub timeout in agama
 #    https://github.com/openSUSE/agama/issues/1594
 #    grub_test() is too slow to catch boot screen for us
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
@@ -40,7 +40,7 @@ sub get_agama_install_console_tty {
 
 sub run {
     my ($self) = @_;
-  
+
     assert_screen('agama-congratulations');
     console('installation')->set_tty(get_agama_install_console_tty());
     upload_agama_logs();
@@ -74,5 +74,6 @@ sub post_fail_hook {
     export_healthcheck_basic();
     upload_agama_logs();
 }
+
 
 1;
