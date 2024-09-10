@@ -282,7 +282,7 @@ sub run {
             sleep 30;    # make sure we have an IP
             mutex_create 'SSH_ENROLL_PAIR';
             send_key 'y';
-            assert_screen 'jeos-ssh-enroll-pairing', 600;
+            check_screen 'jeos-ssh-enroll-pairing', 20;
             assert_screen 'jeos-ssh-enroll-paired', 120;
             send_key 'y';
             assert_screen 'jeos-ssh-enroll-import', 120;
