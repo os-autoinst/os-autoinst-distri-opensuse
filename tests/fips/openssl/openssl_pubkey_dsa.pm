@@ -41,9 +41,8 @@ sub run {
     my $openssl_version_output = script_output(q[openssl version | awk '{print $2}']);
     my ($openssl_version) = $openssl_version_output =~ /(\d\.\d)/;
 
-    # DSA operations are expected to fail on 15-SP6+ and SLE Micro 6.0+ in FIPS mode with OpenSSL 3
-    # poo#161891
-    my $expect_failure = (is_sle('>=15-SP6') or is_sle_micro('>=6.0')) ? 1 : 0;
+    # DSA operations are expected to fail on 15-SP6+ and SLE Micro 6.0+ in FIPS mode with OpenSSL 3 (poo#161891)
+    my $expect_failure = ((is_sle('>=15-SP6') or is_sle_micro('>=6.0')) && check_var('FIPS_ENABLED', '1')) ? 1 : 0;
 
     # Prepare temp directory and file for testing
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";
@@ -53,14 +52,21 @@ sub run {
         my $dsa_prikey = "test-dsa-prikey-" . $size . ".pem";
         my $dsa_pubkey = "test-dsa-pubkey-" . $size . ".pem";
 
-        # The following steps fail with key size 3072, but pass with 2048 for some reason.
-        # This will skip any 3072 testing on affected platforms.
-        if ($expect_failure and $size == 3072) {
-            record_info "Skipping key size $size testing, poo#161891";
-            last;
+        my $ret_val = script_run("openssl dsaparam $size < /dev/random > dsaparam.pem", 200);
+        if ($expect_failure) {
+            if ($ret_val != 0) {
+                # in FIPS mode on newer products DSA is not supported and should always fail
+                record_info "openssl dsaparam is expected to fail in FIPS mode";
+                next;
+            } else {
+                # in FIPS mode on newer products DSA is not supported and it should never work
+                die 'openssl dsaparam: expected FAIL, got PASSED.';
+            }
+        } else {
+            # in FIPS mode on older products DSA should always work
+            die 'openssl dsaparam: expected PASS, got FAIL' if ($ret_val != 0);
         }
 
-        assert_script_run "openssl dsaparam $size < /dev/random > dsaparam.pem", 200;
         assert_script_run "openssl gendsa -out $dsa_prikey dsaparam.pem";
         assert_script_run "openssl dsa -in $dsa_prikey -pubout -out $dsa_pubkey";
 
