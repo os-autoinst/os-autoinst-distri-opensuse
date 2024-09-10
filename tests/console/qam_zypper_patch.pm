@@ -21,7 +21,7 @@ sub run {
         foreach my $item (@packages) {
             script_run("echo $item >> \$XDG_RUNTIME_DIR/install_packages.txt");
         }
-        assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 1400);
+        assert_script_run("xargs --no-run-if-empty zypper -n in -l --force-resolution --solver-focus Update < \$XDG_RUNTIME_DIR/install_packages.txt", 1400);
         return;
     }
 
