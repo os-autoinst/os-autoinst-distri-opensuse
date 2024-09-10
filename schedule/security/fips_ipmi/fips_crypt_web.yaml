@@ -3,6 +3,7 @@ description:    >
     This is for the crypt_web fips tests.
 schedule:
     - boot/boot_to_desktop
+    - console/timesync
     - console/curl_https
     - console/wget_https
     - console/w3m_https

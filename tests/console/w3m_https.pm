@@ -17,7 +17,6 @@ use web_browser qw(setup_web_browser_env run_web_browser_text_based);
 
 sub run {
     select_console("root-console");
-    zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
     zypper_call("--no-refresh --no-gpg-checks in w3m");
     run_web_browser_text_based("w3m", "-dump_head");
 }
