@@ -161,8 +161,11 @@ subtest "[stop_hana]" => sub {
 subtest "[stop_hana] crash" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
     $sles4sap_publiccloud->redefine(wait_hana_node_up => sub { return; });
+    $sles4sap_publiccloud->redefine(serial_term_prompt => sub { return '# '; });
+    $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
 
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();
@@ -172,6 +175,7 @@ subtest "[stop_hana] crash" => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'BABUUUUUUUUM' });
+    $mock_pc->mock('ssh_opts', sub { return '-i .ssh/id_rsa'; });
     $self->{my_instance} = $mock_pc;
 
     $self->stop_hana(method => 'crash');

@@ -242,7 +242,11 @@ sub scp {
     $from =~ s/^remote:/$url/;
     $to =~ s/^remote:/$url/;
 
-    my $ssh_cmd = sprintf('scp %s "%s" "%s"', $self->ssh_opts, $from, $to);
+    # Sanitize ssh_opts by removing -E options which are not accepted by 'scp'
+    my $ssh_opts = $self->ssh_opts;
+    $ssh_opts =~ s/\-E\s[^\s]+//g;
+
+    my $ssh_cmd = sprintf('scp %s "%s" "%s"', $ssh_opts, $from, $to);
 
     return script_run($ssh_cmd, %args);
 }
