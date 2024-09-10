@@ -56,7 +56,7 @@ sub run {
         assert_script_run 'pbl --install';
         assert_script_run 'pbl --config';
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
         select_serial_terminal;
     }
 
@@ -76,8 +76,7 @@ sub run {
         validate_script_output 'pbl --default-settings', qr/kernel|initrd|append/;
     }
     power_action('reboot', textmode => 1);
-    $self->wait_boot;
-
+    $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
 }
 
 sub post_fail_hook {
