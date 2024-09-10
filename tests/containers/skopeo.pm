@@ -15,6 +15,9 @@ use version_utils qw(is_transactional is_vmware);
 use transactional;
 use containers::common qw(install_packages);
 
+# Set a variable for test working directory
+my $workdir = '/tmp/test';
+
 sub run {
     my ($self, $args) = @_;
 
@@ -25,8 +28,8 @@ sub run {
 
     # Set a variable for my remote image
     my $remote_image = 'registry.suse.com/bci/bci-busybox:latest';
-    # Set a variable for my working directory
-    my $workdir = '/tmp/test';
+    # Set a variable for my local image
+    my $local_image = 'localhost:5050/bci-busybox:latest';
 
     # install_packages accounts for SLE-Micro environment with transactional-update
     record_info('Installing packages', 'Install required packages');
@@ -90,10 +93,57 @@ sub run {
     record_info('Compare images', 'Both extracted copies must be identical.');
     assert_script_run("diff -urN $dir1 $dir2", fail_message => 'Copied images are not identical.');
 
-    # Add cleanup routine.
-    record_info('Cleanup', 'Delete copied image directories');
-    assert_script_run("rm -rf $workdir/dir1/ dir2/", fail_message => 'Failed to remove temporary files.');
+    ######### Spin-up an instance of the latest Registry
+    assert_script_run("podman run --rm -d -p 5050:5000 --name skopeo-registry registry.suse.com/suse/registry:latest",
+        fail_message => "Failed to start local registry container");
 
+    ######### Pull the image into a our local repository
+    # skipping tls verification as by default most local registries don't have certificates
+    record_info('Copy Image', 'Copy image from remote repository into the local repository.');
+    validate_script_output("skopeo copy --remove-signatures --dest-tls-verify=0 docker://$remote_image docker://$local_image",
+        sub { m/Writing manifest to image destination/ },
+        fail_message => 'Failed to copy image to local repository.');
+
+    ######### Inspect the local image repository
+    # skipping tls verification as by default most local registries don't have certificates
+    record_info('Inspect Image', 'Inspect an image from the local repository.');
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image",
+        fail_message => 'Failed to inspect local image.');
+
+    ######### Compare remote image to local image
+    # using JQ to omit any repository-specific fields which are expected to be different
+    record_info('Verify Remote Image', 'Inspect remote image and save results.');
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$remote_image | jq .Layers[] >> $workdir/inspect_remote.json",
+        fail_message => 'Failed to inspect remote image.');
+
+    record_info('Verify Local Image', 'Inspect local image and save results.');
+    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq .Layers[] >> $workdir/inspect_local.json",
+        fail_message => 'Failed to inspect local image.');
+
+    record_info('Compare local and remote images', 'Compare local and remote images.');
+    assert_script_run("diff $workdir/inspect_remote.json $workdir/inspect_local.json",
+        fail_message => 'Images are not identical!');
+}
+
+sub cleanup {
+    record_info('Cleanup', 'Delete copied image directories');
+    script_run "rm -rf $workdir";
+
+    record_info('Cleanup Registry', 'Remove local image Registry');
+    script_run "podman stop skopeo-registry";
+    script_run "podman rm -vf skopeo-registry";
+}
+
+sub post_run_hook {
+    my $self = shift;
+    cleanup();
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    cleanup();
+    $self->SUPER::post_fail_hook;
 }
 
 1;
