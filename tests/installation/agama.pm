@@ -8,6 +8,9 @@
 
 # Setting agama live media root password
 # https://github.com/openSUSE/agama/blob/master/doc/live_iso.md#the-access-password
+
+# This test suite handles basic installation of Leap and Tumbleweed with Agama
+# Actions past install-screen with reboot button ara handled separately in agama_reboot.pm
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
 use strict;
@@ -18,15 +21,6 @@ use version_utils qw(is_leap is_sle);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
-
-# Borrowed from grub2_tests.pm
-sub edit_cmdline {
-    send_key 'e';
-    my $jump_down = is_sle('<15-sp4') ? '12' : '8';
-    send_key 'down' for (1 .. $jump_down);
-    send_key_until_needlematch 'grub2-edit-linux-line', 'down';
-    send_key 'end';
-}
 
 sub agama_set_root_password_dialog {
     wait_still_screen 5;
@@ -183,15 +177,6 @@ sub run {
             last;
         }
     }
-
-    assert_screen('agama-congratulations');
-    console('installation')->set_tty(get_agama_install_console_tty());
-    upload_agama_logs();
-    select_console('installation', await_console => 0);
-    # make sure newly booted system does not expect we're still logged in console
-    reset_consoles();
-    assert_and_click('agama-reboot-after-install');
-
 }
 
 =head2 post_fail_hook
@@ -212,5 +197,6 @@ sub post_fail_hook {
     export_healthcheck_basic();
     upload_agama_logs();
 }
+
 
 1;
