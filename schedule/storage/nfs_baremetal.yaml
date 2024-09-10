@@ -6,6 +6,8 @@ description:    >
     versions, features etc. on baremetal.
 vars:
     DESKTOP: textmode
+    MLX_PROTOCOL: 2
+    NFS_MULTIPATH: 1
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
 
@@ -45,6 +47,7 @@ schedule:
     - console/hostname
     - console/system_prepare
     - console/force_scheduled_tasks
+    - kernel/mellanox_config
     - kernel/before_nfs_test
     - '{{nfstest}}'
     - kernel/nfs_stress_ng
