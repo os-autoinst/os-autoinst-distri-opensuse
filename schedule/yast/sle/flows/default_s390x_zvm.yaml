@@ -39,6 +39,7 @@ booting:
 security:
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
+security_configuration: []
 default_systemd_target: []
 installation_settings:
   - installation/launch_installation
