@@ -21,6 +21,7 @@ sub run {
 
     zypper_call('in -l perl-solv perl-Data-Dump');
     my $ex = script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
+    record_info("install_packages.txt", script_output("cat \$XDG_RUNTIME_DIR/install_packages.txt"));
     upload_logs '/tmp/lsmfip.log';
     if ($ex) {
         if (script_output('tail -1 /tmp/lsmfip.log') =~ /was requested but nothing was installed/) {
