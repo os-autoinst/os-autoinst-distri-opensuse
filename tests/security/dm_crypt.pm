@@ -17,7 +17,7 @@ use utils;
 sub run {
     select_serial_terminal;
 
-    my $crypt_pass = "dm#*crypt";
+    my $crypt_pass = "dm#*crypt_iYBJY_rIekeV123";
     my $crypt_tmp = "/tmp/foo";
     my $crypt_dev = "foo";
     my $bench_log = "/tmp/cryptsetup_benchmark.log";
