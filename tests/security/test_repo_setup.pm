@@ -60,9 +60,19 @@ sub run {
                         proceed_on_failure => 1, timeout => 180)
                     !~ m/NVIDIA-Driver.*not found|Successfully registered/);
             }
-
-            zypper_call("--gpg-auto-import-keys refresh");
-            return;
+            # check zypper refresh return code, return if ok
+            return if !script_run("zypper --gpg-auto-import-keys refresh &> zypper_refresh.log");
+            # something happened, so upload the logs and check for known issues
+            upload_logs 'zypper_refresh.log';
+            my @invalid_repos = split(/\n/, script_output "grep 'is invalid' zypper_refresh.log | cut -f2 -d' '");
+            # if NVIDIA repo is invalid, disable it
+            foreach my $invalid_repo (@invalid_repos) {
+                if ($invalid_repo =~ /NVIDIA-Driver/) {
+                    assert_script_run "zypper mr -d " . substr($invalid_repo, 1, -1);    # substr to drop single quotes
+                    return;
+                }
+            }
+            die "Error on zypper refresh";    # raise any other error
         }
 
         # Invalid system credentials, it is possible has been de-registered on
