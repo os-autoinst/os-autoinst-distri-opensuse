@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: cryptsetup
@@ -21,7 +21,7 @@ use version_utils qw(is_sle);
 
 sub run {
     # Strengthen password to avoid password quality check failed on Tumbleweed
-    my $cryptpasswd = $testapi::password . '123';
+    my $cryptpasswd = $testapi::password . '_on-a-sunny-D4Y';
     select_serial_terminal;
 
     # Update related packages including latest systemd
