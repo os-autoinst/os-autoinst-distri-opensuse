@@ -290,7 +290,7 @@ sub run {
         check_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
-        check_screen([qw(start-tw-install start-sle-install network-config-created)], 60);
+        check_screen([qw(start-tw-install start-sle-install network-config-created autoyast-installation)], 60);
         if (match_has_tag('start-tw-install')) {
             record_info("Install TW", "Start installing Tumbleweed...");
         }
@@ -298,7 +298,7 @@ sub run {
             record_info("Install SLE", "Start installing SLE...");
         }
         else {
-            record_info("Install others?", "Pls make sure the product that is expected to be installed.");
+            record_info("Installing", "Pls check if the expected product is being installed.");
         }
         assert_screen([qw(network-config-created loading-installation-system sshd-server-started autoyast-installation)], 300);
         return if get_var('AUTOYAST');
