@@ -110,8 +110,9 @@
         <bridge>yes</bridge>
         <bridge_forwarddelay>15</bridge_forwarddelay>
         <!-- Use specified interface instead of a list to avoid bonding issues which act as router and created illegal duplicate traffic for gateway of its subnet. -->
+	<!-- Turn BRIDGE_STP off as it might lead to network loop and machine will lose cable connection -->
         <bridge_ports><%= $get_var->('BRIDGE_PORT', 'eth0') %></bridge_ports>
-        <bridge_stp>on</bridge_stp>
+        <bridge_stp>off</bridge_stp>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
