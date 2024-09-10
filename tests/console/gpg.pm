@@ -26,7 +26,7 @@ use testapi;
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro);
+use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos);
 use utils qw(zypper_call package_upgrade_check);
 use transactional qw(trup_call process_reboot);
 
@@ -181,7 +181,7 @@ sub run {
     select_console 'root-console';
 
     my $gpg_fips_string = check_var('FIPS_ENABLED', '1') ? "fips-mode:y::Libgcrypt" : "fips-mode:n::";
-    validate_script_output("gpgconf --show-versions", sub { m/.*$gpg_fips_string.*/ }) if is_sle('15+');
+    validate_script_output("gpgconf --show-versions", sub { m/.*$gpg_fips_string.*/ }) if (is_sle('15+') && !is_jeos && !is_public_cloud);
 
     # increase entropy for key generation for s390x on svirt backend
     if (is_s390x && ((is_sle('15+') || is_transactional) && (is_svirt))) {
