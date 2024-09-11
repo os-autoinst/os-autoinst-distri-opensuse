@@ -303,7 +303,7 @@ Upload C</var/log/pk_backend_zypp>.
 
 sub upload_packagekit_logs {
     my ($self) = @_;
-    upload_logs '/var/log/pk_backend_zypp';
+    tar_and_upload_log('/var/log/pk_backend_zypp*', '/tmp/pk_backend_zypp.tar.bz2');
 }
 
 =head2 set_standard_prompt
