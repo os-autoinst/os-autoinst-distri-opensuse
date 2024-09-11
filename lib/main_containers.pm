@@ -142,7 +142,7 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
-    loadtest 'containers/skopeo' unless (is_sle('<15') || is_sle_micro('<5.5'));
+    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     loadtest 'containers/podman_quadlet' if is_tumbleweed;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
@@ -183,7 +183,7 @@ sub load_host_tests_docker {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
-    loadtest('containers/skopeo') unless (is_sle('<15') || is_sle_micro('<5.5'));
+    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
