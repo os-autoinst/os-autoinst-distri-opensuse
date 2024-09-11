@@ -16,18 +16,16 @@ use warnings;
 use testapi;
 use utils;
 use openjdktest;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use registration qw(add_suseconnect_product);
+use version_utils qw(is_sle);
 
 sub run {
     my $self = @_;
 
-    my @java_versions = (17);
-    if (is_sle('<=15-SP5') || is_leap('<=15.5')) {
-        push @java_versions, 11;
-    } elsif (is_sle('>=15-SP6') || is_leap('<=15.6') || is_tumbleweed) {
+    my @java_versions = qw(11 17);
+    if (is_sle '>=15-SP6') {
+        add_suseconnect_product 'sle-module-legacy';
         push @java_versions, 21;
-    } else {
-        die "Unsupported SLE/openSUSE version for this test.";
     }
 
     foreach my $version (@java_versions) {
