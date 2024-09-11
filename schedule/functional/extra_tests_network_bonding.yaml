@@ -1,0 +1,25 @@
+name:           extra_tests_network_bonding
+description:    >
+    Maintainer: vkatkalov.
+    Extra bonding tests
+conditional_schedule:
+  boot:
+    DISTRI:
+      'microos':
+        - microos/disk_boot
+      'sle-micro':
+        - microos/disk_boot
+      'opensuse':
+        - boot/boot_to_desktop
+        - installation/bootloader_start
+      'sle':
+        - boot/boot_to_desktop
+        - installation/bootloader_start
+  bonding:
+    HOSTNAME:
+      'ping':
+        - network/network_bonding
+schedule:
+  - '{{boot}}'
+  - network/network_bonding_setup
+  - '{{bonding}}'
