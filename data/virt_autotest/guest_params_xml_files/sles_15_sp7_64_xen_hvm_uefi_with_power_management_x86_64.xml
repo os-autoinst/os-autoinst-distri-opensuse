@@ -5,7 +5,7 @@
     <guest_version_major>15</guest_version_major>
     <guest_version_minor>7</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
-    <guest_build>gm</guest_build>
+    <guest_build/>
     <host_hypervisor_uri/>
     <host_virt_type>xen</host_virt_type>
     <guest_virt_type>hvm</guest_virt_type>
