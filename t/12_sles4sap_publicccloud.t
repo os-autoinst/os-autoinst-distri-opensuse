@@ -41,6 +41,7 @@ subtest "[sles4sap_cleanup] no arg and all pass" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -60,6 +61,7 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -81,6 +83,7 @@ subtest "[sles4sap_cleanup] no need to clean" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
