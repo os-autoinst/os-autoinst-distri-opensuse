@@ -67,6 +67,7 @@
       <li><a href="#get_x11_console_tty">get_x11_console_tty</a></li>
       <li><a href="#arrays_differ">arrays_differ</a></li>
       <li><a href="#arrays_subset">arrays_subset</a></li>
+      <li><a href="#ensure_testuser_present-Ensure-testuser-UID-1000-is-present-on-the-system">ensure_testuser_present Ensure testuser (UID 1000) is present on the system.</a></li>
       <li><a href="#ensure_serialdev_permissions">ensure_serialdev_permissions</a></li>
       <li><a href="#disable_serial_getty">disable_serial_getty</a></li>
       <li><a href="#exec_and_insert_password">exec_and_insert_password</a></li>
@@ -505,6 +506,10 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <p>Compares two arrays passed by reference to identify if array1 is a subset of array2.</p>
 
 <p>Returns resulting array containing items of array1 that do not exist in array2. If all the items of array1 exist in array2, returns an empty array (which means array1 is a subset of array2).</p>
+
+<h2 id="ensure_testuser_present-Ensure-testuser-UID-1000-is-present-on-the-system">ensure_testuser_present Ensure testuser (UID 1000) is present on the system.</h2>
+
+<p>If the user is not present, it will create it with the default password</p>
 
 <h2 id="ensure_serialdev_permissions">ensure_serialdev_permissions</h2>
 
