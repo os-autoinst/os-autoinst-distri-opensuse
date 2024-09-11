@@ -20,3 +20,4 @@ schedule:
   system_validation:
     - console/validate_md_raid
     - console/validate_raid
+    - console/console_reboot
