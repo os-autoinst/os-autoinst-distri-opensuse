@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_sle_micro);
 
 
 our @EXPORT = qw(self_sign_ca);
@@ -40,7 +40,8 @@ sub self_sign_ca {
     assert_script_run qq(openssl genrsa -out server.key 2048);
     assert_script_run qq(openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.example.com");
     assert_script_run qq(openssl x509 -req -days 3560 -CA myca.pem -CAkey myca.key -CAcreateserial -in server.csr -out server.pem);
-    assert_script_run qq(openssl pkcs12 -export -inkey server.key -in server.pem -out crt.p12 -nodes -name Server-Cert -password pass:"");
+    my $opt = ((is_sle('>=15-SP6') or is_sle_micro('>=6.0')) && check_var('FIPS_ENABLED', '1')) ? "-nomac" : "";
+    assert_script_run qq(openssl pkcs12 -export $opt -inkey server.key -in server.pem -out crt.p12 -nodes -name Server-Cert -password pass:"");
     assert_script_run qq(openssl verify -verbose -CAfile myca.pem server.pem);
 }
 
