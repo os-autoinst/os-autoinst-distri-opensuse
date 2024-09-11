@@ -12,7 +12,7 @@ use Exporter;
 use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
-use testapi qw(get_var);
+use testapi qw(get_var check_var diag);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -73,20 +73,80 @@ sub fips_ker_mode_tests_crypt_core {
     loadtest('console/ssh_cleanup');
 }
 
-
+## main entry point
 sub load_security_tests {
-    if (get_var('TEST') eq 'selinux') {
+    if (check_var 'SECURITY_TEST', 'fips_setup') {
+        load_security_tests_fips_setup();
+    }
+    elsif (check_var 'SECURITY_TEST', 'crypt_core') {
+        load_security_tests_crypt_core();
+    } elsif (check_var 'SECURITY_TEST', 'apparmor') {
+        load_security_tests_apparmor();
+    }
+    if (check_var 'TEST', 'selinux') {
         load_selinux_tests;
     }
-    elsif (get_var('TEST') eq 'container_selinux') {
+    elsif (check_var 'TEST', 'container_selinux') {
         load_container_selinux_tests;
     }
-    elsif (get_var('TEST') eq 'fde_misc') {
+    elsif (check_var 'TEST', 'fde_misc') {
         load_fde_misc_tests;
     }
-    elsif (get_var('TEST') eq 'fips_ker_mode_tests_crypt_core') {
+    elsif (check_var 'TEST', 'fips_ker_mode_tests_crypt_core') {
         fips_ker_mode_tests_crypt_core;
     }
 }
 
+sub load_security_console_prepare {
+    loadtest "console/consoletest_setup";
+    # Add this setup only in product testing
+    loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse && (get_var("BETA") || check_var("FLAVOR", "Online-QR")));
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
+    loadtest "console/openssl_alpn" if (get_var("FIPS_ENABLED") && get_var("JEOS"));
+    loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
+}
 
+# Used by fips-jeos on o3
+sub load_security_tests_crypt_core {
+    load_security_console_prepare();
+
+    if (get_var('FIPS_ENABLED')) {
+        loadtest "fips/openssl/openssl_fips_alglist";
+        loadtest "fips/openssl/openssl_fips_hash";
+        loadtest "fips/openssl/openssl_fips_cipher";
+        loadtest "fips/openssl/dirmngr_setup";
+        loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
+        loadtest "fips/gnutls/gnutls_base_check";
+        loadtest "fips/gnutls/gnutls_server";
+        loadtest "fips/gnutls/gnutls_client";
+    }
+    loadtest "fips/openssl/openssl_tlsv1_3";
+    loadtest "fips/openssl/openssl_pubkey_rsa";
+    # https://bugzilla.suse.com/show_bug.cgi?id=1223200#c2
+    loadtest "fips/openssl/openssl_pubkey_dsa" if (is_sle('<15-SP6') || is_leap('<15.6'));
+    loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
+    loadtest "console/sshd";
+    loadtest "console/ssh_cleanup";
+}
+
+sub load_security_tests_fips_setup {
+    # Setup system into fips mode
+    loadtest "fips/fips_setup";
+}
+
+sub load_security_tests_apparmor {
+    load_security_console_prepare();
+
+    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
+        loadtest "security/apparmor/aa_prepare";
+    }
+    loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
+    loadtest "security/apparmor/aa_complain";
+    loadtest "security/apparmor/aa_genprof";
+    loadtest "security/apparmor/aa_autodep";
+    loadtest "security/apparmor/aa_logprof";
+    loadtest "security/apparmor/aa_easyprof";
+    loadtest "security/apparmor/aa_notify";
+    loadtest "security/apparmor/aa_disable";
+}
