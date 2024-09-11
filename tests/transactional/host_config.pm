@@ -1,11 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2023 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: transactional-update
-# Summary: Host configuration operations (e.g. disable grub timeout,
-#              kernel params, etc)
+# Summary: Host configuration operations
+# * Configure virtio-terminal
+# * Configure bootloader (disable timeout, extra kernel parameters)
+# * Install SUSE CA certificates, if applicable
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
@@ -13,13 +15,17 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
-use utils qw(ensure_ca_certificates_suse_installed zypper_call);
+use utils qw(ensure_ca_certificates_suse_installed zypper_call ensure_serialdev_permissions);
 use version_utils qw(is_bootloader_grub2 is_bootloader_sdboot);
-use serial_terminal 'prepare_serial_console';
+use serial_terminal qw(select_serial_terminal prepare_serial_console);
 use Utils::Architectures 'is_ppc64le';
 
 sub run {
     select_console 'root-console';
+
+    ensure_serialdev_permissions;
+    prepare_serial_console;
+    select_serial_terminal;
 
     # Bootloader configuration
     my $extrabootparams = get_var('EXTRABOOTPARAMS');

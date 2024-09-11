@@ -123,6 +123,7 @@ our @EXPORT = qw(
   upload_y2logs
   enable_persistent_kernel_log
   enable_console_kernel_log
+  ensure_testuser_present
 );
 
 our @EXPORT_OK = qw(
@@ -1587,6 +1588,19 @@ sub arrays_subset {
     return @result;
 }
 
+=head2 ensure_testuser_present
+Ensure testuser (UID 1000) is present on the system.
+
+If the user is not present, it will create it with the default password
+=cut
+
+sub ensure_testuser_present {
+    if (script_run("id 1000") != 0) {
+        assert_script_run("useradd -u 1000 -m $testapi::username");
+        assert_script_run("echo '$testapi::username:$testapi::password' | chpasswd");
+    }
+}
+
 =head2 ensure_serialdev_permissions
 
  ensure_serialdev_permissions();
@@ -1600,6 +1614,9 @@ test user as well as root.
 sub ensure_serialdev_permissions {
     my ($self) = @_;
     return if get_var('ROOTONLY');
+
+    ensure_testuser_present;
+
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec

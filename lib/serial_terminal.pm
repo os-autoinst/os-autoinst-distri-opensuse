@@ -87,6 +87,8 @@ sub prepare_serial_console {
         return;
     }
 
+    ensure_testuser_present;
+
     record_info('getty before', script_output('systemctl | grep serial-getty'));
 
     my $console = 'hvc1';
