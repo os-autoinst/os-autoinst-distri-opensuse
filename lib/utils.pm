@@ -1595,7 +1595,7 @@ If the user is not present, it will create it with the default password
 =cut
 
 sub ensure_testuser_present {
-    if (script_run("id 1000") != 0) {
+    if ($testapi::username ne 'root' && script_run("id $testapi::username") != 0) {
         assert_script_run("useradd -u 1000 -m $testapi::username");
         assert_script_run("echo '$testapi::username:$testapi::password' | chpasswd");
     }
