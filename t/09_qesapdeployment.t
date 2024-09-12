@@ -1196,4 +1196,24 @@ subtest '[qesap_ansible_error_detection] specific error' => sub {
     ok $ret eq 2, "If generic error detected return '$ret' is 2";
 };
 
+subtest '[qesap_test_postfail]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_cluster_logs => sub { return; });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+    my @calls;
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd}; });
+
+    qesap_test_postfail(provider => 'NEMO');
+
+    note("\n  I-->  " . join("\n  I-->  ", @calls));
+
+    my $cmd_chk = pop @calls;
+    ok $cmd_chk eq 'terraform', "Postfail calls $cmd_chk : is expected to be terraform ati very last";
+    $cmd_chk = pop @calls;
+    ok $cmd_chk eq 'ansible', "Postfail calls $cmd_chk : is expected to be ansible before terraform";
+};
+
 done_testing;
