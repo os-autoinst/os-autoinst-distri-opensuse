@@ -113,6 +113,8 @@
       <li><a href="#upload_y2logs">upload_y2logs</a></li>
       <li><a href="#enable_persistent_kernel_log">enable_persistent_kernel_log</a></li>
       <li><a href="#enable_console_kernel_log">enable_console_kernel_log</a></li>
+      <li><a href="#is_disk_image">is_disk_image</a></li>
+      <li><a href="#is_ipxe_with_disk_image">is_ipxe_with_disk_image</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -843,6 +845,18 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>enable_console_kernel_log;</code></pre>
 
 <p>By default only those kernel logs level of which is lower than default value will be printed out onto serial console. If user prefers to have all kernel messages printed out onto serial console, ignore_loglevel, loglvl or guest_loglvl setting should be put onto kernel command line and setting /proc/sys/kernel/printk should have value like 8 which is greater than the highest kernel log level.</p>
+
+<h2 id="is_disk_image">is_disk_image</h2>
+
+<pre><code>is_disk_image;</code></pre>
+
+<p>Identify whether test runs with linux disk image built by kiwi or similar programs. HDD_1 is usually used if disk image is available on openQA server. Test run attempts downloading HDD_1, failure of which leads to failed test run. INSTALL_HDD_IMAGE is introduced for installation with disk image which might be located somewhere else and also more flexibility.</p>
+
+<h2 id="is_ipxe_with_disk_image">is_ipxe_with_disk_image</h2>
+
+<pre><code>is_ipxe_with_disk_image;</code></pre>
+
+<p>Identify whether test runs boots from ipxe and deploy linux disk image built by kiwi or similar programs</p>
 
 
 </body>
