@@ -174,9 +174,12 @@ sub run {
         diag("left total await_install timeout: $timeout");
         if (!$ret) {
             # Handle any error dialogs that could happen
+            send_key "down";    # ensure screen doesn't get black shortly after we hit congratulations
             last;
         }
     }
+    # Let's end at agama-congratulations screens
+    assert_screen('agama-congratulations');
 }
 
 =head2 post_fail_hook

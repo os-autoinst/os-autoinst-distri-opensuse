@@ -64,7 +64,8 @@ sub handle_installer_medium_bootup {
     assert_screen 'inst-bootmenu', 180;
 
     # Layout of live is different from installation media
-    my $key = is_livecd() ? 'down' : 'up';
+    # Agama has same layout of live
+    my $key = is_livecd() || get_var("AGAMA") ? 'down' : 'up';
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', $key;
     send_key 'ret';
 

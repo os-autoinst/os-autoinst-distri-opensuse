@@ -52,7 +52,7 @@ sub run {
     # workaround for lack of disable bootloader timeout
     # https://github.com/openSUSE/agama/issues/1594
     # simply send space until we hit grub2
-    send_key_until_needlematch("bootloader-grub2", 'spc', 50, 3);
+    send_key_until_needlematch("grub2", 'spc', 50, 3);
 
 }
 

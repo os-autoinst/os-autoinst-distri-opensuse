@@ -826,7 +826,8 @@ sub activate_console {
     # Select configure serial and redirect to root-ssh instead
     return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|install-shell|log-console)$/);
     if ($console eq 'install-shell') {
-        if (get_var("LIVECD")) {
+        # Agama behaves similarly as LIVE but we set a fixed password there
+        if (get_var("LIVECD") && !get_var('AGAMA')) {
             # LIVE CDs do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             my $vt = get_root_console_tty();
             assert_screen "tty${vt}-selected", 10;
@@ -1009,3 +1010,4 @@ sub console_selected {
 }
 
 1;
+
