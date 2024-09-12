@@ -35,6 +35,17 @@ sub skip_testrun {
     # Skip Spack on SLES12-SP5 (https://bugzilla.suse.com/show_bug.cgi?id=1224345)
     return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
 
+    # Skip Kiwi on RES, CentOS, Ubuntu
+    return 1 if (
+        check_var('BCI_IMAGE_NAME', 'kiwi') &&
+        (
+            check_var('HOST_VERSION', 'LIBERTY9') ||
+            check_var('HOST_VERSION', 'centos') ||
+            check_var('HOST_VERSION', 'ubuntu') ||
+            check_var('HOST_VERSION', 'res8')
+        )
+    );
+
     return 0;
 }
 
