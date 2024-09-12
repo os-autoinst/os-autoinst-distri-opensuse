@@ -1344,7 +1344,6 @@ sub qesap_aws_get_region_subnets {
     my (%args) = @_;
     croak 'Missing mandatory vpc_id argument' unless $args{vpc_id};
 
-    # Get the VPC tag Workspace
     my $cmd = join(' ', 'aws ec2 describe-subnets',
         '--filters', "\"Name=vpc-id,Values=$args{vpc_id}\"",
         '--query "Subnets[].{AZ:AvailabilityZone,SI:SubnetId}"',
@@ -1379,10 +1378,12 @@ sub qesap_aws_get_vpc_id {
     my (%args) = @_;
     croak 'Missing mandatory resource_group argument' unless $args{resource_group};
 
+    # tag names has to be aligned to
+    # https://github.com/SUSE/qe-sap-deployment/blob/main/terraform/aws/infrastructure.tf
     my $cmd = join(' ', 'aws ec2 describe-instances',
         '--region', get_required_var('PUBLIC_CLOUD_REGION'),
         '--filters',
-        '"Name=tag-key,Values=Workspace"',
+        '"Name=tag-key,Values=workspace"',
         "\"Name=tag-value,Values=$args{resource_group}\"",
         '--query',
         # the two 0 index result in select only the vpc of vmhana01
@@ -1586,7 +1587,8 @@ sub qesap_aws_get_mirror_tg {
 
 =head3 qesap_aws_get_vpc_workspace
 
-    Get the VPC tag Workspace
+    Get the VPC tag workspace defined in
+    https://github.com/SUSE/qe-sap-deployment/blob/main/terraform/aws/infrastructure.tf
 
 =over 1
 
@@ -1602,14 +1604,14 @@ sub qesap_aws_get_vpc_workspace {
     return qesap_aws_filter_query(
         cmd => 'describe-vpcs',
         filter => "\"Name=vpc-id,Values=$args{vpc_id}\"",
-        query => '"Vpcs[*].Tags[?Key==\`Workspace\`].Value"'
+        query => '"Vpcs[*].Tags[?Key==\`workspace\`].Value"'
     );
 }
 
 =head3 qesap_aws_get_routing
 
     Get the Routing table: searching Routing Table with external connection
-    and get the Workspace tag
+    and get the RouteTableId
 
 =over 1
 

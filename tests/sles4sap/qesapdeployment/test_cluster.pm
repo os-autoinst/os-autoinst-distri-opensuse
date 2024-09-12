@@ -67,6 +67,7 @@ sub run {
         if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
             my $deployment_name = qesap_calculate_deployment_name('qesapval');
             my $vpc_id = qesap_aws_get_vpc_id(resource_group => $deployment_name);
+            die "No vpc_id in this deployment" if $vpc_id eq 'None';
             my $ibs_mirror_target_ip = get_var('QESAPDEPLOY_IBSMIRROR_IP_RANGE');    # '10.254.254.240/28'
             die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id);
             qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
