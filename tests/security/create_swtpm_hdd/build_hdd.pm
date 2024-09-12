@@ -21,7 +21,8 @@ sub run {
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in wget");
+    # gnutls is needed for certtool, as later tests will create a self signed CA
+    zypper_call("in wget gnutls");
 
     # Install tpm and tpm2 related packages, then we can verify the swtpm function
     zypper_call("in tpm-tools tpm-quote-tools tpm2-0-tss tpm2-tss-engine tpm2.0-abrmd tpm2.0-tools trousers");
