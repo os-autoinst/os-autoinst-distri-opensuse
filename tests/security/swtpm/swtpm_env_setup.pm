@@ -27,7 +27,7 @@ sub run {
     }
 
     # Install the required packages for libvirt environment setup
-    zypper_call("in qemu libvirt swtpm virt-install virt-manager wget");
+    zypper_call("in qemu libvirt swtpm virt-install virt-manager wget gnutls");
 
     # Start libvirtd daemon and start the default libvirt network
     assert_script_run("systemctl start libvirtd");
