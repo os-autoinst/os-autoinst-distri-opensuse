@@ -40,7 +40,7 @@ sub run {
 
     # Download the pre-installed guest images and sample xml files
     my $vm_name = 'nested-L2-vm';
-    my $vm_L2 = get_required_var('HDD_L2');
+    my $vm_L2 = get_required_var('HDD_2');
     assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$vm_L2"), 900);
     assert_script_run("mv $image_path/$vm_L2 $image_path/$vm_name.qcow2");
     assert_script_run("wget --quiet " . data_url("cc/$vm_name.xml") . " -P $image_path");
