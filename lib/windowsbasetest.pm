@@ -174,10 +174,19 @@ sub wait_boot_windows {
         $self->run_in_powershell(cmd => 'exit', code => sub { });
     } else {
         record_info("Win boot", "Windows started properly");
-        assert_screen ['finish-setting', 'windows-desktop'], 240;
-        if (match_has_tag 'finish-setting') {
-            assert_and_click 'finish-setting';
+        assert_screen ['finish-setting', 'windows-desktop', 'obsolete-build-aarch64'], 240;
+        if (is_aarch64) {
+            # poo#166205 --> A pop-up for obsolete build has shown up. As we're in
+            # an early development state without access to official ARM ISOs, we
+            # must just click the pop-up and continue the test run
+            if (match_has_tag 'obsolete-build-aarch64') {
+                click_lastmatch;
+                # The 'finish-setting' screen stays after closing the pop-up so
+                # there's need to check screen again
+                assert_screen ['finish-setting', 'windows-desktop'];
+            }
         }
+        click_lastmatch if (match_has_tag 'finish-setting');
     }
 }
 
