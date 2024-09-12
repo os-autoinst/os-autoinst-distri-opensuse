@@ -189,7 +189,6 @@ sles4sap_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE_I
 # Azure storage account name
 storage_account_name = "%STORAGE_ACCOUNT_NAME%"
 # Azure storage account secret key (key1 or key2)
-storage_account_key = "%STORAGE_ACCOUNT_KEY%"
 
 # 'hana_inst_master' is a Azure Storage account share where HANA installation files (extracted or not) are stored
 # `hana_inst_master` must be used always! It is used as the reference path to the other variables
@@ -319,7 +318,7 @@ drbd_image_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE
 drbd_enabled = false
 
 # Each drbd cluster host IP address (sequential order). If it's not set the addresses will be auto generated from the provided vnet address range
-drbd_ips = ["10.74.1.21", "10.74.1.22"]
+drbd_ips         = ["10.74.1.21", "10.74.1.22"]
 drbd_cluster_vip = "10.74.1.23"
 
 # NFS share mounting point and export. Warning: Since cloud images are using cloud-init, /mnt folder cannot be used as standard mounting point folder
