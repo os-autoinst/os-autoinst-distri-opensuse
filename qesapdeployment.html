@@ -93,6 +93,7 @@
       <li><a href="#qesap_terraform_clean_up_retry">qesap_terraform_clean_up_retry</a></li>
       <li><a href="#qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</a></li>
       <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
+      <li><a href="#qesap_test_postfail">qesap_test_postfail</a></li>
     </ul>
   </li>
 </ul><h1>lib/qesapdeployment.pm</h1>
@@ -1239,6 +1240,25 @@ Return:
 <dl>
 
 <dt id="ERROR_LOG---error-log-filename1"><b>ERROR_LOG</b> - error log filename</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="qesap_test_postfail">qesap_test_postfail</h2>
+
+<pre><code>qesap_test_postfail()
+
+Post fail tasks suitable for post_fail_hook of the test modules.
+This API is mainly designed for qesap regresstion test modules.</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---cloud-provider-name-as-from-PUBLIC_CLOUD_PROVIDER-setting1"><b>PROVIDER</b> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+<dt id="NET_PEERING_ID---ID-of-the-network-peering-for-Azure-it-has-to-be-the-name-of-the-Resource-Group-of-the-mirror-for-AWS-it-has-to-be-the-something-different-from-an-empty-string-for-example-the-setting-about-the-IP-RANGE"><b>NET_PEERING_ID</b> - ID of the network peering, for Azure it has to be the name of the Resource Group of the mirror, for AWS it has to be the something different from an empty string, for example the setting about the IP RANGE.</dt>
 <dd>
 
 </dd>
