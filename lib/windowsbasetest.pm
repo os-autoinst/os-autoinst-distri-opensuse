@@ -175,18 +175,30 @@ sub wait_boot_windows {
     } else {
         record_info("Win boot", "Windows started properly");
         assert_screen ['finish-setting', 'windows-desktop', 'obsolete-build-aarch64'], 240;
-        if (is_aarch64) {
-            # poo#166205 --> A pop-up for obsolete build has shown up. As we're in
-            # an early development state without access to official ARM ISOs, we
-            # must just click the pop-up and continue the test run
-            if (match_has_tag 'obsolete-build-aarch64') {
-                click_lastmatch;
-                # The 'finish-setting' screen stays after closing the pop-up so
-                # there's need to check screen again
-                assert_screen ['finish-setting', 'windows-desktop'];
-            }
+        # poo#166205 --> A pop-up for obsolete build has shown up. As we're in
+        # an early development state without access to official ARM ISOs, we
+        # must just click the pop-up and continue the test run
+        if ((is_aarch64) && (match_has_tag 'obsolete-build-aarch64')) {
+            click_lastmatch;
+            # The 'finish-setting' screen stays after closing the pop-up so
+            # there's need to check screen again
+            assert_screen ['finish-setting', 'windows-desktop'];
         }
         click_lastmatch if (match_has_tag 'finish-setting');
+
+        # As the aarch64 image is being created manually by now, these
+        # commands are not added.
+        # This piece of code should be removed if the image creation is
+        # automated at some point.
+        if (is_aarch64) {
+            $self->open_powershell_as_admin;
+            $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows" /v Explorer');
+            $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1');
+            $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0');
+            $self->run_in_powershell(cmd => 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name WUAUHandoffEnabled -Value 0');
+            $self->run_in_powershell(cmd => '$port.close()', code => sub { });
+            $self->run_in_powershell(cmd => 'exit', code => sub { });
+        }
     }
 }
 
