@@ -17,12 +17,13 @@ use containers::common qw(install_packages);
 
 # Set a variable for test working directory
 my $workdir = '/tmp/test';
+my $runtime = "";
 
 sub run {
-    my ($self, $args) = @_;
-
     # Required packages
     my @packages = qw(skopeo jq);
+    my ($self, $args) = @_;
+    $runtime = $args->{runtime};
 
     select_serial_terminal() unless is_vmware;    # Select most suitable text console
 
@@ -94,7 +95,7 @@ sub run {
     assert_script_run("diff -urN $dir1 $dir2", fail_message => 'Copied images are not identical.');
 
     ######### Spin-up an instance of the latest Registry
-    assert_script_run("podman run --rm -d -p 5050:5000 --name skopeo-registry registry.suse.com/suse/registry:latest",
+    assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry registry.suse.com/suse/registry:latest",
         fail_message => "Failed to start local registry container");
 
     ######### Pull the image into a our local repository
@@ -126,24 +127,23 @@ sub run {
 }
 
 sub cleanup {
+    my $runtime = shift;
     record_info('Cleanup', 'Delete copied image directories');
     script_run "rm -rf $workdir";
 
     record_info('Cleanup Registry', 'Remove local image Registry');
-    script_run "podman stop skopeo-registry";
-    script_run "podman rm -vf skopeo-registry";
+    script_run "$runtime stop skopeo-registry";
+    script_run "$runtime rm -vf skopeo-registry";
 }
 
 sub post_run_hook {
-    my $self = shift;
-    cleanup();
-    $self->SUPER::post_run_hook;
+    my ($self) = @_;
+    cleanup($self->{runtime});
 }
 
 sub post_fail_hook {
-    my $self = shift;
-    cleanup();
-    $self->SUPER::post_fail_hook;
+    my ($self) = @_;
+    cleanup($self->{runtime});
 }
 
 1;
