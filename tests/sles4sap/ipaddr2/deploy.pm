@@ -27,6 +27,11 @@ sub run {
 
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
+    # remove configuration file created by the PC factory
+    # as it interfere with ssh behavior.
+    # in particular it has setting about verbosity that
+    # break test steps that relay to remote ssh comman output
+    assert_script_run('rm ~/.ssh/config');
 
     my %deployment = (
         region => $provider->provider_client->region,
