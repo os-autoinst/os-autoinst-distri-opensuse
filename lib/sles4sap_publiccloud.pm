@@ -369,9 +369,12 @@ sub stop_hana {
     my %commands = (
         stop => 'HDB stop',
         kill => 'HDB kill -x',
+        # -b is for running the command in background
         # echo b > /proc/sysrq-trigger is for crashing the remote node
+        # sleep 5 is to give time sudo to put the command execution in background and
+        # to ssh to return, both before to trigger the crash
         # This also work in conjunction with ssh -fn arguments
-        crash => 'sudo su -c "echo b > /proc/sysrq-trigger &"'
+        crash => 'sudo -b sh -c "sleep 5; echo b > /proc/sysrq-trigger"'
     );
     croak("HANA stop method '$args{method}' unknown.") unless $commands{$args{method}};
 
@@ -400,13 +403,21 @@ sub stop_hana {
             cmd => $cmd,
             # This timeout is to ensure the run_ssh_command is executed in a reasonable amount of time.
             # It is not about how much time the crash is expected to take in the SUT.
-            # Also consider that internally run_ssh_command is using this value for two different guard mechanisms.
+            # Expect run_ssh_command to return immediately, and 10 has nothing to do with the value of sleep 5 executed remotely.
+            # Also consider that internally run_ssh_command is using this value for two different guard mechanism.
             timeout => 10,
             # This test does not care about output,
             # setting this in conjunction with timeout >0 result in the internal implementation of
             # run_ssh_command to use script_run
             rc_only => 1,
             ssh_opts => $crash_ssh_opts);
+
+        # crash trigger command:
+        #  - is executed in background
+        #  - has sleep 5 executed remotely.
+        # run_ssh_command return immediately, so before the remote system execute the crash command.
+        # So the test execution has to sleep now, waiting that remote system has time to execute the crash procedure.
+        sleep 10;
 
         # Wait till ssh disappear
         record_info("Wait ssh disappear start");
