@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap_publiccloud_basetest.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#import_context">import_context</a></li>
+      <li><a href="#set_cli_ssh_opts">set_cli_ssh_opts</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap_publiccloud_basetest.pm</h1>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<pre><code>Basetest class for SLES for SAP Applications tests in Public Cloud.</code></pre>
+
+<h2 id="cleanup">cleanup</h2>
+
+<pre><code>$self-&gt;cleanup(%args)</code></pre>
+
+<p>Cleanup method intended to be called at the end of tests or in <code>post_fail_hook</code>. Mostly a wrapper around <code>sles4sap_publiccloud::sles4sap_cleanup</code> which will:</p>
+
+<ul>
+
+<li><p>Remove network peerings</p>
+
+</li>
+<li><p>Run ansible de-registration playbooks</p>
+
+</li>
+<li><p>Run <code>terraform destroy</code></p>
+
+</li>
+</ul>
+
+<p>Unless any of these has been executed previously.</p>
+
+<h2 id="import_context">import_context</h2>
+
+<pre><code>$self-&gt;import_context(%run_args)</code></pre>
+
+<p>Import into <code>$self</code> the class instances context passed via <code>%run_args</code>, and record the information in the test results.</p>
+
+<h2 id="set_cli_ssh_opts">set_cli_ssh_opts</h2>
+
+<pre><code>$self-&gt;set_cli_ssh_opts();
+$self-&gt;set_cli_ssh_opts(&#39;&#39;);
+$self-&gt;set_cli_ssh_opts(&quot;-4 -o LogLevel=ERROR -E $logfile&quot;);</code></pre>
+
+<p>Set command line SSH options in the instance stored in <code>$self-&gt;{my_instance}</code>. It takes as an argument a string with the options in a manner that would be understood by <b>ssh</b>, and if no argument is provided, uses the following defaults:</p>
+
+<ul>
+
+<li><p><code>-E /var/tmp/ssh_sut.log</code>: save logging to <b>/var/tmp/ssh_sut.log</b>.</p>
+
+</li>
+<li><p><code>-F none</code>: do not use SSH configuration files.</p>
+
+</li>
+<li><p><code>-o LogLevel=DEBUG3</code>: set log level to <b>DEBUG3</b>.</p>
+
+</li>
+<li><p><code>-o PasswordAutentication=no</code>: do not allow authentication via password.</p>
+
+</li>
+<li><p><code>-i &#39;get_ssh_private_key_path()&#39;</code>: use the generated private SSH key</p>
+
+</li>
+</ul>
+
+<p><b>Note</b>: if the method receives an empty string, no SSH options will be set.</p>
+
+
+</body>
+
+</html>
+
+
