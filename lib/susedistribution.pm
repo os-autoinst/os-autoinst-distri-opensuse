@@ -635,7 +635,7 @@ sub init_consoles {
                 'vnc-base',
                 {
                     hostname => $hostname,
-                    port => 5902,
+                    port => 5901,
                     password => $testapi::password
                 });
         }
