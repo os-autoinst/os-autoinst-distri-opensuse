@@ -22,7 +22,8 @@ use List::MoreUtils qw(uniq);
 use Carp qw(croak);
 use YAML::PP;
 use testapi;
-use utils 'file_content_replace';
+use utils qw(file_content_replace);
+use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version);
 use hacluster;
 use qesapdeployment;
@@ -369,13 +370,14 @@ sub stop_hana {
         # Crash needs to be executed as root and wait for host reboot
         $self->{my_instance}->wait_for_ssh(timeout => $timeout);
         $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
-        # Close SSH mux file before Crash test
-        $self->{my_instance}->run_ssh_command(cmd => " ", timeout => "0", ssh_opts => "-O exit");
+        # Try only extending ssh_opts
+        my $ssh_opts = $self->{my_instance}->ssh_opts . ' -o ServerAliveInterval=2';
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
             timeout => "0",
-            # Try only extending ssh_opts
-            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
+            ssh_opts => $ssh_opts,
             %args);
+        # Send a Ctrl-C to unblock the terminal session if no prompt is seen in 30 seconds
+        type_string('', terminate_with => 'ETX') unless (wait_serial(serial_term_prompt()));
         # It is better to wait till ssh disappear
         record_info("Wait ssh disappear start");
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
