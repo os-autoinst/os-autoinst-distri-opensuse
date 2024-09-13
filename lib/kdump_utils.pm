@@ -302,8 +302,15 @@ sub activate_kdump_without_yast {
 }
 
 sub activate_kdump_transactional {
-    my $crash_memory = determine_crash_memory;
-    assert_script_run("transactional-update --continue setup-kdump --crashkernel=0,$crash_memory");
+    if (get_var('CRASH_MEMORY')) {
+        # show and get crashkernel memory
+        my $crash_memory = determine_crash_memory;
+        assert_script_run("transactional-update --continue setup-kdump --crashkernel=${crash_memory},0");
+    } else {
+        # show default craskernel memory
+        determine_crash_memory;
+        assert_script_run("transactional-update --continue setup-kdump");
+    }
 }
 
 sub kdump_is_active {
