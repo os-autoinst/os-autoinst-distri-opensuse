@@ -153,7 +153,6 @@ sub post_fail_hook {
         diag('Skip post fail', "Variable 'QESAP_NO_CLEANUP_ON_FAILURE' defined.");
         return;
     }
-    qesap_cluster_logs();
     eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 }
 

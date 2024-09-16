@@ -1327,9 +1327,6 @@ sub qesap_cluster_logs {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory(provider => $provider);
 
-    # ETX is the same as pressing Ctrl-C on a terminal,
-    # make sure the serial terminal is NOT blocked
-    type_string('', terminate_with => 'ETX');
     if (script_run("test -e $inventory", 60) == 0)
     {
         foreach my $host ('hana[0]', 'hana[1]') {

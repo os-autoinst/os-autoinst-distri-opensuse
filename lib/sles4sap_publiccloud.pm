@@ -165,8 +165,6 @@ sub get_promoted_hostname {
 
 sub sles4sap_cleanup {
     my ($self, %args) = @_;
-    # If there's an open ssh connection to the VMs, return to host console first
-    select_host_console(force => 1);
     record_info(
         'Cleanup',
         join(' ',
@@ -174,14 +172,23 @@ sub sles4sap_cleanup {
             'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
+    # Do not run destroy if already executed
+    return 0 if ($args{cleanup_called});
+
+    # If there's an open ssh connection to the VMs, return to host console first
+    select_host_console(force => 1);
+
+    # ETX is the same as pressing Ctrl-C on a terminal,
+    # make sure the serial terminal is NOT blocked
+    type_string('', terminate_with => 'ETX');
+
+    qesap_cluster_logs();
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
     if ($args{network_peering_present}) {
         delete_network_peering();
     }
 
-    # Do not run destroy if already executed
-    return 0 if ($args{cleanup_called});
     my @cmd_list;
 
     # Only run the Ansible de-register if Ansible has been executed
