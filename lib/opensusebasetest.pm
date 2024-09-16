@@ -461,7 +461,7 @@ sub wait_grub {
     elsif (match_has_tag('encrypted-disk-password-prompt-grub') || match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
         unlock_bootloader;
-        assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
+        assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90)) unless check_var('STIG_REMEDIATION', '1');
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }

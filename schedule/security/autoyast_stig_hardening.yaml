@@ -12,8 +12,7 @@ schedule:
   - autoyast/installation
   - installation/grub_test
   - security/grub_auth/grub_authentication
-  - installation/boot_encrypt
-  - installation/first_boot
+  - security/boot_disk
   - security/stig/upload_stig_logs
   - security/stig/validate_stig_rules_applied_by_yast
 test_data:
