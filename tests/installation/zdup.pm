@@ -61,6 +61,11 @@ sub run {
     my $defaultrepo;
     if (get_var('SUSEMIRROR')) {
         $defaultrepo = "http://" . get_var("SUSEMIRROR");
+    } elsif (get_var('AGAMA')) {
+        # We no longer have offline media with Agama, zypper dup against the product repo
+        my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
+        my $repo = get_var('REPO_0');
+        $defaultrepo = "$host/assets/repo/$repo";
     }
     else {
         #SUSEMIRROR not set, zdup from ftp source for online migration
