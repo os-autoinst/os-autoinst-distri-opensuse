@@ -28,6 +28,7 @@ schedule:
   - '{{qam_incident}}'
   - ha/await_upgrade_or_update
   - ha/cluster_state_mgmt
+  - qam/incident_to_maintenance_repos
   - migration/online_migration/zypper_patch
   - ha/check_cluster_integrity
   - ha/check_hawk
