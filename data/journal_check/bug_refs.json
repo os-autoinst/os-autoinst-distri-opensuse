@@ -632,6 +632,13 @@
         },
         "type": "bug"
     },
+    "bsc#1230314": {
+        "description": "kernel: SED: plpks not available",
+	"products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "ignore"
+    },
     "Truncating stdout of dmi_memory_id": {
         "description": "Truncating stdout of 'dmi_memory_id' up to .* byte",
         "products": {
