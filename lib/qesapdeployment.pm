@@ -1246,6 +1246,7 @@ sub qesap_upload_crm_report {
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
+        timeout => bmwqemu::scale_timeout(180),
         failok => $args{failok});
     my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},

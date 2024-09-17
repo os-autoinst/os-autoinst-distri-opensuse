@@ -100,7 +100,6 @@ sub run {
 
 sub post_run_hook {
     my ($self) = shift;
-    qesap_cluster_logs();
     $self->SUPER::post_run_hook;
 }
 

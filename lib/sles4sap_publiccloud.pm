@@ -151,6 +151,9 @@ sub get_promoted_hostname {
 =head2 sles4sap_cleanup
 
     Clean up Network peering and qesap deployment
+    This method does not internally die and try to execute
+    terraform destroy in any case.
+    Return 0 if no internal error.
 
 =over 3
 
@@ -172,8 +175,10 @@ sub sles4sap_cleanup {
             'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
+    my $ret = 0;
+
     # Do not run destroy if already executed
-    return 0 if ($args{cleanup_called});
+    return $ret if ($args{cleanup_called});
 
     # If there's an open ssh connection to the VMs, return to host console first
     select_host_console(force => 1);
@@ -194,7 +199,7 @@ sub sles4sap_cleanup {
     # Only run the Ansible de-register if Ansible has been executed
     push(@cmd_list, 'ansible') if ($args{ansible_present});
 
-    # Terraform destroy can be executed in any case
+    # Terraform destroy can and must be executed in any case
     push(@cmd_list, 'terraform');
     for my $command (@cmd_list) {
         record_info('Cleanup', "Executing $command cleanup");
@@ -223,12 +228,11 @@ sub sles4sap_cleanup {
                 "Cleanup $command FAILED",
                 result => 'fail'
             ) if $_ == 3 && $cleanup_cmd_rc[0];
-            return 0 if $_ == 3 && $cleanup_cmd_rc[0];
+            $ret = 1 if $_ == 3 && $cleanup_cmd_rc[0];
         }
     }
-    record_info('Cleanup finished');
-    return 1;
-
+    record_info('Cleanup finished', "ret:$ret");
+    return $ret;
 }
 
 =head2 get_hana_topology
