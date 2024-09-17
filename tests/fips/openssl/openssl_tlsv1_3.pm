@@ -16,19 +16,43 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use apachetest;
+use version_utils qw (is_sle is_sle_micro is_transactional package_version_cmp);
+use security::openssl_misc_utils;
 
-sub run {
-    select_serial_terminal;
+sub run_fips_tls1_3_tests {
+    my $openssl_binary = shift // "openssl";
+
     setup_apache2(mode => 'SSL');
 
     # List the supported ciphers and make sure TLSV1.3 is there
-    validate_script_output 'openssl ciphers -v', sub { m/TLSv1\.3.*/xg };
+    validate_script_output "$openssl_binary ciphers -v", sub { m/TLSv1\.3.*/xg };
 
     # Establish a transparent connection to apache server to check the TLS protocol
-    validate_script_output 'echo | openssl s_client -connect localhost:443 2>&1', sub { m/TLSv1\.3.*/xg };
+    validate_script_output "echo | $openssl_binary s_client -connect localhost:443 2>&1", sub { m/TLSv1\.3.*/xg };
 
     # Transfer a URL to check the TLS protocol
     validate_script_output 'curl -Ivvv  https://www.google.com 2>&1', sub { m/TLSv1\.3.*/xg };
+}
+
+sub run {
+    select_serial_terminal;
+    install_openssl;
+    my $ver = get_openssl_full_version;
+    record_info("Testing OpenSSL $ver");
+    run_fips_tls1_3_tests;
+    if (is_sle '>=15-SP6') {
+        $ver = get_openssl_full_version(OPENSSL1_BINARY);
+        record_info("Testing OpenSSL $ver");
+        run_fips_tls1_3_tests();
+    }
+}
+
+sub test_flags {
+    return {
+        #poo160197 workaround since rollback seems not working with swTPM
+        no_rollback => is_transactional ? 1 : 0,
+        fatal => 1
+    };
 }
 
 1;
