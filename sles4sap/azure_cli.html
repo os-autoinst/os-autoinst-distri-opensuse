@@ -978,15 +978,29 @@
 
 <p>Creates new disk device either by specifying <b>size_gb</b> or by cloning another disk device using argument <b>source</b>. Arguments <b>size_gb</b> and <b>source</b> are mutually exclusive.</p>
 
-<p><b>name</b> New disk name</p>
+<dl>
 
-<p><b>resource_group</b> Existing resource group name.</p>
+<dt id="name-New-disk-name"><b>name</b> New disk name</dt>
+<dd>
 
-<p><b>source</b> Create disk by cloning snapshot</p>
+</dd>
+<dt id="resource_group-Existing-resource-group-name"><b>resource_group</b> Existing resource group name.</dt>
+<dd>
 
-<p><b>size_gb</b> New disk size</p>
+</dd>
+<dt id="source-Create-disk-by-cloning-snapshot"><b>source</b> Create disk by cloning snapshot</dt>
+<dd>
 
-<p><b>tags</b> Additional tags to add to the disk resource. key=value pairs must be separated by empty space. Example: az_disk_create(tags=&gt;&quot;some_tag=some_value another_tag=another_value&quot;)</p>
+</dd>
+<dt id="size_gb-New-disk-size"><b>size_gb</b> New disk size</dt>
+<dd>
+
+</dd>
+<dt id="tags-Additional-tags-to-add-to-the-disk-resource.-key-value-pairs-must-be-separated-by-empty-space.-Example:-az_disk_create-tags-some_tag-some_value-another_tag-another_value"><b>tags</b> Additional tags to add to the disk resource. key=value pairs must be separated by empty space. Example: az_disk_create(tags=&gt;&quot;some_tag=some_value another_tag=another_value&quot;)</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="az_resource_delete">az_resource_delete</h2>
 
@@ -994,13 +1008,25 @@
 
 <p>Deletes resource from specified resource group. Single resource can be deleted by specifying <b>name</b> or list of resource IDs delimited by empty space using argument <b>ids</b>. Arguments <b>name</b> and <b>ids</b> are mutually exclusive.</p>
 
-<p><b>resource_group</b> Existing resource group name.</p>
+<dl>
 
-<p><b>name</b> Name of the resource to delete</p>
+<dt id="resource_group-Existing-resource-group-name1"><b>resource_group</b> Existing resource group name.</dt>
+<dd>
 
-<p><b>ids</b> list of resource IDs to delete</p>
+</dd>
+<dt id="name-Name-of-the-resource-to-delete"><b>name</b> Name of the resource to delete</dt>
+<dd>
 
-<p><b>timeout</b> Timeout for az command. Default: 60</p>
+</dd>
+<dt id="ids-list-of-resource-IDs-to-delete"><b>ids</b> list of resource IDs to delete</dt>
+<dd>
+
+</dd>
+<dt id="timeout-Timeout-for-az-command.-Default:-60"><b>timeout</b> Timeout for az command. Default: 60</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
