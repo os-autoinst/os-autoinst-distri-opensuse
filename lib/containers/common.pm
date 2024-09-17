@@ -48,7 +48,7 @@ sub install_podman_when_needed {
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os =~ /centos|rhel/) {
-            script_retry "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
+            script_retry "dnf -y install @pkgs --nobest --allowerasing", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
             script_retry("apt-get -y install @pkgs", timeout => 300);
         } else {
@@ -130,8 +130,8 @@ sub install_buildah_when_needed {
             script_retry("apt-get update", timeout => 900);
             script_retry("apt-get -y install buildah", timeout => 300);
         } elsif ($host_os eq 'rhel') {
-            script_retry('yum update -y', timeout => 300);
-            script_retry('yum install -y buildah', timeout => 300);
+            script_retry('dnf update -y', timeout => 300);
+            script_retry('dnf install -y buildah', timeout => 300);
         } else {
             activate_containers_module if $host_os =~ 'sle';
             zypper_call('in buildah', timeout => 300);

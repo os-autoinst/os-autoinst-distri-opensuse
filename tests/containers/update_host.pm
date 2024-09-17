@@ -38,9 +38,9 @@ sub run {
         script_retry("apt-get update -y", timeout => $update_timeout);
     } elsif ($host_distri eq 'centos') {
         assert_script_run("dhclient -v");
-        script_retry("yum update -y --nobest", timeout => $update_timeout);
+        script_retry("dnf update -y --nobest", timeout => $update_timeout);
     } elsif ($host_distri eq 'rhel') {
-        script_retry("yum update -y", timeout => $update_timeout);
+        script_retry("dnf update -y", timeout => $update_timeout);
         $self->disable_selinux();
     } else {
         die("Host OS not supported");
