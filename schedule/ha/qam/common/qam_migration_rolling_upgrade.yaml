@@ -96,6 +96,7 @@ schedule:
   - ha/cluster_state_mgmt
   - migration/online_migration/zypper_migration
   - '{{register_ltss}}'
+  - qam/incident_to_maintenance_repos
   - migration/online_migration/post_migration
   - '{{cluster_boot_mgmt}}'
   - '{{console_reboot}}'
