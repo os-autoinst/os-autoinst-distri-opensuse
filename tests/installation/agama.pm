@@ -161,10 +161,10 @@ sub run {
     # confirmation dialog if we keep default partitioning layout
     assert_and_click('agama-confirm-installation');
 
-    # online-only installation  it might take long based on connectivity
-    # We're using wrong repo for testing
-    # BUG tracker: https://github.com/openSUSE/agama/issues/1474
-    # copied from await_install.pm
+    # ensure that the installation started before matching agama-congratulations
+    # https://github.com/openSUSE/agama/issues/1616
+    assert_screen('agama-install-in-progress');
+
     my $timeout = 2400;    # 40 minutes timeout for installation process
                            # Await installation with a timeout
     while ($timeout > 0) {
