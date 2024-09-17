@@ -20,7 +20,7 @@ sub run {
     # default timeout in grub2 is set to 10s
     # Sometimes, machines tend to stall when trying to match grub2
     # this leads to test failures because openQA does not assert grub2 properly
-    if (is_aarch64 || is_sle_micro('>=6.0')) {
+    if ((is_aarch64 || is_sle_micro('>=6.0')) && !main_micro_alp::is_dvd()) {
         shift->wait_boot_past_bootloader(textmode => 1);
     } else {
         shift->wait_boot(bootloader_time => 300);
