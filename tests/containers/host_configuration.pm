@@ -49,9 +49,9 @@ sub run {
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
-            script_retry("yum update -q -y --nobest", timeout => $update_timeout);
+            script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
-            script_retry("yum update -q -y", timeout => $update_timeout);
+            script_retry("dnf update -q -y", timeout => $update_timeout);
         }
     }
 
