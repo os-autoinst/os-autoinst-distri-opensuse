@@ -1,7 +1,7 @@
 # GitHub CODEOWNERS https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Public Cloud
-lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @mpagot @m-dati
+lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @mpagot @m-dati @alvarocarvajald @BillAnastasiadis
 tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @m-dati
 data/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777
@@ -41,3 +41,18 @@ tests/hpc/ @b10n1k @schlad
 data/hpc/ @b10n1k @schlad
 schedule/hpc/ @b10n1k @schlad
 tests/publiccloud/nvidia.pm @b10n1k
+
+# QE-SAP
+data/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+data/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/hacluster.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/qesapdeployment.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/sles4sap.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/sles4sap_publiccloud.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+lib/sles4sap_publiccloud_basetest.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+schedule/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+schedule/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+
