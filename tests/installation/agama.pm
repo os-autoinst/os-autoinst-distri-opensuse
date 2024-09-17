@@ -166,20 +166,14 @@ sub run {
     # BUG tracker: https://github.com/openSUSE/agama/issues/1474
     # copied from await_install.pm
     my $timeout = 2400;    # 40 minutes timeout for installation process
-    while (1) {
-        die "timeout ($timeout) hit during await_install" if $timeout <= 0;
-        my $ret = check_screen 'agama-install-in-progress', 30;
-        sleep 30;
+                           # Await installation with a timeout
+    while ($timeout > 0) {
+        my $ret = check_screen('agama-congratulations', 30);
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
-        if (!$ret) {
-            # Handle any error dialogs that could happen
-            send_key "down";    # ensure screen doesn't get black shortly after we hit congratulations
-            last;
-        }
+        last if $ret;
+        die "timeout ($timeout) hit during await_install" if $timeout <= 0;
     }
-    # Let's end at agama-congratulations screens
-    assert_screen('agama-congratulations');
 }
 
 =head2 post_fail_hook
