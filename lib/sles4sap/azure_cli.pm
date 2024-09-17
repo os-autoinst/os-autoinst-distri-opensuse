@@ -1313,17 +1313,20 @@ sub az_network_peering_delete {
 Creates new disk device either by specifying B<size_gb> or by cloning another disk device using argument B<source>.
 Arguments B<size_gb> and B<source> are mutually exclusive.
 
-B<name> New disk name
+=over 5
 
-B<resource_group> Existing resource group name.
+=item B<name> New disk name
 
-B<source> Create disk by cloning snapshot
+=item B<resource_group> Existing resource group name.
 
-B<size_gb> New disk size
+=item B<source> Create disk by cloning snapshot
 
-B<tags> Additional tags to add to the disk resource. key=value pairs must be separated by empty space.
+=item B<size_gb> New disk size
+
+=item B<tags> Additional tags to add to the disk resource. key=value pairs must be separated by empty space.
     Example: az_disk_create(tags=>"some_tag=some_value another_tag=another_value")
 
+=back
 =cut
 
 sub az_disk_create {
@@ -1350,14 +1353,17 @@ Deletes resource from specified resource group. Single resource can be deleted b
 delimited by empty space using argument B<ids>.
 Arguments B<name> and B<ids> are mutually exclusive.
 
-B<resource_group> Existing resource group name.
+=over 4
 
-B<name> Name of the resource to delete
+=item B<resource_group> Existing resource group name.
 
-B<ids> list of resource IDs to delete
+=item B<name> Name of the resource to delete
 
-B<timeout> Timeout for az command. Default: 60
+=item B<ids> list of resource IDs to delete
 
+=item B<timeout> Timeout for az command. Default: 60
+
+=back
 =cut
 
 sub az_resource_delete {
