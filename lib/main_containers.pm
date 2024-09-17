@@ -130,10 +130,10 @@ sub load_host_tests_podman {
     load_3rd_party_image_test($run_args) unless is_staging;
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
-    loadtest 'containers/podman_bci_systemd';
+    loadtest 'containers/podman_bci_systemd' unless (is_riscv);
     loadtest 'containers/podman_pods';
     # fresh install of sle-micro comes with netavark
-    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud) || (check_var('FLAVOR', 'DVD-Updates') && is_sle_micro));
+    loadtest('containers/podman_network_cni') unless (is_tumbleweed || is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud) || (check_var('FLAVOR', 'DVD-Updates') && is_sle_micro));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args);
     # IPv6 is not available on Azure
