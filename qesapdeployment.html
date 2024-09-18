@@ -143,21 +143,22 @@ $args{section_content} defines content of names section.
 <h3 id="qesap_venv_cmd_exec">qesap_venv_cmd_exec</h3>
 
 <pre><code>Run a command within the Python virtualenv
-created by qesap_pip_install
+created by qesap_pip_install.
 
-Return is only valid if failok = 1</code></pre>
+This function never dies: it always returns an error to the caller.
+Timeout error is 124 (the one reported by timeout command line utility).</code></pre>
 
 <dl>
 
-<dt id="CMD---command-to-run-remotely"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-within-the-.venv-usually-it-is-a-qesap.py-based-command"><b>CMD</b> - command to run within the .venv, usually it is a qesap.py based command</dt>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="TIMEOUT---default-90-secs-has-to-be-an-integer-greater-than-0"><b>TIMEOUT</b> - default 90 secs, has to be an integer greater than 0</dt>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---default-90-secs"><b>TIMEOUT</b> - default 90 secs</dt>
+<dt id="LOG_FILE---optional-argument-that-results-in-changing-the-command-to-redirect-the-output-to-a-log-file"><b>LOG_FILE</b> - optional argument that results in changing the command to redirect the output to a log file</dt>
 <dd>
 
 </dd>
@@ -174,11 +175,15 @@ Return is only valid if failok = 1</code></pre>
 <h3 id="qesap_pip_install">qesap_pip_install</h3>
 
 <pre><code>Install all Python requirements of the qe-sap-deployment
-in a dedicated virtual environment</code></pre>
+in a dedicated virtual environment.
+This function has no return code but it is expected to die
+if something internally fails.</code></pre>
 
 <h3 id="qesap_galaxy_install">qesap_galaxy_install</h3>
 
-<pre><code>Install all Ansible requirements of the qe-sap-deployment</code></pre>
+<pre><code>Install all Ansible requirements of the qe-sap-deployment.
+This function has no return code but it is expected to die
+if something internally fails.</code></pre>
 
 <h3 id="qesap_upload_logs">qesap_upload_logs</h3>
 
@@ -222,9 +227,18 @@ Example:
     logname =&gt; &#39;terraform_destroy.log.txt&#39;
     [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
 
+Example:
+    qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;)
+result in:
+    qesap.py terraform -d
+
 Execute qesap glue script commands. Check project documentation for available options:
 https://github.com/SUSE/qe-sap-deployment
-Test only returns execution result, failure has to be handled by calling method.</code></pre>
+Function return a two element array:
+  - first element is an integer representing the execution result
+  - second element is the file path of the execution log
+This function is not expected to internally die, any failure has to be handled by the caller.
+Only exception is about .venv activation.</code></pre>
 
 <dl>
 
@@ -244,7 +258,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="TIMEOUT---max-expected-execution-time"><b>TIMEOUT</b> - max expected execution time</dt>
+<dt id="TIMEOUT---max-expected-execution-time-default-90sec"><b>TIMEOUT</b> - max expected execution time, default 90sec</dt>
 <dd>
 
 </dd>
@@ -276,7 +290,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="TIMEOUT---max-expected-execution-time1"><b>TIMEOUT</b> - max expected execution time</dt>
+<dt id="TIMEOUT---max-expected-execution-time-default-90sec1"><b>TIMEOUT</b> - max expected execution time, default 90sec</dt>
 <dd>
 
 </dd>
@@ -403,7 +417,7 @@ the hosts from the inventory.yaml</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely1"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -415,7 +429,7 @@ the hosts from the inventory.yaml</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -423,7 +437,7 @@ the hosts from the inventory.yaml</code></pre>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---default-90-secs1"><b>TIMEOUT</b> - default 90 secs</dt>
+<dt id="TIMEOUT---default-90-secs"><b>TIMEOUT</b> - default 90 secs</dt>
 <dd>
 
 </dd>
@@ -456,7 +470,7 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely2"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely1"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -480,7 +494,7 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -508,7 +522,7 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely3"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely2"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -524,11 +538,11 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---max-expected-execution-time2"><b>TIMEOUT</b> - max expected execution time</dt>
+<dt id="TIMEOUT---max-expected-execution-time"><b>TIMEOUT</b> - max expected execution time</dt>
 <dd>
 
 </dd>
@@ -583,7 +597,7 @@ Return the local path of the downloaded file.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die4"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -656,7 +670,7 @@ Return total time of retry loop in case of pass.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die5"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die4"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
