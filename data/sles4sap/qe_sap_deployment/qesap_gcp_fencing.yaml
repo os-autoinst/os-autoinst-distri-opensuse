@@ -25,7 +25,6 @@ ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
-  az_sas_token: '%HANA_TOKEN%'
   az_key_name: '%HANA_KEYNAME%'
   hana_media:
     - '%HANA_SAR%'
