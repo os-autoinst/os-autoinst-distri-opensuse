@@ -46,10 +46,10 @@ schedule:
   - sles4sap/netweaver_nfs_setup
   - sles4sap/ensa/ensa_filesystems
   - sles4sap/ensa/netweaver_swpm_installation
-  - sles4sap/ensa/netweaver_ensa2_cluster
-  - sles4sap/ensa/netweaver_ensa2_cluster_connector
-  - sles4sap/ensa/netweaver_ensa2_web_methods
-  - sles4sap/sap_suse_cluster_connector
+  - sles4sap/ensa/ensa2_cluster_setup
+  - sles4sap/ensa/ensa2_cluster_connector_setup
+  - sles4sap/ensa/ensa2_web_methods_checks
+  - '{{sap_suse_cluster_connector}}'
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
@@ -58,3 +58,7 @@ conditional_schedule:
         - ha/ha_cluster_init
       no:
         - ha/ha_cluster_join
+  sap_suse_cluster_connector:
+    INSTANCE_TYPE:
+      ASCS:
+        - sles4sap/sap_suse_cluster_connector

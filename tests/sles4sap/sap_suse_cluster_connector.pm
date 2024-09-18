@@ -77,11 +77,21 @@ sub run {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_$instance_type$instance_id";
         wait_for_idle_cluster;
         exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
-        validate_script_output("cat $log_file 2>&1", sub { m/$rsc/ });
+        # Check the "node list" contains localhost
+        my $hostname = get_required_var('HOSTNAME');
+        validate_script_output("cat $log_file | cut -d : -f 4", sub { m/$hostname/ });
+        record_info("Found $hostname in lsn output");
+        # Check the "node list" contains remote node
+        my $remote_node = script_output("crm status bynode | grep -Po '(?<=\\* Node )(.*)(?=: online:\$)' | grep -v $hostname");
+        validate_script_output("cat $log_file | cut -d : -f 4", sub { m/$remote_node/ });
+        record_info("Found $remote_node in lsn output");
     }
 
     # Test Stop/Start of SAP resource
-    my $hana_resource_name = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${instance_sid}_$instance_type$instance_id" : "rsc_SAPHana_${instance_sid}_$instance_type$instance_id";
+    my $hana_resource_name
+      = get_var('USE_SAP_HANA_SR_ANGI')
+      ? "rsc_SAPHanaCtl_${instance_sid}_$instance_type$instance_id"
+      : "rsc_SAPHana_${instance_sid}_$instance_type$instance_id";
     my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_$instance_type$instance_id" : $hana_resource_name;
     wait_for_idle_cluster;
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
