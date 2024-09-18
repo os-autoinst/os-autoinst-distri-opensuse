@@ -175,6 +175,7 @@ sub sles4sap_cleanup {
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
     qesap_upload_logs();
+    upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
     if ($args{network_peering_present}) {
         delete_network_peering();
     }
