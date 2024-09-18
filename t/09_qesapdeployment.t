@@ -254,19 +254,30 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return $expected_res; });
+    # needed within the qesap_venv_cmd_exec as activating the vevn
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0] });
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
+    # check that the glue script is called with failok, 90 is default in qesap_execute
+    ok((any { /.*timeout \d+.*qesap\.py/ } @calls), 'timeout wrap the qesap.py with default value');
+    # command composition
     ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
     ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
+
+    # venv activate/deactivate
     ok((any { /.*activate/ } @calls), 'virtual environment activated');
     ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
+
+    # redirect log to file
+    ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
+
     ok $res[0] == $expected_res;
 };
 
-subtest '[qesap_execute] simple call' => sub {
+subtest '[qesap_execute] simplest call' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
@@ -289,10 +300,56 @@ subtest '[qesap_execute] simple call' => sub {
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
 
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
-    ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
-    ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
+    ok(($res[0] == $expected_res), 'The function return what is internally returned by the command call');
+};
+
+subtest '[qesap_execute] positive timeout' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $cmd = 'GILL';
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
+
+    my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET', timeout => 123456);
+
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*timeout 123456.*qesap\.py/ } @calls), 'timeout wrap the qesap.py');
+};
+
+subtest '[qesap_execute] invalid timeout' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $cmd = 'GILL';
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
+
+    dies_ok { qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET', timeout => 0) } "Call qesap_exec with timeout 0 is invalid";
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    @calls = ();
+    dies_ok { qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET', timeout => -1234) } "Call qesap_exec with negative timeout is invalid";
+    note("\n  -->  " . join("\n  -->  ", @calls));
 };
 
 subtest '[qesap_execute] cmd_options' => sub {
@@ -318,8 +375,9 @@ subtest '[qesap_execute] cmd_options' => sub {
     });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
-    qesap_execute(cmd => $cmd, cmd_options => $cmd_options, logname => 'WALLABY_STREET');
+    my @res = qesap_execute(cmd => $cmd, cmd_options => $cmd_options, logname => 'WALLABY_STREET');
 
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*$cmd\s+$cmd_options.*/ } @calls), 'cmd_options result in proper qesap-py command composition');
 };
@@ -347,6 +405,7 @@ subtest '[qesap_execute] failure' => sub {
     my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     ok $res[0] == $expected_res, 'result part of the return array is 1 when script_run fails';
 };
 
@@ -380,6 +439,7 @@ END
 
     my @res = qesap_execute(cmd => 'GILL', logname => 'WALLABY_STREET');
 
+    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res[1] =~ /\/WALLABY_STREET/, "File pattern '$res[1]' is okay";
     ok((any { /terraform.init.log.txt/ } @logs), 'terraform.init.log.txt in the list of uploaded logs');
