@@ -37,7 +37,7 @@
 use base 'consoletest';
 use testapi;
 use lockapi;
-use autofs_utils qw(setup_autofs_server check_autofs_service);
+use autofs_utils qw(setup_autofs_server check_autofs_service install_service);
 use utils qw(systemctl script_retry);
 use version_utils qw(is_leap is_sle);
 use strict;
@@ -59,6 +59,7 @@ sub run {
     my $test_conf_file_content = "test -ro $nfs_server:$remote_mount";
 
     # autofs
+    install_service();
     check_autofs_service();
     setup_autofs_server(autofs_conf_file => $autofs_conf_file, autofs_map_file => $autofs_map_file, test_conf_file => $test_conf_file, test_conf_file_content => $test_conf_file_content, test_mount_dir => $test_mount_dir);
     systemctl 'restart autofs';

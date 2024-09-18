@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call common_service_action);
-use version_utils qw(is_sle is_jeos);
+use version_utils qw(is_sle is_jeos is_tumbleweed);
 
 our @EXPORT = qw(setup_autofs_server check_autofs_service
   install_service enable_service start_service
@@ -128,7 +128,7 @@ sub configure_service {
     my $mk_iso_tool = (is_jeos and is_sle('<15')) ? 'genisoimage' : 'mkisofs';
 
     if ($stage eq 'function') {
-        zypper_call("in autofs $mk_iso_tool") if (is_sle('15+') or is_jeos);
+        zypper_call("in autofs $mk_iso_tool") if (is_sle('15+') or is_jeos or is_tumbleweed);
     }
     assert_script_run("mkdir -p ${test_mount_dir}");
     assert_script_run("chmod 0777 ${test_mount_dir}");
