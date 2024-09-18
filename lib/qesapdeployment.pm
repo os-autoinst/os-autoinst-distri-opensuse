@@ -212,17 +212,18 @@ sub qesap_create_ansible_section {
 =head3 qesap_venv_cmd_exec
 
     Run a command within the Python virtualenv
-    created by qesap_pip_install
+    created by qesap_pip_install.
 
-    Return is only valid if failok = 1
+    This function never dies: it always returns an error to the caller.
+    Timeout error is 124 (the one reported by timeout command line utility).
 
 =over 3
 
-=item B<CMD> - command to run remotely
+=item B<CMD> - command to run within the .venv, usually it is a qesap.py based command
 
-=item B<FAILOK> - if not set, Ansible failure result in die
+=item B<TIMEOUT> - default 90 secs, has to be an integer greater than 0
 
-=item B<TIMEOUT> - default 90 secs
+=item B<LOG_FILE> - optional argument that results in changing the command to redirect the output to a log file
 
 =back
 =cut
@@ -231,14 +232,28 @@ sub qesap_venv_cmd_exec {
     my (%args) = @_;
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{timeout} //= bmwqemu::scale_timeout(90);
-    $args{failok} //= 0;
-    my $ret;
+    croak "Invalid timeout value $args{timeout}" unless $args{timeout} > 0;
 
-    assert_script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
-    $args{failok} ? $ret = script_run($args{cmd}, timeout => $args{timeout}) :
-      assert_script_run($args{cmd}, timeout => $args{timeout});
+    my $cmd = '';
+    # pipefail is needed as at the end of the command line there could be a pipe
+    # to redirect all output to a log_file.
+    # pipefail allow script_run always getting the exit code of the cmd command
+    # and not only the one from tee
+    $cmd .= 'set -o pipefail ; ' if $args{log_file};
+    $cmd .= join(' ', 'timeout', $args{timeout}, $args{cmd});
+    # always use tee in append mode
+    $cmd .= "|& tee -a $args{log_file}" if $args{log_file};
+
+    my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
+    if ($ret) {
+        record_info('qesap_venv_cmd_exec error', "source .venv ret:$ret");
+        return $ret;
+    }
+    $ret = script_run($cmd, timeout => ($args{timeout} + 10));
+
     # deactivate python virtual environment
     script_run('deactivate');
+
     return $ret;
 }
 
@@ -263,31 +278,42 @@ sub qesap_pip {
 =head3 qesap_pip_install
 
   Install all Python requirements of the qe-sap-deployment
-  in a dedicated virtual environment
+  in a dedicated virtual environment.
+  This function has no return code but it is expected to die
+  if something internally fails.
 =cut
 
 sub qesap_pip_install {
     my %paths = qesap_get_file_paths();
     my $pip_install_log = '/tmp/pip_install.txt';
     my $pip_ints_cmd = join(' ', qesap_pip(), 'install --no-color --no-cache-dir',
-        '-r', "$paths{deployment_dir}/requirements.txt",
-        '|& tee -a', $pip_install_log);
+        '-r', "$paths{deployment_dir}/requirements.txt");
 
     # Create a Python virtualenv
     assert_script_run(join(' ', qesap_py(), '-m venv', QESAPDEPLOY_VENV));
 
-    # Configure pip in it
-    qesap_venv_cmd_exec(cmd => qesap_pip() . ' config --site set global.progress_bar off', failok => 1);
+    # Configure pip in it, ignore the return value
+    # and does not provide any timeout as it should be
+    # instantaneous
+    qesap_venv_cmd_exec(cmd => qesap_pip() . ' config --site set global.progress_bar off');
 
     push(@log_files, $pip_install_log);
     record_info('QESAP repo', 'Installing all qe-sap-deployment python requirements');
-    qesap_venv_cmd_exec(cmd => $pip_ints_cmd, timeout => 720);
+    my $ret = qesap_venv_cmd_exec(
+        cmd => $pip_ints_cmd,
+        timeout => 720,
+        log_file => $pip_install_log);
+
+    # here it is possible to retry in case of exit code 124
+    die "cmd:$pip_ints_cmd  --> ret:$ret" if $ret;
 }
 
 
 =head3 qesap_galaxy_install
 
-  Install all Ansible requirements of the qe-sap-deployment
+  Install all Ansible requirements of the qe-sap-deployment.
+  This function has no return code but it is expected to die
+  if something internally fails.
 =cut
 
 sub qesap_galaxy_install {
@@ -295,11 +321,18 @@ sub qesap_galaxy_install {
     my $galaxy_install_log = '/tmp/galaxy_install.txt';
 
     my $ans_req = "$paths{deployment_dir}/requirements.yml";
-    my $ans_galaxy_cmd = join(' ', 'ansible-galaxy install',
-        '-r', $ans_req,
-        '|& tee -a', $galaxy_install_log);
-    qesap_venv_cmd_exec(cmd => $ans_galaxy_cmd, timeout => 720);
+    my $ans_galaxy_cmd = join(' ',
+        'ansible-galaxy install',
+        '-r', $ans_req);
+
     push(@log_files, $galaxy_install_log);
+    my $ret = qesap_venv_cmd_exec(
+        cmd => $ans_galaxy_cmd,
+        timeout => 720,
+        log_file => $galaxy_install_log);
+
+    # here it is possible to retry in case of exit code 124
+    die "cmd:$ans_galaxy_cmd  --> ret:$ret" if $ret;
 }
 
 =head3 qesap_upload_logs
@@ -337,7 +370,7 @@ sub qesap_get_deployment_code {
 
     record_info('QESAP repo', 'Preparing qe-sap-deployment repository');
 
-    enter_cmd "cd " . $paths{deployment_dir};
+    enter_cmd("cd " . $paths{deployment_dir});
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
@@ -370,7 +403,7 @@ sub qesap_get_deployment_code {
 
         my $git_repo = get_var('QESAP_INSTALL_GITHUB_REPO', $official_repo);
         my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{deployment_dir};
-        assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $qesap_git_clone_log", quiet => 1);
+        assert_script_run("set -o pipefail ; $git_clone_cmd  |& tee $qesap_git_clone_log", quiet => 1);
     }
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
     assert_script_run("ln -s " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
@@ -392,7 +425,7 @@ sub qesap_get_roles_code {
 
     record_info('SLES4SAP Roles repo', 'Preparing community.sles-for-sap repository');
 
-    enter_cmd "cd " . $paths{roles_dir};
+    enter_cmd("cd " . $paths{roles_dir});
     push(@log_files, $roles_git_clone_log);
 
     # Script from a release
@@ -410,7 +443,7 @@ sub qesap_get_roles_code {
             "--branch $git_branch",
             'https://' . $git_repo,
             $paths{roles_dir});
-        assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $roles_git_clone_log", quiet => 1);
+        assert_script_run("set -o pipefail ; $git_clone_cmd |& tee $roles_git_clone_log", quiet => 1);
     }
 }
 
@@ -448,9 +481,18 @@ sub qesap_yaml_replace {
         logname => 'terraform_destroy.log.txt'
         [, verbose => 1, cmd_options => $cmd_options] );
 
+    Example:
+        qesap_execute(cmd => 'terraform', cmd_options => '-d')
+    result in:
+        qesap.py terraform -d
+
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
-    Test only returns execution result, failure has to be handled by calling method.
+    Function return a two element array:
+      - first element is an integer representing the execution result
+      - second element is the file path of the execution log
+    This function is not expected to internally die, any failure has to be handled by the caller.
+    Only exception is about .venv activation.
 
 =over 5
 
@@ -462,7 +504,7 @@ sub qesap_yaml_replace {
 
 =item B<VERBOSE> - activate verbosity in qesap.py
 
-=item B<TIMEOUT> - max expected execution time
+=item B<TIMEOUT> - max expected execution time, default 90sec
 
 =back
 =cut
@@ -472,7 +514,8 @@ sub qesap_execute {
     foreach (qw(cmd logname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     my $verbose = $args{verbose} ? "--verbose" : "";
-    $args{cmd_options} ||= '';
+    $args{cmd_options} //= '';
+    $args{timeout} //= bmwqemu::scale_timeout(90);
 
     my %paths = qesap_get_file_paths();
     my $exec_log = '/tmp/' . $args{logname};
@@ -482,17 +525,19 @@ sub qesap_execute {
         '-c', $paths{qesap_conf_trgt},
         '-b', $paths{deployment_dir},
         $args{cmd},
-        $args{cmd_options},
-        '|& tee -a',
-        $exec_log
-    );
+        $args{cmd_options});
 
     push(@log_files, $exec_log);
     record_info('QESAP exec', "Executing: \n$qesap_cmd \n\nlog to $exec_log");
 
-    my $exec_rc = qesap_venv_cmd_exec(cmd => $qesap_cmd, timeout => $args{timeout}, failok => 1);
+    my $exec_rc = qesap_venv_cmd_exec(
+        cmd => $qesap_cmd,
+        timeout => $args{timeout},
+        log_file => $exec_log);
 
     my @qesap_logs;
+
+    # look for logs produced directly by the qesap.py
     my $qesap_log_find = 'find . -type f -name "*.log.txt"';
     foreach my $log (split(/\n/, script_output($qesap_log_find, proceed_on_failure => 1))) {
         push(@log_files, $log);
@@ -533,7 +578,7 @@ sub qesap_execute {
 
 =item B<VERBOSE> - activate verbosity in qesap.py
 
-=item B<TIMEOUT> - max expected execution time
+=item B<TIMEOUT> - max expected execution time, default 90sec
 
 =item B<LOGNAME> - filename of the log file.
 
@@ -549,7 +594,7 @@ sub qesap_execute_conditional_retry {
     foreach (qw(cmd logname error_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     my $verbose = $args{verbose} ? "--verbose" : "";
-    $args{cmd_options} ||= '';
+    $args{cmd_options} //= '';
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{retries} //= 1;
 
@@ -837,14 +882,14 @@ sub qesap_ansible_get_playbook {
 sub qesap_ansible_cmd {
     my (%args) = @_;
     foreach (qw(provider cmd)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{user} ||= 'cloudadmin';
-    $args{filter} ||= 'all';
+    $args{user} //= 'cloudadmin';
+    $args{filter} //= 'all';
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{failok} //= 0;
     my $verbose = $args{verbose} ? ' -vvvv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
-    record_info('Ansible cmd:', "Remote run on '$args{filter}' node\ncmd: '$args{cmd}'");
+    record_info('Ansible cmd:', "Run on '$args{filter}' node\ncmd: '$args{cmd}'");
 
     my $ansible_cmd = join(' ',
         'ansible' . $verbose,
@@ -860,7 +905,9 @@ sub qesap_ansible_cmd {
         "'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
       $ansible_cmd;
 
-    qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, failok => $args{failok});
+    my $ret = qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout});
+
+    die "cmd: $ansible_cmd ret: $ret" if ($ret && !$args{failok});
 }
 
 =head3 qesap_ansible_script_output_file
@@ -912,8 +959,8 @@ sub qesap_ansible_cmd {
 sub qesap_ansible_script_output_file {
     my (%args) = @_;
     foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{user} ||= 'cloudadmin';
-    $args{root} ||= 0;
+    $args{user} //= 'cloudadmin';
+    $args{root} //= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
     $args{verbose} //= 0;
@@ -933,8 +980,9 @@ sub qesap_ansible_script_output_file {
         '-e', "out_file='$args{file}'", '-e', "remote_path='$args{remote_path}'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    # ignore the return value for the moment
-    qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), failok => $args{failok}, timeout => $args{timeout});
+    my $ret = qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd),
+        timeout => $args{timeout});
+    die "ret: $ret" if ($ret && !$args{failok});
 
     # Grab the file from the remote
     return qesap_ansible_fetch_file(provider => $args{provider},
@@ -981,8 +1029,8 @@ sub qesap_ansible_script_output_file {
 sub qesap_ansible_script_output {
     my (%args) = @_;
     foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{user} ||= 'cloudadmin';
-    $args{root} ||= 0;
+    $args{user} //= 'cloudadmin';
+    $args{root} //= 0;
     $args{failok} //= 0;
     $args{remote_path} //= '/tmp/';
     $args{out_path} //= '/tmp/ansible_script_output/';
@@ -1001,7 +1049,7 @@ sub qesap_ansible_script_output {
         timeout => $args{timeout});
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
-    enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+    enter_cmd("rm $local_tmp || echo 'Nothing to delete'");
     return $output;
 }
 
@@ -1048,8 +1096,8 @@ sub qesap_ansible_script_output {
 sub qesap_ansible_fetch_file {
     my (%args) = @_;
     foreach (qw(provider host remote_path)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{user} ||= 'cloudadmin';
-    $args{root} ||= 0;
+    $args{user} //= 'cloudadmin';
+    $args{root} //= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
     $args{out_path} //= '/tmp/ansible_script_output/';
@@ -1059,9 +1107,6 @@ sub qesap_ansible_fetch_file {
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
-
-    # reflect the same logic implement in the playbook
-    my $local_tmp = $args{out_path} . $args{file};
 
     qesap_ansible_get_playbook(playbook => $fetch_playbook);
 
@@ -1074,10 +1119,13 @@ sub qesap_ansible_fetch_file {
         '-e', "file='$args{file}'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd),
-        failok => $args{failok},
+    my $ret = qesap_venv_cmd_exec(
+        cmd => join(' ', @ansible_fetch_cmd),
         timeout => $args{timeout});
-    return $local_tmp;
+    die "ret: $ret" if ($ret && !$args{failok});
+
+    # reflect the same logic implement in the playbook
+    return $args{out_path} . $args{file};
 }
 
 =head3 qesap_create_aws_credentials
@@ -1146,7 +1194,7 @@ sub qesap_wait_for_ssh {
     my (%args) = @_;
     croak 'Missing mandatory host argument' unless $args{host};
     $args{timeout} //= bmwqemu::scale_timeout(600);
-    $args{port} ||= 22;
+    $args{port} //= 22;
 
     my $start_time = time();
     my $check_port = 1;
