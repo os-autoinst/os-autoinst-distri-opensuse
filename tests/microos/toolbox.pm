@@ -12,6 +12,8 @@ use warnings;
 use testapi;
 use containers::common;
 use version_utils qw(is_sle_micro is_leap_micro);
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
+use utils qw(ensure_serialdev_permissions);
 
 our $user = $testapi::username;
 our $password = $testapi::password;
@@ -57,7 +59,8 @@ sub toolbox_has_repos {
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
+    ensure_serialdev_permissions;
     $self->create_user;
 
     my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
@@ -94,7 +97,7 @@ sub run {
 
 
     record_info 'Test', "Rootless toolbox as $user";
-    my $console = select_console 'user-console';
+    select_user_serial_terminal;
     my $uid = script_output 'id -u';
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
@@ -126,12 +129,10 @@ sub run {
     }
 
     clean_container_host(runtime => 'podman');
-
     enter_cmd "exit";
-    $console->reset;
 
     # Back to root
-    select_console 'root-console';
+    select_serial_terminal;
 
     unless ($toolbox_image_to_test) {
         # This test doesn't make sense if we are testing a specific image
