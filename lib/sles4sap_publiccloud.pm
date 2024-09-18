@@ -354,9 +354,9 @@ sub stop_hana {
     $args{method} //= 'stop';
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my %commands = (
-        stop => "HDB stop",
-        kill => "HDB kill -x",
-        crash => "echo b > /proc/sysrq-trigger &"
+        stop => 'HDB stop',
+        kill => 'HDB kill -x',
+        crash => 'echo b > /proc/sysrq-trigger &'
     );
     croak("HANA stop method '$args{method}' unknown.") unless $commands{$args{method}};
 
@@ -368,17 +368,27 @@ sub stop_hana {
     record_info("Stopping HANA", "CMD:$cmd");
     if ($args{method} eq "crash") {
         # Crash needs to be executed as root and wait for host reboot
+
+        # Ensure the remote node is in a normal state before to trigger the crash
         $self->{my_instance}->wait_for_ssh(timeout => $timeout);
-        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
-        # Try only extending ssh_opts
-        my $ssh_opts = $self->{my_instance}->ssh_opts . ' -o ServerAliveInterval=2';
+
+        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => $timeout);
+
+        # Create a local copy of ssh_opts and extend it for the crash command.
+        # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
+        # which in HanaSR tests are set with default values in sles4sap_publiccloud_basetest::set_cli_ssh_opts
+        my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -o ServerAliveInterval=2';
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
-            timeout => "0",
-            ssh_opts => $ssh_opts,
-            %args);
-        # Send a Ctrl-C to unblock the terminal session if no prompt is seen in 30 seconds
+            # This timeout is to ensure the run_ssh_command is executed in a reasonable amount of time.
+            # Also consider that internally run_ssh_command is using this value for two different guard mechanism.
+            timeout => 0,
+            ssh_opts => $crash_ssh_opts);
+
+
+        # Send a Ctrl-C to unblock the terminal session if no prompt is seen
         type_string('', terminate_with => 'ETX') unless (wait_serial(serial_term_prompt()));
-        # It is better to wait till ssh disappear
+
+        # Wait till ssh disappear
         record_info("Wait ssh disappear start");
         my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
         record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
