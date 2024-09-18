@@ -346,7 +346,7 @@ sub load_container_tests {
                 }
             } elsif (is_sle_micro) {
                 # Test toolbox image updates
-                loadtest 'microos/toolbox';
+                loadtest('microos/toolbox') unless (is_staging);
             } else {
                 # Common openQA image tests
                 load_image_tests_podman($run_args) if (/podman/i);
@@ -356,7 +356,7 @@ sub load_container_tests {
             }
         } else {
             # Container Host tests
-            loadtest 'microos/toolbox' if (/podman/i && (is_sle_micro || is_microos || is_leap_micro));
+            loadtest 'microos/toolbox' if (/podman/i && !is_staging && (is_sle_micro || is_microos || is_leap_micro));
             load_host_tests_podman($run_args) if (/podman/i);
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
