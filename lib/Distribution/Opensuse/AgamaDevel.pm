@@ -16,6 +16,7 @@ use Yam::Agama::Pom::GrubMenuPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
 use Yam::Agama::Pom::RebootPage;
+use Yam::Agama::Pom::RebootTextmodePage;
 
 use Utils::Architectures;
 
@@ -35,7 +36,13 @@ sub get_agama_up_an_running {
 }
 
 sub get_reboot_page {
-    return Yam::Agama::Pom::RebootPage->new();
+    if (is_s390x()) {
+        return Yam::Agama::Pom::RebootTextmodePage->new();
+    }
+    else {
+        return Yam::Agama::Pom::RebootPage->new();
+    }
+
 }
 
 1;
