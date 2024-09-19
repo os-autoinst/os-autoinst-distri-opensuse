@@ -338,6 +338,10 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
         ok(grep(/| tee .*\.log/, split(' ', $cmd)), 'Log command output');
         ok(grep(/\$\{PIPESTATUS\[0]}/, split(' ', $cmd)), 'Return command RC instead of tee');
     }
+
+    # Test remover retry
+    $ms_sdaf->redefine(script_run => sub { return 1; });
+    dies_ok { sdaf_cleanup() } 'Test failing remover script: retried 3 times and failed';
 };
 
 

@@ -707,16 +707,27 @@ sub sdaf_execute_remover {
         '--type', $type_parameter,
         '--auto-approve');
 
-    # capture command output into log file
-    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}.txt";
-    $remover_cmd = log_command_output(command => $remover_cmd, log_file => $output_log_file);
-
+    my $rc;
+    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
+    my $attempt_no = 1;
     # SDAF must be executed from the profile directory, otherwise it will fail
     assert_script_run("cd " . $tfvars_path);
-    record_info('SDAF destroy', "Executing SDAF remover:\n$remover_cmd");
-    # Keep the timeout high, definitely above 1H. Azure tends to be slow.
-    my $rc = script_run($remover_cmd, timeout => 7200);
-    upload_logs($output_log_file, log_name => $output_log_file);
+    while ($attempt_no <= 3) {
+        record_info("Attempt #$attempt_no");
+        # Capture command output into log file
+        $output_log_file =~ s/attempt/attempt-$attempt_no/;
+        $remover_cmd = log_command_output(command => $remover_cmd, log_file => $output_log_file);
+
+        record_info('SDAF destroy', "Executing SDAF remover:\n$remover_cmd");
+        # Keep the timeout high, definitely above 1H. Azure tends to be slow.
+        $rc = script_run($remover_cmd, timeout => 7200);
+        upload_logs($output_log_file, log_name => $output_log_file);
+
+        last unless $rc;
+        sleep 30;
+        record_info("SDAF destroy retry $attempt_no", "destroy of '$args{deployment_type}' exited with RC '$rc', retrying ...");
+        $attempt_no++;
+    }
 
     # Do not kill the test, only return RC. There are still files to be cleaned up on deployer VM side.
     return $rc;
