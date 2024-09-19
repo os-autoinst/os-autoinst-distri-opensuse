@@ -199,7 +199,8 @@ sub sles4sap_cleanup {
     # Only run the Ansible de-register if Ansible has been executed
     push(@cmd_list, 'ansible') if ($args{ansible_present});
 
-    # Terraform destroy can and must be executed in any case
+    # Regardless of Ansible result, Terraform destroy
+    # must be executed.
     push(@cmd_list, 'terraform');
     for my $command (@cmd_list) {
         record_info('Cleanup', "Executing $command cleanup");

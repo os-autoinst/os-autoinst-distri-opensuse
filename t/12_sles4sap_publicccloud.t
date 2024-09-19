@@ -44,8 +44,8 @@ subtest "[sles4sap_cleanup] no args and all pass" => sub {
     my $unlock_terminal = 0;
     $sles4sap_publiccloud->redefine(type_string => sub { $unlock_terminal = 1; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
-    #$sles4sap_publiccloud->redefine(upload_logs => sub { return; });
-    #$sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -68,8 +68,8 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
-    #$sles4sap_publiccloud->redefine(upload_logs => sub { return; });
-    #$sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -91,6 +91,7 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
