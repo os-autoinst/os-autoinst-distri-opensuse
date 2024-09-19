@@ -82,7 +82,7 @@ sub run {
         validate_script_output("cat $log_file | cut -d : -f 4", sub { m/$hostname/ });
         record_info("Found $hostname in lsn output");
         # Check the "node list" contains remote node
-        my $remote_node = script_output("crm status bynode | grep -Po '(?<=\\* Node )(.*)(?=: online:\$)' | grep -v $hostname");
+        my $remote_node = choose_node(2);
         validate_script_output("cat $log_file | cut -d : -f 4", sub { m/$remote_node/ });
         record_info("Found $remote_node in lsn output");
     }
