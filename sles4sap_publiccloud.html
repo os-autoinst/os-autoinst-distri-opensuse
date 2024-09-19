@@ -96,7 +96,10 @@ otherwise it will be executed as root.</code></pre>
 
 <h2 id="sles4sap_cleanup">sles4sap_cleanup</h2>
 
-<pre><code>Clean up Network peering and qesap deployment</code></pre>
+<pre><code>Clean up Network peering and qesap deployment
+This method does not internally die and try to execute
+terraform destroy in any case.
+Return 0 if no internal error.</code></pre>
 
 <dl>
 
