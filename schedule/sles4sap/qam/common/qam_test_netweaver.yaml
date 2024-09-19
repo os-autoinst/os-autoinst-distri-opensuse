@@ -11,6 +11,12 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
+  - '{{setup_fips}}'
   - sles4sap/patterns
   - sles4sap/netweaver_install
   - sles4sap/netweaver_test_instance
+conditional_schedule:
+  setup_fips:
+    FIPS_INSTALLATION:
+      1:
+        - fips/fips_setup

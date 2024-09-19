@@ -8,6 +8,7 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
+  - '{{setup_fips}}'
   - sles4sap/patterns
   - '{{module_to_test}}'
 conditional_schedule:
@@ -17,3 +18,7 @@ conditional_schedule:
         - sles4sap/sapconf
       saptune:
         - sles4sap/saptune
+  setup_fips:
+    FIPS_INSTALLATION:
+      1:
+        - fips/fips_setup

@@ -1,0 +1,12 @@
+name: sles4sap_fips_crypt_openjdk
+description:    >
+    Schedule to test crypt and openjdk in SLES for SAP.
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - fips/fips_setup
+    - console/gpg
+    - sles4sap/patterns
+    - fips/gnutls/gnutls_base_check
+    - fips/openjdk/openjdk_fips
+    - fips/mozilla_nss/nss_smoke

@@ -13,6 +13,7 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
+  - '{{setup_fips}}'
   - sles4sap/patterns
   - '{{cli_install}}'
   - '{{wizard_install}}'
@@ -26,3 +27,7 @@ conditional_schedule:
     WIZARD:
       1:
         - sles4sap/wizard_hana_install
+  setup_fips:
+    FIPS_INSTALLATION:
+      1:
+        - fips/fips_setup
