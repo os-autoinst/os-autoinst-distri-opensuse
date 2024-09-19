@@ -25,11 +25,29 @@ use testapi;
 use utils;
 use version_utils qw(is_sle);
 
+use constant ENABLED => 1;
+use constant DISABLED => 0;
+
+
+sub nscd_service_autorestart {
+    my $enable = shift;
+    if ($enable) {
+        assert_script_run 'rm /etc/systemd/system/nscd.service.d/override.conf';
+        assert_script_run 'rmdir /etc/systemd/system/nscd.service.d/';
+    } else {
+        assert_script_run 'mkdir -p /etc/systemd/system/nscd.service.d';
+        assert_script_run 'echo -e "[Service]\nRestart=no" > /etc/systemd/system/nscd.service.d/override.conf';
+    }
+    assert_script_run 'systemctl daemon-reload';
+}
+
+
 sub run {
     my ($self) = @_;
 
     my $tmp_prof = "/tmp/apparmor.d";
     my $audit_log = "/var/log/audit/audit.log";
+    my $executable_name = "/usr/sbin/nscd";
 
     zypper_call('in nscd');
 
@@ -50,6 +68,8 @@ sub run {
     assert_script_run "aa-disable nscd";
     assert_script_run "aa-enforce -d $tmp_prof nscd";
 
+    nscd_service_autorestart(DISABLED);
+
     systemctl('restart nscd', expect_false => 1);
     upload_logs($audit_log);
 
@@ -62,12 +82,15 @@ sub run {
 
     # Make sure it could restore to the default profile
     assert_script_run "aa-disable -d $tmp_prof nscd";
-    assert_script_run "aa-enforce nscd";
-    my $time = is_sle('=12-sp3') || is_sle('=15-sp3') ? 10 : 2;
-    sleep $time;
-    systemctl("restart nscd");
 
+    # restore enforce mode
+    validate_script_output "aa-enforce $executable_name", sub {
+        m/Setting.*nscd to enforce mode/;
+    }, timeout => 180;
+
+    systemctl("restart nscd");
     $self->aa_tmp_prof_clean("$tmp_prof");
+    nscd_service_autorestart(ENABLED);
 }
 
 1;
