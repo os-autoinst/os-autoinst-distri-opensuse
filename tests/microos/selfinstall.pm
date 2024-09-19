@@ -18,7 +18,7 @@ use ipmi_backend_utils qw(ipmitool);
 sub run {
     my ($self) = @_;
 
-    if (get_var('NUMDISKS') > 1) {
+    if (get_var('NUMDISKS') > 1 && !get_var('INSTALL_DISK_WWN', '')) {
         assert_screen 'selfinstall-screen', 180;
         send_key 'down' unless check_screen 'selfinstall-select-drive';
         assert_screen 'selfinstall-select-drive';

@@ -463,12 +463,19 @@ sub uefi_bootmenu_params {
 
             # Pass bootparam to firstboot
             type_string_very_slow(" rd.kiwi.install.pass.bootparam ");
-            if (!check_screen('pass-bootparam-to-firstboot', 2)) {
-                next;
-            } else {
-                record_info('Successfully finished grub2 editing.');
-                return;
+            next if (!check_screen('pass-bootparam-to-firstboot', 2));
+
+            # Set disk to install
+            my $_disk = get_var('INSTALL_DISK_WWN', '');
+            record_info("INSTALL_DISK_WWN is $_disk.");
+            if ($_disk) {
+                type_string_very_slow(" rd.kiwi.oem.installdevice=/dev/disk/by-id/$_disk ");
+                save_screenshot;
             }
+
+            # All editing done
+            record_info('Successfully finished grub2 editing.');
+            return;
         }
         die "Failed to edit grub2 after $max_tries tries.";
     }
