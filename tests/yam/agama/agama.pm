@@ -25,6 +25,9 @@ sub run {
     assert_script_run("CONFIGURE_DASD=$configure_dasd /usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
     script_run("dmesg --console-on");
 
+    Yam::Agama::agama_base::upload_agama_logs();
+    Yam::Agama::agama_base::upload_system_logs();
+
     $reboot_page->reboot();
 }
 

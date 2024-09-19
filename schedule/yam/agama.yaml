@@ -9,4 +9,4 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_product
-  - yam/validate/validate_user
+  - yam/validate/validate_first_user
