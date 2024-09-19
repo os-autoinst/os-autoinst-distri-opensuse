@@ -30,8 +30,9 @@ sub run {
 
     select_serial_terminal;
     die 'SUSEConnect package is not pre-installed!' if script_run 'command -v SUSEConnect';
-    if ((is_jeos || is_sle_micro) && script_run(qq(SUSEConnect --status-text | grep -i 'not registered'))) {
-        die 'System has been already registered!';
+    if ((is_jeos || is_sle_micro)) {
+        my $status = script_output('SUSEConnect --status-text');
+        die 'System has been already registered!' if ($status !~ m/not registered/i);
     }
 
     # There are sporadic failures due to the command timing out, so we increase the timeout
