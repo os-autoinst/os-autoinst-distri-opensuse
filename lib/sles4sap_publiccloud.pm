@@ -151,6 +151,9 @@ sub get_promoted_hostname {
 =head2 sles4sap_cleanup
 
     Clean up Network peering and qesap deployment
+    This method does not internally die and try to execute
+    terraform destroy in any case.
+    Return 0 if no internal error.
 
 =over 3
 
@@ -165,8 +168,6 @@ sub get_promoted_hostname {
 
 sub sles4sap_cleanup {
     my ($self, %args) = @_;
-    # If there's an open ssh connection to the VMs, return to host console first
-    select_host_console(force => 1);
     record_info(
         'Cleanup',
         join(' ',
@@ -174,20 +175,32 @@ sub sles4sap_cleanup {
             'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
+    my $ret = 0;
+
+    # Do not run destroy if already executed
+    return $ret if ($args{cleanup_called});
+
+    # If there's an open ssh connection to the VMs, return to host console first
+    select_host_console(force => 1);
+
+    # ETX is the same as pressing Ctrl-C on a terminal,
+    # make sure the serial terminal is NOT blocked
+    type_string('', terminate_with => 'ETX');
+
+    qesap_cluster_logs();
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
     if ($args{network_peering_present}) {
         delete_network_peering();
     }
 
-    # Do not run destroy if already executed
-    return 0 if ($args{cleanup_called});
     my @cmd_list;
 
     # Only run the Ansible de-register if Ansible has been executed
     push(@cmd_list, 'ansible') if ($args{ansible_present});
 
-    # Terraform destroy can be executed in any case
+    # Regardless of Ansible result, Terraform destroy
+    # must be executed.
     push(@cmd_list, 'terraform');
     for my $command (@cmd_list) {
         record_info('Cleanup', "Executing $command cleanup");
@@ -216,12 +229,11 @@ sub sles4sap_cleanup {
                 "Cleanup $command FAILED",
                 result => 'fail'
             ) if $_ == 3 && $cleanup_cmd_rc[0];
-            return 0 if $_ == 3 && $cleanup_cmd_rc[0];
+            $ret = 1 if $_ == 3 && $cleanup_cmd_rc[0];
         }
     }
-    record_info('Cleanup finished');
-    return 1;
-
+    record_info('Cleanup finished', "ret:$ret");
+    return $ret;
 }
 
 =head2 get_hana_topology

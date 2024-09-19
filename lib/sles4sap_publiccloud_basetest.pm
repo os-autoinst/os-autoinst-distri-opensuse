@@ -61,7 +61,7 @@ sub cleanup {
         ansible_present => $self->{ansible_present}
     );
 
-    if ($res) {
+    if ($res eq 0) {
         $self->{cleanup_called} = 1;
         $self->{network_peering_present} = 0;
         $self->{ansible_present} = 0;
@@ -153,7 +153,6 @@ sub post_fail_hook {
         diag('Skip post fail', "Variable 'QESAP_NO_CLEANUP_ON_FAILURE' defined.");
         return;
     }
-    qesap_cluster_logs();
     eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 }
 

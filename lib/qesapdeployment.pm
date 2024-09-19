@@ -144,7 +144,9 @@ sub qesap_get_file_paths {
 
 sub qesap_create_folder_tree {
     my %paths = qesap_get_file_paths();
+    die 'Missing deployment_dir in paths' unless $paths{deployment_dir};
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
+    die 'Missing roles_dir in paths' unless $paths{roles_dir};
     assert_script_run("mkdir -p $paths{roles_dir}", quiet => 1);
 }
 
@@ -242,7 +244,7 @@ sub qesap_venv_cmd_exec {
     $cmd .= 'set -o pipefail ; ' if $args{log_file};
     $cmd .= join(' ', 'timeout', $args{timeout}, $args{cmd});
     # always use tee in append mode
-    $cmd .= "|& tee -a $args{log_file}" if $args{log_file};
+    $cmd .= " |& tee -a $args{log_file}" if $args{log_file};
 
     my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
     if ($ret) {
@@ -488,11 +490,10 @@ sub qesap_yaml_replace {
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
-    Function return a two element array:
+    Function returns a two element array:
       - first element is an integer representing the execution result
       - second element is the file path of the execution log
     This function is not expected to internally die, any failure has to be handled by the caller.
-    Only exception is about .venv activation.
 
 =over 5
 
@@ -1246,6 +1247,7 @@ sub qesap_upload_crm_report {
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
+        timeout => bmwqemu::scale_timeout(180),
         failok => $args{failok});
     my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},
@@ -1327,9 +1329,6 @@ sub qesap_cluster_logs {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory(provider => $provider);
 
-    # ETX is the same as pressing Ctrl-C on a terminal,
-    # make sure the serial terminal is NOT blocked
-    type_string('', terminate_with => 'ETX');
     if (script_run("test -e $inventory", 60) == 0)
     {
         foreach my $host ('hana[0]', 'hana[1]') {
@@ -2467,6 +2466,7 @@ sub qesap_az_diagnostic_log {
     foreach (@{$vm_data}) {
         record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
+        # Ignore the return code, so also miss the pipefail setting
         script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
         push(@diagnostic_log_files, $boot_diagnostics_log);
 

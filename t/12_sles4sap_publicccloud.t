@@ -36,12 +36,16 @@ subtest "[run_cmd]" => sub {
     ok $ret eq 'BABUUUUUUUUM';
 };
 
-subtest "[sles4sap_cleanup] no arg and all pass" => sub {
-    # No args result in only terraform destroy to be called
+subtest "[sles4sap_cleanup] no args and all pass" => sub {
+    # sles4sap_cleanup is called with no args
+    # it result in only to perform terraform destroy
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    my $unlock_terminal = 0;
+    $sles4sap_publiccloud->redefine(type_string => sub { $unlock_terminal = 1; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -54,14 +58,18 @@ subtest "[sles4sap_cleanup] no arg and all pass" => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(any { /terraform/ } @calls, "Check if terraform is called");
-    ok($ret eq 1, "Expected return 1 ret:$ret");
+    ok(any { /ansible/ } @calls, "Check that ansible is not called");
+    ok($ret eq 0, "Expected return 0 ret:$ret");
+    ok($unlock_terminal eq 1, "ETX called at the beginning to eventually unlock the terminal");
 };
 
 subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -75,27 +83,44 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(any { /terraform/ } @calls, "Check if terraform is called");
     ok(any { /ansible/ } @calls, "Check if ansible is called");
+    ok($ret eq 0, "Expected return 0 ret:$ret");
+};
+
+subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(type_string => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            if ($args{cmd} =~ /ansible/) {
+                return (1, 0);
+            } else {
+                return (0, 0);
+    } });
+    my $self = sles4sap_publiccloud->new();
+
+    my $ret = $self->sles4sap_cleanup(ansible_present => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(any { /terraform/ } @calls, "Check if terraform is called");
+    ok(any { /ansible/ } @calls, "Check if ansible is called");
     ok($ret eq 1, "Expected return 1 ret:$ret");
 };
 
 subtest "[sles4sap_cleanup] no need to clean" => sub {
     # No args result in only terraform destroy to be called
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
-    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
-    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    my @calls;
-    $sles4sap_publiccloud->redefine(qesap_execute => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd};
-            return (0, 0); });
+
     my $self = sles4sap_publiccloud->new();
     my $ret = $self->sles4sap_cleanup(cleanup_called => 1);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((none { /terraform/ } @calls), "Check that terraform is not called");
-    ok((none { /ansible/ } @calls), "Check that ansible is not called");
     ok($ret eq 0, "Expected return 0 ret:$ret");
 };
 

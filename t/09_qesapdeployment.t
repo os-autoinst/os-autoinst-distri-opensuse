@@ -288,14 +288,12 @@ subtest '[qesap_execute] simplest call' => sub {
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
-            return $expected_res;
-    });
+            return $expected_res; });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
-            return (%paths);
-    });
+            return (%paths); });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
@@ -655,7 +653,6 @@ subtest '[qesap_cluster_logs]' => sub {
             return 'BOUBLE BOUBLE BOUBLE'; });
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
-    $qesap->redefine(type_string => sub { return; });
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
@@ -689,7 +686,6 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
             return 'BOUBLE BOUBLE BOUBLE'; });
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
-    $qesap->redefine(type_string => sub { return; });
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
@@ -774,6 +770,38 @@ subtest '[qesap_calculate_deployment_name] with postfix' => sub {
 
 subtest '[qesap_prepare_env] die for missing argument' => sub {
     dies_ok { qesap_prepare_env(); } "Expected die if called without provider arguments";
+};
+
+subtest '[qesap_prepare_env] integration test' => sub {
+    # As less mock as possible
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_src} = '/REEF';
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{terraform_dir} = '/SPLASH';
+            $paths{deployment_dir} = '/WAVE';
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+    $qesap->redefine(qesap_get_variables => sub { return; });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DENTIST'; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_prepare_env(provider => 'DONALDUCK');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    foreach (@calls) {
+        # check that all command using the redirection also have the pipefail
+        my $cmd = $_;
+        like($cmd, qr/set -o pipefail/, "Command $cmd has pipe and set pipefail") if $cmd =~ /\|/;
+    }
 };
 
 sub create_qesap_prepare_env_mocks_noret {
@@ -893,7 +921,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     }
 };
 
-subtest '[qesap_prepare_env/qesap_yaml_replace]' => sub {
+subtest '[qesap_prepare_env] qesap_yaml_replace' => sub {
     my %called_functions;
     my @mock_func = qw(qesap_get_variables);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
@@ -911,7 +939,7 @@ subtest '[qesap_prepare_env/qesap_yaml_replace]' => sub {
     ok $called_functions{file_content_replace} eq 1, "file_content_replace called by qesap_yaml_replace";
 };
 
-subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] default' => sub {
+subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths default' => sub {
     my %called_functions;
     my @mock_func = qw(qesap_get_variables
       qesap_yaml_replace
@@ -935,7 +963,7 @@ subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] defau
     ok((any { qr/curl.*\/TORNADO -o \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Default location for the openQA conf.yaml templates');
 };
 
-subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] user specified deployment_dir' => sub {
+subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user specified deployment_dir' => sub {
     my %called_functions;
     my @mock_func = qw(qesap_get_variables
       qesap_yaml_replace
@@ -1008,7 +1036,7 @@ subtest '[qesap_prepare_env] AWS' => sub {
     ok($qesap_create_aws_credentials_called, '$qesap_create_aws_credentials called');
 };
 
-subtest '[qesap_prepare_env::qesap_create_aws_config]' => sub {
+subtest '[qesap_prepare_env] qesap_create_aws_config' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
     my @calls;
     my @contents;
@@ -1031,7 +1059,7 @@ subtest '[qesap_prepare_env::qesap_create_aws_config]' => sub {
     like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
 };
 
-subtest '[qesap_prepare_env::qesap_create_aws_config] fix quote' => sub {
+subtest '[qesap_prepare_env] qesap_create_aws_config fix quote' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
     my @calls;
     my @contents;
@@ -1050,7 +1078,7 @@ subtest '[qesap_prepare_env::qesap_create_aws_config] fix quote' => sub {
     ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
 };
 
-subtest '[qesap_prepare_env::qesap_create_aws_config] not solved template' => sub {
+subtest '[qesap_prepare_env] qesap_create_aws_config not solved template' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
     my @contents;
 
@@ -1067,7 +1095,7 @@ subtest '[qesap_prepare_env::qesap_create_aws_config] not solved template' => su
     like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
 };
 
-subtest '[qesap_prepare_env::qesap_create_aws_config] not solved template with quote' => sub {
+subtest '[qesap_prepare_env] qesap_create_aws_config not solved template with quote' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
     my @contents;
 
@@ -1084,7 +1112,7 @@ subtest '[qesap_prepare_env::qesap_create_aws_config] not solved template with q
     like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
 };
 
-subtest '[qesap_prepare_env::qesap_create_aws_config] not solved template and variable with quote' => sub {
+subtest '[qesap_prepare_env] qesap_create_aws_config not solved template and variable with quote' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
     my @contents;
     $qesap->redefine(script_output => sub { return '%REGION%'; });
