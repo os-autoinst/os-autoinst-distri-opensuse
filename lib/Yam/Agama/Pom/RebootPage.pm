@@ -27,6 +27,7 @@ sub expect_is_shown {
 
 sub reboot {
     my ($self) = @_;
+    select_console('installation');
     assert_and_click($self->{tag_reboot_button});
 }
 

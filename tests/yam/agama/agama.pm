@@ -18,13 +18,13 @@ use testapi qw(
 sub run {
     my $self = shift;
     my $test = get_required_var('AGAMA_TEST');
+    my $configure_dasd = get_var('CONFIGURE_DASD');
     my $reboot_page = $testapi::distri->get_reboot_page();
 
     script_run("dmesg --console-off");
-    assert_script_run("/usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
+    assert_script_run("CONFIGURE_DASD=$configure_dasd /usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
     script_run("dmesg --console-on");
 
-    select_console('installation');
     $reboot_page->reboot();
 }
 
