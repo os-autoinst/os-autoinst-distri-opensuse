@@ -12,10 +12,7 @@ use testapi;
 use Utils::Logging 'save_and_upload_log';
 
 sub post_fail_hook {
-    select_console 'root-console';
     upload_agama_logs();
-    upload_system_logs();
-    upload_browser_automation_dumps();
 }
 
 sub test_flags {
@@ -29,22 +26,14 @@ sub upload_traces {
 }
 
 sub upload_agama_logs {
+    select_console 'root-console';
     save_and_upload_log('agama logs store', "/tmp/agama-logs.tar.gz");
-}
-
-sub upload_system_logs {
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log");
-}
-
-sub upload_browser_automation_dumps {
     upload_traces();
 }
 
 sub post_run_hook {
-    select_console 'root-console';
     upload_agama_logs();
-    upload_system_logs();
-    upload_browser_automation_dumps();
 }
 
 1;
