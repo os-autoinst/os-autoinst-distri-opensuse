@@ -475,12 +475,7 @@ sub init_consoles {
             || is_svirt_except_s390x))
     {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
-        if (get_var('AGAMA')) {
-            $self->add_console('installation', 'tty-console', {tty => 2});
-        }
-        else {
-            $self->add_console('installation', 'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
-        }
+        $self->add_console('installation', 'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
         $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
