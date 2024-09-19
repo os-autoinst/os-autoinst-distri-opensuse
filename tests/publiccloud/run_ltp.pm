@@ -37,12 +37,12 @@ sub get_ltp_rpm
 
 sub instance_log_args
 {
-    my $self = shift;
+    my ($provider, $instance) = @_;
     return sprintf('"%s" "%s" "%s" "%s"',
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
-        $self->{my_instance}->instance_id,
-        $self->{my_instance}->public_ip,
-        $self->{provider}->{provider_client}->region);
+        $instance->instance_id,
+        $instance->public_ip,
+        $provider->{provider_client}->region);
 }
 
 sub upload_ltp_logs
@@ -84,6 +84,7 @@ sub upload_ltp_logs
 
 sub run {
     my ($self, $args) = @_;
+    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
     my $ltp_command = get_required_var('LTP_COMMAND_FILE');
@@ -95,14 +96,12 @@ sub run {
 
     select_host_console();
 
-    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
-    if ($qam) {
-        $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
-    } else {
-        $provider = $self->{provider} = $self->provider_factory();    # required for cleanup
-        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
+    unless ($args->{my_provider} && $args->{my_instance}) {
+        $args->{my_provider} = $self->provider_factory();
+        $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
+    $instance = $args->{my_instance};
+    $provider = $args->{my_provider};
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -146,8 +145,8 @@ sub run {
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
 
-    my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
-    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
+    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
+    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
 
     my $env = get_var('LTP_PC_RUNLTP_ENV');
 
@@ -182,14 +181,14 @@ sub run {
 }
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
 
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
-        script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
+        script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance}));
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }

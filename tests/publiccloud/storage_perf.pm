@@ -68,7 +68,7 @@ sub analyze_previous_series {
 
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
@@ -121,14 +121,14 @@ sub run {
 
     select_serial_terminal();
 
-    my $provider = $self->provider_factory();
-    my $instance;
+    $args->{my_provider} = $self->provider_factory();
     if ($use_nvme) {
-        $instance = $provider->create_instance();
+        $args->{my_instance} = $args->{my_provider}->create_instance();
+    } else {
+        $args->{my_instance} = $args->{my_provider}->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
     }
-    else {
-        $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
-    }
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
 
     if (get_var('PUBLIC_CLOUD_QAM')) {
         $tags->{os_pc_build} = 'N/A';

@@ -20,8 +20,6 @@ sub run {
     my ($self, $args) = @_;
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
-    $self->{instance} = $args->{my_instance};
-    $self->{provider} = $args->{my_provider};
     my $pers_net_rules = '/etc/udev/rules.d/75-persistent-net-generator.rules';
 
     $instance->ssh_assert_script_run('systemctl is-enabled cloud-netconfig.service');
@@ -95,16 +93,16 @@ sub run {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
 
-    debug($self->{instance}, $self->{provider});
+    debug($self->{run_args}->{my_instance}, $self->{run_args}->{my_provider});
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my $self = shift;
+    my ($self) = @_;
 
-    debug($self->{instance}, $self->{provider});
+    debug($self->{run_args}->{my_instance}, $self->{run_args}->{my_provider});
     $self->SUPER::post_run_hook;
 }
 

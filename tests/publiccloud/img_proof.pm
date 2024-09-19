@@ -42,14 +42,12 @@ sub run {
 
     select_host_console();
 
-    # QAM passes the instance as argument
-    if (get_var('PUBLIC_CLOUD_QAM')) {
-        $instance = $args->{my_instance};
-        $provider = $args->{my_provider};
-    } else {
-        $provider = $self->provider_factory();
-        $instance = $provider->create_instance(check_guestregister => is_ondemand ? 1 : 0);
+    unless ($args->{my_provider} && $args->{my_instance}) {
+        $args->{my_provider} = $self->provider_factory();
+        $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_ondemand ? 1 : 0);
     }
+    $instance = $args->{my_instance};
+    $provider = $args->{my_provider};
 
     if (is_hardened) {
         # Fix permissions for /etc/ssh/sshd_config

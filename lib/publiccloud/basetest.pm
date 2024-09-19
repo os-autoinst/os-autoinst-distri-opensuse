@@ -113,12 +113,13 @@ sub _cleanup {
     diag('Public Cloud _cleanup: $flags->{publiccloud_multi_module}=' . $flags->{publiccloud_multi_module}) if ($flags->{publiccloud_multi_module});
     diag('Public Cloud _cleanup: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
     diag('Public Cloud _cleanup: $self->{result}=' . $self->{result}) if ($self->{result});
-    diag('Public Cloud _cleanup: $self->{run_args}') if ($self->{run_args});
-    diag('Public Cloud _cleanup: $self->{provider}') if ($self->{provider});
+    diag('Public Cloud _cleanup: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
+    diag('Public Cloud _cleanup: $self->{run_args}->{my_provider}=' . $self->{run_args}->{my_provider}) if ($self->{run_args} && $self->{run_args}->{my_provider});
+    diag('Public Cloud _cleanup: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args} && $self->{run_args}->{my_instance});
 
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable and result == 'fail'
-    if ($self->{result} && $self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE')) {
+    if (get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE') && $self->{result} && $self->{result} eq 'fail') {
         upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
@@ -134,15 +135,10 @@ sub _cleanup {
     }
     diag('Public Cloud _cleanup: 2nd check passed.');
 
-    # For maintenance, we need $self->run_args and $self->run_args->my_provider
-    #  otherwise we need just $self->provider
-    if (($self->{run_args} && $self->{run_args}->{my_provider}) || $self->{provider}) {
+    # We need $self->{run_args} and $self->{run_args}->{my_provider}
+    if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         diag('Public Cloud _cleanup: Ready for provider cleanup.');
-        if (get_var('PUBLIC_CLOUD_QAM')) {
-            eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("\$self->{run_args}->{my_provider}::cleanup() failed -- $@");
-        } else {
-            eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("\$self->provider::cleanup() failed -- $@");
-        }
+        eval { $self->{run_args}->{my_provider}->cleanup(); } or bmwqemu::fctwarn("\$self->provider::cleanup() failed -- $@");
         diag('Public Cloud _cleanup: The provider cleanup finished.');
     } else {
         diag('Public Cloud _cleanup: Not ready for provider cleanup.');
