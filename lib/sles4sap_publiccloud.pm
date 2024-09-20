@@ -389,11 +389,14 @@ sub stop_hana {
 
         # Create a local copy of ssh_opts and extend it for the crash command.
         # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
-        # which in HanaSR tests are set with default values in sles4sap_publiccloud_basetest::set_cli_ssh_opts
-        my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -o ServerAliveInterval=2';
+        # which in HanaSR tests are set with default values in sles4sap_publiccloud_basetest::set_cli_ssh_opts.
+        # -f requests ssh to go to background just before command execution
+        # -n is about stdin redirection and it is needed by -f to work
+        my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -fn -o ServerAliveInterval=2';
+
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
-            # This timeout is to ensure the run_ssh_command is executed in a reasonable amount of time.
-            # Also consider that internally run_ssh_command is using this value for two different guard mechanism.
+            # timeout 0 has a special meaning within run_ssh_command:
+            # it result in not wrapping the command within timeout command line utility
             timeout => 0,
             ssh_opts => $crash_ssh_opts);
 
