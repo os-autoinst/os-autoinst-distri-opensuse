@@ -2303,7 +2303,8 @@ sub qesap_az_assign_role {
     my $subscription_id = script_output('az account show --query "id" -o tsv');
     my $az_cmd = join(' ', 'az role assignment',
         'create --only-show-errors',
-        "--assignee '$args{assignee}'",
+        "--assignee-object-id '$args{assignee}'",
+        '--assignee-principal-type ServicePrincipal',
         "--role '$args{role}'",
         "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
     assert_script_run($az_cmd);
