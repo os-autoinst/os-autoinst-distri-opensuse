@@ -6,7 +6,7 @@ schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
   - yam/agama/agama
-  - installation/grub_test
+  - yam/agama/agama_grub2
   - installation/first_boot
   - yam/validate/validate_product
   - yam/validate/validate_user
