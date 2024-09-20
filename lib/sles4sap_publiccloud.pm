@@ -398,21 +398,15 @@ sub stop_hana {
 
         $self->{my_instance}->run_ssh_command(
             cmd => $cmd,
-            # timeout 0 has a special meaning within ->run_ssh_command
-            # it results in not wrapping cmd with timeout command
-            timeout => 0,
+            # This timeout is to ensure the run_ssh_command is executed in a reasonable amount of time.
+            # It is not about how much time the crash is expected to take in the SUT.
+            # Also consider that internally run_ssh_command is using this value for two different guard mechanisms.
+            timeout => 10,
+            # This test does not care about output,
+            # setting this in conjunction with timeout >0 result in the internal implementation of
+            # run_ssh_command to use script_run
+            rc_only => 1,
             ssh_opts => $crash_ssh_opts);
-
-
-        # Send a Ctrl-C to unblock the terminal session if no prompt is seen
-        if (wait_serial(serial_term_prompt())) {
-            # wait_serial found the prompt as fine, but by checking it "consumed" it:
-            # let force a new prompt to be printed
-            send_key 'ret';
-        } else {
-            # No prompt has been found: try to unlock that
-            type_string('', terminate_with => 'ETX');
-        }
 
         # Wait till ssh disappear
         record_info("Wait ssh disappear start");
