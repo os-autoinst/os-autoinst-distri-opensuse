@@ -6,6 +6,6 @@ vars:
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - yam/agama/auto
+  - yam/agama/agama_auto
   - console/setup_libyui_running_system
   - yam/yast_modules/control_center
