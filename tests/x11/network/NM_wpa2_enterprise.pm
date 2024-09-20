@@ -70,6 +70,7 @@ sub enter_NM_credentials {
     send_key 'ret';
 
     # enter anonymous identity
+    assert_and_click "anon_identity";
     type_string 'franz.nord@example.com';
 
     # select 'No CA certificate needed'
