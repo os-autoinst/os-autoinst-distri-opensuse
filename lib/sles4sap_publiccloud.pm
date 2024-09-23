@@ -369,7 +369,9 @@ sub stop_hana {
     my %commands = (
         stop => 'HDB stop',
         kill => 'HDB kill -x',
-        crash => 'echo b > /proc/sysrq-trigger &'
+        # echo b > /proc/sysrq-trigger is for crashing the remote node
+        # This also work in conjunction with ssh -fn arguments
+        crash => 'sudo su -c "echo b > /proc/sysrq-trigger &"'
     );
     croak("HANA stop method '$args{method}' unknown.") unless $commands{$args{method}};
 
@@ -394,15 +396,23 @@ sub stop_hana {
         # -n is about stdin redirection and it is needed by -f to work
         my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -fn -o ServerAliveInterval=2';
 
-        $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
-            # timeout 0 has a special meaning within run_ssh_command:
-            # it result in not wrapping the command within timeout command line utility
+        $self->{my_instance}->run_ssh_command(
+            cmd => $cmd,
+            # timeout 0 has a special meaning within ->run_ssh_command
+            # it results in not wrapping cmd with timeout command
             timeout => 0,
             ssh_opts => $crash_ssh_opts);
 
 
         # Send a Ctrl-C to unblock the terminal session if no prompt is seen
-        type_string('', terminate_with => 'ETX') unless (wait_serial(serial_term_prompt()));
+        if (wait_serial(serial_term_prompt())) {
+            # wait_serial found the prompt as fine, but by checking it "consumed" it:
+            # let force a new prompt to be printed
+            send_key 'ret';
+        } else {
+            # No prompt has been found: try to unlock that
+            type_string('', terminate_with => 'ETX');
+        }
 
         # Wait till ssh disappear
         record_info("Wait ssh disappear start");
