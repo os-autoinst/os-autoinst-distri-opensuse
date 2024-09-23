@@ -40,6 +40,7 @@ schedule:
   - boot/boot_to_desktop
   - ha/wait_barriers
   - console/system_prepare
+  - '{{setup_fips}}'
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
@@ -91,3 +92,7 @@ conditional_schedule:
     WMP:
       1:
         - kernel/wmp_simple
+  setup_fips:
+    FIPS_INSTALLATION:
+      1:
+        - fips/fips_setup

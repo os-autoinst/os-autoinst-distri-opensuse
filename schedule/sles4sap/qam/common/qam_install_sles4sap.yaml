@@ -31,6 +31,7 @@ schedule:
   - installation/first_boot
   - '{{patch_and_reboot}}'
   - console/system_prepare
+  - '{{setup_fips}}'
   - '{{test_sles4sap}}'
   - '{{scc_deregister}}'
   - '{{generate_image}}'
@@ -120,3 +121,7 @@ conditional_schedule:
         - shutdown/grub_set_bootargs
         - shutdown/cleanup_before_shutdown
         - shutdown/shutdown
+  setup_fips:
+    FIPS_ENABLED:
+      1:
+        - fips/fips_setup
