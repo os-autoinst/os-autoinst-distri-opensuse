@@ -111,23 +111,8 @@ sub run {
     # variable to hold the top level container where the PTF directory
     # is going to be
     my $ptf_container;
-    my $hana_token;
     my $ptf_token;
 
-    if (get_var('HANA_ACCOUNT') && get_var('HANA_CONTAINER') && get_var('HANA_KEYNAME')) {
-        my $hana_token = qesap_az_create_sas_token(
-            storage => get_required_var('HANA_ACCOUNT'),
-            container => (split("/", get_required_var('HANA_CONTAINER')))[0],
-            keyname => get_required_var('HANA_KEYNAME'),
-            # lifetime has to be enough to reach the point of the test that
-            # executes qe-sap-deployment Ansible playbook 'sap-hana-download-media.yaml'
-            lifetime => 90,
-            permission => 'r');
-        # escape needed by 'sed'
-        # but not implemented in file_content_replace() yet poo#120690
-        (my $escaped_hana_token = $hana_token) =~ s/\&/\\\&/g;
-        set_var("HANA_TOKEN", $escaped_hana_token);
-    }
     if (get_var('PTF_ACCOUNT') && get_var('PTF_CONTAINER') && get_var('PTF_KEYNAME')) {
         $ptf_token = qesap_az_create_sas_token(
             storage => get_required_var('PTF_ACCOUNT'),
