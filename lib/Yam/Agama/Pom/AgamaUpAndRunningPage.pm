@@ -16,7 +16,7 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        tag_array_ref_any_first_screen_shown => [qw(agama-product-selection agama-configuring-the-product)]
+        tag_array_ref_any_first_screen_shown => [qw(agama-product-selection agama-configuring-the-product agama-installing)]
     }, $class;
 }
 
