@@ -36,7 +36,6 @@ sub enable_fips {
     if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
         assert_script_run("fips-mode-setup --enable");
         $self->reboot_and_select_serial_term;
-        validate_script_output("fips-mode-setup --check", sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
     } else {
         # on SL Micro 6.0+ we only need to reboot, no need to manually change grub.
         if (is_sle_micro('<6.0')) {
@@ -46,7 +45,16 @@ sub enable_fips {
             add_grub_cmdline_settings('fips=1', update_grub => 1) unless is_sle_micro;
         }
         $self->reboot_and_select_serial_term;
+    }
+}
+
+sub ensure_fips_enabled {
+    if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
+        validate_script_output("fips-mode-setup --check",
+            sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
+    } else {
         assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
+        assert_script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub");
     }
 }
 
@@ -76,15 +84,14 @@ sub run {
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
     if (get_var("FIPS_INSTALLATION")) {
-        assert_script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub");
-        assert_script_run("grep '^1\$' /proc/sys/crypto/fips_enabled");
+        ensure_fips_enabled;
         record_info 'Kernel Mode', 'FIPS kernel mode (for global) configured!';
         return;
     }
 
     # FIPS_INSTALLATION is only applicable for system installaton
-    die "FIPS_INSTALLATION is require to run this script for installation" if get_var("!BOOT_HDD_IMAGE");
-    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!" if get_var("!FIPS_ENABLED");
+    die "FIPS_INSTALLATION is require to run this script for installation" unless get_var("BOOT_HDD_IMAGE");
+    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!" unless get_var("FIPS_ENABLED");
 
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
@@ -98,6 +105,7 @@ sub run {
     } else {
         install_fips;
         $self->enable_fips;
+        ensure_fips_enabled;
     }
 }
 
