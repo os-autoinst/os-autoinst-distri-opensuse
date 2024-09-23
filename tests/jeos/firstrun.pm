@@ -109,7 +109,7 @@ sub verify_bsc {
 sub verify_partition_label {
     my $label = 'gpt';
 
-    if (is_s390x || (is_aarch64 && get_var('HDD_1') =~ /.*raw\.xz$/ && !is_community_jeos)) {
+    if (is_s390x || (is_aarch64 && check_var('FLAVOR', 'JeOS-for-RaspberryPi') && !is_community_jeos)) {
         $label = 'dos';
     }
 
@@ -358,36 +358,40 @@ sub run {
 
     verify_user_info(user_is_root => 1);
 
-    # Create user account, if image doesn't already contain user
-    # (which is the case for SLE images that were already prepared by openQA)
-    # new jeos-firstboot supports non-root user creation
-    create_user_in_terminal;
+    # Due to https://progress.opensuse.org/issues/166175, if we need to run the firstboot wizard twice,
+    # e.g. re-use the published qcow2 image again on RPi setups. we don't need to do the same thing again.
+    unless (check_var('FIRSTRUN_WIZARD_TWICE', '1')) {
+        # Create user account, if image doesn't already contain user
+        # (which is the case for SLE images that were already prepared by openQA)
+        # new jeos-firstboot supports non-root user creation
+        create_user_in_terminal;
 
-    if (check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
-        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/permit-root-login.conf");
+        if (check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
+            assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/permit-root-login.conf");
+        }
+
+        ensure_serialdev_permissions;
+
+        prepare_serial_console;
+
+        my $console = select_console 'user-console';
+        verify_user_info;
+        enter_cmd "exit";
+        $console->reset();
+
+        select_console 'root-console';
+        if ($lang ne 'en_US') {
+            assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
+        }
+
+        # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
+        verify_mounts unless is_leap('<15.2') && is_aarch64;
+
+        verify_hypervisor unless is_generalhw;
+        verify_norepos unless is_opensuse;
+        verify_bsc if is_jeos;
+        verify_partition_label;
     }
-
-    ensure_serialdev_permissions;
-
-    prepare_serial_console;
-
-    my $console = select_console 'user-console';
-    verify_user_info;
-    enter_cmd "exit";
-    $console->reset();
-
-    select_console 'root-console';
-    if ($lang ne 'en_US') {
-        assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
-    }
-
-    # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
-    verify_mounts unless is_leap('<15.2') && is_aarch64;
-
-    verify_hypervisor unless is_generalhw;
-    verify_norepos unless is_opensuse;
-    verify_bsc if is_jeos;
-    verify_partition_label;
 }
 
 sub test_flags {
