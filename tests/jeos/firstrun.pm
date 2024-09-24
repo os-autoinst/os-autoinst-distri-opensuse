@@ -276,7 +276,7 @@ sub run {
         assert_screen 're-encrypt-finished', 600;
     }
 
-    unless (is_sle || is_sle_micro('<=6.0') || is_leap) {
+    if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_sle('>=16')) {
         assert_screen 'jeos-ssh-enroll-or-not', 120;
 
         if (get_var('SSH_ENROLL_PAIR')) {
@@ -294,9 +294,6 @@ sub run {
         } else {
             send_key 'n';
         }
-    }
-
-    if (is_tumbleweed || is_sle_micro('>6.0') || is_microos) {
         create_user_in_ui();
     }
 
