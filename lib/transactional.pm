@@ -39,7 +39,51 @@ our @EXPORT = qw(
   exit_trup_shell_and_reboot
   reboot_on_changes
   record_kernel_audit_messages
+  soft_reboot_enabled
+  enable_soft_reboot
+  disable_soft_reboot
 );
+
+sub soft_reboot_enabled {
+    my @config_files = ("/etc/tukit.conf", "/usr/etc/tukit.conf");    # List of possible configuration files
+    my $found = 0;
+
+    foreach my $config_file (@config_files) {
+        # Check if the configuration file exists
+        if (-e $config_file) {
+            # Open and read the file
+            open my $fh, '<', $config_file or die "Could not open file '$config_file': $!";
+            while (my $line = <$fh>) {
+                # Search for the exact string REBOOT_ALLOW_SOFT_REBOOT=true
+                if ($line =~ /REBOOT_ALLOW_SOFT_REBOOT=true/) {
+                    $found = 1;
+                    last;    # No need to continue if we found it in this file
+                }
+            }
+            close $fh;
+        }
+
+        # Break out of the loop if we found it in any file
+        last if $found;
+    }
+
+    if ($found) {
+        record_info("Soft reboot is enabled");
+        return 1;    # Return true if found
+    } else {
+        record_info("Soft reboot is disabled");
+        return 0;    # Return false if not found
+    }
+}
+
+sub enable_soft_reboot {
+    assert_script_run "sed -i '/REBOOT_ALLOW_SOFT_REBOOT/d' /etc/tukit.conf";
+    assert_script_run "echo 'REBOOT_ALLOW_SOFT_REBOOT=true' >> /etc/tukit.conf";
+}
+
+sub disable_soft_reboot {
+    assert_script_run "sed -i '/REBOOT_ALLOW_SOFT_REBOOT/d' /etc/tukit.conf";
+}
 
 # Download files needed for transactional update tests
 sub get_utt_packages {
