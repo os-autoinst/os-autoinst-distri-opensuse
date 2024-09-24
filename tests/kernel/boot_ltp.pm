@@ -50,6 +50,11 @@ sub run {
     select_console('root-console') if get_var('LTP_DEBUG');
     select_serial_terminal;
 
+    if (check_var_array('LTP_COMMAND_FILE', 'net.tcp_cmds')) {
+        setup_localhost_sshd;
+        setup_ftp;
+    }
+
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);

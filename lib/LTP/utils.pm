@@ -38,6 +38,8 @@ our @EXPORT = qw(
   get_default_pkg
   install_from_repo
   prepare_whitelist_environment
+  setup_localhost_sshd
+  setup_ftp
 );
 
 sub loadtest_kernel {
@@ -525,6 +527,28 @@ sub prepare_whitelist_environment {
     };
 
     return $environment;
+}
+
+sub setup_localhost_sshd {
+    assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f /root/.ssh/id_rsa";
+    assert_script_run "cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys";
+    assert_script_run "ssh-keyscan -H localhost >> /root/.ssh/known_hosts";
+
+    permit_root_ssh;
+
+}
+
+sub setup_ftp {
+    my $results = script_run("command -v vsftpd");
+    if (!$results) {
+        assert_script_run("sed -i 's/^write_enable.*\$/write_enable=YES/' /etc/vsftpd.conf");
+        assert_script_run("systemctl restart vsftpd");
+    }
+
+    $results = script_run("test -e /etc/pam.d/vsftpd");
+    if ($results) {
+        assert_script_run("curl -L -v -o " . "/etc/pam.d/vsftpd " . autoinst_url . "/data/kernel/pam_vsftpd");
+    }
 }
 
 1;
