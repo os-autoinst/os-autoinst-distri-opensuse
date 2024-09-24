@@ -316,8 +316,8 @@ sub run {
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
-            return if is_usb_boot;
             prepare_disks if (!is_upgrade && !get_var('KEEP_DISKS'));
+            return if is_usb_boot;
         }
         else {
             save_screenshot;
