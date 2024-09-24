@@ -345,7 +345,6 @@ sub load_xfstests_tests {
         boot_hdd_image;
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
-        loadtest 'xfstests/generate_report';
     }
 }
 
