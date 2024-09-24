@@ -49,6 +49,9 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>false</secure_boot>
+      % if ($check_var->('IPXE_UEFI', '1')) {
+      <update_nvram>true</update_nvram>
+      % }
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV', 'ttyS1') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
@@ -280,6 +283,27 @@
     </user>
   </users>
   <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>pre_erase_all_disks.sh</filename>
+        <interpreter>/bin/bash -x</interpreter>
+        <source><![CDATA[
+disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+for disk in $disks;do
+    echo "Wiping /dev/$disk..."
+    wipefs -af /dev/$disk
+    sync
+    parted -s /dev/$disk mklabel gpt
+    sync
+done
+echo "All disks are wiped out."
+lsblk
+]]>
+        </source>
+        <feedback config:type="boolean">false</feedback>
+        <notification>Please wait while pre-script is running...</notification>
+      </script>
+    </pre-scripts>
     <chroot-scripts config:type="list">
       <script>
         <!-- Keep ssh connection alive for long-time run test -->

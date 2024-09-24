@@ -40,6 +40,9 @@
       <timeout config:type="integer">15</timeout>
       <trusted_grub>false</trusted_grub>
       <secure_boot>false</secure_boot>
+      % if ($check_var->('IPXE_UEFI', '1')) {
+      <update_nvram>true</update_nvram>
+      % }
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
@@ -302,6 +305,28 @@
     </user>
   </users>
   <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>pre_erase_all_disks.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+for disk in $disks;do
+    echo "Wiping /dev/$disk..."
+    wipefs -af /dev/$disk
+    sync
+    parted -s /dev/$disk mklabel gpt
+    sync
+done
+echo "All disks are wiped out."
+lsblk
+]]>
+        </source>
+        <feedback config:type="boolean">false</feedback>
+        <notification>Please wait while pre-script is running...</notification>
+      </script>
+    </pre-scripts>
     <init-scripts config:type="list">
       % if ($check_var->('SYSTEM_ROLE', 'xen') && $check_var->('XEN_DEFAULT_BOOT_IS_SET', 1)) {
       <script>

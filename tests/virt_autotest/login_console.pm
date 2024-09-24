@@ -306,12 +306,24 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    if (check_var('PERF_KERNEL', '1')) {
+    if (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1')) {
         select_console 'log-console';
         save_screenshot;
         script_run "save_y2logs /tmp/y2logs.tar.bz2";
         upload_logs "/tmp/y2logs.tar.bz2";
         save_screenshot;
+        if (check_var('VIRT_AUTOTEST', '1')) {
+            # show efi boot entry
+            if (check_var('IPXE_UEFI', '1')) {
+                record_info('UEFI entries', script_output('efibootmgr -v'));
+                record_info('Boot partition contents', script_output('ls -R /boot/efi'));
+            }
+            if (get_var('AUTOYAST', '')) {
+                script_run "tar czvf /tmp/autoinstall.tar.gz /var/adm/autoinstall";
+                upload_logs "/tmp/autoinstall.tar.gz";
+            }
+            $self->SUPER::post_fail_hook;
+        }
     }
     else {
         $self->SUPER::post_fail_hook;
