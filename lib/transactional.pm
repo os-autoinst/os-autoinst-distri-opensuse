@@ -39,7 +39,17 @@ our @EXPORT = qw(
   exit_trup_shell_and_reboot
   reboot_on_changes
   record_kernel_audit_messages
+  enable_soft_reboot
+  enable_kexec_reboot
 );
+
+sub enable_soft_reboot {
+    assert_script_run "echo 'REBOOT_ALLOW_SOFT_REBOOT=true' >> /etc/tukit.conf";
+}
+
+sub enable_kexec_reboot {
+    assert_script_run "echo 'REBOOT_ALLOW_KEXEC=true' >> /etc/tukit.conf";
+}
 
 # Download files needed for transactional update tests
 sub get_utt_packages {
