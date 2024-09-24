@@ -71,7 +71,8 @@ our @EXPORT = qw(
   reload_loop_device
   umount_xfstests_dev
   config_debug_option
-  test_run_without_heartbeat);
+  test_run_without_heartbeat
+  check_bugzilla_status);
 
 =head2 heartbeat_prepare
 
@@ -464,13 +465,11 @@ Log: Collect fs runtime status for XFS, Btrfs and Ext4
 
 sub collect_fs_status {
     my ($category, $num, $fstype) = @_;
-    my $cmd = <<END_CMD;
-mount \$TEST_DEV \$TEST_DIR &> /dev/null
-[ -n "\$SCRATCH_DEV" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null
-END_CMD
+    my $cmd;
+    script_run('mount $TEST_DEV $TEST_DIR &> /dev/null');
+    script_run("[ -n \"\$SCRATCH_DEV\" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null");
     if ($fstype eq 'xfs') {
         $cmd = <<END_CMD;
-$cmd
 echo "==> /sys/fs/$fstype/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
 cat /sys/fs/$fstype/stats/stats >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$fstype/*/log/* >> $LOG_DIR/$category/$num.fs_stat
@@ -481,7 +480,6 @@ END_CMD
     }
     elsif ($fstype eq 'btrfs') {
         $cmd = <<END_CMD;
-$cmd
 tail -n +1 /sys/fs/$fstype/*/allocation/data/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$fstype/*/allocation/metadata/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$fstype/*/allocation/metadata/dup/* >> $LOG_DIR/$category/$num.fs_stat
@@ -490,12 +488,10 @@ END_CMD
     }
     elsif ($fstype eq 'ext4') {
         $cmd = <<END_CMD;
-$cmd
 tail -n +1 /sys/fs/$fstype/*/* >> $LOG_DIR/$category/$num.fs_stat
 END_CMD
     }
     $cmd = <<END_CMD;
-$cmd
 umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
@@ -577,7 +573,7 @@ Run a single test and write log to file but without heartbeat, return log_add ou
 =cut
 
 sub test_run_without_heartbeat {
-    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console) = @_;
+    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
@@ -591,7 +587,6 @@ sub test_run_without_heartbeat {
         $test_start = time();
         # Send kill signal 3 seconds after sending the default SIGTERM to avoid some tests refuse to stop after timeout
         assert_script_run("timeout -k 3 " . ($timeout - 5) . " $TEST_WRAPPER '$test' $run_options $inject_info | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $timeout);
-        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
         $test_duration = time() - $test_start;
     };
     if ($@) {
@@ -620,6 +615,7 @@ sub test_run_without_heartbeat {
         reload_loop_device($self, $fstype) if $loop_device;
     }
     else {
+        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
         $status_num =~ s/^\s+|\s+$//g;
         if ($status_num == 0) {
             $test_status = 'PASSED';
@@ -633,7 +629,47 @@ sub test_run_without_heartbeat {
         }
     }
     # Add test status to STATUS_LOG file
-    return log_add($STATUS_LOG, $test, $test_status, $test_duration);
+    if ($get_log_content) {
+        return log_add($STATUS_LOG, $test, $test_status, $test_duration);
+    }
+    else {
+        log_add($STATUS_LOG, $test, $test_status, $test_duration);
+        my $log_content = script_output("cat $LOG_DIR/subtest_result_num");
+        my $targs = {
+            name => $test,
+            status => $test_status,
+            time => $test_duration,
+            output => $log_content,
+        };
+        return $targs;
+    }
+}
+
+=head2 check_bugzilla_status
+
+A function use in white list, to check bugzilla status and write messages in output
+
+=cut
+
+sub check_bugzilla_status {
+    my ($entry, $targs) = @_;
+    if (exists $entry->{bugzilla}) {
+        my $info = bugzilla_buginfo($entry->{bugzilla});
+
+        if (!defined($info) || !exists $info->{bug_status}) {
+            $targs->{bugzilla} = "Bugzilla error:\n" .
+              "Failed to query bug #$entry->{bugzilla} status";
+            return;
+        }
+
+        if ($info->{bug_status} =~ /resolved/i || $info->{bug_status} =~ /verified/i) {
+            $targs->{bugzilla} = "Bug closed:\n" .
+              "Bug #$entry->{bugzilla} is closed, ignoring whitelist entry";
+            return;
+        }
+    }
+    $targs->{status} = 'SOFTFAILED' unless $entry->{keep_fail};
+    $targs->{failinfo} = $entry->{message};
 }
 
 1;

@@ -22,10 +22,6 @@ use File::Basename;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
-use filesystem_utils 'generate_xfstests_list';
-use LTP::utils;
-use LTP::WhiteList;
-use bugzilla;
 
 my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR = '/opt/log';
@@ -45,13 +41,14 @@ sub upload_subdirs {
     my $output = script_output("if [ -d $dir ]; then find $dir -maxdepth 1 -mindepth 1 -type f -or -type d; else echo $dir folder not exist; fi");
     if ($output =~ /folder not exist/) { return; }
     for my $subdir (split(/\n/, $output)) {
+        next if ($subdir =~ /subtest_result_num/);
         my $tarball = "$subdir.tar.xz";
         assert_script_run("ll; tar cJf $tarball -C $dir " . basename($subdir), $timeout);
         upload_logs($tarball, timeout => $timeout);
     }
 }
 
-sub analyze_result {
+sub test_summary {
     my ($text) = @_;
     my $test_num = 0;
     my $pass_num = 0;
@@ -59,14 +56,6 @@ sub analyze_result {
     my $skip_num = 0;
     my $total_time = 0;
     my $test_range = '';
-    my $whitelist;
-    my $whitelist_env = prepare_whitelist_environment();
-    my $whitelist_url = get_var('XFSTESTS_KNOWN_ISSUES');
-    my $suite = get_required_var('TEST');
-    my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
-
-    $whitelist = LTP::WhiteList->new($whitelist_url) if $whitelist_url;
-
     foreach (split("\n", $text)) {
         my ($test_name, $test_status, $test_time);
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
@@ -80,36 +69,11 @@ sub analyze_result {
         (my $generate_name = $test_name) =~ s/-/\//;
         $test_num += 1;
         $test_range = $test_range . $generate_name . " ... ... " . $test_status . " ($test_time seconds)" . "\n";
-        my $test_path = '/opt/log/' . $generate_name;
-        bmwqemu::fctinfo("$generate_name");
-        if ($test_status =~ /FAILED|SKIPPED/) {
-            my $targs = OpenQA::Test::RunArgs->new();
-            my $whitelist_entry;
-
-            $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600);
-            $targs->{name} = $test_name;
-            $targs->{time} = $test_time;
-            $targs->{status} = $test_status;
-
-            if ($test_status =~ /FAILED/) {
-                $targs->{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600);
-                $targs->{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600);
-                $targs->{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600);
-                $fail_num += 1;
-
-                if (exists($softfail_list{$generate_name})) {
-                    $targs->{status} = 'SOFTFAILED';
-                    $targs->{failinfo} = 'XFSTESTS_SOFTFAIL';
-                }
-
-                $whitelist_entry = $whitelist->find_whitelist_entry($whitelist_env, $suite, $generate_name) if defined($whitelist);
-                check_bugzilla_status($whitelist_entry, $targs) if ($whitelist_entry);
-            }
-            else {
-                $skip_num += 1;
-            }
-            # show fail message
-            autotest::loadtest("tests/xfstests/xfstests_failed.pm", name => $test_name, run_args => $targs);
+        if ($test_status =~ /FAILED/) {
+            $fail_num += 1;
+        }
+        elsif ($test_status =~ /SKIPPED/) {
+            $skip_num += 1;
         }
         else {
             $pass_num += 1;
@@ -118,27 +82,6 @@ sub analyze_result {
     }
     record_info('Summary', "Test number: $test_num\nPass: $pass_num\nSkip: $skip_num\nFail: $fail_num\nTotal time: $total_time seconds\n");
     record_info('Test Ranges', "$test_range");
-}
-
-sub check_bugzilla_status {
-    my ($entry, $targs) = @_;
-    if (exists $entry->{bugzilla}) {
-        my $info = bugzilla_buginfo($entry->{bugzilla});
-
-        if (!defined($info) || !exists $info->{bug_status}) {
-            $targs->{bugzilla} = "Bugzilla error:\n" .
-              "Failed to query bug #$entry->{bugzilla} status";
-            return;
-        }
-
-        if ($info->{bug_status} =~ /resolved/i || $info->{bug_status} =~ /verified/i) {
-            $targs->{bugzilla} = "Bug closed:\n" .
-              "Bug #$entry->{bugzilla} is closed, ignoring whitelist entry";
-            return;
-        }
-    }
-    $targs->{status} = 'SOFTFAILED' unless $entry->{keep_fail};
-    $targs->{failinfo} = $entry->{message};
 }
 
 sub run {
@@ -158,8 +101,6 @@ sub run {
     # Finalize status log and upload it
     log_end($STATUS_LOG);
     upload_logs($STATUS_LOG, timeout => 60, log_name => $STATUS_LOG);
-
-    # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
 
     # Upload kdump logs if not set "NO_KDUMP=1"
@@ -167,12 +108,12 @@ sub run {
         upload_subdirs($KDUMP_DIR, 1200);
     }
 
-    #upload system log
+    # Upload system log
     upload_system_logs();
 
-    # Junit xml report
+    # Summary test range info
     my $script_output = script_output("cat $STATUS_LOG", 600);
-    analyze_result($script_output);
+    test_summary($script_output);
 }
 
 sub test_flags {
