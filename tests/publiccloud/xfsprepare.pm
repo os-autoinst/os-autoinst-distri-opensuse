@@ -131,6 +131,7 @@ sub get_unused_nvme_device {
 
 sub run {
     my $device = get_var("XFS_TEST_DEVICE", "/dev/sdb");
+    my $hdd2_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
     my $mnt_xfs = "/mnt/xfstests/xfs";
     my $mnt_scratch = "/mnt/scratch";
     select_serial_terminal;
@@ -144,7 +145,17 @@ sub run {
         record_info("nvme disk", "Using '$device' as xfs test device");
     }
 
-    assert_script_run("stat $device", fail_message => "XFS_TEST_DEVICE '$device' does not exists");    # Ensure the given device exists
+    # Ensure the given device exists
+    assert_script_run("stat $device", fail_message => "XFS_TEST_DEVICE '$device' does not exist");
+    # Ensure the given device is not mounted
+    die "'$device' is already mounted" unless script_run("findmnt $device");
+    # Ensure the given device has size equals to PUBLIC_CLOUD_HDD2_SIZE (in GB)
+    if ($hdd2_size != 0) {
+        my $dev_size = script_output("lsblk -bdo SIZE $device | tail -1");
+        $dev_size = sprintf("%.1f", $dev_size / (1024**3));
+        record_info("dev_size", $dev_size);
+        die "'$device' size does not match PUBLIC_CLOUD_HDD2_SIZE" unless $hdd2_size == $dev_size;
+    }
 
     install_xfstests(get_filesystem_repo());
     partition_disk($device, $mnt_xfs, $mnt_scratch);
