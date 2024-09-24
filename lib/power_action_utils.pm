@@ -260,7 +260,7 @@ sub handle_livecd_reboot_failure {
 
 =head2 power_action
 
- power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
+ power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode] [,force => boolean ]);
 
 Executes the selected power action (e.g. poweroff, reboot).
 
@@ -271,6 +271,7 @@ C<$keepconsole> prevents a console change, which we do by default to make sure t
 desktop which was in text console at the time of C<power_action> call, is switched to the expected
 console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell
 for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
+C<$force> sets force option to reboot command in textmode.
 
 =cut
 
@@ -280,6 +281,7 @@ sub power_action {
     $args{keepconsole} //= 0;
     $args{textmode} //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
+    $args{force} //= 0;
     die "'action' was not provided" unless $action;
 
     prepare_system_shutdown;
@@ -290,7 +292,7 @@ sub power_action {
 
     unless ($args{observe}) {
         if ($args{textmode}) {
-            enter_cmd "$action";
+            $args{force} ? enter_cmd "$action -f" : enter_cmd "$action";
         }
         elsif ($action eq 'reboot') {
             reboot_x11;
