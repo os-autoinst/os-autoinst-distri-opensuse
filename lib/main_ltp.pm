@@ -34,7 +34,17 @@ sub load_kernel_tests {
 
     if (get_var('INSTALL_LTP')) {
         if (is_transactional) {
-            is_s390x ? loadtest 'boot/boot_to_desktop' : loadtest 'microos/disk_boot';
+            # Handle specific boot requirements for different backends and architectures
+            if (is_s390x) {
+                loadtest 'boot/boot_to_desktop';
+            }
+            elsif ((is_ipmi || is_pvm)) {
+                loadtest 'installation/ipxe_install' if is_ipmi;
+                loadtest 'microos/install_image';
+            }
+            else {
+                loadtest 'microos/disk_boot';
+            }
             replace_opensuse_repos_tests if is_repo_replacement_required;
             loadtest 'transactional/host_config';
             loadtest 'console/suseconnect_scc' if is_sle_micro;

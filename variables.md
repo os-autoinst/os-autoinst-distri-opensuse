@@ -141,6 +141,7 @@ LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partit
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
+MICRO_INSTALL_IMAGE_TARGET_DEVICE | string | /dev/sda | Target disk device for bare metal SL Micro installation.
 MIRROR_{protocol} | string | | Specify source address
 MM_MTU | integer | 1380 | Specifies the MTU to set in SUTs of MM tests usually started with `NICTYPE=tap`.
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.
