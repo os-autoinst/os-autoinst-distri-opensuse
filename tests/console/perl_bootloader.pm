@@ -22,7 +22,7 @@ sub run {
     my ($self) = @_;
     # https://progress.opensuse.org/issues/165686
     # package name is now 'update-bootloader', it will remain 'perl-Bootloader' for older products
-    my $package = (!is_sle("<=15-SP6") && !is_leap("<=15.6") && !is_sle_micro("<=6.0")) ? 'update-bootloader' : 'perl-Bootloader';
+    my $package = (!is_sle("<=15-SP7") && !is_leap("<=15.6") && !is_sle_micro("<=6.1")) ? 'update-bootloader' : 'perl-Bootloader';
     select_serial_terminal;
 
     if (script_run "rpm -q $package") {
