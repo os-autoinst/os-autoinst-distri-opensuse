@@ -438,10 +438,8 @@ Log: Only run in test Btrfs, collect image dump for inconsistent error
 =cut
 
 sub dump_btrfs_img {
-    my ($category, $num) = @_;
-    my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
-    my $ret = script_output("grep -E -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
-    if ($ret =~ /filesystem on (.+) is inconsistent/) { $cmd = "umount $1;btrfs-image $1 $LOG_DIR/$category/$num.img"; }
+    my ($category, $num, $dev) = @_;
+    my $cmd = "umount $dev; btrfs-image $dev $LOG_DIR/$category/$num.img";
     script_run($cmd);
 }
 
@@ -511,7 +509,7 @@ sub copy_all_log {
     copy_log($category, $num, 'dmesg');
     copy_fsxops($category, $num);
     collect_fs_status($category, $num, $fstype);
-    if (($btrfs_dump) && ($fstype == 'btrfs')) { dump_btrfs_img($category, $num); }
+    if ($btrfs_dump && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num, $btrfs_dump); }
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
