@@ -31,7 +31,7 @@ sub post_execute_script_configuration {
     #online upgrade actually
     if (is_remote_backend && is_aarch64 && is_installed_equal_upgrade_major_release) {
         set_grub_on_vh('', '', 'kvm');
-        set_pxe_efiboot('');
+        set_pxe_efiboot('') if (!(get_var("VIRT_AUTOTEST")));
     }
 }
 
