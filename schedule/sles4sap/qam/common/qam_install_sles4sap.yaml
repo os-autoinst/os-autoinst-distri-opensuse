@@ -125,3 +125,4 @@ conditional_schedule:
     FIPS_ENABLED:
       1:
         - fips/fips_setup
+        - fips/openjdk/prepare_env
