@@ -540,7 +540,7 @@
     "bsc#1205931": {
         "description": "setroubleshoot.*SELinux is preventing .*rebootmgrd from.* access.*on the file cpuinfo.*",
         "products": {
-            "sle-micro": ["5.4" , "5.5"],
+            "sle-micro": ["5.4" , "5.5", "6.0"],
             "leap-micro": [ "5.5" ]
         },
         "type": "bug"
