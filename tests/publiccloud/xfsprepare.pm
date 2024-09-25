@@ -117,34 +117,63 @@ sub create_config {
     assert_script_run("echo 'MKFS_OPTIONS=\"$mkfs_options\"' >> $CONFIG_FILE") unless ($mkfs_options eq '');
 }
 
-# Get all disks and partitions and return the first device, which has no parititons
-sub get_unused_nvme_device {
+# Get all disks and partitions and return the first device, which has no partitons
+# If the $dev_size argument is given, require the device to match the size aswell
+sub get_unused_device {
+    my ($dev_size) = @_;    # in GB
     my @disks = split /\n/, script_output('lsblk | grep disk | cut -d " " -f1');
+    my @sizes = split /\n/, script_output("lsblk -b | grep disk | awk '{print \$4}'");
     my @parts = split /\n/, script_output('lsblk | grep part | cut -d " " -f1');
-    foreach my $disk (@disks) {
-        # smartmatch is still experimental, but this can be enabled in the near future.
-        #return "/dev/$disk" unless ($disk ~~ @parts);
-        return "/dev/$disk" unless (grep { m/$disk/ } @parts);
+    for (my $i = 0; $i < @disks; $i++) {
+        my $disk = $disks[$i];
+        my $size = $sizes[$i] / (1024**3);    # in GB
+        unless (grep { m/$disk/ } @parts) {
+            if (defined($dev_size)) {
+                my $size_matches = sprintf("%.1f", $size) == sprintf("%.1f", $dev_size);
+                return "/dev/$disk" if $size_matches;
+            } else {
+                return "/dev/$disk";
+            }
+        }
     }
-    die "No unused nvme device available";
+    if (defined($dev_size)) {
+        die "No unused device with the given size $dev_size available";
+    } else {
+        die "No unused device available";
+    }
 }
 
 sub run {
     my $device = get_var("XFS_TEST_DEVICE", "/dev/sdb");
+    my $hdd2_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
     my $mnt_xfs = "/mnt/xfstests/xfs";
     my $mnt_scratch = "/mnt/scratch";
     select_serial_terminal;
 
     record_info("lsblk", script_output("lsblk"));    # debug output
 
-    # Special 'nvme' device name means get the first not-used nvme disk.
-    # This is necessary on EC2-ARM instances, where the secondary nvme system disk is not predictable (can be nvme0n1 or nvme1n1)
     if ($device eq "nvme") {
-        $device = get_unused_nvme_device();
-        record_info("nvme disk", "Using '$device' as xfs test device");
+        # Special 'nvme' device name means get the first not-used nvme disk.
+        # This is necessary on EC2-ARM instances, where the secondary nvme system disk is not predictable (can be nvme0n1 or nvme1n1)
+        $device = get_unused_device();
+    } else {
+        # Some providers spawn devices that may not match XFS_TEST_DEVICE, so grab
+        # the first unused one that match its size
+        $device = get_unused_device($hdd2_size);
     }
+    record_info("selected disk", "Using '$device' as xfs test device");
 
-    assert_script_run("stat $device", fail_message => "XFS_TEST_DEVICE '$device' does not exists");    # Ensure the given device exists
+    # Ensure the given device exists
+    assert_script_run("stat $device", fail_message => "XFS_TEST_DEVICE '$device' does not exist");
+    # Ensure the given device is not mounted
+    die "'$device' is already mounted" unless script_run("findmnt $device");
+    # Ensure the given device has size equals to PUBLIC_CLOUD_HDD2_SIZE (in GB)
+    if ($hdd2_size != 0) {
+        my $dev_size = script_output("lsblk -bdo SIZE $device | tail -1");
+        $dev_size = sprintf("%.1f", $dev_size / (1024**3));
+        record_info("dev_size", $dev_size);
+        die "'$device' size does not match PUBLIC_CLOUD_HDD2_SIZE" unless $hdd2_size == $dev_size;
+    }
 
     install_xfstests(get_filesystem_repo());
     partition_disk($device, $mnt_xfs, $mnt_scratch);
