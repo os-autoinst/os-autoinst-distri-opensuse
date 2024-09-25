@@ -6,7 +6,6 @@ schedule:
     - security/boot_disk
     - fips/fips_setup
     - fips/openssl/openssl_fips_hash
-    - fips/openssl/openssl_1_1_fips_hash
     - fips/gnutls/gnutls_base_check
     - console/import_gpg_keys
     - console/gpg

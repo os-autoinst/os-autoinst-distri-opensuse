@@ -15,64 +15,86 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
-use utils 'zypper_call';
-use version_utils qw(is_sle is_transactional);
+use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_sle is_sle_micro is_transactional);
+use security::openssl_misc_utils;
+
+sub check_algos {
+    my ($openssl_binary, $list_command, $valid_algos_ref, $pattern) = @_;
+    my @valid_algos = @$valid_algos_ref;
+
+    my $is_openssl3 = get_openssl_x_y_version($openssl_binary) >= 3.0 ? 1 : 0;
+
+    my @openssl_output = split /\n/, script_output("$openssl_binary $list_command");
+
+    foreach my $line (@openssl_output) {
+        chomp $line;
+        next unless ($is_openssl3 && $line =~ /$pattern->{fips}/) || ($is_openssl3 == 0 && $line =~ /$pattern->{name}/);
+
+        my $invalid_algo_found = 1;
+        foreach my $valid_algo (@valid_algos) {
+            if ($line =~ /$valid_algo/) {
+                $invalid_algo_found = 0;
+                last;
+            }
+        }
+        die "Error: Invalid algorithm found - $line\n" if ($invalid_algo_found == 1);
+    }
+}
+
+sub check_pk_algos {
+    my ($openssl_binary) = @_;
+
+    my @valid_algos = qw(RSA rsa DSA dsa EC DH HMAC CMAC);
+    push(@valid_algos, 'HKDF', 'TLS1-PRF') if has_default_openssl3;
+    my %pattern = (
+        fips => '\@ fips',
+        name => 'Name:',
+    );
+
+    check_algos($openssl_binary, 'list -public-key-algorithms', \@valid_algos, \%pattern);
+}
+
+sub check_hash_algos {
+    my ($openssl_binary) = @_;
+
+    my @valid_algos = qw(SHA1 SHA224 SHA256 SHA384 SHA512 DSA SHA3-224 SHA3-256 SHA3-384 SHA3-512 SHAKE128 SHAKE256);
+    push(@valid_algos, 'KECCAK') if has_default_openssl3;
+    my %pattern = (
+        fips => '\@ fips',
+        name => undef,
+    );
+
+    check_algos($openssl_binary, 'list -digest-algorithms', \@valid_algos, \%pattern);
+}
+
+sub run_alglist_fips_tests {
+    my $openssl_binary = shift // "openssl";
+    record_info('Testing public key algorithms');
+    check_pk_algos "$openssl_binary";
+    record_info('Testing digest algorithms');
+    check_hash_algos "$openssl_binary";
+}
 
 sub run {
-    select_console 'root-console';
-
-    # openssl pre-installed in SLE Micro
-    zypper_call 'in openssl' unless is_transactional;
-    zypper_call('info openssl');
-    my $current_ver = script_output("rpm -q --qf '%{version}\n' openssl");
-
-    # openssl attempt to update to 1.1.1+ in SLE15 SP4 base on the feature
-    # SLE-19640: Update openssl 1.1.1 to current stable release
-    if (!is_sle('<15-sp4') && ($current_ver ge 1.1.1)) {
-        record_info('openssl version', "Version of Current openssl package: $current_ver");
-    }
-    else {
-        record_soft_failure('jsc#SLE-19640: openssl version is outdated and need to be updated over 1.1.1+ for SLE15-SP4');
-    }
-
-    # Seperate the diffrent openssl command usage between SLE12 and SLE 15-SP{0..5} and SLE 15-SP6+
-    if (is_sle('<15')) {
-        # List message digest algorithms in fips mode
-        # only SHA1 and SHA2 (224, 256, 384, 512) are approved in fips mode
-        # Note: DSA is short of DSA-SHA1, so it is also valid item
-        validate_script_output
-"echo -n 'Invalid Hash: '; openssl list-message-digest-algorithms | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' | wc -l",
-          sub { m/^Invalid Hash: 0$/ };
-
-        # List public key algorithms in fips mode
-        # only RSA, DSA, ECDSA, EC DH, CMAC and HMAC are approved in fips mode
-        validate_script_output
-"echo -n 'Invalid Pubkey: '; openssl list-public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
-          sub { m/^Invalid Pubkey: 0$/ };
-    } elsif (is_sle('<15-SP6')) {
-        eval {
-            validate_script_output
-"echo -n 'Invalid Hash: '; openssl list -digest-algorithms | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' -e '/SHA3-224/d' -e '/SHA3-256/d' -e '/SHA3-384/d' -e '/SHA3-512/d' -e '/SHAKE128/d' -e '/SHAKE256/d' | wc -l",
-              sub { m/^Invalid Hash: 0$/ };
-
-            validate_script_output
-"echo -n 'Invalid Pubkey: '; openssl list -public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
-              sub { m/^Invalid Pubkey: 0$/ };
-        }
-    } else {
-        eval {
-            validate_script_output
-"echo -n 'Invalid Hash: '; openssl list -digest-algorithms | grep fips | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' -e '/SHA3-224/d' -e '/SHA3-256/d' -e '/SHA3-384/d' -e '/SHA3-512/d' -e '/SHAKE128/d' -e '/SHAKE256/d' -e '/KECCAK/d' | wc -l",
-              sub { m/^Invalid Hash: 0$/ };
-            validate_script_output
-"echo -n 'Invalid Pubkey: '; openssl list -public-key-algorithms | grep '^Name' | sed -e '/RSA/d' -e '/rsa/d' -e '/DSA/d' -e '/dsa/d' -e '/EC/d' -e '/DH/d' -e '/HMAC/d' -e '/CMAC/d' | wc -l",
-              sub { m/^Invalid Pubkey: 0$/ };
-        }
+    select_serial_terminal;
+    install_openssl;
+    my $ver = get_openssl_full_version;
+    record_info("Testing OpenSSL $ver");
+    run_alglist_fips_tests;
+    if (is_sle '>=15-SP6') {
+        $ver = get_openssl_full_version(OPENSSL1_BINARY);
+        record_info("Testing OpenSSL $ver");
+        run_alglist_fips_tests(OPENSSL1_BINARY);
     }
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {
+        #poo160197 workaround since rollback seems not working with swTPM
+        no_rollback => is_transactional ? 1 : 0,
+        fatal => 1
+    };
 }
 
 1;
