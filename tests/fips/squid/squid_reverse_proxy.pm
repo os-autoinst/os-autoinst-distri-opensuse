@@ -12,7 +12,8 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use utils qw(systemctl zypper_call);
+use utils qw(systemctl zypper_call script_retry);
+use serial_terminal qw(select_serial_terminal);
 
 sub configure_apache {
     zypper_call 'in apache2';
@@ -38,11 +39,11 @@ sub configure_squid {
     systemctl('restart squid', timeout => 600);
     systemctl 'status squid';
     # ensure squid is ready to serve requests before proceeding
-    assert_script_run('lsof -i :3128 | grep squid');
+    script_retry 'lsof -i :3128 | grep squid', delay => 30, retry => 3, timeout => 600;
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     configure_apache;
     configure_squid;
     # use squid as https reverse proxy to access content served by apache.
