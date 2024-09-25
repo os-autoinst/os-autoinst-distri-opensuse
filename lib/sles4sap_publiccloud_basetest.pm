@@ -112,22 +112,6 @@ if no argument is provided, uses the following defaults:
 
 C<-E /var/tmp/ssh_sut.log>: save logging to B</var/tmp/ssh_sut.log>.
 
-=item *
-
-C<-F none>: do not use SSH configuration files.
-
-=item *
-
-C<-o LogLevel=DEBUG3>: set log level to B<DEBUG3>.
-
-=item *
-
-C<-o PasswordAutentication=no>: do not allow authentication via password.
-
-=item *
-
-C<-i 'get_ssh_private_key_path()'>: use the generated private SSH key
-
 =back
 
 B<Note>: if the method receives an empty string, no SSH options will be set.
@@ -138,12 +122,7 @@ sub set_cli_ssh_opts {
     my ($self, $ssh_opts) = @_;
     croak("Expected \$self->{my_instance} is not defined. Check module Description for details")
       unless $self->{my_instance};
-    $ssh_opts //= join(' ',
-        '-E', '/var/tmp/ssh_sut.log',
-        '-F', 'none',
-        '-o', 'LogLevel=DEBUG3',
-        '-o', 'PasswordAuthentication=no',
-        '-i', "'" . get_ssh_private_key_path() . "'");
+    $ssh_opts //= join(' ', '-E', '/var/tmp/ssh_sut.log');
     $self->{my_instance}->ssh_opts($ssh_opts);
 }
 

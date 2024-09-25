@@ -60,7 +60,7 @@ sub run {
 
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
     $self->stop_hana(method => $takeover_action);
-    $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
+    $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
 
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {

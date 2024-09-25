@@ -196,7 +196,11 @@ Creates ~/.ssh/config file with all the common ssh client settings
 
 sub place_ssh_config {
     # configure ssh client
-    my $ssh_config_url = data_url('publiccloud/ssh_config');
+    # ssh will be configured by a ~/.ssh/config file, the config file come from a template.
+    # By default the template is in publiccloud/ssh_config data directory.
+    # The user can overwrite the template with PUBLIC_CLOUD_SSH_CONFIG variable.
+    # From now on all ssh calls will use this configuration file.
+    my $ssh_config_url = data_url(get_var('PUBLIC_CLOUD_SSH_CONFIG', 'publiccloud/ssh_config'));
     assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
     file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
 }
@@ -365,7 +369,7 @@ sub create_instances {
         record_info("INSTANCE", $instance->{instance_id});
         if ($args{check_connectivity}) {
             $instance->wait_for_ssh(timeout => $args{timeout},
-                proceed_on_failure => $args{proceed_on_failure});
+                proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
         }
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});

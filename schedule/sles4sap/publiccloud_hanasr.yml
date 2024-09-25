@@ -9,6 +9,7 @@ vars:
   PUBLIC_CLOUD_RESOURCE_GROUP: 'hanasr'
   PUBLIC_CLOUD: '1'
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+  PUBLIC_CLOUD_SSH_CONFIG: 'publiccloud/ssh_config_sap'
 schedule:
   - boot/boot_to_desktop
   - sles4sap/publiccloud/hana_sr_schedule_deployment
