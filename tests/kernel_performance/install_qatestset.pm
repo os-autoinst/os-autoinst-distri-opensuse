@@ -49,7 +49,13 @@ sub extract_settings_qaset_config {
 sub setup_environment {
     my $qaset_role = get_required_var('QASET_ROLE');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
-    my $ver_cfg = get_required_var('VER_CFG');
+    my $ver_cfg = get_var('VER_CFG');
+
+    # Fill $ver_cfg by default value if it is undefined
+    unless ($ver_cfg) {
+        my $mybuild = check_var('BUILD', 'GM') ? "GM" : "Build" . get_var("BUILD", '');
+        $ver_cfg = "PRODUCT_RELEASE=SLES-" . get_var('VERSION') . ";PRODUCT_BUILD=$mybuild";
+    }
 
     assert_script_run("systemctl disable qaperf.service");
 
