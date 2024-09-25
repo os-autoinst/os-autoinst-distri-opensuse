@@ -63,7 +63,7 @@ sub expand_patterns {
             my @sle15;
             push @sle15, qw(base minimal_base enhanced_base apparmor sw_management yast2_basis);
             push @sle15, qw(x11 gnome_basic fonts) if check_var('DESKTOP', 'gnome');
-            push @sle15, qw(gnome gnome_x11 office x11_enhanced gnome_imaging gnome_multimedia x11_yast) if check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
+            push @sle15, qw(gnome gnome_x11 office x11_enhanced gnome_imaging gnome_multimedia x11_yast) if check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS', '') =~ m/we/;
             return [@sle15];
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
@@ -86,12 +86,12 @@ sub expand_patterns {
     if (check_var('PATTERNS', 'all')) {
         my @all;
         if (is_sle('15+')) {
-            if (get_var('SCC_ADDONS') =~ m/base/) {
+            if (get_var('SCC_ADDONS', '') =~ m/base/) {
                 push @all, qw(base minimal_base enhanced_base documentation
                   apparmor x11 x11_enhanced yast2_basis sw_management fonts);
                 push @all, qw(32bit) unless is_s390x;
             }
-            if (get_var('SCC_ADDONS') =~ m/serverapp/) {
+            if (get_var('SCC_ADDONS', '') =~ m/serverapp/) {
                 push @all, qw(kvm_tools file_server mail_server gnome_basic
                   lamp_server gateway_server dhcp_dns_server directory_server
                   kvm_server fips sap_server ofed);
@@ -99,11 +99,11 @@ sub expand_patterns {
                 push @all, qw(oracle_server) unless is_aarch64;
             }
             push @all, qw(devel_basis devel_kernel devel_yast) if
-              get_var('SCC_ADDONS') =~ m/sdk/;
+              get_var('SCC_ADDONS', '') =~ m/sdk/;
             push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
-              technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
-            push @all, qw(gnome_basic) if get_var('SCC_ADDONS') =~ m/desktop/;
-            push @all, qw(multimedia laptop imaging) if get_var('SCC_ADDONS') =~ m/desktop/ && check_var('SLE_PRODUCT', 'sled');
+              technical_writing books) if get_var('SCC_ADDONS', '') =~ m/we/;
+            push @all, qw(gnome_basic) if get_var('SCC_ADDONS', '') =~ m/desktop/;
+            push @all, qw(multimedia laptop imaging) if get_var('SCC_ADDONS', '') =~ m/desktop/ && check_var('SLE_PRODUCT', 'sled');
         }
         elsif (is_sle('12+')) {
             push @all, qw(Minimal documentation 32bit apparmor x11 WBEM
@@ -117,11 +117,11 @@ sub expand_patterns {
               check_var('SLE_PRODUCT', 'sles');
             push @all, qw(default desktop-base desktop-gnome fonts
               desktop-gnome-devel desktop-gnome-laptop kernel-devel) if
-              check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
+              check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS', '') =~ m/we/;
             push @all, qw(virtualization_client) if check_var('SLE_PRODUCT', 'sled');
             # SLED12 - > bsc#1117335
             push @all, qw(SDK-C-C++ SDK-Certification SDK-Doc SDK-YaST) if
-              (get_var('SCC_ADDONS') =~ m/sdk/ && check_var('SLE_PRODUCT', 'sles'));
+              (get_var('SCC_ADDONS', '') =~ m/sdk/ && check_var('SLE_PRODUCT', 'sles'));
         }
         return [@all];
     }
