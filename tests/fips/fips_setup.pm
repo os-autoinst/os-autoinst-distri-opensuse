@@ -89,10 +89,6 @@ sub run {
         return;
     }
 
-    # FIPS_INSTALLATION is only applicable for system installaton
-    die "FIPS_INSTALLATION is require to run this script for installation" if (is_sle() && !get_var("BOOT_HDD_IMAGE"));
-    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!" unless get_var("FIPS_ENABLED");
-
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
         install_fips;
