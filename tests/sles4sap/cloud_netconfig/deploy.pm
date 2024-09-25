@@ -17,7 +17,8 @@ use constant DEPLOY_PREFIX => 'clne';
 sub run {
     my ($self) = @_;
 
-    die 'Azure is the only CSP supported for the moment' unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    die('Azure is the only CSP supported for the moment')
+      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     my $rg = DEPLOY_PREFIX . get_current_job_id();
     my $os_ver = get_required_var('CLUSTER_OS_VER');
@@ -26,6 +27,11 @@ sub run {
 
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
+    # remove configuration file created by the PC factory
+    # as it interfere with ssh behavior.
+    # in particular it has setting about verbosity that
+    # break test steps that relay to remote ssh comman output
+    assert_script_run('rm ~/.ssh/config');
 
     az_group_create(name => $rg, region => $provider->provider_client->region);
 
