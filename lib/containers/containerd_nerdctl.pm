@@ -19,10 +19,10 @@ sub init {
     install_containerd_when_needed();
 
     unless (is_sle || is_leap) {
-        zypper_call("in nerdctl");
+        zypper_call("in nerdctl cni-plugins");
     } else {
         # The nerdctl validation test suite is a plug-in required for this test and needs to be installed from an external source.
-        my $version = get_var('CONTAINERS_NERDCTL_VERSION', '0.16.1');
+        my $version = get_var('CONTAINERS_NERDCTL_VERSION', '1.7.7');
         my $arch;
         if (is_aarch64) {
             $arch = 'arm64';
