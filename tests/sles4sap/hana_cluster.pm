@@ -32,10 +32,6 @@ sub hanasr_angi_hadr_providers_setup {
     assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
 }
 
-sub is_fips_scenario {
-    return (get_var('FIPS_INSTALLATION') || get_var('FIPS_ENABLED'));
-}
-
 sub run {
     my ($self) = @_;
     my $instance_id = get_required_var('INSTANCE_ID');
@@ -73,7 +69,7 @@ sub run {
             '%VIRTUAL_IP_NETMASK%' => $virtual_netmask);
 
         foreach ($node1, $node2) {
-            add_to_known_hosts($_) unless is_fips_scenario;
+            add_to_known_hosts($_);
         }
         assert_script_run "scp -qr /usr/sap/${sid}/SYS/global/security/rsecssfs/* root\@${node2}:/usr/sap/${sid}/SYS/global/security/rsecssfs/";
         assert_script_run qq(su - $sapadm -c "hdbsql -u system -p $sles4sap::instance_password -i $instance_id -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 900;
