@@ -35,6 +35,7 @@ use YAML::PP;
 use utils qw(file_content_replace);
 use version_utils 'is_sle';
 use publiccloud::utils qw(get_credentials);
+use sles4sap::azure_cli;
 use mmapi 'get_current_job_id';
 use testapi;
 use Exporter 'import';
@@ -103,7 +104,6 @@ our @EXPORT = qw(
   qesap_az_enable_system_assigned_identity
   qesap_az_assign_role
   qesap_az_get_tenant_id
-  qesap_az_validate_uuid_pattern
   qesap_az_create_sas_token
   qesap_az_list_container_files
   qesap_az_diagnostic_log
@@ -2279,7 +2279,7 @@ sub qesap_az_enable_system_assigned_identity {
             "-n '$args{vm_name}'",
             "--query 'systemAssignedIdentity'",
             '-o tsv'));
-    die 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
+    die 'Returned output does not match ID pattern' if az_validate_uuid_pattern(uuid => $identity_id) eq 0;
     return $identity_id;
 }
 
@@ -2325,26 +2325,8 @@ sub qesap_az_get_tenant_id {
     my $az_cmd = "az account show --only-show-errors";
     my $az_cmd_args = "--subscription $subscription_id --query 'tenantId' -o tsv";
     my $tenant_id = script_output(join(' ', $az_cmd, $az_cmd_args));
-    croak 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($tenant_id) eq 0;
+    croak 'Returned output does not match ID pattern' if az_validate_uuid_pattern(uuid => $tenant_id) eq 0;
     return $tenant_id;
-}
-
-=head2 qesap_az_validate_uuid_pattern
-
-    qesap_az_validate_uuid_pattern( uuid_string=>$uuid_string )
-
-    Function checks input string against uuid pattern
-    which is commonly used as an identifier for azure resources.
-    returns uuid (true) on match, 0 (false) on mismatch.
-
-=cut
-
-sub qesap_az_validate_uuid_pattern {
-    my ($uuid_string) = @_;
-    my $pattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
-    return $uuid_string if ($uuid_string =~ /$pattern/);
-    diag("String did not match UUID pattern:\nString: '$uuid_string'\nPattern: '$pattern'");
-    return 0;
 }
 
 =head2 qesap_az_create_sas_token
