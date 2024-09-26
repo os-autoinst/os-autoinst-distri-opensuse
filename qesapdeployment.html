@@ -86,7 +86,6 @@
       <li><a href="#qesap_az_enable_system_assigned_identity">qesap_az_enable_system_assigned_identity</a></li>
       <li><a href="#qesap_az_assign_role">qesap_az_assign_role</a></li>
       <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
-      <li><a href="#qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</a></li>
       <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
       <li><a href="#qesap_az_list_container_files">qesap_az_list_container_files</a></li>
       <li><a href="#qesap_az_diagnostic_log">qesap_az_diagnostic_log</a></li>
@@ -1136,14 +1135,6 @@ Assigns defined role to &#39;assignee&#39; (user, vm, etc...) using subscription
 
 Returns tenant ID related to the specified subscription ID.
 subscription_id - valid azure subscription</code></pre>
-
-<h2 id="qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</h2>
-
-<pre><code>qesap_az_validate_uuid_pattern( uuid_string=&gt;$uuid_string )
-
-Function checks input string against uuid pattern
-which is commonly used as an identifier for azure resources.
-returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 <h2 id="qesap_az_create_sas_token">qesap_az_create_sas_token</h2>
 

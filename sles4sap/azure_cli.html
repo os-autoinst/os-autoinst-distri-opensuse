@@ -53,6 +53,7 @@
       <li><a href="#az_network_peering_delete">az_network_peering_delete</a></li>
       <li><a href="#az_disk_create">az_disk_create</a></li>
       <li><a href="#az_resource_delete">az_resource_delete</a></li>
+      <li><a href="#az_validate_uuid_pattern">az_validate_uuid_pattern</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -1023,6 +1024,22 @@
 
 </dd>
 <dt id="timeout-Timeout-for-az-command.-Default:-60"><b>timeout</b> Timeout for az command. Default: 60</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_validate_uuid_pattern">az_validate_uuid_pattern</h2>
+
+<pre><code>az_validate_uuid_pattern( uuid =&gt; $uuid_string )
+
+Function checks input string against uuid pattern
+which is commonly used as an identifier for Azure resources.
+returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
+
+<dl>
+
+<dt id="uuid-UUID-string-to-test"><b>uuid</b> UUID string to test.</dt>
 <dd>
 
 </dd>
