@@ -21,23 +21,22 @@ sub run {
     add_suseconnect_product('sle-module-development-tools');
     zypper_call('in libica rpmbuild autoconf automake fipscheck gcc-c++ libtool openssl-devel');
     my $version = get_required_var('VERSION');
-    my $repourl = "https://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/SUSE:SLE-$version:GA.repo";
-    assert_script_run("cd /etc/zypp/repos.d ; curl -k $repourl -O");
-    zypper_call('si libica');
+    zypper_call "ar -f http://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/ libica-tests";
+    zypper_call 'si libica';
     # build output should have FAIL: 0 and ERROR: 0, as example:
-    #============================================================================
-    #Testsuite summary for libica 4.2.1
-    #============================================================================
-    # TOTAL: 55
-    # PASS:  33
-    # SKIP:  22
-    # XFAIL: 0
-    # FAIL:  0
-    # XPASS: 0
-    # ERROR: 0
-    #============================================================================
+    # ============================================================================
+    # Testsuite summary for libica 4.3.0
+    # ============================================================================
+    # # TOTAL: 56
+    # # PASS:  32
+    # # SKIP:  24
+    # # XFAIL: 0
+    # # FAIL:  0
+    # # XPASS: 0
+    # # ERROR: 0
+    # ============================================================================
     validate_script_output 'rpmbuild -ba /usr/src/packages/SPECS/libica.spec',
-      sub { m/Testsuite summary for libica.+XFAIL:\s+0.+FAIL:\s+0.+ERROR:\s+0/s },
+      sub { m/Testsuite summary for libica.+# XFAIL:\s+0.+# FAIL:\s+0.+# ERROR:\s+0/s },
       timeout => 600;
 }
 
