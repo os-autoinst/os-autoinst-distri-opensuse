@@ -789,4 +789,16 @@ subtest '[ipaddr2_test_other_vm]' => sub {
     ok((scalar @calls > 0), "Some calls");
 };
 
+subtest '[ipaddr2_refresh_repo]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_refresh_repo(id => '42');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /zypper ref/ } @calls), 'Call zypper ref');
+};
+
 done_testing;

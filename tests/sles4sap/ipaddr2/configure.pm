@@ -21,6 +21,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_os_cloud_init_logs
   ipaddr2_registeration_check
   ipaddr2_registeration_set
+  ipaddr2_refresh_repo
 );
 
 sub run {
@@ -39,8 +40,8 @@ sub run {
 
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
         if (get_var('SCC_REGCODE_SLES4SAP')) {
-            # Register was not part of cloud-init
-            record_info("TEST STAGE", "Register");
+            # Registration was not part of cloud-init
+            record_info("TEST STAGE", "Registration");
             foreach (1 .. 2) {
                 my $is_registered = ipaddr2_registeration_check(
                     bastion_ip => $bastion_ip,
@@ -55,6 +56,13 @@ sub run {
         record_info("TEST STAGE", "Install the web server");
         foreach (1 .. 2) {
             ipaddr2_configure_web_server(bastion_ip => $bastion_ip, id => $_);
+        }
+    } else {
+
+        foreach (1 .. 2) {
+            ipaddr2_refresh_repo(
+                bastion_ip => $bastion_ip,
+                id => $_);
         }
     }
 
