@@ -1,0 +1,11 @@
+---
+name: agama_auto
+description: >
+  Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - yam/agama/agama_grub2
+  - installation/first_boot
+  - yam/validate/validate_product
+  - yam/validate/validate_first_user
