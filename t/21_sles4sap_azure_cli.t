@@ -750,4 +750,28 @@ subtest '[az_network_vnet_subnet_update]' => sub {
     ok((any { /az network vnet subnet update/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_validate_uuid_pattern] valid UUID' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(diag => sub { return; });
+    my @uuid_list = ('c0ffeeee-c0ff-eeee-1234-123456abcdef',
+        'C0fFeeee-c0ff-EEEE-1234-123456ABcdEF');
+
+    foreach my $good_uuid (@uuid_list) {
+        is az_validate_uuid_pattern(uuid => $good_uuid), $good_uuid, "Return UUID if valid: $good_uuid ";
+    }
+};
+
+subtest '[az_validate_uuid_pattern] invalid UUID' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(diag => sub { return; });
+    my @uuid_list = ('OhCaptainMyCaptain',    # complete nonsense
+        'c0ffeee-c0ff-eeee-1234-123456abcdef',    # First 7 characters inttead of 8
+        'c0ffeeee-c0ff-eeee-xxxx-123456abcde',    # Using non hexadecimal values 'x'
+        'c0ffeeee_c0ff-eeee-1234-123456abcdef');    # Underscore instead of dash
+
+    foreach my $bad_uuid (@uuid_list) {
+        is az_validate_uuid_pattern(uuid => $bad_uuid), 0, "Return '0' with invalid UUID: $bad_uuid";
+    }
+};
+
 done_testing;
