@@ -7,7 +7,6 @@ schedule:
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
-  - installation/grub_test
-  - installation/boot_encrypt
-  - installation/first_boot
+  - yam/agama/enter_passphrase
+  - yam/agama/enter_passphrase_cr_swap
   - console/validate_encrypt
