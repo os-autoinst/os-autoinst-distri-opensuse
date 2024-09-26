@@ -57,7 +57,10 @@ sub run {
 
     if (is_node(1)) {
         # Create the resource configuration
-        my $cluster_conf = get_var('USE_SAP_HANA_SR_ANGI') ? 'angi_hana_cluster.conf' : 'hana_cluster.conf';
+        # hana_cluster_msl.conf is used in 15-SP3, 15-SP2, 12-SP5 becuase these version don't support promote role.
+        # hana_cluster_cln.conf is used in 15-SP4 and above version.
+        # angi_hana_cluster.conf is used for angi testing.
+        my $cluster_conf = get_var('USE_SAP_HANA_SR_ANGI') ? 'angi_hana_cluster.conf' : "hana_cluster_$sles4sap::resource_alias.conf";
         assert_script_run 'curl -f -v ' . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
         $cluster_conf = '/tmp/' . $cluster_conf;
 
@@ -83,7 +86,7 @@ sub run {
         hanasr_angi_hadr_providers_setup($sid, $instance_id, $sapadm) if get_var('USE_SAP_HANA_SR_ANGI');
 
         # Commits configuration changes into the cluster
-        my $resource = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_${sid}_HDB$instance_id" : "msl_SAPHana_${sid}_HDB$instance_id";
+        my $resource = $sles4sap::resource_alias . "_SAPHanaCtl_${sid}_HDB$instance_id";
         my @crm_cmds = ("crm configure load update $cluster_conf",
             "crm resource refresh $resource",
             "crm resource maintenance $resource off");

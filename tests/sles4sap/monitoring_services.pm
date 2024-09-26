@@ -14,6 +14,7 @@ use warnings;
 use lockapi;
 use Utils::Systemd qw(systemctl);
 use utils qw(file_content_replace zypper_call);
+use version_utils qw(is_sle);
 use hacluster qw(add_file_in_csync get_cluster_name get_hostname is_node wait_until_resources_started wait_for_idle_cluster);
 
 sub configure_ha_exporter {
@@ -70,7 +71,7 @@ sub configure_hanadb_exporter {
     # Add monitoring resource in the HA stack
     wait_for_idle_cluster;
     if (get_var('HA_CLUSTER') and is_node(1)) {
-        my $hanadb_msl = get_var('USE_SAP_HANA_SR_ANGI') ? "mst_SAPHanaCtl_$args{rsc_id}" : "msl_SAPHana_$args{rsc_id}";
+        my $hanadb_msl = $sles4sap::resource_alias . "_SAPHanaCtl_$args{rsc_id}";
         my $hanadb_exp_rsc = "rsc_exporter_$args{rsc_id}";
         $hanadb_exporter_port = 9668;
         $check_exporter = 'true';
@@ -88,7 +89,7 @@ sub configure_hanadb_exporter {
               . ' op monitor interval=10'
               . ' meta target-role=Stopped');
 
-        assert_script_run "crm configure colocation col_exporter_$args{rsc_id} +inf: $hanadb_exp_rsc:Started $hanadb_msl:Master";
+        assert_script_run "crm configure colocation col_exporter_$args{rsc_id} +inf: $hanadb_exp_rsc:Started $hanadb_msl:$sles4sap::resource_role";
         assert_script_run "crm resource start $hanadb_exp_rsc";
         wait_until_resources_started;
     }

@@ -32,6 +32,8 @@ use Carp qw(croak);
 our @EXPORT = qw(
   $instance_password
   $systemd_cgls_cmd
+  $resource_alias
+  $resource_role
   SAPINIT_RE
   SYSTEMD_RE
   SYSTEMCTL_UNITS_RE
@@ -92,6 +94,8 @@ our $product;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
 our $systemd_cgls_cmd = 'systemd-cgls --no-pager -u SAP.slice';
+our $resource_alias = is_sle(">=15-SP4") ? 'cln' : 'msl';
+our $resource_role = is_sle(">=15-SP4") ? "Promoted" : "Master";
 
 =head2 SAPINIT_RE & SYSTEMD_RE
 
@@ -953,7 +957,7 @@ sub do_hana_takeover {
     }
     sleep bmwqemu::scale_timeout(10);
     if ($args{cluster}) {
-        my $hana_resource = get_var('USE_SAP_HANA_SR_ANGI') ? "rsc_SAPHanaCtl_${sid}_HDB$instance_id" : "rsc_SAPHana_${sid}_HDB$instance_id";
+        my $hana_resource = "rsc_SAPHanaCtl_${sid}_HDB$instance_id";
         assert_script_run "crm resource cleanup $hana_resource", $args{timeout};
         assert_script_run 'crm_resource --cleanup', $args{timeout};
     }
