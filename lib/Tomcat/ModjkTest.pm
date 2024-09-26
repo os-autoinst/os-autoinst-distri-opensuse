@@ -36,7 +36,7 @@ sub func_conn_apache2_tomcat() {
     select_serial_terminal();
     systemctl('stop apache2');
     systemctl('stop tomcat');
-    assert_script_run(
+    script_output(
         "echo  \"\$(cat <<EOF
 JkMount /*       ajp13
 JkMount /*.jsp   ajp13
@@ -61,7 +61,7 @@ sub conn_apache2_tomcat() {
 
     # Define a worker "ajp13" which listens behind the above AJP 1.3 Connector address and port
     assert_script_run('cp /usr/share/doc/packages/apache2-mod_jk/workers.properties /etc/tomcat/workers.properties');
-    assert_script_run(
+    script_output(
         "echo \"\$(cat <<EOF
 worker.list=ajp13
 worker.ajp13.reference=worker.template
