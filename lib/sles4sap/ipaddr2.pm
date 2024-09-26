@@ -30,6 +30,7 @@ our @EXPORT = qw(
   ipaddr2_destroy
   ipaddr2_create_cluster
   ipaddr2_configure_web_server
+  ipaddr2_refresh_repo
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
@@ -62,11 +63,6 @@ our $priv_ip_range = '192.168.';
 our $frontend_ip = $priv_ip_range . '0.50';
 our $ping_cmd = 'ping -c 3';
 our $key_id = 'id_rsa';
-our @nginx_cmds = (
-    'sudo zypper install -y nginx',
-    'echo "I am $(hostname)" > /tmp/index.html',
-    'sudo cp /tmp/index.html /srv/www/htdocs/index.html',
-    'sudo systemctl enable --now nginx.service');
 
 =head2 ipaddr2_azure_resource_group
 
@@ -1357,13 +1353,43 @@ This function is in charge to:
 sub ipaddr2_configure_web_server {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
-
+    my @nginx_cmds = (
+        'sudo zypper install -y nginx',
+        'echo "I am $(hostname)" > /tmp/index.html',
+        'sudo cp /tmp/index.html /srv/www/htdocs/index.html',
+        'sudo systemctl enable --now nginx.service');
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
         timeout => 240,
         bastion_ip =>
           $args{bastion_ip}) for (@nginx_cmds);
+}
+
+=head2 ipaddr2_refresh_repo
+
+    ipaddr2_refresh_repo(id => 1);
+
+Call zypper refresh
+
+=over 1
+
+=item B<id> - VM id where to install and configure the web server
+
+=back
+
+=cut
+
+sub ipaddr2_refresh_repo {
+    my (%args) = @_;
+    croak("Argument < id > missing") unless $args{id};
+
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo zypper ref',
+        timeout => 240,
+        bastion_ip =>
+          $args{bastion_ip});
 }
 
 =head2 ipaddr2_deployment_logs
