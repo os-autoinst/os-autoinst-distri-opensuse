@@ -36,7 +36,6 @@ sub run {
         $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
-
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
         record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
         registercloudguest($instance) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
@@ -111,7 +110,9 @@ sub run {
 
     new_registration($instance);
 
-    test_container_runtimes($instance);
+    if (is_sle('>=15')) {
+        test_container_runtimes($instance);
+    }
 
     force_new_registration($instance);
 
@@ -158,16 +159,21 @@ sub new_registration {
 
 sub test_container_runtimes {
     my ($instance) = @_;
+    my $image = "registry.suse.com/bci/bci-base:latest";
 
-    record_info('Testing docker');
-    $instance->ssh_assert_script_run("systemctl start docker.service");
+    record_info('Install docker');
+    #$instance->ssh_assert_script_run("source /etc/profile.local");
+    $instance->ssh_assert_script_run("sudo zypper install -y docker");
+    record_info('Test docker');
+    $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", script_output("systemctl status docker.service"));
-    $instance->ssh_assert_script_run("docker pull bci/bci-base");
-    $instance->ssh_assert_script_run("systemctl stop docker.service");
+    $instance->ssh_assert_script_run("sudo docker pull $image");
+    $instance->ssh_assert_script_run("sudo systemctl stop docker.service");
 
-    record_info('Testing podman');
-    $instance->ssh_assert_script_run("zypper install podman");
-    $instance->ssh_assert_script_run("podman pull bci/bci-base");
+    record_info('Install podman');
+    $instance->ssh_assert_script_run("sudo zypper install -y podman");
+    record_info('Test podman');
+    $instance->ssh_assert_script_run("podman pull $image");
     return 0;
 }
 
