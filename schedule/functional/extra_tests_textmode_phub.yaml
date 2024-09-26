@@ -9,7 +9,10 @@ schedule:
     - '{{wpa_supplicant}}'
     - console/vmstat
     - console/libjpeg_turbo
+    - console/libgit2
     - console/ansible
+    - network/cifs
+    - systemd_testsuite/prepare_systemd_and_testsuite
     - console/coredump_collect  # For coredumps during the suite. Please put near end.
     - console/zypper_log_packages  # Records packages installed in the suite. Please put at end.
 conditional_schedule:

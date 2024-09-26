@@ -19,7 +19,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 # SMB version for mount.cifs to test for
 my @versions = qw(2.0 2.1 3 3.0 3.0.2 3.1.1);
@@ -41,6 +41,9 @@ sub setup_local_server() {
 }
 
 sub run {
+    # Package 'samba-client' requires PackageHub is available
+    return if (!is_phub_ready() && is_sle);
+
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     # The test host is only available from the internal openqa.suse.de
     my $smb_remote = get_var("CIFS_TEST_REMOTE", is_opensuse ? "local" : "currywurst.qam.suse.de");

@@ -18,11 +18,14 @@ use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap);
 use utils 'zypper_call';
 use python_version_utils;
-use registration 'add_suseconnect_product';
+use registration qw(add_suseconnect_product is_phub_ready);
 
 my $python_sub_version;
 
 sub run {
+    # Package 'pygit2' requires PackageHub is available
+    return if (!is_phub_ready() && is_sle);
+
     select_serial_terminal;
     return if (is_sle('<15-sp6') || is_leap('<15.6'));
 
