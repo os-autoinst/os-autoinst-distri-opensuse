@@ -42,7 +42,9 @@ sub skip_testrun {
             check_var('HOST_VERSION', 'LIBERTY9') ||
             check_var('HOST_VERSION', 'centos') ||
             check_var('HOST_VERSION', 'ubuntu') ||
-            check_var('HOST_VERSION', 'res8')
+            check_var('HOST_VERSION', 'res8') ||
+            check_var('HOST_VERSION', 'mls8') ||
+            check_var('HOST_VERSION', 'mls9')
         )
     );
 
