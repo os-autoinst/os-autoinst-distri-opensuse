@@ -9,6 +9,9 @@ schedule:
   - sles4sap/patterns
   - fips/gnutls/gnutls_base_check
   - fips/openjdk/openjdk_fips
+  - fips/openssl/openssl_fips_alglist
+  - fips/openssl/openssl_fips_hash
+  - fips/openssl/openssl_fips_cipher
   - console/curl_ipv6
   - console/wget_ipv6
   - console/ca_certificates_mozilla
