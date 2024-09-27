@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use registration 'add_suseconnect_product';
 use utils 'zypper_call';
-use version_utils qw(is_sle is_sle_micro is_transactional is_tumbleweed);
+use version_utils qw(is_sle is_sle_micro is_microos is_transactional is_tumbleweed);
 
 use base 'Exporter';
 
@@ -38,7 +38,7 @@ sub has_default_openssl1 {
 }
 
 sub has_default_openssl3 {
-    return (is_sle('>=15-SP6') || is_sle_micro('>=6.0') || is_tumbleweed);
+    return (is_sle('>=15-SP6') || is_sle_micro('>=6.0') || is_tumbleweed || is_microos('Tumbleweed'));
 }
 
 sub install_openssl {
