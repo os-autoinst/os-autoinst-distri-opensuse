@@ -34,7 +34,7 @@ sub run_fips_cipher_tests {
 
     # With FIPS approved Cipher algorithms, openssl should work
     my @approved_cipher = ("aes128", "aes192", "aes256");
-    push @approved_cipher, qw(des3 des-ede3) unless (is_sle('>=15-SP6') || is_sle_micro('>=6.0') || is_tumbleweed);
+    push @approved_cipher, qw(des3 des-ede3) unless has_default_openssl3;
     for my $cipher (@approved_cipher) {
         assert_script_run "$openssl_binary enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg";
         assert_script_run "$openssl_binary enc -$cipher -d -pbkdf2 -in $file_enc -out $file_dec -k $enc_passwd -md $hash_alg";
