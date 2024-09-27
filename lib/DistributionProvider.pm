@@ -43,8 +43,8 @@ sub provide {
     return Distribution::Sle::12->new() if is_sle('12+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
-    return Distribution::Opensuse::Tumbleweed->new();
     return Distribution::Opensuse::AgamaDevel->new() if is_opensuse() && get_var('VERSION', '') =~ /agama/;
+    return Distribution::Opensuse::Tumbleweed->new();
 }
 
 1;
