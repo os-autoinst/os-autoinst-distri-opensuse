@@ -45,9 +45,10 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = shift;
-    qesap_test_postfail(
-        provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
-        net_peering_is => get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP", get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")));
+    # This test module does not have both
+    # fatal flag and qesap_test_postfail, so that in case of failure
+    # the next test_ module is executed too.
+    # Deployment destroy is delegated to the destroy test module
     $self->SUPER::post_fail_hook;
 }
 
