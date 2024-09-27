@@ -324,7 +324,8 @@ sub deselect_pattern {
     @patterns{split(/,/, get_var('EXCLUDE_PATTERNS'))} = ();
     $self->go_to_patterns();
     for my $p (keys %patterns) {
-        send_key_until_needlematch "$p-selected", 'down';
+        my $count = $p =~ 'wsl' ? '40' : '20';
+        send_key_until_needlematch "$p-selected", 'down', $count;
         send_key ' ';    #deselect pattern
         assert_screen 'on-pattern';
     }
