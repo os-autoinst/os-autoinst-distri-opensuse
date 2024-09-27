@@ -18,7 +18,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     my $test_opts = {
@@ -47,6 +47,8 @@ sub run {
     );
 
     select_serial_terminal();
+    # Package requires PackageHub is available
+    return if (!is_phub_ready() && is_sle);
 
     if (is_sle) {
         add_suseconnect_product(get_addon_fullname('legacy'));

@@ -174,5 +174,4 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
-    - console/libgit2
     - console/zypper_log_packages
