@@ -27,6 +27,19 @@ use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
 use package_utils;
 
+sub reboot_system {
+    my ($self) = @_;
+    if (is_transactional) {
+        process_reboot(trigger => 1);
+    }
+    else {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 400);
+    }
+    select_serial_terminal;
+}
+
 sub run {
     my $self = shift;
     select_serial_terminal;
@@ -34,7 +47,8 @@ sub run {
     install_package('chrony', trup_reboot => 1) if script_run('rpm -qi chrony') != 0;
     systemctl("start chronyd");    # Ensure chrony is started
     assert_script_run('chronyc makestep');
-    record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));
+    my $date = script_output('date +"%Y-%m-%d %H:%M:%S"');
+    record_info('Show current date and time', "$date");
     # Use LC_TIME=C.UTF-8 to force full date output including the year
     assert_script_run('LC_TIME=C.UTF-8 who');
     assert_script_run('last -F');
@@ -48,22 +62,15 @@ sub run {
 
     # Trigger a reboot to make the date/time change fully effective and
     # generate some last/who entries.
-    if (is_transactional) {
-        process_reboot(trigger => 1);
-    }
-    else {
-        power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm;
-        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 400);
-    }
-    select_serial_terminal;
+    $self->reboot_system;
     record_info("time after reboot", script_output("timedatectl status"));
     my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
     my $wtmp_output = script_output('last -F');
     if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx) {
         if (is_sle('<16') || is_leap('<16.0') || is_sle_micro || is_leap_micro) {
             record_soft_failure('bsc#1188626 SLE <= 15 not Y2038 compatible');
-        } else {
+        }
+        else {
             die('Not Y2038 compatible');
         }
     }
@@ -75,12 +82,20 @@ sub run {
     # add some timeout after 'chronyc makestep'
     script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
     assert_script_run('chronyc makestep');
-    record_soft_failure('poo#127343, Time sync with NTP server failed') unless script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0;
+    unless (script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0) {
+        record_soft_failure('poo#127343, Time sync with NTP server failed');
+        systemctl('stop chronyd.service');
+        # Set time stamp when we start the test
+        assert_script_run("timedatectl set-time \"$date\"");
+        # Sync time with a public ntp server
+        assert_script_run("chronyd -q 'server 0.europe.pool.ntp.org iburst'");
+        systemctl('start chronyd.service');
+        record_info('Current time', script_output('date'));
+        # Reboot the system then restore all default configuration
+        $self->reboot_system;
+    }
 }
 
-# Rollback the system because of poo#127343, to restore the chronyd.service state,
-# to avoid polluting the journal with time travel (very confusing to read) and other
-# side effects of time warps.
 sub test_flags {
     return {always_rollback => 1};
 }
