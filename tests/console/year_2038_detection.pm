@@ -27,6 +27,19 @@ use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
 use package_utils;
 
+sub reboot_system {
+    my ($self) = @_;
+    if (is_transactional) {
+        process_reboot(trigger => 1);
+    }
+    else {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 400);
+    }
+    select_serial_terminal;
+}
+
 sub run {
     my $self = shift;
     select_serial_terminal;
@@ -48,15 +61,7 @@ sub run {
 
     # Trigger a reboot to make the date/time change fully effective and
     # generate some last/who entries.
-    if (is_transactional) {
-        process_reboot(trigger => 1);
-    }
-    else {
-        power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm;
-        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 400);
-    }
-    select_serial_terminal;
+    $self->reboot_system;
     record_info("time after reboot", script_output("timedatectl status"));
     my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
     my $wtmp_output = script_output('last -F');
@@ -75,7 +80,11 @@ sub run {
     # add some timeout after 'chronyc makestep'
     script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
     assert_script_run('chronyc makestep');
-    record_soft_failure('poo#127343, Time sync with NTP server failed') unless script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0;
+    unless (script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0) {
+        record_soft_failure('poo#127343, Time sync with NTP server failed');
+        # Reboot the system then restore all default configuration
+        $self->reboot_system;
+    }
 }
 
 # Rollback the system because of poo#127343, to restore the chronyd.service state,
