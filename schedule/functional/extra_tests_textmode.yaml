@@ -152,6 +152,7 @@ schedule:
     - console/dstat
     - x11/evolution/evolution_prepare_servers
     - console/mutt
+    - console/pciutils
     - '{{sle_tests}}'
     - console/mdadm
     - console/systemd_nspawn
@@ -175,5 +176,4 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
-    - console/pciutils
     - console/zypper_log_packages
