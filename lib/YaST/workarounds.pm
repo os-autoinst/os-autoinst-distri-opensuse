@@ -14,7 +14,6 @@ use Config::Tiny;
 
 our @EXPORT = qw(
   apply_workaround_poo124652
-  apply_workaround_bsc1206132
 );
 
 =head1 Workarounds for known issues
@@ -51,30 +50,6 @@ sub apply_workaround_poo124652 {
             send_key('alt-f10', wait_screen_change => 1);
         }
     }
-}
-
-=head2 apply_workaround_bsc1206132 ():
-
-Workaround for the iscsi return code issue.
-
-Records a soft failure with a reference to bsc#1206132
-
-Changes the iscsid service file to require and start after the iscsid socket.
-Then reloads systemd, in order to scan for the changed unit.
-
-=cut
-
-sub apply_workaround_bsc1206132 {
-    record_soft_failure('bsc#1206132 - iscsid Socket start failed after yast iscsi-client configuration, lead yast iscsi-client finish with error code');
-    my $service_unit = '/usr/lib/systemd/system/iscsid.service';
-    my $Config = Config::Tiny->new;
-    $Config = Config::Tiny->read_string(script_output("cat $service_unit"));
-    # change the two values in [Unit] section of the service file, as specified in bsc#1206132
-    $Config->{Unit}->{Requires} = 'iscsid.socket';
-    $Config->{Unit}->{After} = 'iscsid.socket';
-    my $str = $Config->write_string();
-    assert_script_run("echo \"$str\" > $service_unit");
-    systemctl('daemon-reload');
 }
 
 1;
