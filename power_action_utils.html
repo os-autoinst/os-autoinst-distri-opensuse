@@ -64,13 +64,13 @@
 
 <h2 id="power_action">power_action</h2>
 
-<pre><code>power_action($action [,observe =&gt; $observe] [,keepconsole =&gt; $keepconsole] [,textmode =&gt; $textmode]);</code></pre>
+<pre><code>power_action($action [,observe =&gt; $observe] [,keepconsole =&gt; $keepconsole] [,textmode =&gt; $textmode] [,force =&gt; boolean ]);</code></pre>
 
 <p>Executes the selected power action (e.g. poweroff, reboot).</p>
 
 <p>If <code>$observe</code> is set, the function expects that the specified <code>$action</code> was already executed by another actor and the function just makes sure the system shuts down, restarts etc. properly.</p>
 
-<p><code>$keepconsole</code> prevents a console change, which we do by default to make sure that a system with a GUI desktop which was in text console at the time of <code>power_action</code> call, is switched to the expected console, that is &#39;root-console&#39; for textmode, &#39;x11&#39; otherwise. The actual execution happens in a shell for textmode or with GUI commands otherwise unless explicitly overridden by setting <code>$textmode</code> to either 0 or 1.</p>
+<p><code>$keepconsole</code> prevents a console change, which we do by default to make sure that a system with a GUI desktop which was in text console at the time of <code>power_action</code> call, is switched to the expected console, that is &#39;root-console&#39; for textmode, &#39;x11&#39; otherwise. The actual execution happens in a shell for textmode or with GUI commands otherwise unless explicitly overridden by setting <code>$textmode</code> to either 0 or 1. <code>$force</code> sets force option to reboot command in textmode.</p>
 
 <h2 id="assert_shutdown_and_restore_system">assert_shutdown_and_restore_system</h2>
 
