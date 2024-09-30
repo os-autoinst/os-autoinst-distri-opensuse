@@ -198,8 +198,8 @@ sub login_to_console {
             save_screenshot;
             #start upgrade
             if (check_var('VIDEOMODE', 'text')) {
-                if (lc(get_var('VERSION_TO_INSTALL', '')) eq '12-sp5' and lc(get_var('UPGRADE_PRODUCT', '')) eq 'sles-15-sp6') {
-                    #DIAPLAY= might be culprit that prevents host upgrade from proceeding at SCC registration. Please refer to bsc#1218798.
+                if (lc(get_var('VERSION_TO_INSTALL', '')) eq '12-sp5' and lc(get_var('UPGRADE_PRODUCT', '')) =~ /sles-15-sp[67]/) {
+                    # DISPLAY= might be culprit that prevents host upgrade from proceeding at SCC registration. Please refer to bsc#1218798.
                     record_soft_failure("bsc#1218798 - [SLES][15-SP6][x86_64][Build46.40] Unable to create repository due to valid metadata not found");
                     enter_cmd("yast.ssh");
                 }
