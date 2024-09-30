@@ -103,6 +103,9 @@ INSTALLONLY | boolean | false | Indicates that test suite conducts only installa
 INSTLANG | string | en_US | Installation locale settings.
 IPERF_REPO | string | | Link to repository with iperf tool for network performance testing. Currently used in Public Cloud Azure test
 IPXE | boolean | false | Indicates ipxe boot.
+IPXE_BOOT_FIXED | boolean | false | Indicates to ipxe boot fixed distribution independent on DISTRI and VERSION variables.
+IPXE_BOOT_FIXED_DISTRI | string | sle | Sets distribution name for fixed ipxe boot.
+IPXE_BOOT_FIXED_VERSION | string | 15-SP6 | Sets distribution version for fixed ipxe boot.
 IPXE_SET_HDD_BOOTSCRIPT | boolean | false | Upload second IPXE boot script for booting from HDD after the installation boot script gets executed. This is a workaround for cases where the installer fails to switch default boot order to HDD boot. See also PXE_BOOT_TIME.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
@@ -138,6 +141,7 @@ LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partit
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
+MICRO_INSTALL_IMAGE_TARGET_DEVICE | string | /dev/sda | Target disk device for bare metal SL Micro installation.
 MIRROR_{protocol} | string | | Specify source address
 MM_MTU | integer | 1380 | Specifies the MTU to set in SUTs of MM tests usually started with `NICTYPE=tap`.
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.

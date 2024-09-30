@@ -57,10 +57,17 @@ sub set_pxe_boot {
 }
 
 sub set_bootscript {
+    my $distri;
+    my $version;
+    if (get_var('IPXE_BOOT_FIXED')) {
+        $distri = get_var('IPXE_BOOT_FIXED_DISTRI', 'sle');
+        $version = get_var('IPXE_BOOT_FIXED_VERSION', '15-SP6');
+    } else {
+        $distri = is_sle_micro('>=6.1') ? "SL-Micro" : get_required_var('DISTRI');
+        $version = get_required_var('VERSION');
+    }
     my $host = get_required_var('SUT_IP');
-    my $distri = is_sle_micro('>=6.1') ? "SL-Micro" : get_required_var('DISTRI');
     my $arch = get_required_var('ARCH');
-    my $version = get_required_var('VERSION');
     my $autoyast = get_var('AUTOYAST', '');
     my $mirror_http = get_required_var('MIRROR_HTTP');
 

@@ -114,7 +114,7 @@ sub process_reboot {
             }
             # Replace by wait_boot if possible
             select_console('sol', await_console => 0) if (is_ipmi);
-            assert_screen 'grub2', 150;
+            assert_screen 'grub2', 300;
             wait_screen_change { send_key 'ret' };
         }
         assert_screen 'linux-login', 200;
