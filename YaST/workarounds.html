@@ -15,7 +15,6 @@
   <li><a href="#Workarounds-for-known-issues">Workarounds for known issues</a>
     <ul>
       <li><a href="#apply_workaround_poo124652-mustmatch-timeout-timeout-timeout">apply_workaround_poo124652 ($mustmatch, [,[$timeout] | timeout =&gt; $timeout] ):</a></li>
-      <li><a href="#apply_workaround_bsc1206132">apply_workaround_bsc1206132 ():</a></li>
     </ul>
   </li>
 </ul><h1>lib/YaST/workarounds.pm</h1>
@@ -31,14 +30,6 @@
 <p>If the workaround is needed we record a soft failure and apply a &#39;shift-f3&#39; and &#39;esc&#39; sequence that should fix the problem</p>
 
 <p>If the problem still persists (we saw one occasion in the VRs) then we retry with maximazing and shrinking the screen twice by sending &#39;alt-f10&#39; two times.</p>
-
-<h2 id="apply_workaround_bsc1206132">apply_workaround_bsc1206132 ():</h2>
-
-<p>Workaround for the iscsi return code issue.</p>
-
-<p>Records a soft failure with a reference to bsc#1206132</p>
-
-<p>Changes the iscsid service file to require and start after the iscsid socket. Then reloads systemd, in order to scan for the changed unit.</p>
 
 
 </body>
