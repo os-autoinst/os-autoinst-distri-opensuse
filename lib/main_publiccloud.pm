@@ -54,9 +54,8 @@ sub load_maintenance_publiccloud_tests {
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
-            loadtest "publiccloud/xfsprepare";
-            loadtest "xfstests/run";
-            loadtest "xfstests/generate_report";
+            loadtest "publiccloud/xfsprepare", run_args => $args;
+            loadtest "xfstests/run", run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
             # flavor_check is concentrated on checking things which make sense only for image which is registered
@@ -72,7 +71,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/nvidia", run_args => $args;
         }
 
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
     }
 }
 
@@ -155,11 +154,10 @@ sub load_latest_publiccloud_tests {
             } elsif (get_var('PUBLIC_CLOUD_XFS')) {
                 loadtest "publiccloud/xfsprepare", run_args => $args;
                 loadtest "xfstests/run", run_args => $args;
-                loadtest "xfstests/generate_report", run_args => $args;
             } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                 loadtest("publiccloud/azure_nfs", run_args => $args);
             }
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+            loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
         }
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
