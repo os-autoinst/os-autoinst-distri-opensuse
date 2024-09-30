@@ -120,18 +120,26 @@ if [[ ${vmguest_failed} -ne 0 ]];then
 	exit 1
 fi
 #Wait for vm guests get assigned ip addresses
-sleep 90s
+sleep 60s
 echo -e "Virtual machines ${vm_guestnames_array[@]} have already been refreshed\n" | tee -a ${setup_log_file}
 
 #Write vm_hash_forward_ipaddr and vm_hash_reverse_ipaddr arrays
 for vmguest in ${vm_guestnames_array[@]};do
         get_vm_macaddress=`virsh domiflist --domain ${vmguest} | grep -oE "([0-9|a-z]{2}:){5}[0-9|a-z]{2}"`
         vm_macaddresses_array[${vm_hash_index}]=$(echo -e ${get_vm_macaddress})
+        for i in {1..30} ; do
+            get_vm_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${vm_macaddresses_array[${vm_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
+            [[ -n "$vm_ipaddress" ]] && break
+            sleep 10
+        done
         get_vm_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${vm_macaddresses_array[${vm_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
         vm_ipaddress=$(echo -e ${get_vm_ipaddress})
         #missing ip will make named fail to load domain zones due to malformed zone file
         if [ -z "$vm_ipaddress" ]; then
             echo -e "Unable to get the ip of $vmguest. Abort the test!\n" | tee -a ${setup_log_file}
+            date >> ${setup_log_file}
+            echo -e "cat $dhcpd_lease_file" >> ${setup_log_file}
+            cat $dhcpd_lease_file >> ${setup_log_file}
             exit 1
         fi
         vm_ipaddress_lastpart=$(echo -e ${vm_ipaddress} | grep -Eo "[0-9]{1,3}$")
@@ -283,20 +291,10 @@ echo "" | tee -a ${setup_log_file}
 
 #Start named service. Quit if failed.
 dns_service_name="named"
-get_os_installed_release=`lsb_release -r | grep -oE "[[:digit:]]{2}"`
-os_installed_release=$(echo ${get_os_installed_release})
-get_os_installed_sp=`cat /etc/os-release | grep "SUSE Linux Enterprise Server" | grep -oE "SP[0-9]{1,}" | grep -oE "[0-9]{1,}"`
-os_installed_sp=$(echo ${get_os_installed_sp})
-if [[ ${os_installed_release} -gt '11' ]];then
-        systemctl enable ${dns_service_name}
-        systemctl restart ${dns_service_name}
-        dns_service_failed=$(echo $?)
-        systemctl status ${dns_service_name} | tee -a ${setup_log_file}
-else
-        service ${dns_service_name} restart
-        dns_service_failed=$(echo $?)
-        service ${dns_service_name} status | tee -a ${setup_log_file}
-fi
+systemctl enable ${dns_service_name}
+systemctl restart ${dns_service_name}
+dns_service_failed=$(echo $?)
+systemctl status ${dns_service_name} | tee -a ${setup_log_file}
 if [[ ${dns_service_failed} -ne 0 ]];then
         echo -e "DNS service did not start up as normal. Please investigate.\n" | tee -a ${setup_log_file}
         echo -e "DNS resolver file content:\n" | tee -a ${setup_log_file}
@@ -341,9 +339,9 @@ done
 echo "" | tee -a ${setup_log_file}
 echo "# virsh list --all" | tee -a ${setup_log_file}
 virsh list --all | tee -a ${setup_log_file}
-ehco "" | tee -a ${setup_log_file}
+echo "" | tee -a ${setup_log_file}
 
-ehco "" | tee -a ${setup_log_file}
+echo "" | tee -a ${setup_log_file}
 echo "the new /etc/named.conf after modified: "  | tee -a ${setup_log_file}
 echo "cat /etc/named.conf" | tee -a ${setup_log_file}
 echo "---------" | tee -a ${setup_log_file}
@@ -403,11 +401,7 @@ else
         	vmguest_index=0
 		#Use sshpass to copy public key into vm guest for the first time and store results
 		for vmguest in ${vm_guestnames_array[@]};do
-			if [[ ${os_installed_release} -ge '15' ]] || [[ ${os_installed_release} -ge '12' && ${os_installed_sp} -ge '2' ]];then
-				sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub -f root@${vmguest}
-			else
-				sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub root@${vmguest}
-			fi
+			sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub -f root@${vmguest}
 			vmguest_sshcopyid_failed[${vmguest_index}]=`echo $?`
                 	vmguest_index=$((${vmguest_index} + 1))
 		done

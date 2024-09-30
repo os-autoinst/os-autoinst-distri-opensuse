@@ -42,15 +42,8 @@ sub post_fail_hook {
     script_run("sed -irn '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
     script_run("rm /var/lib/named/testvirt.net.zone; rm /var/lib/named/123.168.192.zone");
 
-    my $get_os_installed_release = "lsb_release -r | grep -oE \"[[:digit:]]{2}\"";
-    my $os_installed_release = script_output($get_os_installed_release, 30, type_command => 0, proceed_on_failure => 0);
-    if ($os_installed_release gt '11') {
-        script_run("systemctl stop named.service");
-        script_run("systemctl disable named.service");
-    }
-    else {
-        script_run("service named stop");
-    }
+    script_run("systemctl stop named.service");
+    script_run("systemctl disable named.service");
 
     my $vm_types = "sles|win";
     my $get_vm_hostnames = "virsh list  --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
