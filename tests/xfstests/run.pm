@@ -86,7 +86,7 @@ my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 
 sub run {
-    my $self = shift;
+    my ($self, $args) = @_;
     is_public_cloud() ? select_console('root-console') : select_serial_terminal();
     return if get_var('XFSTESTS_NFS_SERVER');
     my $enable_heartbeat = 1;
@@ -150,6 +150,7 @@ sub run {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
             mutex_lock 'last_subtest_run_finish';
             autotest::loadtest 'tests/xfstests/generate_report.pm';
+            autotest::loadtest("tests/publiccloud/ssh_interactive_end.pm", run_args => $args) if is_public_cloud();
         }
         else {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
