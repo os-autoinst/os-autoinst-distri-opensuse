@@ -86,20 +86,19 @@ sub parse_results_from_output {
             # Test block end has been reached. Record results
 
             if ($outcome eq 'failed') {
-                # In case you need to add soft failure, use the following commented code as a guide
-                #my ($openQA_result, $softfail_result);
-                #if ($error_line =~ /problems.*hostagent.service/) {
-                #   $openQA_result = $self->record_testresult('softfail');
-                #   $softfail_result = 119565;
-                #} else {
                 my $openQA_result = $self->record_testresult('fail');
-                #$softfail_result = 0;
-                #}
+                my $bsc = "";
+                my $result_line = ("# Failure:\n$error_line\n");
                 my $openQA_filename = $self->next_resultname('txt');
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
-                #($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
-                $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
+                # In case you need to add soft failure, use the following commented code as a guide
+                #if ($error_line =~ /problems.*hostagent.service/) {
+                #   $openQA_result = $self->record_testresult('softfail');    # overwrites the previous result
+                #    $softfail_result = "bsc#1231034";    #references the bsc
+                #   $result_line = "# Softfail $bug:\n$error_line\n";
+                #}
+                $self->write_resultfile($openQA_filename, $result_line);
                 $self->{dents}++;
             }
 
