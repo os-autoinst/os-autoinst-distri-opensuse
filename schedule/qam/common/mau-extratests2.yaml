@@ -30,8 +30,8 @@ schedule:
   - console/systemtap
   - console/vsftpd
   - network/samba/samba_adcli
-  - '{{version_specific}}'
   - console/pciutils
+  - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
   version_specific:
