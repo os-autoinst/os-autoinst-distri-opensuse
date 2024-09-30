@@ -571,10 +571,25 @@ sub init_consoles {
             my $packed_ip = gethostbyname($s390_guest_fqdn);
             die "Failed to get host by name for '$s390_guest_fqdn' (on " . hostname . ")" unless $packed_ip;
             my $s390_guest_ip = inet_ntoa($packed_ip);
-            my $host_ip = get_var("AGAMA") ? 'hostip' : 'HostIP';
-            my $host_name = get_var("AGAMA") ? 'hostname' : 'Hostname';
-            $s390_params .= " $host_ip" . "=${s390_guest_ip}/${s390_guest_subnetmask}";
-            $s390_params .= " $host_name" . "=${s390_guest_hostname}";
+            if (get_var("AGAMA")) {
+                my @split = split(/\./, get_required_var("REPO_HOST"));
+                pop(@split);
+                my $s390_gateway_ip = join(".", @split, "254");
+                my $s390_device = "enca00";
+
+                @split = split(/\./, get_required_var("ZVM_GUEST"));
+                shift(@split);
+                my $s390_domain = join(".", @split);
+
+                if (is_sle()) {
+                    $s390_device = "enc800";
+                }
+                $s390_params .= " ip=${s390_guest_ip}:${s390_guest_hostname}:${s390_gateway_ip}:${s390_guest_subnetmask}:${s390_domain}:${s390_device}:none";
+            }
+            else {
+                $s390_params .= " HostIP=${s390_guest_ip}/${s390_guest_subnetmask}";
+                $s390_params .= " Hostname" . "=${s390_guest_hostname}";
+            }
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             $hostname = $s390_guest_fqdn;
