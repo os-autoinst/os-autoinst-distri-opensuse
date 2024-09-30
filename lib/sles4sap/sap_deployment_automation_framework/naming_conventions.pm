@@ -326,7 +326,7 @@ sub generate_deployer_name {
 
     get_workload_vnet_code([job_id=>$job_id]);
 
-B<$job_id>: Specify job id to be used. Default: current job ID
+B<$job_id>: Specify job id to be used. Default: current deployment job ID
 
 Returns VNET code used for workload zone and sap systems resources. VNET code must be unique for each landscape,
 therefore it contains test ID as an identifier.
@@ -337,5 +337,8 @@ sub get_workload_vnet_code {
     my (%args) = @_;
     $args{job_id} //= find_deployment_id();
     die('no deployment ID found') unless $args{job_id};
-    return ("SUT$args{job_id}");
+    # Try to keep vnet code as short as possible. Later this is used in the name for the peering in a format:
+    # deployer-vnet_to_workload-vnet
+    # if it is too long you might hit name length limit and test ID gets clipped.
+    return ($args{job_id});
 }
