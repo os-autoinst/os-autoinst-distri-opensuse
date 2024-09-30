@@ -29,6 +29,7 @@ sub create_profile {
     my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
     my $scc_code = get_required_var("SCC_REGCODE");
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
+    my %ltss_es_products = @{get_var_array("LTSS_ES_REGCODES_SECRET")};
     my $ca_str = "SLE_" . $version =~ s/\./_SP/r;
     my $sut_ip = get_required_var("SUT_IP");
     my $profile = get_test_data($path);
@@ -47,6 +48,7 @@ sub create_profile {
     my $vars = {
         vm_name => $vm_name,
         ltss_code => $ltss_products{$version},
+        ltss_es_code => $ltss_es_products{$version},
         repos => [split(/,/, $incident_repos)],
         check_var => \&check_var,
         get_var => \&get_required_var
