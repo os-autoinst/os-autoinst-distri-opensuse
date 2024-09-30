@@ -9,7 +9,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#71740 bsc#1176714
 
-use base apparmortest;
+use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
