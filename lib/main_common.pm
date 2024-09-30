@@ -1101,7 +1101,7 @@ sub load_inst_tests {
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots, so grub needs to timeout
-        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || get_var('SELINUX');
+        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || (get_var('SELINUX') && is_sle('<16'));
         loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT');
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
