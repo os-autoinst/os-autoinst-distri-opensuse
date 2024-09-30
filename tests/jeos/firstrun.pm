@@ -297,6 +297,16 @@ sub run {
         create_user_in_ui();
     }
 
+    if (is_sle_micro('>6.0')) {
+        assert_screen 'jeos-totp-for-cockpit';
+        for (1 .. 2) {
+            wait_screen_change(sub {
+                    send_key 'tab';
+            }, 10);
+        }
+        send_key 'ret';
+    }
+
     if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
         assert_screen 'jeos-please-configure-wifi';
         send_key 'n';
