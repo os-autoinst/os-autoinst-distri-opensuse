@@ -863,7 +863,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         # Skip reset_partition for s390x due to there just be 42Gib disk space for each s390x LPAR
-        loadtest "virt_autotest/reset_partition" if (!is_s390x);
+        loadtest "virt_autotest/reset_partition" if (!is_s390x and get_var('VIRT_PRJ1_GUEST_INSTALL'));
         loadtest "virt_autotest/reboot_and_wait_up_normal" if (!get_var('AUTOYAST') && get_var('REPO_0_TO_INSTALL'));
         loadtest "virt_autotest/download_guest_assets" if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
