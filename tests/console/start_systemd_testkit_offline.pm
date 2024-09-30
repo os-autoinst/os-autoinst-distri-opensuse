@@ -90,13 +90,22 @@ sub parse_results_from_output {
                 my $bsc = "";
                 my $result_line = ("# Failure:\n$error_line\n");
                 my $openQA_filename = $self->next_resultname('txt');
+
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
+
+                # Normally at the beginning of a development cycle of an SP, we need to request a new version
+                # of the testkit, see https://bugzilla.suse.com/show_bug.cgi?id=1231034#c3
+                if ($error_line =~ /invalid version '254', expected '234'/) {
+                    $openQA_result = $self->record_testresult('softfail');    # overwrites the previous result
+                    $bsc = "bsc#1231034";    #references the bsc
+                    $result_line = "# Softfail $bsc:\n$error_line\n";
+                }
                 # In case you need to add soft failure, use the following commented code as a guide
                 #if ($error_line =~ /problems.*hostagent.service/) {
                 #   $openQA_result = $self->record_testresult('softfail');    # overwrites the previous result
-                #    $softfail_result = "bsc#1231034";    #references the bsc
-                #   $result_line = "# Softfail $bug:\n$error_line\n";
+                #   $bsc = "bsc#1231034";    #references the bsc
+                #   $result_line = "# Softfail $bsc:\n$error_line\n";
                 #}
                 $self->write_resultfile($openQA_filename, $result_line);
                 $self->{dents}++;
