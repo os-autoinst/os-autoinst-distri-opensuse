@@ -1203,7 +1203,6 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no Ansible failures, no retry' =>
     my $qesap_execute_calls = 0;
 
     $qesap->redefine(qesap_ansible_error_detection => sub { return 0; });
-    $qesap->redefine(qesap_cluster_logs => sub { return; });
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -1217,8 +1216,8 @@ subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retr
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
+    # 1 means a generic Ansible error
     $qesap->redefine(qesap_ansible_error_detection => sub { return 1; });
-    $qesap->redefine(qesap_cluster_logs => sub { return; });
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -1226,6 +1225,47 @@ subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retr
 
     ok $ret == 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
+};
+
+subtest '[qesap_terrafom_ansible_deploy_retry] no sudo password Ansible failures' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap_execute_calls = 0;
+
+    # 3 means "no sudo password" error
+    $qesap->redefine(qesap_ansible_error_detection => sub { return 3; });
+    $qesap->redefine(qesap_execute => sub {
+            $qesap_execute_calls++;
+            # Simulate that the Ansible retry is just fine
+            my @results = (0, 0);
+            return @results;
+    });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+
+    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $qesap_execute_calls eq 1, "qesap_execute() called once (qesap_execute_calls: $qesap_execute_calls expected 1)";
+};
+
+subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap_execute_calls = 0;
+
+    # 2 means "reboot timeout" error
+    $qesap->redefine(qesap_ansible_error_detection => sub { return 2; });
+    $qesap->redefine(qesap_execute => sub {
+            $qesap_execute_calls++;
+            # Simulate that all other qesap.py calls are fine
+            my @results = (0, 0);
+            return @results;
+    });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+
+    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    # 3 = "terraform -d" + "terraform" + "ansible"
+    ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
 subtest '[qesap_ansible_error_detection] no error' => sub {

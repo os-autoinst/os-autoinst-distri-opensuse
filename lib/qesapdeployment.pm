@@ -107,7 +107,6 @@ our @EXPORT = qw(
   qesap_az_create_sas_token
   qesap_az_list_container_files
   qesap_az_diagnostic_log
-  qesap_terraform_clean_up_retry
   qesap_terrafom_ansible_deploy_retry
   qesap_ansible_error_detection
   qesap_test_postfail
@@ -499,7 +498,7 @@ sub qesap_yaml_replace {
 
 =item B<CMD> - qesap.py subcommand to run
 
-=item B<LOGNAME> - filename of the log file.
+=item B<LOGNAME> - filename of the log file. This file will be saved in `/tmp` folder
 
 =item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
 
@@ -529,7 +528,7 @@ sub qesap_execute {
         $args{cmd_options});
 
     push(@log_files, $exec_log);
-    record_info('QESAP exec', "Executing: \n$qesap_cmd \n\nlog to $exec_log");
+    record_info("QESAP exec $args{cmd}", "Executing: \n$qesap_cmd \n\nlog to $exec_log");
 
     my $exec_rc = qesap_venv_cmd_exec(
         cmd => $qesap_cmd,
@@ -565,17 +564,15 @@ sub qesap_execute {
     cmd => $qesap_script_cmd,
     error_string => 'Fatal:',
     logname => 'somefile.txt'
-    [, verbose => 1, cmd_options => $cmd_options] );
+    [, verbose => 1s] );
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
     Test only returns execution result, failure has to be handled by calling method.
 
-=over 7
+=over 6
 
 =item B<CMD> - qesap.py subcommand to run
-
-=item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
 
 =item B<VERBOSE> - activate verbosity in qesap.py
 
@@ -595,7 +592,6 @@ sub qesap_execute_conditional_retry {
     foreach (qw(cmd logname error_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     my $verbose = $args{verbose} ? "--verbose" : "";
-    $args{cmd_options} //= '';
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{retries} //= 1;
 
@@ -2475,39 +2471,6 @@ sub qesap_az_diagnostic_log {
     return @diagnostic_log_files;
 }
 
-=head2 qesap_terraform_clean_up_retry
-
-    qesap_terraform_clean_up_retry()
-
-    Perform terraform destroy and catch and ignore any error.
-    This method is mostly useful when doing cleanup before retry in case of
-    Ansible failed on 'Timed out waiting for last boot time check'
-
-=cut
-
-sub qesap_terraform_clean_up_retry {
-    my $command = 'terraform';
-
-    # Do not do 'ansible' cleanup as if 'Timed out waiting for last boot time check' happened
-    # the SSH will be disconnected
-    # E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'
-    # Terraform destroy can be executed in any case
-    record_info('Cleanup', "Executing $command cleanup");
-    my @clean_up_cmd_rc = qesap_execute(
-        cmd => $command,
-        cmd_options => '-d',
-        timeout => 1200,
-        logname => 'qesap_terraform_destroy_retry.log.txt');
-    if ($clean_up_cmd_rc[0] == 0) {
-        diag(ucfirst($command) . " cleanup attempt #  PASSED.");
-        record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
-    }
-    else {
-        diag(ucfirst($command) . " cleanup attempt #  FAILED.");
-        record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail');
-    }
-}
-
 =head2 qesap_terrafom_ansible_deploy_retry
 
     qesap_terrafom_ansible_deploy_retry( error_log=>$error_log )
@@ -2532,17 +2495,16 @@ sub qesap_terrafom_ansible_deploy_retry {
 
     my $detected_error = qesap_ansible_error_detection(error_log => $args{error_log});
     my @ret;
-
+    # 3: no sudo password
     if ($detected_error eq 3) {
         @ret = qesap_execute(cmd => 'ansible',
             logname => 'qesap_ansible_retry.log.txt',
             timeout => 3600);
-        if ($ret[0])
-        {
-            die "'qesap.py ansible' return: $ret[0]";
-        }
+        die "'qesap.py ansible' return: $ret[0]" if ($ret[0]);
         record_info('ANSIBLE RETRY PASS');
+        $detected_error = 0;
     }
+    # 2: reboot timeout
     elsif ($detected_error eq 2) {
         if ($args{provider} eq 'AZURE') {
             my @diagnostic_logs = qesap_az_diagnostic_log();
@@ -2552,8 +2514,27 @@ sub qesap_terrafom_ansible_deploy_retry {
             }
         }
 
-        # Do cleanup before redeploy
-        qesap_terraform_clean_up_retry();
+        # Do cleanup before redeploy: perform terraform destroy, catch and ignore any error.
+        # This is useful when doing cleanup before retry in case of
+        # Ansible failed on 'Timed out waiting for last boot time check'
+        # Do not attempt a 'ansible' cleanup after a 'Timed out waiting for last boot time check':
+        # the SSH will be disconnected. E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'.
+        # Terraform destroy can be executed in any case
+        @ret = qesap_execute(
+            cmd => 'terraform',
+            cmd_options => '-d',
+            timeout => 1200,
+            logname => 'qesap_terraform_destroy_retry.log.txt');
+        if ($ret[0] == 0) {
+            diag("Terraform cleanup attempt #  PASSED.");
+            record_info("Clean Terraform", 'Terraform cleanup PASSED.');
+        }
+        else {
+            diag("Terraform cleanup attempt #  FAILED.");
+            record_info('Cleanup FAILED', "Cleanup terraform FAILED", result => 'fail');
+        }
+
+        # Re-deploy from scratch
         @ret = qesap_execute(
             cmd => 'terraform',
             verbose => 1,
@@ -2571,6 +2552,7 @@ sub qesap_terrafom_ansible_deploy_retry {
             die "'qesap.py ansible' return: $ret[0]";
         }
         record_info('ANSIBLE RETRY PASS');
+        $detected_error = 0;
     }
     return $detected_error;
 }
