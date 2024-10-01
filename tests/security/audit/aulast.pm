@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_tumbleweed);
 
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
@@ -17,12 +18,13 @@ sub run {
     my $user = 'testuser';
     my $pwd = 'testpassw0rd';
     my $wrong_pwd = 'wrongpassw0rd';
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_console 'root-console';
     zypper_call('in expect');
 
     # Check if audit service is active
-    assert_script_run('systemctl restart auditd');
+    assert_script_run("systemctl restart $audit_service");
 
     # Create a test user for testing and clear the audit log
     assert_script_run("useradd -m $user");

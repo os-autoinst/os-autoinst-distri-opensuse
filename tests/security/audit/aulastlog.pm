@@ -11,16 +11,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_tumbleweed);
 
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
     my $user = 'suse';
     my $pwd = 'testpassw0rd';
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_console 'root-console';
 
     # Restart auditd, since auditd is stopped in the previous case
-    assert_script_run('systemctl restart auditd');
+    assert_script_run("systemctl restart $audit_service");
 
     # Run aulastlog directly
     assert_script_run('aulastlog');

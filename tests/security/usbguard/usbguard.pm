@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_tumbleweed);
 
 sub restart_usbguard_allow_keyboard {
     # When doing restart usbguared service it will block the "USB Keyboard" on aarch64,
@@ -36,6 +37,7 @@ sub run {
     my $f_rules_test = '/etc/usbguard/rules_test.conf';
     my $f_IPCAccessControl = '/etc/usbguard/IPCAccessControl.d/\:' . "$user";
     my $f_usbguard_audit_log = '/var/log/usbguard/usbguard-audit.log';
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_console 'root-console';
 
@@ -44,7 +46,7 @@ sub run {
     zypper_call('in libusbguard1 usbguard usbguard-devel usbguard-tools usbutils', timeout => 900);
 
     # Start audit service
-    systemctl('restart auditd.service');
+    systemctl("restart $audit_service");
 
     # Create /etc/nsswitch.conf for Tumbleweed otherwise there will be an Error like
     # "usbguard-daemon: NSSwitch parsing: /etc/nsswitch.conf: No such file or directory"
