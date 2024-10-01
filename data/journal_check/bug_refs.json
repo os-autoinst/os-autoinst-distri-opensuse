@@ -757,5 +757,12 @@
             "sle": ["15-SP6", "15-SP7"]
         },
         "type": "ignore"
+    },
+    "bsc#1215516": {
+        "description": "kernel: kvm: RT requires X86_FEATURE_CONSTANT_TSC",
+        "products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "bug"
     }
 }
