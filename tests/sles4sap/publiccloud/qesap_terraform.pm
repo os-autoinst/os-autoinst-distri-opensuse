@@ -157,21 +157,26 @@ sub run {
         $reg_mode = 'suseconnect';
     }
     my $ansible_playbooks;
+    my %playbook_configs = (
+        ha_enabled => $ha_enabled,
+        registration => $reg_mode,
+        fencing => get_var('FENCING_MECHANISM'));
+
     if (get_var('PTF_ACCOUNT') && get_var('PTF_CONTAINER') && get_var('PTF_KEYNAME')) {
-        $ansible_playbooks = create_playbook_section_list(
-            ha_enabled => $ha_enabled,
-            registration => $reg_mode,
-            fencing => get_var('FENCING_MECHANISM'),
-            ptf_files => $ptf_files,
-            ptf_token => $ptf_token,
-            ptf_container => (split("/", get_required_var('PTF_CONTAINER')))[0],
-            ptf_account => get_required_var('PTF_ACCOUNT'));
-    } else {
-        $ansible_playbooks = create_playbook_section_list(
-            ha_enabled => $ha_enabled,
-            registration => $reg_mode,
-            fencing => get_var('FENCING_MECHANISM'));
+        $playbook_configs{ptf_files} = $ptf_files;
+        $playbook_configs{ptf_token} = $ptf_token;
+        $playbook_configs{ptf_container} = (split("/", get_required_var('PTF_CONTAINER')))[0];
+        $playbook_configs{ptf_account} = get_required_var('PTF_ACCOUNT');
     }
+    if ($playbook_configs{fencing} eq 'native' and is_azure) {
+        $playbook_configs{fence_type} = get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
+        if ($playbook_configs{fence_type} eq 'spn') {
+            $playbook_configs{spn_application_id} = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
+            $playbook_configs{spn_application_password} = get_var('AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
+        }
+    }
+    $ansible_playbooks = create_playbook_section_list(%playbook_configs);
+
     my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
 
     # Prepare QESAP deployment

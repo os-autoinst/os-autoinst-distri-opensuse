@@ -72,10 +72,10 @@ sub run {
         $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
         if ($variables{FENCING} eq 'native') {
-            $variables{AZURE_NATIVE_FENCING_AIM} = qesap_az_get_native_fencing_type();
+            $variables{AZURE_NATIVE_FENCING_AIM} = get_var('QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
             if ($variables{AZURE_NATIVE_FENCING_AIM} eq 'spn') {
-                $variables{AZURE_NATIVE_FENCING_APP_ID} = get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID');
-                $variables{AZURE_NATIVE_FENCING_APP_PASSWORD} = get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD');
+                $variables{AZURE_NATIVE_FENCING_APP_ID} = get_var('QESAPDEPLOY_AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
+                $variables{AZURE_NATIVE_FENCING_APP_PASSWORD} = get_var('QESAPDEPLOY_AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
             }
         }
     }

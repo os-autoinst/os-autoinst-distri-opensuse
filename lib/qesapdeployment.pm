@@ -99,7 +99,6 @@ our @EXPORT = qw(
   qesap_az_get_active_peerings
   qesap_az_clean_old_peerings
   qesap_az_setup_native_fencing_permissions
-  qesap_az_get_native_fencing_type
   qesap_az_enable_system_assigned_identity
   qesap_az_assign_role
   qesap_az_get_tenant_id
@@ -2205,22 +2204,6 @@ sub qesap_az_clean_old_peerings {
             qesap_az_simple_peering_delete(rg => $args{rg}, vnet_name => $args{vnet}, peering_name => $key);
         }
     }
-}
-
-=head2 qesap_az_get_native_fencing_type
-
-    Gets the native fencing type (spn/msi)
-
-=cut
-
-sub qesap_az_get_native_fencing_type {
-    my $type = get_var('AZURE_FENCE_AGENT_CONFIGURATION',
-        get_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'));
-
-    unless ($type eq 'msi' || $type eq 'spn') {
-        die "Invalid type: $type. Must be 'msi' or 'spn'.";
-    }
-    return $type;
 }
 
 =head2 qesap_az_setup_native_fencing_permissions

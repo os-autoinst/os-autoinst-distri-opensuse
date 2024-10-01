@@ -860,7 +860,7 @@ sub delete_network_peering {
     Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
     in the "ansible: create:" section of config.yaml file.
 
-=over 7
+=over 10
 
 =item B<ha_enabled> - Enable the installation of HANA and the cluster configuration
 
@@ -871,13 +871,19 @@ sub delete_network_peering {
 
 =item B<fencing> - select fencing mechanism
 
+=item B<fence_type> - select Azure native fencing mechanism. Only two accepted values 'spn' or 'msi'. This argument is only applicable to Azure. (optional)
+
+=item B<spn_application_id> - Application ID for the SPN Azure native fencing agent.This argument is only applicable to Azure configured with native fencing of type SPN. (optional)
+
+=item B<spn_application_password> - password for the SPN Azure native fencing agent.This argument is only applicable to Azure configured with native fencing of type SPN. (optional)
+
 =item B<ptf_files> - list of PTF files (optional)
 
 =item B<ptf_token> - SAS token to access the PTF files (optional)
 
-=item B<ptf_account> - name of the account for the ptf container
+=item B<ptf_account> - name of the account for the ptf container (optional)
 
-=item B<ptf_container> - name of the container for PTF files
+=item B<ptf_container> - name of the container for PTF files (optional)
 
 =back
 =cut
@@ -887,6 +893,14 @@ sub create_playbook_section_list {
     $args{ha_enabled} //= 1;
     $args{registration} //= 'registercloudguest';
     $args{fencing} //= 'sbd';
+    if ($args{fencing} eq 'native' and is_azure) {
+        croak "Argument <fence_type> missing" unless $args{fence_type};
+    }
+
+    if ($args{fencing} eq 'native' and is_azure and $args{fence_type} eq 'spn') {
+        croak "Argument <spn_application_id> missing" unless $args{spn_application_id};
+        croak "Argument <spn_application_password> missing" unless $args{spn_application_password};
+    }
 
     my @playbook_list;
 
@@ -920,9 +934,9 @@ sub create_playbook_section_list {
     if ($args{fencing} eq 'native' and is_azure) {
         # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
         my $azure_native_fencing_args = azure_fencing_agents_playbook_args(
-            fence_type => get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi'),
-            spn_application_id => get_var('_SECRET_AZURE_SPN_APPLICATION_ID'),
-            spn_application_password => get_var('_SECRET_AZURE_SPN_APP_PASSWORD')
+            fence_type => $args{fence_type},
+            spn_application_id => $args{spn_application_id},
+            spn_application_password => $args{spn_application_password}
         );
         $hana_cluster_playbook = join(' ', $hana_cluster_playbook, $azure_native_fencing_args);
     }
