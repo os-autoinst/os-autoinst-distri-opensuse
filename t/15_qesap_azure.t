@@ -199,6 +199,22 @@ subtest '[qesap_az_assign_role]' => sub {
     ok((any { /az role assignment/ } @calls), 'az command properly composed');
 };
 
+subtest '[qesap_az_validate_uuid_pattern]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(diag => sub { return; });
+    my $good_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
+    my @bad_uuid_list = ('OhCaptainMyCaptain',    # complete nonsense
+        'c0ffeee-c0ff-eeee-1234-123456abcdef',    # First 7 characters inttead of 8
+        'c0ffeeee-c0ff-eeee-xxxx-123456abcde',    # Using non hexadecimal values 'x'
+        'c0ffeeee_c0ff-eeee-1234-123456abcdef');    # Underscore instead of dash
+
+    is qesap_az_validate_uuid_pattern($good_uuid), $good_uuid, "Return UUID if valid: $good_uuid ";
+
+    foreach my $bad_uuid (@bad_uuid_list) {
+        is qesap_az_validate_uuid_pattern($bad_uuid), 0, "Return '0' with invalid UUID: $bad_uuid";
+    }
+};
+
 subtest '[qesap_az_enable_system_assigned_identity] Missing arguments' => sub {
     my $vm_name = 'CaptainHook';
 
@@ -223,7 +239,7 @@ subtest '[qesap_az_get_tenant_id]' => sub {
 
     my $valid_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
     $qesap->redefine(script_output => sub { return $valid_uuid; });
-    #$qesap->redefine(az_validate_uuid_pattern => sub { return $valid_uuid; });
+    $qesap->redefine(qesap_az_validate_uuid_pattern => sub { return $valid_uuid; });
     is qesap_az_get_tenant_id($valid_uuid), 'c0ffeeee-c0ff-eeee-1234-123456abcdef', 'Returned value is a valid UUID';
 };
 
