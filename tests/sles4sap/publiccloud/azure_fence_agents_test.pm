@@ -64,13 +64,13 @@ sub run {
         '--tenantId=$TENANT_ID') if $fence_agent_configuration eq 'spn';
 
     select_serial_terminal;
-    # prepare bashrc file - this way credentials ar enot presented in outputs
+    # prepare bashrc file - this way credentials are not presented in outputs
     save_tmp_file('bashrc', $bashrc_vars);
     assert_script_run('curl ' . autoinst_url . '/files/bashrc -o /tmp/bashrc');
 
     foreach my $instance (@$instances) {
         $self->{my_instance} = $instance;
-        # do not probe VMs that are nto a part of cluster
+        # do not probe VMs that are not part of the cluster
         next unless grep(/^$instance->{instance_id}$/, @cluster_nodes);
         my $scp_cmd = join('', 'scp /tmp/bashrc ',
             $instance->{username},

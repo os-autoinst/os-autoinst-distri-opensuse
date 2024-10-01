@@ -619,12 +619,26 @@ subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
 };
 
 
-subtest '[create_playbook_section_list] fencing => native in azure' => sub {
+subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
-    my $ansible_playbooks = create_playbook_section_list(fencing => 'native');
+    my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'msi');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((none { /.*cluster_sbd_prep\.yaml.*/ } @$ansible_playbooks), 'cluster_sbd_prep playbook is not called when fencing => native');
+    ok((any { /.*sap-hana-cluster\.yaml.*azure_identity_management=.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
+};
+
+
+subtest '[create_playbook_section_list] fencing => azure native spn' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'spn', spn_application_id => '123', spn_application_password => 'abc');
     set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));

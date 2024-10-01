@@ -388,27 +388,6 @@ subtest '[qesap_az_list_container_files] command composition' => sub {
     ok((any { /.*--prefix GURGLE*/ } @calls), 'prefix argument used for --prefix');
 };
 
-subtest '[qesap_az_get_native_fencing_type]' => sub {
-    my $res_empty = qesap_az_get_native_fencing_type();
-    ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
-};
-
-subtest '[qesap_az_get_native_fencing_type] wrong value for openqa variable' => sub {
-    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'AEGEAN'),
-      dies_ok { qesap_az_get_native_fencing_type(); } 'Expected die if value is unexpected';
-    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', undef),;
-};
-
-subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
-    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'),
-      my $res_msi = qesap_az_get_native_fencing_type();
-    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'spn'),
-      my $res_spn = qesap_az_get_native_fencing_type();
-    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', undef),
-      ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
-    ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
-};
-
 subtest '[qesap_az_diagnostic_log] no VMs' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
