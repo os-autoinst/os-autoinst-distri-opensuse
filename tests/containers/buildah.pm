@@ -35,9 +35,6 @@ sub run {
     if ($runtime eq 'docker') {
         install_docker_when_needed($host_distri);
         zypper_call('install skopeo');
-
-        # temporarily necessary due to https://bugzilla.suse.com/show_bug.cgi?id=1220568
-        zypper_call('install cni-plugins') if (is_sle("15-SP3+"));
     }
     record_info('Version', script_output('buildah --version'));
 
