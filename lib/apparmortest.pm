@@ -790,9 +790,10 @@ Restart auditd and apparmor in root-console
 
 sub pre_run_hook {
     my ($self) = @_;
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_serial_terminal;
-    systemctl('restart auditd');
+    systemctl("restart $audit_service");
     sleep 3;
     systemctl('restart apparmor');
     $self->SUPER::pre_run_hook;
