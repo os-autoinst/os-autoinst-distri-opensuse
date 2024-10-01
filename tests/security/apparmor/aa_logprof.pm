@@ -29,6 +29,7 @@ sub run {
     my $log_file = $apparmortest::audit_log;
     my $output;
     my $aa_tmp_prof = "/tmp/apparmor.d";
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
     my $interactive_str = [
         {
             prompt => qr/\(A\)llow/m,
@@ -42,7 +43,7 @@ sub run {
 
     # Stop nscd and restart auditd before generate needed audit logs
     systemctl('stop nscd');
-    systemctl('restart auditd');
+    systemctl("restart $audit_service");
 
     $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 

@@ -23,7 +23,7 @@ use warnings;
 use base "apparmortest";
 use testapi;
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 use constant ENABLED => 1;
 use constant DISABLED => 0;
@@ -48,10 +48,11 @@ sub run {
     my $tmp_prof = "/tmp/apparmor.d";
     my $audit_log = "/var/log/audit/audit.log";
     my $executable_name = "/usr/sbin/nscd";
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     zypper_call('in nscd');
 
-    systemctl('restart auditd');
+    systemctl("restart $audit_service");
 
     $self->aa_tmp_prof_prepare("$tmp_prof");
 

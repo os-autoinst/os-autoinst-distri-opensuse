@@ -14,13 +14,14 @@ use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use audit_test;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my ($self) = @_;
     my $tmp_dir = $audit_test::tmp_dir;
     my $test_dir = $audit_test::test_dir;
     my $file_tar = $audit_test::testfile_tar . '.tar';
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_console 'root-console';
 
@@ -44,7 +45,7 @@ sub run {
 
     # Modify audit rules
     assert_script_run('sed -i \'s/-a task,never/#&/\' /etc/audit/rules.d/audit.rules');
-    assert_script_run('systemctl restart auditd.service');
+    assert_script_run("systemctl restart $audit_service");
 
     # Download "audit-test", be aware of umask=0077 for cc role based system
     assert_script_run("wget --no-check-certificate $audit_test::code_repo -O ${tmp_dir}${file_tar}");

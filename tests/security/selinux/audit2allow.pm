@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle_micro is_sle);
+use version_utils qw(is_sle_micro is_sle is_tumbleweed);
 use registration qw(add_suseconnect_product);
 
 sub run {
@@ -25,10 +25,11 @@ sub run {
     # On 15-SP3 the first 500 lines do not contain the needed messages, therefore we
     # have to use the full log when testing audit2allow.
     my $audit_log_test = is_sle('=15-SP3') ? "$original_audit" : "$audit_log_short";
+    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
     select_serial_terminal;
 
-    assert_script_run("systemctl restart auditd");
+    assert_script_run("systemctl restart $audit_service");
     assert_script_run("cp $original_audit $audit_log");
 
     if (is_sle_micro('>=6.0')) {
