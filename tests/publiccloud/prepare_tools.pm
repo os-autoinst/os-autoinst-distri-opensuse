@@ -107,10 +107,6 @@ sub run {
     install_in_venv('az', requirements => 1);
     record_info('Azure', script_output('az -v'));
 
-    # Install OpenStack cli
-    install_in_venv('openstack', requirements => 1);
-    record_info('OpenStack', script_output('openstack --version'));
-
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("export CLOUDSDK_PYTHON=$python_exec");
