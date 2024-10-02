@@ -148,9 +148,15 @@ sub run {
     # Create the HA resource
     if (is_node(1)) {
         assert_script_run "EDITOR=\"sed -ie '\$ a primitive $drbd_rsc ocf:linbit:drbd params drbd_resource=$drbd_rsc'\" crm configure edit";
-        assert_script_run
-          "EDITOR=\"sed -ie '\$ a ms ms_$drbd_rsc $drbd_rsc meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true'\" crm configure edit";
 
+        if (is_sle('>=15-SP4')) {
+            assert_script_run
+              "EDITOR=\"sed -ie '\$ a clone ms_$drbd_rsc $drbd_rsc meta clone-max=2 clone-node-max=1 promotable=true notify=true'\" crm configure edit";
+        }
+        else {
+            assert_script_run
+"EDITOR=\"sed -ie '\$ a ms ms_$drbd_rsc $drbd_rsc meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true'\" crm configure edit";
+        }
         # Sometimes we need to cleanup the resource
         rsc_cleanup $drbd_rsc;
 

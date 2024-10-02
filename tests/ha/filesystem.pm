@@ -11,6 +11,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use utils 'zypper_call', 'write_sut_file';
+use version_utils 'is_sle';
 use testapi;
 use lockapi;
 use hacluster;
@@ -98,8 +99,9 @@ EDITOR='sed -ie \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
         }
         else {
             if ($resource eq 'drbd_passive') {
+                my $role = is_sle('>=15-SP4') ? "Promoted" : "Master";
                 $edit_crm_config_script .= "
-EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master\"' crm configure edit
+EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:$role\"' crm configure edit
 EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start\"' crm configure edit
 ";
             }
