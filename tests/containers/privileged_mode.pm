@@ -39,10 +39,22 @@ sub run {
     # xen-pv does not define USB passthrough in the xml as of now
     # this feature has to be added -> https://progress.opensuse.org/issues/138410
     assert_script_run("$runtime run --rm $image bash -c '! test -d /dev/bus'");
-    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_xen_pv || is_hyperv || is_vmware);
+    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_hyperv || is_vmware);
+
+    # syscalls availability
+    if ($runtime eq 'podman') {
+        script_run("$runtime run --rm -d $image bash -c 'sleep infinity'");
+        assert_script_run("$runtime top -l seccomp | grep filter");
+        script_run("$runtime run --rm -d --privileged $image bash -c 'sleep infinity'");
+        assert_script_run("$runtime top -l seccomp | grep disabled");
+    }
 
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
+
+    # check how were kernel filesystem mounted
+    assert_script_run("$runtime run --rm $image mount | grep '\(ro'");
+    assert_script_run("$runtime run --rm --privileged $image mount | grep '\(rw'");
 
     # Capabilities are only available in privileged mode
     my $capbnd = script_output("cat /proc/1/status | grep CapBnd");
