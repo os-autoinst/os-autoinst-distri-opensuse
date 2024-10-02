@@ -17,12 +17,17 @@ use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::Sle::AgamaUpAndRunningPage;
 use Yam::Agama::Pom::RebootPage;
 
+use Utils::Architectures;
+
 sub get_grub_menu {
     return Yam::Agama::Pom::GrubMenuPage->new();
 }
 
 sub get_grub_entry_edition {
-    return Yam::Agama::Pom::GrubEntryEditionPage->new();
+    return is_ppc64le() ? Yam::Agama::Pom::GrubEntryEditionPage->new({
+            number_kernel_line => 3,
+            max_interval => utils::VERY_SLOW_TYPING_SPEED})
+      : Yam::Agama::Pom::GrubEntryEditionPage->new();
 }
 
 sub get_agama_up_an_running {
