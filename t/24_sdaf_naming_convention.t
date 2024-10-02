@@ -131,8 +131,8 @@ subtest '[get_workload_vnet_code] ' => sub {
     dies_ok { get_workload_vnet_code() } 'Die with with no job id found';
 
     $mock_lib->redefine(find_deployment_id => sub { return '0079'; });
-    is get_workload_vnet_code(), 'SUT0079', 'Return correct VNET code with default values';
-    is get_workload_vnet_code(job_id => '0087'), 'SUT0087', 'Return correct VNET code defined by named argument';
+    is get_workload_vnet_code(), '0079', 'Return correct VNET code with default values';
+    is get_workload_vnet_code(job_id => '0087'), '0087', 'Return correct VNET code defined by named argument';
 };
 
 done_testing;

@@ -13,7 +13,6 @@ use warnings;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
-use utils qw(write_sut_file);
 use Utils::Git qw(git_clone);
 use File::Basename;
 use Regexp::Common qw(net);
@@ -419,63 +418,6 @@ sub serial_console_diag_banner {
 
     enter_cmd($input_text);
     wait_serial(qr/:~|#|>/, timeout => 5, quiet => 1);
-}
-
-=head2 prepare_tfvars_file
-
-    prepare_tfvars_file(deployment_type=>$deployment_type);
-
-B<$deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
-
-Downloads tfvars template files from openQA data dir and places them into correct place within SDAF repo structure.
-Returns full path of the tfvars file.
-
-=cut
-
-sub prepare_tfvars_file {
-    my (%args) = @_;
-    my %tfvars_os_variable = (
-        deployer => 'deployer_parameter_file',
-        sap_system => 'sap_system_parameter_file',
-        workload_zone => 'workload_zone_parameter_file',
-        library => 'library_parameter_file'
-    );
-    my %tfvars_template_url = (
-        deployer => data_url('sles4sap/sap_deployment_automation_framework/DEPLOYER.tfvars'),
-        sap_system => data_url('sles4sap/sap_deployment_automation_framework/SAP_SYSTEM.tfvars'),
-        workload_zone => data_url('sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars'),
-        library => data_url('sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars')
-    );
-    croak 'Deployment type not specified' unless $args{deployment_type};
-    croak "Unknown deployment type: $args{deployment_type}" unless $tfvars_os_variable{$args{deployment_type}};
-
-    my $tfvars_file = get_os_variable($tfvars_os_variable{$args{deployment_type}});
-    my $retrieve_tfvars_cmd = join(' ', 'curl', '-v', '-fL', $tfvars_template_url{$args{deployment_type}}, '-o', $tfvars_file);
-
-    assert_script_run($retrieve_tfvars_cmd);
-    assert_script_run("test -f $tfvars_file");
-    replace_tfvars_variables($tfvars_file);
-    upload_logs($tfvars_file, log_name => "$args{deployment_type}.tfvars.txt");
-    return $tfvars_file;
-}
-
-=head2 replace_tfvars_variables
-
-    replace_tfvars_variables();
-
-B<$deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
-
-Replaces placeholder pattern B<%OPENQA_VARIABLE%> with corresponding OpenQA variable value.
-If OpenQA variable is not set, placeholder is replaced with empty value.
-
-=cut
-
-sub replace_tfvars_variables {
-    my ($tfvars_file) = @_;
-    croak 'Variable "$tfvars_file" undefined' unless defined($tfvars_file);
-    my @variables = qw(SDAF_ENV_CODE PUBLIC_CLOUD_REGION SDAF_RESOURCE_GROUP SDAF_VNET_CODE SAP_SID SDAF_REGION_CODE);
-    my %to_replace = map { '%' . $_ . '%' => get_var($_, '') } @variables;
-    file_content_replace($tfvars_file, %to_replace);
 }
 
 =head2 sdaf_execute_deployment

@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -38,7 +39,7 @@ sub run {
     az_login();
     sdaf_execute_deployment(deployment_type => 'workload_zone');
 
-    # diconnect the console
+    # disconnect the console
     disconnect_target_from_serial();
 
     # reset temporary variables
