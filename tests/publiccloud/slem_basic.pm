@@ -14,6 +14,8 @@ use publiccloud::utils qw(is_byos registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
+use Mojo::JSON 'j';
+use List::Util 'sum';
 
 sub has_wicked {
     # Check if the image is expected to have wicked
@@ -114,6 +116,26 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep enabled');
     $instance->run_ssh_command(cmd => 'sudo dmesg');
     $instance->run_ssh_command(cmd => 'sudo journalctl -p err');
+
+    # volume size tests
+    if (get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE')) {
+        my $size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
+        my $out = $instance->ssh_script_output(cmd => 'lsblk -J --tree -o SIZE,TYPE');
+        record_info("LSBLK", "$out");
+        my $disks = j $out;
+        $disks = $disks->{blockdevices};
+        my $count_size = 0;
+        for (@$disks) {
+            if (($_->{size} eq ($size . 'G')) && $_->{type} eq 'disk') {
+                $count_size = sum(map { $_->{size} if (chop $_->{size} eq 'G') } @{$_->{children}});
+            }
+        }
+        if (($count_size >= ($size - 3)) && ($count_size <= $size)) {
+            record_info("Root disk partitions have sum of size: ", "$count_size");
+        } else {
+            die "Root disk hadn't been resized to excepted size";
+        }
+    }
 }
 
 sub test_flags {
