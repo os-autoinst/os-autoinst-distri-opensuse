@@ -89,7 +89,6 @@
       <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
       <li><a href="#qesap_az_list_container_files">qesap_az_list_container_files</a></li>
       <li><a href="#qesap_az_diagnostic_log">qesap_az_diagnostic_log</a></li>
-      <li><a href="#qesap_terraform_clean_up_retry">qesap_terraform_clean_up_retry</a></li>
       <li><a href="#qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</a></li>
       <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
       <li><a href="#qesap_test_postfail">qesap_test_postfail</a></li>
@@ -244,7 +243,7 @@ This function is not expected to internally die, any failure has to be handled b
 <dd>
 
 </dd>
-<dt id="LOGNAME---filename-of-the-log-file"><b>LOGNAME</b> - filename of the log file.</dt>
+<dt id="LOGNAME---filename-of-the-log-file.-This-file-will-be-saved-in-tmp-folder"><b>LOGNAME</b> - filename of the log file. This file will be saved in `/tmp` folder</dt>
 <dd>
 
 </dd>
@@ -268,7 +267,7 @@ This function is not expected to internally die, any failure has to be handled b
 cmd =&gt; $qesap_script_cmd,
 error_string =&gt; &#39;Fatal:&#39;,
 logname =&gt; &#39;somefile.txt&#39;
-[, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
+[, verbose =&gt; 1s] );
 
 Execute qesap glue script commands. Check project documentation for available options:
 https://github.com/SUSE/qe-sap-deployment
@@ -280,10 +279,6 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="CMD_OPTIONS---set-of-arguments-for-the-qesap.py-subcommand1"><b>CMD_OPTIONS</b> - set of arguments for the qesap.py subcommand</dt>
-<dd>
-
-</dd>
 <dt id="VERBOSE---activate-verbosity-in-qesap.py1"><b>VERBOSE</b> - activate verbosity in qesap.py</dt>
 <dd>
 
@@ -292,7 +287,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="LOGNAME---filename-of-the-log-file1"><b>LOGNAME</b> - filename of the log file.</dt>
+<dt id="LOGNAME---filename-of-the-log-file"><b>LOGNAME</b> - filename of the log file.</dt>
 <dd>
 
 </dd>
@@ -1203,14 +1198,6 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 <p>Call `az vm boot-diagnostics json` for each running VM in the resource group associated to this openQA job</p>
 
 <p>Return a list of diagnostic file paths on the JumpHost</p>
-
-<h2 id="qesap_terraform_clean_up_retry">qesap_terraform_clean_up_retry</h2>
-
-<pre><code>qesap_terraform_clean_up_retry()
-
-Perform terraform destroy and catch and ignore any error.
-This method is mostly useful when doing cleanup before retry in case of
-Ansible failed on &#39;Timed out waiting for last boot time check&#39;</code></pre>
 
 <h2 id="qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</h2>
 
