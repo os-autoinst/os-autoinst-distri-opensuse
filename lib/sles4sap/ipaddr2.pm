@@ -119,6 +119,9 @@ Create a deployment in Azure designed for this specific test.
                       during the deployment so before any other part of the test can add
                       additional repo to test.
 
+=item B<trusted_launch> - Enable or disable Trusted Launch. Default 1: Enabled. If configured to 0 
+                          result in az vm create to be executed with '--security-type Standard'
+
 =item B<scc_code> - if cloudinit is enabled, it is also possible to add
                     register command in it. This argument is just ignored if cloudinit is 0.
                     This argument become mandatory is cloudinit is 1 and image is BYOS.
@@ -135,6 +138,7 @@ sub ipaddr2_azure_deployment {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{diagnostic} //= 0;
     $args{cloudinit} //= 1;
+    $args{trusted_launch} //= 1;
 
     if ($args{cloudinit} && ($args{os} =~ /byos/i) && !$args{scc_code}) {
         croak("cloud-init deployment does not work with BYOS images without a registration code");
@@ -264,28 +268,34 @@ END
     #   - for each of them open port 80
     #   - link their NIC/ipconfigs to the load balancer to be managed
     my $vm;
-    my %vm_create_args;
+    my %vm_create_generic_args = (
+        resource_group => $rg,
+        region => $args{region},
+        image => $args{os},
+        username => $user,
+        vnet => $vnet,
+        snet => $subnet,
+        ssh_pubkey => get_ssh_private_key_path() . '.pub',
+        public_ip => "");
+    if (!$args{trusted_launch}) {
+        $vm_create_generic_args{security_type} = 'Standard';
+    }
+
+    my %vm_create_internal_args = %vm_create_generic_args;
+    $vm_create_internal_args{availability_set} = $as;
+    $vm_create_internal_args{nsg} = $nsg;
+    $vm_create_internal_args{public_ip} = "";
+    if ($args{cloudinit}) {
+        $vm_create_internal_args{custom_data} = $cloud_init_file;
+    }
+
     foreach my $i (1 .. 2) {
         $vm = ipaddr2_get_internal_vm_name(id => $i);
         # the VM creation command refers to an external cloud-init
         # configuration file that is in charge to install and setup
         # the nginx server.
-        %vm_create_args = (
-            resource_group => $rg,
-            name => $vm,
-            region => $args{region},
-            image => $args{os},
-            username => $user,
-            vnet => $vnet,
-            snet => $subnet,
-            availability_set => $as,
-            nsg => $nsg,
-            ssh_pubkey => get_ssh_private_key_path() . '.pub',
-            public_ip => "");
-        if ($args{cloudinit}) {
-            $vm_create_args{custom_data} = $cloud_init_file;
-        }
-        az_vm_create(%vm_create_args);
+        $vm_create_internal_args{name} = $vm;
+        az_vm_create(%vm_create_internal_args);
 
         if ($args{diagnostic}) {
             az_vm_diagnostic_log_enable(resource_group => $rg,
@@ -305,16 +315,10 @@ END
             name => $vm, port => 80);
     }
 
-    az_vm_create(
-        resource_group => $rg,
-        name => $bastion_vm_name,
-        region => $args{region},
-        image => $args{os},
-        username => $user,
-        vnet => $vnet,
-        snet => $subnet,
-        ssh_pubkey => get_ssh_private_key_path() . '.pub',
-        public_ip => $bastion_pub_ip);
+    my %vm_create_bastion_args = %vm_create_generic_args;
+    $vm_create_bastion_args{name} = $bastion_vm_name;
+    $vm_create_bastion_args{public_ip} = $bastion_pub_ip;
+    az_vm_create(%vm_create_bastion_args);
 
     # Keep this loop separated from the other to hopefully
     # give cloud-init more time to run and avoid interfering
