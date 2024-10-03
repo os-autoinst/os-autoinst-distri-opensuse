@@ -119,8 +119,8 @@ Create a deployment in Azure designed for this specific test.
                       during the deployment so before any other part of the test can add
                       additional repo to test.
 
-=item B<trusted_launch> - Enable or disable Trusted Launch. Default 1: Enabled. If configured to 0 
-                          result in az vm create to be executed with '--security-type Standard'
+=item B<trusted_launch> - Enable or disable Trusted Launch. Default 1: Enabled.
+                          If configured to 0 the result in az vm create is executed with '--security-type Standard'
 
 =item B<scc_code> - if cloudinit is enabled, it is also possible to add
                     register command in it. This argument is just ignored if cloudinit is 0.
@@ -457,11 +457,14 @@ sub ipaddr2_bastion_key_accept {
 
 For the worker to accept the ssh key of the internal VMs
 
-=over 1
+=over 2
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
+
+=item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
+                        ssh option. default to 'accept-new'
 
 =back
 =cut
@@ -469,6 +472,8 @@ For the worker to accept the ssh key of the internal VMs
 sub ipaddr2_internal_key_accept {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{key_checking} //= 'accept-new';
+    my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
 
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
@@ -507,7 +512,7 @@ sub ipaddr2_internal_key_accept {
         $ret = script_run(join(' ',
                 'ssh',
                 '-vvv',
-                '-oStrictHostKeyChecking=accept-new',
+                $key_policy,
                 '-oConnectionAttempts=120',
                 '-J', $bastion_ssh_addr,
                 $vm_addr,
@@ -519,12 +524,12 @@ sub ipaddr2_internal_key_accept {
                     '-vvv',
                     $vm_addr,
                     "-oProxyCommand=\"ssh $bastion_ssh_addr -oConnectionAttempts=120 -W %h:%p\"",
-                    '-oStrictHostKeyChecking=accept-new',
+                    $key_policy,
                     #'-oConnectionAttempts=60',
                     'whoami'));
             die "2 StrictHostKeyChecking --> ret:$ret" if $ret;
         }
-        # one more without StrictHostKeyChecking=accept-new just to verify it is ok
+        # one more without StrictHostKeyChecking just to verify it is ok
         ipaddr2_ssh_internal(id => $i,
             cmd => 'whoami',
             bastion_ip => $args{bastion_ip});
@@ -540,11 +545,14 @@ One ssk key pair for each internal VM
 Then upload in each internal VM the ssh key pair using
 scp in Proxy mode
 
-=over 1
+=over 2
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
+
+=item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
+                        ssh option. default to 'accept-new'
 
 =back
 =cut
@@ -552,6 +560,8 @@ scp in Proxy mode
 sub ipaddr2_internal_key_gen {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{key_checking} //= 'accept-new';
+    my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
 
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $user_ssh = "/home/$user/.ssh";
@@ -620,7 +630,7 @@ sub ipaddr2_internal_key_gen {
         cmd => join(' ',
             'ssh',
             $user . '@' . ipaddr2_get_internal_vm_private_ip(id => 2),
-            '-oStrictHostKeyChecking=accept-new',
+            $key_policy,
             'whoami'),
         bastion_ip => $args{bastion_ip});
     # vm-02 first connection to vm-01
@@ -628,7 +638,7 @@ sub ipaddr2_internal_key_gen {
         cmd => join(' ',
             'ssh',
             $user . '@' . ipaddr2_get_internal_vm_private_ip(id => 1),
-            '-oStrictHostKeyChecking=accept-new',
+            $key_policy,
             'whoami'),
         bastion_ip => $args{bastion_ip});
 }

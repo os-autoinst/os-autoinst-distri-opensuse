@@ -277,6 +277,24 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
 };
 
+subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            if ($_[0] =~ /ssh.*StrictHostKeyChecking/) { return 0; }
+            return 1; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /StrictHostKeyChecking=LuigiTorchi/ } @calls), 'Correct call ssh command value StrictHostKeyChecking');
+};
+
 subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;

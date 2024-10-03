@@ -35,8 +35,13 @@ sub run {
     record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
     ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
-    ipaddr2_internal_key_accept(bastion_ip => $bastion_ip);
-    ipaddr2_internal_key_gen(bastion_ip => $bastion_ip);
+
+    my %int_key_args = (bastion_ip => $bastion_ip);
+    # unsupported option "accept-new" for default ssh used in 12sp5
+    $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
+
+    ipaddr2_internal_key_accept(%int_key_args);
+    ipaddr2_internal_key_gen(%int_key_args);
 
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
         if (get_var('SCC_REGCODE_SLES4SAP')) {
