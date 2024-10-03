@@ -7,7 +7,7 @@
 # to other test modules or proper web automation tool. It acts only as a synchronization point.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-package Yam::Agama::Pom::Sle::AgamaUpAndRunningPage;
+package Yam::Agama::Pom::AgamaUpAndRunningBasePage;
 use strict;
 use warnings;
 
@@ -16,7 +16,7 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        tag_array_ref_any_first_screen_shown => [qw(agama-installing agama-sle-overview)]
+        tag_array_ref_any_first_screen_shown => [qw(agama-product-selection agama-configuring-the-product agama-installing)]
     }, $class;
 }
 

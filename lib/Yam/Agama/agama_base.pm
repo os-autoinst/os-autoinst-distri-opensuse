@@ -18,8 +18,12 @@ sub post_fail_hook {
     upload_browser_automation_dumps();
 }
 
-sub test_flags {
-    return {fatal => 1};
+sub upload_agama_logs {
+    save_and_upload_log('agama logs store', "/tmp/agama-logs.tar.gz");
+}
+
+sub upload_system_logs {
+    save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log");
 }
 
 sub upload_browser_automation_dumps {
@@ -28,12 +32,8 @@ sub upload_browser_automation_dumps {
     upload_logs($dest, failok => 1);
 }
 
-sub upload_agama_logs {
-    save_and_upload_log('agama logs store', "/tmp/agama-logs.tar.gz");
-}
-
-sub upload_system_logs {
-    save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log");
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

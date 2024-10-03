@@ -12,16 +12,29 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 
-use Yam::Agama::Pom::GrubMenuPage;
+use Yam::Agama::Pom::GrubMenuBasePage;
+use Yam::Agama::Pom::GrubMenuAgamaPage;
+use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
-use Yam::Agama::Pom::Opensuse::AgamaUpAndRunningPage;
+use Yam::Agama::Pom::AgamaUpAndRunningOpensusePage;
 use Yam::Agama::Pom::RebootPage;
 use Yam::Agama::Pom::RebootTextmodePage;
+use Yam::Agama::Pom::EnterPassphraseBasePage;
+use Yam::Agama::Pom::EnterPassphraseForRootPage;
+use Yam::Agama::Pom::EnterPassphraseForSwapPage;
 
 use Utils::Architectures;
 
-sub get_grub_menu {
-    return Yam::Agama::Pom::GrubMenuPage->new();
+sub get_grub_menu_agama {
+    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
+    });
+}
+
+sub get_grub_menu_installed_system {
+    return Yam::Agama::Pom::GrubMenuTumbleweedPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
+    });
 }
 
 sub get_grub_entry_edition {
@@ -32,16 +45,24 @@ sub get_grub_entry_edition {
 }
 
 sub get_agama_up_an_running {
-    return Yam::Agama::Pom::Opensuse::AgamaUpAndRunningPage->new();
+    return Yam::Agama::Pom::AgamaUpAndRunningOpensusePage->new();
 }
 
-sub get_reboot_page {
-    if (is_s390x()) {
-        return Yam::Agama::Pom::RebootTextmodePage->new();
-    }
-    else {
-        return Yam::Agama::Pom::RebootPage->new();
-    }
+sub get_reboot {
+    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x();
+    return Yam::Agama::Pom::RebootPage->new();
+}
+
+sub get_enter_passphrase_for_root {
+    return Yam::Agama::Pom::EnterPassphraseForRootPage->new({
+            enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
+    });
+}
+
+sub get_enter_passphrase_for_swap {
+    return Yam::Agama::Pom::EnterPassphraseForSwapPage->new({
+            enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
+    });
 }
 
 1;

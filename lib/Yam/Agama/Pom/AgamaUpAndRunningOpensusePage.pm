@@ -7,7 +7,7 @@
 # to other test modules or proper web automation tool. It acts only as a synchronization point.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-package Yam::Agama::Pom::Opensuse::AgamaUpAndRunningPage;
+package Yam::Agama::Pom::AgamaUpAndRunningOpensusePage;
 use strict;
 use warnings;
 
