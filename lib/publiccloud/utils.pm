@@ -212,8 +212,9 @@ sub get_credentials {
     my $ua = Mojo::UserAgent->new;
     $ua->insecure(1);
     my $tx = $ua->get($url_auth);
-    die("Fetching CSP credentials failed: " . $tx->result->message) unless eval { $tx->result->is_success };
-    my $data_structure = $tx->res->json;
+    my $res = $tx->result;
+    die("Fetching CSP credentials failed: " . $res->message) unless ($res->is_success);
+    my $data_structure = $res->json;
     if ($output_json) {
         # Note: tmp files are job-specific files in the pool directory on the worker and get cleaned up after job execution
         save_tmp_file('creds.json', encode_json($data_structure));
