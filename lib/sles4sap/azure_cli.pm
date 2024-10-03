@@ -659,7 +659,7 @@ sub az_vm_as_create {
 
 Create a virtual machine
 
-=over 14
+=over 15
 
 =item B<resource_group> - existing resource group where to create the VM
 
@@ -691,6 +691,8 @@ Create a virtual machine
 =item B<ssh_pubkey> - optional inclusion in an availability set,
           if missing the command is configured to generate one
 
+=item B<security_type> - is used force a specific value for '--security-type'
+
 =back
 =cut
 
@@ -699,26 +701,35 @@ sub az_vm_create {
     foreach (qw(resource_group name image)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    $args{size} //= 'Standard_B1s';
-    my $region_cmd = $args{region} ? "-l $args{region}" : '';
-    my $as_cmd = $args{availability_set} ? "--availability-set $args{availability_set}" : '';
-    my $user_cmd = $args{username} ? "--admin-username $args{username}" : '';
-    my $nsg_cmd = $args{nsg} ? "--nsg $args{nsg}" : '';
-    my $cd_cmd = $args{custom_data} ? "--custom-data $args{custom_data}" : '';
-    my $nic_cmd = $args{nic} ? "--nics $args{nic}" : '';
-    my $pip_cmd = $args{public_ip} ? "--public-ip-address $args{public_ip}" : '';
-    my $vnet_cmd = $args{vnet} ? "--vnet-name $args{vnet}" : '';
-    my $snet_cmd = $args{snet} ? "--subnet $args{snet}" : '';
-    my $ssh_cmd = $args{ssh_pubkey} ? "--ssh-key-values $args{ssh_pubkey}" : '--authentication-type ssh --generate-ssh-keys';
 
-    my $az_cmd = join(' ', 'az vm create',
-        '--resource-group', $args{resource_group},
-        '-n', $args{name},
-        '--size', $args{size},
-        '--image', $args{image},
-        '--public-ip-address ""',
-        $region_cmd, $as_cmd, $vnet_cmd, $snet_cmd, $user_cmd, $nsg_cmd, $cd_cmd, $nic_cmd, $pip_cmd, $ssh_cmd);
-    assert_script_run($az_cmd, timeout => 600);
+    my @vm_create = ('az vm create');
+
+    push @vm_create, '--resource-group', $args{resource_group};
+    push @vm_create, '-n', $args{name};
+    push @vm_create, '--image', $args{image};
+    push @vm_create, '--public-ip-address ""';
+
+    $args{size} //= 'Standard_B1s';
+    push @vm_create, '--size', $args{size};
+
+    push @vm_create, '-l', $args{region} if $args{region};
+    push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
+
+    push @vm_create, '--admin-username', $args{username} if $args{username};
+    push @vm_create, '--nsg', $args{nsg} if $args{nsg};
+    push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
+    push @vm_create, '--nics', $args{nic} if $args{nic};
+    push @vm_create, '--public-ip-address', $args{public_ip} if $args{public_ip};
+    push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
+    push @vm_create, '--subnet', $args{snet} if $args{snet};
+    push @vm_create, '--security-type', $args{security_type} if $args{security_type};
+    if ($args{ssh_pubkey}) {
+        push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
+    } else {
+        push @vm_create, '--authentication-type ssh --generate-ssh-keys';
+    }
+
+    assert_script_run(join(' ', @vm_create), timeout => 600);
 }
 
 =head2 az_vm_list

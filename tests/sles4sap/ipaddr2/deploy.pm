@@ -39,7 +39,9 @@ sub run {
         diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
         cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
     $deployment{scc_code} = get_var('SCC_REGCODE_SLES4SAP') if (get_var('SCC_REGCODE_SLES4SAP'));
+    $deployment{trusted_launch} = 0 if (check_var('IPADDR2_TRUSTEDLAUNCH', 0));
     ipaddr2_azure_deployment(%deployment);
+
     ipaddr2_deployment_sanity();
 }
 

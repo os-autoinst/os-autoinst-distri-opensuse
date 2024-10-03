@@ -10,6 +10,7 @@ use List::Util qw(any none all);
 use sles4sap::ipaddr2;
 
 subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
+    # There are some limitations in BYOS+CLOUD-INIT+SCC REG interactions
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -27,7 +28,7 @@ subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
 
     ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci');
 
-    # push the list of commands in another list, this one withour the source
+    # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
     my @cmds;
     for my $call_idx (0 .. $#calls) {
@@ -196,6 +197,27 @@ subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
     ok((any { /az vm boot-diagnostics enable.*vm-02/ } @calls), 'Enable diagnostic for VM2');
 };
 
+subtest '[ipaddr2_azure_deployment] disable trusted launch' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(write_sut_file => sub { return; });
+    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, $_[0] if $_[0] =~ /az vm create/;
+            return; });
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
+
+    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--security-type.*Standard/ } @calls), 'Disable trustedLaunch by setting --security-type Standard');
+};
+
 subtest '[ipaddr2_destroy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -253,6 +275,24 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
     ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
     ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
+};
+
+subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            if ($_[0] =~ /ssh.*StrictHostKeyChecking/) { return 0; }
+            return 1; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /StrictHostKeyChecking=LuigiTorchi/ } @calls), 'Correct call ssh command value StrictHostKeyChecking');
 };
 
 subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {

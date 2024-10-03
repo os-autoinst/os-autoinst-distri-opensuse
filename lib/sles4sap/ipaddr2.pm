@@ -119,6 +119,9 @@ Create a deployment in Azure designed for this specific test.
                       during the deployment so before any other part of the test can add
                       additional repo to test.
 
+=item B<trusted_launch> - Enable or disable Trusted Launch. Default 1: Enabled.
+                          If configured to 0 the result in az vm create is executed with '--security-type Standard'
+
 =item B<scc_code> - if cloudinit is enabled, it is also possible to add
                     register command in it. This argument is just ignored if cloudinit is 0.
                     This argument become mandatory is cloudinit is 1 and image is BYOS.
@@ -135,6 +138,7 @@ sub ipaddr2_azure_deployment {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{diagnostic} //= 0;
     $args{cloudinit} //= 1;
+    $args{trusted_launch} //= 1;
 
     if ($args{cloudinit} && ($args{os} =~ /byos/i) && !$args{scc_code}) {
         croak("cloud-init deployment does not work with BYOS images without a registration code");
@@ -264,28 +268,34 @@ END
     #   - for each of them open port 80
     #   - link their NIC/ipconfigs to the load balancer to be managed
     my $vm;
-    my %vm_create_args;
+    my %vm_create_generic_args = (
+        resource_group => $rg,
+        region => $args{region},
+        image => $args{os},
+        username => $user,
+        vnet => $vnet,
+        snet => $subnet,
+        ssh_pubkey => get_ssh_private_key_path() . '.pub',
+        public_ip => "");
+    if (!$args{trusted_launch}) {
+        $vm_create_generic_args{security_type} = 'Standard';
+    }
+
+    my %vm_create_internal_args = %vm_create_generic_args;
+    $vm_create_internal_args{availability_set} = $as;
+    $vm_create_internal_args{nsg} = $nsg;
+    $vm_create_internal_args{public_ip} = "";
+    if ($args{cloudinit}) {
+        $vm_create_internal_args{custom_data} = $cloud_init_file;
+    }
+
     foreach my $i (1 .. 2) {
         $vm = ipaddr2_get_internal_vm_name(id => $i);
         # the VM creation command refers to an external cloud-init
         # configuration file that is in charge to install and setup
         # the nginx server.
-        %vm_create_args = (
-            resource_group => $rg,
-            name => $vm,
-            region => $args{region},
-            image => $args{os},
-            username => $user,
-            vnet => $vnet,
-            snet => $subnet,
-            availability_set => $as,
-            nsg => $nsg,
-            ssh_pubkey => get_ssh_private_key_path() . '.pub',
-            public_ip => "");
-        if ($args{cloudinit}) {
-            $vm_create_args{custom_data} = $cloud_init_file;
-        }
-        az_vm_create(%vm_create_args);
+        $vm_create_internal_args{name} = $vm;
+        az_vm_create(%vm_create_internal_args);
 
         if ($args{diagnostic}) {
             az_vm_diagnostic_log_enable(resource_group => $rg,
@@ -305,16 +315,10 @@ END
             name => $vm, port => 80);
     }
 
-    az_vm_create(
-        resource_group => $rg,
-        name => $bastion_vm_name,
-        region => $args{region},
-        image => $args{os},
-        username => $user,
-        vnet => $vnet,
-        snet => $subnet,
-        ssh_pubkey => get_ssh_private_key_path() . '.pub',
-        public_ip => $bastion_pub_ip);
+    my %vm_create_bastion_args = %vm_create_generic_args;
+    $vm_create_bastion_args{name} = $bastion_vm_name;
+    $vm_create_bastion_args{public_ip} = $bastion_pub_ip;
+    az_vm_create(%vm_create_bastion_args);
 
     # Keep this loop separated from the other to hopefully
     # give cloud-init more time to run and avoid interfering
@@ -453,11 +457,14 @@ sub ipaddr2_bastion_key_accept {
 
 For the worker to accept the ssh key of the internal VMs
 
-=over 1
+=over 2
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
+
+=item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
+                        ssh option. default to 'accept-new'
 
 =back
 =cut
@@ -465,6 +472,8 @@ For the worker to accept the ssh key of the internal VMs
 sub ipaddr2_internal_key_accept {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{key_checking} //= 'accept-new';
+    my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
 
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
@@ -503,7 +512,7 @@ sub ipaddr2_internal_key_accept {
         $ret = script_run(join(' ',
                 'ssh',
                 '-vvv',
-                '-oStrictHostKeyChecking=accept-new',
+                $key_policy,
                 '-oConnectionAttempts=120',
                 '-J', $bastion_ssh_addr,
                 $vm_addr,
@@ -515,12 +524,12 @@ sub ipaddr2_internal_key_accept {
                     '-vvv',
                     $vm_addr,
                     "-oProxyCommand=\"ssh $bastion_ssh_addr -oConnectionAttempts=120 -W %h:%p\"",
-                    '-oStrictHostKeyChecking=accept-new',
+                    $key_policy,
                     #'-oConnectionAttempts=60',
                     'whoami'));
             die "2 StrictHostKeyChecking --> ret:$ret" if $ret;
         }
-        # one more without StrictHostKeyChecking=accept-new just to verify it is ok
+        # one more without StrictHostKeyChecking just to verify it is ok
         ipaddr2_ssh_internal(id => $i,
             cmd => 'whoami',
             bastion_ip => $args{bastion_ip});
@@ -536,11 +545,14 @@ One ssk key pair for each internal VM
 Then upload in each internal VM the ssh key pair using
 scp in Proxy mode
 
-=over 1
+=over 2
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
+
+=item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
+                        ssh option. default to 'accept-new'
 
 =back
 =cut
@@ -548,6 +560,8 @@ scp in Proxy mode
 sub ipaddr2_internal_key_gen {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{key_checking} //= 'accept-new';
+    my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
 
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $user_ssh = "/home/$user/.ssh";
@@ -616,7 +630,7 @@ sub ipaddr2_internal_key_gen {
         cmd => join(' ',
             'ssh',
             $user . '@' . ipaddr2_get_internal_vm_private_ip(id => 2),
-            '-oStrictHostKeyChecking=accept-new',
+            $key_policy,
             'whoami'),
         bastion_ip => $args{bastion_ip});
     # vm-02 first connection to vm-01
@@ -624,7 +638,7 @@ sub ipaddr2_internal_key_gen {
         cmd => join(' ',
             'ssh',
             $user . '@' . ipaddr2_get_internal_vm_private_ip(id => 1),
-            '-oStrictHostKeyChecking=accept-new',
+            $key_policy,
             'whoami'),
         bastion_ip => $args{bastion_ip});
 }
