@@ -1,0 +1,70 @@
+name: fips_ker_mode_textmode_extra
+description:    >
+    This is for FIPS testing of extra modules in kernel mode on a textmode system.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - fips/fips_setup
+    - fips/curl_fips_rc4_seed
+    - console/aide_check
+    - console/gpg
+    - console/journald_fss
+    - console/git
+    - console/clamav
+    - console/openvswitch_ssl
+    - security/ntpd
+    - console/ntp_client
+    - console/cups
+    - console/syslog
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/links_https
+    - console/lynx_https
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+    - console/apache_ssl
+    - fips/mozilla_nss/apache_nssfips
+    - security/ecryptfs/ecryptfs
+    - security/vsftpd/vsftpd_setup
+    - security/vsftpd/vsftpd
+    - security/vsftpd/lftp
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/rsync
+    - console/shells
+    - console/sudo
+    - console/dstat
+    - console/supportutils
+    - console/mdadm
+    - console/quota
+    - console/vhostmd
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - console/iotop
+    - console/kmod
+    - console/suse_module_tools
+    - console/aaa_base
+    - console/gd
+    - console/coredump_collect
+    - console/osinfo_db
+    - console/ovn
+    - console/firewalld
+    - console/nginx
+    - console/gdb
+    - console/sysctl
+    - console/sshd
+    - console/ssh_cleanup
+    - '{{tests_for_x64}}'
+conditional_schedule:
+    tests_for_x64:
+        ARCH:
+            x86_64:
+                - console/ansible
