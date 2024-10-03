@@ -55,6 +55,7 @@ our @EXPORT = qw(
   az_network_peering_delete
   az_disk_create
   az_resource_delete
+  az_validate_uuid_pattern
 );
 
 
@@ -1368,10 +1369,11 @@ Arguments B<name> and B<ids> are mutually exclusive.
 
 sub az_resource_delete {
     my (%args) = @_;
-    $args{timeout} //= 60;
     croak "Mandatory argument 'resource_group' missing" unless $args{resource_group};
     croak "Arguments 'name' and 'ids' are mutually exclusive" if $args{ids} and $args{name};
     croak "Argument 'name' or 'ids' has to be specified" unless $args{ids} or $args{name};
+    $args{timeout} //= 60;
+
     my @az_command = ('az resource delete',
         "--resource-group $args{resource_group}"
     );
@@ -1380,3 +1382,28 @@ sub az_resource_delete {
 
     assert_script_run(join(' ', @az_command), timeout => $args{timeout});
 }
+
+=head2 az_validate_uuid_pattern
+
+    az_validate_uuid_pattern( uuid => $uuid_string )
+
+    Function checks input string against uuid pattern
+    which is commonly used as an identifier for Azure resources.
+    returns uuid (true) on match, 0 (false) on mismatch.
+
+=over 1
+
+=item B<uuid> UUID string to test.
+
+=back
+=cut
+
+sub az_validate_uuid_pattern {
+    my (%args) = @_;
+    croak "Mandatory argument 'uuid' missing" unless $args{uuid};
+    my $pattern = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+    return $args{uuid} if ($args{uuid} =~ /$pattern/i);
+    diag("String did not match UUID pattern:\nString: '$args{uuid}'\nPattern: '$pattern'");
+    return 0;
+}
+
