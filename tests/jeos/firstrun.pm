@@ -111,7 +111,8 @@ sub verify_partition_label {
 
     # The RPi firmware needs MBR. s390x images also use MBR.
     # Note: JeOS-for-RaspberryPi means "kiwi-templates-Minimal" and JeOS-for-RPi means "community JeOS".
-    if (is_s390x || check_var('FLAVOR', 'JeOS-for-RaspberryPi') || check_var('FLAVOR', 'JeOS-for-RPi')) {
+    # In sle-micro the raw aarch64 images are used for RPi, hence they have contain `dos`
+    if (is_s390x || check_var('FLAVOR', 'JeOS-for-RaspberryPi') || check_var('FLAVOR', 'JeOS-for-RPi') || (is_sle_micro && is_aarch64 && get_var('FLAVOR', '') =~ /(^Base$|^Default$)/)) {
         $label = 'dos';
     }
 
