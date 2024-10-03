@@ -19,8 +19,11 @@ sub run {
         if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
             my $rg = qesap_az_get_resource_group();
             my $ibs_mirror_rg = get_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP');
-            qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_rg);
-            qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
+            my $lr = qesap_ansible_script_output(
+                cmd => 'zypper lr',
+                provider => $provider_setting,
+                host => '"hana[0]"');
+            record_info('list of repo in zypper', $lr);
             qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
         }
     }
