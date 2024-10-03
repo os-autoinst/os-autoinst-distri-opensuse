@@ -12,15 +12,15 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 
-use Yam::Agama::Pom::GrubMenuPage;
+use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
-use Yam::Agama::Pom::Sle::AgamaUpAndRunningPage;
+use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
 use Yam::Agama::Pom::RebootPage;
 
 use Utils::Architectures;
 
-sub get_grub_menu {
-    return Yam::Agama::Pom::GrubMenuPage->new();
+sub get_grub_menu_agama {
+    return Yam::Agama::Pom::GrubMenuAgamaPage->new();
 }
 
 sub get_grub_entry_edition {
@@ -31,10 +31,10 @@ sub get_grub_entry_edition {
 }
 
 sub get_agama_up_an_running {
-    return Yam::Agama::Pom::Sle::AgamaUpAndRunningPage->new();
+    return Yam::Agama::Pom::AgamaUpAndRunningSlePage->new();
 }
 
-sub get_reboot_page {
+sub get_reboot {
     return Yam::Agama::Pom::RebootPage->new();
 }
 

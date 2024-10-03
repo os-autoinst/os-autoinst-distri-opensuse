@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 
 sub run {
-    my $reboot_page = $testapi::distri->get_reboot_page();
+    my $reboot_page = $testapi::distri->get_reboot();
 
     $reboot_page->expect_is_shown(timeout => 1200);
 

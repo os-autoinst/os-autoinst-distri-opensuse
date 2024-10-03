@@ -23,7 +23,7 @@ sub run {
     push(@env_vars, "AGAMA_PRODUCT=" . get_var('AGAMA_PRODUCT')) if get_var('AGAMA_PRODUCT');
 
     my $test = get_required_var('AGAMA_TEST');
-    my $reboot_page = $testapi::distri->get_reboot_page();
+    my $reboot_page = $testapi::distri->get_reboot();
 
     script_run("dmesg --console-off");
     assert_script_run(join(' ', @env_vars) . " /usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
