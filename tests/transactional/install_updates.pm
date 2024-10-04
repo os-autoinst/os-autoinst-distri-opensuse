@@ -34,13 +34,18 @@ sub run {
     }
 
     # First we update the system
+    record_info('Updates', script_output('zypper lu'));
     fully_patch_system(trup_call_timeout => 1800);
+    record_info('INFO', 'The system is fully patched');
 
     # Now we add the incident repositories and do a zypper patch
     add_test_repositories;
+    record_info('INFO', "Test repositories added:\n" . script_output('zypper lr -u'));
     record_info('Updates', script_output('zypper lu'));
-    my $ret = trup_call('up', timeout => 300, proceed_on_failure => 1);
+    my $ret = trup_call('patch', timeout => 900);
     process_reboot(trigger => 1);
+    record_info('INFO', 'System is fully patched');
+    record_info('Updates', script_output('zypper lu'));
 }
 
 sub test_flags {
