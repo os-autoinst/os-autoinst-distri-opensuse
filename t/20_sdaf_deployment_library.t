@@ -101,69 +101,6 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     undef_variables;
 };
 
-subtest '[prepare_tfvars_file] Test missing or incorrect args' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(data_url => sub { return 'openqa.suse.de/data/' . join('', @_); });
-    my @incorrect_deployment_types = qw(funny_library eployer sap_ workload _zone);
-
-    dies_ok { prepare_tfvars_file(); } 'Fail without specifying "$deployment_type"';
-    dies_ok { prepare_tfvars_file(deployment_type => $_); } "Fail with incorrect deployment type: $_" foreach @incorrect_deployment_types;
-
-};
-
-subtest '[prepare_tfvars_file] Test curl commands' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $curl_cmd;
-    $ms_sdaf->redefine(assert_script_run => sub { $curl_cmd = $_[0] if grep(/curl/, $_[0]); return 1; });
-    $ms_sdaf->redefine(upload_logs => sub { return 1; });
-    $ms_sdaf->redefine(replace_tfvars_variables => sub { return 1; });
-    $ms_sdaf->redefine(get_os_variable => sub { return $_[0]; });
-    $ms_sdaf->redefine(data_url => sub { return 'http://openqa.suse.de/data/' . join('', @_); });
-
-    # '-o' is only for checking if correct parameter gets picked from %tfvars_os_variable
-    my %expected_results = (
-        deployer => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/DEPLOYER.tfvars -o deployer_parameter_file',
-        sap_system => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/SAP_SYSTEM.tfvars -o sap_system_parameter_file',
-        workload_zone => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars -o workload_zone_parameter_file',
-        library => 'curl -v -fL http://openqa.suse.de/data/sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars -o library_parameter_file'
-    );
-
-    for my $type (keys %expected_results) {
-        prepare_tfvars_file(deployment_type => $type);
-        is $curl_cmd, $expected_results{$type}, "Return correct url and tfvars variable";
-    }
-};
-
-subtest '[replace_tfvars_variables] Test correct variable replacement' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(assert_script_run => sub { return 1; });
-    $ms_sdaf->redefine(script_output => sub { return '/somewhere/in/the/Shire'; });
-    $ms_sdaf->redefine(upload_logs => sub { return 1; });
-    $ms_sdaf->redefine(data_url => sub { return 'openqa.suse.de/data/' . join('', @_); });
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    my %replaced_variables;
-    $ms_sdaf->redefine(file_content_replace => sub { %replaced_variables = @_[1 .. $#_]; return 1; });
-
-    my %expected_variables = (
-        SDAF_ENV_CODE => 'Balbo',
-        PUBLIC_CLOUD_REGION => 'Mungo',
-        SDAF_RESOURCE_GROUP => 'Bungo',
-        SDAF_VNET_CODE => 'Bilbo',
-        SAP_SID => 'Frodo'
-    );
-
-    for my $var_name (keys %expected_variables) {
-        set_var($var_name, $expected_variables{$var_name});
-    }
-    prepare_tfvars_file(deployment_type => 'workload_zone');
-
-    for my $var_name (keys(%expected_variables)) {
-        is $replaced_variables{'%' . $var_name . '%'}, $expected_variables{$var_name},
-          "Pass with %$var_name% replaced by '$expected_variables{$var_name}'";
-    }
-    undef_variables();
-};
-
 subtest '[serial_console_diag_banner] ' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @printed_lines;

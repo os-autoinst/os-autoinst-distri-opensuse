@@ -5,15 +5,13 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Deployment of the SAP systems zone using SDAF automation
 
-# Required OpenQA variables:
-#     'SDAF_WORKLOAD_VNET_CODE' Virtual network code for workload zone.
-
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner load_os_env_variables prepare_tfvars_file sdaf_execute_deployment az_login);
+  qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login);
+use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(generate_resource_group_name get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
 use sles4sap::console_redirection;

@@ -337,5 +337,8 @@ sub get_workload_vnet_code {
     my (%args) = @_;
     $args{job_id} //= find_deployment_id();
     die('no deployment ID found') unless $args{job_id};
-    return ("SUT$args{job_id}");
+    # Try to keep vnet code as short as possible. Later this is used in the name for the peering in a format:
+    # deployer-vnet_to_workload-vnet
+    # if it is too long you might hit name length limit and test ID gets clipped.
+    return ($args{job_id});
 }
