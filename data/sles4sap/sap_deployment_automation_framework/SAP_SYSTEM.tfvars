@@ -231,13 +231,13 @@ database_vm_use_DHCP = true
 # in this case os_type must also be specified
 
 database_vm_image = {
-  os_type = "LINUX",
-  source_image_id = "",
-  publisher = "SUSE",
-  offer = "sles-sap-15-sp5",
-  sku = "gen2",
-  version = "latest",
-  type = "marketplace"
+  os_type = "%SDAF_DB_IMAGE_OS_TYPE%",
+  source_image_id = "%SDAF_DB_SOURCE_IMAGE_ID%",
+  publisher = "%SDAF_DB_IMAGE_PUBLISHER%",
+  offer = "%SDAF_DB_IMAGE_OFFER%",
+  sku = "%SDAF_DB_IMAGE_SKU%",
+  version = "%SDAF_DB_IMAGE_VERSION%",
+  type = "%SDAF_DB_IMAGE_TYPE%"
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
