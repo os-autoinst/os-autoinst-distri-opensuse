@@ -17,15 +17,21 @@ use testapi;
 use utils;
 use openjdktest;
 use registration qw(add_suseconnect_product);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_rt);
 
 sub run {
     my $self = @_;
 
     my @java_versions = qw(11 17);
     if (is_sle '>=15-SP6') {
-        add_suseconnect_product 'sle-module-legacy';
         push @java_versions, 21;
+        # on newer version we need legacy module for openjdk 11, but
+        # is not available on SLERT, can't test openjdk 11
+        if (is_rt) {
+            shift @java_versions;
+        } else {
+            add_suseconnect_product 'sle-module-legacy';
+        }
     }
 
     foreach my $version (@java_versions) {
