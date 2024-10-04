@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/sap_deployment_automation_framework/configure_tfvars.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
+      <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
+      <li><a href="#set_workload_vnet_name">set_workload_vnet_name</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_tfvars.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library with common functions for Microsoft SDAF deployment automation that help with preparation of tfvars file.</p>
+
+<h2 id="prepare_tfvars_file">prepare_tfvars_file</h2>
+
+<pre><code>prepare_tfvars_file(deployment_type=&gt;$deployment_type);</code></pre>
+
+<dl>
+
+<dt id="deployment_type:-Type-of-the-deployment-workload_zone-sap_system-library...-etc"><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Downloads tfvars template files from openQA data dir and places them into correct place within SDAF repo structure. Returns full path of the tfvars file.</p>
+
+<h2 id="replace_tfvars_variables">replace_tfvars_variables</h2>
+
+<pre><code>replace_tfvars_variables();</code></pre>
+
+<dl>
+
+<dt id="deployment_type:-Type-of-the-deployment-workload_zone-sap_system-library...-etc1"><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
+
+<h2 id="set_workload_vnet_name">set_workload_vnet_name</h2>
+
+<pre><code>set_workload_vnet_name([job_id=&gt;$job_id]);</code></pre>
+
+<dl>
+
+<dt id="job_id:-Specify-job-id-to-be-used.-Default:-current-deployment-job-ID"><b>$job_id</b>: Specify job id to be used. Default: current deployment job ID</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns VNET name used for workload zone and sap systems resources. VNET name must be unique for each landscape, therefore it contains test ID as an identifier.</p>
+
+
+</body>
+
+</html>
+
+

@@ -24,8 +24,6 @@
       <li><a href="#sdaf_prepare_private_key">sdaf_prepare_private_key</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
-      <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
-      <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
       <li><a href="#sdaf_execute_deployment">sdaf_execute_deployment</a></li>
       <li><a href="#get_sdaf_deployment_command">get_sdaf_deployment_command</a></li>
       <li><a href="#prepare_sdaf_project">prepare_sdaf_project</a></li>
@@ -182,22 +180,6 @@ tee - writes output also into the log file</code></pre>
 <p><b>input_text</b>: string that will be printed in uppercase surrounded by &#39;#&#39; to make it more visible in output</p>
 
 <p>Prints a banner in serial console that highlights a point in output to make it more readable. Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging. Below is an example of the printed banner: # # $input_text #</p>
-
-<h2 id="prepare_tfvars_file">prepare_tfvars_file</h2>
-
-<pre><code>prepare_tfvars_file(deployment_type=&gt;$deployment_type);</code></pre>
-
-<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
-
-<p>Downloads tfvars template files from openQA data dir and places them into correct place within SDAF repo structure. Returns full path of the tfvars file.</p>
-
-<h2 id="replace_tfvars_variables">replace_tfvars_variables</h2>
-
-<pre><code>replace_tfvars_variables();</code></pre>
-
-<p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
-
-<p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
 
 <h2 id="sdaf_execute_deployment">sdaf_execute_deployment</h2>
 
