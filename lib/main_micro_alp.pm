@@ -57,6 +57,7 @@ sub load_boot_from_disk_tests {
     # read FIRST_BOOT_CONFIG in order to know how the image will be configured
     # ignition|combustion|ignition+combustion is considered as default path
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        loadtest 'installation/bootloader_uefi' unless is_vmware || is_s390x;
         loadtest 'jeos/firstrun';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         unless (is_s390x) {
