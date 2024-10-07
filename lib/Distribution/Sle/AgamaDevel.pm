@@ -12,6 +12,7 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 
+use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
@@ -20,7 +21,9 @@ use Yam::Agama::Pom::RebootPage;
 use Utils::Architectures;
 
 sub get_grub_menu_agama {
-    return Yam::Agama::Pom::GrubMenuAgamaPage->new();
+    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
+    });
 }
 
 sub get_grub_entry_edition {
