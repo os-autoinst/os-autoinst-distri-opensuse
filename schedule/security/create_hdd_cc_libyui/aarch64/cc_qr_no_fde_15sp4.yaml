@@ -5,7 +5,8 @@ description: >
   encryption on QR SLES 15-SP4.
 schedule:
   access_beta: []
-  product_selection: []
+  product_selection:
+    - installation/product_selection/install_SLES
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
