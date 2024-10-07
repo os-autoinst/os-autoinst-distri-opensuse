@@ -100,4 +100,6 @@ Convenience package pulling in os-autoinst-distri-openSUSE dependencies and the 
 
 %files
 
+%files worker
+
 %changelog
