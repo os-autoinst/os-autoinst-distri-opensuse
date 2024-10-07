@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
-use version_utils qw(is_sle is_opensuse is_microos is_sle_micro);
+use version_utils qw(is_sle is_sles4sap is_opensuse is_microos is_sle_micro);
 use YaST::workarounds;
 
 my %role_hotkey = (
@@ -68,6 +68,19 @@ sub assert_system_role {
 }
 
 sub run {
+    # Check if the installer has a System Role screen.
+    if (is_sle('=12-sp5') && is_sles4sap) {
+        # This check is not enough to guarantee that we are in a SLES4SAP
+        # installation. What this checks is that we are at a job with the
+        # VERSION '12-SP5' and that the string 'SAP' is contained in FLAVOR OR
+        # that SLE_PRODUCT is set to sles4sap, At the moment,
+        # (qam_)create_hdd_sles will get past this check, so we need an extra
+        # check_screen to know if the SUT runs SLE or SLES4SAP.
+        if (check_screen('partitioning-edit-proposal-button')) {
+            record_info("No System Role Screen", "The System Role screen is not shown in SLES4SAP 12SP5");
+            return;
+        }
+    }
     if (is_sle('<15') && !is_x86_64) {
         record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
     }
