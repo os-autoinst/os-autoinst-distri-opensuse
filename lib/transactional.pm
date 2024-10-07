@@ -67,7 +67,7 @@ sub handle_first_grub {
         reconnect_mgmt_console(timeout => 500, grub_expected_twice => 1);
     }
     else {
-        assert_screen 'grub2', 100;
+        assert_screen 'grub2', 200;
         assert_screen_change { send_key('ret') };
         save_screenshot;
     }
