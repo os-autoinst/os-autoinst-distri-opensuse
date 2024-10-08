@@ -64,7 +64,8 @@ sub run {
     assert_script_run "cd $test_dir/runc-$runc_version/";
 
     # Compile helpers used by the tests
-    script_run "make \$(basename -a contrib/cmd/* tests/cmd/*)";
+    my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
+    script_run "make $cmds";
 
     run_tests(rootless => 1, skip_tests => get_var('RUNC_BATS_SKIP_USER', ''));
 
