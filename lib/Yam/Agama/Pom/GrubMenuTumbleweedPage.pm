@@ -15,7 +15,7 @@ sub new {
     my ($class, $args) = @_;
     return bless {
         grub_menu_base => $args->{grub_menu_base},
-        tag_first_entry_highlighted => 'grub-menu-openSUSE-Tumbleweed-highlighted',
+        tag_first_entry_highlighted => 'grub-menu-openSUSE-highlighted',
     }, $class;
 }
 
