@@ -796,6 +796,8 @@ sub wait_until_resources_started {
                 sleep 5;
             }
             else {
+                record_info('Cluster status', script_output("$crm_mon_cmd"));
+                save_state();
                 die "Cluster/resources did not start within $timeout seconds (cmd='$cmd')";
             }
         }
