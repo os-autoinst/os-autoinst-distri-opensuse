@@ -19,7 +19,9 @@ use strict;
 use utils;
 use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
-use version_utils 'is_sle';
+
+my $path = is_sle('=15-SP2') ? '/usr/sbin/' : '';    # 15-SP2 is the oldest version that needs fullpaths
+my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
 sub run {
     my ($self, $args) = @_;
@@ -33,9 +35,6 @@ sub run {
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
-
-    my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
-    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
         record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
@@ -94,7 +93,7 @@ sub run {
         }
     }
 
-    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
+    cleanup_instance($instance);
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
         last if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0);
@@ -106,14 +105,14 @@ sub run {
     if (is_byos()) {
         $instance->ssh_assert_script_run(cmd => 'sudo SUSEConnect --version');
         $instance->ssh_assert_script_run(cmd => "sudo SUSEConnect $regcode_param");
-        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
+        cleanup_instance($instance);
     }
 
-    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param", timeout => 300, retry => 3, delay => 120);
-    check_instance_registered($instance);
+    new_registration($instance);
 
-    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param --force-new", timeout => 300, retry => 3, delay => 120);
-    check_instance_registered($instance);
+    test_container_runtimes($instance) if (is_sle('>=15-SP2'));
+
+    force_new_registration($instance);
 
     register_addons_in_pc($instance);
 
@@ -146,6 +145,47 @@ sub check_instance_unregistered {
             die($error);
         }
     }
+}
+
+sub new_registration {
+    my ($instance) = @_;
+    record_info('Starting registration...');
+    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param", timeout => 300, retry => 3, delay => 120);
+    check_instance_registered($instance);
+    return 0;
+}
+
+sub test_container_runtimes {
+    my ($instance) = @_;
+    my $image = "registry.suse.com/bci/bci-base:latest";
+
+    record_info('Test docker');
+    $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
+    $instance->ssh_assert_script_run("sudo zypper install -y docker");
+    $instance->ssh_assert_script_run("sudo systemctl start docker.service");
+    record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
+    $instance->ssh_assert_script_run("sudo docker pull $image");
+    $instance->ssh_assert_script_run("sudo systemctl stop docker.service");
+
+    record_info('Test podman');
+    $instance->ssh_assert_script_run("sudo zypper install -y podman");
+    $instance->ssh_assert_script_run("podman pull $image");
+    return 0;
+}
+
+sub cleanup_instance {
+    my ($instance) = @_;
+    record_info('Removing registration data');
+    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
+    check_instance_unregistered($instance);
+}
+
+sub force_new_registration {
+    my ($instance) = @_;
+    record_info('Forcing a new registration...');
+    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param --force-new", timeout => 300, retry => 3, delay => 120);
+    check_instance_registered($instance);
+    return 0;
 }
 
 sub post_fail_hook {
