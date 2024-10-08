@@ -4,18 +4,19 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-# Summary: Triggers cleanup of the workload zone and SUT using SDAF automation.
-# It also removes all SDAF test related files from deployer VM.
+# Summary: Triggers SDAF cleanup.
+# Executes 'remover.sh' script which is part of SDAF
+# Removes deployer VM clone and it's resources
+# Cleans up resources which are orphaned
 # Post run hooks are generally disabled during normal module run so the infrastructure persists between test modules.
-# Cleanup is triggered only with B<SDAF_DO_CLEANUP> set to true, which is done by scheduling this module at the end of test flow.
+# To skip cleanup use OpenQA parameter 'SDAF_RETAIN_DEPLOYMENT'
 
 use parent 'opensusebasetest';
 use strict;
 use testapi;
 use warnings;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner);
+use sles4sap::sap_deployment_automation_framework::deployment qw(serial_console_diag_banner);
 use sles4sap::sap_deployment_automation_framework::basetest qw(full_cleanup);
 
 sub test_flags {
