@@ -97,6 +97,10 @@ if (check_var('DESKTOP', 'kde') && !get_var('KDE4')) {
 
 set_var('ZDUP', 1) if get_var('ZDUP_IN_X');
 
+# SELinux is now default LSM in enforcing mode (bsc#1230118)
+# Disable SELinux tests in tumbleweed with SELINUX=0
+set_var('SELINUX', 1) if is_tumbleweed && !check_var('SELINUX', 0);
+
 if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
     my $repos = map_incidents_to_repo({OS => get_required_var('OS_TEST_ISSUES')}, {OS => get_required_var('OS_TEST_TEMPLATE')});
     set_var('ZYPPER_ADD_REPOS', $repos);

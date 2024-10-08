@@ -59,6 +59,7 @@ use constant {
           package_version_cmp
           get_version_id
           php_version
+          has_selinux_by_default
         )
     ],
     BACKEND => [
@@ -971,5 +972,14 @@ Returns true for tests using the images built by the "JeOS" package on OBS
 
 sub is_community_jeos {
     return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
+}
+
+=head2 has_selinux_by_default
+
+Returns true if the distro has SELinux as default MAC
+=cut
+
+sub has_selinux_by_default {
+    return is_tumbleweed || is_micro;
 }
 
