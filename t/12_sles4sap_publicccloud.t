@@ -187,6 +187,7 @@ subtest "[stop_hana]" => sub {
 };
 
 subtest "[stop_hana] crash" => sub {
+    my @calls;
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
@@ -194,17 +195,18 @@ subtest "[stop_hana] crash" => sub {
     $sles4sap_publiccloud->redefine(wait_hana_node_up => sub { return; });
     $sles4sap_publiccloud->redefine(serial_term_prompt => sub { return '# '; });
     $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
+    $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
-    my @calls;
     $mock_pc->mock('run_ssh_command', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'BABUUUUUUUUM' });
     $mock_pc->mock('ssh_opts', sub { return '-i .ssh/id_rsa'; });
     $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{public_ip} = '1.2.3.4';
 
     $self->stop_hana(method => 'crash');
     note("\n  C -->  " . join("\n  C -->  ", @calls));
