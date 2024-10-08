@@ -32,7 +32,7 @@ sub run {
     my $local_eth0_ip = $instance->ssh_script_output(qq(ip -4 -o a s eth0 primary | grep -Po "inet \\K[\\d.]+"));
     chomp($local_eth0_ip);
     my $metadata_eth0_ip = $provider->query_metadata($instance, ifNum => '0', addrCount => '0');
-    assert_equals($metadata_eth0_ip, $local_eth0_ip, 'Locally assigned eth1 IP does not equal the IP retrieved from CSP metadata service.');
+    assert_equals($metadata_eth0_ip, $local_eth0_ip, 'Locally assigned eth0 IP does not equal the IP retrieved from CSP metadata service.');
 
     if (is_azure) {
         # Get public IP address for eth1
