@@ -14,7 +14,7 @@ use testapi;
 sub run {
     my $reboot_page = $testapi::distri->get_reboot();
 
-    $reboot_page->expect_is_shown(timeout => 2400);
+    $reboot_page->expect_is_shown(timeout => ((get_var('DESKTOP') eq 'gnome') ? 2400 : 1200));
 
     select_console 'root-console';
     Yam::Agama::agama_base::upload_agama_logs();

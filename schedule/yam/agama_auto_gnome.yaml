@@ -1,0 +1,15 @@
+---
+name: agama_auto_gnome
+description: >
+  Prepare url for agama.auto boot parameter, boot.
+  perform auto-installation with agama gnome patterns.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - yam/agama/switch_to_product
+  - installation/first_boot
+  - installation/opensuse_welcome
+  - console/system_prepare
+  - yam/validate/validate_product
+  - yam/validate/validate_first_user
