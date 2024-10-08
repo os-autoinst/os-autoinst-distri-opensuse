@@ -68,7 +68,8 @@ sub handle_first_grub {
     }
     else {
         assert_screen 'grub2', 100;
-        wait_screen_change { send_key 'ret' };
+        assert_screen_change { send_key('ret') };
+        save_screenshot;
     }
 }
 
