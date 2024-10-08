@@ -18,11 +18,12 @@ use Utils::Architectures;
 use mmapi 'wait_for_children';
 use audit_test qw(compare_run_log prepare_for_test upload_audit_test_logs);
 use scheduler 'get_test_suite_data';
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     zypper_call('in bridge-utils netcat-openbsd');
 
