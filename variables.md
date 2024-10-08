@@ -461,6 +461,7 @@ XFSTESTS_NFS_VERSION | string | 4.1 | NFS only, version of test target NFS
 XFSTESTS_NFS_SERVER | boolean | | NFS multimation test only, mandatory. To tag this test job for NFS server in a NFS multimachine test. NFS test in a multimachine test either a client or a server.
 NFS_GRACE_TIME | integer | 15 | NFS only, set the nlm_grace_period in /etc/modprobe.d/lockd.conf used in NFS test.
 PARALLEL_WITH | string | | NFS multimation test only, value=<set-the-parent-job-name>. To set the NFS server job name in NFS client job in a NFS multimachine test. e.g. xfstests_nfs4.1-server
+XFSTESTS_PART_SIZE | string | | Partitions size in MB, separate with commas. Each size is allocated to test_dev, scratch_dev1 and so on in turn. Unconfigured partitions will divide the remaining space equally. E.g, value=5120,10240 then test_dev=5120M, scratch_dev1=10240M, and remain partitions share the rest space.
 
 
 Debug setting: advance setting to debugging issues, may cause test fail

@@ -29,6 +29,7 @@ use Utils::Systemd 'disable_and_stop_service';
 use registration;
 use version_utils qw(is_transactional);
 use transactional;
+use List::Util 'sum';
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -173,11 +174,11 @@ sub create_loop_device_by_rootsize {
     }
     # Use 90% of free space, not use all space in /root
     $size = int($para{size} * 0.9);
-    # 15G each for test_dev and scratch_dev1, other devices share the rest
-    if ($para{size} >= 38912 && $amount == 5 && get_var('XFSTESTS_BIG_SPACE')) {
-        my $size1 = 15360;
-        my $size2 = int(($size - ($size1 * 2)) / ($amount - 1));
-        @loop_dev_size = (($size1 . 'M') x 2, ($size2 . 'M') x 4);
+    # get device size from XFSTESTS_PART_SIZE, other devices share the rest
+    if (my @part_list = split(/,/, get_var('XFSTESTS_PART_SIZE'))) {
+        my $list_remaining = $amount + 1 - (scalar @part_list);
+        if ($list_remaining > 0) { push(@part_list, (int(($size - (sum @part_list)) / $list_remaining)) x $list_remaining); }
+        foreach (0 .. $amount) { push(@loop_dev_size, shift(@part_list) . 'M'); }
     }
     else {
         $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = int($size / ($amount + 1)));
