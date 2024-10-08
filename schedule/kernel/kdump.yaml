@@ -13,6 +13,8 @@ conditional_schedule:
         BACKEND:
             spvm:
                 - installation/bootloader
+            pvm_hmc:
+                - installation/bootloader
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
