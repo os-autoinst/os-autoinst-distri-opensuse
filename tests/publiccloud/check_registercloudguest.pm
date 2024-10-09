@@ -110,7 +110,7 @@ sub run {
 
     new_registration($instance);
 
-    test_container_runtimes($instance) if (is_sle('>=15-SP2'));
+    test_container_runtimes($instance) if (is_sle('>=15-SP5'));
 
     force_new_registration($instance);
 
