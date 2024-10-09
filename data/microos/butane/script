@@ -97,6 +97,8 @@ echo 'FONT=eurlatgr.psfu' >> /etc/vconsole.conf
 if ! grep -q tumbleweed /etc/os-release; then
     create_fs
     systemd_mount
+else
+    mount /home
 fi
 
 #

@@ -59,6 +59,8 @@ sub systemd_tests {
 
     foreach my $unit (@$units) {
         my $name = $unit->{name};
+        # tumbleweed nor microos does not come with mkfs.ext4
+        next if ($name eq "create_test_file.service" && is_tumbleweed);
         systemctl("is-enabled $name", expect_false => !$unit->{enabled});
         systemctl("is-active $name", expect_false => ($name =~ /sshd/) ? 0 : 1);
 

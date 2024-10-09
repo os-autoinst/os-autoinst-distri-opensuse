@@ -424,8 +424,7 @@ sub load_tests {
     } elsif (check_var('EXTRA', 'networking')) {
         load_network_tests;
     } elsif (check_var('EXTRA', 'provisioning')) {
-        # This module fails in MicroOS, never been run before. Need to investigate.
-        loadtest 'microos/verify_setup' unless is_microos;
+        loadtest 'microos/verify_setup';
         load_transactional_tests;
     } elsif (check_var('EXTRA', 'virtualization')) {
         load_qemu_tests;
