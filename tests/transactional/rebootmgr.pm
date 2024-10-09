@@ -50,7 +50,7 @@ sub rbm_set_window {
 sub check_strategy_instantly {
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    process_reboot(expected_grub => is_pvm() ? 0 : 1);
+    process_reboot(expected_grub => 1);
     rbm_call "get-strategy | grep instantly";
 }
 
@@ -61,7 +61,7 @@ sub check_strategy_maint_window {
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => is_pvm() ? 0 : 1);
+    process_reboot(expected_grub => 1);
 
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
