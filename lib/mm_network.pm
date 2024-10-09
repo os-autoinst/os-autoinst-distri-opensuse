@@ -8,6 +8,7 @@ use Exporter;
 
 use testapi;
 use version_utils 'is_opensuse';
+use Utils::Architectures 'is_aarch64';
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager restart_networking
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
@@ -131,8 +132,9 @@ sub configure_static_dns {
         $nm_id = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n 1") unless ($nm_id);
         assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$servers'";
     } else {
-        assert_script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
-        assert_script_run("netconfig -f update");
+        assert_script_run("sync", timeout => 600) if is_aarch64;    # workaround for slow virtual disk device
+        assert_script_run "sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config";
+        assert_script_run "netconfig -f update";
     }
 }
 

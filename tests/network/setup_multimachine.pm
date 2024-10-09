@@ -54,5 +54,9 @@ sub run {
     barrier_wait 'MM_SETUP_PING_CHECK_DONE';
 }
 
+sub test_flags {
+    return {fatal => 1, milestone => 0};
+}
+
 1;
 
