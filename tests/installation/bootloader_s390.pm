@@ -102,7 +102,9 @@ sub prepare_parmfile {
     }
 
     $params .= specific_bootmenu_params;
-    $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+    unless (get_var("AGAMA")) {
+        $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+    }
 
     # Pass autoyast parameter for s390x, shorten the url because of 72 columns limit in x3270 xedit
     # If 'AUTOYAST_PREPARE_PROFILE' is true, shorten url directly, otherwise shorten url with data_url method
@@ -176,18 +178,22 @@ EO_frickin_boot_parms
     ## an empty line and a single "manual=1" at the bottom
     ## of the ftpboot parmfile.  This may fail in obscure
     ## ways when that changes.
-    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
-    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
+    ## In Agama The "manual=1" line is not present so it is not required to delete it.
+    unless (get_var('AGAMA')) {
+        $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
+        $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
 
-    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+        $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+    }
 
     # save the parmfile.  ftpboot then starts the installation.
     $s3270->sequence_3270(qw( String(FILE) ENTER ));
 
     if (get_var('AGAMA')) {
+        my ($hostname) = split(/\./, get_required_var("ZVM_GUEST"));
         $r = $s3270->expect_3270(
-            output_delim => qr/o3zvm003 login/,
-            timeout => 400
+            output_delim => qr/$hostname login/,
+            timeout => 300
         ) || die "Login was not found";
         $s3270->sequence_3270(qw(String("root") ENTER));
 
