@@ -64,7 +64,7 @@ sub run {
     $sbd_delay = $self->sbd_delay_formula if $db_action eq 'crash';
 
     $self->stop_hana(method => $db_action);
-    $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
+    $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
 
     # SBD delay is active only after reboot
     if ($db_action eq 'crash' || $db_action eq 'stop') {

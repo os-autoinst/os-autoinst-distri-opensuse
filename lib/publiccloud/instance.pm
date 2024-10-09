@@ -350,7 +350,7 @@ sub wait_for_guestregister {
 
 =head2 wait_for_ssh
 
-    wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, ...])
+    wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, scan_ssh_host_key => 0] [, ...])
 
 When a remote pc instance starting, by default wait_stop param.=0(false) and 
 this routine checks until the SSH port of the remote instance is reachable and open. 
@@ -364,6 +364,11 @@ Parameters:
  timeout => total wait timeout; default: 600.
  wait_stop => If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false.
  proceed_on_failure => in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop.
+ scan_ssh_host_key => If true we will rescan the SSH host key
+                      This will be true when:
+                       * SUT changes it's public IP address
+                       * SUT regenerates it's SSH host keys
+                         (e.g. when cloud-init state is cleared)
  username => default: username().
  public_ip => default: public_ip().
  systemup_check => If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop.
@@ -379,6 +384,7 @@ sub wait_for_ssh {
     # Input parameters, see description in above head2 - Parameters section:
     $args{timeout} = get_var('PUBLIC_CLOUD_SSH_TIMEOUT', $args{timeout} // 600);
     $args{wait_stop} //= 0;
+    $args{scan_ssh_host_key} //= 0;
     $args{proceed_on_failure} //= $args{wait_stop};
     $args{systemup_check} //= not $args{wait_stop};
     $args{logs} //= 1;
@@ -412,15 +418,14 @@ sub wait_for_ssh {
     }    # endif
 
     # check also remote system is up and running:
+    #   SSH host key is not checked and master socket is not used
     my $retry = 0;    # count retries of unexpected sysout
     if ($args{systemup_check} and isok($exit_code)) {
-        # Install server's ssh publicckeys to prevent authentication interactions
-        # or instance address changes during VM reboots.
-        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
+        my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none';
         while (($duration = time() - $start_time) < $args{timeout}) {
             # timeout recalculated removing consumed time until now
             # We don't support password authentication so it would just block the terminal
-            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
+            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
             # result check
             if ($sysout =~ m/initializing|starting/) {    # still starting
@@ -434,7 +439,7 @@ sub wait_for_ssh {
             elsif ($sysout =~ m/degraded/) {    # up but with failed services to collect
                 $exit_code = 0;
                 $sysout .= "\nSystem booted, but some services failed:\n" .
-                  $self->ssh_script_output(cmd => 'sudo systemctl --failed',
+                  $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
                     proceed_on_failure => 1, username => $args{username});
                 last;
             }
@@ -449,6 +454,16 @@ sub wait_for_ssh {
             }    # endif
             sleep $delay;
         }    # end loop
+
+        if ($args{scan_ssh_host_key}) {
+            record_info('RESCAN', 'Rescanning SSH host key');
+            # Install server's ssh publicckeys to prevent authentication interactions
+            # or instance address changes during VM reboots.
+            script_run("ssh-keyscan $args{public_ip} | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
+        }
+
+        # Finally make sure that SSH works
+        $self->ssh_script_retry(cmd => "true", username => $args{username}, timeout => 90, retry => 5, delay => 3);
 
         # Log upload
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
@@ -492,7 +507,7 @@ sub isok {
 
 =head2 softreboot
 
-    ($shutdown_time, $bootup_time) = softreboot([timeout => 600]);
+    ($shutdown_time, $bootup_time) = softreboot([timeout => 600] [, scan_ssh_host_key => ?]);
 
 Does a softreboot of the instance by running the command C<shutdown -r>.
 Return an array of two values, first one is the time till the instance isn't
@@ -502,6 +517,7 @@ reachable anymore. The second one is the estimated bootup time.
 sub softreboot {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
+    $args{scan_ssh_host_key} //= 0;
     $args{username} //= $self->username();
     # see detailed explanation inside wait_for_ssh
 
@@ -532,7 +548,7 @@ sub softreboot {
 
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
-    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
 
     # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
     assert_script_run("true", fail_message => "console is broken");
@@ -563,7 +579,7 @@ sub stop {
 
 =head2 start
 
-    start([timeout => ?]);
+    start([timeout => ?] [, scan_ssh_host_key => ?]);
 
 Start the instance and wait for the system to be up.
 Returns the number of seconds till the system up and running.
@@ -572,8 +588,9 @@ Returns the number of seconds till the system up and running.
 sub start {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
+    $args{scan_ssh_host_key} //= 0;
     $self->provider->start_instance($self, @_);
-    return $self->wait_for_ssh(timeout => $args{timeout});
+    return $self->wait_for_ssh(timeout => $args{timeout}, scan_ssh_host_key => $args{scan_ssh_host_key});
 }
 
 =head2 get_state

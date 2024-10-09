@@ -115,7 +115,7 @@ sub run_cmd {
     delete($args{timeout});
     delete($args{runas});
 
-    $self->{my_instance}->wait_for_ssh(timeout => $timeout);
+    $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
     my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
     return $out;
@@ -385,7 +385,7 @@ sub stop_hana {
         # Crash needs to be executed as root and wait for host reboot
 
         # Ensure the remote node is in a normal state before to trigger the crash
-        $self->{my_instance}->wait_for_ssh(timeout => $timeout);
+        $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
 
         $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => $timeout);
 
@@ -414,7 +414,7 @@ sub stop_hana {
         record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
         # wait for node to be ready
         wait_hana_node_up($self->{my_instance}, timeout => 900);
-        $out = $self->{my_instance}->wait_for_ssh(timeout => 900);
+        $out = $self->{my_instance}->wait_for_ssh(timeout => 900, scan_ssh_host_key => 1);
         record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
     }
     else {

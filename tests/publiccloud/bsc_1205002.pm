@@ -35,7 +35,8 @@ sub run {
 
     $provider->start_instance($instance);
 
-    $instance->wait_for_ssh();
+    # The instance changes its public IP address so the key must be rescanned
+    $instance->wait_for_ssh(scan_ssh_host_key => 1);
     $instance->ssh_assert_script_run("echo we can login");
 }
 
