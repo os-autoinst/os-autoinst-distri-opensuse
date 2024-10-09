@@ -384,6 +384,9 @@ sub load_tests {
 
     if (get_var('BOOT_HDD_IMAGE')) {
         load_boot_from_disk_tests;
+    } elsif (check_var('MACHINE', 'ppc64le-hmc-slem')) {
+        loadtest 'installation/bootloader';
+        loadtest 'microos/install_image';
     } elsif (is_selfinstall) {
         load_selfinstall_boot_tests;
     } elsif (get_var('AUTOYAST')) {

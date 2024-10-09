@@ -66,18 +66,22 @@ sub run {
 
     # Setup ignition parition on the end of the same disk and resize root partition to use all the space
     # script_output recommended in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/20253/files#r1776549682
+    # Skip this step in case wizard test
     script_output("printf \"fix\n\" | parted ---pretend-input-tty ${device} print");
-    assert_script_run("parted ${device} --script mkpart primary ext4 98% 100%");
-    assert_script_run("parted ${device} --script print");
-    assert_script_run("mkfs.ext4 -F ${ignition_partition}");
-    assert_script_run("e2label ${ignition_partition} ignition");
-    assert_script_run("mount ${ignition_partition} /mnt/");
-    assert_script_run("mkdir /mnt/ignition");
-    assert_script_run("curl -v -o /mnt/ignition/config.ign " . data_url("microos/ignition/config.ign"));
-    assert_script_run('umount /mnt');
+    unless (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        assert_script_run("parted ${device} --script mkpart primary ext4 98% 100%");
+        assert_script_run("parted ${device} --script print");
+        assert_script_run("mkfs.ext4 -F ${ignition_partition}");
+        assert_script_run("e2label ${ignition_partition} ignition");
+        assert_script_run("mount ${ignition_partition} /mnt/");
+        assert_script_run("mkdir /mnt/ignition");
+        assert_script_run("curl -v -o /mnt/ignition/config.ign " . data_url("microos/ignition/config.ign"));
+        assert_script_run('umount /mnt');
+    }
 
     # Resize root filesystem to maximum size to use all space up to partition with ignition
-    assert_script_run("parted ${device} --script resize ${root_partition_id} 98%");
+    my $part_extend = check_var('FIRST_BOOT_CONFIG', 'wizard') ? '100%' : '98%';
+    assert_script_run("parted ${device} --script resize ${root_partition_id} $part_extend");
     assert_script_run("mount ${root_partition} /mnt");
     assert_script_run("btrfs filesystem resize max /mnt");
     assert_script_run("umount /mnt");
@@ -89,7 +93,11 @@ sub run {
 
     # We can't use reconnect_mgmt_console as it expects fully configured grub, which we don't have at this stage yet
     select_console "sol", await_console => 0 if is_ipmi;
-    select_console 'powerhmc-ssh', await_console => 0 if is_pvm_hmc;
+    if (is_pvm_hmc) {
+        select_console 'powerhmc-ssh', await_console => 0;
+        # GO to firstrun wizard
+        return if check_var('FIRST_BOOT_CONFIG', 'wizard');
+    }
     assert_screen("linux-login", 600);
 }
 
