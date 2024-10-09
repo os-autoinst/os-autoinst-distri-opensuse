@@ -81,7 +81,7 @@ sub run {
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
-        my $image = get_image_uri(version => $version);
+        my $image = get_image_uri(version => $version, distri => ($version =~ /-SP/ ? 'sle' : undef()));
 
         if (get_var('IMAGE_STORE_DATA')) {
             # If wanted, push image information to the DB
