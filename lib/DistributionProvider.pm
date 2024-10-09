@@ -21,6 +21,7 @@ use Distribution::Sle::15_current;
 use Distribution::Sle::12;
 use Distribution::Opensuse::Leap::42;
 use Distribution::Opensuse::Leap::15;
+use Distribution::Opensuse::Leap::16Latest;
 use Distribution::Opensuse::Tumbleweed;
 use Distribution::Opensuse::AgamaDevel;
 
@@ -42,7 +43,7 @@ sub provide {
     return Distribution::Sle::15sp2->new() if is_sle('>15');
     return Distribution::Sle::15sp0->new() if is_sle('=15');
     return Distribution::Sle::12->new() if is_sle('12+');
-    return Distribution::Sle::16Latest->new() if is_leap('16.0+');
+    return Distribution::Opensuse::Leap::16Latest->new() if is_leap('16.0+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
     return Distribution::Opensuse::AgamaDevel->new() if is_opensuse() && get_var('VERSION', '') =~ /agama/;
