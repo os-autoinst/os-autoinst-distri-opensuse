@@ -105,13 +105,13 @@
 
 <h2 id="wait_for_ssh">wait_for_ssh</h2>
 
-<pre><code>wait_for_ssh([timeout =&gt; 600] [, proceed_on_failure =&gt; 0] [, ...])</code></pre>
+<pre><code>wait_for_ssh([timeout =&gt; 600] [, proceed_on_failure =&gt; 0] [, scan_ssh_host_key =&gt; 0] [, ...])</code></pre>
 
 <p>When a remote pc instance starting, by default wait_stop param.=0(false) and this routine checks until the SSH port of the remote instance is reachable and open. Then by default also checks that system is up, unless systemup_check false/0.</p>
 
 <p>Wnen a remote pc instance is stopping in shutdown, we set input param. wait_stop=1(true), to expect until ssh is closed; automatic defaults systemup_check=0 and proceed_on_failure=1 applied. Status values of exit_code: 0 = pass; 1 = fail; 2 = fail,but retry,till timeout or valid outcome.</p>
 
-<p>Parameters: timeout =&gt; total wait timeout; default: 600. wait_stop =&gt; If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false. proceed_on_failure =&gt; in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop. username =&gt; default: username(). public_ip =&gt; default: public_ip(). systemup_check =&gt; If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop. logs =&gt; If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.</p>
+<p>Parameters: timeout =&gt; total wait timeout; default: 600. wait_stop =&gt; If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false. proceed_on_failure =&gt; in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop. scan_ssh_host_key =&gt; If true we will rescan the SSH host key This will be true when: * SUT changes it&#39;s public IP address * SUT regenerates it&#39;s SSH host keys (e.g. when cloud-init state is cleared) username =&gt; default: username(). public_ip =&gt; default: public_ip(). systemup_check =&gt; If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop. logs =&gt; If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.</p>
 
 <p>Return: duration if pass undef if fail and proceed_on_failure true, otherwise die.</p>
 
@@ -125,7 +125,7 @@
 
 <h2 id="softreboot">softreboot</h2>
 
-<pre><code>($shutdown_time, $bootup_time) = softreboot([timeout =&gt; 600]);</code></pre>
+<pre><code>($shutdown_time, $bootup_time) = softreboot([timeout =&gt; 600] [, scan_ssh_host_key =&gt; ?]);</code></pre>
 
 <p>Does a softreboot of the instance by running the command <code>shutdown -r</code>. Return an array of two values, first one is the time till the instance isn&#39;t reachable anymore. The second one is the estimated bootup time.</p>
 
@@ -137,7 +137,7 @@
 
 <h2 id="start">start</h2>
 
-<pre><code>start([timeout =&gt; ?]);</code></pre>
+<pre><code>start([timeout =&gt; ?] [, scan_ssh_host_key =&gt; ?]);</code></pre>
 
 <p>Start the instance and wait for the system to be up. Returns the number of seconds till the system up and running.</p>
 

@@ -65,18 +65,6 @@ $self-&gt;set_cli_ssh_opts(&quot;-4 -o LogLevel=ERROR -E $logfile&quot;);</code>
 <li><p><code>-E /var/tmp/ssh_sut.log</code>: save logging to <b>/var/tmp/ssh_sut.log</b>.</p>
 
 </li>
-<li><p><code>-F none</code>: do not use SSH configuration files.</p>
-
-</li>
-<li><p><code>-o LogLevel=DEBUG3</code>: set log level to <b>DEBUG3</b>.</p>
-
-</li>
-<li><p><code>-o PasswordAutentication=no</code>: do not allow authentication via password.</p>
-
-</li>
-<li><p><code>-i &#39;get_ssh_private_key_path()&#39;</code>: use the generated private SSH key</p>
-
-</li>
 </ul>
 
 <p><b>Note</b>: if the method receives an empty string, no SSH options will be set.</p>
