@@ -97,7 +97,7 @@ sub run {
                 send_key 'alt-o';
             }
         }
-        assert_screen "startinstall";
+        assert_screen "startinstall", 90;
 
         # confirm
         send_key $cmd{install};
