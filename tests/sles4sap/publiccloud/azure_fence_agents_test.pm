@@ -38,8 +38,8 @@ sub run {
     my $resource_group = qesap_az_get_resource_group();
     my $subscription_id = $provider_client->{subscription};
     my $tenant_id = check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn') ? qesap_az_get_tenant_id($subscription_id) : '';
-    my $spn_application_id = get_var('_SECRET_AZURE_SPN_APPLICATION_ID');
-    my $spn_application_password = get_var('_SECRET_AZURE_SPN_APP_PASSWORD');
+    my $spn_application_id = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
+    my $spn_application_password = get_var('AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
     my @cluster_nodes = @{$self->list_cluster_nodes()};
 
     die 'Resoruce group not found' unless $resource_group;
