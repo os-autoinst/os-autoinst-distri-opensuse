@@ -41,3 +41,5 @@ grub:
   - installation/grub_test
 first_login:
   - installation/first_boot
+system_preparation: []
+system_validation: []
