@@ -229,6 +229,9 @@ sub run {
             });
     }
 
+    if ($vmm_family eq 'xen' && $vmm_type eq 'linux') {
+        $svirt->add_usb_hub();
+    }
     $svirt->add_vnc({port => get_var('VIRSH_INSTANCE', 1) + 5900});
 
     my %ifacecfg = ();
