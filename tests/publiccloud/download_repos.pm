@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use version_utils 'is_sle_micro';
 use publiccloud::ssh_interactive "select_host_console";
 use publiccloud::utils "validate_repo";
 
@@ -64,8 +65,10 @@ sub run {
         my $ret = 0;
         my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*'";
         my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
-        my ($incident, $type);
+
+
         set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
+
         for my $maintrepo (@repos) {
             unless (validate_repo($maintrepo)) {
                 set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
@@ -74,16 +77,20 @@ sub run {
             script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
             my ($parent) = $maintrepo =~ 'https?://(.*)$';
             my ($domain) = $parent =~ '^([a-zA-Z.]*)';
+            record_info("test", "$parent");
+            record_info("test", "$domain");
             $ret = script_run "wget --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600;
             if ($ret !~ /0|8/) {
                 # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
-                record_info('Softfail', "Download failed (rc=$ret):\n$maintrepo", result => 'softfail');
+                record_info('Softfail', "Download /failed (rc=$ret):\n$maintrepo", result => 'softfail');
                 script_run("echo 'Download failed for $maintrepo ...' >> ~/repos/qem_download_status.txt");
             } else {
                 assert_script_run("echo -en '\\n" . ('#' x 80) . "\\n# $maintrepo:\\n' >> /tmp/repos.list.txt");
                 assert_script_run("echo 'Downloaded $maintrepo:' \$(du -hs $parent | cut -f1) >> ~/repos/qem_download_status.txt");
                 if (script_run("ls $parent/*.repo") == 0) {
                     assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s/*.repo), random_string(4), $parent));
+                    assert_script_run("find $parent >> /tmp/repos.list.txt");
+                } elsif (is_sle_micro(">=6.0")) {
                     assert_script_run("find $parent >> /tmp/repos.list.txt");
                 } else {
                     record_info('Softfail', "No .repo file found in $parent. This directory will be removed.", result => 'softfail');
