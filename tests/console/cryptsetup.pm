@@ -18,10 +18,10 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle);
+use security::config;
 
 sub run {
-    # Strengthen password to avoid password quality check failed on Tumbleweed
-    my $cryptpasswd = $testapi::password . '_on-a-sunny-D4Y';
+    my $cryptpasswd = $security::config::strong_password;
     select_serial_terminal;
 
     # Update related packages including latest systemd

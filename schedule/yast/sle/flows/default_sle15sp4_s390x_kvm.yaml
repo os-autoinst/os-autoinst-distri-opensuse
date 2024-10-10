@@ -41,3 +41,5 @@ reboot:
   - installation/handle_reboot
 first_login:
   - installation/first_boot
+system_preparation: []
+system_validation: []
