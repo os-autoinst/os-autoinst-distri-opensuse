@@ -21,6 +21,12 @@
       <li><a href="#ifc_exists">ifc_exists</a></li>
       <li><a href="#ifc_is_up">ifc_is_up</a></li>
       <li><a href="#genmac">genmac</a></li>
+      <li><a href="#cidr_to_netmask">cidr_to_netmask</a></li>
+      <li><a href="#set_nics_link_speed_duplex">set_nics_link_speed_duplex</a></li>
+      <li><a href="#check_connectivity_to_host_with_retry">check_connectivity_to_host_with_retry</a></li>
+      <li><a href="#get_nics">get_nics</a></li>
+      <li><a href="#is_nm_used">is_nm_used</a></li>
+      <li><a href="#is_wicked_used">is_wicked_used</a></li>
     </ul>
   </li>
 </ul><h1>lib/network_utils.pm</h1>
@@ -76,6 +82,45 @@
 <p>Generate custom MAC address. Used for Xen domU testing, to define MAC address once for whole test suite lifecycle.</p>
 
 <pre><code>genmac([&#39;aa:bb:cc&#39;])</code></pre>
+
+<h2 id="cidr_to_netmask">cidr_to_netmask</h2>
+
+<p>Converts CIDR notation to a netmask string in IPv4 address format.</p>
+
+<h2 id="set_nics_link_speed_duplex">set_nics_link_speed_duplex</h2>
+
+<p>Sets the link speed, duplex settings, and autoneg status for specified NICs. Accepts hash reference containing NICs and their settings.</p>
+
+<pre><code>set_nics_link_speed_duplex({
+  nics =&gt; [&#39;eth0&#39;, &#39;eth1&#39;],
+  speed =&gt; 1000,       # Speed in Mbps
+  duplex =&gt; &#39;full&#39;,    # Duplex type: &#39;full&#39; or &#39;half&#39;
+  autoneg =&gt; &#39;off&#39;     # Auto-negotiation: &#39;on&#39; or &#39;off&#39;
+});</code></pre>
+
+<h2 id="check_connectivity_to_host_with_retry">check_connectivity_to_host_with_retry</h2>
+
+<p>Checks connectivity from a specified bonding interface to a host.</p>
+
+<p>This function pings a designated host from a specified bonding interface. It uses the function validate_script_output_retry to retry the ping command multiple times.</p>
+
+<pre><code>check_connectivity_to_host_with_retry(&#39;bond0&#39;, &#39;192.168.1.1&#39;);</code></pre>
+
+<h2 id="get_nics">get_nics</h2>
+
+<p>Retrieves a list of network interfaces, excluding specified ones and the loopback interface.</p>
+
+<p>This function scans for network interfaces available on the system, optionally ignoring specified interfaces and always excluding the loopback interface. It&#39;s particularly useful for scripts that need to dynamically determine which network interfaces to operate on, allowing for exclusion of interfaces that are not of interest.</p>
+
+<pre><code>get_nics([&#39;bond0&#39;, &#39;bond1&#39;]);</code></pre>
+
+<h2 id="is_nm_used">is_nm_used</h2>
+
+<pre><code>Check if NetworkManager service is active.</code></pre>
+
+<h2 id="is_wicked_used">is_wicked_used</h2>
+
+<pre><code>Check if wicked service is active.</code></pre>
 
 
 </body>
