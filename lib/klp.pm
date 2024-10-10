@@ -12,7 +12,8 @@ use Exporter 'import';
 
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sle_micro);
+use transactional;
 
 our @EXPORT = qw(
   install_klp_product is_klp_pkg find_installed_klp_pkg klp_pkg_eq
@@ -45,14 +46,22 @@ sub install_klp_product {
     if ($livepatch_repo) {
         zypper_ar("$utils::OPENQA_FTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
-    else {
+    elsif (is_sle) {
         zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
         zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     }
 
-    # install kgraft product
-    zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
-    zypper_call("mr -e kgraft-update") unless $livepatch_repo;
+    # Enable live patching
+    if (is_sle_micro) {
+        assert_script_run 'cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf.orig';
+        assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
+        assert_script_run 'sed -i "/^multiversion\.kernels =.*/c\\multiversion.kernels = latest" /etc/zypp/zypp.conf';
+        assert_script_run 'echo "LIVEPATCH_KERNEL=\'always\'" >> /etc/sysconfig/livepatching';
+        reboot_on_changes;
+    } else {
+        zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
+        zypper_call("mr -e kgraft-update") unless $livepatch_repo;
+    }
 }
 
 sub is_klp_pkg {
@@ -60,17 +69,16 @@ sub is_klp_pkg {
     my $base = qr/(?:kgraft-|kernel-live)patch/;
 
     if ($$pkg{name} =~ m/^${base}-\d+/) {
-        if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+_*\d*_*\d*)-([a-z][a-z0-9]*)$/) {
+        if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+(?:_stage|_*\d*)_\d*)-([a-z][a-z0-9]*)$/) {
             my $kver = $1;
             my $kflavor = $2;
-            $kver =~ s/_/./g;
+            $kver =~ s/_(?!stage)/./g;
             return {
                 name => $$pkg{name},
                 version => $$pkg{version},
                 kver => $kver,
                 kflavor => $kflavor,
             };
-
         } else {
             die "Unexpected kernel livepatch package name format: \"$$pkg{name}\"";
         }
