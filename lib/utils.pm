@@ -1045,7 +1045,8 @@ Unlock bootloader if boot partition is encrypted.
 =cut
 
 sub unlock_bootloader {
-    unlock_if_encrypted if is_boot_encrypted();
+    my $password = shift;
+    unlock_if_encrypted(custom_password => $password) if is_boot_encrypted();
 }
 
 =head2 is_boot_encrypted

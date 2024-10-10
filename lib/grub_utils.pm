@@ -12,6 +12,7 @@ use utils;
 use version_utils qw(is_sle is_livecd);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 use Utils::Backends;
+use security_boot_utils;
 
 our @EXPORT = qw(
   grub_test
@@ -34,7 +35,8 @@ sub grub_test {
 
     reconnect_mgmt_console if is_pvm;
     handle_installer_medium_bootup();
-    unlock_bootloader;
+    my $custom_password = check_var('SYSTEM_ROLE', 'Common_Criteria') ? $security_boot_utils::cc_fips_pwd : undef;
+    unlock_bootloader $custom_password;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
     assert_screen('grub2', $timeout);
