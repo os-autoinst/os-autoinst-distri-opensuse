@@ -15,7 +15,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use LTP::utils;
-use version_utils qw(is_jeos is_sle);
+use version_utils qw(is_jeos is_sle is_sle_micro);
 use utils 'assert_secureboot_status';
 use kdump_utils;
 
@@ -60,7 +60,7 @@ sub run {
 
     # check kGraft patch if KGRAFT=1
     if (check_var('KGRAFT', '1') && !check_var('REMOVE_KGRAFT', '1')) {
-        my $lp_tag = is_sle('>=15-sp4') ? 'lp' : 'lp-';
+        my $lp_tag = (is_sle('>=15-sp4') || is_sle_micro) ? 'lp' : 'lp-';
         assert_script_run("uname -v | grep -E '(/kGraft-|/${lp_tag})'");
     }
 
