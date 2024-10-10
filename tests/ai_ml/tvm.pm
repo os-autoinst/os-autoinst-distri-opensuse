@@ -26,9 +26,13 @@ sub run {
     zypper_call "in tvmc python$pythonsuffix-pytest python$pythonsuffix-tornado gcc-c++";
 
     select_console 'user-console';
-    record_info('AutoTVM');
-    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/72c9a51687c5882c5bd13d718a69892d45b5cc4b/tutorials/autotvm/tune_simple_template.py');
-    assert_script_run("$python_interpreter tune_simple_template.py");
+
+    if (!is_tumbleweed) {
+        # tutorials/autotvm/tune_simple_template.py not compatible with numpy 2.1
+        record_info('AutoTVM');
+        assert_script_run('curl -L -O https://github.com/apache/tvm/raw/72c9a51687c5882c5bd13d718a69892d45b5cc4b/tutorials/autotvm/tune_simple_template.py');
+        assert_script_run("$python_interpreter tune_simple_template.py");
+    }
 
     # https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html
     # TVMC supports models created with Keras, ONNX, TensorFlow, TFLite and Torch. Use onnx model here.
