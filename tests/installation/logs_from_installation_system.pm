@@ -38,9 +38,10 @@ sub run {
         my $lv_name = "lv-root";
         my $crypt_name = "encrypted_disk";
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
-        my $root_hd = get_var('ENCRYPT') ? "/dev/$vg_name/$lv_name " : script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        my $root_hd = check_var('FULL_LVM_ENCRYPT', '1') ? "/dev/$vg_name/$lv_name " : script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
         assert_script_run("mount $root_hd /mnt");
         assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
+        assert_script_run("sed -i -e 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config.d/51-permit-root-login.conf") if is_sle('>=15-SP6');
         assert_script_run('umount /mnt');
     }
 
