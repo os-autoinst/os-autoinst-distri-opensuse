@@ -59,13 +59,8 @@ sub reboot_and_wait_up {
                 #Xen console may output additional messages about vm on sol whose output is disrupted.
                 #So in order to get login prompt back on screen, 'ret' key should be fired up. But the
                 #os name banner might not be available anymore, only 'linux-login' needle can be matched.
-                if (is_xen_host) {
-                    send_key 'ret' for (0 .. 2);
-                    assert_screen [qw(text-login linux-login)], 600;
-                }
-                else {
-                    assert_screen [qw(text-login linux-login)], 600;
-                }
+                send_key 'ret' for (0 .. 2);
+                assert_screen [qw(text-login linux-login)], 600;
                 enter_cmd "root";
                 assert_screen "password-prompt";
                 type_password;
