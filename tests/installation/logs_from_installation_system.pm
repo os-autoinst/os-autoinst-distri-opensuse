@@ -34,13 +34,16 @@ sub run {
 
     # on a CC enabled system, root ssh login is disabled by default, but we need it enabled
     if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && is_s390x) {
-        my $vg_name = "vg-system";
-        my $lv_name = "lv-root";
-        my $crypt_name = "encrypted_disk";
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
-        my $root_hd = get_var('ENCRYPT') ? "/dev/$vg_name/$lv_name " : script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        my $is_encrypted = check_var('ENCRYPT', '1') || check_var('FULL_LVM_ENCRYPT', '1');
+        my $root_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        if ($is_encrypted) {
+            $root_hd = "/dev/mapper/" . script_output("dmsetup ls | grep root | awk '{print \$1}'");
+        }
+
         assert_script_run("mount $root_hd /mnt");
         assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
+        assert_script_run("sed -i -e 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config.d/51-permit-root-login.conf") if is_sle('>=15-SP6');
         assert_script_run('umount /mnt');
     }
 
