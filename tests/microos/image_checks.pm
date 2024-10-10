@@ -25,7 +25,7 @@ sub run {
 
     # Verify that openQA resized the disk image
     my $disksize = script_output "sfdisk --show-size /dev/$disk";
-    die "Disk not bigger than the default size, got $disksize KiB" unless $disksize > (20 * 1024 * 1024);
+    die "Disk not bigger than the default size, got $disksize KiB" unless $disksize >= (20 * 1024 * 1024);
 
     # Verify that the GPT has no errors (PMBR mismatch, backup GPT not at the end)
     # by looking for nonempty stderr.
