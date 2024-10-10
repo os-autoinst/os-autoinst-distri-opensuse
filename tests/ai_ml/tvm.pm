@@ -26,15 +26,19 @@ sub run {
     zypper_call "in tvmc python$pythonsuffix-pytest python$pythonsuffix-tornado gcc-c++";
 
     select_console 'user-console';
-    record_info('AutoTVM');
-    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/72c9a51687c5882c5bd13d718a69892d45b5cc4b/tutorials/autotvm/tune_simple_template.py');
-    assert_script_run("$python_interpreter tune_simple_template.py");
+
+    if (!is_tumbleweed) {
+        # tutorials/autotvm/tune_simple_template.py not compatible with numpy 2.1
+        record_info('AutoTVM');
+        assert_script_run('curl -L -O https://github.com/apache/tvm/raw/72c9a51687c5882c5bd13d718a69892d45b5cc4b/tutorials/autotvm/tune_simple_template.py');
+        assert_script_run("$python_interpreter tune_simple_template.py");
+    }
 
     # https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html
     # TVMC supports models created with Keras, ONNX, TensorFlow, TFLite and Torch. Use onnx model here.
     record_info('tvmc - no tune');
     assert_script_run('curl -L -O https://github.com/onnx/models/raw/69d69010b7ed6ba9438c392943d2715026792d40/archive/vision/classification/resnet/model/resnet50-v2-7.onnx');
-    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/b7b69a2d1dbfe7a9cd04ddab2e60f33654419d58/tutorials/get_started/tvmc_command_line_driver.py');
+    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/bd11e19490cb5f1a2081ac1787803428545e22a5/gallery/tutorial/tvmc_command_line_driver.py');
 
     assert_script_run('tvmc compile --target "llvm" --input-shapes "data:[1,3,224,224]" --output compiled_module.tar resnet50-v2-7.onnx', timeout => 600);
     assert_script_run("$python_interpreter tvmc_command_line_driver.py");
