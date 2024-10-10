@@ -1,6 +1,0 @@
----
-description: 'Network bonding test suite for ALP'
-name: 'alp_bonding@x86_64'
-schedule:
-    - microos/disk_boot
-    - microos/network_bonding

@@ -13,61 +13,36 @@ use testapi;
 use power_action_utils "power_action";
 use utils qw(validate_script_output_retry);
 use serial_terminal qw(select_serial_terminal);
+use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used check_connectivity_to_host_with_retry delete_all_existing_connections create_bond add_interfaces_to_bond set_nics_link_speed_duplex);
+use lockapi;
+use utils;
+use console::ovs_utils;
+use version_utils;
 
-sub check_connectivity {
+my $target_ip = "10.0.2.101";
+
+sub configure_bond_interface_network {
     my ($bond_name) = @_;
-    my $ping_host = "conncheck.opensuse.org";
-    my $ping_command = "ping -c1 -I $bond_name $ping_host";
 
-    validate_script_output_retry(
-        $ping_command,
-        sub { m/1 packets transmitted, 1 received, 0% packet loss,/ }
-    );
-}
-
-sub get_nics {
-    my ($bond_name) = @_;
-    my @devices;
-
-    foreach my $line (split('\n', script_output('nmcli -g DEVICE conn show'))) {
-        next if $line =~ /^\s*$/;
-
-        # Skip the loopback device and the bond interface
-        next if $line eq 'lo';
-        next if $line eq $bond_name;
-
-        push @devices, $line;
+    if (is_nm_used()) {
+        # NetworkManager configuration using DHCP
+        assert_script_run "nmcli con modify $bond_name ipv4.method auto";
+        assert_script_run "nmcli con up $bond_name";
     }
 
-    return @devices;
-}
+    if (is_wicked_used()) {
+        # Wicked configuration: setting to DHCP
+        assert_script_run "touch /etc/sysconfig/network/ifcfg-$bond_name";
+        assert_script_run "echo 'BOOTPROTO=dhcp' >> /etc/sysconfig/network/ifcfg-$bond_name";
+        assert_script_run "echo 'STARTMODE=auto' >> /etc/sysconfig/network/ifcfg-$bond_name";
 
-sub delete_existing_connections {
-    my $output = script_output('nmcli -g DEVICE,UUID conn show');
-    my %seen_uuids;
+        my $route_config_file = "/etc/sysconfig/network/ifroute-$bond_name";
 
-    foreach my $line (split "\n", $output) {
-        next if $line =~ /^\s*$/;
+        # Remove any existing route configuration since DHCP handles routes
+        script_run "rm -f $route_config_file";
 
-        my ($device, $uuid) = split /:/, $line;
-        next if defined $device && $device eq 'lo';
-        next if exists $seen_uuids{$uuid};
-
-        $seen_uuids{$uuid} = 1;
-        script_run "nmcli con delete uuid '$uuid'";
-    }
-}
-
-sub create_bond {
-    my ($bond_name, $bond_mode, $miimon) = @_;
-    assert_script_run "nmcli con add type bond ifname $bond_name con-name $bond_name bond.options \"mode=$bond_mode, miimon=$miimon\"";
-    assert_script_run "nmcli connection modify $bond_name connection.autoconnect-slaves 1";
-}
-
-sub add_devices_to_bond {
-    my ($bond_name, @devices) = @_;
-    foreach my $device (@devices) {
-        assert_script_run "nmcli con add type ethernet ifname $device master $bond_name";
+        # Restart Wicked to apply the DHCP configuration
+        systemctl 'restart wicked';
     }
 }
 
@@ -83,9 +58,10 @@ sub test_failover {
     # Validate bond mode and NIC statuses (the downed NIC should be "down")
     validate_bond_mode_and_slaves($bond_name, $description, \@nics_status);
 
-    check_connectivity $bond_name;
+    check_connectivity_to_host_with_retry($bond_name, $target_ip);
 
     assert_script_run "ip link set dev $device up";
+    systemctl 'restart wicked' if is_wicked_used();
 }
 
 sub validate_bond_mode_and_slaves {
@@ -99,7 +75,8 @@ sub validate_bond_mode_and_slaves {
 
         validate_script_output_retry(
             "grep -A 1 'Slave Interface: $device' /proc/net/bonding/$bond_name",
-            sub { m/MII Status: $expected_status/ }
+            sub { m/MII Status: $expected_status/ },
+            type_command => 1
         );
     }
 }
@@ -110,17 +87,30 @@ sub test_bonding_mode {
 
     select_serial_terminal;
 
-    delete_existing_connections;
+    delete_all_existing_connections;
 
-    create_bond($bond_name, $bond_mode, $miimon);
-    add_devices_to_bond($bond_name, @nics);
+    create_bond($bond_name, {
+            mode => $bond_mode,
+            miimon => $miimon,
+            autoconnect_slaves => 1
+    });
 
-    assert_script_run "nmcli con up $bond_name";
+    add_interfaces_to_bond($bond_name, @nics);
+    configure_bond_interface_network($bond_name);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot;
     select_serial_terminal;
-    check_connectivity $bond_name;
+
+    # Because settings don't survive reboot, to fix bug on Network Manager
+    set_nics_link_speed_duplex({
+            nics => \@nics,
+            speed => 1000,    # assuming a speed of 1000 Mbps
+            duplex => 'full',    # assuming full duplex
+            autoneg => 'off'    # assuming autoneg is off
+    });
+
+    check_connectivity_to_host_with_retry($bond_name, $target_ip);
 
     # Validate that all NICs are "up"
     validate_bond_mode_and_slaves($bond_name, $description, [map { [$_, 1] } @nics]);
@@ -128,28 +118,25 @@ sub test_bonding_mode {
     # Testing failover for each NIC
     test_failover($bond_mode, $bond_name, $_, $description, \@nics) for @nics;
 
-    delete_existing_connections;
+    delete_all_existing_connections;
 }
 
 sub run {
     my ($self) = @_;
+    select_serial_terminal;
 
     my $bond_name = "bond0";
     my $miimon = 200;
-    my @nics = get_nics($bond_name);
-
-    record_info(scalar(@nics) . " NICs Detected", join(', ', @nics));
+    my @nics = get_nics([$bond_name]);
 
     my @bond_modes = (
         ['balance-rr', 'load balancing (round-robin)'],
         ['active-backup', 'fault-tolerance (active-backup)'],
         ['balance-xor', 'load balancing (xor)'],
         ['broadcast', 'fault-tolerance (broadcast)'],
-
-        # For mode=802.3ad|balance-tlb|balance-alb the switch must have support for mode and it has to be enabled on the switch
-        # ['802.3ad', '802.3ad'],
-        # ['balance-tlb',   'balance-tlb'],
-        # ['balance-alb',   'balance-alb']
+        ['802.3ad', 'IEEE 802.3ad Dynamic link aggregation'],
+        ['balance-tlb', 'transmit load balancing'],
+        ['balance-alb', 'adaptive load balancing']
     );
 
     foreach my $mode_info (@bond_modes) {
@@ -157,6 +144,8 @@ sub run {
         record_info("Testing Bonding Mode: $bond_mode", $description);
         test_bonding_mode($self, \@nics, $miimon, $bond_name, $bond_mode, $description);
     }
+
+    barrier_wait "BONDING_TESTS_DONE";
 }
 
 1;
