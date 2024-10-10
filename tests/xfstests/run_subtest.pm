@@ -23,6 +23,7 @@ use mmapi;
 use version_utils 'is_public_cloud';
 use LTP::utils;
 use LTP::WhiteList;
+use bugzilla;
 use xfstests_utils;
 use lockapi;
 
