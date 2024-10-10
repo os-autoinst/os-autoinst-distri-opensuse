@@ -21,7 +21,10 @@ use Utils::Architectures;
 our @EXPORT = qw(
   boot_has_no_video
   boot_encrypt_no_video
+  cc_fips_pwd
 );
+
+our $cc_fips_pwd = "not-so-s3cr3t-LONG_PWD_FOR_FIPS";
 
 sub boot_has_no_video {
     my $is_encrypted = check_var('FULL_LVM_ENCRYPT', '1') || check_var('ENCRYPT', '1');
