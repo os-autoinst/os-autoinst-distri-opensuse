@@ -12,9 +12,15 @@ use strict;
 use warnings;
 use base "installbasetest";
 use utils;
+use security_boot_utils;
 
 sub run {
-    unlock_if_encrypted(check_typed_password => 1) if need_unlock_after_bootloader;
+    my $custom_password = check_var('SYSTEM_ROLE', 'Common_Criteria') ? $security_boot_utils::cc_fips_pwd : undef;
+
+    unlock_if_encrypted(
+        check_typed_password => 1,
+        custom_password => $custom_password
+    ) if need_unlock_after_bootloader;
 }
 
 1;

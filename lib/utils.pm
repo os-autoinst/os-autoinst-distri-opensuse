@@ -201,13 +201,14 @@ C<$testapi::password> will be used as password.
 =cut
 
 sub unlock_zvm_disk {
-    my ($console) = @_;
+    my ($console, $custom_password) = @_;
+    my $password = $custom_password // $testapi::password;
     eval { $console->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
     else {
-        $console->sequence_3270("String(\"$testapi::password\")", "ENTER");
+        $console->sequence_3270("String(\"$password\")", "ENTER");
         diag 'Passphrase entered';
     }
 
@@ -338,11 +339,11 @@ C<$check_typed_password> will default to C<0>.
 sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
+    my $password = $args{custom_password} // $testapi::password;
 
     return unless get_var("ENCRYPT");
 
     if (get_var('S390_ZKVM')) {
-        my $password = $testapi::password;
         select_console('svirt');
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
@@ -359,19 +360,19 @@ sub unlock_if_encrypted {
         # Enter password before GRUB if boot is encrypted
         # Boot partition is always encrypted, if not using expert partitioner with
         # separate unencrypted boot
-        unlock_zvm_disk($console) unless get_var('UNENCRYPTED_BOOT');
+        unlock_zvm_disk($console, $password) unless get_var('UNENCRYPTED_BOOT');
         handle_grub_zvm($console);
-        unlock_zvm_disk($console);
+        unlock_zvm_disk($console, $password);
     }
     else {
         assert_screen("encrypted-disk-password-prompt", 200);
-        type_password;    # enter PW at boot
+        type_password $password;
         save_screenshot;
         if ($args{check_typed_password}) {
             unless (check_screen "encrypted_disk-typed_password", 30) {
                 record_info("Invalid password", "Not all password characters were typed successfully, retyping");
                 send_key "backspace" for (0 .. 9);
-                type_password;
+                type_password $password;
                 assert_screen "encrypted_disk-typed_password";
             }
         }
