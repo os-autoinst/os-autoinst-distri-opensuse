@@ -15,57 +15,7 @@ use strict;
 use warnings;
 use File::Basename;
 use data_integrity_utils 'verify_checksum';
-
-sub hyperv_cmd {
-    my ($cmd, $args) = @_;
-    $args->{ignore_return_code} ||= 0;
-    my $ret = console('svirt')->run_cmd($cmd);
-    diag "Command on Hyper-V returned: $ret";
-    die 'Command on Hyper-V failed' unless ($args->{ignore_return_code} || !$ret);
-    return $ret;
-}
-
-sub hyperv_cmd_with_retry {
-    my ($cmd, $args) = @_;
-    die 'Command not provided' unless $cmd;
-
-    my $attempts = $args->{attempts} // 7;
-    my $sleep = $args->{sleep} // 300;
-    # Common messages
-    my @msgs = $args->{msgs} // (
-        'Failed to create the virtual hard disk',
-        'The operation cannot be performed while the object is in use',
-        'The process cannot access the file because it is being used by another process',
-        'Access is denied.'
-    );
-    for my $retry (1 .. $attempts) {
-        my ($ret, $stdout, $stderr) = console('svirt')->run_cmd($cmd, wantarray => 1);
-        # return when powershell returns 0 (SUCCESS)
-        return if $ret == 0;
-
-        diag "Attempt $retry/$attempts: Command failed";
-        my $msg_found = 0;
-        foreach my $msg (@msgs) {
-            diag "Looking for message: '$msg'";
-            # Narrow the error message for an easy match
-            # Remove Windows-style new lines (<CR><LF>)
-            $stdout =~ s/\r\n//g;
-            $stderr =~ s/\r\n//g;
-            # Error message is not the expected error message in this cycle,
-            # try the next one
-            if ($stdout =~ /$msg/ || $stderr =~ /$msg/) {
-                $msg_found = 1;
-                # Error message is the expected one, sleep
-                diag "Sleeping for $sleep seconds...";
-                sleep $sleep;
-                last;
-            }
-        }
-        # Error we don't know if we should attempt to recover from
-        die 'Command failed with unhandled error' unless $msg_found;
-    }
-    die 'Run out of attempts';
-}
+use virt_autotest::hyperv_utils;
 
 sub run {
     my $svirt = select_console('svirt');
@@ -192,7 +142,15 @@ sub run {
                 hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB"));
             }
         }
-        hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
+        if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
+            # For Hyper-V 2016 and UEFI, create VM without attaching a network switch
+            hyperv_cmd("powershell -Command New-VM -VMName $name -Generation $vm_generation -MemoryStartupBytes ${ramsize}MB");
+            record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
+        }
+        else {
+            # For other Hyper-V versions, create VM with network switch attached
+            hyperv_cmd("powershell -Command New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
+        }
         # Create 'Standard' checkpoints with application's memory, on Hyper-V 2016
         # the default is 'Production' (i.e. snapshot on guest level).
         hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016_or_2019';
@@ -226,7 +184,8 @@ sub run {
     if (get_var('UEFI')) {
         if ($winserver eq '2012r2' || get_var('DISABLE_SECUREBOOT')) {
             hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot Off");
-        } else {
+        }
+        else {
             hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'");
         }
         if (check_var('BOOTFROM', 'c')) {
