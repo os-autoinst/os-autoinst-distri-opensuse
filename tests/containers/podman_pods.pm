@@ -85,7 +85,7 @@ sub run {
         # Kube generate
         record_info('Test', 'Generate the yaml from a pod');
         assert_script_run('podman pod create testing-pod');
-        my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
+        my $image = "registry.suse.com/bci/bci-busybox:latest";
         script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
         assert_script_run("podman container create --pod testing-pod --name container $image sh -c \"sleep 3600\"");
         assert_script_run("podman kube generate testing-pod | tee pod.yaml");

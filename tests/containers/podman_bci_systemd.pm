@@ -10,7 +10,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_opensuse);
 use utils;
 
 sub run {
@@ -22,7 +21,6 @@ sub run {
     record_info("Podman version", script_output("podman version"));
 
     record_info('Test', 'Launch a container with systemd');
-    my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-init" : "registry.suse.com/bci/bci-init:latest";
     assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx registry.suse.com/bci/bci-init:latest");
 
     record_info('Test', 'Install nginx');
