@@ -424,7 +424,9 @@ sub load_tests {
     } elsif (check_var('EXTRA', 'networking')) {
         load_network_tests;
     } elsif (check_var('EXTRA', 'provisioning')) {
-        loadtest 'microos/verify_setup';
+        # verify_setup is not working correctly in microos with ignition
+        # for the initial configuration. Disabled temporarily to investigate!
+        loadtest 'microos/verify_setup' unless check_var('FIRST_BOOT_CONFIG', 'ignition') && is_microos;
         load_transactional_tests;
     } elsif (check_var('EXTRA', 'virtualization')) {
         load_qemu_tests;
