@@ -19,14 +19,19 @@ sub run {
     my $self = shift;
 
     my @env_vars = ();
+    push(@env_vars, "AGAMA_INSTALL=true");
     push(@env_vars, "AGAMA_DASD=" . get_var('AGAMA_DASD')) if get_var('AGAMA_DASD');
-    push(@env_vars, "AGAMA_PRODUCT=" . get_var('AGAMA_PRODUCT')) if get_var('AGAMA_PRODUCT');
+    push(@env_vars, "AGAMA_PRODUCT=\"" . get_var('AGAMA_PRODUCT') . "\"") if get_var('AGAMA_PRODUCT');
 
     my $test = get_required_var('AGAMA_TEST');
     my $reboot_page = $testapi::distri->get_reboot();
 
     script_run("dmesg --console-off");
-    assert_script_run(join(' ', @env_vars) . " /usr/share/agama/system-tests/" . $test . ".cjs", timeout => 1200);
+    assert_script_run(
+        join(' ', @env_vars) .
+          " node --enable-source-maps /usr/share/agama/system-tests/" . $test . ".js" .
+          " -p nots3cr3t",
+        timeout => 1200);
     script_run("dmesg --console-on");
 
     Yam::Agama::agama_base::upload_agama_logs();
