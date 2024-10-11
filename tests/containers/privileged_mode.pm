@@ -14,7 +14,7 @@ use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
 use Utils::Backends qw(is_xen_pv is_hyperv);
-use version_utils qw(is_public_cloud is_sle is_vmware is_opensuse);
+use version_utils qw(is_public_cloud is_sle is_vmware);
 use utils qw(script_retry);
 
 sub run {
@@ -26,7 +26,7 @@ sub run {
     $self->{runtime} = $engine;
     reset_container_network_if_needed($runtime);
 
-    my $image = is_opensuse ? "registry.opensuse.org/opensuse/tumbleweed:latest" : "registry.suse.com/bci/bci-base:latest";
+    my $image = "registry.suse.com/bci/bci-base:latest";
     script_retry("$runtime pull $image", timeout => 300, delay => 120, retry => 3);
 
     record_info('Test', 'Launch a container with privileged mode');
@@ -52,7 +52,7 @@ sub run {
     # poo#155422 --> there's no podman in SLE12-SP3 and so netavark fails
     unless (is_sle('=12-sp3')) {
         assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
-        assert_script_run("$runtime exec outer-container zypper in -y podman");
+        assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
         # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
         assert_script_run("$runtime exec -it outer-container podman run -it $image ls");
     }
