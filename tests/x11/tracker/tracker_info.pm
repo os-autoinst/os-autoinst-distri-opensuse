@@ -27,7 +27,16 @@ sub run {
         script_run "tracker-info newpl.pl";
     }
     else {
-        my $trackercmd = (is_sle('<=15-sp3') or is_leap('<=15.3')) ? 'tracker' : 'tracker3';
+        my $trackercmd;
+        if (is_sle('<=15-sp3') || is_leap('<=15.3')) {
+            $trackercmd = 'tracker';
+        }
+        elsif (is_sle('>15-sp3') || is_leap('>15.3')) {
+            $trackercmd = 'tracker3';
+        }
+        else {
+            $trackercmd = 'localsearch';
+        }
         script_run "$trackercmd info newpl.pl";
     }
     assert_screen 'tracker-info-newpl';

@@ -28,7 +28,16 @@ sub run {
         script_run "tracker-search newfile";
     }
     else {
-        my $trackercmd = (is_sle('<=15-sp3') or is_leap('<=15.3')) ? 'tracker' : 'tracker3';
+        my $trackercmd;
+        if (is_sle('<=15-sp3') || is_leap('<=15.3')) {
+            $trackercmd = 'tracker';
+        }
+        elsif (is_sle('>15-sp3') || is_leap('>15.3')) {
+            $trackercmd = 'tracker3';
+        }
+        else {
+            $trackercmd = 'localsearch';
+        }
         script_run "$trackercmd search emptyfile";
         assert_screen([qw(tracker-cmdsearch-emptyfile tracker-cmdsearch-noemptyfile)]);
         if (match_has_tag 'tracker-cmdsearch-noemptyfile') {
