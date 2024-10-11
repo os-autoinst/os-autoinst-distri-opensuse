@@ -208,7 +208,7 @@ sub run {
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
-        if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+        if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE' && !check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn')) {
             qesap_az_setup_native_fencing_permissions(
                 vm_name => $instance->instance_id,
                 resource_group => qesap_az_get_resource_group());
