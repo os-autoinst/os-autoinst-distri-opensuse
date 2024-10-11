@@ -15,15 +15,13 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        number_kernel_line => $args->{number_kernel_line} // 4,
-        max_interval => $args->{number_kernel_line},
+        max_interval => undef,
         key_boot => 'ctrl-x'
     }, $class;
 }
 
 sub move_cursor_to_end_of_kernel_line {
-    my ($self) = @_;
-    for (1 .. $self->{number_kernel_line}) { send_key('down') }
+    send_key_until_needlematch "linux-line-selected", "down", 26;
     wait_screen_change { send_key('end') };
     wait_still_screen(1);
 }

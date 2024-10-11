@@ -13,13 +13,11 @@ use parent Distribution::Opensuse::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
 
-use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuLeapPage;
 
 sub get_grub_menu_installed_system {
-    return Yam::Agama::Pom::GrubMenuLeapPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
-    });
+    my $self = shift;
+    return Yam::Agama::Pom::GrubMenuLeapPage->new({grub_menu_base => $self->get_grub_menu_base()});
 }
 
 1;
