@@ -1211,6 +1211,16 @@ sub ipaddr2_create_cluster {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     ipaddr2_ssh_internal(id => 1,
+        cmd => 'rpm -qf $(sudo which crm)',
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => 1,
+        cmd => 'sudo crm --version',
+        bastion_ip => $args{bastion_ip});
+    ipaddr2_ssh_internal(id => 1,
+        cmd => 'zypper se -s -i crmsh',
+        bastion_ip => $args{bastion_ip});
+
+    ipaddr2_ssh_internal(id => 1,
         cmd => 'sudo crm cluster init -y --name DONALDUCK',
         bastion_ip => $args{bastion_ip});
 
