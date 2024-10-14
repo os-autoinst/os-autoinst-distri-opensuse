@@ -26,7 +26,8 @@ sub run {
         zypper_call 'in systemd-network';
         systemctl 'is-enabled systemd-networkd', expect_false => 1;
         systemctl 'is-active systemd-networkd', expect_false => 1;
-        assert_script_run 'networkctl status';
+        script_run 'networkctl status';
+        assert_script_run 'networkctl';
     }
 
     my $network_daemon = script_output 'readlink /etc/systemd/system/network.service | sed \'s#.*/\(.*\)\.service#\1#\'';
