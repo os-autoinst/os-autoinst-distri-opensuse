@@ -76,7 +76,24 @@ sub setup_environment {
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
 
         # workaround to prevent network interface random order
-        assert_script_run('dracut -f --add-drivers "tg3"') if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP'));
+        if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP')) {
+            my $service_file = << 'EOF';
+[Unit]
+Description=Load bnxt_en driver manually
+After=sshd.service
+[Service]
+Type=oneshot
+ExecStart=modprobe bnxt_en
+TimeoutSec=0
+RemainAfterExit=no
+TasksMax=12000
+[Install]
+WantedBy=multi-user.target
+EOF
+            assert_script_run("echo 'blacklist bnxt_en' >> /etc/modprobe.d/50-blacklist.conf");
+            assert_script_run("echo '$service_file' > /usr/lib/systemd/system/load_bnxt_en.service");
+            assert_script_run("systemctl enable load_bnxt_en.service --now");
+        }
 
         return if (get_var('PROJECT_M_ROLE', "") =~ /PROJECT_M_HANA|PROJECT_M_ABAP/);
 
