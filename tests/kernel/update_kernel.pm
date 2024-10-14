@@ -19,7 +19,7 @@ use qam;
 use kernel;
 use klp;
 use power_action_utils 'power_action';
-use repo_tools 'add_qa_head_repo';
+use repo_tools qw(add_qa_head_repo);
 use Utils::Backends;
 use LTP::utils;
 use transactional;
@@ -97,7 +97,7 @@ sub update_kernel {
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar $val kernel-update-$i");
+        zypper_call("ar -G $val kernel-update-$i");
     }
     zypper_call("ref");
 
@@ -258,7 +258,7 @@ sub prepare_kgraft {
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
         my $cur_repo = "kgraft-test-repo-$i";
-        zypper_call("ar $val $cur_repo");
+        zypper_call("ar -G $val $cur_repo");
         my $pkgs = zypper_search("-s -t package -r $cur_repo");
         #disable kgraf-test-repo for while
         zypper_call("mr -d $cur_repo");
@@ -290,9 +290,11 @@ sub prepare_kgraft {
     $src_name .= '-' . $$incident_klp_pkg{kflavor}
       unless $$incident_klp_pkg{kflavor} eq 'default';
 
+    zypper_call("mr -e kgraft-test-repo-0") if get_var('FLAVOR') =~ /-Updates-Staging/;
     my $kernel_version = find_version($kernel_name, $$incident_klp_pkg{kver});
     my $src_version = find_version($src_name, $$incident_klp_pkg{kver});
     install_lock_kernel($kernel_version, $src_version);
+    zypper_call("mr -d kgraft-test-repo-0") if get_var('FLAVOR') =~ /-Updates-Staging/;
 
     install_klp_product;
 
@@ -378,13 +380,21 @@ sub update_kgraft {
         # warm up system
         sleep 15;
 
-        zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        if (is_sle) {
+            zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        } elsif (is_sle_micro) {
+            trup_call('pkg in kernel-livepatch-$(uname -r | sed s/\\\./_/g)');
+        } else {
+            die "The current distribution does not support kernel live patching.";
+        }
 
         #kill HEAVY-LOAD scripts
         script_run("kill -s INT -- " . join(' ', map { "-$_" } @$pids));
 
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
+
+        reboot_on_changes if is_sle_micro;
 
         my $installed_klp_pkg =
           find_installed_klp_pkg($$incident_klp_pkg{kver},
@@ -455,7 +465,7 @@ sub run {
         return;
     }
 
-    my $repo = get_var('KOTD_REPO');
+    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
     my $incident_id = undef;
 
     unless ($repo) {
@@ -470,13 +480,15 @@ sub run {
         if (!check_var('REMOVE_KGRAFT', '1')) {
             # dependencies for heavy load script
             add_qa_head_repo;
-            zypper_call("in ltp-stable");
+            install_package("ltp-stable", trup_reboot => 1);
 
             # update kgraft patch under heavy load
             update_kgraft($incident_klp_pkg, $repo, $incident_id);
 
+            enter_trup_shell if is_transactional;
             zypper_call("rr qa-head");
             zypper_call("rm ltp-stable");
+            exit_trup_shell if is_transactional;
 
             verify_klp_pkg_patch_is_active($incident_klp_pkg);
         }

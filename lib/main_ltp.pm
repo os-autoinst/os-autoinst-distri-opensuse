@@ -62,7 +62,11 @@ sub load_kernel_tests {
             loadtest_kernel 'update_kernel';
         }
         if (is_transactional && (get_var('FLAVOR', '') =~ /-Staging|-Updates/)) {
-            loadtest 'transactional/install_updates';
+            if (get_var('KGRAFT')) {
+                loadtest_kernel 'update_kernel';
+            } else {
+                loadtest 'transactional/install_updates';
+            }
         }
         loadtest_kernel 'install_ltp';
 
