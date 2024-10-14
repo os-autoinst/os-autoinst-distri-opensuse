@@ -87,7 +87,7 @@ sub run {
     assert_script_run('docker ps');
 
     # Install AWS cli
-    my $aws_version = '2.15.2';
+    my $aws_version = '2.17.63';
     # Download and import the AWS public PGP key
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
@@ -106,10 +106,6 @@ sub run {
     # Install Azure cli
     install_in_venv('az', requirements => 1);
     record_info('Azure', script_output('az -v'));
-
-    # Install OpenStack cli
-    install_in_venv('openstack', requirements => 1);
-    record_info('OpenStack', script_output('openstack --version'));
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
