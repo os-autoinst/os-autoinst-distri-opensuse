@@ -49,14 +49,17 @@ Checks if deployer VM is running and listening on ssh port. Returns found state.
 Optionally function can wait till VM reaches requested state until timeout.
 Function dies only with internal errors, VM status should be evaluated and handled by caller.
 
-B<deployer_ip_addr>: Deployer VM IP address
+=over
 
-B<wait_started>: Probe SSH port in loop untill it is available or B<wait_timeoout> is reached.
+=item * B<deployer_ip_addr>: Deployer VM IP address
 
-B<wait_timeout>: Time in sec to stop probing SSH port.
+=item * B<wait_started>: Probe SSH port in loop untill it is available or B<wait_timeoout> is reached.
 
-B<ssh_port>: Specify custom SSH port number. Default: 22
+=item * B<wait_timeout>: Time in sec to stop probing SSH port.
 
+=item * B<ssh_port>: Specify custom SSH port number. Default: 22
+
+=back
 =cut
 
 sub check_ssh_availability {
@@ -90,10 +93,13 @@ sub check_ssh_availability {
 
 Returns first public IP of deployer VM that is reachable and can be used for SDAF deployment connection.
 
-B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
+=over
 
-B<deployer_vm_name>: Deployer VM resource name
+=item * B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
 
+=item * B<deployer_vm_name>: Deployer VM resource name
+
+=back
 =cut
 
 sub get_deployer_ip {
@@ -121,10 +127,13 @@ to deploy the infrastructure under this ID and contains whole SDAF setup.
 Function returns VM name or undef if no VM was found.
 Function dies if there is more than one VM found, because two VM's must not have same ID.
 
-B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
+=over
 
-B<deployment_id>: Deployment ID
+=item * B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
 
+=item * B<deployment_id>: Deployment ID
+
+=back
 =cut
 
 sub get_deployer_vm_name {
@@ -181,8 +190,11 @@ Job: 123456 - deployment module - created deployer VM tagged with "deployment_id
 Job: 123457 (child of 123456) - some test module
 Deployment ID returned from both jobs: 123456 - because it matches with existing VM tagged with "deployment_id=123456"
 
-B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
+=over
 
+=item * B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
+
+=back
 =cut
 
 sub find_deployment_id {
@@ -209,14 +221,17 @@ sub find_deployment_id {
 
 Returns ARRAYREF of all resources belonging to B<deployer_resource_group> tagged with B<deployment_id>.
 
-B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
+=over
 
-B<deployment_id>: Deployment ID
+=item * B<deployer_resource_group>: Deployer resource group. Default: get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP')
 
-B<return_value>: Control the content of the returned array. It can either return array of resource IDs or resource names.
+=item * B<deployment_id>: Deployment ID
+
+=item * B<return_value>: Control the content of the returned array. It can either return array of resource IDs or resource names.
     Values allowed: id, name
     Default: name
 
+=back
 =cut
 
 sub find_deployer_resources {
@@ -246,8 +261,11 @@ sub find_deployer_resources {
 Collects resource id of all resources belonging to the deployer VM and deletes them.
 Cleanup deployer VM resources only, B<deployer resource group itself will stay intact>.
 
-B<timeout>: Timeout for destroy command. Default: 800
+=over
 
+=item * B<timeout>: Timeout for destroy command. Default: 800
+
+=back
 =cut
 
 sub destroy_deployer_vm {

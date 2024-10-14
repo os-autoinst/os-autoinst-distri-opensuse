@@ -42,22 +42,25 @@ L<Sample configurations|https://github.com/Azure/SAP-automation-samples/tree/mai
 
 Basic terminology:
 
-B<SDAF>: SAP deployment automation framework
+=over
 
-B<Control plane>: Common term for Resource groups B<Deployer> and B<Library>.
+=item * B<SDAF>: SAP deployment automation framework
+
+=item * B<Control plane>: Common term for Resource groups B<Deployer> and B<Library>.
 Generally it is part of a permanent infrastructure in the cloud.
 
-B<Deployer>: Resource group providing services such as keyvault, Deployer VM and associated resources.
+=item * B<Deployer>: Resource group providing services such as keyvault, Deployer VM and associated resources.
 
-B<Deployer VM>: Central point that contains SDAF installation and where the deployment is executed from.
+=item * B<Deployer VM>: Central point that contains SDAF installation and where the deployment is executed from.
 Since SUT VMs have no public IPs, this is also serving as a jump-host to reach them via SSH.
 
-B<Library>: Resource group providing storage for terraform state files, SAP media and private DNS zone.
+=item * B<Library>: Resource group providing storage for terraform state files, SAP media and private DNS zone.
 
-B<Workload zone>: Resource group that provides services similar to support server.
+=item * B<Workload zone>: Resource group that provides services similar to support server.
 
-B<SAP Systems>: Resource group containing SAP SUTs and related resources.
+=item * B<SAP Systems>: Resource group containing SAP SUTs and related resources.
 
+=back
 =cut
 
 our @EXPORT = qw(
@@ -68,7 +71,6 @@ our @EXPORT = qw(
   prepare_sdaf_project
   set_os_variable
   get_os_variable
-  prepare_tfvars_file
   sdaf_execute_deployment
   load_os_env_variables
   sdaf_cleanup
@@ -81,10 +83,6 @@ our @EXPORT = qw(
 
     log_command_output(command=>$command, log_file=>$log_file);
 
-B<command>: Command which output should be logged into file.
-
-B<log_file>: Full log file path and filename to pipe command output into.
-
 Using C<'tee'> to redirect command output into log does not return code for executed command, but execution of C<'tee'> itself.
 This function transforms given command so the RC reflects exit code of the command itself instead of C<'tee'>.
 Function returns only string with transformed command, nothing is being executed.
@@ -95,7 +93,13 @@ Command structure: "(command_to_execute 2>$1 | tee /log/file.log; exit ${PIPESTA
     (...) - puts everything into subshell to prevent 'exit' logging out of current shell
     tee - writes output also into the log file
 
+=over
 
+=item * B<command>: Command which output should be logged into file.
+
+=item * B<log_file>: Full log file path and filename to pipe command output into.
+
+=back
 =cut
 
 sub log_command_output {
@@ -117,11 +121,15 @@ To avoid exposure of credentials in serial console, there is a special temporary
 
 SPN credentials are defined by secret OpenQA parameters:
 
-B<_SECRET_AZURE_SDAF_APP_ID>
+=over
 
-B<_SECRET_AZURE_SDAF_APP_PASSWORD>
+=item * B<_SECRET_AZURE_SDAF_APP_ID>
 
-B<_SECRET_AZURE_SDAF_TENANT_ID>
+=item * B<_SECRET_AZURE_SDAF_APP_PASSWORD>
+
+=item * B<_SECRET_AZURE_SDAF_TENANT_ID>
+
+=back
 
 SDAF needs SPN credentials with special permissions. Check link below for details.
 L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials>
@@ -156,12 +164,15 @@ sub az_login {
 
     create_sdaf_os_var_file($entries);
 
-B<$entries>: ARRAYREF of entries to be appended to variable source file
-
 Creates a simple file with bash env variables and uploads it to the target host without revealing content in serial console.
 File is sourced afterwards.
 For detailed variable description check : L<https://learn.microsoft.com/en-us/azure/sap/automation/naming>
 
+=over
+
+=item * B<$entries>: ARRAYREF of entries to be appended to variable source file
+
+=back
 =cut
 
 sub create_sdaf_os_var_file {
@@ -176,15 +187,18 @@ sub create_sdaf_os_var_file {
 
     set_os_variable($variable_name, $variable_value);
 
-B<$variable_name>: Variable name
-
-B<$variable_value>: Variable value. Empty value is accepted as well.
-
 Adds or replaces existing OS env variable value in env variable file (see function 'set_common_sdaf_os_env()').
 File is sourced afterwards to load the value. Croaks with incorrect usage.
 
 B<WARNING>: This is executed via 'assert_script_run' therefore output will be visible in logs
 
+=over
+
+=item * B<$variable_name>: Variable name
+
+=item * B<$variable_value>: Variable value. Empty value is accepted as well.
+
+=back
 =cut
 
 sub set_os_variable {
@@ -209,12 +223,15 @@ sub set_os_variable {
 
     get_os_variable($variable_name);
 
-B<$variable_name>: Variable name
-
 Returns value of requested OS env variable name.
 Variable is acquired using C<'echo'> command and is visible in serial terminal output.
 Keep in mind, this variable is only active until logout.
 
+=over
+
+=item * B<$variable_name>: Variable name
+
+=back
 =cut
 
 sub get_os_variable {
@@ -237,27 +254,30 @@ sub get_os_variable {
         [, sdaf_key_vault=>$sdaf_key_vault]
     );
 
-B<subscription_id>: Azure subscription ID
-
-B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
-
-B<deployer_vnet_code>: Deployer virtual network code. Default: 'SDAF_DEPLOYER_VNET_CODE'
-
-B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' - converted to SDAF format
-
-B<sap_sid>: SAP system ID. Default: 'SAP_SID'
-
-B<sdaf_tfstate_storage_account>: Storage account residing in library resource group.
-Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
-
-B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLYOER_KEY_VAULT'
-
 Creates a file with common OS env variables required to run SDAF. File is sourced afterwards to make the values active.
 Keep in mind that values are lost after user logout (for example after disconnecting console redirection).
 You can load them back using I<load_os_env_variables()> function
 OS env variables are core of how to execute SDAF and many are used even internally by SDAF code.
 For detailed variable description check : L<https://learn.microsoft.com/en-us/azure/sap/automation/naming>
 
+=over
+
+=item * B<subscription_id>: Azure subscription ID
+
+=item * B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
+
+=item * B<deployer_vnet_code>: Deployer virtual network code. Default: 'SDAF_DEPLOYER_VNET_CODE'
+
+=item * B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' - converted to SDAF format
+
+=item * B<sap_sid>: SAP system ID. Default: 'SAP_SID'
+
+=item * B<sdaf_tfstate_storage_account>: Storage account residing in library resource group.
+Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
+
+=item * B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLYOER_KEY_VAULT'
+
+=back
 =cut
 
 sub set_common_sdaf_os_env {
@@ -319,10 +339,13 @@ sub load_os_env_variables {
 
     sdaf_prepare_private_key(key_vault=>$key_vault);
 
-B<key_vault>: Key vault name
-
 Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
+=over
+
+=item * B<key_vault>: Key vault name
+
+=back
 =cut
 
 sub sdaf_prepare_private_key {
@@ -359,14 +382,17 @@ sub sdaf_prepare_private_key {
 
     az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);
 
-B<key_vault>: Key vault name
-
-B<ssh_key_name>: SSH key name residing on keyvault
-
-B<ssh_key_filename>: Target filename for SSH key
-
 Retrieves SSH key from specified keyvault.
 
+=over
+
+=item * B<key_vault>: Key vault name
+
+=item * B<ssh_key_name>: SSH key name residing on keyvault
+
+=item * B<ssh_key_filename>: Target filename for SSH key
+
+=back
 =cut
 
 sub az_get_ssh_key {
@@ -394,13 +420,16 @@ sub az_get_ssh_key {
 
     serial_console_diag_banner($input_text);
 
-B<input_text>: string that will be printed in uppercase surrounded by '#' to make it more visible in output
-
 Prints a banner in serial console that highlights a point in output to make it more readable.
 Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.
 Below is an example of the printed banner:
 # # $input_text #
 
+=over
+
+=item * B<input_text>: string that will be printed in uppercase surrounded by '#' to make it more visible in output
+
+=back
 =cut
 
 sub serial_console_diag_banner {
@@ -424,17 +453,20 @@ sub serial_console_diag_banner {
 
     sdaf_execute_deployment(deployment_type=>$deployment_type [, timeout=>$timeout]);
 
-B<deployment_type>: Type of the deployment: workload_zone or sap_system
-
-B<timeout>: Execution timeout. Default: 1800s.
-
-B<retries>: Number of attempts to execute deployment in case of failure. Default: 3
-
 Executes SDAF deployment according to the type specified.
 Croaks with unsupported deployment type, dies upon command failure.
 L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone>
 L<https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure>
 
+=over
+
+=item * B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+=item * B<timeout>: Execution timeout. Default: 1800s.
+
+=item * B<retries>: Number of attempts to execute deployment in case of failure. Default: 3
+
+=back
 =cut
 
 sub sdaf_execute_deployment {
@@ -478,14 +510,17 @@ sub sdaf_execute_deployment {
 
     get_sdaf_deployment_command(deployment_type=>$deployment_type, tfvars_filename=>tfvars_filename);
 
-B<deployment_type>: Type of the deployment: workload_zone or sap_system
-
-B<tfvars_filename>: Filename of tfvars file
-
 Function composes SDAF deployment script command for B<sap_system> or B<workload_zone> according to official documentation.
 Although the documentation uses env OS variable references in the command, function replaces them with actual values.
 This is done for better debugging and logging transparency. Only sensitive values are hidden by using references.
 
+=over
+
+=item * B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+=item * B<tfvars_filename>: Filename of tfvars file
+
+=back
 =cut
 
 sub get_sdaf_deployment_command {
@@ -528,14 +563,17 @@ sub get_sdaf_deployment_command {
 
 Prepares directory structure and Clones git repository for SDAF samples and automation code.
 
-B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
+=over
 
-B<deployer_vnet_code>: Deployer virtual network code. Default 'SDAF_DEPLOYER_VNET_CODE'
+=item * B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
 
-B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' converted to SDAF format
+=item * B<deployer_vnet_code>: Deployer virtual network code. Default 'SDAF_DEPLOYER_VNET_CODE'
 
-B<sap_sid>: SAP system ID. Default 'SAP_SID'
+=item * B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' converted to SDAF format
 
+=item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=back
 =cut
 
 sub prepare_sdaf_project {
@@ -599,11 +637,14 @@ sub prepare_sdaf_project {
 
     resource_group_exists($resource_group);
 
-B<$resource_group>: Resource group name to check
-
 Checks if resource group exists. Function accepts only full resource name.
 Croaks if command does not return true/false value.
 
+=over
+
+=item * B<$resource_group>: Resource group name to check
+
+=back
 =cut
 
 sub resource_group_exists {
@@ -619,13 +660,16 @@ sub resource_group_exists {
 
     sdaf_execute_remover(deployment_type=>$deployment_type);
 
-B<$deployment_type>: Type of the deployment (workload_zone, sap_system)
-
 Uses remover.sh script which is part of the SDAF project. This script can be used only on workload zone or sap system.
 Control plane and library have separate removal script, but are currently part of permanent setup and should not be destroyed.
 Returns RC to allow additional cleanup tasks required even after script failure.
 L<https://learn.microsoft.com/en-us/azure/sap/automation/bash/remover>
 
+=over
+
+=item * B<$deployment_type>: Type of the deployment (workload_zone, sap_system)
+
+=back
 =cut
 
 sub sdaf_execute_remover {
@@ -718,20 +762,23 @@ sub sdaf_cleanup {
         verbosity_level=>'3'
         );
 
-B<playbook_filename> Filename of the playbook to be executed.
-
-B<sdaf_config_root_dir> SDAF Config directory containing SUT ssh keys
-
-B<sap_sid>: SAP system ID. Default 'SAP_SID'
-
-B<timeout> Timeout for executing playbook. Passed into asset_script_run. Default: 1800s
-
-B<$verbosity_level> Change default verbosity value by either anything equal to 'true' or int between 1-6. Default: false
-
 Execute playbook specified by B<playbook_filename> and record command output in separate log file.
 Verbosity level of B<ansible-playbook> is controlled by openQA parameter B<SDAF_ANSIBLE_VERBOSITY_LEVEL>.
 If undefined, it will use standard output without adding any B<-v> flag. See function B<sdaf_execute_playbook> for details.
 
+=over
+
+=item * B<playbook_filename>: Filename of the playbook to be executed.
+
+=item * B<sdaf_config_root_dir>: SDAF Config directory containing SUT ssh keys
+
+=item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=item * B<timeout>: Timeout for executing playbook. Passed into asset_script_run. Default: 1800s
+
+=item * B<$verbosity_level>: Change default verbosity value by either anything equal to 'true' or int between 1-6. Default: false
+
+=back
 =cut
 
 sub sdaf_execute_playbook {
@@ -769,8 +816,6 @@ sub sdaf_execute_playbook {
 
     sdaf_ansible_verbosity_level($verbosity_level);
 
-B<$verbosity_level> Change default verbosity value by either anything equal to 'true' or int between 1-6. Default: false
-
 Returns string that is to be used as verbosity parameter B<-v>  for 'ansible-playbook' command.
 This is controlled by positional argument B<$verbosity_level>.
 Values can specify verbosity level using integer up to 6 (max supported by ansible)
@@ -778,6 +823,11 @@ or just set to anything equal to B<'true'> which will default to B<-vvvv>. Value
 connection problems according to ansible documentation:
 L<https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-v>
 
+=over
+
+=item * B<$verbosity_level>: Change default verbosity value by either anything equal to 'true' or int between 1-6. Default: false
+
+=back
 =cut
 
 sub sdaf_ansible_verbosity_level {
@@ -793,10 +843,13 @@ sub sdaf_ansible_verbosity_level {
 
 Display simple command outputs from all DB hosts using B<ansible> command.
 
-B<sdaf_config_root_dir> SDAF Config directory containing SUT ssh keys
+=over 2
 
-B<sap_sid>: SAP system ID. Default 'SAP_SID'
+=item * B<sdaf_config_root_dir>: SDAF Config directory containing SUT ssh keys
 
+=item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=back
 =cut
 
 sub ansible_hanasr_show_status {
