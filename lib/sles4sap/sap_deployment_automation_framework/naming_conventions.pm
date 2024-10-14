@@ -74,13 +74,16 @@ my %sdaf_region_matrix = (
 
     convert_region_to_long($sdaf_region_code);
 
-B<$sdaf_region_code>: Region name abbreviation containing 4 uppercase alphanumeric characters
-
 Performs region name conversion from 4 letter SDAF abbreviation to full region name.
 You can find definitions in the function B<get_region_code> located in sdaf shell script:
 
 L<https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403>
 
+=over
+
+=item * B<$sdaf_region_code>: Region name abbreviation containing 4 uppercase alphanumeric characters
+
+=back
 =cut
 
 sub convert_region_to_long {
@@ -95,13 +98,16 @@ sub convert_region_to_long {
 
     convert_region_to_short($region);
 
-B<$region>: Full region name. Can contain only lowercase alphanumeric characters.
-
 Performs region name conversion from full region name to 4 letter SDAF abbreviation.
 You can find definitions in the function B<get_region_code> located in sdaf shell script:
 
 L<https://github.com/Azure/sap-automation/blob/3c5d0d882f5892ae2159e262062e29c2b3fe59d9/deploy/scripts/deploy_utils.sh#L403>
 
+=over
+
+=item * B<$region>: Full region name. Can contain only lowercase alphanumeric characters.
+
+=back
 =cut
 
 sub convert_region_to_short {
@@ -134,11 +140,14 @@ sub homedir {
 
     deployment_dir([create=>1]);
 
-B<create>: Create directory if it does not exist.
-
 Returns deployment directory path with job ID appended as unique identifier.
 Optionally it can create directory if it does not exists.
 
+=over
+
+=item * B<create>: Create directory if it does not exist.
+
+=back
 =cut
 
 sub deployment_dir {
@@ -153,11 +162,14 @@ sub deployment_dir {
 
     log_dir([create=>1]);
 
-B<create>: Create directory if it does not exist.
-
 Returns logging directory path with job ID appended as unique identifier.
 Optionally creates the directory.
 
+=over
+
+=item * B<create>: Create directory if it does not exist.
+
+=back
 =cut
 
 sub log_dir {
@@ -205,18 +217,21 @@ sub env_variable_file {
 Returns path to config root directory for deployment type specified.
 Root config directory is deployment type specific and usually contains tfvar file, inventory file, SUT ssh keys, etc...
 
-B<deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
+=over
 
-B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
+=item * B<deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
 
-B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
+=item * B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
 
-B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
+=item * B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
 
-B<sap_sid>: SDAF parameter for sap system ID
+=item * B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
 
-B<job_id>: Specify job id instead of using current one. Default: current job id
+=item * B<sap_sid>: SDAF parameter for sap system ID
 
+=item * B<job_id>: Specify job id instead of using current one. Default: current job id
+
+=back
 =cut
 
 sub get_sdaf_config_path {
@@ -254,16 +269,19 @@ sub get_sdaf_config_path {
 
 Returns full tfvars filepath respective to deployment type.
 
-B<deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
+=over
 
-B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
+=item * B<deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
 
-B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
+=item * B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
 
-B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
+=item * B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
 
-B<sap_sid>: SDAF parameter for sap system ID. Required only for 'sap_system' deployment type
+=item * B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
 
+=item * B<sap_sid>: SDAF parameter for sap system ID. Required only for 'sap_system' deployment type
+
+=back
 =cut
 
 sub get_tfvars_path {
@@ -289,11 +307,14 @@ sub get_tfvars_path {
 
     generate_resource_group_name(deployment_type=>$deployment_type);
 
-B<$deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
-
 Returns name of the resource group for the deployment type specified by B<$deployment_type> .
 Resource group pattern: I<SDAF-OpenQA-[deployment type]-[deployment id]-[OpenQA job id]>
 
+=over
+
+=item * B<$deployment_type>: Type of the deployment (workload_zone, sap_system, library... etc)
+
+=back
 =cut
 
 sub generate_resource_group_name {
@@ -310,10 +331,13 @@ sub generate_resource_group_name {
 
     generate_deployer_name([job_id=>$job_id]);
 
-B<$job_id>: Specify job id to be used. Default: current job ID
-
 Generates resource name for deployer VM in format B<test_id-OpenQA_Deployer_VM>.
 
+=over 1
+
+=item * B<$job_id>: Specify job id to be used. Default: current job ID
+
+=back
 =cut
 
 sub generate_deployer_name {
@@ -326,11 +350,14 @@ sub generate_deployer_name {
 
     get_workload_vnet_code([job_id=>$job_id]);
 
-B<$job_id>: Specify job id to be used. Default: current job ID
-
 Returns VNET code used for workload zone and sap systems resources. VNET code must be unique for each landscape,
 therefore it contains test ID as an identifier.
 
+=over
+
+=item * B<$job_id>: Specify job id to be used. Default: current job ID
+
+=back
 =cut
 
 sub get_workload_vnet_code {
