@@ -29,43 +29,40 @@
 
 <pre><code>prepare_tfvars_file(deployment_type=&gt;$deployment_type);</code></pre>
 
-<dl>
-
-<dt id="deployment_type:-Type-of-the-deployment-workload_zone-sap_system-library...-etc"><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</dt>
-<dd>
-
-</dd>
-</dl>
-
 <p>Downloads tfvars template files from openQA data dir and places them into correct place within SDAF repo structure. Returns full path of the tfvars file.</p>
+
+<ul>
+
+<li><p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+</li>
+</ul>
 
 <h2 id="replace_tfvars_variables">replace_tfvars_variables</h2>
 
 <pre><code>replace_tfvars_variables();</code></pre>
 
-<dl>
-
-<dt id="deployment_type:-Type-of-the-deployment-workload_zone-sap_system-library...-etc1"><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</dt>
-<dd>
-
-</dd>
-</dl>
-
 <p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
+
+<ul>
+
+<li><p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+
+</li>
+</ul>
 
 <h2 id="set_workload_vnet_name">set_workload_vnet_name</h2>
 
 <pre><code>set_workload_vnet_name([job_id=&gt;$job_id]);</code></pre>
 
-<dl>
-
-<dt id="job_id:-Specify-job-id-to-be-used.-Default:-current-deployment-job-ID"><b>$job_id</b>: Specify job id to be used. Default: current deployment job ID</dt>
-<dd>
-
-</dd>
-</dl>
-
 <p>Returns VNET name used for workload zone and sap systems resources. VNET name must be unique for each landscape, therefore it contains test ID as an identifier.</p>
+
+<ul>
+
+<li><p><b>$job_id</b>: Specify job id to be used. Default: current deployment job ID</p>
+
+</li>
+</ul>
 
 
 </body>
