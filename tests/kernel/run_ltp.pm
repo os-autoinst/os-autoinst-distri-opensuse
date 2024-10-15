@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes a single LTP test case
-# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 # More documentation is at the bottom
 
 use 5.018;
@@ -113,7 +113,7 @@ sub parse_ltp_log {
                 $results->{fail}++;
             }
             else {
-                say $fh "Test process returned unkown none zero value ($1).";
+                say $fh "Test process returned unknown non-zero value ($1).";
                 $results->{brok}++;
             }
         }
@@ -478,7 +478,7 @@ The time in seconds which each test command has to run.
 =head2 LTP_DUMP_MEMORY_ON_TIMEOUT
 
 If set will request that the SUT's memory is dumped if the timer in this test
-module runs out. This is does not include timeouts which are built into the
+module runs out. This does not include timeouts which are built into the
 LTP test itself.
 
 =head2 LTP_ENV
