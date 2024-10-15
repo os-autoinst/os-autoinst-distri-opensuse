@@ -448,7 +448,7 @@ sub copy_media {
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
 
     # First create $target and copy media there
-    assert_script_run "mkdir $target";
+    assert_script_run "[[ -d $target ]] || mkdir $target";    # create only if dir does not exists
     _do_mount($proto, $path, $mnt_path);
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     my $rsync = 'rsync -azr --info=progress2';

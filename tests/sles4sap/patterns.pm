@@ -14,6 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_upgrade);
 use main_common 'is_updates_tests';
+use registration qw(add_suseconnect_product);
 use strict;
 use warnings;
 
@@ -69,6 +70,12 @@ sub run {
     elsif (check_var('SLE_PRODUCT', 'sles') && get_var('HANA')) {
         # We need this package for installing HANA on SLE
         zypper_call 'in libatomic1';
+    }
+    if (get_var('BONE')) {
+        # enable business one repositories
+        add_suseconnect_product('sle-module-development-tools');
+        add_suseconnect_product('sle-module-sap-business-one');
+        zypper_call('in patterns-sap-bone jq libidn11 rpm-build xmlstarlet glibc-i18ndata libicu60_2 nfs-kernel-server libcap-progs');
     }
 
     # Some specific package may be needed in HA mode
