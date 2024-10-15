@@ -71,7 +71,7 @@ sub run {
 
         my $total_size = $args->{my_instance}->ssh_script_output(cmd => 'du -hs $repodir');
         record_info("Repo size", "Total repositories size: $total_size");
-        $args->{my_instance}->ssh_assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
+        $args->{my_instance}->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
         $args->{my_instance}->upload_log('/tmp/rpm_list.txt');
 
         $args->{my_instance}->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
