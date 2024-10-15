@@ -851,7 +851,7 @@ subtest '[wait_for_sync] all pass' => sub {
     #
     # Resource              maintenance
     # ----------------------------------
-    # msl_SAPHana_HDB_HA000 false
+    # msl_SAPHanaCtl_HQ0_HA000 false
     #
     # Sites  b
     # -----------
@@ -870,7 +870,7 @@ subtest '[wait_for_sync] all pass' => sub {
     #
     # Global/global/cib-time="Thu Apr  1 00:01:02 2024"
     # Global/global/maintenance="false"
-    # Resource/msl_SAPHana_HDB_HA000/maintenance="false"
+    # Resource/msl_SAPHanaCtl_HQ0_HA000/maintenance="false"
     # Sites/site_b/b="SOK"
     # Hosts/vmhana01/clone_state="PROMOTED"
     # Hosts/vmhana01/lpa_ha0_lpt="123456789"
@@ -951,7 +951,7 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
     #
     # Resource              maintenance
     # ----------------------------------
-    # msl_SAPHana_HDB_HA000 false
+    # msl_SAPHanaCtl_HQ0_HA000 false
     #
     # Sites  b
     # -----------

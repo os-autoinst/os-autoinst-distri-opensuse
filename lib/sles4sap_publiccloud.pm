@@ -129,11 +129,12 @@ sub run_cmd {
 
 sub get_promoted_hostname {
     my ($self) = @_;
+    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? "mst" : "msl";
     my $hana_resource = join("_",
-        "msl",
-        "SAPHana",
-        "HDB",
-        get_required_var("INSTANCE_SID") . get_required_var("INSTANCE_ID"));
+        $master_resource_type,
+        "SAPHanaCtl",
+        get_required_var("INSTANCE_SID"),
+        "HDB" . get_required_var("INSTANCE_ID"));
 
     my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
     record_info("crm out", $resource_output);
@@ -285,7 +286,7 @@ sub is_hana_online {
 =head2 is_hana_resource_running
     is_hana_resource_running([quiet => 0]);
 
-    Checks if resource msl_SAPHana_* is running on given node.
+    Checks if resource msl_SAPHanaCtl_* is running on given node.
 
 =over 1
 
@@ -298,11 +299,12 @@ sub is_hana_resource_running {
     my ($self, %args) = @_;
     $args{quiet} //= 0;
     my $hostname = $self->{my_instance}->{instance_id};
+    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? "mst" : "msl";
     my $hana_resource = join("_",
-        "msl",
-        "SAPHana",
-        "HDB",
-        get_required_var("INSTANCE_SID") . get_required_var("INSTANCE_ID"));
+        $master_resource_type,
+        "SAPHanaCtl",
+        get_required_var("INSTANCE_SID"),
+        "HDB" . get_required_var("INSTANCE_ID"));
 
     my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
     if ($resource_output =~ /is running on: \Q$hostname\E/) {
@@ -437,7 +439,7 @@ sub start_hana {
 =head2 cleanup_resource
     cleanup_resource([timeout => 60]);
 
-    Cleanup resource 'msl_SAPHana_*', wait for DB start automatically.
+    Cleanup resource 'msl_SAPHanaCtl_*', wait for DB start automatically.
 
 =over 1
 
