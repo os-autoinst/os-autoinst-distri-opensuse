@@ -78,7 +78,7 @@ sub run {
     wait_serial_or_die('in main \(\) at test2\.c:16');
     enter_gdb_cmd("info locals");
     enter_gdb_cmd("up");
-    wait_serial_or_die(qr/1\s+.*\s+in main \(\) at test2\.c:16\s+16\s+char \* newstr = str_dup\(cstr, 5\);/);
+    wait_serial_or_die(qr/1\s+.*\s+in main \(\) at test2\.c:16\s+16\s+char \* newstr = str_dup\(cstr, 32\);/);
     enter_gdb_cmd("info locals");
     wait_serial_or_die("<error: Cannot access memory at ");
     enter_gdb_cmd("quit");

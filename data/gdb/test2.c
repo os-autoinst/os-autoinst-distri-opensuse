@@ -12,7 +12,7 @@ char *str_dup(char *src, int len){
 
 int main()
 {
-  char *cstr = 'five';
-  char * newstr = str_dup(cstr, 5);
+  char *cstr = (char*)'five';
+  char * newstr = str_dup(cstr, 32); // len is intentionally longer to cause an access violation
   return 0;
 }
