@@ -14,7 +14,7 @@ use version_utils qw(package_version_cmp);
 use Utils::Systemd qw(systemctl);
 use JSON;
 
-my $unit_prefix = '/etc/containers/systemd';
+my $quadlet_dir = '/etc/containers/systemd';
 my $unit_name = 'quadlet-test';
 
 my $build_imagetag = "localhost/nginx";
