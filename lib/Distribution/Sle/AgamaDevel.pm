@@ -10,35 +10,20 @@
 package Distribution::Sle::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
-use parent 'susedistribution';
+use parent 'Distribution::Opensuse::Leap::16Latest';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
-use Yam::Agama::Pom::GrubMenuAgamaPage;
-use Yam::Agama::Pom::GrubEntryEditionPage;
+use Yam::Agama::Pom::GrubMenuSlesPage;
 use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
-use Yam::Agama::Pom::RebootPage;
 
-use Utils::Architectures;
-
-sub get_grub_menu_agama {
-    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
+sub get_grub_menu_installed_system {
+    return Yam::Agama::Pom::GrubMenuSlesPage->new({
             grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
     });
 }
 
-sub get_grub_entry_edition {
-    return is_ppc64le() ? Yam::Agama::Pom::GrubEntryEditionPage->new({
-            number_kernel_line => 3,
-            max_interval => utils::VERY_SLOW_TYPING_SPEED})
-      : Yam::Agama::Pom::GrubEntryEditionPage->new();
-}
-
 sub get_agama_up_an_running {
     return Yam::Agama::Pom::AgamaUpAndRunningSlePage->new();
-}
-
-sub get_reboot {
-    return Yam::Agama::Pom::RebootPage->new();
 }
 
 1;
