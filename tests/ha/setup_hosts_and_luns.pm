@@ -49,6 +49,7 @@ sub run {
     $testname =~ s/@.+$//;
     $testname =~ s/_node\d+$//;
     $dir_id .= "_$testname" if get_var('HDDVERSION', '');
+    $dir_id .= '_angi' if get_var('USE_SAP_HANA_SR_ANGI', '');
 
     set_var('NFS_SUPPORT_DIR', "$mountpt/$dir_id");
     assert_script_run "mkdir -p $mountpt";
