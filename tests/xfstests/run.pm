@@ -144,6 +144,7 @@ sub run {
         $targs->{name} = $test;
         $targs->{enable_heartbeat} = $enable_heartbeat;
         $targs->{last_one} = 0;
+        $targs->{my_instance} = $args->{my_instance} if is_public_cloud;
         if ($index == $subtest_num - 1) {
             mutex_create 'last_subtest_run_finish';
             $targs->{last_one} = 1;

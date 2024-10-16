@@ -88,7 +88,7 @@ sub run {
     my $result_args;
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
-        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0);
+        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
         $status = $result_args->{status};
         $time = $result_args->{time};
         $status_log_content = $result_args->{output};
