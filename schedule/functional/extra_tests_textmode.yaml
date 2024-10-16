@@ -183,3 +183,4 @@ schedule:
     - console/valgrind
     - console/sssd_389ds_functional
     - console/zypper_log_packages
+    - console/velociraptor_client_event_collect
