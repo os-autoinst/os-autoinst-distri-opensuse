@@ -16,12 +16,14 @@ use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
+use version_utils qw(is_sle_micro);
 
 sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
-    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+    my $instance = $args->{my_instance};
+    my $remote = $instance->username . '@' . $args->{my_instance}->public_ip;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
     my $repodir = "/opt/repos/";
@@ -31,7 +33,7 @@ sub run {
     } else {
         assert_script_run('du -sh ~/repos');
         my $timeout = 2400;
-        $args->{my_instance}->retry_ssh_command(cmd => "which rsync || sudo zypper -n in rsync", timeout => 420, retry => 6, delay => 60);
+        $instance->retry_ssh_command(cmd => "which rsync || sudo zypper -n in rsync", timeout => 420, retry => 6, delay => 60);
 
         # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
         # Those two variables contain list of repositories separated by comma
@@ -48,18 +50,27 @@ sub run {
         my @repos;
         my ($incident, $type);
         for my $maintrepo (@all_repos) {
-            ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
-            push(@repos, $maintrepo) unless (is_embargo_update($incident, $type));
+            if (is_sle_micro(">=6.0")) {
+                push(@repos, $maintrepo);
+            } else {
+                ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
+                push(@repos, $maintrepo) unless (is_embargo_update($incident, $type)); }
         }
 
         s/https?:\/\/// for @repos;
 
         # Create list of directories for rsync
+        # hold last processed repo in sub scope; for PI its only one repo and we need reuse this var
+        my $slmrepo;
         foreach my $repo (@repos) {
+            if (is_sle_micro(">=6.0")) {
+                $repo =~ s/ibs\/SUSE:\/ALP:\/Products:\/Marble:\///;
+                $slmrepo = $repo;
+            }
             assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
         }
         # VM repos.dir support preparation
-        $args->{my_instance}->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
+        $instance->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         # For rsync the ~/repos/./ means that the --relative will take efect after.
@@ -69,16 +80,21 @@ sub run {
         # --recursive (-r), --update (-u), --archive (-a), --human-readable (-h), --rsh (-e)
         script_retry("rsync --timeout=$timeout -ruahd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:$repodir'", timeout => $timeout + 10, retry => 3, delay => 120);
 
-        my $total_size = $args->{my_instance}->ssh_script_output(cmd => "du -hs $repodir");
+        my $total_size = $instance->ssh_script_output(cmd => "du -hs $repodir");
         record_info("Repo size", "Total repositories size: $total_size");
-        $args->{my_instance}->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
-        $args->{my_instance}->upload_log('/tmp/rpm_list.txt');
+        $instance->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
+        $instance->upload_log('/tmp/rpm_list.txt');
 
-        $args->{my_instance}->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
-        $args->{my_instance}->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
-        $args->{my_instance}->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
+        if (is_sle_micro(">=6.0")) {
+            $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $slmrepo . " ToTest");
+        }
+        else {
+            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
+            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
+            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
+        }
 
-        $args->{my_instance}->ssh_assert_script_run("zypper lr -P");
+        $instance->ssh_assert_script_run("zypper lr -P");
     }
 }
 

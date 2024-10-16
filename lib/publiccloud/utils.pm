@@ -146,6 +146,10 @@ sub register_openstack {
 # Validation for update repos
 sub validate_repo {
     my ($maintrepo) = @_;
+    if (is_sle_micro('>=6.0')) {
+        record_info("Product Increments", "Can't validate repository");
+        return 1;
+    }
     if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g) {
         my ($incident, $type) = ($2, $1);
         die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
