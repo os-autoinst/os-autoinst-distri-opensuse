@@ -143,7 +143,7 @@ sub run {
         $test =~ s/\//-/;
         $targs->{name} = $test;
         $targs->{enable_heartbeat} = $enable_heartbeat;
-        $targs->{lastone} = 0;
+        $targs->{last_one} = 0;
         if ($index == $subtest_num - 1) {
             mutex_create 'last_subtest_run_finish';
             $targs->{last_one} = 1;
