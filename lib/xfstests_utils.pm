@@ -578,7 +578,7 @@ Run a single test and write log to file but without heartbeat, return log_add ou
 =cut
 
 sub test_run_without_heartbeat {
-    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content) = @_;
+    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
@@ -601,12 +601,17 @@ sub test_run_without_heartbeat {
         sleep 2;
         copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
 
-        prepare_system_shutdown;
-        reset_consoles if check_var('DESKTOP', 'textmode');
-        ($virtio_console == 1) ? power_action('reboot') : send_key 'alt-sysrq-b';
-        reconnect_mgmt_console if is_pvm;
-        check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
-        is_public_cloud() ? select_console('root-console') : select_serial_terminal();
+        if (is_public_cloud) {
+            $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+        }
+        else {
+            prepare_system_shutdown;
+            reset_consoles if check_var('DESKTOP', 'textmode');
+            ($virtio_console == 1) ? power_action('reboot') : send_key 'alt-sysrq-b';
+            reconnect_mgmt_console if is_pvm;
+            check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
+            select_serial_terminal();
+        }
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
         if ($enable_kdump) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
