@@ -75,13 +75,19 @@ sub run {
     record_info("podman version", script_output("podman version"));
 
     delegate_controllers;
-
-    assert_script_run "podman system reset -f";
-    assert_script_run "modprobe ip6_tables";
-
     remove_mounts_conf;
 
     switch_cgroup_version($self, 2);
+
+    # Avoid podman warning:
+    # Not using native diff for overlay, this may cause degraded performance for building images: kernel has CONFIG_OVERLAY_FS_REDIRECT_DIR enabled
+    unless (is_tumbleweed) {
+        assert_script_run "modprobe overlay";
+        assert_script_run "echo 0 > /sys/module/overlay/parameters/redirect_dir";
+    }
+
+    assert_script_run "podman system reset -f";
+    assert_script_run "modprobe ip6_tables";
 
     record_info("podman info", script_output("podman info"));
     record_info("podman package version", script_output("rpm -q podman"));
