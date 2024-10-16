@@ -37,7 +37,7 @@ sub install_package {
 	# Use julie repo to verify a PR to qa_lib_virtauto temporarilly
         # This line will be removed before the PR is merged
         zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/home:/Julie_CAO/SLE_15_SP7 julie");
-	#	zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/Devel:/Virt:/SLE-12-SP5/SUSE_SLE-12-SP5_Update_standard dev");
+	zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/Devel:/Virt:/SLE-12-SP5/SUSE_SLE-12-SP5_Update_standard dev");
     }
 
     #Install KVM role patterns for aarch64 virtualization host
