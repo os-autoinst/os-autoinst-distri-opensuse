@@ -69,7 +69,7 @@ sub run {
         # --recursive (-r), --update (-u), --archive (-a), --human-readable (-h), --rsh (-e)
         script_retry("rsync --timeout=$timeout -ruahd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:$repodir'", timeout => $timeout + 10, retry => 3, delay => 120);
 
-        my $total_size = $args->{my_instance}->ssh_script_output(cmd => 'du -hs $repodir');
+        my $total_size = $args->{my_instance}->ssh_script_output(cmd => "du -hs $repodir");
         record_info("Repo size", "Total repositories size: $total_size");
         $args->{my_instance}->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
         $args->{my_instance}->upload_log('/tmp/rpm_list.txt');
