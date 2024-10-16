@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
-use power_action_utils qw(power_action prepare_system_shutdown);
+use power_action_utils qw(prepare_system_shutdown);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
