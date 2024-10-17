@@ -455,7 +455,8 @@ sub ipaddr2_bastion_key_accept {
 
     ipaddr2_internal_key_accept()
 
-For the worker to accept the ssh key of the internal VMs
+For the worker to accept the host key of the internal VMs.
+This function always use cloudadmin as user in any ssh connections.
 
 =over
 
@@ -540,11 +541,13 @@ sub ipaddr2_internal_key_accept {
 
     ipaddr2_internal_key_gen()
 
-Create, on the /tmp folder of the Worker, two ssh key set.
-One ssk key pair for each internal VM.
+Create, on the /tmp folder of the Worker, two ssh key set:
+one ssk key pair for each internal VM.
 Then upload in each internal VM the ssh key pair using scp
-in Proxy mode and add pub key in the authorized_keys of the other.
-It also run the first connection to accept the keys.
+and add pub key in the authorized_keys of the other internal VM.
+It also run the first connection to accept the host keys.
+All this process it to have a suitable key set to allow posswordless ssh between the two internal VM:
+it is later on needed by crm cluster init/join
 
 =over
 
@@ -555,7 +558,9 @@ It also run the first connection to accept the keys.
 =item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
                         ssh option. default to 'accept-new'
 
-=item B<user> - set custom user name. Default is cloudadmin. User root activate special behavior.
+=item B<user> - set custom user name. Default is cloudadmin.
+                User root activate special behavior. This argument is needed as crm needs keys for different users
+                when operate in root ro rootless mode.
 
 =back
 =cut
@@ -752,16 +757,20 @@ Tests are independent by the cluster status.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
+=item B<user> - user expected to be able to ssh connect passwordless from one internal VM to the other.
+                Default is cloudadmin.
+
 =back
 =cut
 
 sub ipaddr2_os_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{user} //= $user;
 
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
     ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
         ipaddr2_ssh_internal(id => $_,
@@ -850,11 +859,14 @@ sub ipaddr2_os_connectivity_sanity {
 
     foreach my $i (1 .. 2) {
         # Check if the bastion is able to ping
-        # the VM by hostname and private IP
+        # the VM by hostname and private IP.
+        # Check both using the hostname and the IP address.
         foreach my $addr (
             ipaddr2_get_internal_vm_private_ip(id => $i),
             ipaddr2_get_internal_vm_name(id => $i)) {
-            foreach my $cmd ($ping_cmd, 'tracepath', 'dig') {
+            # tracepath is not available by default in 12sp5
+            # so only use ping and dig
+            foreach my $cmd ($ping_cmd, 'dig') {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
@@ -989,22 +1001,28 @@ die in case of failure
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
+=item B<user> - user supposed to be able to ssh connect passwordless from one internal VM to the other.
+                Value for this argument is used to decide the home folder where to look for the keys.
+                Default is cloudadmin. User root activate some special logic.
+
 =back
 =cut
 
 sub ipaddr2_os_ssh_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{user} //= $user;
+    my $user_ssh = ($args{user} eq 'root') ? '/root/' : "/home/$args{user}/";
+    $user_ssh .= '.ssh';
 
-    my $user_ssh = "/home/$user/.ssh";
     foreach my $i (1 .. 2) {
-        # Check if the folder /home/$user/.ssh
-        # exist in the $this internal VM
+        # Check if the folder ~/.ssh
+        # exist in this internal VM
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -d $user_ssh ]",
             bastion_ip => $args{bastion_ip});
 
-        # Check if the key /home/$user/.ssh/$key_id
+        # Check if the private key ~.ssh/$key_id
         # exists in this internal VM.
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -f $user_ssh/$key_id ]",
@@ -1265,7 +1283,7 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
-=item B<rootless> - Enable or disable the rootless mode. Activated by default.
+=item B<rootless> - Enable or disable the rootless mode. Default is normal root mode.
 
 =back
 =cut
@@ -1273,7 +1291,7 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
 sub ipaddr2_create_cluster {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    $args{rootless} //= 1;
+    $args{rootless} //= 0;
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'rpm -qf $(sudo which crm)',
