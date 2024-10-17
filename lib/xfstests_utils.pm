@@ -462,10 +462,13 @@ Log: Collect fs runtime status for XFS, Btrfs and Ext4
 =cut
 
 sub collect_fs_status {
-    my ($category, $num, $fstype) = @_;
+    my ($category, $num, $fstype, $is_crash) = @_;
+    return if $is_crash;
     my $cmd;
-    script_run('mount $TEST_DEV $TEST_DIR &> /dev/null');
-    script_run("[ -n \"\$SCRATCH_DEV\" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null");
+    unless ($fstype eq 'nfs') {
+        script_run('mount $TEST_DEV $TEST_DIR &> /dev/null');
+        script_run("[ -n \"\$SCRATCH_DEV\" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null");
+    }
     if ($fstype eq 'xfs') {
         $cmd = <<END_CMD;
 echo "==> /sys/fs/$fstype/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
@@ -489,7 +492,11 @@ END_CMD
 tail -n +1 /sys/fs/$fstype/*/* >> $LOG_DIR/$category/$num.fs_stat
 END_CMD
     }
-    $cmd = <<END_CMD;
+    elsif ($fstype eq 'nfs') {
+        enter_cmd("$cmd");
+        return;
+    }
+    $cmd .= <<END_CMD;
 umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
@@ -503,12 +510,12 @@ Add all above logs
 =cut
 
 sub copy_all_log {
-    my ($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool) = @_;
+    my ($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
     copy_log($category, $num, 'out.bad');
     copy_log($category, $num, 'full');
     copy_log($category, $num, 'dmesg');
     copy_fsxops($category, $num);
-    collect_fs_status($category, $num, $fstype);
+    collect_fs_status($category, $num, $fstype, $is_crash);
     if ($btrfs_dump && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num, $btrfs_dump); }
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
@@ -590,16 +597,16 @@ sub test_run_without_heartbeat {
     if ($@) {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
-        sleep(2);
-        copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool);
+        script_run('rm -rf /tmp/*');    # Get some space and inode for no-space-left-on-device error to get reboot signal
+        sleep 2;
+        copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
 
         prepare_system_shutdown;
-        ($virtio_console == 1) ? power('reset') : send_key 'alt-sysrq-b';
+        reset_consoles if check_var('DESKTOP', 'textmode');
+        ($virtio_console == 1) ? power_action('reboot') : send_key 'alt-sysrq-b';
         reconnect_mgmt_console if is_pvm;
-        $self->wait_boot;
-
-        sleep 1;
-        select_console('root-console');
+        check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
+        is_public_cloud() ? select_console('root-console') : select_serial_terminal();
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
         if ($enable_kdump) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
@@ -623,7 +630,7 @@ sub test_run_without_heartbeat {
         }
         else {
             $test_status = 'FAILED';
-            copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool);
+            copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
         }
     }
     # Add test status to STATUS_LOG file
