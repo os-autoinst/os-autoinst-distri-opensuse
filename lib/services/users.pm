@@ -55,6 +55,7 @@ sub switch_user {
 
 sub change_pwd {
     assert_and_click "users-password";
+    assert_and_click "current-password";
     type_password;
     wait_still_screen;
     assert_and_click "new-password";
@@ -74,7 +75,14 @@ sub add_user {
     assert_and_click "focus-name-field";
     type_string $newUser;
     assert_screen("input-username-test");
+    if (check_screen('username-empty')) {
+        assert_and_click 'username-empty';
+        type_string $newUser;
+    }
     assert_and_click "set-password-option";
+    if (!check_screen('adduser-password-window')) {
+        assert_and_click "adduser-next";
+    }
     assert_and_click "set-newuser-password";
     type_string $pwd4newUser;
     assert_and_click "confirm-newuser-password";
