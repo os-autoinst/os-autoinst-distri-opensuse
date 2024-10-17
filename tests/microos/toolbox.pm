@@ -172,4 +172,9 @@ sub clean_container_host {
     assert_script_run("$runtime system prune -a -f", 300);
 }
 
+sub test_flags {
+    # Explicitly set this for because of bsc#1227509 and because snapshotting is disabled on ppc64le.
+    # Without snapshotting fatal => 1 is assumed
+    return {fatal => 0};
+}
 1;
