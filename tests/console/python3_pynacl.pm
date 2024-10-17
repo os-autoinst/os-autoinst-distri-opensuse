@@ -25,7 +25,7 @@ sub run_test {
     my ($python_package) = @_;
     my $pkg = "$python_package-PyNaCl";
 
-    die "Package $pkg not found" if script_run("zypper se $pkg") == 0;
+    die "Package $pkg not found" if zypper_call("se $pkg") == 0;
 
     if (is_transactional) {
         trup_call("pkg in $python_package $pkg");
