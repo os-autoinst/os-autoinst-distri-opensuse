@@ -175,10 +175,8 @@ sub sles4sap_cleanup {
             'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
-    my $ret = 0;
-
     # Do not run destroy if already executed
-    return $ret if ($args{cleanup_called});
+    return 0 if ($args{cleanup_called});
 
     # If there's an open ssh connection to the VMs, return to host console first
     select_host_console(force => 1);
@@ -202,6 +200,8 @@ sub sles4sap_cleanup {
     # Regardless of Ansible result, Terraform destroy
     # must be executed.
     push(@cmd_list, 'terraform');
+
+    my $ret = 0;
     for my $command (@cmd_list) {
         record_info('Cleanup', "Executing $command cleanup");
 
@@ -408,13 +408,26 @@ sub stop_hana {
             rc_only => 1,
             ssh_opts => $crash_ssh_opts);
 
-        # Wait till ssh disappear
-        record_info("Wait ssh disappear start");
-        my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
-        record_info("Wait ssh disappear end", "out:" . ($out // 'undefined'));
+        # Wait till ssh port 22 disappear
+        record_info('Wait ssh disappear', 'START');
+        my $start_time = time();
+        my $exit_code;
+        my $nc_error_occurrence = 0;
+        while (((time() - $start_time) < 900) and ($nc_error_occurrence < 5)) {
+            $exit_code = script_run('nc -vz -w 1 ' . $self->{my_instance}->{public_ip} . ' 22', quiet => 1);
+            $nc_error_occurrence += 1 if (!defined($exit_code) or $exit_code ne 0);
+        }
+        my $end_msg = join("\n",
+            'END',
+            "started at $start_time",
+            'elapsed:' . (time() - $start_time),
+            "nc_error_occurrence:$nc_error_occurrence",
+            "last exit_code:$exit_code");
+        record_info('Wait ssh disappear', $end_msg);
+
         # wait for node to be ready
         wait_hana_node_up($self->{my_instance}, timeout => 900);
-        $out = $self->{my_instance}->wait_for_ssh(timeout => 900, scan_ssh_host_key => 1);
+        my $out = $self->{my_instance}->wait_for_ssh(timeout => 900, scan_ssh_host_key => 1);
         record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
     }
     else {
