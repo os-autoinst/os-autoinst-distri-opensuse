@@ -78,7 +78,7 @@ my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
 
 sub run {
     my ($self, $args) = @_;
-    is_public_cloud() ? select_console('root-console') : select_serial_terminal();
+    select_serial_terminal;
     (my $test = $args->{name}) =~ s/-/\//;
     my $enable_heartbeat = $args->{enable_heartbeat};
     my $is_last_one = $args->{last_one};
