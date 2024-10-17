@@ -19,7 +19,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro);
-use transactional qw(check_reboot_changes trup_call process_reboot);
+use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
 
@@ -334,7 +334,7 @@ sub allow_openqa_port_selinux {
     my $pkgs = 'policycoreutils-python-utils';
     if (is_transactional) {
         trup_call("pkg install $pkgs");
-        check_reboot_changes;
+        reboot_on_changes;
     } else {
         zypper_call("in $pkgs");
     }
