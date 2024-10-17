@@ -9,7 +9,7 @@ use List::Util qw(any none all);
 
 use sles4sap::ipaddr2;
 
-subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
+subtest '[ipaddr2_infra_deploy] no BYOS' => sub {
     # There are some limitations in BYOS+CLOUD-INIT+SCC REG interactions
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -26,7 +26,7 @@ subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci');
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
 
     # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
@@ -48,14 +48,14 @@ subtest '[ipaddr2_azure_deployment] no BYOS' => sub {
     unlike($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
 };
 
-subtest '[ipaddr2_azure_deployment] cloud-init and byos but no SCC' => sub {
+subtest '[ipaddr2_infra_deploy] cloud-init and byos but no SCC' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
 
     dies_ok {
-        ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS');
+        ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
     } "cloud-init is enabled by default and image is BYOS but no scc_code provided";
 
     for my $call_idx (0 .. $#calls) {
@@ -65,7 +65,7 @@ subtest '[ipaddr2_azure_deployment] cloud-init and byos but no SCC' => sub {
     ok((!@calls), 'There are ' . $#calls . ' command calls and none expected');
 };
 
-subtest '[ipaddr2_azure_deployment] cloud-init byos and SCC' => sub {
+subtest '[ipaddr2_infra_deploy] cloud-init byos and SCC' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -81,7 +81,7 @@ subtest '[ipaddr2_azure_deployment] cloud-init byos and SCC' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS', scc_code => '1234');
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', scc_code => '1234');
 
 
     for my $call_idx (0 .. $#calls) {
@@ -96,7 +96,7 @@ subtest '[ipaddr2_azure_deployment] cloud-init byos and SCC' => sub {
     like($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
 };
 
-subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
+subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -108,7 +108,7 @@ subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
 
     # push th elist of commands in another list, this one withour the source
     # In this way it is easier to inspect the content
@@ -125,7 +125,7 @@ subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
     ok((none { /sudo cloud-init status/ } @cmds), 'No wait cloud-init when cloud-init is disabled');
 };
 
-subtest '[ipaddr2_azure_deployment] cloud-init and byos' => sub {
+subtest '[ipaddr2_infra_deploy] cloud-init and byos' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -138,7 +138,7 @@ subtest '[ipaddr2_azure_deployment] cloud-init and byos' => sub {
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
     dies_ok {
-        ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS');
+        ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
     } "cloud-init is enabled by default and image is BYOS";
 
     for my $call_idx (0 .. $#calls) {
@@ -148,7 +148,7 @@ subtest '[ipaddr2_azure_deployment] cloud-init and byos' => sub {
     ok((!@calls), 'There are ' . $#calls . ' command calls and none expected');
 };
 
-subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
+subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -160,7 +160,7 @@ subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
 
     # push th elist of commands in another list, this one withour the source
     # In this way it is easier to inspect the content
@@ -176,7 +176,7 @@ subtest '[ipaddr2_azure_deployment] no cloud-init' => sub {
     ok((none { /sudo cloud-init status/ } @cmds), 'Cloud-init disabled');
 };
 
-subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
+subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -189,7 +189,7 @@ subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci', diagnostic => 1);
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', diagnostic => 1);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az storage account create/ } @calls), 'Create storage');
@@ -197,7 +197,7 @@ subtest '[ipaddr2_azure_deployment] diagnostic' => sub {
     ok((any { /az vm boot-diagnostics enable.*vm-02/ } @calls), 'Enable diagnostic for VM2');
 };
 
-subtest '[ipaddr2_azure_deployment] disable trusted launch' => sub {
+subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -212,19 +212,19 @@ subtest '[ipaddr2_azure_deployment] disable trusted launch' => sub {
             return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
-    ipaddr2_azure_deployment(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--security-type.*Standard/ } @calls), 'Disable trustedLaunch by setting --security-type Standard');
 };
 
-subtest '[ipaddr2_destroy]' => sub {
+subtest '[ipaddr2_infra_destroy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my $az_called = 0;
     $ipaddr2->redefine(az_group_delete => sub { $az_called = 1; return; });
 
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
 
     ok(($az_called eq 1), 'az_group_delete called');
 };

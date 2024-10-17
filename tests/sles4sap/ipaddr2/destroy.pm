@@ -11,7 +11,7 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
   ipaddr2_deployment_logs
-  ipaddr2_destroy
+  ipaddr2_infra_destroy
   ipaddr2_os_cloud_init_logs
 );
 
@@ -23,7 +23,7 @@ sub run {
 
     select_serial_terminal;
 
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
 }
 
 sub test_flags {
@@ -34,7 +34,7 @@ sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_os_cloud_init_logs();
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }
 

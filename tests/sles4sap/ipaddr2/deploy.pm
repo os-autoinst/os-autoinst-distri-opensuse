@@ -10,10 +10,10 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_azure_deployment
+  ipaddr2_infra_deploy
   ipaddr2_deployment_logs
   ipaddr2_deployment_sanity
-  ipaddr2_destroy
+  ipaddr2_infra_destroy
   ipaddr2_os_cloud_init_logs
 );
 
@@ -40,7 +40,7 @@ sub run {
         cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
     $deployment{scc_code} = get_var('SCC_REGCODE_SLES4SAP') if (get_var('SCC_REGCODE_SLES4SAP'));
     $deployment{trusted_launch} = 0 if (check_var('IPADDR2_TRUSTEDLAUNCH', 0));
-    ipaddr2_azure_deployment(%deployment);
+    ipaddr2_infra_deploy(%deployment);
 
     ipaddr2_deployment_sanity();
 }
@@ -53,7 +53,7 @@ sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_os_cloud_init_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }
 
