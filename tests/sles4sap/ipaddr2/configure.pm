@@ -15,7 +15,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_configure_web_server
   ipaddr2_create_cluster
   ipaddr2_deployment_logs
-  ipaddr2_destroy
+  ipaddr2_infra_destroy
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_os_cloud_init_logs
@@ -83,7 +83,7 @@ sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_os_cloud_init_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }
 

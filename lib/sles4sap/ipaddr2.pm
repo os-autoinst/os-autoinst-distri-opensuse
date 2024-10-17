@@ -25,9 +25,9 @@ Library to manage ipaddr2 tests
 =cut
 
 our @EXPORT = qw(
-  ipaddr2_azure_deployment
+  ipaddr2_infra_deploy
+  ipaddr2_infra_destroy
   ipaddr2_bastion_key_accept
-  ipaddr2_destroy
   ipaddr2_create_cluster
   ipaddr2_configure_web_server
   ipaddr2_refresh_repo
@@ -88,9 +88,9 @@ sub ipaddr2_azure_storage_account {
     return $storage_account . get_current_job_id();
 }
 
-=head2 ipaddr2_azure_deployment
+=head2 ipaddr2_infra_deploy
 
-    my $rg = ipaddr2_azure_deployment();
+    my $rg = ipaddr2_infra_deploy();
 
 Create a deployment in Azure designed for this specific test.
 
@@ -132,7 +132,7 @@ Create a deployment in Azure designed for this specific test.
 =back
 =cut
 
-sub ipaddr2_azure_deployment {
+sub ipaddr2_infra_deploy {
     my (%args) = @_;
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
@@ -1309,7 +1309,7 @@ sub ipaddr2_registeration_check {
     ipaddr2_registeration_set(id => 1, scc_code => '1234567890');
 
 Register the image. Notice that this library also support registration through
-ipaddr2_azure_deployment
+ipaddr2_infra_deploy
 
 =over 3
 
@@ -1421,14 +1421,14 @@ sub ipaddr2_deployment_logs {
     }
 }
 
-=head2 ipaddr2_destroy
+=head2 ipaddr2_infra_destroy
 
-    ipaddr2_destroy();
+    ipaddr2_infra_destroy();
 
 Destroy the deployment by deleting the resource group
 =cut
 
-sub ipaddr2_destroy {
+sub ipaddr2_infra_destroy {
     az_group_delete(name => ipaddr2_azure_resource_group(), timeout => 600);
 }
 
