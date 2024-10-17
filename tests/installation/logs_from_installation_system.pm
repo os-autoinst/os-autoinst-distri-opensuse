@@ -26,6 +26,7 @@ use utils;
 use Utils::Backends;
 use version_utils 'is_sle';
 use ipmi_backend_utils;
+use security::config;
 
 sub run {
     my ($self) = @_;
@@ -34,15 +35,31 @@ sub run {
 
     # on a CC enabled system, root ssh login is disabled by default, but we need it enabled
     if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && is_s390x) {
+        my $crypt_name = "cryptroot";
         my $vg_name = "vg-system";
         my $lv_name = "lv-root";
-        my $crypt_name = "encrypted_disk";
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
-        my $root_hd = check_var('FULL_LVM_ENCRYPT', '1') ? "/dev/$vg_name/$lv_name " : script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        my $is_encrypted_but_no_lvm = check_var('ENCRYPT', '1') && (!get_var('FULL_LVM_ENCRYPT') || check_var('FULL_LVM_ENCRYPT', '0'));
+        my $root_hd;
+
+        if check_var('FULL_LVM_ENCRYPT', '1') {
+            $root_hd = "/dev/$vg_name/$lv_name";
+        } else {
+            $root_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+
+            # Handle encryption without LVM
+            if ($is_encrypted_but_no_lvm) {
+                my $password = $security::config::strong_password;
+                script_run("echo -n \"$password\" | cryptsetup luksOpen /dev/vda2 cryptroot --key-file=-");
+                $root_hd = "/dev/mapper/" . $crypt_name;
+            }
+        }
+
         assert_script_run("mount $root_hd /mnt");
         assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
         assert_script_run("sed -i -e 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config.d/51-permit-root-login.conf") if is_sle('>=15-SP6');
         assert_script_run('umount /mnt');
+        assert_script_run("cryptsetup luksClose $crypt_name") if $is_encrypted_but_no_lvm;
     }
 
     # In FIPS + disk encrypted, if the system has a separate boot partition
