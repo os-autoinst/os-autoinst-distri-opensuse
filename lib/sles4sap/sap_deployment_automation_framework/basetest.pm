@@ -33,10 +33,16 @@ Post run hook is not necessary as cleanup should not be triggered at the end of 
 
 Function performs full SDAF cleanup. First, it checks which stages of deployment are applied to avoid executing
 unnecessary cleanup commands. Cleanup is done in following order:
-- execute SDAF remover script - destroys existing sap-systems and workload zone deployments
-- destroy deployer VM and related resources like OS disk, NIC, Security group, etc.
-- keeps control plane intact (Control plane must not be deleted)
 
+=over
+
+=item * executes SDAF remover script - destroys existing sap-systems and workload zone deployments
+
+=item * destroys deployer VM and related resources like OS disk, NIC, Security group, etc.
+
+=item *  keeps control plane intact (Control plane must not be deleted)
+
+=back
 =cut
 
 sub full_cleanup {
