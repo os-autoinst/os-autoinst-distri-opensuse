@@ -27,7 +27,20 @@
 
 <pre><code>full_cleanup();</code></pre>
 
-<p>Function performs full SDAF cleanup. First, it checks which stages of deployment are applied to avoid executing unnecessary cleanup commands. Cleanup is done in following order: - execute SDAF remover script - destroys existing sap-systems and workload zone deployments - destroy deployer VM and related resources like OS disk, NIC, Security group, etc. - keeps control plane intact (Control plane must not be deleted)</p>
+<p>Function performs full SDAF cleanup. First, it checks which stages of deployment are applied to avoid executing unnecessary cleanup commands. Cleanup is done in following order:</p>
+
+<ul>
+
+<li><p>executes SDAF remover script - destroys existing sap-systems and workload zone deployments</p>
+
+</li>
+<li><p>destroys deployer VM and related resources like OS disk, NIC, Security group, etc.</p>
+
+</li>
+<li><p>keeps control plane intact (Control plane must not be deleted)</p>
+
+</li>
+</ul>
 
 
 </body>
