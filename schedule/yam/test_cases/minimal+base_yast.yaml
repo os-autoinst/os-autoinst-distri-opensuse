@@ -7,10 +7,8 @@ description:    >
 schedule:
   software:
     - installation/select_only_visible_patterns_from_top
-  security:
+  security_configuration:
     - installation/security/select_security_module_none
-    - installation/installation_settings/validate_ssh_service_enabled
-    - installation/installation_settings/open_ssh_port
   system_preparation:
     - console/system_prepare
     - console/prepare_test_data
