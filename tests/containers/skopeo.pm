@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';    # used in select_serial_terminal
 use utils 'zypper_call';    # used in zypper_call
-use version_utils qw(is_transactional is_vmware);
+use version_utils qw(is_transactional is_vmware is_opensuse);
 use transactional;
 use containers::common qw(install_packages);
 
@@ -28,7 +28,7 @@ sub run {
     select_serial_terminal() unless is_vmware;    # Select most suitable text console
 
     # Set a variable for my remote image
-    my $remote_image = 'registry.suse.com/bci/bci-busybox:latest';
+    my $remote_image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
     # Set a variable for my local image
     my $local_image = 'localhost:5050/bci-busybox:latest';
 
@@ -95,7 +95,8 @@ sub run {
     assert_script_run("diff -urN $dir1 $dir2", fail_message => 'Copied images are not identical.');
 
     ######### Spin-up an instance of the latest Registry
-    assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry registry.suse.com/suse/registry:latest",
+    my $registry_image = is_opensuse ? "registry.opensuse.org/opensuse/registry:latest" : "registry.suse.com/suse/registry:latest";
+    assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
         fail_message => "Failed to start local registry container");
 
     ######### Pull the image into a our local repository
