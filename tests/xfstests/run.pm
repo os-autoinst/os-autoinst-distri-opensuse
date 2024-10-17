@@ -159,7 +159,10 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 0};
+    return {
+        fatal => 1,
+        milestone => 1,
+    };
 }
 
 sub post_fail_hook {
