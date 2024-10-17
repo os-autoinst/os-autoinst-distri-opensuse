@@ -9,7 +9,7 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Sle::16Latest;
-use parent Distribution::Opensuse::AgamaDevel;
+use parent Distribution::Sle::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
 
