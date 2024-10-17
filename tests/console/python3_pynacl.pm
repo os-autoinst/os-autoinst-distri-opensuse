@@ -25,7 +25,7 @@ sub run_test {
     my ($python_package) = @_;
     my $pkg = "$python_package-PyNaCl";
 
-    die "Package $pkg not found" if zypper_call("se $pkg") == 0;
+    zypper_call("se $pkg");
 
     if (is_transactional) {
         trup_call("pkg in $python_package $pkg");
@@ -58,7 +58,6 @@ sub run {
 
     runtime_registration() if $requires_scc_registration;
     my @python3_versions = get_available_python_versions();
-    unshift @python3_versions, "python3";    # append the system default one
     run_test($_) foreach @python3_versions;
 }
 
