@@ -21,8 +21,10 @@ sub run {
     script_run './fltk', 0;
     assert_screen [qw(ui-toolkit-fltk ui-toolkit-fltk-nomsg-display)];
     if (match_has_tag 'ui-toolkit-fltk-nomsg-display') {
-        wait_screen_change { send_key 'alt-f4' };
-        script_run './fltk', 0;
+        # Use desktop runner to refresh screen
+        record_info('Refresh screen', 'Use desktop runner to refresh screen');
+        wait_screen_change { send_key 'alt-f2' };
+        wait_screen_change { send_key 'esc' };
         assert_screen 'ui-toolkit-fltk';
     }
     wait_screen_change { send_key 'alt-f4' };
