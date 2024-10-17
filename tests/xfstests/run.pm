@@ -87,7 +87,7 @@ my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 sub run {
     my ($self, $args) = @_;
-    is_public_cloud() ? select_console('root-console') : select_serial_terminal();
+    select_serial_terminal;
     return if get_var('XFSTESTS_NFS_SERVER');
     my $enable_heartbeat = 1;
     $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
