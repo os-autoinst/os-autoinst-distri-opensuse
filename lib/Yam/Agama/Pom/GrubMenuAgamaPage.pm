@@ -26,4 +26,10 @@ sub expect_is_shown {
 
 sub edit_current_entry { shift->{grub_menu_base}->edit_current_entry() }
 
+sub boot_from_hd {
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'down';
+    send_key 'ret';
+}
+
+
 1;
