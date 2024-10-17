@@ -12,6 +12,9 @@ use warnings;
 use v5.20;
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
+use transactional qw(trup_call process_reboot);
+use version_utils;
+
 
 
 our @EXPORT = qw(
@@ -77,7 +80,12 @@ sub remove_installed_pythons() {
         my $python_versions = script_output("rpm -q $python3_spec_release | awk -F \'-\' \'{print \$2}\'");
         record_info("Python version", "$python_versions:$default_python");
         next if ($python_versions eq $default_python);
-        zypper_call("remove $python3_spec_release-base");
+        if (is_transactional) {
+            trup_call("pkg rm $python3_spec_release-base");
+            process_reboot(expected_grub => 1, trigger => 1);
+        } else {
+            zypper_call("rm $python3_spec_release-base");
+        }
     }
 }
 

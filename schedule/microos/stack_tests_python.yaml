@@ -1,0 +1,11 @@
+---
+name: stack_tests_python
+schedule:
+  - microos/disk_boot
+  - '{{add_phub_extension}}'
+  - console/python3_pynacl
+conditional_schedule:
+  add_phub_extension:
+    DISTRI:
+      "sle-micro":
+        - console/add_phub_extension
