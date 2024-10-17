@@ -16,7 +16,7 @@
     <ul>
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
       <li><a href="#ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</a></li>
-      <li><a href="#ipaddr2_azure_deployment">ipaddr2_azure_deployment</a></li>
+      <li><a href="#ipaddr2_infra_deploy">ipaddr2_infra_deploy</a></li>
       <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
       <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
       <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
@@ -42,7 +42,7 @@
       <li><a href="#ipaddr2_configure_web_server">ipaddr2_configure_web_server</a></li>
       <li><a href="#ipaddr2_refresh_repo">ipaddr2_refresh_repo</a></li>
       <li><a href="#ipaddr2_deployment_logs">ipaddr2_deployment_logs</a></li>
-      <li><a href="#ipaddr2_destroy">ipaddr2_destroy</a></li>
+      <li><a href="#ipaddr2_infra_destroy">ipaddr2_infra_destroy</a></li>
       <li><a href="#ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</a></li>
       <li><a href="#ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</a></li>
       <li><a href="#ipaddr2_get_worker_tmp_for_internal_vm">ipaddr2_get_worker_tmp_for_internal_vm</a></li>
@@ -72,9 +72,9 @@
 
 <p>Get a unique storage account name. Not including the jobId result in error like: The storage account named ip2tstorageaccount already exists under the subscription</p>
 
-<h2 id="ipaddr2_azure_deployment">ipaddr2_azure_deployment</h2>
+<h2 id="ipaddr2_infra_deploy">ipaddr2_infra_deploy</h2>
 
-<pre><code>my $rg = ipaddr2_azure_deployment();</code></pre>
+<pre><code>my $rg = ipaddr2_infra_deploy();</code></pre>
 
 <p>Create a deployment in Azure designed for this specific test.</p>
 
@@ -467,7 +467,7 @@
 
 <pre><code>ipaddr2_registeration_set(id =&gt; 1, scc_code =&gt; &#39;1234567890&#39;);</code></pre>
 
-<p>Register the image. Notice that this library also support registration through ipaddr2_azure_deployment</p>
+<p>Register the image. Notice that this library also support registration through ipaddr2_infra_deploy</p>
 
 <dl>
 
@@ -523,9 +523,9 @@
 
 <p>Collect logs from the cloud infrastructure</p>
 
-<h2 id="ipaddr2_destroy">ipaddr2_destroy</h2>
+<h2 id="ipaddr2_infra_destroy">ipaddr2_infra_destroy</h2>
 
-<pre><code>ipaddr2_destroy();</code></pre>
+<pre><code>ipaddr2_infra_destroy();</code></pre>
 
 <p>Destroy the deployment by deleting the resource group</p>
 
