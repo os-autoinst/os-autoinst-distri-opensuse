@@ -25,7 +25,7 @@ sub run {
     upload_logs($inventory, failok => 1);
 
     # Set up azure native fencing
-    if (get_var('QESAPDEPLOY_FENCING') eq 'native' && $provider eq 'AZURE') {
+    if (get_var('QESAPDEPLOY_FENCING') eq 'native' && $provider eq 'AZURE' && !check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn')) {
         my @nodes = qesap_get_nodes_names(provider => $provider);
         foreach my $host_name (@nodes) {
             if ($host_name =~ /hana/) {
