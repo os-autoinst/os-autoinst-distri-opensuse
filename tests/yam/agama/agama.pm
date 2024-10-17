@@ -13,6 +13,7 @@ use testapi qw(
   get_required_var
   script_run
   assert_script_run
+  record_soft_failure
 );
 
 use Utils::Architectures;
