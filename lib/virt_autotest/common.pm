@@ -265,7 +265,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp6',
         },
     );
-    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : check_var->('EXTENDED_SECURITY', '1') ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : check_var('EXTENDED_SECURITY', '1') ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
@@ -297,7 +297,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             vm_name => 'sles-15.6_openQA-virtualization-maintenance',
         },
     );
-    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : check_var->('EXTENDED_SECURITY', '1') ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : check_var('EXTENDED_SECURITY', '1') ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 }
 
 our %imports = ();    # imports are virtual machines that we don't install but just import. We test those separately.
