@@ -83,7 +83,6 @@ sub remove_installed_pythons() {
         if (is_transactional) {
             trup_call("pkg rm $python3_spec_release-base");
             process_reboot(expected_grub => 1, trigger => 1);
-            select_serial_terminal;
         } else {
             zypper_call("rm $python3_spec_release-base");
         }

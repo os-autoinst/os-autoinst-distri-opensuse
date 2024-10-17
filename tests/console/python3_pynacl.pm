@@ -22,11 +22,10 @@ my $requires_scc_registration = is_sle_micro || is_sle;
 my $script_download_path = "~/test_pynacl.py";
 
 sub run_test {
-    my ($python_package) = @_;    # Proper declaration of $python_package
+    my ($python_package) = @_;
     my $pkg = "$python_package-PyNaCl";
 
-    # we don't run the test if PyNaCl is not packaged for this python version
-    return unless script_run("zypper se $pkg") == 0;
+    die "Package $pkg not found" if script_run("zypper se $pkg") == 0;
 
     if (is_transactional) {
         trup_call("pkg in $python_package $pkg");
@@ -71,6 +70,7 @@ sub post_fail_hook {
 
 sub cleanup {
     remove_installed_pythons();
+    select_serial_terminal;
     script_run("rm -f " . $script_download_path);
 }
 
