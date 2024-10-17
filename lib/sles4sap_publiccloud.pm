@@ -85,7 +85,7 @@ our @EXPORT = qw(
     If 'runas' defined, command will be executed as specified user,
     otherwise it will be executed as root.
 
-=over 5
+=over
 
 =item B<cmd> - command string to be executed remotely
 
@@ -155,7 +155,7 @@ sub get_promoted_hostname {
     terraform destroy in any case.
     Return 0 if no internal error.
 
-=over 3
+=over
 
 =item B<cleanup_called> - flag to indicate cleanup status
 
@@ -253,7 +253,7 @@ sub get_hana_topology {
 
     Check if hana DB is online.
 
-=over 2
+=over
 
 =item B<wait_for_start> - Define 'wait_for_start' to wait for DB to start.
 
@@ -287,7 +287,7 @@ sub is_hana_online {
 
     Checks if resource msl_SAPHana_* is running on given node.
 
-=over 1
+=over
 
 =item B<quiet> - if set, returns the value without recording info (default: 0)
 
@@ -319,7 +319,7 @@ sub is_hana_resource_running {
 
     Waits until 'is_system_running' returns successfully on the target instance.
 
-=over 2
+=over
 
 =item B<instance> - the instance the test needs to wait for
 
@@ -353,7 +353,7 @@ sub wait_hana_node_up {
     "kill" - kills database processes using "HDB -kill" command.
     "crash" - crashes entire os using "/proc-sysrq-trigger" method.
 
-=over 2
+=over
 
 =item B<method> - Allow to specify a specific stop method
 
@@ -439,7 +439,7 @@ sub start_hana {
 
     Cleanup resource 'msl_SAPHana_*', wait for DB start automatically.
 
-=over 1
+=over
 
 =item B<timeout> - timeout for waiting resource to start
 
@@ -504,7 +504,7 @@ sub check_takeover {
 
     Enables replication on fenced database. Database needs to be offline.
 
-=over 1
+=over
 
 =item B<site_name> - site name of the site to register
 
@@ -591,7 +591,7 @@ sub get_promoted_instance {
      - replica must have clone_state 'DEMOTED'
      - site order does not matter
 
-=over 1
+=over
 
 =item B<timeout> - timeout for waiting sync state
 
@@ -627,7 +627,7 @@ sub wait_for_sync {
 
     Checks status of pacemaker via systemd 'is-active' command an waits for startup.
 
-=over 1
+=over
 
 =item B<timeout> - timeout for waiting for pacemaker service
 
@@ -658,7 +658,7 @@ sub wait_for_pacemaker {
      Overrides timeout for sbd systemd service to a value provided by argument.
      This is done by creating or changing file "/etc/systemd/system/sbd.service.d/sbd_delay_start.conf"
 
-=over 1
+=over
 
 =item B<service_timeout> - value for the TimeoutSec setting
 
@@ -760,7 +760,7 @@ sub sbd_delay_formula() {
 
     Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()
 
-=over 3
+=over
 
 =item B<filename> - file location
 
@@ -783,7 +783,7 @@ sub cloud_file_content_replace() {
     Create and populate a list of publiccloud::instance and publiccloud::provider compatible
     class instances.
 
-=over 1
+=over
 
 =item B<provider> - Instance of PC object "provider", the one usually created by provider_factory()
 
@@ -860,7 +860,7 @@ sub delete_network_peering {
     Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
     in the "ansible: create:" section of config.yaml file.
 
-=over 10
+=over
 
 =item B<ha_enabled> - Enable the installation of HANA and the cluster configuration
 
@@ -967,7 +967,7 @@ sub create_playbook_section_list {
 
     Collects data and creates string of arguments that can be supplied to playbook.
 
-=over 3
+=over
 
 =item B<FENCE_TYPE> - Azure native fence type (spn|msi)
 
@@ -1086,7 +1086,7 @@ sub list_cluster_nodes {
     Run a query to the hana database, parses "hdbsql" command output and check if the connection still is alive.
     Returns 1 if the response from hana database is online, 0 otherwise
 
-=over 2
+=over
 
 =item B<password_db> - password
 
@@ -1114,7 +1114,7 @@ sub get_hana_database_status {
     If the connection still is online run a wait and try again to get the status.
     Returns 1 if the output of the hana database is online, 0 means that hana database is offline
 
-=over 2
+=over
 
 =item B<timeout> - default 900
 
@@ -1155,7 +1155,7 @@ sub is_hana_database_online {
     Check if primary node in a hana cluster is offline.
     Returns if primary node status is offline with 0 and 1 online
 
-=over 1
+=over
 
 =item B<timeout> - default 300
 
@@ -1229,7 +1229,7 @@ sub saphanasr_showAttr_version {
 
     Verifies that nodes are online, resources are started and DB is in sync
 
-=over 2
+=over
 
 =item B<wait_time> - time to wait before retry in seconds, default 10
 
@@ -1271,7 +1271,7 @@ sub wait_for_cluster {
     The function attempts to run 'zypper ref' to check for a lock. If Zypper is locked, it waits for a specified delay before retrying.
     Returns normally if Zypper is not locked or dies after a maximum number of retries if Zypper remains locked.
 
-=over 5
+=over
 
 =item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
 
@@ -1321,7 +1321,7 @@ sub wait_for_zypper {
     The function wraps the `cs_wait_for_idle` command, and restarts in case of timeout (once, this
     time fatal) after displaying cluster information.
 
-=over 1
+=over
 
 =item B<$timeout> - The timeout (in seconds) for the command.
 

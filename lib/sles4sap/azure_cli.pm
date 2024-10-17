@@ -79,7 +79,7 @@ sub az_version {
 
 Create an Azure resource group in a specific region
 
-=over 2
+=over
 
 =item B<name> - full name of the resource group
 
@@ -121,7 +121,7 @@ sub az_group_name_get {
 
 Delete a resource group with a specific name
 
-=over 1
+=over
 
 =item B<name> - full name of the resource group
 
@@ -152,7 +152,7 @@ sub az_group_delete {
 
 Create a virtual network
 
-=over 6
+=over
 
 =item B<resource_group> - existing resource group where to create the network
 
@@ -208,7 +208,7 @@ sub az_network_vnet_create {
 
 Update a Subnet
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group where to create the network
 
@@ -247,7 +247,7 @@ sub az_network_vnet_subnet_update {
 
 Return the output of az network vnet list
 
-=over 2
+=over
 
 =item B<resource_group> - resource group name to query
 
@@ -276,7 +276,7 @@ sub az_network_vnet_get {
 
 Create a network security group
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group where to create the NSG
 
@@ -307,7 +307,7 @@ sub az_network_nsg_create {
 Create a very specific type of inbound rule for an existing network security group
 Just few parameters are configurable here, like the port number
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group where to create the NSG rule
 
@@ -349,7 +349,7 @@ sub az_network_nsg_rule_create {
 
 Create an IPv4 public IP resource
 
-=over 5
+=over
 
 =item B<resource_group> - existing resource group where to create the PubIP
 
@@ -389,7 +389,7 @@ sub az_network_publicip_create {
 
 Return an IPv4 public IP address from its name
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group including the PubIP
 
@@ -420,7 +420,7 @@ sub az_network_publicip_get {
 
 Create a NAT Gateway
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group where to create the NAT Gateway
 
@@ -464,7 +464,7 @@ to link back-end and front-end resources (usually an IP)
 
 SKU Standard (and not Basic) is needed to get some Metrics
 
-=over 8
+=over
 
 =item B<resource_group> - existing resource group where to create lb
 
@@ -523,7 +523,7 @@ sub az_network_lb_create {
 
 Create a load balancer health probe.
 
-=over 5
+=over
 
 =item B<resource_group> - existing resource group where to create lb probe
 
@@ -569,7 +569,7 @@ sub az_network_lb_probe_create {
 
 Configure the load balancer behavior.
 
-=over 8
+=over
 
 =item B<resource_group> - existing resource group where to create lb rule
 
@@ -621,7 +621,7 @@ sub az_network_lb_rule_create {
 
 Create an availability set. Later on VM can be assigned to it.
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group where to create the Availability set
 
@@ -659,7 +659,7 @@ sub az_vm_as_create {
 
 Create a virtual machine
 
-=over 15
+=over
 
 =item B<resource_group> - existing resource group where to create the VM
 
@@ -739,7 +739,7 @@ sub az_vm_create {
 Get the info from all existing VMs within a Resource Group
 Return a decoded json hash according to the provided jmespath query
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group where to search for VMs
 
@@ -776,7 +776,7 @@ Json output looks like:
   "VM running"
 ]
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group where to look for a specific VM
 
@@ -813,7 +813,7 @@ Get the VM state until status looks like:
 
 or reach timeout. Polling frequency is dynamically calculated based on the timeout
 
-=over 3
+=over
 
 =item B<resource_group> - existing resource group where to look for a specific VM
 
@@ -861,7 +861,7 @@ sub az_vm_wait_running {
 
 Open a port on an existing VM
 
-=over 3
+=over
 
 =item B<resource_group> - existing resource group where to search for a specific VM
 
@@ -892,7 +892,7 @@ sub az_vm_openport {
 
 Wait cloud-init completion on a running VM
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group where to search for a specific VM
 
@@ -931,7 +931,7 @@ sub az_vm_wait_cloudinit {
 
 Get the NIC ID of the first NIC of a given VM
 
-=over 2
+=over
 
 =item B<resource_group> - existing resource group where to search for a specific NIC
 
@@ -957,7 +957,7 @@ sub az_nic_id_get {
 
 Get the NIC data from NIC ID
 
-=over 2
+=over
 
 =item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
 
@@ -986,7 +986,7 @@ sub az_nic_get {
 
 Get the NIC name from NIC ID
 
-=over 1
+=over
 
 =item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
 
@@ -1007,7 +1007,7 @@ sub az_nic_name_get {
 
 Get the name of the first IpConfig of a NIC from a NIC ID
 
-=over 1
+=over
 
 =item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
 
@@ -1031,7 +1031,7 @@ sub az_ipconfig_name_get {
 
 Change the IpConfig to use a static IP
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group
 
@@ -1071,7 +1071,7 @@ sub az_ipconfig_update {
 
 Add the IpConfig to a LB address pool
 
-=over 4
+=over
 
 =item B<resource_group> - existing resource group
 
@@ -1107,7 +1107,7 @@ sub az_ipconfig_pool_add {
 
 Enable diagnostic log for a specific VM
 
-=over 3
+=over
 
 =item B<resource_group> - existing resource group where to search for a specific VM
 
@@ -1147,7 +1147,7 @@ resource group associated to this openQA job
 
 Return a list of diagnostic file paths on the JumpHost
 
-=over 1
+=over
 
 =item B<resource_group> - existing resource group where to search for a specific VM
 
@@ -1178,7 +1178,7 @@ sub az_vm_diagnostic_log_get {
 
 Create a storage account
 
-=over 3
+=over
 
 =item B<resource_group> - existing resource group where to create the storage account
 
@@ -1213,7 +1213,7 @@ sub az_storage_account_create {
 
 Create network peering
 
-=over 5
+=over
 
 =item B<name> - NAME for the network peering to create
 
@@ -1259,7 +1259,7 @@ sub az_network_peering_create {
 
 Return HASH representing existing net peering
 
-=over 3
+=over
 
 =item B<resource_group> - existing resource group that contain vnet source of the peering
 
@@ -1293,7 +1293,7 @@ sub az_network_peering_list {
 
 Delete a specific network peering
 
-=over 3
+=over
 
 =item B<name> - name of the existing the network peering to delete
 
@@ -1325,7 +1325,7 @@ sub az_network_peering_delete {
 Creates new disk device either by specifying B<size_gb> or by cloning another disk device using argument B<source>.
 Arguments B<size_gb> and B<source> are mutually exclusive.
 
-=over 5
+=over
 
 =item B<name> New disk name
 
@@ -1365,7 +1365,7 @@ Deletes resource from specified resource group. Single resource can be deleted b
 delimited by empty space using argument B<ids>.
 Arguments B<name> and B<ids> are mutually exclusive.
 
-=over 4
+=over
 
 =item B<resource_group> Existing resource group name.
 
@@ -1402,7 +1402,7 @@ sub az_resource_delete {
     which is commonly used as an identifier for Azure resources.
     returns uuid (true) on match, 0 (false) on mismatch.
 
-=over 1
+=over
 
 =item B<uuid> UUID string to test.
 

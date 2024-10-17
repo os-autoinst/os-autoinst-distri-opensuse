@@ -101,7 +101,7 @@ Create a deployment in Azure designed for this specific test.
 5. Create 1 additional VM that get
 6. Create a Load Balancer with 2 VM in backend and with an IP as frontend
 
-=over 5
+=over
 
 =item B<region> - existing resource group
 
@@ -400,7 +400,7 @@ sub ipaddr2_bastion_pubip {
 Help to create ssh command that target the only VM
 in the deployment that has public IP.
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -421,7 +421,7 @@ sub ipaddr2_bastion_ssh_addr {
 
 For the worker to accept the ssh key of the bastion
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -457,7 +457,7 @@ sub ipaddr2_bastion_key_accept {
 
 For the worker to accept the ssh key of the internal VMs
 
-=over 2
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -545,7 +545,7 @@ One ssk key pair for each internal VM
 Then upload in each internal VM the ssh key pair using
 scp in Proxy mode
 
-=over 2
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -684,7 +684,7 @@ Run some OS level checks on the various VMs composing the deployment.
 die in case of failure. Tests are targeting all the VM.
 Tests are independent by the cluster status.
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -716,7 +716,7 @@ sub ipaddr2_os_sanity {
 
 Run some cluster level checks...
 
-=over 2
+=over
 
 =item B<id> - ID of the internal VM where to run the crm commands. Default is 1.
 
@@ -767,7 +767,7 @@ die in case of failure
 - bastion has to be able to ping the internal VM using the internal private IP
 - bastion has to be able to ping the internal VM using the internal VM hostname
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -818,7 +818,7 @@ sub ipaddr2_os_connectivity_sanity {
 
 Run some checks about cloud-init
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -855,7 +855,7 @@ sub ipaddr2_os_cloud_init_sanity {
 
 Collect some cloud-init related logs
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -894,7 +894,7 @@ sub ipaddr2_os_cloud_init_logs {
 
 Check that private IP are in the network configuration on the internal VMs
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -921,7 +921,7 @@ sub ipaddr2_os_network_sanity {
 Run some OS level checks on the various VMs ssh keys and configurations.
 die in case of failure
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -987,7 +987,7 @@ sub ipaddr2_os_ssh_sanity {
 
 run a command on the bastion using assert_script_run
 
-=over 2
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -1018,7 +1018,7 @@ sub ipaddr2_ssh_bastion_assert_script_run {
 
 run a command on the bastion using script_run
 
-=over 2
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -1049,7 +1049,7 @@ sub ipaddr2_ssh_bastion_script_run {
 
 run a command on the bastion using script_output
 
-=over 2
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -1085,7 +1085,7 @@ This function does not really execute any command, it only return a string.
 Other functions can use result command string as input for various testapi functions,
 like assert_script_run or script_output.
 
-=over 3
+=over
 
 =item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
 
@@ -1121,7 +1121,7 @@ sub ipaddr2_ssh_internal_cmd {
 run a command on one of the two internal VM through the bastion
 using the assert_script_run API
 
-=over 4
+=over
 
 =item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
 
@@ -1161,7 +1161,7 @@ sub ipaddr2_ssh_internal {
 Runs $cmd  through the bastion on one of the two internal VMs using script_output.
 Return the command output.
 
-=over 4
+=over
 
 =item B<id> - ID of the internal VM. Used to compose its name and as address for ssh.
 
@@ -1197,7 +1197,7 @@ sub ipaddr2_ssh_internal_output {
 
 Initialize and configure the Pacemaker cluster on the two internal nodes
 
-=over 1
+=over
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
@@ -1271,7 +1271,7 @@ sub ipaddr2_create_cluster {
 
 Check if image is registered. Return 1 is it is registered, 0 if at least one is not.
 
-=over 2
+=over
 
 =item B<id> - VM id where to install and configure the web server
 
@@ -1311,7 +1311,7 @@ sub ipaddr2_registeration_check {
 Register the image. Notice that this library also support registration through
 ipaddr2_azure_deployment
 
-=over 3
+=over
 
 =item B<id> - VM id where to install and configure the web server
 
@@ -1352,7 +1352,7 @@ This function is in charge to:
     2. create a web page file
     3. enable and start the system
 
-=over 2
+=over
 
 =item B<id> - VM id where to install and configure the web server
 
@@ -1386,7 +1386,7 @@ sub ipaddr2_configure_web_server {
 
 Call zypper refresh
 
-=over 1
+=over
 
 =item B<id> - VM id where to install and configure the web server
 
@@ -1438,7 +1438,7 @@ sub ipaddr2_destroy {
 
 compose and return a string for the vm name
 
-=over 1
+=over
 
 =item B<id> - VM id number
 
@@ -1457,7 +1457,7 @@ sub ipaddr2_get_internal_vm_name {
 
 compose and return a string representing the VM private IP
 
-=over 1
+=over
 
 =item B<id> - VM id number
 
@@ -1490,7 +1490,7 @@ sub ipaddr2_get_worker_tmp_for_internal_vm {
 
 move the rsc_web_00 resource to the indicated node
 
-=over 3
+=over
 
 =item B<destination> - VM id where to move the rsc_web_00 resource
 
@@ -1526,7 +1526,7 @@ sub ipaddr2_crm_move {
 
 clear all location constrain used during the test
 
-=over 2
+=over
 
 =item B<id> - VM id where to run the command, not so important as long as it is in the cluster. Default 1.
 
@@ -1563,7 +1563,7 @@ This is possible because the webserver on each node is configured
 to return its hostname in the response.
 Return 1 as soon as it gets the id in the response. Return 0 if not within 10 minutes.
 
-=over 2
+=over
 
 =item B<destination> - VM id that from where the web server response is expected to come from
 
@@ -1605,7 +1605,7 @@ sub ipaddr2_wait_for_takeover {
 Runs a curl request from the bastion and using the virtual IP address as URL.
 Return result of searching str_match in the curl response
 
-=over 3
+=over
 
 =item B<web_url> - webserver url
 
@@ -1640,7 +1640,7 @@ sub ipaddr2_get_web {
 Check the status on the VM that is supposed to have
 the resources.
 
-=over 2
+=over
 
 =item B<id> - VM id that is expected to be master
 
@@ -1728,7 +1728,7 @@ sub ipaddr2_test_master_vm {
 Check the status on the VM that is supposed not to have
 the resources.
 
-=over 2
+=over
 
 =item B<id> - VM id that is expected not to be master
 

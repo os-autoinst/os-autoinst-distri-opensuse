@@ -217,7 +217,7 @@ sub qesap_create_ansible_section {
     This function never dies: it always returns an error to the caller.
     Timeout error is 124 (the one reported by timeout command line utility).
 
-=over 3
+=over
 
 =item B<CMD> - command to run within the .venv, usually it is a qesap.py based command
 
@@ -341,7 +341,7 @@ sub qesap_galaxy_install {
 
     Collect and upload logs present in @log_files.
 
-=over 1
+=over
 
 =item B<FAILOK> - used as failok for the upload_logs. continue even in case upload fails
 
@@ -493,7 +493,7 @@ sub qesap_yaml_replace {
       - second element is the file path of the execution log
     This function is not expected to internally die, any failure has to be handled by the caller.
 
-=over 5
+=over
 
 =item B<CMD> - qesap.py subcommand to run
 
@@ -569,7 +569,7 @@ sub qesap_execute {
     https://github.com/SUSE/qe-sap-deployment
     Test only returns execution result, failure has to be handled by calling method.
 
-=over 6
+=over
 
 =item B<CMD> - qesap.py subcommand to run
 
@@ -638,7 +638,7 @@ sub qesap_execute_conditional_retry {
     Search for a string in the Ansible log file.
     Returns 1 if the string is found in the log file, 0 otherwise.
 
-=over 2
+=over
 
 =item B<FILE> - Path to the Ansible log file. (Required)
 
@@ -658,7 +658,7 @@ sub qesap_file_find_string {
 
     Return the path of the generated inventory
 
-=over 1
+=over
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
@@ -676,7 +676,7 @@ sub qesap_get_inventory {
 
 Get the number of cluster nodes from the inventory.yaml
 
-=over 1
+=over
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
@@ -702,7 +702,7 @@ sub qesap_get_nodes_number {
 
 Get the cluster nodes' names from the inventory.yaml
 
-=over 1
+=over
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
@@ -731,7 +731,7 @@ sub qesap_get_nodes_names {
     Return the path used by the qesap script as -chdir argument for terraform
     It is useful if test would like to call terraform
 
-=over 1
+=over
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
@@ -770,7 +770,7 @@ sub qesap_get_ansible_roles_dir {
     For variables example see 'qesap_yaml_replace'
     Returns only result, failure handling has to be done by calling method.
 
-=over 1
+=over
 
 =item B<PROVIDER> - Cloud provider name, used to optionally activate AWS credential code
 
@@ -852,7 +852,7 @@ sub qesap_ansible_get_playbook {
     Use Ansible to run a command remotely on some or all
     the hosts from the inventory.yaml
 
-=over 8
+=over
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -923,7 +923,7 @@ sub qesap_ansible_cmd {
     Return is the local full path of the file containing the output of the
     remotely executed command.
 
-=over 11
+=over
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -997,7 +997,7 @@ sub qesap_ansible_script_output_file {
 
     Return the output of a command executed on the remote machine via Ansible.
 
-=over 10
+=over
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -1064,7 +1064,7 @@ sub qesap_ansible_script_output {
 
     Return the local path of the downloaded file.
 
-=over 10
+=over
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -1175,7 +1175,7 @@ sub qesap_remote_hana_public_ips {
   Return -1 in case of timeout
   Return total time of retry loop in case of pass.
 
-=over 3
+=over
 
 =item B<HOST> - IP of the host to probe
 
@@ -1211,7 +1211,7 @@ sub qesap_wait_for_ssh {
 
     Run crm report on a host and upload the resulting tarball to openqa
 
-=over 3
+=over
 
 =item B<HOST> - host to get the report from
 
@@ -1359,7 +1359,7 @@ sub qesap_cluster_logs {
 
 Compose the deployment name. It always has the JobId
 
-=over 1
+=over
 
 =item B<PREFIX> - optional substring prepend in front of the job id
 
@@ -1376,7 +1376,7 @@ sub qesap_calculate_deployment_name {
 
 Return a list of subnets. Return a single subnet for each region.
 
-=over 1
+=over
 
 =item B<VPC_ID> - VPC ID of resource to filter list of subnets
 
@@ -1410,7 +1410,7 @@ sub qesap_aws_get_region_subnets {
 
 =cut
 
-=over 1
+=over
 
 =item B<RESOURCE_GROUP> - resource group name to query
 
@@ -1478,7 +1478,7 @@ sub qesap_aws_get_transit_gateway_vpc_attachment {
     Return 0 (false) if create-transit-gateway-vpc-attachment fails or
                   the gateway does not become active before the timeout
 
-=over 5
+=over
 
 =item B<TRANSIT_GATEWAY_ID> - ID of the target Transit gateway (IBS Mirror)
 
@@ -1531,7 +1531,7 @@ sub qesap_aws_create_transit_gateway_vpc_attachment {
     Return 0 (false) if delete-transit-gateway-vpc-attachment fails or
          the gateway does not become inactive before the timeout
 
-=over 2
+=over
 
 =item B<NAME> - Prefix for the Tag Name of transit-gateway-vpc-attachment
 
@@ -1570,7 +1570,7 @@ sub qesap_aws_delete_transit_gateway_vpc_attachment {
 =head3 qesap_aws_add_route_to_tgw
     Adding the route to the transit gateway to the routing table in refhost VPC
 
-=over 3
+=over
 
 =item B<RTABLE_ID> - Routing table ID
 
@@ -1633,7 +1633,7 @@ sub qesap_aws_get_mirror_tg {
     Get the VPC tag workspace defined in
     https://github.com/SUSE/qe-sap-deployment/blob/main/terraform/aws/infrastructure.tf
 
-=over 1
+=over
 
 =item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
 
@@ -1656,7 +1656,7 @@ sub qesap_aws_get_vpc_workspace {
     Get the Routing table: searching Routing Table with external connection
     and get the RouteTableId
 
-=over 1
+=over
 
 =item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
 
@@ -1681,7 +1681,7 @@ sub qesap_aws_get_routing {
 
     Return 1 (true) if the overall peering procedure completes successfully
 
-=over 2
+=over
 
 =item B<TARGET_IP> - Target IP network to be added to the Routing table eg. 192.168.11.0/16
 
@@ -1744,7 +1744,7 @@ sub qesap_aws_vnet_peering {
 
     Adds a 'ip -> name' pair in the end of /etc/hosts in the hosts
 
-=over 2
+=over
 
 =item B<IP> - ip of server to add to hosts
 
@@ -1772,7 +1772,7 @@ sub qesap_add_server_to_hosts {
     Downloads assets required for re-using infrastructure from previously exported test.
     qesap_import_instances(<$test_id>)
 
-=over 1
+=over
 
 =item B<$test_id> - OpenQA test ID from a test previously run with "QESAP_DEPLOYMENT_IMPORT=1" and
                     infrastructure still being up and running
@@ -1825,7 +1825,7 @@ sub qesap_export_instances {
     Get whether a specified job is still running or not. 
     In cases of ambiguous responses, they are considered to be in `running` state.
 
-=over 1
+=over
 
 =item B<JOB_ID> - id of job to check
 
@@ -1860,7 +1860,7 @@ sub qesap_is_job_finished {
 
 Return the output of az network vnet list
 
-=over 1
+=over
 
 =item B<RESOURCE_GROUP> - resource group name to query
 
@@ -1884,7 +1884,7 @@ sub qesap_az_get_vnet {
 Query and return the resource group used
 by the qe-sap-deployment
 
-=over 1
+=over
 
 =item B<SUBSTRING> - optional substring to be used with additional grep at the end of the command
 
@@ -1908,7 +1908,7 @@ ranges. The format is 10.ip2.ip3.0/21 and
  /24 respectively. ip2 and ip3 are calculated
  using the slot number as seed.
 
-=over 1
+=over
 
 =item B<SLOT> - integer to be used as seed in calculating addresses
 
@@ -1939,7 +1939,7 @@ sub qesap_az_calculate_address_range {
     Create a pair of network peering between
     the two provided deployments.
 
-=over 3
+=over
 
 =item B<SOURCE_GROUP> - resource group of source
 
@@ -2008,7 +2008,7 @@ sub qesap_az_vnet_peering {
 
     Delete a single peering one way
 
-=over 4
+=over
 
 =item B<RG> - Name of the resource group
 
@@ -2037,7 +2037,7 @@ sub qesap_az_simple_peering_delete {
 
     Delete all the network peering between the two provided deployments.
 
-=over 3
+=over
 
 =item B<SOURCE_GROUP> - resource group of source.
                         This parameter is optional, if not provided
@@ -2102,7 +2102,7 @@ sub qesap_az_vnet_peering_delete {
     - vnet
     Returns the command string to be run.
 
-=over 2
+=over
 
 =item B<RESOURCE_GROUP> - resource group connected to the peering
 
@@ -2130,7 +2130,7 @@ sub qesap_az_peering_list_cmd {
     Returns the peering name or
     empty string if a peering doesn't exist
 
-=over 1
+=over
 
 =item B<RESOURCE_GROUP> - resource group connected to the peering
 
@@ -2151,7 +2151,7 @@ sub qesap_az_get_peering_name {
 
     Get active peering for Azure jobs
 
-=over 2
+=over
 
 =item B<RG> - Resource group in question
 
@@ -2180,7 +2180,7 @@ sub qesap_az_get_active_peerings {
 
     Delete leftover peering for Azure jobs that finished without cleaning up
 
-=over 2
+=over
 
 =item B<RG> - Resource group in question
 
@@ -2210,7 +2210,7 @@ sub qesap_az_clean_old_peerings {
     Sets up managed identity (MSI) by enabling system assigned identity and
     role 'Virtual Machine Contributor'
 
-=over 2
+=over
 
 =item B<VM_NAME> - VM name
 
@@ -2236,7 +2236,7 @@ sub qesap_az_setup_native_fencing_permissions {
     Enables 'System assigned identity' for specified VM.
     Returns 'systemAssignedIdentity' ID.
 
-=over 2
+=over
 
 =item B<VM_NAME> - VM name
 
@@ -2314,7 +2314,7 @@ Generate a SAS URI token for a storage container of choice
 
 Return the token string
 
-=over 5
+=over
 
 =item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
 
@@ -2380,7 +2380,7 @@ az storage blob list
 --prefix <path_inside_container> 
 --query "[].{name:name}" --output tsv
 
-=over 4
+=over
 
 =item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
 
@@ -2445,7 +2445,7 @@ sub qesap_az_diagnostic_log {
     Return 0: we manage the failure properly
     Return 1: something went wrong or we do not know what to do with the failure
 
-=over 2
+=over
 
 =item B<ERROR_LOG> - error log filename
 
@@ -2534,7 +2534,7 @@ sub qesap_terrafom_ansible_deploy_retry {
      - 2: reboot timeout
      - 3: no sudo password
 
-=over 1
+=over
 
 =item B<ERROR_LOG> - error log filename
 
@@ -2577,7 +2577,7 @@ sub qesap_ansible_error_detection {
   Post fail tasks suitable for post_fail_hook of the test modules.
   This API is mainly designed for qesap regresstion test modules.
 
-=over 2
+=over
 
 =item B<PROVIDER> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting
 
