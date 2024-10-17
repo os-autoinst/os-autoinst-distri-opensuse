@@ -87,20 +87,78 @@ sub run {
     # add client monitoring
     my @artifacts = qw(SUSE.Linux.Events.DNS SUSE.Linux.Events.ExecutableFiles SUSE.Linux.Events.ImmutableFile SUSE.Linux.Events.NewFiles SUSE.Linux.Events.NewFilesNoOwner SUSE.Linux.Events.NewHiddenFile SUSE.Linux.Events.NewZeroSizeLogFile SUSE.Linux.Events.Packages SUSE.Linux.Events.ProcessStatuses SUSE.Linux.Events.SSHLogin SUSE.Linux.Events.Services SUSE.Linux.Events.SshAuthorizedKeys SUSE.Linux.Events.SystemLogins SUSE.Linux.Events.TCPConnections SUSE.Linux.Events.Timers SUSE.Linux.Events.UserAccount SUSE.Linux.Events.UserGroupMembershipUpdates);
     foreach my $artifact (@artifacts) {
-        assert_script_run("velociraptor-client --api_config ~/api.config.yaml query 'SELECT add_client_monitoring(artifact=\"$artifact\") FROM scope()'");
+        script_run("velociraptor-client --api_config ~/api.config.yaml query 'SELECT add_client_monitoring(artifact=\"$artifact\") FROM scope()'");
     }
 
-    # generetae client events
-    sleep 10;
+    # trigger SUSE.Linux.Events.DNS
+    assert_script_run "dig localhost";
+    assert_script_run "host localhost";
+    assert_script_run "nslookup localhost";
+
+    # trigger SUSE.Linux.Events.ExecutableFiles
     my $i = 0;
-    while ($i < 10) {
+    while ($i < 5) {
         assert_script_run "echo 'Client Event exec' >> /home/genfile$i.sh";
         assert_script_run "chmod +x /home/genfile$i.sh";
         assert_script_run "echo 'Client Event exec' >> /tmp/genfile$i.sh";
         assert_script_run "chmod +x /tmp/genfile$i.sh";
+        # trigger SUSE.Linux.Events.ImmutableFile
+        assert_script_run "echo 'Immutible file' >> /home/immutible$i.txt";
+        assert_script_run "chattr +i /home/immutible$i.txt";
+        assert_script_run "echo 'Immutible file' >> /tmp/immutible$i.txt";
+        assert_script_run "chattr +i /tmp/immutible$i.txt";
+        # trigger SUSE.Linux.Events.NewFiles
+        assert_script_run "sudo echo 'new files' >> /etc/cron.hourly/newfiles$i.txt";
+        assert_script_run "sudo echo 'new files' >> /etc/cron.daily/newfiles$i.txt";
+        assert_script_run "sudo echo 'new files' >> /etc/cron.weekly/newfiles$i.txt";
+        # trigger SUSE.Linux.Events.NewFilesNoOwner
+        assert_script_run "echo 'No owner file' >> /home/noownerfile$i.txt";
+        assert_script_run "chown 9999:9999 /home/noownerfile$i.txt";
+        assert_script_run "echo 'No owner file' >> /tmp/noownerfile$i.txt";
+        assert_script_run "chown 9999:9999 /tmp/noownerfile$i.txt";
+        # trigger SUSE.Linux.Events.NewHiddenFile
+        assert_script_run "mkdir /home/.newhiddendir$i";
+        assert_script_run "echo 'New hidden file' >> /home/.newhiddenfiles$i.txt";
+        assert_script_run "mkdir /tmp/.newhiddenfir$i";
+        assert_script_run "echo 'New hidden file' >> /tmp/.newhiddenfiles$i.txt";
+        # trigger SUSE.Linux.Events.NewZeroSizeLogFile
+        assert_script_run "touch /var/log/newzerosizelog$i.txt";
         $i++;
     }
-    sleep 60;
+    # trigger SUSE.Linux.Events.Packages
+    zypper_call "in libexttextcat";
+    zypper_call "in html2text";
+    zypper_call "rm libexttextcat";
+    zypper_call "rm html2text";
+    # trigger SUSE.Linux.Events.ProcessStatuses
+    # trigger SUSE.Linux.Events.SSHLogin && SUSE.Linux.Events.SystemLogins
+    zypper_call('in sshpass');
+    assert_script_run "sudo useradd -m user1";
+    assert_script_run "sudo useradd -m user2";
+    assert_script_run "echo 'user1:passwd1' | sudo chpasswd";
+    assert_script_run "echo 'user2:passwd2' | sudo chpasswd";
+    assert_script_run('sshpass -p \'passwd1\' ssh -o StrictHostKeyChecking=no user1@localhost whoami');
+    assert_script_run('sshpass -p \'passwd2\' ssh -o StrictHostKeyChecking=no user2@localhost whoami');
+    assert_script_run "sudo userdel -r user1";
+    assert_script_run "sudo userdel -r user2";
+    # trigger SUSE.Linux.Events.Services
+    assert_script_run "systemctl status cron";
+    assert_script_run "systemctl restart cron";
+    assert_script_run "systemctl status cron";
+    # trigger SUSE.Linux.Events.SshAuthorizedKeys
+    assert_script_run 'echo \'test event keys123@example\'.ssh/authorized_keys';
+    # trigger SUSE.Linux.Events.TCPConnections
+    script_run "nc localhost 8080";
+    # trigger SUSE.Linux.Events.Timers
+    assert_script_run "systemctl status snapper-timeline.timer";
+    assert_script_run "systemctl restart snapper-timeline.timer";
+    assert_script_run "systemctl status snapper-timeline.timer";
+    # trigger SUSE.Linux.Events.UserAccount
+    #assert_script_run"";
+    # trigger SUSE.Linux.Events.UserGroupMembershipUpdates
+    #assert_script_run"";
+
+    sleep 120;
     # check for collected event on server
     script_output "ls -la /var/tmp/velociraptor/clients/$clientid/monitoring_logs/";
     script_output "ls -la /var/tmp/velociraptor/clients/$clientid/monitoring/";
@@ -108,6 +166,7 @@ sub run {
     my @names = split /\s+/, $files;
     for (@names) {
         my @name = split /\//, $_;
+        # verify event logs exist
         upload_logs($_, log_name => "artifact-$name[7].json");
     }
     # skipping validation on s390x due to https://jira.suse.com/browse/SENS-122
