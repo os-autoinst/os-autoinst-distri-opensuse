@@ -1016,7 +1016,12 @@ sub zypper_install_available {
     my $packlist = join(' ', @_);
     my $result = zypper_search("-t package --match-exact $packlist");
 
-    return zypper_call('-t in ' . join(' ', map { $_->{name} } @$result));
+    if (is_transactional) {
+        return transactional::trup_call("-c pkg install " . join(' ', map { $_->{name} } @$result));
+    }
+    else {
+        return zypper_call('-t in ' . join(' ', map { $_->{name} } @$result));
+    }
 }
 
 =head2 set_zypper_lock_timeout
