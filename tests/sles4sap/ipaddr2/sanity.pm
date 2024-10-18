@@ -24,7 +24,14 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
-    ipaddr2_os_sanity();
+
+    my %sanity_args = (bastion_ip => $bastion_ip);
+
+    # Default for ipaddr2_os_sanity is cloudadmin.
+    # It has to know about it to decide which ssh are expected in internal VMs
+    $sanity_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
+    ipaddr2_os_sanity(%sanity_args);
+
     ipaddr2_cluster_sanity();
 }
 

@@ -39,8 +39,10 @@ sub run {
     my %int_key_args = (bastion_ip => $bastion_ip);
     # unsupported option "accept-new" for default ssh used in 12sp5
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
-
     ipaddr2_internal_key_accept(%int_key_args);
+
+    # default for ipaddr2_internal_key_gen is cloudadmin
+    $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_internal_key_gen(%int_key_args);
 
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
@@ -72,7 +74,7 @@ sub run {
     }
 
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
-    ipaddr2_create_cluster(bastion_ip => $bastion_ip);
+    ipaddr2_create_cluster(bastion_ip => $bastion_ip, rootless => get_var('IPADDR2_ROOTLESS', '1'));
 }
 
 sub test_flags {
