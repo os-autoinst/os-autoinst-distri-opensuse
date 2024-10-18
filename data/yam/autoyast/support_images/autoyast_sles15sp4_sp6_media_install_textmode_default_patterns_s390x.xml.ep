@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm t="boolean">false</confirm>
+      <confirm_base_product_license t="boolean">true</confirm_base_product_license>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout t="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <suse_register>
+    <do_registration t="boolean">false</do_registration>
+  </suse_register>
+  <add-on>
+    <add_on_products t="list">
+      <listentry>
+      <media_url><![CDATA[ftp://openqa.suse.de/SLE-<%= $get_var->('VERSION') %>-Full-s390x-GM-Media1/]]></media_url>
+        <product>sle-module-basesystem</product>
+        <product_dir>/Module-Basesystem</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[ftp://openqa.suse.de/SLE-<%= $get_var->('VERSION') %>-Full-s390x-GM-Media1/]]></media_url>
+        <product>sle-module-server-applications</product>
+        <product_dir>/Module-Server-Applications</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <report>
+    <errors>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <networking>
+    <interfaces t="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <firewall>
+    <default_zone>public</default_zone>
+    <enable_firewall t="boolean">true</enable_firewall>
+    <log_denied_packets>off</log_denied_packets>
+    <start_firewall t="boolean">true</start_firewall>
+    <zones t="list">
+      <zone t="map">
+        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+        <interfaces t="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <masquerade t="boolean">false</masquerade>
+        <name>public</name>
+        <ports t="list"/>
+        <protocols t="list"/>
+        <services t="list">
+          <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
+  </firewall>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wicked</service>
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <users t="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted t="boolean">true</encrypted>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted t="boolean">true</encrypted>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <software>
+    <packages t="list">
+      <package>grub2</package>
+      <package>sles-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>openssh</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+</profile>
