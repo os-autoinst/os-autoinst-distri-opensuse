@@ -10,6 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
+  ipaddr2_bastion_pubip
   ipaddr2_cluster_sanity
   ipaddr2_deployment_logs
   ipaddr2_infra_destroy
@@ -24,8 +25,15 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     select_serial_terminal;
-    ipaddr2_os_sanity();
-    ipaddr2_cluster_sanity();
+
+    my $bastion_ip = ipaddr2_bastion_pubip();
+
+    # Default for ipaddr2_os_sanity is cloudadmin.
+    # It has to know about it to decide which ssh are expected in internal VMs
+    my %sanity_args = (bastion_ip => $bastion_ip);
+    $sanity_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
+    ipaddr2_os_sanity(%sanity_args);
+    ipaddr2_cluster_sanity(bastion_ip => $bastion_ip);
 }
 
 sub test_flags {
