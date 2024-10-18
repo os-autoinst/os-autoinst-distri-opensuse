@@ -34,6 +34,11 @@ sub run {
     # this package is not available on SL Micro
     zypper_call('in expect') unless is_transactional;
 
+    # on Tumbleweed sshd is not active by default:
+    # ensure sshd is installed and started before trying to connect
+    assert_script_run 'rpm -q openssh-server || zypper in -y openssh-server';
+    assert_script_run 'systemctl is-active sshd || systemctl enable --now sshd';
+
     # on SL Micro we skip this check because it behaves differently
     validate_script_output
       'expect -c "spawn ssh -v -o StrictHostKeyChecking=no localhost; expect -re \[Pp\]assword; send badpass\n; exit 0"',
