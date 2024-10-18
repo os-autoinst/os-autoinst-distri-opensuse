@@ -16,13 +16,14 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        tag_array_ref_any_first_screen_shown => [qw(agama-product-selection agama-configuring-the-product agama-installing)]
+        tag_array_ref_any_first_screen_shown => [],
+        timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 90
     }, $class;
 }
 
 sub expect_is_shown {
     my ($self) = @_;
-    assert_screen($self->{tag_array_ref_any_first_screen_shown}, 90);
+    assert_screen($self->{tag_array_ref_any_first_screen_shown}, $self->{timeout_expect_is_shown});
 }
 
 1;
