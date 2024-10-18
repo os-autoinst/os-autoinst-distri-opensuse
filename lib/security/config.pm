@@ -1,0 +1,20 @@
+# openssl fips test
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Summary: Stronger password to be used with CC/FIPS.
+#
+# Maintainer: QE Security <none@suse.de>
+
+package security::config;
+
+use strict;
+use warnings;
+
+use base 'Exporter';
+
+our @EXPORT = qw(strong_password);
+
+our $strong_password = "not-so-s3cr3t_BUT_VERY_STRONG.";
+
+1;
