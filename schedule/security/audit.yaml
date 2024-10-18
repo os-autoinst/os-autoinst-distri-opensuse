@@ -1,13 +1,18 @@
 name: audit
 description:    >
     Audit test for sle and Tumbleweed
+conditional_schedule:
+    audit_ver_lt_4:
+        DISTRI:
+            sle:
+                - security/audit/autrace
 schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/audit/auditd
     - security/audit/auditctl
-    - security/audit/autrace
     - security/audit/ausearch
+    - '{{audit_ver_lt_4}}'
     - security/audit/aureport
     - security/audit/aulastlog
     - security/audit/aulast
