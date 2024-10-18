@@ -13,4 +13,16 @@ use parent Distribution::Sle::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
 
+use Yam::Agama::Pom::GrubMenuBasePage;
+use Yam::Agama::Pom::GrubMenuSlesPage;
+use Yam::Agama::Pom::GrubMenuBaseBug1231658Page;
+use Utils::Architectures;
+
+sub get_grub_menu_installed_system {
+    return is_aarch64() ? Yam::Agama::Pom::GrubMenuSlesPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBaseBug1231658Page->new()})
+      : Yam::Agama::Pom::GrubMenuSlesPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+}
+
 1;
