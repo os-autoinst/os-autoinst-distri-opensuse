@@ -691,7 +691,7 @@ subtest '[az_disk_create] Check exceptions' => sub {
 subtest '[az_resource_delete] by name' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    $azcli->redefine(script_run => sub { @calls = $_[0]; return; });
 
     az_resource_delete(resource_group => 'Pa_a_Pi', name => 'Od_Kuka_do_Kuka');
 
@@ -704,7 +704,7 @@ subtest '[az_resource_delete] by name' => sub {
 subtest '[az_resource_delete] by id' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    $azcli->redefine(script_run => sub { @calls = $_[0]; return; });
 
     az_resource_delete(resource_group => 'Pa_a_Pi', ids => 'odKukadoKuka');
 
@@ -772,6 +772,37 @@ subtest '[az_validate_uuid_pattern] invalid UUID' => sub {
     foreach my $bad_uuid (@uuid_list) {
         is az_validate_uuid_pattern(uuid => $bad_uuid), 0, "Return '0' with invalid UUID: $bad_uuid";
     }
+};
+
+subtest '[az_resource_list] Check mcommand composition' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_resource_list();
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az resource list/ } @calls), 'Correct composition of the main command');
+    ok((any { /--output json/ } @calls), 'Default --ouput option check');
+
+    az_resource_list(resource_group => 'Bambino', query => '[].formaggio', output => 'tsv');
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /--resource-group Bambino/ } @calls), 'Check for --resource-group option.');
+    ok((any { /--query \"\[].formaggio\"/ } @calls), 'Check for --query option.');
+    ok((any { /--output tsv/ } @calls), 'Check for --output option.');
+};
+
+subtest '[az_resource_list] Check return values' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(script_output => sub { return '["Bambino", "formaggio"]'; });
+
+    my $output = az_resource_list();
+    note("\n --> " . join("\n --> ", join(' ', @$output)));
+    is join(' ', @$output), 'Bambino formaggio', 'Check json based output';
+
+    $azcli->redefine(script_output => sub { return 'Bambino formaggio'; });
+    $output = az_resource_list(output => 'tsv');
+    note("\n --> " . join("\n --> ", $output));
+    is $output, 'Bambino formaggio', 'Check tsv based output';
 };
 
 done_testing;
