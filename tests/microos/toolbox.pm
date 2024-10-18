@@ -60,7 +60,7 @@ sub run {
     select_console 'root-console';
     $self->create_user;
 
-    my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
+    my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST_STANDALONE');
 
     if ($toolbox_image_to_test) {
         # We need to extract the registry from the full image uri, e.g.

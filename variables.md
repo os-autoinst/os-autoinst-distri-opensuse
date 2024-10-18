@@ -181,6 +181,7 @@ REBOOT_TIMEOUT | integer | 0 | Set and handle reboot timeout available in YaST i
 REGISTRY | string | docker.io | Registry to pull third-party container images from
 CONTAINER_IMAGE_VERSIONS | string | | List of comma-separated versions from `get_suse_container_urls()`
 CONTAINER_IMAGE_TO_TEST | string | | Single URL string of a specific container image to test.
+CONTAINER_IMAGE_TO_TEST_STANDALONE | string | | URL of a container image to test individually, like toolbox, unrelated to get_image_uri() checks.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.
