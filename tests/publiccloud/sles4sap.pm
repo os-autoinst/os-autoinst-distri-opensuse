@@ -208,10 +208,11 @@ sub run {
                 # Do the HANA "magic" if needed
                 if ($cluster_type eq 'hana') {
                     my $remoteHost = $hostname;
+                    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? "mst" : "msl";
                     $remoteHost =~ s/01/02/;
                     my $hana_cmd = "hdbnsutil -sr_register --name=HDB --remoteHost=$remoteHost --remoteInstance=00 --replicationMode=sync --operationMode=logreplay";
                     $self->run_cmd(cmd => "-i -u prdadm $hana_cmd", title => 'HANA register');
-                    $self->run_cmd(cmd => '-i crm resource cleanup msl_SAPHana_PRD_HDB00', title => 'Resources cleanup');
+                    $self->run_cmd(cmd => "-i crm resource cleanup " . $master_resource_type . "_SAPHanaCtl_" . get_required_var("INSTANCE_SID") . "_HDB" . get_required_var("INSTANCE_ID"), title => 'Resources cleanup');
 
                     # Check cluster resources
                     $self->wait_until_resources_started(timeout => $timeout);
