@@ -182,6 +182,8 @@ sub test_opensuse_based_image {
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
+    } elsif ($image_id =~ /^(sl|sle)-micro$/) {
+        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="SUSE Linux Micro .*"/ };
     } else {
         $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };

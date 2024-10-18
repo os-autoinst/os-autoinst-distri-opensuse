@@ -588,7 +588,8 @@ sub zypper_call {
     my $timeout = $args{timeout} || 700;
     my $log = $args{log};
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
-
+    # (retry >=0 or ='': unchanged; if undef: 5) would first term be '' or 0: 1
+    my $retry = ($args{retry} // 5) or 1;
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
@@ -600,7 +601,7 @@ sub zypper_call {
                     $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }\'\
                     /var/log/zypper.log
                     ';
-    for (1 .. 5) {
+    for (1 .. $retry) {
         $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
@@ -2371,16 +2372,30 @@ This functions checks if ca-certificates-suse is installed and if it is not it a
 
 sub ensure_ca_certificates_suse_installed {
     return unless is_sle || is_sle_micro;
+    my $ret = 0;
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
         my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
         my $distversion = get_required_var($host_version) =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
-        zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
-        if (is_sle_micro) {
-            transactional::trup_call('--continue pkg install ca-certificates-suse');
+
+        # exit codes defined will not stop on error.
+        my $out = zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo", retry => 3, exitcode => [0, 1, 2, 3, 4]);
+        if ($out == 0) {
+            if (is_sle_micro) {
+                transactional::trup_call('--continue pkg install ca-certificates-suse');
+            } else {
+                zypper_call("in ca-certificates-suse");
+            }
         } else {
-            zypper_call("in ca-certificates-suse");
+            # Get SUSE SSL certificates from internal CA
+            script_retry('curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt', timeout => 100, delay => 30, retry => 5);
+            if (is_sle_micro) {
+                transactional::trup_call('--continue run update-ca-certificates -v');
+            } else {
+                assert_script_run 'update-ca-certificates -v';
+            }
         }
     }
+    return;
 }
 
 # non empty */sys/firmware/efi/* must exist in UEFI mode
