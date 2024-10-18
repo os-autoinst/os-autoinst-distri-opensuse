@@ -299,6 +299,11 @@ sub load_slem_on_pc_tests {
     } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/upload_image");
+        # AISTACK test verification
+    } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
+        loadtest("boot/boot_to_desktop");
+        loadtest("publiccloud/upload_image");
+        loadtest('publiccloud/aistack_basic', run_args => $args);
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
@@ -321,10 +326,8 @@ sub load_slem_on_pc_tests {
                 $run_args->{runtime} = $_;
                 load_container_engine_test($run_args);
             }
-
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        else {
+        } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
