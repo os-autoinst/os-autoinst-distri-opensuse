@@ -53,7 +53,11 @@
     <addons config:type="list">
       % while (my ($key, $addon) = each (%$addons)) {
       <addon>
+        % if ($check_var->('EXTENDED_SECURITY', '1')) {
+        <name>SLES-LTSS-Extended-Security</name>
+        % } else {
         <name><%= $addon->{name} %></name>
+        % }
         <version><%= $addon->{version} %></version>
         <arch><%= $addon->{arch} %></arch>
         <release_type/>
@@ -66,8 +70,11 @@
         % if ($key eq 'rt') {
         <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
         % }
-        % if ($key eq 'ltss') {
+        % if ($key eq 'ltss' and $check_var->('EXTENDED_SECURITY', '0')) {
         <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+        % if ($key eq 'ltss' and $check_var->('EXTENDED_SECURITY', '1')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS_ES') %></reg_code>
         % }
       </addon>
       % }
