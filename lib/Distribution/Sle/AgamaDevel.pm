@@ -14,16 +14,18 @@ use parent 'Distribution::Opensuse::Leap::16Latest';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuSlesPage;
+use Yam::Agama::Pom::AgamaUpAndRunningBasePage;
 use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
 
 sub get_grub_menu_installed_system {
     return Yam::Agama::Pom::GrubMenuSlesPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
-    });
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
 }
 
 sub get_agama_up_an_running {
-    return Yam::Agama::Pom::AgamaUpAndRunningSlePage->new();
+    my $self = shift;
+    return Yam::Agama::Pom::AgamaUpAndRunningSlePage->new({
+            agama_up_and_running_base => $self->get_agama_up_an_running_base()});
 }
 
 1;

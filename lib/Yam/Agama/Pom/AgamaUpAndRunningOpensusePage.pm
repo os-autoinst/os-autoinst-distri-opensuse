@@ -11,18 +11,21 @@ package Yam::Agama::Pom::AgamaUpAndRunningOpensusePage;
 use strict;
 use warnings;
 
-use testapi;
-
 sub new {
     my ($class, $args) = @_;
-    return bless {
-        tag_array_ref_any_first_screen_shown => [qw(agama-product-selection agama-configuring-the-product agama-installing)]
+    my $self = bless {
+        agama_up_and_running_base => $args->{agama_up_and_running_base},
     }, $class;
+    return $self->init($args);
 }
 
-sub expect_is_shown {
-    my ($self) = @_;
-    assert_screen($self->{tag_array_ref_any_first_screen_shown}, 90);
+sub init {
+    my ($self, $args) = @_;
+    $self->{agama_up_and_running_base}->{tag_array_ref_any_first_screen_shown} =
+      [qw(agama-product-selection agama-configuring-the-product agama-installing)];
+    return $self;
 }
+
+sub expect_is_shown { shift->{agama_up_and_running_base}->expect_is_shown() }
 
 1;
