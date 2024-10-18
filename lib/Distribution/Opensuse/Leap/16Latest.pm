@@ -15,11 +15,20 @@ use warnings FATAL => 'all';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuLeapPage;
+use Yam::Agama::Pom::GrubMenuBaseBug1231658Page;
+use Utils::Architectures;
 
 sub get_grub_menu_installed_system {
-    return Yam::Agama::Pom::GrubMenuLeapPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
-    });
+    if (is_aarch64) {
+        return Yam::Agama::Pom::GrubMenuLeapPage->new(
+            {
+                grub_menu_base => Yam::Agama::Pom::GrubMenuBaseBug1231658Page->new()});
+    }
+    else {
+        return Yam::Agama::Pom::GrubMenuLeapPage->new(
+            {
+                grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+    }
 }
 
 1;
