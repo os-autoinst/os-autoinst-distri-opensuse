@@ -32,6 +32,7 @@ booting:
   - installation/bootloader_settings/disable_boot_menu_timeout
 default_systemd_target: []
 security: []
+security_configuration: []
 installation_settings:
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
