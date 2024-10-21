@@ -166,8 +166,8 @@ sub run {
             }
             else {
                 $self->{result} = 'fail';
-                record_info('known', "$targs->{failinfo}") if defined($args->{failinfo});
-                record_info('bugzilla', "$targs->{bugzilla}") if defined($args->{bugzilla});
+                record_info('known', "$targs->{failinfo}") if defined($targs->{failinfo});
+                record_info('bugzilla', "$targs->{bugzilla}") if defined($targs->{bugzilla});
             }
         }
         else {
