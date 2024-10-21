@@ -294,6 +294,17 @@ sub setup_network {
     }
 }
 
+sub install_ltp_extra_dep_package {
+    if (is_transactional) {
+        if ((get_var('FLAVOR', '') =~ /Base-RT-Updates|Base-RT|Base-RT-encrypted/)) {
+            zypper_install_available("kernel-rt-devel");
+        }
+        else {
+            zypper_install_available("kernel-default-devel");
+        }
+    }
+}
+
 sub run {
     my $self = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
@@ -362,6 +373,8 @@ sub run {
             install_selected_from_git;
         }
     }
+
+    install_ltp_extra_dep_package();
 
     log_versions 1;
 
