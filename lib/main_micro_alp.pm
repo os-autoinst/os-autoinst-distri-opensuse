@@ -16,11 +16,14 @@ use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test load_container_engine_test);
 use main_publiccloud qw(load_publiccloud_download_repos);
 use main_security qw(load_security_tests is_security_test);
-use testapi qw(check_var get_required_var get_var set_var);
+use testapi qw(check_var get_required_var get_var set_var record_info);
+use testapi;
 use version_utils;
 use utils;
 use Utils::Architectures;
 use Utils::Backends;
+use Data::Dumper;
+
 
 sub is_image {
     return get_required_var('FLAVOR') =~ /image|default|kvm|base/i;
@@ -299,6 +302,13 @@ sub load_slem_on_pc_tests {
     } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/upload_image");
+        # AISTACK test verification
+    } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
+        my $ai_args = OpenQA::Test::RunArgs->new();
+        loadtest("boot/boot_to_desktop");
+        loadtest("publiccloud/upload_image");
+        print "DEBUG: Args being passed to aistack_basic: ", Dumper($ai_args), "\n";
+        loadtest('publiccloud/aistack_basic', run_args => $ai_args);
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
@@ -321,10 +331,8 @@ sub load_slem_on_pc_tests {
                 $run_args->{runtime} = $_;
                 load_container_engine_test($run_args);
             }
-
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        else {
+        } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
