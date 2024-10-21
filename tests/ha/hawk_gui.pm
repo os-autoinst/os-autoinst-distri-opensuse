@@ -12,9 +12,8 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster;
-use x11test;
-use x11utils;
+use hacluster qw(choose_node add_to_known_hosts get_cluster_name);
+use x11utils qw(turn_off_gnome_screensaver);
 use version_utils qw(is_desktop_installed get_os_release);
 use containers::common qw(install_podman_when_needed);
 
@@ -144,6 +143,20 @@ sub run {
 
     # Wait for master node to reboot
     barrier_wait("HAWK_FENCE_$cluster_name");
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    my $path = 'test';
+    select_console('user-console');
+
+    # Upload the logs
+    script_run "tar zcf post_fail_hook-hawk_logs.tgz $path";
+    upload_logs "post_fail_hook-hawk_logs.tgz";
+
+    # Execute the common part
+    $self->SUPER::post_fail_hook;
 }
 
 1;

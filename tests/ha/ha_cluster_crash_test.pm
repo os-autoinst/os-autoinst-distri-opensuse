@@ -160,7 +160,7 @@ sub post_fail_hook {
     ha_export_logs;
 
     # Execute the common part
-    $self->post_fail_hook;
+    $self->SUPER::post_fail_hook;
 }
 
 1;
