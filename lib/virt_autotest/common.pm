@@ -243,6 +243,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles12sp5 => {
             name => 'sles12sp5',
         },
+        sles12sp5ES => {
+            name => 'sles12sp5ES',
+        },
         sles15sp2 => {
             name => 'sles15sp2',
         },
@@ -262,7 +265,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp6',
         },
     );
-    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
@@ -271,6 +274,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5 => {
             vm_name => 'sles-12.5_openQA-virtualization-maintenance',
+        },
+        sles12sp5ES => {
+            vm_name => 'sles-12.5_openQA-virtualization-maintenance-ES',
         },
         sles15sp2 => {
             vm_name => 'sles-15.2_openQA-virtualization-maintenance',
@@ -291,7 +297,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             vm_name => 'sles-15.6_openQA-virtualization-maintenance',
         },
     );
-    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 }
 
 our %imports = ();    # imports are virtual machines that we don't install but just import. We test those separately.
