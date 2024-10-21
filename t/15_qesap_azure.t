@@ -147,9 +147,12 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
 };
 
 subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
+    my $command;
+    my $vm_id = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    $qesap->redefine(qesap_az_enable_system_assigned_identity => sub { return 'WalkThePlank!'; });
-    $qesap->redefine(qesap_az_assign_role => sub { return 'AyeAyeCaptain!'; });
+    $qesap->redefine(script_output => sub { return $vm_id; });
+    $qesap->redefine(assert_script_run => sub { $command = shift; return 1; });
+
     my %mandatory_args = (
         vm_name => 'CaptainUsop',
         resource_group => 'StrawhatPirates'
@@ -163,58 +166,7 @@ subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
     }
 
     ok qesap_az_setup_native_fencing_permissions(%mandatory_args), 'PASS with all args defined';
-};
-
-subtest '[qesap_az_assign_role] mandatory arguments' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    $qesap->redefine(assert_script_run => sub { return 1; });
-
-    my %mandatory_args = (
-        assignee => 'CaptainUsop',
-        resource_group => 'StrawhatPirates',
-        role => 'Liar'
-    );
-    # check mandatory args
-    foreach ('assignee', 'role', 'resource_group') {
-        $mandatory_args{$_} = undef;
-        dies_ok { qesap_az_assign_role(%mandatory_args) } "Expected failure: missing mandatory arg: $_";
-    }
-};
-
-subtest '[qesap_az_assign_role]' => sub {
-    my @calls;
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
-    $qesap->redefine(script_output => sub { return 'SOME_ID'; });
-
-    my %mandatory_args = (
-        assignee => 'CaptainUsop',
-        resource_group => 'StrawhatPirates',
-        role => 'Liar'
-    );
-
-    qesap_az_assign_role(%mandatory_args);
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az role assignment/ } @calls), 'az command properly composed');
-};
-
-subtest '[qesap_az_enable_system_assigned_identity] Missing arguments' => sub {
-    my $vm_name = 'CaptainHook';
-
-    # Missing args
-    dies_ok { qesap_az_enable_system_assigned_identity(vm_name => $vm_name) } 'Fail with missing resource group';
-    dies_ok { qesap_az_enable_system_assigned_identity() } 'Fail with missing args';
-};
-
-subtest '[qesap_az_enable_system_assigned_identity]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my $vm_name = 'CaptainHook';
-    my $resource_group = 'TheJollyRoger';
-    my $good_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
-
-    $qesap->redefine(script_output => sub { return $good_uuid; });
-    is qesap_az_enable_system_assigned_identity(vm_name => $vm_name, resource_group => $resource_group), $good_uuid, 'PASS with valid UUID';
+    like($command, qr/az role assignment create.*--assignee-object-id $vm_id.*StrawhatPirates/, 'az command properly composed');
 };
 
 subtest '[qesap_az_get_tenant_id]' => sub {
