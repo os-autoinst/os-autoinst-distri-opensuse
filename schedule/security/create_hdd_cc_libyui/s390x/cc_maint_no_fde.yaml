@@ -14,7 +14,6 @@ schedule:
     - installation/common_criteria_configuration/common_criteria_configuration
   software:
     - installation/select_patterns
-  security: []
   system_preparation:
     - console/hostname
     - console/system_prepare

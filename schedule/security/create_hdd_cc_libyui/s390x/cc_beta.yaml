@@ -8,7 +8,6 @@ schedule:
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
-  security: []
   first_login:
     - installation/boot_encrypt
     - installation/first_boot
