@@ -144,6 +144,7 @@ sub get_unused_device {
 }
 
 sub run {
+    my ($self, $args) = @_;
     my $device = get_var("XFS_TEST_DEVICE", "/dev/sdb");
     my $hdd2_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
     my $mnt_xfs = "/mnt/xfstests/xfs";
@@ -179,6 +180,8 @@ sub run {
     partition_disk($device, $mnt_xfs, $mnt_scratch);
     create_config($device, $mnt_xfs, $mnt_scratch);
     script_run("source $CONFIG_FILE");
+
+    autotest::loadtest("tests/xfstests/run.pm", run_args => $args);
 }
 
 1;

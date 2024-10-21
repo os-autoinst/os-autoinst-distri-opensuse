@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
-use power_action_utils qw(power_action prepare_system_shutdown);
+use power_action_utils qw(prepare_system_shutdown);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
@@ -55,7 +55,7 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 # - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
 # - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
 #     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
-my $INJECT_INFO = get_var('INJECT_INFO');
+my $INJECT_INFO = get_var('INJECT_INFO', '');
 my $BTRFS_DUMP = get_var('BTRFS_DUMP', 0);
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 
@@ -78,7 +78,7 @@ my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
 
 sub run {
     my ($self, $args) = @_;
-    is_public_cloud() ? select_console('root-console') : select_serial_terminal();
+    select_serial_terminal;
     (my $test = $args->{name}) =~ s/-/\//;
     my $enable_heartbeat = $args->{enable_heartbeat};
     my $is_last_one = $args->{last_one};
@@ -88,7 +88,7 @@ sub run {
     my $result_args;
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
-        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0);
+        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
         $status = $result_args->{status};
         $time = $result_args->{time};
         $status_log_content = $result_args->{output};

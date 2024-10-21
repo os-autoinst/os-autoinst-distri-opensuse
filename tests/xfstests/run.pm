@@ -87,7 +87,7 @@ my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 sub run {
     my ($self, $args) = @_;
-    is_public_cloud() ? select_console('root-console') : select_serial_terminal();
+    select_serial_terminal;
     return if get_var('XFSTESTS_NFS_SERVER');
     my $enable_heartbeat = 1;
     $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
@@ -143,7 +143,8 @@ sub run {
         $test =~ s/\//-/;
         $targs->{name} = $test;
         $targs->{enable_heartbeat} = $enable_heartbeat;
-        $targs->{lastone} = 0;
+        $targs->{last_one} = 0;
+        $targs->{my_instance} = $args->{my_instance} if is_public_cloud;
         if ($index == $subtest_num - 1) {
             mutex_create 'last_subtest_run_finish';
             $targs->{last_one} = 1;
