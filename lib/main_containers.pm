@@ -298,18 +298,12 @@ sub load_container_tests {
         return;
     }
 
-    if (get_var('SKOPEO_BATS_SKIP') || get_var('RUNC_BATS_SKIP') || get_var('NETAVARK_BATS_SKIP') || get_var('AARDVARK_BATS_SKIP')) {
+    if (get_var('SKOPEO_BATS_SKIP') || get_var('RUNC_BATS_SKIP')) {
         if (!check_var('SKOPEO_BATS_SKIP', 'all')) {
             loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle || is_leap || is_sle_micro('>=5.5'));
         }
         if (!check_var('RUNC_BATS_SKIP', 'all')) {
             loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle || is_leap);
-        }
-        if (!check_var('NETAVARK_BATS_SKIP', 'all')) {
-            loadtest 'containers/netavark_integration' if (is_tumbleweed || is_sle || is_leap);
-        }
-        if (!check_var('AARDVARK_BATS_SKIP', 'all')) {
-            loadtest 'containers/aardvark_integration' if (is_tumbleweed);
         }
         return;
     }
