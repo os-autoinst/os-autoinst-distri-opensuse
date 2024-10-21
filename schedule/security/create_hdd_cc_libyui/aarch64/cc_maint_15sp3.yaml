@@ -1,5 +1,6 @@
 ---
 name: create_hdd_common_criteria
+description: For 15-SP3, 15-SP4 and 15-SP5 maintenance installation for CC
 vars:
   PATTERNS: 'default,-enhanced_base'
   YUI_REST_API: 1
