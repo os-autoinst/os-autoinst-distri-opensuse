@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>oraclelinux</guest_os_name>
-    <guest_version>r9-u3</guest_version>
+    <guest_version>r9-u4</guest_version>
     <guest_version_major>9</guest_version_major>
     <guest_version_minor>4</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
