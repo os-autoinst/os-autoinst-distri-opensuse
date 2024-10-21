@@ -27,7 +27,7 @@
     <password>
       <encrypted>false</encrypted>
       <unrestricted>false</unrestricted>
-      <value>nots3cr3t</value>
+      <value>{{PASSWORD}}</value>
     </password>
     <secure_boot>true</secure_boot>
     <timeout config:type="integer">-1</timeout>
@@ -83,7 +83,7 @@
         <mount>/</mount>
         <size>max</size>
         <crypt_method config:type="symbol">luks1</crypt_method>
-        <crypt_key>nots3cr3t</crypt_key>
+        <crypt_key>{{PASSWORD}}</crypt_key>
       </partition>
       <partition t="map">
         <crypt_method t="symbol">random_swap</crypt_method>
@@ -98,7 +98,7 @@
         <mount>/var</mount>
         <size>10%</size>
         <crypt_method config:type="symbol">luks1</crypt_method>
-        <crypt_key>nots3cr3t</crypt_key>
+        <crypt_key>{{PASSWORD}}</crypt_key>
       </partition>
       <partition t="map">
         <filesystem config:type="symbol">ext4</filesystem>
@@ -106,7 +106,7 @@
         <mount>/home</mount>
         <size>5%</size>
         <crypt_method config:type="symbol">luks1</crypt_method>
-        <crypt_key>nots3cr3t</crypt_key>
+        <crypt_key>{{PASSWORD}}</crypt_key>
       </partition>
       <partition t="map">
         <filesystem config:type="symbol">ext4</filesystem>
@@ -114,7 +114,7 @@
         <mount>/var/log/audit</mount>
         <size>128M</size>
         <crypt_method config:type="symbol">luks1</crypt_method>
-        <crypt_key>nots3cr3t</crypt_key>
+        <crypt_key>{{PASSWORD}}</crypt_key>
       </partition>
     </partitions>
   </drive>

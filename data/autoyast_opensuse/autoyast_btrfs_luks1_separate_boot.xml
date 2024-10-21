@@ -34,7 +34,7 @@
         <partition t="map">
           <create t="boolean">true</create>
           <create_subvolumes t="boolean">false</create_subvolumes>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <crypt_method t="symbol">luks1</crypt_method>
           <filesystem t="symbol">btrfs</filesystem>
           <format t="boolean">true</format>

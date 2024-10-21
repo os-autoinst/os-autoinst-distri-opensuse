@@ -348,7 +348,7 @@
 						<Name>Bernhard M. Wiedeman</Name>
 						<Group>Administrators</Group>
 						<Password>
-							<Value>nots3cr3t</Value>
+							<Value>{{PASSWORD}}</Value>
 							<PlainText>true</PlainText>
 						</Password>
 					</LocalAccount>
