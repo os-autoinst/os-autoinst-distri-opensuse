@@ -41,7 +41,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_NETCONFIG')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
-        loadtest('publiccloud/ahb');
+        loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {

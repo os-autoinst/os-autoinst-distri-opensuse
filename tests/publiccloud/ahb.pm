@@ -30,11 +30,13 @@ our $azure_endpoint = get_var(
 
 sub run {
     my ($self, $args) = @_;
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
+
+
     select_serial_terminal;
     my $job_id = get_current_job_id();
 
-    my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance();
     # resource group
     # get instance resource group
     my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint/resourceGroupName?api-version=$api_version&format=text\"";
