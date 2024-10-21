@@ -10,15 +10,19 @@
 package Distribution::Sle::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
+use testapi;
 use parent 'Distribution::Opensuse::Leap::16Latest';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuSlesPage;
-use Yam::Agama::Pom::AgamaUpAndRunningBasePage;
+use Yam::Agama::Pom::GrubMenuSlesPageBug1230121;
 use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
 
 sub get_grub_menu_installed_system {
-    return Yam::Agama::Pom::GrubMenuSlesPage->new({
+    return get_var('WORKAROUND_BSC_1230121') ?
+      Yam::Agama::Pom::GrubMenuSlesPageBug1230121->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()})
+      : Yam::Agama::Pom::GrubMenuSlesPage->new({
             grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
 }
 
