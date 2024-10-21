@@ -186,22 +186,70 @@ subtest '[check_ssh_availability] Test command looping' => sub {
 
 subtest '[destroy_deployer_vm]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
-    my $cleanup_triggered;
-    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $mock_function->redefine(az_resource_delete => sub { $cleanup_triggered = '1'; return; });
-    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Zabi');
-    $mock_function->redefine(find_deployer_resources => sub { return []; });
-    destroy_deployer_vm();
-    is $cleanup_triggered, undef, 'Do not trigger VM cleanup if VM not detected';
+    my $destroy_resource_called;
+    my @destroy_list;
 
-    # This will return empty array on second loop, so UT can test looping as well
-    my $loop_counter = 0;
-    $mock_function->redefine(find_deployer_resources => sub {
-            $loop_counter++; return [] if ($loop_counter == 3); return ['Gihren', 'Garma', 'Dozle']; });
+    $mock_function->redefine(record_info => sub { return; });
+    $mock_function->redefine(find_deployer_resources => sub { return \@destroy_list; });
+    $mock_function->redefine(destroy_resources => sub { $destroy_resource_called = 1; return; });
+
     destroy_deployer_vm();
-    is $cleanup_triggered, '1', 'Trigger cleanup with resources detected';
-    ok(($loop_counter != 0), 'Check if "attempt" logic works');
-    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', undef);
+    ok(!$destroy_resource_called, 'Exit early if there is nothing to destroy');
+
+    @destroy_list = ('Gihren', 'Garma', 'Dozle');
+    destroy_deployer_vm();
+    ok($destroy_resource_called, 'Call function "destroy_resources" if resource list is not empty');
 };
 
-done_testing;
+subtest '[destroy_resources]' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    my @destroy_list;
+    my $destroy_called = 0;
+    $mock_function->redefine(record_info => sub { return; });
+    $mock_function->redefine(find_deployer_resources => sub { return \@destroy_list; });
+    $mock_function->redefine(az_resource_delete => sub { $destroy_called++; return 0; });
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Zabi');
+
+    destroy_deployer_vm();
+    ok(!$destroy_called, 'Early exit if there is nothing to destroy');
+
+    @destroy_list = ('Gihren', 'Garma', 'Dozle');
+    destroy_deployer_vm();
+    is $destroy_called, 1, 'Destroy defined resources on first loop';
+};
+
+subtest '[destroy_resources] Test retry function' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    my $loop_no = 0;
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(find_deployer_resources => sub { return ['Gihren', 'Garma']; });
+    $mock_function->redefine(az_resource_delete => sub { $loop_no++; return 0 if $loop_no == 3; return 42 });
+
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Zabi');
+
+    destroy_deployer_vm();
+    is $loop_no, 3, 'Pass on third attempt';
+};
+
+subtest '[destroy_orphaned_resources]' => sub {
+    my %arguments;
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(destroy_resources => sub { %arguments = @_; return; });
+    # Couple of examples to test regexes. Keep real world values here.
+    $mock_function->redefine(az_resource_list => sub { return [
+                {"creation_time" => "2020-10-10T07:18:11.094118+00:00", "resource_id" => "602-OpenQA_Deployer_VM_orphaned"},
+                {"creation_time" => "2055-10-10T07:18:11.094118+00:00", "resource_id" => "602-OpenQA_Deployer_VM_not_orphaned"},
+                {"creation_time" => "2020-10-10T07:18:11.094118+00:00", "resource_id" => "deployer_snapshot_12082024"},
+                {"creation_time" => "2020-10-10T07:18:11.094118+00:00", "resource_id" => "LAB-SECE-DEP10_labsecedep10deploy00"},
+                {"creation_time" => "2020-10-10T07:18:11.094118+00:00", "resource_id" => "LAB-SECE-DEP10-vnet"}];
+    });
+    destroy_orphaned_resources();
+    note("Resources being deleted:\n" . join(', ', @{$arguments{resource_cleanup_list}}));
+    ok(grep(/602-OpenQA_Deployer_VM_orphaned/, @{$arguments{resource_cleanup_list}}), 'Delete orphaned resource');
+    ok(!grep(/602-OpenQA_Deployer_VM_not_orphaned/, @{$arguments{resource_cleanup_list}}), 'Do not delete resource which is not orphaned');
+    ok(!grep(/deployer_snapshot_12082024|LAB-SECE-DEP10_labsecedep10deploy00|LAB-SECE-DEP10-vnet/, @{$arguments{resource_cleanup_list}}),
+        'Do not delete permanent resources');
+};
+
+done_testing();
