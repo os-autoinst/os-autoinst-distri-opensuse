@@ -28,13 +28,13 @@ our @EXPORT = qw(
   ipaddr2_infra_deploy
   ipaddr2_infra_destroy
   ipaddr2_bastion_key_accept
-  ipaddr2_create_cluster
   ipaddr2_configure_web_server
   ipaddr2_refresh_repo
   ipaddr2_deployment_sanity
   ipaddr2_deployment_logs
   ipaddr2_os_sanity
   ipaddr2_os_connectivity_sanity
+  ipaddr2_cluster_create
   ipaddr2_cluster_sanity
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
@@ -434,7 +434,6 @@ sub ipaddr2_bastion_key_accept {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     # Clean up known_hosts on the machine running the test script
     #    ssh-keygen -R $bastion_ssh_addr
     # is not needed and has not to be executed
@@ -442,8 +441,12 @@ sub ipaddr2_bastion_key_accept {
     # Not strictly needed in this context as each test
     # in openQA start from a clean environment
 
-    my $bastion_ssh_cmd = "ssh -vvv -oStrictHostKeyChecking=accept-new $bastion_ssh_addr";
-    assert_script_run(join(' ', $bastion_ssh_cmd, 'whoami'));
+    my $cmd = join(' ',
+        'ssh -vvv',
+        '-oStrictHostKeyChecking=accept-new', # always use accept-new is fine here as this cmd is executed on the worker that is supposed to have a recent ssh client
+        ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+        'whoami');
+    assert_script_run($cmd);
 
     # one more without StrictHostKeyChecking=accept-new just to verify it is ok
     ipaddr2_ssh_bastion_assert_script_run(
@@ -455,7 +458,8 @@ sub ipaddr2_bastion_key_accept {
 
     ipaddr2_internal_key_accept()
 
-For the worker to accept the ssh key of the internal VMs
+For the worker to accept the host key of the internal VMs.
+This function always use cloudadmin as user in any ssh connections.
 
 =over
 
@@ -471,6 +475,7 @@ For the worker to accept the ssh key of the internal VMs
 
 sub ipaddr2_internal_key_accept {
     my (%args) = @_;
+
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{key_checking} //= 'accept-new';
     my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
@@ -540,11 +545,13 @@ sub ipaddr2_internal_key_accept {
 
     ipaddr2_internal_key_gen()
 
-Create, on the /tmp folder of the Worker, two ssh key set.
-One ssk key pair for each internal VM.
+Create, on the /tmp folder of the Worker, two ssh key sets:
+one ssh key pair for each internal VM.
 Then upload in each internal VM the ssh key pair using scp
-in Proxy mode and add pub key in the authorized_keys of the other.
-It also run the first connection to accept the keys.
+and add pub key in the authorized_keys of the other internal VM.
+It also runs the first connection to accept the host keys.
+All this process it to have a suitable key set to allow password-less ssh between the two internal VM:
+it is later on needed by crm cluster init/join
 
 =over
 
@@ -555,7 +562,9 @@ It also run the first connection to accept the keys.
 =item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
                         ssh option. default to 'accept-new'
 
-=item B<user> - set custom user name. Default is cloudadmin. User root activate special behavior.
+=item B<user> - set custom user name. Default is cloudadmin.
+                User root activate special behavior. This argument is needed as crm needs keys for different users
+                when operate in root or rootless mode.
 
 =back
 =cut
@@ -578,7 +587,7 @@ sub ipaddr2_internal_key_gen {
         # always use cloudadmin for ssh connections even when $args{user} is root
         $vm_addr = "$user\@$vm_name";
 
-        # Assert if the folder /home/${MY_USERNAME}/.ssh not exist in the $vm"
+        # Assert if the folder ~/.ssh does not exist in the VM
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -d $user_ssh ]",
             bastion_ip => $args{bastion_ip});
@@ -628,79 +637,95 @@ sub ipaddr2_internal_key_gen {
 
     # take pub key from one internal VM and write it in the authorized_keys file
     # of other VM
-    my $this_key = $key_id . '.pub';
-    $remote_key_tmp_path = '/tmp/other_vm';
+    my %auth_args = (
+        bastion_ip => $args{bastion_ip},
+        user => $args{user},
+        key_checking => $args{key_checking});
+    $auth_args{src} = 1;
+    $auth_args{dst} = 2;
+    ipaddr2_internal_key_authorize(%auth_args);
 
-    my ($src, $dst, $reg_cmd, $f_cmd);
-    $src = 1;
-    $dst = 2;
-    # This is the public key to be registered, so the source
-    $this_tmp = ipaddr2_get_worker_tmp_for_internal_vm(id => $src);
+    $auth_args{src} = 2;
+    $auth_args{dst} = 1;
+    ipaddr2_internal_key_authorize(%auth_args);
+}
+
+=head2 ipaddr2_internal_key_authorize
+
+  ipaddr2_internal_key_authorize(src => '1', dst => '2', key_checking = 'no');
+
+Add pub ssh key for a specific user to the same use authorized_key file on the  other internal VM
+
+=over
+
+=item B<src> - id of the internal VM that want to have its public key recorded on the other
+
+=item B<src> - id of the internal VM has to add the other VM pub key in its authorized_key list
+
+=item B<key_checking> - tune value for StrictHostKeyChecking ssh option.
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<user> - set custom user name. Default is cloudadmin.
+                User root activate special behavior. This argument is needed as crm needs keys for different users
+                when operate in root ro rootless mode.
+
+=back
+=cut
+
+sub ipaddr2_internal_key_authorize {
+    my (%args) = @_;
+    foreach (qw(src dst key_checking)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{user} //= $user;
+
+    my $vm_name;
+    my $remote_key_tmp_path = '/tmp/other_vm';
+    my $this_key = $key_id . '.pub';
+    my $authorize_file = ($args{user} eq 'root') ? '/root/' : "/home/$args{user}/";
+    $authorize_file .= '.ssh/authorized_keys';
+    my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
+
     # This is the destination VM where to register the public key
-    $vm_name = ipaddr2_get_internal_vm_private_ip(id => $dst);
+    $vm_name = ipaddr2_get_internal_vm_private_ip(id => $args{dst});
     # Create a place where to temporary upload the key
-    ipaddr2_ssh_internal(id => $dst,
+    ipaddr2_ssh_internal(id => $args{dst},
         cmd => "mkdir -p $remote_key_tmp_path",
         bastion_ip => $args{bastion_ip});
+    # Upload the pub key to a temporary location in the dst VM
     assert_script_run(join(' ',
             'scp',
-            '-J', $bastion_ssh_addr,
-            join('/', $this_tmp, $this_key),
+            '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+            join('/',
+                # This is the public key to be registered, so the source
+                ipaddr2_get_worker_tmp_for_internal_vm(id => $args{src}),
+                $this_key),
             "$user\@$vm_name:$remote_key_tmp_path/$this_key"));
-    $reg_cmd = ($args{user} eq 'root') ?
-      "sudo sh -c \"cat $remote_key_tmp_path/$this_key >> $user_ssh/authorized_keys\"" :
-      "cat $remote_key_tmp_path/$this_key >> $user_ssh/authorized_keys";
-    ipaddr2_ssh_internal(id => $dst,
+    my $reg_cmd = ($args{user} eq 'root') ?
+      "sudo sh -c \"cat $remote_key_tmp_path/$this_key >> $authorize_file\"" :
+      "cat $remote_key_tmp_path/$this_key >> $authorize_file";
+    ipaddr2_ssh_internal(id => $args{dst},
         cmd => $reg_cmd,
         bastion_ip => $args{bastion_ip});
     # first ssh connection: here it is one of the most complex ssh somersault ever ;-)
-    # 1. test is extablish a ssh connection from the worker running the test to one of the two internal VM,
+    # 1. create a ssh connection from the worker running the test to one of the two internal VMs,
     #    through the bastion. This is mostly done by ipaddr2_ssh_internal.
-    # 2. once we are on one of the internal vm, we run a command there that is an ssh connection
+    # 2. once on one of the internal vm, run a command there. Command itself is a ssh connection
     #    to the other internal vm.
-    # 3. once on the other internal VM we run a simple whoami.
-    # Working inter internal vm connection is alter on needed by crm cluster join
-    # This test code can works both for user cloudadmin and root, but it strictly and only refer
-    # to user involved in the internal ssh connection. Worker to first internal vm is always done as cloudadmin.
-    $f_cmd = join(' ',
+    # 3. once on the other internal VM, run a simple whoami.
+    # This VM to VM password-less connection is needed by crm cluster join.
+    # $args{user} can be both 'cloudadmin' or 'root' but ssh connection between  Worker and
+    # the first internal vm is always done as cloudadmin (crm only care VM to VM ssh configuration).
+    my $f_cmd = join(' ',
         'ssh',
         "$args{user}\@$vm_name",
         $key_policy,
         'whoami');
     $f_cmd = "sudo $f_cmd" if ($args{user} eq 'root');
-    ipaddr2_ssh_internal(id => $src,
-        cmd => $f_cmd,
-        bastion_ip => $args{bastion_ip});
-
-    $src = 2;
-    $dst = 1;
-    # This is the public key to be registered, so the source
-    $this_tmp = ipaddr2_get_worker_tmp_for_internal_vm(id => $src);
-    # This is the destination VM where to register the public key
-    $vm_name = ipaddr2_get_internal_vm_private_ip(id => $dst);
-    # Create a place where to temporary upload the key
-    ipaddr2_ssh_internal(id => $dst,
-        cmd => "mkdir -p $remote_key_tmp_path",
-        bastion_ip => $args{bastion_ip});
-    assert_script_run(join(' ',
-            'scp',
-            '-J', $bastion_ssh_addr,
-            join('/', $this_tmp, $this_key),
-            "$user\@$vm_name:$remote_key_tmp_path/$this_key"));
-    $reg_cmd = ($args{user} eq 'root') ?
-      "sudo sh -c \"cat $remote_key_tmp_path/$this_key >> $user_ssh/authorized_keys\"" :
-      "cat $remote_key_tmp_path/$this_key >> $user_ssh/authorized_keys";
-    ipaddr2_ssh_internal(id => $dst,
-        cmd => $reg_cmd,
-        bastion_ip => $args{bastion_ip});
-    # first connection
-    $f_cmd = join(' ',
-        'ssh',
-        "$args{user}\@$vm_name",
-        $key_policy,
-        'whoami');
-    $f_cmd = "sudo $f_cmd" if ($args{user} eq 'root');
-    ipaddr2_ssh_internal(id => $src,
+    ipaddr2_ssh_internal(id => $args{src},
         cmd => $f_cmd,
         bastion_ip => $args{bastion_ip});
 }
@@ -752,16 +777,20 @@ Tests are independent by the cluster status.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
+=item B<user> - user expected to be able to ssh connect password-less from one internal VM to the other.
+                Default is cloudadmin.
+
 =back
 =cut
 
 sub ipaddr2_os_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{user} //= $user;
 
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
     ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_ssh_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
         ipaddr2_ssh_internal(id => $_,
@@ -850,11 +879,14 @@ sub ipaddr2_os_connectivity_sanity {
 
     foreach my $i (1 .. 2) {
         # Check if the bastion is able to ping
-        # the VM by hostname and private IP
+        # the VM by hostname and private IP.
+        # Check both using the hostname and the IP address.
         foreach my $addr (
             ipaddr2_get_internal_vm_private_ip(id => $i),
             ipaddr2_get_internal_vm_name(id => $i)) {
-            foreach my $cmd ($ping_cmd, 'tracepath', 'dig') {
+            # tracepath is not available by default in 12sp5
+            # so only use ping and dig
+            foreach my $cmd ($ping_cmd, 'dig') {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
@@ -989,41 +1021,48 @@ die in case of failure
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
+=item B<user> - user supposed to be able to ssh connect password-less from one internal VM to the other.
+                Value for this argument is used to decide the home folder where to look for the keys.
+                Default is cloudadmin. User root activate some special logic.
+
 =back
 =cut
 
 sub ipaddr2_os_ssh_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{user} //= $user;
+    my $user_ssh = ($args{user} eq 'root') ? '/root/' : "/home/$args{user}/";
+    $user_ssh .= '.ssh';
 
-    my $user_ssh = "/home/$user/.ssh";
     foreach my $i (1 .. 2) {
-        # Check if the folder /home/$user/.ssh
-        # exist in the $this internal VM
+        # Check if the folder ~/.ssh
+        # exist in this internal VM
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -d $user_ssh ]",
             bastion_ip => $args{bastion_ip});
 
-        # Check if the key /home/$user/.ssh/$key_id
+        # Check if the private key ~.ssh/$key_id
         # exists in this internal VM.
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -f $user_ssh/$key_id ]",
             bastion_ip => $args{bastion_ip});
 
+        # Use sudo in all commands from here, as ssh key owner could be root
         # Check authorized_keys content
         ipaddr2_ssh_internal(id => $i,
-            cmd => "cat $user_ssh/authorized_keys",
+            cmd => "sudo cat $user_ssh/authorized_keys",
             bastion_ip => $args{bastion_ip});
 
         my $res = ipaddr2_ssh_internal_output(id => $i,
-            cmd => "cat $user_ssh/authorized_keys | wc -l",
+            cmd => "sudo cat $user_ssh/authorized_keys | wc -l",
             bastion_ip => $args{bastion_ip});
         die "User $user on internal VM $i should have 3 keys instead of $res" unless $res eq '3';
 
         # Each internal VM has some pub keys from the pair
         # generated by the test code during the configure step
         ipaddr2_ssh_internal(id => $i,
-            cmd => "cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
+            cmd => "sudo cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
             bastion_ip => $args{bastion_ip});
     }
 
@@ -1064,11 +1103,10 @@ sub ipaddr2_ssh_bastion_assert_script_run {
     my (%args) = @_;
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
     assert_script_run(join(' ',
             'ssh',
-            $bastion_ssh_addr,
+            ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
 
@@ -1095,11 +1133,10 @@ sub ipaddr2_ssh_bastion_script_run {
     my (%args) = @_;
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
     return script_run(join(' ',
             'ssh',
-            $bastion_ssh_addr,
+            ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
 
@@ -1126,11 +1163,10 @@ sub ipaddr2_ssh_bastion_script_output {
     my (%args) = @_;
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
     return script_output(join(' ',
             'ssh',
-            $bastion_ssh_addr,
+            ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
 
@@ -1165,10 +1201,9 @@ sub ipaddr2_ssh_internal_cmd {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
 
     return join(' ',
-        'ssh', '-J', $bastion_ssh_addr,
+        'ssh', '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
         "'$args{cmd}'");
 }
@@ -1253,9 +1288,9 @@ sub ipaddr2_ssh_internal_output {
         timeout => $args{timeout});
 }
 
-=head2 ipaddr2_create_cluster
+=head2 ipaddr2_cluster_create
 
-    ipaddr2_create_cluster();
+    ipaddr2_cluster_create();
 
 Initialize and configure the Pacemaker cluster on the two internal nodes
 
@@ -1265,15 +1300,15 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
 
-=item B<rootless> - Enable or disable the rootless mode. Activated by default.
+=item B<rootless> - Enable or disable the rootless mode. Default is normal root mode.
 
 =back
 =cut
 
-sub ipaddr2_create_cluster {
+sub ipaddr2_cluster_create {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    $args{rootless} //= 1;
+    $args{rootless} //= 0;
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'rpm -qf $(sudo which crm)',

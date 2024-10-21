@@ -13,7 +13,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
   ipaddr2_configure_web_server
-  ipaddr2_create_cluster
+  ipaddr2_cluster_create
   ipaddr2_deployment_logs
   ipaddr2_infra_destroy
   ipaddr2_internal_key_accept
@@ -39,9 +39,10 @@ sub run {
     my %int_key_args = (bastion_ip => $bastion_ip);
     # unsupported option "accept-new" for default ssh used in 12sp5
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
-    $int_key_args{user} = 'root' if check_var('IPADDR2_ROOTLESS', '0');
-
     ipaddr2_internal_key_accept(%int_key_args);
+
+    # default for ipaddr2_internal_key_gen is cloudadmin
+    $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_internal_key_gen(%int_key_args);
 
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
@@ -73,7 +74,7 @@ sub run {
     }
 
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
-    ipaddr2_create_cluster(bastion_ip => $bastion_ip, rootless => get_var('IPADDR2_ROOTLESS', '1'));
+    ipaddr2_cluster_create(bastion_ip => $bastion_ip, rootless => get_var('IPADDR2_ROOTLESS', '0'));
 }
 
 sub test_flags {
