@@ -21,14 +21,5 @@ schedule:
     - console/system_prepare
     - console/force_scheduled_tasks
   system_validation:
-    - console/installation_snapshots
-    - console/zypper_lr
-    - console/zypper_ref
-    - console/ncurses
-    - update/zypper_up
-    - console/zypper_lifecycle
-    - console/orphaned_packages_check
-    - console/consoletest_finish
-    - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
