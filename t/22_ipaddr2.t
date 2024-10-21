@@ -313,17 +313,32 @@ subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
     ok((none { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
 };
 
-subtest '[ipaddr2_create_cluster]' => sub {
+subtest '[ipaddr2_cluster_create]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
 
-    ipaddr2_create_cluster();
+    ipaddr2_cluster_create();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*41.*cluster init/ } @calls), 'crm cluster init on VM1');
     ok((any { /.*42.*cluster join/ } @calls), 'crm cluster join on VM2');
+    # by default it run in root mode
+    # so the join has not to  specify the user
+    ok((none { /.*cluster join.*-c.*cloudadmin@/ } @calls), 'crm cluster join root mode without user name');
+};
+
+subtest '[ipaddr2_cluster_create] rootless' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+
+    ipaddr2_cluster_create(rootless => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*cluster join.*-c.*cloudadmin@/ } @calls), 'crm cluster join uses a non root username');
 };
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
@@ -409,6 +424,36 @@ subtest '[ipaddr2_os_sanity]' => sub {
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
 };
 
+subtest '[ipaddr2_os_sanity] root' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            # return exactly what ipaddr2_os_ssh_sanity needs
+            return 3; });
+
+    ipaddr2_os_sanity(user => 'root');
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
 subtest '[ipaddr2_bastion_pubip]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -421,8 +466,6 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-    # return 1 means file does not exist.
-    #$ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 1; });
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
@@ -433,6 +476,48 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
 
     ok((any { /ssh-keygen/ } @calls), 'Generate the keys if they does not exist');
+    # search through all the ssh-keygen and extract the ssh key file path after -f
+    # then check if there's a scp uploading it
+    foreach my $cmd (@calls) {
+        ok((any { qr/scp.*$1.*@.*/ } @calls), "There is at least one scp command uploading key $1") if ($cmd =~ qr/ssh-keygen.*-f (.*)/);
+    }
+    # search through all the scp and extract the target path
+    # then check if there's a mv command moving it from the remote /tmp to the remote home folder
+    foreach my $cmd (@calls) {
+        ok((any { qr/mv.*$1.*/ } @calls), "There is at least one mv command moving the uploaded key $1") if ($cmd =~ qr/scp.*@.*:(.*)/);
+    }
+};
+
+subtest '[ipaddr2_internal_key_gen] custom user' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_internal_key_gen(user => 'EliaLocatelli');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /mv.*\/home\/EliaLocatelli.*/ } @calls), 'Move the key in the remote user home folder');
+};
+
+subtest '[ipaddr2_internal_key_gen] root' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_internal_key_gen(user => 'root');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /mv.*\/root\/.*/ } @calls), 'Move the key in the remote root home folder');
 };
 
 subtest '[ipaddr2_deployment_logs]' => sub {
