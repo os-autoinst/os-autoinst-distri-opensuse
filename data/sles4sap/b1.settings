@@ -1,0 +1,114 @@
+# N/A
+API_AUTHENTICATION_SERVICE_PORT=60010
+# N/A
+API_GATEWAY_SERVICE_PORT=60000
+# Action to be performed with Authentication Service Database
+AUTHENTICATION_SERVICE_DATABASE_ACTION=create
+# Name of AuthenticationService Database
+AUTHENTICATION_SERVICE_DATABASE_NAME=B1AS
+# Authentication service port used for the HTTPS protocol
+AUTHENTICATION_SERVICE_HTTPS_PORT=40020
+# Authentication service management port used for the HTTP protocol
+AUTHENTICATION_SERVICE_MANAGEMENT_HTTP_PORT=40021
+# Set AutoStart for SAMBA service?
+B1S_SAMBA_AUTOSTART=true
+# Overwrite the existing B1 Shared folder?
+B1S_SHARED_FOLDER_OVERWRITE=true
+# Password for B1 tech user.
+B1S_TECHUSER_PASSWORD=
+# Compress backups
+BCKP_BACKUP_COMPRESS=true
+# N/A
+BCKP_HANA_SERVERS=<servers><server><system address="%SERVER%"/><database instance="%INSTANCE%" port="30013" tenant-db="%TENANT_DB%" user="" password=""/></server></servers>
+# Log files location
+BCKP_PATH_LOG=/var/log/SAPBusinessOne/BackupService/logs
+# Backup location
+BCKP_PATH_TARGET=/hana/shared/backup_service/backups
+# Working folder
+BCKP_PATH_WORKING=/tmp/backup_service
+# Create default CD Repository
+CD_REPOSITARY_ACTION=none
+# Central working share repository user password.
+CD_WORKINGSHARE_PASSWORD=
+# Central working share repository user name.
+CD_WORKINGSHARE_USER=
+# Create Central Log Repository
+CENTRAL_LOG_ACTION=none
+# Central log repository user password.
+CENTRAL_LOG_PASSWORD=
+# Path to central log repository.
+CENTRAL_LOG_PATH=/usr/sap/SAPBusinessOne/ServerTools/SLD/CentralLogFolder
+# Central log repository username under which is shared.
+CENTRAL_LOG_USER=b1LogUser
+# Delete Shared Folder during uninstall
+DELETE_B1_SHR=false
+# Port used by Electronic Document Service dashboard
+EDS_DASHBOARD_PORT=7298
+# Port used by Electronic Document Service
+EDS_PORT=7299
+# HANA DB Server instance
+HANA_DATABASE_INSTANCE=%INSTANCE%
+# HANA DB Server name or IP
+HANA_DATABASE_SERVER=%SERVER%
+# HANA DB Server Port
+HANA_DATABASE_SERVER_PORT=30013
+# Name of tenant database for Multiple Container Mode
+HANA_DATABASE_TENANT_DB=%TENANT_DB%
+# HANA DB User ID
+HANA_DATABASE_USER_ID=
+# HANA DB Password
+HANA_DATABASE_USER_PASSWORD=
+# Installation folder
+INSTALLATION_FOLDER=/usr/sap/SAPBusinessOne
+# SLD Landscape Installation Type
+LANDSCAPE_INSTALL_ACTION=create
+# Node type of License Server
+LICENSE_SERVER_NODE=standalone
+# Network address of local machine
+LOCAL_ADDRESS=%SERVER%
+# Path to central log repository.
+NETWORK_CENTRAL_LOG_PATH=\\%SERVER%\B1_CENTRAL_LOG_REPOSITORY
+# Path to repository where DVD is copied.
+NETWORK_REPOSITORY_PATH=\\%SERVER%\B1_DEFAULT_REPOSITORY
+# Repository username password.
+REPOSITORY_PASSWORD=
+# Path to repository where DVD is copied.
+REPOSITORY_PATH=/sapinst2
+# Repository username under which is shared.
+REPOSITORY_USER=b1RepositoryUser
+# Features selected for installation/uninstallation/upgrade
+SELECTED_FEATURES=B1ServerToolsSLD,B1ServerToolsExtensionManager,B1ServerToolsLicense,B1ServerToolsJobService,B1ServerToolsMobileService,B1ServerToolsXApp,B1SLDAgent,B1WebClient,B1BackupService,B1ServerSHR,B1ServerCommonDB,B1ServerHelp_EN,B1ServerAddons,B1ServerOI,B1AnalyticsOlap,B1AnalyticsTomcatEntSearch,B1AnalyticsTomcatDashboard,B1AnalyticsTomcatReplication,B1AnalyticsTomcatConfiguration,B1AnalyticsTomcatPredictiveAnalysis,B1ServiceLayerComponent,B1ElectronicDocumentService,B1APIGatewayService
+# Service Port
+SERVICE_PORT=40000
+# Site User ID
+SITE_USER_ID=
+# Site User Password
+SITE_USER_PASSWORD=
+# SLD Certificate Action
+SLD_CERTIFICATE_ACTION=self
+# Password to SLD Certificate file
+SLD_CERTIFICATE_PASSWORD=
+# Action to be performed with SLD Database
+SLD_DATABASE_ACTION=create
+# SLD Database Name
+SLD_DATABASE_NAME=SLDDATA
+# Landscape Server Address
+SLD_SERVER_ADDR=%SERVER%
+# Landscape Server Port
+SLD_SERVER_PORT=40000
+# Landscape Server Protocol
+SLD_SERVER_PROTOCOL=https
+# Landscape Server Type Ondemand/OnPremise
+SLD_SERVER_TYPE=op
+# Windows Domain Action
+SLD_WINDOWS_DOMAIN_ACTION=skip
+# Service Layer load balancer member(s)
+SL_LB_MEMBERS=127.0.0.1:50001,127.0.0.1:50002,127.0.0.1:50003,127.0.0.1:50004
+# Install Service Layer load balancer member(s) only
+SL_LB_MEMBER_ONLY=false
+# Service Layer load balancer port number
+SL_LB_PORT=50000
+# Maximum threads per Service Layer load balancer member
+SL_THREAD_PER_SERVER=24
+# Port used by Web Client
+WEBCLIENT_PORT=8443
