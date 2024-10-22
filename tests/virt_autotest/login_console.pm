@@ -302,6 +302,14 @@ sub run {
     # Provide a screenshot to check if the kernel parameters are correct before tests begin
     script_run("cat /proc/cmdline") if !is_s390x;
     save_screenshot;
+    script_run("zypper lr -u | grep -i ltss");
+    save_screenshot;
+    script_run("rpm -q sles-ltss-release");
+    save_screenshot;
+    script_run("zypper se sles-ltss-release");
+    save_screenshot;
+    script_run("zypper in sles-ltss-release");
+    save_screenshot;
 }
 
 sub post_fail_hook {
