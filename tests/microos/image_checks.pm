@@ -10,7 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_sle_micro is_jeos);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);
 use Utils::Architectures qw(is_aarch64);
 
 sub run {
@@ -32,13 +32,14 @@ sub run {
     die 'GPT has errors' if script_output("sfdisk --list-free /dev/$disk 2>&1 >/dev/null", proceed_on_failure => 0) ne '';
 
     # Verify that there is no unpartitioned space left
-    my $left_sectors = (is_sle_micro("5.4+") && is_aarch64) ? 2048 : 0;
-    if (is_sle_micro("6.0+") && is_aarch64) {
+    my $left_sectors = 0;
+    if ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64) {
+        $left_sectors = 2048;
+    } elsif (is_sle_micro("6.0+") && is_aarch64) {
         $left_sectors = 0 if (get_var("HDD_1") =~ /qcow2/);
         $left_sectors = 4062 if (get_var("ISO") =~ /SelfInstall/);
         record_soft_failure "bsc#1220722: no unpartitioned space left on aarch64";
-    }
-    if (is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) {
+    } elsif (is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) {
         $left_sectors = 1792;
         record_soft_failure "bsc#1220722: no unpartitioned space left on aarch64";
     }
