@@ -14,7 +14,7 @@ use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
 use Utils::Backends qw(is_xen_pv is_hyperv);
-use version_utils qw(is_public_cloud is_sle is_vmware);
+use version_utils qw(is_public_cloud is_sle is_vmware is_opensuse);
 use utils qw(script_retry);
 
 sub run {
@@ -26,7 +26,7 @@ sub run {
     $self->{runtime} = $engine;
     reset_container_network_if_needed($runtime);
 
-    my $image = "registry.suse.com/bci/bci-base:latest";
+    my $image = is_opensuse ? "registry.opensuse.org/opensuse/tumbleweed:latest" : "registry.suse.com/bci/bci-base:latest";
     script_retry("$runtime pull $image", timeout => 300, delay => 120, retry => 3);
 
     record_info('Test', 'Launch a container with privileged mode');
@@ -60,13 +60,22 @@ sub run {
     my $capbnd = script_output("cat /proc/1/status | grep CapBnd");
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
 
-    # Podman inside the container
-    # poo#155422 --> there's no podman in SLE12-SP3 and so netavark fails
-    unless (is_sle('=12-sp3')) {
-        assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
-        assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
-        # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
-        assert_script_run("$runtime exec -it outer-container podman run -it $image ls");
+    # Test container nesting on SLES15+
+    # Anything below 12-SP5 is simply too old. 12-SP5 doesn't work because of bsc#1232429
+    unless (is_sle('<15')) {
+        if ($runtime eq 'docker') {
+            # Docker-in-Docker (DinD) uses the special dind image
+            assert_script_run("docker run -d --privileged --name dind docker.io/docker:dind");
+            script_retry("docker exec -it dind docker run -it $image ls", timeout => 300, retry => 3, delay => 60);  # docker is sometimes not immediately ready
+            script_run("docker container stop dind");
+            script_run("docker container rm dind");
+        } elsif ($runtime eq 'podman') {
+            assert_script_run("podman run -d --privileged --name pinp $image sleep infinity");
+            assert_script_run("podman exec pinp zypper -n --gpg-auto-import-keys in podman", timeout => 300); # Auto import keys because of the NVIDIA repository on SLES
+            assert_script_run("podman exec -it pinp podman run -it $image ls", timeout => 300);
+            script_run("podman container stop pinp");
+            script_run("podman container rm pinp");
+        }
     }
 }
 
