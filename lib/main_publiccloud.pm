@@ -129,8 +129,9 @@ sub load_latest_publiccloud_tests {
         loadtest("publiccloud/registration", run_args => $args);
         if (get_var('PUBLIC_CLOUD_NETCONFIG')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
-        }
-        else {
+        } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
+            loadtest('publiccloud/ahb', run_args => $args);
+        } else {
             loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
             loadtest "publiccloud/ssh_interactive_start", run_args => $args;
             loadtest "publiccloud/instance_overview", run_args => $args;
@@ -160,8 +161,6 @@ sub load_latest_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image", run_args => $args;
-    } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
-        loadtest 'publiccloud/ahb', run_args => $args;
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
