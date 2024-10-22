@@ -46,7 +46,8 @@ our @EXPORT = qw(
   ipaddr2_wait_for_takeover
   ipaddr2_test_master_vm
   ipaddr2_test_other_vm
-  ipaddr2_os_cloud_init_logs
+  ipaddr2_cloudinit_create
+  ipaddr2_cloudinit_logs
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -77,7 +78,7 @@ sub ipaddr2_azure_resource_group {
 
 =head2 ipaddr2_azure_storage_account
 
-    my $storage account = ipaddr2_azure_storage_account();
+    my $storage_account = ipaddr2_azure_storage_account();
 
 Get a unique storage account name. Not including the jobId
 result in error like:
@@ -86,6 +87,51 @@ The storage account named ip2tstorageaccount already exists under the subscripti
 
 sub ipaddr2_azure_storage_account {
     return $storage_account . get_current_job_id();
+}
+
+=head2 ipaddr2_cloudinit_create
+
+    my $cloud_init_file = ipaddr2_cloudinit_create();
+
+Create the cloud-init.txt profile file
+
+=over
+
+=item B<scc_code> - if cloudinit is enabled, it is also possible to add
+                    register command in it. This argument is just ignored if cloudinit is 0.
+                    This argument become mandatory is cloudinit is 1 and image is BYOS.
+                    This is because cloud-init also try to install nginx,
+                    but installing packages is not possible for BYOS images,
+                    before registering.
+
+=back
+=cut
+
+sub ipaddr2_cloudinit_create {
+    my (%args) = @_;
+    my $cloud_init_file;
+    my $cloud_init_content = <<END;
+#cloud-config
+package_upgrade: false
+packages:
+  - nginx
+runcmd:
+  - 'echo "I am \$(hostname)" > /srv/www/htdocs/index.html'
+  - sudo systemctl enable --now nginx.service
+END
+
+    if ($args{scc_code}) {
+        $cloud_init_content .= <<END;
+bootcmd:
+  - registercloudguest --clean
+  - registercloudguest --force-new -r $args{scc_code}
+END
+    }
+    $cloud_init_file = '/tmp/cloud-init-web.txt';
+    write_sut_file($cloud_init_file, $cloud_init_content);
+    # upload to allow debugging
+    upload_logs($cloud_init_file);
+    return $cloud_init_file;
 }
 
 =head2 ipaddr2_infra_deploy
@@ -241,28 +287,7 @@ sub ipaddr2_infra_deploy {
     # socat is only needed for 12sp5
     my $cloud_init_file;
     if ($args{cloudinit}) {
-        my $cloud_init_content = <<END;
-#cloud-config
-package_upgrade: false
-packages:
-  - nginx
-  - socat
-runcmd:
-  - 'echo "I am \$(hostname)" > /srv/www/htdocs/index.html'
-  - sudo systemctl enable --now nginx.service
-END
-
-        if ($args{scc_code}) {
-            $cloud_init_content .= <<END;
-bootcmd:
-  - registercloudguest --clean
-  - registercloudguest --force-new -r $args{scc_code}
-END
-        }
-        $cloud_init_file = '/tmp/cloud-init-web.txt';
-        write_sut_file($cloud_init_file, $cloud_init_content);
-        # upload to allow debugging
-        upload_logs($cloud_init_file);
+        $cloud_init_file = ipaddr2_cloudinit_create(scc_code => $args{scc_code});
     }
 
     # Create 2:
@@ -800,7 +825,7 @@ sub ipaddr2_os_sanity {
             bastion_ip => $args{bastion_ip});
     }
 
-    ipaddr2_os_cloud_init_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_cloudinit_sanity(bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_cluster_sanity
@@ -908,9 +933,9 @@ sub ipaddr2_os_connectivity_sanity {
         bastion_ip => $args{bastion_ip});
 }
 
-=head2 ipaddr2_os_cloud_init_sanity
+=head2 ipaddr2_cloudinit_sanity
 
-    ipaddr2_os_cloud_init_sanity()
+    ipaddr2_cloudinit_sanity()
 
 Run some checks about cloud-init
 
@@ -923,7 +948,7 @@ Run some checks about cloud-init
 =back
 =cut
 
-sub ipaddr2_os_cloud_init_sanity {
+sub ipaddr2_cloudinit_sanity {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -945,9 +970,9 @@ sub ipaddr2_os_cloud_init_sanity {
     }
 }
 
-=head2 ipaddr2_os_cloud_init_logs
+=head2 ipaddr2_cloudinit_logs
 
-    ipaddr2_os_cloud_init_logs()
+    ipaddr2_cloudinit_logs()
 
 Collect some cloud-init related logs
 
@@ -960,7 +985,7 @@ Collect some cloud-init related logs
 =back
 =cut
 
-sub ipaddr2_os_cloud_init_logs {
+sub ipaddr2_cloudinit_logs {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
