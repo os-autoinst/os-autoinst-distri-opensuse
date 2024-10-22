@@ -131,6 +131,8 @@ sub load_latest_publiccloud_tests {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
             loadtest('publiccloud/ahb', run_args => $args);
+        } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
+            loadtest("publiccloud/bsc_1205002", run_args => $args);
         } else {
             loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
             loadtest "publiccloud/ssh_interactive_start", run_args => $args;
