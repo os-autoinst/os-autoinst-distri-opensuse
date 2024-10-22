@@ -17,6 +17,53 @@ use utils qw(zypper_call common_service_action script_retry);
 
 my $service_type = 'Systemd';
 
+sub add_custom_ports_to_selinux {
+    my (%args) = @_;
+    $args{nginx_conf} //= "/etc/nginx/nginx.conf";
+
+    # Standard ports to exclude
+    my %standard_ports = (
+        'http' => [80],
+        'https' => [443],
+    );
+
+    # Function to extract ports
+    my $extract_ports = sub {
+        my ($conf, $ssl) = @_;
+        my @ports;
+        open my $fh, '<', $conf or die "Cannot open Nginx conf file: $!";
+        while (my $line = <$fh>) {
+            if ($ssl && $line =~ /listen\s+(\d+).*ssl/) {
+                push @ports, $1;
+            } elsif (!$ssl && $line =~ /listen\s+(\d+);/ && $line !~ /ssl/) {
+                push @ports, $1;
+            }
+        }
+        close $fh;
+        return @ports;
+    };
+
+    # Add port to SELinux
+    my $add_semanage_port = sub {
+        my ($port, $context) = @_;
+        my $cmd = "semanage port -a -t $context -p tcp $port";
+        my $output = script_output($cmd, proceed_on_failure => 1);
+        record_info("Port $port", $output =~ /already added/ ? "Already added." : "Added.");
+    };
+
+    # Process HTTP ports
+    foreach my $port ($extract_ports->($args{nginx_conf}, 0)) {
+        next if grep { $_ == $port } @{$standard_ports{'http'}};
+        $add_semanage_port->($port, 'http_port_t');
+    }
+
+    # Process HTTPS ports
+    foreach my $port ($extract_ports->($args{nginx_conf}, 1)) {
+        next if grep { $_ == $port } @{$standard_ports{'https'}};
+        $add_semanage_port->($port, 'https_port_t');
+    }
+}
+
 sub install_service {
     zypper_call '-v in nginx', timeout => 1000;
 }
@@ -42,8 +89,14 @@ sub config_service {
     assert_script_run('mkdir -p /etc/nginx/ssl/');
     assert_script_run($openssl_command);
 
+    my $nginx_conf = "/etc/nginx/vhosts.d/nginx_vhost.conf";
+
     # Add new virtual host and check the configuration files
-    assert_script_run('curl -fv ' . data_url('console/nginx_vhost.conf') . ' -o /etc/nginx/vhosts.d/nginx_vhost.conf');
+    assert_script_run("curl -fv " . data_url("console/nginx_vhost.conf") . " -o $nginx_conf");
+
+    # Add custom ports to SELinux
+    add_custom_ports_to_selinux(nginx_conf => $nginx_conf);
+
     assert_script_run('nginx -t');
 
     assert_script_run "echo '127.0.0.1 vhost' >> /etc/hosts";
