@@ -5,7 +5,7 @@
     <do_registration config:type="boolean">true</do_registration>
     <reg_server><%= defined $bmwqemu::vars{"HOST_SCC_URL"} ? $bmwqemu::vars{"HOST_SCC_URL"} : "" %></reg_server>
     <reg_code>{{SCC_REGCODE}}</reg_code>
-    <install_updates config:type="boolean">true</install_updates>
+    <install_updates config:type="boolean">false</install_updates>
     % if (keys %$addons) {
     <addons config:type="list">
       % while (my ($key, $addon) = each (%$addons)) {
@@ -57,7 +57,7 @@
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>splash=silent quiet console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= $get_var->('OPT_KERNEL_PARAMS') %></xen_append>
+      <xen_append>splash=silent quiet console=tty <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= $get_var->('OPT_KERNEL_PARAMS', '') %> console=hvc0 earlyprintk=xen</xen_append>
       <!-- For some special beremetal machines, such as unreal2/3, their serial console:
       SERIALDEV='ttyS2', XEN_SERIAL_CONSOLE="com1=115200,8n1,0x3e8,5 console=com1" -->
       <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "console=com2,115200" %> vga=gfx-1024x768x16 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console</xen_kernel_append>

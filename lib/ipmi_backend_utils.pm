@@ -102,7 +102,7 @@ sub setup_console_in_grub {
             $cmd
               = "sed -ri '/options=/ "
               . "{s/(com[0-2]|console|loglevel|loglvl|guest_loglvl)=[^ ]* //g; "
-              . "/options=/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
+              . "/options=/ s/\$/ $com_settings x2apic_phys=true loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $xen_efi_grub_cfg_file";
             assert_script_run($cmd);
             script_run("cat $xen_efi_grub_cfg_file");
@@ -113,7 +113,7 @@ sub setup_console_in_grub {
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $com_settings loglvl=all guest_loglvl=all sync_console/;}; "
+              . "/multiboot/ s/\$/ $com_settings x2apic_phys=true loglvl=all guest_loglvl=all sync_console/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
         }
