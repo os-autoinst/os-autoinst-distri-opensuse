@@ -33,7 +33,7 @@ sub run {
 
     # Verify that there is no unpartitioned space left
     my $left_sectors = 0;
-    if ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64) {
+    if ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64 && get_var('FLAVOR', '') !~ m/qcow/) {
         $left_sectors = 2048;
     } elsif (is_sle_micro("6.0+") && is_aarch64) {
         $left_sectors = 0 if (get_var("HDD_1") =~ /qcow2/);
