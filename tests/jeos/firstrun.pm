@@ -303,7 +303,7 @@ sub run {
         assert_screen 'jeos-totp-for-cockpit';
         # serial console is too small for generated QR to show up with additional textbox
         # another button is present in the UI in order to display the QR in a separated view
-        my $tabs = is_s390x ? 3 : 2;
+        my $tabs = (is_s390x || is_ipmi) ? 3 : 2;
         for (1 .. $tabs) {
             wait_screen_change(sub {
                     send_key 'tab';
@@ -398,7 +398,7 @@ sub run {
     # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
     verify_mounts unless is_leap('<15.2') && is_aarch64;
 
-    verify_hypervisor unless is_generalhw;
+    verify_hypervisor unless (is_generalhw || is_ipmi || is_pvm_hmc);
     verify_norepos unless is_opensuse;
     verify_bsc if is_jeos;
     verify_partition_label;
