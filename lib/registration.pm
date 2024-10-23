@@ -88,7 +88,7 @@ our %ADDONS_REGCODE = (
     'sle-module-live-patching' => get_var('SCC_REGCODE_LIVE'),
     'sle-live-patching' => get_var('SCC_REGCODE_LIVE'),
     'SLES-LTSS' => get_var('SCC_REGCODE_LTSS'),
-    'SLES-LTSS-Extended-Security' => get_var('SCC_REGCODE_LTSS_SEC'),
+    'SLES-LTSS-Extended-Security' => get_var('SCC_REGCODE_LTSS_ES'),
     'SUSE-Linux-Enterprise-RT' => get_var('SCC_REGCODE_RT'),
     ESPOS => get_var('SCC_REGCODE_ESPOS'),
 );
@@ -846,7 +846,7 @@ sub get_addon_fullname {
         legacy => 'sle-module-legacy',
         lgm => 'sle-module-legacy',
         ltss => is_hpc('15+') ? 'SLE_HPC-LTSS' : 'SLES-LTSS',
-        ltss_security => 'SLES-LTSS-Extended-Security',
+        ltss_es => 'SLES-LTSS-Extended-Security',
         pcm => 'sle-module-public-cloud',
         rt => 'SUSE-Linux-Enterprise-RT',
         sapapp => 'sle-module-sap-applications',
