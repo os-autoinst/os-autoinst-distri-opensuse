@@ -301,7 +301,10 @@ sub run {
     # Only Default flavors come with pre-installed cockpit
     if (is_sle_micro('>6.0') && get_var('FLAVOR', '') =~ /default/i) {
         assert_screen 'jeos-totp-for-cockpit';
-        for (1 .. 2) {
+        # serial console is too small for generated QR to show up with additional textbox
+        # another button is present in the UI in order to display the QR in a separated view
+        my $tabs = is_s390x ? 3 : 2;
+        for (1 .. $tabs) {
             wait_screen_change(sub {
                     send_key 'tab';
             }, 10);
