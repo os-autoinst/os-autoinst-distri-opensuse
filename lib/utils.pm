@@ -3173,7 +3173,7 @@ and also more flexibility.
 =cut
 
 sub is_disk_image {
-    return 1 if ((get_var('HDD_1') or get_var('INSTALL_HDD_IMAGE')) and get_var('BOOT_HDD_IMAGE'));
+    return 1 if (get_var('HDD_1') && get_var('INSTALL_HDD_IMAGE'));
     return 0;
 }
 

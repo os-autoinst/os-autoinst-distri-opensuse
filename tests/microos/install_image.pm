@@ -29,10 +29,17 @@ sub run {
     # SL Micro x86_64 image has three partitions, aarch64 and ppc64le images have only two partitions
     my $root_partition_id = is_x86_64 ? 3 : 2;
     my $root_partition = "${device}" . $prefix . $root_partition_id;
-    # New partition id for ignition will be directly after root partition
-    my $ignition_partition_id = $root_partition_id + 1;
-    my $ignition_partition = "${device}" . $prefix . $ignition_partition_id;
-    record_info("Device information", "Device: ${device}\nRoot partition: ${root_partition}\nIgnition partition: ${ignition_partition}");
+
+    my $ignition_partition;
+
+    my $msg = "Device: ${device}\nRoot partition: ${root_partition}\n";
+    unless (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        # New partition id for ignition will be directly after root partition
+        my $ignition_partition_id = $root_partition_id + 1;
+        $ignition_partition = "${device}" . $prefix . $ignition_partition_id;
+        $msg .= "Ignition partition: ${ignition_partition}";
+    }
+    record_info("Device information", $msg);
 
     # Mount nfs share with images
     assert_script_run("mount -o ro,noauto,nofail,nolock -t nfs openqa.suse.de:/var/lib/openqa/share /mnt");
@@ -64,17 +71,19 @@ sub run {
     assert_script_run("btrfs property set /mnt ro true");
     assert_script_run("umount /mnt");
 
-    # Setup ignition parition on the end of the same disk and resize root partition to use all the space
-    # script_output recommended in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/20253/files#r1776549682
-    script_output("printf \"fix\n\" | parted ---pretend-input-tty ${device} print");
-    assert_script_run("parted ${device} --script mkpart primary ext4 98% 100%");
-    assert_script_run("parted ${device} --script print");
-    assert_script_run("mkfs.ext4 -F ${ignition_partition}");
-    assert_script_run("e2label ${ignition_partition} ignition");
-    assert_script_run("mount ${ignition_partition} /mnt/");
-    assert_script_run("mkdir /mnt/ignition");
-    assert_script_run("curl -v -o /mnt/ignition/config.ign " . data_url("microos/ignition/config.ign"));
-    assert_script_run('umount /mnt');
+    unless (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        # Setup ignition parition on the end of the same disk and resize root partition to use all the space
+        # script_output recommended in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/20253/files#r1776549682
+        script_output("printf \"fix\n\" | parted ---pretend-input-tty ${device} print");
+        assert_script_run("parted ${device} --script mkpart primary ext4 98% 100%");
+        assert_script_run("parted ${device} --script print");
+        assert_script_run("mkfs.ext4 -F ${ignition_partition}");
+        assert_script_run("e2label ${ignition_partition} ignition");
+        assert_script_run("mount ${ignition_partition} /mnt/");
+        assert_script_run("mkdir /mnt/ignition");
+        assert_script_run("curl -v -o /mnt/ignition/config.ign " . data_url("microos/ignition/config.ign"));
+        assert_script_run('umount /mnt');
+    }
 
     # Resize root filesystem to maximum size to use all space up to partition with ignition
     assert_script_run("parted ${device} --script resize ${root_partition_id} 98%");
@@ -90,7 +99,7 @@ sub run {
     # We can't use reconnect_mgmt_console as it expects fully configured grub, which we don't have at this stage yet
     select_console "sol", await_console => 0 if is_ipmi;
     select_console 'powerhmc-ssh', await_console => 0 if is_pvm_hmc;
-    assert_screen("linux-login", 600);
+    assert_screen("linux-login", 600) unless check_var('FIRST_BOOT_CONFIG', 'wizard');
 }
 
 sub test_flags {
