@@ -53,6 +53,7 @@
       <li><a href="#az_network_peering_delete">az_network_peering_delete</a></li>
       <li><a href="#az_disk_create">az_disk_create</a></li>
       <li><a href="#az_resource_delete">az_resource_delete</a></li>
+      <li><a href="#az_resource_list">az_resource_list</a></li>
       <li><a href="#az_validate_uuid_pattern">az_validate_uuid_pattern</a></li>
     </ul>
   </li>
@@ -1011,7 +1012,7 @@
 
 <pre><code>az_resource_delete(resource_group=&gt;$resource_group, name=&gt;$name);</code></pre>
 
-<p>Deletes resource from specified resource group. Single resource can be deleted by specifying <b>name</b> or list of resource IDs delimited by empty space using argument <b>ids</b>. Arguments <b>name</b> and <b>ids</b> are mutually exclusive.</p>
+<p>Deletes resource from specified resource group. Single resource can be deleted by specifying <b>name</b> or list of resource IDs delimited by empty space using argument <b>ids</b>. Arguments <b>name</b> and <b>ids</b> are mutually exclusive. Function returns `az` command exit code.</p>
 
 <dl>
 
@@ -1027,7 +1028,29 @@
 <dd>
 
 </dd>
+<dt id="verbose-Turn-on-az-command-verbosity.-Default:-off"><b>verbose</b> Turn on az command verbosity. Default: off</dt>
+<dd>
+
+</dd>
 <dt id="timeout-Timeout-for-az-command.-Default:-60"><b>timeout</b> Timeout for az command. Default: 60</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_resource_list">az_resource_list</h2>
+
+<pre><code>az_resource_list([resource_group=&gt;$resource_group, query=&gt;$query, output=&gt;$output]);</code></pre>
+
+<p>Lists existing az resources based on arguments provided. Calling function without any argument returns full information from all existing resource groups. Returns decoded json structure if json format is requested, otherwise whole output is a string.</p>
+
+<dl>
+
+<dt id="resource_group-Existing-resource-group-name2"><b>resource_group</b> Existing resource group name.</dt>
+<dd>
+
+</dd>
+<dt id="query-Jmespath-query"><b>query</b> Jmespath query</dt>
 <dd>
 
 </dd>
