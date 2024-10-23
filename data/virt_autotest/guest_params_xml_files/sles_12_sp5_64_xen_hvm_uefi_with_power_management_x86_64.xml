@@ -93,5 +93,5 @@
     <guest_registration_server/>
     <guest_registration_username>www@suse.com</guest_registration_username>
     <guest_registration_password/>
-    <guest_registration_extensions/>
+    <guest_registration_extensions>SLES-LTSS</guest_registration_extensions>
 </guest>
