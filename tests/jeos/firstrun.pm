@@ -298,7 +298,8 @@ sub run {
         create_user_in_ui();
     }
 
-    if (is_sle_micro('>6.0')) {
+    # Only Default flavors come with pre-installed cockpit
+    if (is_sle_micro('>6.0') && get_var('FLAVOR', '') =~ /default/i) {
         assert_screen 'jeos-totp-for-cockpit';
         for (1 .. 2) {
             wait_screen_change(sub {
