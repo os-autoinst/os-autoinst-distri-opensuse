@@ -54,6 +54,9 @@ sub run {
         }
     }
 
+    # Check cluster for overall readiness (nodes online, in sync and crm output contains no failed resources)
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+
     return unless $ha_enabled;
 
     record_info(
