@@ -626,7 +626,9 @@ sub ha_export_logs {
     script_run "touch $corosync_conf";
     script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
     upload_logs("$bootstrap_log", failok => 1);
-    upload_logs("$crm_log.tar.bz2", failok => 1);
+
+    my $crm_log_name = script_output("ls $crm_log* | tail -1");
+    upload_logs("$crm_log_name", failok => 1);
 
     script_run "crm configure show > /tmp/crm.txt";
     upload_logs('/tmp/crm.txt');
