@@ -102,14 +102,14 @@ subtest '[cluster_status_matches_regex] Cluster with errors' => sub {
     my $cmr_status = "* stonith-sbd	(stonith:external/sbd):	 Stopped vmhana01
         * Clone Set: cln_azure-events [rsc_azure-events]:
         * Started: [ vmhana01 vmhana02 ]
-        * Clone Set: cln_SAPHanaTopology_HDB_HDB00 [rsc_SAPHanaTopology_HDB_HDB00]:
+        * Clone Set: cln_SAPHanaTpg_HQ0_HDB00 [rsc_SAPHanaTpg_HQ0_HDB00]:
             * Started: [ vmhana01 vmhana02 ]
-        * Clone Set: msl_SAPHana_HDB_HDB00 [rsc_SAPHana_HDB_HDB00] (promotable):
-            * rsc_SAPHana_HDB_HDB00	(ocf::suse:SAPHana):	 Promoting vmhana02
+        * Clone Set: msl_SAPHanaCtl
+            * rsc_SAPHanaCtl_HQ0_HDB00	(ocf::suse:SAPHana):	 Promoting vmhana02
             * Stopped: [ vmhana01 ]
-        * rsc_socat_HDB_HDB00	(ocf::heartbeat:azure-lb):	 Stopped vmhana02
-        * Resource Group: g_ip_HDB_HDB00:
-            * rsc_ip_HDB00	(ocf::heartbeat:IPaddr2):	 Stopped";
+        * rsc_socat_HQ0_HDB00	(ocf::heartbeat:azure-lb):	 Stopped vmhana02
+        * Resource Group: g_ip_HQ0_HDB00:
+            * rsc_ip_HQ0_HDB00	(ocf::heartbeat:IPaddr2):	 Stopped";
     $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $res = cluster_status_matches_regex($cmr_status);
@@ -121,14 +121,14 @@ subtest '[cluster_status_matches_regex] Cluster with master failed errors' => su
     my $cmr_status = "* stonith-sbd	(stonith:external/sbd):	 Started vmhana01
     	* Clone Set: cln_azure-events [rsc_azure-events]:
     	* Started: [ vmhana01 vmhana02 ]
-  	* Clone Set: cln_SAPHanaTopology_HDB_HDB00 [rsc_SAPHanaTopology_HDB_HDB00]:
+  	* Clone Set: cln_SAPHanaTpg_HQ0_HDB00 [rsc_SAPHanaTpg_HQ0_HDB00]:
     	     * Started: [ vmhana01 vmhana02 ]
-  	* Clone Set: msl_SAPHana_HDB_HDB00 [rsc_SAPHana_HDB_HDB00] (promotable):
-    	     * rsc_SAPHana_HDB_HDB00	(ocf::suse:SAPHana):	 FAILED Master vmhana01 (Monitoring)
+  	* Clone Set: msl_SAPHanaCtl_HQ0_HDB00 [rsc_SAPHanaCtl_HQ0_HDB00] (promotable):
+    	     * rsc_SAPHanaCtl_HQ0_HDB00	(ocf::suse:SAPHana):	 FAILED Master vmhana01 (Monitoring)
     	     * Slaves: [ vmhana02 ]
-  	* rsc_socat_HDB_HDB00	(ocf::heartbeat:azure-lb):	 Started vmhana02
-  	* Resource Group: g_ip_HDB_HDB00:
-    	    * rsc_ip_HDB00	(ocf::heartbeat:IPaddr2):	 Started vmhana01";
+  	* rsc_socat_HQ0_HDB00	(ocf::heartbeat:azure-lb):	 Started vmhana02
+  	* Resource Group: g_ip_HQ0_HDB00:
+    	    * rsc_ip_HQ0_HDB00	(ocf::heartbeat:IPaddr2):	 Started vmhana01";
     $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $res = cluster_status_matches_regex($cmr_status);
@@ -140,13 +140,13 @@ subtest '[cluster_status_matches_regex] Cluster with starting errors' => sub {
     my $cmr_status = "* rsc_stonith_azure	(stonith:fence_azure_arm):	 Started vmhana01
   	* Clone Set: cln_azure-events [rsc_azure-events]:
     	* Started: [ vmhana01 vmhana02 ]
-  	* Clone Set: cln_SAPHanaTopology_HDB_HA000 [rsc_SAPHanaTopology_HDB_HA000]:
+  	* Clone Set: cln_SAPHanaTpg_HQ0_HA000 [rsc_SAPHanaTpg_HQ0_HA000]:
     	     * Started: [ vmhana01 vmhana02 ]
-  	* Clone Set: msl_SAPHana_HDB_HA000 [rsc_SAPHana_HDB_HA000] (promotable):
-    	     * rsc_SAPHana_HDB_HA000	(ocf::suse:SAPHana):	 Starting vmhana02
+  	* Clone Set: msl_SAPHanaCtl_HQ0_HA000 [rsc_SAPHanaCtl_HQ0_HA000] (promotable):
+    	     * rsc_SAPHanaCtl_HQ0_HA000	(ocf::suse:SAPHana):	 Starting vmhana02
              * Masters: [ vmhana01 ]
-  	* rsc_socat_HDB_HA000	(ocf::heartbeat:azure-lb):	 Started vmhana02
-  	* Resource Group: g_ip_HDB_HA000:
+  	* rsc_socat_HQ0_HA000	(ocf::heartbeat:azure-lb):	 Started vmhana02
+  	* Resource Group: g_ip_HQ0_HA000:
             * rsc_ip_HA000	(ocf::heartbeat:IPaddr2):	 Started vmhana01";
     $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
