@@ -15,7 +15,7 @@ use testapi;
 use Exporter qw(import);
 use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables);
 use sles4sap::sap_deployment_automation_framework::deployment_connector
-  qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip);
+  qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip destroy_orphaned_resources);
 use sles4sap::console_redirection;
 
 our @EXPORT = qw(full_cleanup);
@@ -86,6 +86,11 @@ sub full_cleanup {
 
     # Destroys deployer VM and its resources
     destroy_deployer_vm();
+
+    # Clean up orphaned resources inside permanent deployer job group
+    # Resource retention time can be controlled by OpenQA parameter: SDAF_DEPLOYER_VM_RETENTION_SEC
+    record_info('Remove orphans', 'Cleaning up orphaned resources');
+    destroy_orphaned_resources();
 }
 
 sub post_fail_hook {

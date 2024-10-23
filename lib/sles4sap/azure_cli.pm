@@ -12,6 +12,7 @@ use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
+use utils qw(write_sut_file);
 
 
 =head1 SYNOPSIS
@@ -55,6 +56,7 @@ our @EXPORT = qw(
   az_network_peering_delete
   az_disk_create
   az_resource_delete
+  az_resource_list
   az_validate_uuid_pattern
 );
 
@@ -849,7 +851,7 @@ sub az_vm_wait_running {
         return if ($count eq 2);
         sleep $sleep_time;
     }
-    die "VM not runnings after " . (time() - $start_time) . "seconds";
+    die "VM not running after " . (time() - $start_time) . "seconds";
 }
 
 =head2 az_vm_openport
@@ -1364,6 +1366,7 @@ sub az_disk_create {
 Deletes resource from specified resource group. Single resource can be deleted by specifying B<name> or list of resource IDs
 delimited by empty space using argument B<ids>.
 Arguments B<name> and B<ids> are mutually exclusive.
+Function returns `az` command exit code.
 
 =over
 
@@ -1372,6 +1375,8 @@ Arguments B<name> and B<ids> are mutually exclusive.
 =item B<name> Name of the resource to delete
 
 =item B<ids> list of resource IDs to delete
+
+=item B<verbose> Turn on az command verbosity. Default: off
 
 =item B<timeout> Timeout for az command. Default: 60
 
@@ -1384,14 +1389,48 @@ sub az_resource_delete {
     croak "Arguments 'name' and 'ids' are mutually exclusive" if $args{ids} and $args{name};
     croak "Argument 'name' or 'ids' has to be specified" unless $args{ids} or $args{name};
     $args{timeout} //= 60;
-
+    my $temp_script_file = '/tmp/' . sprintf("%010x", int(rand(0xffffffff))) . '-az_resource_delete.sh';
     my @az_command = ('az resource delete',
         "--resource-group $args{resource_group}"
     );
     push @az_command, "--name $args{name}" if $args{name};
     push @az_command, "--ids $args{ids}" if $args{ids};
+    push @az_command, "--verbose" if $args{verbose};
 
-    assert_script_run(join(' ', @az_command), timeout => $args{timeout});
+    # az cli command has to be run in a shell script. Problem with `script_run` api call is that it does not handle
+    # long commands very well. If the command is too long, internal `wait_serial` call might fail.
+    write_sut_file($temp_script_file, join(' ', @az_command));
+    assert_script_run("chmod +x $temp_script_file");
+    my $rc = script_run("/usr/bin/bash -x $temp_script_file", timeout => $args{timeout});
+    assert_script_run("rm $temp_script_file");
+    return $rc;
+}
+
+=head2 az_resource_list
+
+    az_resource_list([resource_group=>$resource_group, query=>$query, output=>$output]);
+
+Lists existing az resources based on arguments provided. Calling function without any argument returns full information
+from all existing resource groups.
+Returns decoded json structure if json format is requested, otherwise whole output is a string.
+
+=over
+
+=item B<resource_group> Existing resource group name.
+
+=item B<query> Jmespath query
+
+=back
+=cut
+
+sub az_resource_list {
+    my (%args) = @_;
+    my @az_command = ('az resource list');
+    push(@az_command, "--resource-group $args{resource_group}") if $args{resource_group};
+    push(@az_command, "--query \"$args{query}\"") if $args{query};
+    push(@az_command, '--output json');
+
+    return (decode_json(script_output(join(' ', @az_command))));
 }
 
 =head2 az_validate_uuid_pattern
