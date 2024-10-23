@@ -332,7 +332,10 @@ sub pre_run_hook {
     # But change them to hard fail in this test module.
     for my $pattern (@{$self->{serial_failures}}) {
         my %tmp = %$pattern;
-        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type});
+
+        # don't switch to hard fail when test is expected to produce kernel warning
+        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type}) && !($tmp{soft_on_expect_warn} && get_var('LTP_WARN_EXPECTED'));
+
         push @pattern_list, \%tmp;
     }
 
