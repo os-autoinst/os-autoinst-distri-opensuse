@@ -103,10 +103,6 @@ sub run {
 
     $podman->cleanup_system_host();
 
-    # it is turned off in
-    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blame/master/lib/containers/common.pm#L303
-    assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=0';
-
     assert_script_run('curl ' . data_url('containers/nginx.conf') . ' -o nginx.conf');
 
     ## TEST1
