@@ -13,9 +13,12 @@ use warnings;
 use base "consoletest";
 use testapi;
 use transactional;
+use microos;
 use utils;
 use version_utils 'is_tumbleweed';
 use Utils::Backends 'is_pvm';
+
+my $force_soft_reboot = get_var "FORCE_SOFT_REBOOT";
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
@@ -48,20 +51,27 @@ sub rbm_set_window {
 
 #1 Test instant reboot
 sub check_strategy_instantly {
+    my $will_do_soft_reboot = soft_reboot_enabled();
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    process_reboot(expected_grub => is_pvm() ? 0 : 1);
+
+    microos_login(soft_reboot => 1) if $will_do_soft_reboot;
+    process_reboot(expected_grub => is_pvm() ? 0 : 1) unless $will_do_soft_reboot;
+
     rbm_call "get-strategy | grep instantly";
 }
 
 #2 Test maint-window strategy
 sub check_strategy_maint_window {
+    my $will_do_soft_reboot = soft_reboot_enabled();
     rbm_call "set-strategy maint-window";
 
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => is_pvm() ? 0 : 1);
+
+    microos_login(soft_reboot => 1) if $will_do_soft_reboot;
+    process_reboot(expected_grub => is_pvm() ? 0 : 1) unless $will_do_soft_reboot;
 
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
@@ -81,6 +91,8 @@ sub check_strategy_maint_window {
 sub run {
     select_console 'root-console';
 
+    enable_soft_reboot if $force_soft_reboot;
+
     get_utt_packages;
 
     record_info 'Instantly', 'Test instant reboot';
@@ -88,6 +100,7 @@ sub run {
 
     record_info 'Maint-window', 'Test maint-window strategy';
     check_strategy_maint_window;
+    disable_soft_reboot if $force_soft_reboot;
 }
 
 1;
