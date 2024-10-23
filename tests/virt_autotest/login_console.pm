@@ -308,7 +308,7 @@ sub run {
     save_screenshot;
     script_run("zypper se sles-ltss-release");
     save_screenshot;
-    script_run("zypper in sles-ltss-release");
+    script_run("zypper -n in sles-ltss-release");
     save_screenshot;
 }
 
