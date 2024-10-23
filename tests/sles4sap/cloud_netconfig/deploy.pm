@@ -10,6 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
 use sles4sap::azure_cli;
 
 use constant DEPLOY_PREFIX => 'clne';
@@ -62,19 +63,11 @@ sub run {
         resource_group => $rg,
         name => $nsg);
 
-    $az_cmd = join(' ', 'az network nsg rule create',
-        '--resource-group', $rg,
-        '--nsg-name', $nsg,
-        '--name', $nsg . 'RuleSSH',
-        "--protocol '*'",
-        '--direction inbound',
-        "--source-address-prefix '*'",
-        "--source-port-range '*'",
-        "--destination-address-prefix '*'",
-        '--destination-port-range 22',
-        '--access allow',
-        '--priority 200');
-    assert_script_run($az_cmd);
+    az_network_nsg_rule_create(
+        resource_group => $rg,
+        nsg => $nsg,
+        name => $nsg . 'RuleSSH',
+        port => 22);
 
     # Create one NIC, by default it also create a ip configuration
     # Associate the first public IP to this default first IpConfig
@@ -119,12 +112,16 @@ sub run {
 
     # Create one VM and add the NIC to it
     my $vm = DEPLOY_PREFIX . '-vm';
-    az_vm_create(
+    my %vm_create_args = (
         resource_group => $rg,
         name => $vm,
         nic => $nic,
         image => $os_ver,
-        username => 'cloudadmin');
+        username => 'cloudadmin',
+        region => $provider->provider_client->region);
+    $vm_create_args{security_type} = 'Standard' if is_sle '<=12-SP5';
+
+    az_vm_create(%vm_create_args);
 
     my $vm_ip;
     my $ssh_cmd;
