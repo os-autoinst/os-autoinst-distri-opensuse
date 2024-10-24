@@ -9,18 +9,13 @@ use List::Util qw(any none all);
 
 use sles4sap::ipaddr2;
 
-subtest '[ipaddr2_infra_deploy] no BYOS' => sub {
-    # There are some limitations in BYOS+CLOUD-INIT+SCC REG interactions
+subtest '[ipaddr2_infra_deploy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    my $cloud_init_content;
-    $ipaddr2->redefine(write_sut_file => sub {
-            $cloud_init_content = $_[1];
-            return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -35,68 +30,16 @@ subtest '[ipaddr2_infra_deploy] no BYOS' => sub {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
         push @cmds, $calls[$call_idx][1];
     }
-    note("cloud_init_content:\n" .
-          "--------------------------\n" .
-          $cloud_init_content .
-          "\n--------------------------");
 
     ok(($#calls > 0), "There are some command calls");
     ok((none { /az storage account create/ } @cmds), 'Do not create storage');
-    ok((any { /az vm create.*custom-data/ } @cmds), 'az vm create has custom-data. Cloud-init enabled by default');
-    ok((any { /sudo cloud-init status/ } @cmds), 'Wait cloud-init status. Cloud-init enabled by default');
-    like($cloud_init_content, qr/nginx/, "cloud-init script is also about nginx");
-    unlike($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
+    ok((none { /az vm create.*custom-data/ } @cmds),
+        'No cloudinit_profile provided so az vm create has no custom-data. Cloud-init disabled by default');
+    ok((none { /sudo cloud-init status/ } @cmds),
+        'No cloudinit_profile. Cloud-init disabled by default');
 };
 
-subtest '[ipaddr2_infra_deploy] cloud-init and byos but no SCC' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
-    my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-
-    dies_ok {
-        ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
-    } "cloud-init is enabled by default and image is BYOS but no scc_code provided";
-
-    for my $call_idx (0 .. $#calls) {
-        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
-    }
-
-    ok((!@calls), 'There are ' . $#calls . ' command calls and none expected');
-};
-
-subtest '[ipaddr2_infra_deploy] cloud-init byos and SCC' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
-    my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    my $cloud_init_content;
-    $ipaddr2->redefine(write_sut_file => sub {
-            $cloud_init_content = $_[1];
-            return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
-
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
-    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
-
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', scc_code => '1234');
-
-
-    for my $call_idx (0 .. $#calls) {
-        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
-    }
-    note("cloud_init_content:\n" .
-          "--------------------------\n" .
-          $cloud_init_content .
-          "\n--------------------------");
-
-    like($cloud_init_content, qr/nginx/, "cloud-init script is also about nginx");
-    like($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
-};
-
-subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
+subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -108,9 +51,12 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
+    ipaddr2_infra_deploy(
+        region => 'Marconi',
+        os => 'Meucci:gen2:ByoS',
+        cloudinit_profile => '/AAAAA/BBBBB');
 
-    # push th elist of commands in another list, this one withour the source
+    # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
     my @cmds;
     for my $call_idx (0 .. $#calls) {
@@ -120,32 +66,8 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
 
     # Todo : expand it
     ok(($#calls > 0), "There are some command calls");
-    ok((none { /az storage account create/ } @cmds), 'Do not create storage');
-    ok((none { /az vm create.*custom-data/ } @cmds), 'custom-data not in az vm create when cloud-init is disabled');
-    ok((none { /sudo cloud-init status/ } @cmds), 'No wait cloud-init when cloud-init is disabled');
-};
-
-subtest '[ipaddr2_infra_deploy] cloud-init and byos' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
-    my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
-
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
-    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
-
-    dies_ok {
-        ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
-    } "cloud-init is enabled by default and image is BYOS";
-
-    for my $call_idx (0 .. $#calls) {
-        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
-    }
-
-    ok((!@calls), 'There are ' . $#calls . ' command calls and none expected');
+    ok((any { /az vm create.*custom-data/ } @cmds), 'custom-data in az vm create when cloud-init is enabled');
+    ok((any { /sudo cloud-init status/ } @cmds), 'wait cloud-init when cloud-init is enabled');
 };
 
 subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
@@ -160,9 +82,9 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', cloudinit => 0);
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
 
-    # push th elist of commands in another list, this one withour the source
+    # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
     my @cmds;
     for my $call_idx (0 .. $#calls) {
@@ -589,7 +511,7 @@ subtest '[ipaddr2_wait_for_takeover] timeout' => sub {
 
     my $ret = ipaddr2_wait_for_takeover(destination => 42);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ret eq 0), "Expected result 1 get $ret");
 };
 
@@ -792,16 +714,53 @@ subtest '[ipaddr2_configure_web_server]' => sub {
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}, ""];
+            push @calls, $args{cmd};
             return;
     });
 
     ipaddr2_configure_web_server(id => 42);
 
-    for my $call_idx (0 .. $#calls) {
-        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
-    }
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+    ok((any { /zypper in.*nginx/ } @calls), 'Install nginx using zypper');
+};
+
+subtest '[ipaddr2_configure_web_server] nginx_root' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return;
+    });
+
+    ipaddr2_configure_web_server(id => 42, nginx_root => 'AAA');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    ok((any { /mv.*index\.html.*AAA/ } @calls), 'Place test index.html in the folder from the argument');
+};
+
+subtest '[ipaddr2_configure_web_server] external_repo' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return;
+    });
+
+    ipaddr2_configure_web_server(id => 42, external_repo => 'BBB');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    ok((any { /SUSEConnect.*BBB/ } @calls), 'Add external repo');
+    ok((any { /zypper in.*nginx/ } @calls), 'Install nginx using zypper');
 };
 
 subtest '[ipaddr2_registeration_check] all registered' => sub {
@@ -855,7 +814,7 @@ subtest '[ipaddr2_registeration_set]' => sub {
     ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
 };
 
-subtest '[ipaddr2_os_cloud_init_logs]' => sub {
+subtest '[ipaddr2_cloudinit_logs]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
@@ -866,12 +825,67 @@ subtest '[ipaddr2_os_cloud_init_logs]' => sub {
             return;
     });
 
-    ipaddr2_os_cloud_init_logs();
+    ipaddr2_cloudinit_logs();
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
+subtest '[ipaddr2_cloudinit_create]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $cloud_init_content;
+    $ipaddr2->redefine(write_sut_file => sub {
+            $cloud_init_content = $_[1];
+            return; });
+    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+
+    ipaddr2_cloudinit_create();
+
+    note("cloud_init_content:\n" .
+          "--------------------------\n" .
+          $cloud_init_content .
+          "\n--------------------------");
+
+    like($cloud_init_content, qr/nginx/, "cloud-init script is also about nginx");
+    unlike($cloud_init_content, qr/registercloudguest/, "cloud-init script does not register");
+};
+
+subtest '[ipaddr2_cloudinit_create] with scc_code' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $cloud_init_content;
+    $ipaddr2->redefine(write_sut_file => sub {
+            $cloud_init_content = $_[1];
+            return; });
+    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+
+    ipaddr2_cloudinit_create(scc_code => 'ABCD');
+
+    note("cloud_init_content:\n" .
+          "--------------------------\n" .
+          $cloud_init_content .
+          "\n--------------------------");
+
+    like($cloud_init_content, qr/registercloudguest.*ABCD/, "cloud-init script registers");
+};
+
+subtest '[ipaddr2_cloudinit_create] nginx_root' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $cloud_init_content;
+    $ipaddr2->redefine(write_sut_file => sub {
+            $cloud_init_content = $_[1];
+            return; });
+    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+
+    ipaddr2_cloudinit_create(nginx_root => 'ABCD');
+
+    note("cloud_init_content:\n" .
+          "--------------------------\n" .
+          $cloud_init_content .
+          "\n--------------------------");
+
+    like($cloud_init_content, qr/echo.*>.*ABCD.*index/, "cloud-init deploy the index.html in a custom folder");
 };
 
 subtest '[ipaddr2_os_connectivity_sanity]' => sub {
