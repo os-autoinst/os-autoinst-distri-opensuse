@@ -238,6 +238,7 @@ sub ipaddr2_infra_deploy {
     }
 
     # If required, create on the fly the cloud-init script
+    # socat is only needed for 12sp5
     my $cloud_init_file;
     if ($args{cloudinit}) {
         my $cloud_init_content = <<END;
@@ -245,6 +246,7 @@ sub ipaddr2_infra_deploy {
 package_upgrade: false
 packages:
   - nginx
+  - socat
 runcmd:
   - 'echo "I am \$(hostname)" > /srv/www/htdocs/index.html'
   - sudo systemctl enable --now nginx.service
@@ -1480,7 +1482,7 @@ sub ipaddr2_configure_web_server {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
     my @nginx_cmds = (
-        'sudo zypper install -y nginx',
+        'sudo zypper install -y nginx socat',    # socat is only needed for 12sp5
         'echo "I am $(hostname)" > /tmp/index.html',
         'sudo cp /tmp/index.html /srv/www/htdocs/index.html',
         'sudo systemctl enable --now nginx.service');
