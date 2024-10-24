@@ -25,14 +25,16 @@ sub run {
     send_key_until_needlematch( 'rear-recover-selected', 'up' );
     send_key 'ret';
     $self->wait_boot_past_bootloader;
-    if(assert_screen( 'rear_restore_tty', 120 ) && is_ppc64le) {
+    if ( assert_screen( 'rear_restore_tty', 120 ) && is_ppc64le ) {
         send_key 'ret';
     }
 
     # Restore the OS backup
     set_var( 'LIVETEST', 1 );    # Because there is no password in ReaR miniOS
-    select_console( 'root-console', skip_setterm => 1 );    # Serial console is not configured in ReaR miniOS
-    assert_script_run( 'export USER_INPUT_TIMEOUT=5; rear -d -D recover', timeout => $timeout );
+    select_console( 'root-console', skip_setterm => 1 )
+      ;    # Serial console is not configured in ReaR miniOS
+    assert_script_run( 'export USER_INPUT_TIMEOUT=5; rear -d -D recover',
+        timeout => $timeout );
     $self->upload_rear_logs;
     set_var( 'LIVETEST', 0 );
 
