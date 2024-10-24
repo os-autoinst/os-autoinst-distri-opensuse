@@ -99,7 +99,7 @@ my %opensuse_containers = (
         totest => sub {
             'registry.opensuse.org/' . get_opensuse_registry_prefix . 'opensuse/tumbleweed';
         },
-        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
+        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm', 'riscv64']
     },
     '15.4' => {
         released => sub { 'registry.opensuse.org/opensuse/leap:15.4' },
@@ -155,13 +155,16 @@ sub supports_image_arch {
 sub get_3rd_party_images {
     my $registry = get_var('REGISTRY', 'docker.io');
     my @images = (
-        "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "$registry/library/alpine",
-        "$registry/library/debian"
+        "$registry/library/alpine"
+    );
+
+    push @images, (
+        "registry.opensuse.org/opensuse/leap",
+        "$registry/library/debian",
         # Temporarily disabled as it needs x86-64-v2
         # "quay.io/centos/centos:stream9"
-    );
+    ) unless (is_riscv);
 
     # Following images are not available on 32-bit arm
     push @images, (
@@ -170,7 +173,7 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi8/ubi-minimal",
         "registry.access.redhat.com/ubi8/ubi-micro",
         "registry.access.redhat.com/ubi8/ubi-init"
-    ) unless (is_arm);
+    ) unless (is_arm || is_riscv);
 
     # - ubi9 images require z14+ s390x machine, they are not ready in OSD yet.
     #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
@@ -182,7 +185,7 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi-minimal",
         "registry.access.redhat.com/ubi9/ubi-micro",
         "registry.access.redhat.com/ubi9/ubi-init"
-    ) unless (is_arm || is_s390x || is_ppc64le || !is_x86_64_v2);
+    ) unless (is_arm || is_s390x || is_ppc64le || is_riscv || !is_x86_64_v2);
 
     push @images, (
         "$registry/library/ubuntu"
@@ -193,7 +196,7 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi7/ubi",
         "registry.access.redhat.com/ubi7/ubi-minimal",
         "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (is_arm || is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+    ) unless (is_arm || is_aarch64 || is_riscv || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
 }
