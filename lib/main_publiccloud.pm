@@ -41,7 +41,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_NETCONFIG')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
-        loadtest('publiccloud/ahb');
+        loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
@@ -55,7 +55,6 @@ sub load_maintenance_publiccloud_tests {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare", run_args => $args;
-            loadtest "xfstests/run", run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
             # flavor_check is concentrated on checking things which make sense only for image which is registered
@@ -130,8 +129,11 @@ sub load_latest_publiccloud_tests {
         loadtest("publiccloud/registration", run_args => $args);
         if (get_var('PUBLIC_CLOUD_NETCONFIG')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
-        }
-        else {
+        } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
+            loadtest('publiccloud/ahb', run_args => $args);
+        } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
+            loadtest("publiccloud/bsc_1205002", run_args => $args);
+        } else {
             loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
             loadtest "publiccloud/ssh_interactive_start", run_args => $args;
             loadtest "publiccloud/instance_overview", run_args => $args;
@@ -153,7 +155,6 @@ sub load_latest_publiccloud_tests {
                 loadtest "publiccloud/xen", run_args => $args if (get_var('PUBLIC_CLOUD_XEN'));
             } elsif (get_var('PUBLIC_CLOUD_XFS')) {
                 loadtest "publiccloud/xfsprepare", run_args => $args;
-                loadtest "xfstests/run", run_args => $args;
             } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                 loadtest("publiccloud/azure_nfs", run_args => $args);
             }
@@ -162,8 +163,6 @@ sub load_latest_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image", run_args => $args;
-    } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
-        loadtest 'publiccloud/ahb', run_args => $args;
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }

@@ -32,7 +32,7 @@ sub establish_tunnel_console {
 }
 
 sub ssh_interactive_tunnel {
-    # Establish the ssh interarctive tunnel to the publiccloud instance.
+    # Establish the ssh interactive tunnel to the publiccloud instance.
     # Optional arguments: 'force => 1' - reestablish tunnel, also if already established.
     #                     'reconnect => 1' - reestablish the tunnel after disconnecting. Use this to re-establish the tunnels after e.g. an instance reboot
 

@@ -13,4 +13,11 @@ use parent Distribution::Sle::AgamaDevel;
 use strict;
 use warnings FATAL => 'all';
 
+use Yam::Agama::Pom::GrubMenuSlesPage;
+
+sub get_grub_menu_installed_system {
+    my $self = shift;
+    return Yam::Agama::Pom::GrubMenuSlesPage->new({grub_menu_base => $self->get_grub_menu_base()});
+}
+
 1;

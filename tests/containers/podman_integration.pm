@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats install_htpasswd install_ncat install_pasta patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats install_htpasswd install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -70,7 +70,6 @@ sub run {
     install_packages(@pkgs);
     install_htpasswd if is_sle_micro;
     install_ncat;
-    install_pasta unless (is_tumbleweed || is_microos);
 
     record_info("podman version", script_output("podman version"));
 

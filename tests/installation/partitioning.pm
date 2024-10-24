@@ -16,6 +16,7 @@ use testapi;
 use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);
 use utils 'type_string_slow';
+use security::config;
 
 sub handle_common_criteria {
     if (is_sle '<=15-SP5') {
@@ -26,9 +27,9 @@ sub handle_common_criteria {
     wait_still_screen;
     assert_screen 'Common-Criteria-Disk-Encryption-Passphrase';
     send_key 'alt-e';
-    type_password;
+    type_password $security::config::strong_password;
     send_key 'alt-v';
-    type_password;
+    type_password $security::config::strong_password;
     send_key 'alt-n';
     wait_still_screen;
     send_key 'alt-y';    # to confirm "the password too simple" dialog

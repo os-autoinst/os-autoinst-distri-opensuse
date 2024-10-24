@@ -46,6 +46,7 @@ sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;
     my $node_was_fenced = 0;
+    my $cmd_fails = 0;
 
     # Ensure that the cluster state is correct before executing the checks
     select_serial_terminal;
@@ -68,7 +69,11 @@ sub run {
         # Execute the command
         my $cmd = "crm cluster crash_test --$check --force";
         record_info($check, "Executing $cmd");
-        my $cmd_fails = script_run("timeout 20 $cmd");
+        if ($check eq 'split-brain-iptables') {
+            enter_cmd $cmd;
+            $cmd_fails = 0;
+        }
+        else { $cmd_fails = script_run("timeout 20 $cmd"); }
 
         # Killing pacemaker should result in service restart
         # All remaining commands lead to a reboot of the node
@@ -101,6 +106,9 @@ sub run {
         # remaining checks should trigger fencing
         if ($node_was_fenced) {
             record_info('WARNING', "The node was fenced while executing '$cmd'");
+        }
+        elsif ($check eq 'split-brain-iptables') {
+            record_info('ERROR', "Execution of '$cmd' did not result in a fence", result => 'fail');
         }
         else {
             record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);

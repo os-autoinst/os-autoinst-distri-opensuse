@@ -10,8 +10,6 @@ schedule:
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
-  suggested_partitioning:
-    - installation/partitioning/new_partitioning_gpt
   grub: []
   first_login:
     - security/boot_disk
