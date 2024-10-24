@@ -310,7 +310,6 @@
       <pattern>base-32bit</pattern>
       <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
-      <pattern>common-criteria</pattern>
       <pattern>devel_basis</pattern>
       <pattern>devel_kernel</pattern>
       <pattern>devel_yast</pattern>

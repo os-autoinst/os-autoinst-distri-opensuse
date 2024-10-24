@@ -79,7 +79,6 @@ exit 0
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
-      <pattern>common-criteria</pattern>
       <pattern>dhcp_dns_server</pattern>
       <pattern>directory_server</pattern>
       <pattern>documentation</pattern>
