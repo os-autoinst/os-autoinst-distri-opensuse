@@ -1,0 +1,14 @@
+---
+name: linux_security_sensor
+description: Linux security sensor tests
+schedule:
+  - '{{version_specific}}'
+conditional_schedule:
+  version_specific:
+    VERSION:
+      15-SP6:
+        - security/linux_security_sensor/velociraptor_client_event_collect
+      15-SP5:
+        - security/linux_security_sensor/velociraptor_client_event_collect
+      15-SP4:
+        - security/linux_security_sensor/velociraptor_client_event_collect
