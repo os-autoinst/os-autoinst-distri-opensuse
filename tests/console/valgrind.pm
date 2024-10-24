@@ -146,7 +146,7 @@ sub prepare {
     # Compile the valgrind test program
     assert_script_run 'mkdir -p /var/tmp/valgrind';
     assert_script_run 'cd /var/tmp/valgrind';
-    assert_script_run 'curl -v -o valgrind-test.c ' . data_url('valgrind/valgrind-test.c');
+    script_retry('curl -v -o valgrind-test.c ' . data_url('valgrind/valgrind-test.c'), retry => 10, delay => 30, die => 1);
     # Ignore unititialized errors, as they are expected for this test case
     assert_script_run 'gcc -Wall -Werror -Wextra -Wno-maybe-uninitialized -std=c99 -g2 -O0 -o valgrind-test valgrind-test.c';
 }
