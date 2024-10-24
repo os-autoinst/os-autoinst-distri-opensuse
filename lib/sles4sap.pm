@@ -38,6 +38,7 @@ our @EXPORT = qw(
   SYSTEMD_RE
   SYSTEMCTL_UNITS_RE
   ASE_RESPONSE_FILE
+  download_hana_assets_from_server
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -134,6 +135,42 @@ undef by default. Test modules testing for SAP ASE should set this property befo
 =cut
 
 has ASE_RESPONSE_FILE => undef;
+
+=head2 download_hana_assets_from_server
+
+  download_hana_assets_from_server()
+
+Download and extract HANA installation media to /sapinst directory of the SUT.
+The media location must be provided as ASSET_0 in the job settings and be
+available as an uncompressed tar in the factory/other directory of the openQA
+server
+
+=cut
+
+sub download_hana_assets_from_server {
+    my $target = $_{target} // '/sapinst';
+    my $nettout = $_{nettout} // 2700;
+    script_run "mkdir $target";
+    assert_script_run "cd $target";
+    my $filename = get_required_var('ASSET_0');
+    my $hana_location = data_url('ASSET_0');
+    # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
+    # 27.3MB/s download speed. Adjust according to expected server conditions.
+    assert_script_run "wget -O - $hana_location | tar -xf -", timeout => $nettout;
+    # Skip checksum check if DISABLE_CHECKSUM is set, or if checksum file is not
+    # part of the archive
+    my $sap_chksum_file = 'MD5FILE.DAT';
+    my $chksum_file = 'checksum.md5sum';
+    my $no_checksum_file = script_run "[[ -f $target/$chksum_file || -f $target/$sap_chksum_file ]]";
+    return 1 if (get_var('DISABLE_CHECKSUM') || $no_checksum_file);
+
+    # Switch to $target to verify copied contents are OK
+    assert_script_run "pushd $target";
+    # If SAP provided MD5 sum file is present convert it to the md5sum format
+    assert_script_run "[[ -f $sap_chksum_file ]] && awk '{print \$2\" \"\$1}' $target/$sap_chksum_file > $target/$chksum_file";
+    assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
+    assert_script_run "popd";
+}
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -448,7 +485,7 @@ sub copy_media {
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
 
     # First create $target and copy media there
-    assert_script_run "mkdir $target";
+    assert_script_run "mkdir -p $target";    # create only if dir does not exists
     _do_mount($proto, $path, $mnt_path);
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     my $rsync = 'rsync -azr --info=progress2';

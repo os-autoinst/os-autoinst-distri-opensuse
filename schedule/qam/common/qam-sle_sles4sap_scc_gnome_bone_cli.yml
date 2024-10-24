@@ -1,0 +1,10 @@
+name:           qam-sle_sles4sap_scc_gnome_bone_cli
+description:    >
+  Deploy a HANA business One instance on top of gnome image using cli.
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/hana_install
+  - sles4sap/bone_install
+  - sles4sap/bone_test
