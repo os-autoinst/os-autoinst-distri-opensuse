@@ -61,8 +61,12 @@ sub run {
             }
         }
         record_info("TEST STAGE", "Install the web server");
+        my %cloudinit_args;
+        $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
+        $cloudinit_args{bastion_ip} = $bastion_ip;
         foreach (1 .. 2) {
-            ipaddr2_configure_web_server(bastion_ip => $bastion_ip, id => $_);
+            $cloudinit_args{id} = $_;
+            ipaddr2_configure_web_server(%cloudinit_args);
         }
     } else {
 
