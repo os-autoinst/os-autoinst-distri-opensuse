@@ -325,9 +325,11 @@
 
 <h2 id="add_lock_mgr">add_lock_mgr</h2>
 
-<pre><code>add_lock_mgr( $lock_manager );</code></pre>
+<pre><code>add_lock_mgr( $lock_manager, [ force =&gt; bool ] );</code></pre>
 
 <p>Configures a <b>$lock_manager</b> resource in the cluster configuration on SUT. <b>$lock_mgr</b> usually is either <b>clvmd</b> or <b>lvmlockd</b>, but any other cluster primitive could work as well.</p>
+
+<p>Takes a second named argument <b>force</b> which if set to true will add <code>--force</code> to the <b>crmsh</b> command. Should be used with care. Defaults to false.</p>
 
 <h2 id="is_not_maintenance_update">is_not_maintenance_update</h2>
 
