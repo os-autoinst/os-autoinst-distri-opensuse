@@ -150,25 +150,25 @@ exit 0
   <suse_register t="map">
     <addons t="list">
       <addon t="map">
-        <arch>x86_64</arch>
+        <arch>{{ARCH}}</arch>
         <name>sle-module-desktop-applications</name>
-        <version>15.5</version>
+        <version>{{VERSION}}</version>
       </addon>
       <addon t="map">
-        <arch>x86_64</arch>
+        <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>
-        <version>15.5</version>
+        <version>{{VERSION}}</version>
       </addon>
       <addon t="map">
-        <arch>x86_64</arch>
+        <arch>{{ARCH}}</arch>
         <name>sle-we</name>
         <reg_code>{{SCC_REGCODE_WE}}</reg_code>
-        <version>15.5</version>
+        <version>{{VERSION}}</version>
       </addon>
       <addon t="map">
-        <arch>x86_64</arch>
+        <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
-        <version>15.5</version>
+        <version>{{VERSION}}</version>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>
