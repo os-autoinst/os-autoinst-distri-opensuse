@@ -13,13 +13,15 @@ use warnings FATAL => 'all';
 use parent 'Distribution::Opensuse::Leap::16Latest';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
+use Yam::Agama::Pom::GrubMenuBasePageBug1230121;
 use Yam::Agama::Pom::GrubMenuSlesPage;
 use Yam::Agama::Pom::AgamaUpAndRunningBasePage;
 use Yam::Agama::Pom::AgamaUpAndRunningSlePage;
 
 sub get_grub_menu_installed_system {
-    return Yam::Agama::Pom::GrubMenuSlesPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+    return get_var('WORKAROUND_BSC_1230121') ?
+      Yam::Agama::Pom::GrubMenuSlesPage->new({grub_menu_base => Yam::Agama::Pom::GrubMenuBasePageBug1230121->new()})
+      : Yam::Agama::Pom::GrubMenuSlesPage->new({grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
 }
 
 sub get_agama_up_an_running {
