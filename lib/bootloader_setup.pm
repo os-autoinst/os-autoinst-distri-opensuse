@@ -491,14 +491,16 @@ sub uefi_bootmenu_params {
         }
 
         # navigate to gfxpayload=keep
-        my $gfx = is_sle('=12-SP5') ? 2 : 3;
-        send_key "down" for (1 .. $gfx);
-        wait_screen_change(sub { send_key "end"; }, 5);
-        # delete "keep" word
-        send_key "backspace" for (1 .. 4);
-        # hardcoded the value of gfxpayload to 1024x768
-        type_string "1024x768";
-        assert_screen "gfxpayload_changed", 10;
+        if (!get_var('OFW')) {
+            my $gfx = is_sle('=12-SP5') ? 2 : 3;
+            send_key "down" for (1 .. $gfx);
+            wait_screen_change(sub { send_key "end"; }, 5);
+            # delete "keep" word
+            send_key "backspace" for (1 .. 4);
+            # hardcoded the value of gfxpayload to 1024x768
+            type_string "1024x768";
+            assert_screen "gfxpayload_changed", 10;
+        }
 
         # navigate to the beginning of the line containing *linux* command
         wait_screen_change(sub { send_key "home"; }, 5);
@@ -510,6 +512,7 @@ sub uefi_bootmenu_params {
         if (get_var('FLAVOR', '') =~ /encrypt/i) {
             $linux += is_sle_micro('6.1+') ? 11 : 10;
         }
+        $linux-- if get_var('OFW');
         send_key "down" for (1 .. $linux);
     }
     else {
