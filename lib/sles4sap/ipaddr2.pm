@@ -957,11 +957,10 @@ sub ipaddr2_cloudinit_sanity {
             'zypper se -s -i cloud-init',
             'cloud-init -v',
             'cloud-init status --wait --long',
-            'sudo systemctl status \
-              cloud-init-local.service \
-              cloud-init.service \
-              cloud-config.service \
-              cloud-final.service') {
+            'sudo systemctl status cloud-init-local.service',
+            'sudo systemctl status cloud-init.service',
+            'sudo systemctl status cloud-config.service',
+            'sudo systemctl status cloud-final.service') {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $_,
                 bastion_ip => $args{bastion_ip});
@@ -1533,7 +1532,7 @@ sub ipaddr2_configure_web_server {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
-        timeout => 360,
+        timeout => 600,
         bastion_ip =>
           $args{bastion_ip}) for (@nginx_cmds);
 }
