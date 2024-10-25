@@ -22,7 +22,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{agama_up_and_running_base}->{tag_array_ref_any_first_screen_shown} =
-      [qw(agama-installing agama-sle-overview)];
+      [qw(agama-configuring-the-product agama-sle-overview agama-installing)];
     return $self;
 }
 
