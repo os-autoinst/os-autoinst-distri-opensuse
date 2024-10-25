@@ -51,13 +51,8 @@ sub run {
     my $vm_ip;
     my $ssh_cmd;
     my $ret;
-    $az_cmd = join(' ',
-        'az network public-ip show',
-        "--resource-group $rg",
-        '--name', DEPLOY_PREFIX . "-pub_ip-1",
-        '--query "ipAddress"',
-        '-o tsv');
-    $vm_ip = script_output($az_cmd);
+
+    $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-1");
     $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # print (no check for the moment) the OS release description
@@ -65,7 +60,7 @@ sub run {
     record_info('TEST STEP', 'machine is ssh reachable OK');
 
     # Check that cloud-netconfig is installed
-    assert_script_run("$ssh_cmd sudo zypper ref");    # Needed in the PAYG images
+    assert_script_run("$ssh_cmd sudo zypper ref", timeout => 600);    # Needed in the PAYG images
     assert_script_run("$ssh_cmd zypper se -s -i cloud-netconfig");
     assert_script_run("$ssh_cmd cat /etc/default/cloud-netconfig");
     assert_script_run("$ssh_cmd sudo journalctl |grep -E 'cloud-netconfig\\['");
