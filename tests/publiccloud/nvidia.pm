@@ -29,8 +29,10 @@ sub run {
         zypper_call '--gpg-auto-import-keys ref';
     }
     # First check cuda variant as is more important in PublicCloud enviroment
-    zypper_call("in nvidia-open-driver-G06-signed-cuda-kmp-default kernel-firmware-nvidia-gspx-G06-cuda", quiet => 1);
-    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    if (script_run("rpm -q nvidia-open-driver-G06-signed-cuda-kmp-default")) {
+        zypper_call("in nvidia-open-driver-G06-signed-cuda-kmp-default kernel-firmware-nvidia-gspx-G06-cuda -nvidia-open-driver-G06-signed-kmp-default -kernel-firmware-nvidia-gspx-G06", quiet => 1);
+        $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    }
     validate_nvidia;
     # Check gfx nvidia driver
     zypper_call("in nvidia-open-driver-G06-signed-kmp-default kernel-firmware-nvidia-gspx-G06 -nvidia-open-driver-G06-signed-cuda-kmp-default -kernel-firmware-nvidia-gspx-G06-cuda", quiet => 1);
@@ -39,7 +41,6 @@ sub run {
 
     assert_script_run("SUSEConnect --status-text", 300);
 }
-
 
 sub test_flags {
     return {publiccloud_multi_module => 1};
