@@ -86,6 +86,7 @@ sub generate_vnc_events {
     x11_start_program 'xterm';
     send_key 'super-left';
     enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
+    wait_still_screen 8;
     assert_screen [qw(vnc_password_dialog vnc_password_dialog_incomplete)];
     if (match_has_tag 'vnc_password_dialog_incomplete') {
         # https://progress.opensuse.org/issues/158622
