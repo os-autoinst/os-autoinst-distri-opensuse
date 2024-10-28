@@ -92,7 +92,7 @@
           <partition_nr config:type="integer">3</partition_nr>
           <resize config:type="boolean">false</resize>
           <crypt_fs config:type="boolean">true</crypt_fs>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <size>20%</size>
         </partition>
       </partitions>

@@ -31,6 +31,7 @@ sub install_service {
 sub config_service {
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
+    assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 

@@ -31,6 +31,7 @@ sub run {
     assert_script_run("curl -v -o $testdir/appliance.kiwi " . data_url("kiwi/appliance.kiwi"));
     assert_script_run("curl -v -o $testdir/config.sh " . data_url("kiwi/config.sh"));
     assert_script_run("sed -ie 's/SLE-version/$version/' $testdir/appliance.kiwi");
+    assert_script_run("sed -ie 's/USER_PASSWORD/$testapi::password/' $testdir/appliance.kiwi");
     # Execute the Kiwi-ng command to build the KVM and Xen system image
     assert_script_run("kiwi-ng --profile kvm-and-xen  system build  --description $testdir  --target-dir /tmp/", timeout => 1200);
     # Verify the built qcow2 image filename in the /tmp folder and rename the file with the proper build number,

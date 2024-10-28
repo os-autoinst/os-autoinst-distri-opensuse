@@ -928,6 +928,7 @@ sub get_expect_script {
     assert_script_run("curl -s -o ~/$expect_script_name " . data_url("mitigation/xen/$expect_script_name"));
     #assert_script_run("wget -N http://10.67.134.67/install/tools/get_guest_ip.sh");
     assert_script_run("chmod a+x " . $expect_script_name);
+    assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $expect_script_name");
 }
 sub run {
     my $self = @_;
