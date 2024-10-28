@@ -1254,7 +1254,7 @@ in to preserve order. For multiple guest patterns, an empty registration
 code for specific guest pattern will not be filled out by any default
 value and at the same time this  means registration code is not needed
 for it at all. This subroutine has one argument separator and returns
-generated registration codes joined together by specified separator.  
+generated registration codes joined together by specified separator.
 
 =cut
 
@@ -1269,7 +1269,14 @@ sub get_guest_regcode {
     my $regcode_ltss = get_var("GUEST_SCC_REGCODE_LTSS", "");
     my $count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $guest)) : scalar(split("$args{separator}", $guest)));
     $regcode = join("$args{separator}", (get_var("SCC_REGCODE", "")) x $count) if (!$regcode);
-    $regcode_ltss = join("$args{separator}", (get_var("SCC_REGCODE_LTSS_15", "")) x $count) if (!$regcode_ltss);
+    if (!$regcode_ltss) {
+        my @guest_parts = split($args{separator}, $guest);
+        my @regcode_ltss_parts;
+        for my $part (@guest_parts) {
+            push @regcode_ltss_parts, ($part =~ /12/ ? get_var("SCC_REGCODE_LTSS_12", "") : $part =~ /15/ ? get_var("SCC_REGCODE_LTSS_15", "") : "");
+        }
+        $regcode_ltss = join($args{separator}, @regcode_ltss_parts);
+    }
     return $regcode, $regcode_ltss;
 }
 

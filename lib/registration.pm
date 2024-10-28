@@ -371,11 +371,7 @@ sub register_addons {
                 assert_and_click("scc-code-field-$addon", timeout => 240);
             }
             # avoid duplicated tests to manage LTSS regcode by integrating new variables
-            if ($addon eq "ltss") {
-                my $os_sp_version = get_var("HDDVERSION");
-                $os_sp_version =~ s/-/_/g;
-                $regcode = get_var("SCC_REGCODE_LTSS_$os_sp_version", $regcode);
-            }
+            $regcode = get_ltss_regcode($regcode) if $addon eq "ltss";
             type_string $regcode;
             save_screenshot;
             $regcodes_entered++;
@@ -383,6 +379,20 @@ sub register_addons {
     }
 
     return $regcodes_entered;
+}
+
+sub get_ltss_regcode {
+    my $regcode = shift;
+    if (my $os_version = get_var("HDDVERSION")) {
+        $os_version =~ s/-/_/g;
+        return get_var("SCC_REGCODE_LTSS_$os_version", $regcode);
+    }
+    elsif ($os_version = get_var("VERSION_TO_INSTALL")) {
+        # Check if VERSION_TO_INSTALL contains "12" or "15"
+        return get_var("SCC_REGCODE_LTSS_12", $regcode) if $os_version =~ /12/;
+        return get_var("SCC_REGCODE_LTSS_15", $regcode) if $os_version =~ /15/;
+    }
+    return $regcode;
 }
 
 sub assert_registration_screen_present {
