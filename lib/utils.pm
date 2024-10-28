@@ -1059,7 +1059,9 @@ that the boot partition is encrypted.
 =cut
 
 sub is_boot_encrypted {
-    return 0 if get_var('UNENCRYPTED_BOOT');
+    my $is_cc_full_enc_lvm_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
+
+    return 0 if get_var('UNENCRYPTED_BOOT') && !$is_cc_full_enc_lvm_s390x;
     return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
     # Only aarch64 needs separate handling, it has unencrypted boot for fresh
