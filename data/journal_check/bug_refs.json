@@ -503,7 +503,7 @@
     "bsc#1231391": {
         "description": "pam_wtmpdb\\(login:session\\): (open_database_rw:.*unable to open database file|Cannot get ID from open session!)",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
