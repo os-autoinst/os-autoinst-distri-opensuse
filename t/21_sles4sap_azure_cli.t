@@ -802,4 +802,91 @@ subtest '[az_resource_list] Check return values' => sub {
     is join(' ', @$output), 'Carlo Goldoni', 'Check json based output';
 };
 
+subtest '[az_storage_blob_upload]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_storage_blob_upload(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        file => 'Colombina');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob upload/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--file Colombina/, @calls), 'Check for argument "--file"');
+};
+
+subtest '[az_storage_blob_lease_acquire]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '521fa121-4e04-448e-a8ec-d17e6b9c5e78'; });
+    $azcli->redefine(record_info => sub { return; });
+
+    az_storage_blob_lease_acquire(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        blob_name => 'Colombina',
+        lease_duration => 30
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob lease acquire/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--blob-name Colombina/, @calls), 'Check for argument "--blob-name"');
+    ok(grep(/--lease-duration 30/, @calls), 'Check for argument "--lease-duration"');
+};
+
+subtest '[az_storage_blob_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+
+    my $return_value = az_storage_blob_list(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+};
+
+subtest '[az_storage_blob_update]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_run => sub { @calls = @_; return 'wololo'; });
+
+    az_storage_blob_update(
+        container_name => 'Arlecchino',
+        account_name => 'Pantalone',
+        name => 'Colombina'
+    );
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob update/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    ok(grep(/--name Colombina/, @calls), 'Return output in "json" format');
+
+    az_storage_blob_update(
+        container_name => 'Arlecchino',
+        account_name => 'Pantalone',
+        name => 'Colombina',
+        lease_id => '12345'
+    );
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--lease-id 12345/, @calls), 'Check for argument "--lease-id"');
+};
+
 done_testing;
