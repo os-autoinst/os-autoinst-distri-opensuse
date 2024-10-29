@@ -30,7 +30,8 @@ my %white_list_for_busctl = (
     busctl => 1,
     snapperd => 1,
     'session-1' => 1,
-    'session-3' => 1
+    'session-3' => 1,
+    virtnetworkd => 1
 );
 
 sub parse_results {

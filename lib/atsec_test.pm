@@ -32,6 +32,7 @@ our @white_list_for_dbus = (
     'org.freedesktop.systemd1',
     'org.freedesktop.timedate1',
     'org.freedesktop.DBus',
+    'org.gtk.vfs.Daemon',
     'org.opensuse.Network',
     'org.opensuse.Network.DHCP4',
     'org.opensuse.Network.DHCP6',
@@ -45,10 +46,13 @@ our @white_list_for_dbus = (
     ':1.28',
     ':1.29',
     ':1.30',
+    ':1.31',
     ':1.34',
     ':1.35',
     ':1.36',
-    ':1.37'
+    ':1.37',
+    ':1.39',
+    ':1.41'
 );
 
 our $server_ip = get_var('SERVER_IP', '10.0.2.101');
