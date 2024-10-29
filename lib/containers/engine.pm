@@ -316,9 +316,9 @@ sub cleanup_system_host {
         if (package_version_cmp(get_podman_version(), '4.0.0') < 0) {
             $self->_engine_script_run("pod rm --force --all", 120);
         }
-        $self->_engine_assert_script_run("rm --force --all", 120);
-        # podman system prune -f --external was added to podman 4.0.0
-        # and it allows to prune external containers created by buildah
+        $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60); # retry because on older hosts there can be remnants that take some time before they are cleaned
+                                                                                                  # podman system prune -f --external was added to podman 4.0.0
+            # and it allows to prune external containers created by buildah
         $self->_engine_script_run("system prune -f --external", 300);
     }
     $self->_engine_assert_script_run("volume prune -f", 300);
