@@ -18,6 +18,26 @@ use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
 use publiccloud::utils qw(is_gce);
 
+my ($ipv6_gateway, $ipv6_interface);
+
+sub store_ipv6_route {
+    # TEST3 may remove the default ipv6 route, save it to restore later
+    # bsc#1222239 bsc#1232450
+    my $default_ipv6_route = script_output("ip -6 route show default");
+    if ($default_ipv6_route =~ /default via (\S+) dev (\S+)/) {
+        $ipv6_gateway = $1;
+        $ipv6_interface = $2;
+    }
+}
+
+sub load_ipv6_route {
+    # restore the default ipv6 route
+    my $default_ipv6_route = script_output("ip -6 route show default");
+    if (!$default_ipv6_route && $ipv6_gateway && $ipv6_interface) {
+        assert_script_run("ip -6 route add default via $ipv6_gateway dev $ipv6_interface");
+    }
+}
+
 sub is_cni_in_tw {
     return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
 }
@@ -85,7 +105,6 @@ sub switch_to_netavark {
 sub run {
     my ($self, $args) = @_;
 
-    select_serial_terminal;
     my $podman = $self->containers_factory('podman');
 
     my $podman_version = get_podman_version();
@@ -193,6 +212,7 @@ sub run {
     }
 
     remove_subtest_setup;
+    load_ipv6_route;
 
     my $cur_version = script_output('rpm -q --qf "%{VERSION}\n" netavark');
     # only for netavark v1.6+
@@ -224,11 +244,18 @@ sub run {
     remove_subtest_setup;
 }
 
+sub pre_run_hook() {
+    select_serial_terminal;
+    store_ipv6_route;
+}
+
 sub post_run_hook {
     shift->_cleanup();
 }
+
 sub post_fail_hook {
     script_run("sysctl -a | grep --color=never net");
+    load_ipv6_route;
     shift->_cleanup();
 }
 
