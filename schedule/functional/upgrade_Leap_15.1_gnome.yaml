@@ -20,6 +20,7 @@ schedule:
     - installation/first_boot
     - installation/opensuse_welcome
     - console/system_prepare
+    - x11/disable_screensaver
     - update/zypper_clear_repos
     - console/zypper_ar
     - console/zypper_ref

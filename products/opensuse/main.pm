@@ -411,6 +411,7 @@ else {
         || is_systemd_test())
     {
         loadtest "console/system_prepare";
+        loadtest "x11/disable_screensaver" if (check_var('FLAVOR', 'NET') && check_var('UPGRADE', '1') && check_var('ORIGINAL_VERSION', '15.0'));
         load_system_update_tests();
         load_rescuecd_tests();
         if (consolestep_is_applicable) {
