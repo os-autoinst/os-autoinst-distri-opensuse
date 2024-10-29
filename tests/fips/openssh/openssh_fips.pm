@@ -36,7 +36,8 @@ sub run {
 
     # on Tumbleweed sshd is not active by default:
     # ensure sshd is installed and started before trying to connect
-    assert_script_run 'rpm -q openssh-server || zypper in -y openssh-server';
+    my $pkg_name = is_sle('<=15-SP2') ? "openssh" : "openssh-server";
+    assert_script_run "rpm -q " . $pkg_name . " || zypper in -y " . $pkg_name;
     assert_script_run 'systemctl is-active sshd || systemctl enable --now sshd';
 
     # on SL Micro we skip this check because it behaves differently
