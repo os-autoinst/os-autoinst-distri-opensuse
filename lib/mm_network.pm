@@ -240,7 +240,7 @@ sub restart_networking {
         assert_script_run 'nmcli networking on';
         # Wait until the connections are configured
         my $expected_nm_connectivity = get_var('EXPECTED_NM_CONNECTIVITY', 'full');
-        if ($expected_nm_connectivity != 'none') {
+        if ($expected_nm_connectivity ne 'none') {
             assert_script_run "until nmcli networking connectivity check | tee /dev/stderr | grep '$expected_nm_connectivity'; do sleep 10; done";
         }
     } else {
