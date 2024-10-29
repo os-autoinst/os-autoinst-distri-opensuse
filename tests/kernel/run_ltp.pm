@@ -12,6 +12,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
+use version_utils 'is_sle';
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use serial_terminal;
 use Mojo::File 'path';
@@ -356,7 +357,8 @@ sub run {
 
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
     my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
-    my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
+
+    my $klog_stamp = "OpenQA::run_ltp.pm: Starting $test->{name}";
     my $start_time = thetime();
 
     if (check_var_array('LTP_DEBUG', 'tcpdump')) {
@@ -366,7 +368,9 @@ sub run {
     }
 
     if (is_serial_terminal) {
-        script_run($klog_stamp);
+        script_run("echo '$klog_stamp' > /dev/kmsg");
+        # SLE11-SP4 doesn't support ignore_loglevel, due that stamp is not printed in console
+        script_run("echo '$klog_stamp' > /dev/$serialdev") if is_sle('<12');
         wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
         type_string($cmd_text);
         wait_serial($cmd_text, undef, 0, no_regex => 1);
