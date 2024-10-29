@@ -54,10 +54,16 @@ sub run {
         }
     }
 
-    # Check cluster for overall readiness (nodes online, in sync and crm output contains no failed resources)
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
-
+    # Exit early if not in cluster scenario
     return unless $ha_enabled;
+
+    # Check cluster for overall readiness (nodes online, in sync and crm output contains no failed resources)
+    # First make sure that instance in $self->{my_instance} is a hana node
+    foreach my $instance (@{$self->{instances}}) {
+        $self->{my_instance} = $instance;
+        last if ($instance->{instance_id} =~ m/vmhana/);
+    }
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
 
     record_info(
         'Instances:', "Detected HANA instances:
