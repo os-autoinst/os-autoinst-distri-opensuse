@@ -55,6 +55,10 @@
       <li><a href="#az_resource_delete">az_resource_delete</a></li>
       <li><a href="#az_resource_list">az_resource_list</a></li>
       <li><a href="#az_validate_uuid_pattern">az_validate_uuid_pattern</a></li>
+      <li><a href="#az_storage_blob_upload">az_storage_blob_upload</a></li>
+      <li><a href="#az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</a></li>
+      <li><a href="#az_storage_blob_list">az_storage_blob_list</a></li>
+      <li><a href="#az_storage_blob_update">az_storage_blob_update</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -932,7 +936,7 @@
 
 <pre><code>my $res = az_network_peering_list(
     resource_group =&gt; &#39;openqa-rg&#39;,
-    vnet =&gt; &#39;openqa-this-vnet&#39;)</code></pre>
+    vnet =&gt; &#39;openqa-this-vnet&#39; [, query=&gt;&#39;[].name&#39;])</code></pre>
 
 <p>Return HASH representing existing net peering</p>
 
@@ -1067,6 +1071,116 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 <dl>
 
 <dt id="uuid-UUID-string-to-test"><b>uuid</b> UUID string to test.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_storage_blob_upload">az_storage_blob_upload</h2>
+
+<pre><code>az_storage_blob_upload(
+    container_name=&gt;&#39;somecontainer&#39;,
+    storage_account_name=&gt;&#39;storageaccount&#39;,
+    file=&gt;&#39;somefilename&#39; [, timeout=&gt;42]);</code></pre>
+
+<p>Uploads file to a storage container.</p>
+
+<dl>
+
+<dt id="container_name-Existing-storage-container-name"><b>container_name</b> Existing storage container name.</dt>
+<dd>
+
+</dd>
+<dt id="storage_account_name-Storage-account-name"><b>storage_account_name</b> Storage account name.</dt>
+<dd>
+
+</dd>
+<dt id="file-File-to-upload"><b>file</b> File to upload.</dt>
+<dd>
+
+</dd>
+<dt id="timeout-Timeout-for-az-command.-Default:-90s"><b>timeout</b> Timeout for az command. Default: 90s</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</h2>
+
+<pre><code>az_storage_blob_lease_acquire(
+    container_name=&gt;&#39;somecontainer&#39;,
+    storage_account_name=&gt;&#39;storageaccount&#39;,
+    blob_name =&gt; &#39;somefilename&#39; [, lease_duration=&gt;&#39;42&#39;]
+);</code></pre>
+
+<p>Acquire a lease for a storage blob. Function returns UUID which is then required to modify the file and gives the UUID owner exclusive rights. Optionally <b>lease_duration</b> can be defined to limit this file lock up to 60s instead of infinity. In case of function returns nothing, the reasons may vary and it is up to caller to decide how to deal with the result. In that case Possible reasons are that there is already a lease present (az cli returns a message which is not a valid UUID)</p>
+
+<dl>
+
+<dt id="container_name-Existing-storage-container-name1"><b>container_name</b> Existing storage container name.</dt>
+<dd>
+
+</dd>
+<dt id="storage_account_name-Storage-account-name1"><b>storage_account_name</b> Storage account name.</dt>
+<dd>
+
+</dd>
+<dt id="blob_name-Blob-name-to-acquire-lease-for"><b>blob_name</b> Blob name to acquire lease for.</dt>
+<dd>
+
+</dd>
+<dt id="lease_duration-Lease-duration-between-15-60s.-Default:-infinite"><b>lease_duration</b> Lease duration between 15-60s. Default: infinite</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_storage_blob_list">az_storage_blob_list</h2>
+
+<pre><code>az_storage_blob_list(
+    container_name=&gt;&#39;somecontainer&#39;,
+    storage_account_name=&gt;&#39;storageaccount&#39; [, query=&gt;&#39;[].name&#39;]
+);</code></pre>
+
+<p>List information about storage blob(s) specified by <b>storage_account_name</b>, <b>container_name</b> and <b>query</b>.</p>
+
+<dl>
+
+<dt id="container_name-Existing-storage-container-name2"><b>container_name</b> Existing storage container name.</dt>
+<dd>
+
+</dd>
+<dt id="storage_account_name-Storage-account-name2"><b>storage_account_name</b> Storage account name.</dt>
+<dd>
+
+</dd>
+<dt id="query-Query-in-jmespath-format"><b>query</b> Query in jmespath format</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_storage_blob_update">az_storage_blob_update</h2>
+
+<pre><code>az_storage_blob_update(container_name=&gt;&#39;container&#39;, account_name=&gt;&#39;stuff&#39;, name=&#39;blobby&#39; [, lease_id=42]);</code></pre>
+
+<p>Update properties of storage blob. Returns az cli command exit code.</p>
+
+<dl>
+
+<dt id="container_name-Existing-resource-group-name"><b>container_name</b> Existing resource group name.</dt>
+<dd>
+
+</dd>
+<dt id="account_name-Name-of-the-resource-to-delete"><b>account_name</b> Name of the resource to delete</dt>
+<dd>
+
+</dd>
+<dt id="name-Blob-name"><b>name</b> Blob name</dt>
+<dd>
+
+</dd>
+<dt id="lease_id-Lease-id-in-case-there-is-a-lease-put-on-a-file"><b>lease_id</b> Lease id in case there is a lease put on a file</dt>
 <dd>
 
 </dd>
