@@ -61,6 +61,8 @@ sub run {
 }
 
 sub test_flags {
+    # in case of migration this is not single module so we need to skip cleanup
+    return {fatal => 1, publiccloud_multi_module => 1} if (get_var('PUBLIC_CLOUD_MIGRATION'));
     return {fatal => 1};
 }
 
