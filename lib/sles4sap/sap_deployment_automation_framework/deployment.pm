@@ -863,6 +863,7 @@ sub ansible_hanasr_show_status {
         "--inventory=$args{sap_sid}_hosts.yaml",
         '--module-name=shell');
 
+    record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
     record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
     record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
 }
