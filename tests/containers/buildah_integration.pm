@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats install_pasta patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf);
+use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -32,7 +32,7 @@ sub run_tests {
     script_run "rm -rf $tmp_dir/buildah_tests.*";
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PATH=/usr/local/bin:\$PATH BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 4200;
+    script_run "env BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 4200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
@@ -51,7 +51,6 @@ sub run {
     my @pkgs = qw(buildah docker git-core glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
     push @pkgs, qw(crun) if is_tumbleweed;
     install_packages(@pkgs);
-    install_pasta unless is_tumbleweed;
 
     delegate_controllers;
 
