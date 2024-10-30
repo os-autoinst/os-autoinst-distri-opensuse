@@ -16,6 +16,7 @@ use testapi;
 use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use mmapi 'wait_for_children';
+use version_utils "is_sle";
 use ipmi_backend_utils;
 
 sub install_pkg {
@@ -76,7 +77,7 @@ sub setup_environment {
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
 
         # workaround to prevent network interface random order
-        if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP')) {
+        if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP') && is_sle('>=15-SP3')) {
             my $service_file = << 'EOF';
 [Unit]
 Description=Load bnxt_en driver manually
