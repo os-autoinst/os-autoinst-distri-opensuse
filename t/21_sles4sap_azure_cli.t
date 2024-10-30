@@ -498,6 +498,20 @@ subtest '[az_ipconfig_update]' => sub {
     ok((any { /az network nic ip-config update/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_ipconfig_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_ipconfig_delete(
+        resource_group => 'Arlecchino',
+        ipconfig_name => 'Truffaldino',
+        nic_name => 'Mirandolina');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nic ip-config delete/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_ipconfig_pool_add]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;

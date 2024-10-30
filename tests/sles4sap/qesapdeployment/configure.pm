@@ -17,7 +17,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    # Init al the PC gears (ssh keys)
+    # Init all the PC gears (ssh keys)
     my $provider = $self->provider_factory();
 
     # Needed to create the SAS URI token

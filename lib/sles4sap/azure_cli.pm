@@ -49,6 +49,7 @@ our @EXPORT = qw(
   az_nic_name_get
   az_ipconfig_name_get
   az_ipconfig_update
+  az_ipconfig_delete
   az_ipconfig_pool_add
   az_storage_account_create
   az_network_peering_create
@@ -1060,6 +1061,38 @@ sub az_ipconfig_update {
         '--nic-name', $args{nic_name},
         '--private-ip-address', $args{ip});
     assert_script_run($az_cmd, timeout => 900);
+}
+
+=head2 az_ipconfig_delete
+
+    az_ipconfig_delete(
+        resource_group => 'openqa-rg',
+        ipconfig_name => 'openqa-ipconfig',
+        nic_name => 'openqa-nic')
+
+Delete a specific IpConfig to use a static IP
+
+=over
+
+=item B<resource_group> - existing resource group
+
+=item B<ipconfig_name> - existing IP configuration NAME (eg. from az_ipconfig_name_get)
+
+=item B<nic_name> - existing NIC NAME (eg. from az_nic_name_get)
+
+=back
+=cut
+
+sub az_ipconfig_delete {
+    my (%args) = @_;
+    foreach (qw(resource_group ipconfig_name nic_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network nic ip-config delete',
+        '--resource-group', $args{resource_group},
+        '--name', $args{ipconfig_name},
+        '--nic-name', $args{nic_name});
+    assert_script_run($az_cmd);
 }
 
 =head2 az_ipconfig_pool_add
