@@ -51,7 +51,9 @@ sub run {
     my @pkgs = qw(buildah docker git-core glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
     push @pkgs, qw(crun) if is_tumbleweed;
     install_packages(@pkgs);
-    install_pasta unless is_tumbleweed;
+
+    # We don't ship pasta in SLE, stick to default (slirp4netns)
+    install_pasta unless is_tumbleweed || is_sle;
 
     delegate_controllers;
 
