@@ -230,7 +230,7 @@ sub run {
     foreach (@packages) {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
         # hash of hashes with keys 'name', 'supportstatus' and 'package'.
-        # e.g. https://smelt.suse.de/api/v1/basic/maintained/grub2
+        # e.g. %SMELT_URL%/api/v1/basic/maintained/grub2
         record_info("$_", Dumper(\%bins));
     }
     die "Parsing binaries from SMELT data failed" if not keys %bins;
