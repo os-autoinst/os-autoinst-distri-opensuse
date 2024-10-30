@@ -63,8 +63,8 @@ sub run {
     # Test container nesting on SLES15+
     # Anything below 12-SP5 is simply too old. 12-SP5 doesn't work because of bsc#1232429
     unless (is_sle('<15')) {
-        if ($runtime eq 'docker') {
-            # Docker-in-Docker (DinD) uses the special dind image
+        if ($runtime eq 'docker' && (is_x86_64 || is_aarch64)) {
+            # Docker-in-Docker (DinD) uses the special dind image, which is only available for x86_64 and aarch64
             assert_script_run("docker run -d --privileged --name dind docker.io/docker:dind");
             script_retry("docker exec -it dind docker run -it $image ls", timeout => 300, retry => 3, delay => 60);  # docker is sometimes not immediately ready
             script_run("docker container stop dind");
