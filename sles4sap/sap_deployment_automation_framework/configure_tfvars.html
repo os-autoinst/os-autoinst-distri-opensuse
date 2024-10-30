@@ -17,6 +17,7 @@
       <li><a href="#prepare_tfvars_file">prepare_tfvars_file</a></li>
       <li><a href="#replace_tfvars_variables">replace_tfvars_variables</a></li>
       <li><a href="#set_workload_vnet_name">set_workload_vnet_name</a></li>
+      <li><a href="#set_vm_image_parameters">set_vm_image_parameters</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_tfvars.pm</h1>
@@ -40,20 +41,20 @@
 
 <h2 id="replace_tfvars_variables">replace_tfvars_variables</h2>
 
-<pre><code>replace_tfvars_variables();</code></pre>
+<pre><code>replace_tfvars_variables(&#39;/path/to/file.tfvars&#39;);</code></pre>
 
 <p>Replaces placeholder pattern <b>%OPENQA_VARIABLE%</b> with corresponding OpenQA variable value. If OpenQA variable is not set, placeholder is replaced with empty value.</p>
 
 <ul>
 
-<li><p><b>$deployment_type</b>: Type of the deployment (workload_zone, sap_system, library... etc)</p>
+<li><p><b>$tfvars_file</b>: Full path to the tfvars file</p>
 
 </li>
 </ul>
 
 <h2 id="set_workload_vnet_name">set_workload_vnet_name</h2>
 
-<pre><code>set_workload_vnet_name([job_id=&gt;$job_id]);</code></pre>
+<pre><code>set_workload_vnet_name([job_id=&gt;&#39;123456&#39;]);</code></pre>
 
 <p>Returns VNET name used for workload zone and sap systems resources. VNET name must be unique for each landscape, therefore it contains test ID as an identifier.</p>
 
@@ -63,6 +64,19 @@
 
 </li>
 </ul>
+
+<h2 id="set_vm_image_parameters">set_vm_image_parameters</h2>
+
+<pre><code>set_vm_db_image_parameters([job_id=&gt;&#39;123456&#39;]);</code></pre>
+
+<ul>
+
+<li><p><b>$job_id</b>: Specify job id to be used. Default: current deployment job ID</p>
+
+</li>
+</ul>
+
+<p>Sets OpenQA parameters required for replacing tfvars template variables for database VM image.</p>
 
 
 </body>
