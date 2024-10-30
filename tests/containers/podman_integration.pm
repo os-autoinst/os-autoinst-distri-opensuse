@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats install_htpasswd install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -52,10 +52,8 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit git-core gpg2 jq make netavark openssl podman sudo systemd-container);
+    my @pkgs = qw(aardvark-dns catatonit git-core gpg2 jq make netavark openssl podman python3-PyYAML sudo systemd-container);
     push @pkgs, qw(apache2-utils buildah glibc-devel-static go libcriu2 libgpgme-devel libseccomp-devel) unless is_sle_micro;
-    push @pkgs, qw(python311-passlib python311-PyYAML) if is_sle_micro('>=6.0');
-    push @pkgs, qw(python3-passlib python3-PyYAML) unless is_sle_micro('>=6.0');
     push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
     push @pkgs, qw(socat) unless is_sle_micro('=5.1');
     push @pkgs, qw(podman-remote) unless is_sle('<=15-SP2');
@@ -68,7 +66,6 @@ sub run {
         push @pkgs, "qemu-arm";
     }
     install_packages(@pkgs);
-    install_htpasswd if is_sle_micro;
     install_ncat;
 
     record_info("podman version", script_output("podman version"));
