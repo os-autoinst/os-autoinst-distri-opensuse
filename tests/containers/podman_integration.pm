@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::utils qw(get_podman_version);
 use utils qw(script_retry);
-use version_utils qw(is_sle is_sle_micro is_tumbleweed is_microos);
+use version_utils qw(is_sle is_tumbleweed);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
@@ -53,12 +53,9 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns catatonit git-core gpg2 jq make netavark openssl podman python3-PyYAML sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah glibc-devel-static go libcriu2 libgpgme-devel libseccomp-devel) unless is_sle_micro;
-    push @pkgs, qw(skopeo) unless is_sle_micro('<5.5');
-    push @pkgs, qw(socat) unless is_sle_micro('=5.1');
-    push @pkgs, qw(podman-remote) unless is_sle('<=15-SP2');
+    push @pkgs, qw(apache2-utils buildah glibc-devel-static go libcriu2 libgpgme-devel libseccomp-devel podman-remote socat skopeo);
     # passt requires podman 5.0
-    push @pkgs, qw(criu passt) if (is_tumbleweed || is_microos);
+    push @pkgs, qw(criu passt) if (is_tumbleweed);
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
