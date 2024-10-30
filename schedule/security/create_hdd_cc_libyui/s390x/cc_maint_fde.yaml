@@ -15,8 +15,7 @@ schedule:
   software:
     - installation/select_patterns
   first_login:
-    - installation/boot_encrypt
-    - installation/first_boot
+    - security/boot_disk
   system_preparation:
     - console/hostname
     - console/system_prepare

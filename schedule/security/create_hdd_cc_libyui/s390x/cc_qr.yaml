@@ -9,8 +9,7 @@ schedule:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
   first_login:
-    - installation/boot_encrypt
-    - installation/first_boot
+    - security/boot_disk
   system_preparation:
     - console/hostname
     - console/system_prepare
