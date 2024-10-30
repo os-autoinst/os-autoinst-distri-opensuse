@@ -14,8 +14,8 @@ use utils;
 
 sub run_rcshell_checks {
     # Check that system is using UTC timezone
-    my $timezone = get_var('FIRST_BOOT_CONFIG', '') =~ /cloud-init/ ? 'CEST' : 'UTC';
-    assert_script_run "date +\"%Z\" | grep -x $timezone";
+    my $timezone = get_var('FIRST_BOOT_CONFIG', '') =~ /cloud-init/ ? 'CES?T' : 'UTC';
+    assert_script_run "date +\"%Z\" | grep -xE $timezone";
 }
 
 sub run_common_checks {
