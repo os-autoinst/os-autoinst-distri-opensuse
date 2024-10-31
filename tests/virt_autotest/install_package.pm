@@ -42,6 +42,19 @@ sub install_package {
         zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
+    #Solving the problem of missing perl-Clone package during installing qa_lib_virtauto package
+    my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
+    my $sles_version = get_required_var($host_version) =~ s/-SP/SP/r;
+    $sles_version = '15SP6' if (is_sle('15-SP6+'));
+    my $qa_update_repo = 'http://dist.nue.suse.com/ibs/QA:/SLE' . $sles_version . '/update/';
+    if (is_s390x) {
+        lpar_cmd("zypper --non-interactive rr update-repo");
+        lpar_cmd("zypper --gpg-auto-import-keys --non-interactive ar -f $qa_update_repo update-repo");
+    }
+    else {
+        zypper_call("--gpg-auto-import-keys --non-interactive ar -f $qa_update_repo update-repo", 1800);
+    }
+
     #Install qa_lib_virtauto
     if (is_s390x) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
