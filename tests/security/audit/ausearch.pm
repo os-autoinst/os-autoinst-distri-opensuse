@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "ausearch" utility can search the audit log file for certain events using various keys or
@@ -50,6 +50,10 @@ sub run {
 
     # On 15-SP3 and lower, there may not be messages that contain 'x86_64'
     if (!is_sle('<=15-SP3')) {
+        # Check if the get_pid rule is listed which was added in auditctl.pm
+        validate_script_output('auditctl -l', sub { m/get_pid/ });
+        # Trigger the get_pid rule
+        script_run('ps -q 1');
         # Search for events based on a specific CPU architecture
         validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
     }

@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Controlling the Audit system using auditctl
@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 
 sub run {
     my $audit_rules = '/etc/audit/rules.d/audit.rules';
@@ -57,6 +58,16 @@ sub run {
 
     # Double check the audit rule file
     validate_script_output("cat $audit_rules", sub { m/-a task,never/ });
+
+    # Add a rule which will log the arch in audit logs on x86
+    if (is_x86_64) {
+        # Delete all existing rules
+        assert_script_run('auditctl -D');
+
+        my $pid_rule = 'auditctl -a always,exit -F arch=x86_64 -S getpid -k get_pid';
+        # Add the pid_rule
+        assert_script_run($pid_rule);
+    }
 }
 
 1;
