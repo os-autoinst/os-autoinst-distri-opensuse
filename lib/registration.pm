@@ -559,7 +559,7 @@ sub process_scc_register_addons {
             # Similarly for encrypted partitions activation
             push @needles, 'encrypted_volume_activation_prompt' if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'));
         }
-        push @needles, 'sles4sap-product-installation-mode' if (is_sles4sap() && is_sle('<=12-SP3'));
+        push @needles, 'sles4sap-product-installation-mode' if (is_sles4sap() && is_sle('<=12-SP5'));
         while ($counter--) {
             die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen([@needles], 90);
