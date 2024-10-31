@@ -44,6 +44,7 @@
       <li><a href="#az_nic_name_get">az_nic_name_get</a></li>
       <li><a href="#az_ipconfig_name_get">az_ipconfig_name_get</a></li>
       <li><a href="#az_ipconfig_update">az_ipconfig_update</a></li>
+      <li><a href="#az_ipconfig_delete">az_ipconfig_delete</a></li>
       <li><a href="#az_ipconfig_pool_add">az_ipconfig_pool_add</a></li>
       <li><a href="#az_vm_diagnostic_log_enable">az_vm_diagnostic_log_enable</a></li>
       <li><a href="#az_vm_diagnostic_log_get">az_vm_diagnostic_log_get</a></li>
@@ -801,6 +802,31 @@
 </dd>
 </dl>
 
+<h2 id="az_ipconfig_delete">az_ipconfig_delete</h2>
+
+<pre><code>az_ipconfig_delete(
+    resource_group =&gt; &#39;openqa-rg&#39;,
+    ipconfig_name =&gt; &#39;openqa-ipconfig&#39;,
+    nic_name =&gt; &#39;openqa-nic&#39;)</code></pre>
+
+<p>Delete a specific IpConfig to use a static IP</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group1"><b>resource_group</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="ipconfig_name---existing-IP-configuration-NAME-eg.-from-az_ipconfig_name_get1"><b>ipconfig_name</b> - existing IP configuration NAME (eg. from az_ipconfig_name_get)</dt>
+<dd>
+
+</dd>
+<dt id="nic_name---existing-NIC-NAME-eg.-from-az_nic_name_get1"><b>nic_name</b> - existing NIC NAME (eg. from az_nic_name_get)</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_ipconfig_pool_add">az_ipconfig_pool_add</h2>
 
 <pre><code>az_ipconfig_pool_add(
@@ -814,7 +840,7 @@
 
 <dl>
 
-<dt id="resource_group---existing-resource-group1"><b>resource_group</b> - existing resource group</dt>
+<dt id="resource_group---existing-resource-group2"><b>resource_group</b> - existing resource group</dt>
 <dd>
 
 </dd>
