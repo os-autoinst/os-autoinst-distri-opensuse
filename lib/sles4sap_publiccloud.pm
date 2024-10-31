@@ -429,8 +429,7 @@ sub stop_hana {
 
         # wait for node to be ready
         wait_hana_node_up($self->{my_instance}, timeout => 900);
-        my $out = $self->{my_instance}->wait_for_ssh(timeout => 900, scan_ssh_host_key => 1);
-        record_info("Wait ssh is back again", "out:" . ($out // 'undefined'));
+        record_info("Wait ssh is back again");
     }
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
