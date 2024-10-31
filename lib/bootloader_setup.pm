@@ -507,6 +507,9 @@ sub uefi_bootmenu_params {
         # skip additional movement downwards in
         # sle15sp4+, leap15.4+ and TW (grub 2.06)
         $linux += 4 if is_sle('>12-SP5') && is_sle('<15-SP4');
+        if (get_var('FLAVOR', '') =~ /encrypt/i) {
+            $linux += is_sle_micro('6.1+') ? 11 : 10;
+        }
         send_key "down" for (1 .. $linux);
     }
     else {
