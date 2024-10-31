@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro is_tumbleweed);
 use mm_network;
 use Utils::Backends;
 
@@ -484,7 +484,7 @@ sub uefi_bootmenu_params {
     # Locate gfxpayload parameter and update it
     # The main branch should be used only for bootable pre-installed images that contain already full
     # grub2 configuration
-    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_leap_micro || is_microos || is_sle_micro)) {
+    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_leap_micro || is_microos || is_sle_micro || is_tumbleweed)) {
         # skip healthchecker lines
         if (is_leap_micro || is_microos || is_sle_micro) {
             send_key "down" for (1 .. 4);
