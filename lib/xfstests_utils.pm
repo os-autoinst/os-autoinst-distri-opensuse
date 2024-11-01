@@ -27,6 +27,7 @@ use mmapi;
 use version_utils 'is_public_cloud';
 use LTP::utils;
 use LTP::WhiteList;
+use bugzilla;
 
 # Heartbeat variables, need to sync with tests/xfstests/run.pm
 my $HB_PATN = '<h>';    #shorter label <heartbeat> to getting stable under heavy stress
