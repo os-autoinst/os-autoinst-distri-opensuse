@@ -107,7 +107,7 @@ sub register_system_in_textmode {
 # need to remove these modules before migration, add the dropped modules to the
 # setting of DROPPED_MODULES.
 sub deregister_dropped_modules {
-    return unless ((get_var('DROPPED_MODULES')) || (get_var('SCC_ADDONS', '') =~ /ltss/));
+    return unless ((get_var('DROPPED_MODULES')) || ((get_var('SCC_ADDONS', '') =~ /ltss/) && (get_var('SCC_ADDONS', '') !~ /ltss_es/)));
 
     my $droplist = get_var('DROPPED_MODULES', '');
     $droplist .= ',ltss' if (get_var('SCC_ADDONS', '') =~ /ltss/);
