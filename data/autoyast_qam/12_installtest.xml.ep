@@ -11,6 +11,13 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      % if ($check_var->('SCC_REGCODE_LTSS_ES', 'ibs')) {
+      <listentry>
+        <name>SLES-LTSS-Extended-Security:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLES-LTSS-Extended-Security:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>-LTSS-Extended-Security/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       % if ($is_ltss) {
       <listentry>
         <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
