@@ -69,6 +69,9 @@ sub handle_first_grub {
     else {
         assert_screen 'grub2', 200;
         assert_screen_change { send_key('ret') };
+        # Run ppc64le VMs on x86_64 setups is slow since no kvm support,
+        # Wait one more minute to make sure system leaves grub
+        wait_still_screen 60 if check_var('MACHINE', 'ppc64le-emu');
         save_screenshot;
     }
 }
