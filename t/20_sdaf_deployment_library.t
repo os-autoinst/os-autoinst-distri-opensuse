@@ -114,7 +114,7 @@ subtest '[serial_console_diag_banner] ' => sub {
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
 };
 
-subtest '[sdaf_prepare_private_key]' => sub {
+subtest '[sdaf_get_deployer_ssh_key]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $get_ssh_command;
     my %private_key;
@@ -135,16 +135,16 @@ LAB-SECE-DEP05-ssh
             %pubkey = @_ if grep /sshkey-pub$/, @_;
     });
 
-    sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF');
+    sdaf_get_deployer_ssh_key(key_vault => 'LABSECEDEP05userDDF');
     is $get_ssh_command, 'az keyvault secret list --vault-name LABSECEDEP05userDDF --query [].name --output tsv | grep sshkey',
       'Return correct command for retrieving private key';
     is $pubkey{ssh_key_name}, 'LAB-SECE-DEP05-sshkey-pub', 'Public key';
     is $private_key{ssh_key_name}, 'LAB-SECE-DEP05-sshkey', 'Private key';
 
-    dies_ok { sdaf_prepare_private_key() } 'Fail with missing "key_vault" argument';
+    dies_ok { sdaf_get_deployer_ssh_key() } 'Fail with missing "key_vault" argument';
 
     $ms_sdaf->redefine(script_output => sub { return 1 });
-    dies_ok { sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
+    dies_ok { sdaf_get_deployer_ssh_key(key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
 };
 
 subtest '[set_common_sdaf_os_env]' => sub {
