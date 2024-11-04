@@ -163,6 +163,7 @@ sub parse_img_proof_output {
             $ret->{fail} = $4;
             $ret->{error} = $5;
         }
+        $ret->{output} .= $line . "\n";
     }
 
     for my $k (qw(ip logfile results tests pass skip fail error)) {
