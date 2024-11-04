@@ -431,24 +431,9 @@ sub terraform_prepare_env {
 
     my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $cloud_name = $self->conv_openqa_tf_name;
-        # Disable SSL verification only if explicitly asked!
-        assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
-        # Workaround for https://github.com/SUSE/ha-sap-terraform-deployments/issues/810
-        assert_script_run('sed -i "/key_name/s/terraform/&$RANDOM/" aws/infrastructure.tf');
-        # By default use the default provided Salt formula packages
-        assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
-        assert_script_run('cd');    # We need to ensure to be in the home directory
-        assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
-    }
-    else {
-        $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
-        assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
-        assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-    }
+    $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
+    assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+    assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
     $self->terraform_env_prepared(1);
 }
 
@@ -476,37 +461,8 @@ sub terraform_apply {
 
     # 1) Terraform init
 
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        record_info('INFO', "Creating instance $instance_type from $image_id ...");
-        assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
-        my $sap_media = get_required_var('HANA');
-        my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-        my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
-        # Enable specifying resource group name to allow running multiple tests simultaneously
-        my $resource_group = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd');
-        my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
-        $sle_version =~ s/-/_/g;
-        my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
-        my $suffix = get_current_job_id();
-        my $fencing_mechanism = get_var('FENCING_MECHANISM', 'sbd');
-        file_content_replace('terraform.tfvars',
-            q(%MACHINE_TYPE%) => $instance_type,
-            q(%REGION%) => $self->provider_client->region,
-            q(%HANA_BUCKET%) => $sap_media,
-            q(%SLE_IMAGE%) => $image_id,
-            q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
-            q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
-            q(%HA_SAP_REPO%) => $ha_sap_repo,
-            q(%SLE_VERSION%) => $sle_version,
-            q(%FENCING_MECHANISM%) => $fencing_mechanism
-        );
-        upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
-        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
-        assert_script_run("terraform workspace new ${resource_group}${suffix} -no-color", $terraform_timeout);
-    } else {
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
-    }
+    assert_script_run('cd ' . TERRAFORM_DIR);
+    script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
     # 2) Terraform plan
 
@@ -656,30 +612,26 @@ sub terraform_destroy {
 
     my $cmd = 'terraform destroy -no-color -auto-approve ';
     record_info('INFO', 'Removing terraform plan...');
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
+
+    assert_script_run('cd ' . TERRAFORM_DIR);
+    # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
+    $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
+    $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    unless (is_openstack) {
+        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
     }
-    else {
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
-        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-        unless (is_openstack) {
-            $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
-        }
-        # Add image_id, offer and sku on Azure runs, if defined.
-        if (is_azure) {
-            my $image = $self->get_image_id();
-            my $image_uri = $self->get_image_uri();
-            my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
-            my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
-            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-            $cmd .= "-var 'image_id=$image' " if ($image);
-            $cmd .= "-var 'image_uri=${image_uri}' " if ($image_uri);
-            $cmd .= "-var 'offer=$offer' " if ($offer);
-            $cmd .= "-var 'sku=$sku' " if ($sku);
-            $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
-        }
+    # Add image_id, offer and sku on Azure runs, if defined.
+    if (is_azure) {
+        my $image = $self->get_image_id();
+        my $image_uri = $self->get_image_uri();
+        my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
+        my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
+        my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
+        $cmd .= "-var 'image_id=$image' " if ($image);
+        $cmd .= "-var 'image_uri=${image_uri}' " if ($image_uri);
+        $cmd .= "-var 'offer=$offer' " if ($offer);
+        $cmd .= "-var 'sku=$sku' " if ($sku);
+        $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
     }
     # Ignore lock to avoid "Error acquiring the state lock"
     $cmd .= "-lock=false ";
