@@ -21,7 +21,7 @@
       <li><a href="#get_os_variable">get_os_variable</a></li>
       <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
       <li><a href="#load_os_env_variables">load_os_env_variables</a></li>
-      <li><a href="#sdaf_prepare_private_key">sdaf_prepare_private_key</a></li>
+      <li><a href="#sdaf_get_deployer_ssh_key">sdaf_get_deployer_ssh_key</a></li>
       <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
       <li><a href="#sdaf_execute_deployment">sdaf_execute_deployment</a></li>
@@ -204,9 +204,9 @@ tee - writes output also into the log file</code></pre>
 
 <p>Sources file containing OS env variables required for executing SDAF. Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing variables is not an option since tests would constantly overwrite variables between each other.</p>
 
-<h2 id="sdaf_prepare_private_key">sdaf_prepare_private_key</h2>
+<h2 id="sdaf_get_deployer_ssh_key">sdaf_get_deployer_ssh_key</h2>
 
-<pre><code>sdaf_prepare_private_key(key_vault=&gt;$key_vault);</code></pre>
+<pre><code>sdaf_get_deployer_ssh_key(key_vault=&gt;$key_vault);</code></pre>
 
 <p>Retrieves public and private ssh key from specified keyvault and sets up permissions.</p>
 
