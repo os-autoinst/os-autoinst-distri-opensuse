@@ -13,7 +13,6 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
-use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
@@ -25,9 +24,6 @@ sub run {
     send_key_until_needlematch('rear-recover-selected', 'up');
     send_key 'ret';
     $self->wait_boot_past_bootloader;
-    if (assert_screen('rear_restore_tty', 120) && is_ppc64le) {
-        send_key 'ret';
-    }
 
     # Restore the OS backup
     set_var('LIVETEST', 1);    # Because there is no password in ReaR miniOS
