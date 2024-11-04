@@ -65,7 +65,7 @@ Since SUT VMs have no public IPs, this is also serving as a jump-host to reach t
 
 our @EXPORT = qw(
   az_login
-  sdaf_prepare_private_key
+  sdaf_get_deployer_ssh_key
   serial_console_diag_banner
   set_common_sdaf_os_env
   prepare_sdaf_project
@@ -335,9 +335,9 @@ sub load_os_env_variables {
     assert_script_run('source ' . env_variable_file());
 }
 
-=head2 sdaf_prepare_private_key
+=head2 sdaf_get_deployer_ssh_key
 
-    sdaf_prepare_private_key(key_vault=>$key_vault);
+    sdaf_get_deployer_ssh_key(key_vault=>$key_vault);
 
 Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
@@ -348,7 +348,7 @@ Retrieves public and private ssh key from specified keyvault and sets up permiss
 =back
 =cut
 
-sub sdaf_prepare_private_key {
+sub sdaf_get_deployer_ssh_key {
     my (%args) = @_;
     croak 'Missing mandatory argument $args{key_vault}' unless $args{key_vault};
     my $home = homedir();
