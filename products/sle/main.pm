@@ -4,6 +4,7 @@
 # Copyright 2012-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
+
 use strict;
 use warnings;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
