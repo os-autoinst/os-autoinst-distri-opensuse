@@ -487,6 +487,12 @@ sub process_scc_register_addons {
         my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
         # remove empty elements
         @scc_addons = grep { $_ ne '' } @scc_addons;
+        # For HA LTSS_TO_LTSS_ES migration if the original version is 12-SP4 then it only has LTSS
+        if ((grep { $_ == 'ltss_es' } @scc_addons) && get_var('LTSS_TO_LTSS_ES') && is_sle('=12-SP4')) {
+            foreach my $addon (@scc_addons) {
+                $addon =~ s/ltss_es/ltss/g;
+            }
+        }
 
         for my $addon (@scc_addons) {
             next if (skip_package_hub_if_necessary($addon));
