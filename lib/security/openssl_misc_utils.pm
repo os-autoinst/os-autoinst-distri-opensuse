@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use registration 'add_suseconnect_product';
 use utils 'zypper_call';
-use version_utils qw(is_sle is_sle_micro is_microos is_transactional is_tumbleweed is_rt);
+use version_utils qw(is_sle is_sle_micro is_microos is_transactional is_tumbleweed is_rt is_jeos);
 
 use base 'Exporter';
 
@@ -24,7 +24,7 @@ use constant OPENSSL1_BINARY => "openssl-1_1";
 sub get_openssl_full_version {
     my $openssl_binary = shift // "openssl";
     # for SLERT we don't install a package, we query the rpm file just downloaded in install_openssl
-    return script_output("rpm -qp --qf '%{version}\n' openssl*.rpm") if (is_rt && $openssl_binary eq OPENSSL1_BINARY);
+    return script_output("rpm -qp --qf '%{version}\n' openssl*.rpm") if (has_no_legacy_module() && $openssl_binary eq OPENSSL1_BINARY);
     return script_output("rpm -q --qf '%{version}\n' $openssl_binary");
 }
 
@@ -33,6 +33,10 @@ sub get_openssl_x_y_version {
     my $openssl_version_output = script_output("$openssl_binary version | awk '{print \$2}'");
     my ($openssl_version) = $openssl_version_output =~ /(\d\.\d)/;
     return $openssl_version;
+}
+
+sub has_no_legacy_module {
+    return is_rt || is_jeos;
 }
 
 sub has_default_openssl1 {
@@ -46,7 +50,7 @@ sub has_default_openssl3 {
 sub install_openssl {
     zypper_call 'in openssl' unless is_transactional;
     if (is_sle '>=15-SP6') {
-        if (is_rt)
+        if (has_no_legacy_module())
         {
             install_11_workaround_when_no_legacy();
             return;
