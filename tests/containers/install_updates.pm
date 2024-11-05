@@ -17,10 +17,13 @@ sub run {
     my ($self) = @_;
     my $update_timeout = 2400;
     my ($version, $sp, $host_distri) = get_os_release;
+    # Check for bsc1232902, affecting the last 15-SP7 ISO, /etc/os-release paameters.
+    my $is_bsc_1232902 = (is_sle("=15-sp7") and $host_distri =~ /^sle$/);
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if ($host_distri =~ /sles|opensuse/) {
+    if ($host_distri =~ /sles|opensuse/ or ($is_bsc_1232902)) {
+        record_soft_failure("bsc#1232902, [Build GM] openQA SLES test fails in install_updates for unexpected os-release ID") if ($is_bsc_1232902);
         zypper_call("--quiet up", timeout => $update_timeout);
         ensure_ca_certificates_suse_installed() if is_sle();
     } elsif ($host_distri eq 'ubuntu') {
