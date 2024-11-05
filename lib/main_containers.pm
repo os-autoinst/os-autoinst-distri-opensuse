@@ -132,8 +132,9 @@ sub load_host_tests_podman {
     load_container_engine_privileged_mode($run_args);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
-    # fresh install of sle-micro comes with netavark
-    loadtest('containers/podman_network_cni') unless (is_sle_micro('6.0+') || (is_sle_micro('=5.5') && is_public_cloud) || (check_var('FLAVOR', 'DVD-Updates') && is_sle_micro));
+    # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
+    # podman+CNI is not supported on SLEM6+ and SLES-15-SP6+.
+    loadtest('containers/podman_network_cni') if (is_sle_micro('<6.0') || is_sle("<15-SP6"));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args);
     # IPv6 is not available on Azure
