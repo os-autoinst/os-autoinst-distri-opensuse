@@ -128,6 +128,11 @@ sub validate_repos_sle {
             $scc_addon_str .= "SLES$version-" . uc($scc_addon) . ',';
             next;
         }
+        # For example: SLES12-SP5-LTSS-Extended-Security-Updates
+        if ($scc_addon eq 'ltss_es') {
+            $scc_addon_str .= "SLES$version-LTSS-Extended-Security,";
+            next;
+        }
         $scc_addon =~ s/geo/ha-geo/ if ($scc_addon eq 'geo');
         $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
     }
