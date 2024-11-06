@@ -111,7 +111,6 @@ sub run {
     assert_script_run 'ip link delete dev wg0';
 
     ## Test wg-quick
-    assert_script_run('set -eo pipefail');
     assert_script_run('cd /etc/wireguard');
     if (get_var('IS_MM_SERVER')) {
         # Prepare new keys
