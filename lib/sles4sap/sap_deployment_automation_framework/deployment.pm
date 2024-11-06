@@ -19,6 +19,7 @@ use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
+use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
   deployment_dir
@@ -65,7 +66,7 @@ Since SUT VMs have no public IPs, this is also serving as a jump-host to reach t
 
 our @EXPORT = qw(
   az_login
-  sdaf_get_deployer_ssh_key
+  sdaf_ssh_key_from_keyvault
   serial_console_diag_banner
   set_common_sdaf_os_env
   prepare_sdaf_project
@@ -335,9 +336,9 @@ sub load_os_env_variables {
     assert_script_run('source ' . env_variable_file());
 }
 
-=head2 sdaf_get_deployer_ssh_key
+=head2 sdaf_ssh_key_from_keyvault
 
-    sdaf_get_deployer_ssh_key(key_vault=>$key_vault);
+    sdaf_ssh_key_from_keyvault(key_vault=>$key_vault [, target_file=>'/path/to/glory/and_happiness']);
 
 Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
@@ -345,75 +346,45 @@ Retrieves public and private ssh key from specified keyvault and sets up permiss
 
 =item * B<key_vault>: Key vault name
 
-=back
-=cut
-
-sub sdaf_get_deployer_ssh_key {
-    my (%args) = @_;
-    croak 'Missing mandatory argument $args{key_vault}' unless $args{key_vault};
-    my $home = homedir();
-    my %ssh_keys;
-    my $az_cmd_out = script_output(
-        "az keyvault secret list --vault-name $args{key_vault} --query [].name --output tsv | grep sshkey");
-
-    foreach (split("\n", $az_cmd_out)) {
-        $ssh_keys{id_rsa} = $_ if grep(/sshkey$/, $_);
-        $ssh_keys{'id_rsa.pub'} = $_ if grep(/sshkey-pub$/, $_);
-    }
-
-    foreach ('id_rsa', 'id_rsa.pub') {
-        croak "Couldn't retrieve '$_' from keyvault" unless $ssh_keys{$_};
-    }
-
-    assert_script_run("mkdir -p $home/.ssh");
-    assert_script_run("chmod 700 $home/.ssh");
-    for my $key_file (keys %ssh_keys) {
-        az_get_ssh_key(
-            key_vault => $args{key_vault},
-            ssh_key_name => $ssh_keys{$key_file},
-            ssh_key_filename => $key_file
-        );
-    }
-    assert_script_run("chmod 600 $home/.ssh/id_rsa");
-    assert_script_run("chmod 644 $home/.ssh/id_rsa.pub");
-}
-
-=head2 az_get_ssh_key
-
-    az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);
-
-Retrieves SSH key from specified keyvault.
-
-=over
-
-=item * B<key_vault>: Key vault name
-
-=item * B<ssh_key_name>: SSH key name residing on keyvault
-
-=item * B<ssh_key_filename>: Target filename for SSH key
+=item * B<target_file>: Full file path, where to write the public key. Default '~/.ssh/id_rsa'
 
 =back
 =cut
 
-sub az_get_ssh_key {
+sub sdaf_ssh_key_from_keyvault {
     my (%args) = @_;
-    my $home = homedir();
-    my $cmd = join(' ',
-        'az', 'keyvault', 'secret', 'show',
-        '--vault-name', $args{key_vault},
-        '--name', $args{ssh_key_name},
-        '--query', 'value',
-        '--output', 'tsv', '>', "$home/.ssh/$args{ssh_key_filename}");
+    croak 'Missing mandatory argument: key_vault' unless $args{key_vault};
+    $args{target_file} //= homedir() . '/.ssh/id_rsa';
+    my ($target_filename, $target_path) = fileparse($args{target_file});
+    my @secret_ids = @{az_keyvault_secret_list(
+            vault_name => $args{key_vault}, query => '"[?ends_with(name, \'sshkey\')].id"')};
 
-    my $rc = 1;
-    my $retry = 3;
-    while ($rc) {
-        $rc = script_run($cmd, output => 'Retrieving SSH keys from keyvault');
-        last unless $rc;
-        die 'Failed to retrieve ssh key from keyvault' unless $retry;
-        $retry--;
+    croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
+
+    # Ensure private key file exists and has correct permissions
+    assert_script_run("mkdir -p $target_path");
+    assert_script_run("chmod 700 $target_path");
+    assert_script_run("touch $args{target_file}");
+    assert_script_run("chmod 600 $target_path/$target_filename");
+
+    my $private_key_content;
+
+    # Retry 3 (magic number) times in case of issues with az API
+    foreach (1 .. 3) {
+        $private_key_content = az_keyvault_secret_show(
+            id => $secret_ids[0],
+            query => 'value',
+            output => 'tsv',
+            save_to_file => $args{target_file});
+
+        # Check with ssh-keygen if SSH public key is malformed
+        last if !script_run("ssh-keygen -l -f $args{target_file}");
+        croak "Failed to retrieve private key content. Content returned: $private_key_content" if $_ == 3;
+        # Sleep between retries to give AZ API a little break
         sleep 5;
     }
+
+    record_info('SSH KEY', "SSH public key '$target_path/$target_filename' is ready to be used.");
 }
 
 =head2 serial_console_diag_banner
@@ -843,7 +814,7 @@ sub sdaf_ansible_verbosity_level {
 
 Display simple command outputs from all DB hosts using B<ansible> command.
 
-=over 2
+=over
 
 =item * B<sdaf_config_root_dir>: SDAF Config directory containing SUT ssh keys
 

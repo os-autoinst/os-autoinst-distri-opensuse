@@ -13,8 +13,8 @@ use warnings;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 use mmapi qw(get_current_job_id);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 
 =head1 SYNOPSIS
 
@@ -37,6 +37,7 @@ our @EXPORT = qw(
   convert_region_to_short
   generate_deployer_name
   get_workload_vnet_code
+  get_sdaf_inventory_path
 );
 
 =head2 %sdaf_region_matrix
