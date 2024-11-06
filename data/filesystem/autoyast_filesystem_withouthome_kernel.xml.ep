@@ -28,6 +28,9 @@
         % if ($key eq 'ltss') {
         <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
         % }
+        % if ($key eq 'ltss_es') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS_ES') %></reg_code>
+        % }
       </addon>
       % }
       % }
