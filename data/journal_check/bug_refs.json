@@ -632,6 +632,13 @@
         },
         "type": "bug"
     },
+    "bsc#1230472": {
+        "description": "Failed to start selfinstallbootloader.service",
+        "products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "bug"
+    },
     "bsc#1217773": {
         "description": "Unable to send container stderr message to parent Broken pipe",
         "products": {
