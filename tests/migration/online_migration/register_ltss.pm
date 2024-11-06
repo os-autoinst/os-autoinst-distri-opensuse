@@ -27,6 +27,9 @@ sub run {
         $os_sp_version =~ s/-/_/g;
         add_suseconnect_product("SLES-LTSS", undef, undef, "-r " . get_var("SCC_REGCODE_LTSS_$os_sp_version"), 300, 0);
     }
+    elsif (grep $_ eq 'ltss_es', @scc_addons) {
+        add_suseconnect_product("SLES-LTSS-Extended-Security", undef, undef, "-r " . get_var("SCC_REGCODE_LTSS_ES"), 300, 0);
+    }
 }
 
 1;
