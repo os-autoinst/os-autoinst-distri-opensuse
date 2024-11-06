@@ -73,7 +73,7 @@
           <partition>
             <create config:type="boolean">false</create>
             <partition_nr config:type="integer">1</partition_nr>
-            <crypt_key>nots3cr3t</crypt_key>
+            <crypt_key>{{PASSWORD}}</crypt_key>
             <resize config:type="boolean">true</resize>
             <size>5G</size>  
           </partition>

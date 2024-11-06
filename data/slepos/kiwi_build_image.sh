@@ -13,7 +13,7 @@ ROOT_HOME="/root"
 
 
 # NOTE: here are single quotes important!
-# password is 'nots3cr3t'
+# password is 'not...3t'
 ROOT_PASSWORD='lQxldvDc9mR/o'
 
 USER_NAME="bernhard"
@@ -24,7 +24,7 @@ USER_UID="1000"
 USER_HOME="/home/$USER_NAME"
 
 # NOTE: here are single quotes important!
-# password is 'nots3cr3t'
+# password is 'not...3t'
 USER_PASSWORD='lQxldvDc9mR/o'
 
 THIS_IMAGE="$1"

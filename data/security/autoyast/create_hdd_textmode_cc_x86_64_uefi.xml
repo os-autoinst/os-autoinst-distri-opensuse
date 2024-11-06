@@ -392,7 +392,7 @@
           <create t="boolean">true</create>
           <create_subvolumes t="boolean">true</create_subvolumes>
           <filesystem t="symbol">btrfs</filesystem>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <crypt_method t="symbol">luks1</crypt_method>
           <format t="boolean">true</format>
           <mount>/</mount>
@@ -445,7 +445,7 @@
         <partition t="map">
           <create t="boolean">true</create>
           <filesystem t="symbol">swap</filesystem>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <crypt_method t="symbol">luks1</crypt_method>
           <format t="boolean">true</format>
           <mount>swap</mount>

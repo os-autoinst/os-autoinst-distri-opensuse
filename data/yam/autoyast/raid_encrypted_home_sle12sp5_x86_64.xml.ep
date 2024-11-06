@@ -82,7 +82,7 @@
         <partition>
           <create config:type="boolean">true</create>
           <crypt_fs config:type="boolean">true</crypt_fs>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <filesystem config:type="symbol">xfs</filesystem>
           <format config:type="boolean">true</format>
           <loop_fs config:type="boolean">true</loop_fs>
