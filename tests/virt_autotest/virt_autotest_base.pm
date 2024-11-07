@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use File::Basename;
 use base "opensusebasetest";
+use Utils::Logging qw(upload_coredumps);
 use testapi;
 use Data::Dumper;
 use XML::Writer;
@@ -286,7 +287,7 @@ sub post_fail_hook {
     }
     save_screenshot;
 
-    $self->upload_coredumps;
+    upload_coredumps;
     save_screenshot;
 }
 1;
