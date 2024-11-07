@@ -38,7 +38,7 @@ sub activate_containers_module {
             last;
         }
     }
-    add_suseconnect_product('sle-module-containers') unless ($registered);
+    add_suseconnect_product('sle-module-containers') unless (($registered) || check_var('SCC_REGISTER', 'skip'));
     record_info('SUSEConnect', script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60));
 }
 
