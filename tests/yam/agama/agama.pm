@@ -16,18 +16,6 @@ use testapi qw(
   record_soft_failure
 );
 
-use Utils::Architectures;
-use version_utils qw(is_sle);
-
-sub pre_run_hook {
-    if (is_sle() && (is_s390x() || is_ppc64le())) {
-        record_soft_failure("bsc#1231421");
-        assert_script_run("curl --insecure -o /tmp/ca-certificates-suse.rpm https://download.suse.de/browse/ibs/SUSE:/CA/SLE_15_SP7/noarch/ca-certificates-suse-1.0-150700.8.1.noarch.rpm");
-        assert_script_run("zypper -n install /tmp/ca-certificates-suse.rpm");
-        assert_script_run("systemctl restart agama");
-    }
-}
-
 sub run {
     my $self = shift;
     my $test = get_required_var('AGAMA_TEST');
