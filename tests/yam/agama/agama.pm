@@ -29,6 +29,7 @@ sub pre_run_hook {
 }
 
 sub run {
+    my $self = shift;
     my $test = get_required_var('AGAMA_TEST');
     my $test_options = get_required_var('AGAMA_TEST_OPTIONS');
     my $reboot_page = $testapi::distri->get_reboot();
@@ -38,9 +39,7 @@ sub run {
           $test_options, timeout => 1200);
     script_run("dmesg --console-on");
 
-    Yam::Agama::agama_base::upload_agama_logs();
-    Yam::Agama::agama_base::upload_system_logs();
-
+    $self->upload_agama_logs();
     $reboot_page->reboot();
 }
 

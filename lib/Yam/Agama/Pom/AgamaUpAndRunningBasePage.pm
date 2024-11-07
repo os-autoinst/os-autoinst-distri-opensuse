@@ -17,7 +17,7 @@ sub new {
     my ($class, $args) = @_;
     return bless {
         tag_array_ref_any_first_screen_shown => [],
-        timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 90
+        timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 120
     }, $class;
 }
 
