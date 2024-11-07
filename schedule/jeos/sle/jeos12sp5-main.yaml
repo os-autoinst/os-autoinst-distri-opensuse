@@ -4,6 +4,8 @@ name: 'jeos-main@64bit-virtio-vga ( qemu )'
 conditional_schedule:
     bootloader:
         MACHINE:
+            '64bit-virtio-vga':
+                - installation/bootloader_uefi
             'svirt-xen-pv':
                 - installation/bootloader_svirt
             'svirt-xen-hvm':
