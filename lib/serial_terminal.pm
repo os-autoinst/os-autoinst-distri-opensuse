@@ -365,7 +365,6 @@ use root-ssh console directly.
 
 sub select_serial_terminal {
     my $root = shift // 1;
-    my $prompt = shift // ($root ? '# ' : '> ');
 
     my $backend = get_required_var('BACKEND');
     my $console;
