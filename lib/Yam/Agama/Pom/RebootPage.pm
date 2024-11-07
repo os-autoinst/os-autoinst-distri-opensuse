@@ -23,6 +23,7 @@ sub new {
 sub expect_is_shown {
     my $self = shift;
     my $timeout = 2400;
+    $timeout *= 2 if get_var("MACHINE") eq "ppc64le-emu";
 
     while ($timeout > 0) {
         my $ret = check_screen($self->{tag_installation_complete}, 30);
