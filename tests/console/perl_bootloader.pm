@@ -16,6 +16,7 @@ use utils;
 use package_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_leap is_sle_micro check_version is_transactional);
+use Utils::Backends 'is_pvm';
 use transactional;
 
 sub run {
@@ -79,6 +80,7 @@ sub run {
         validate_script_output 'pbl --default-settings', qr/kernel|initrd|append/;
     }
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
 }
 
