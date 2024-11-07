@@ -55,6 +55,9 @@ sub install_xfstests_from_repo {
         unless (is_sle_micro('>=6.0')) {
             trup_call('--continue pkg install fio');
         }
+        if (scalar @PACKAGES > 2) {
+            trup_call('--continue pkg install --replacefiles ' . join(' ', @PACKAGES[2 .. $#PACKAGES]));
+        }
         reboot_on_changes;
     }
     else {
