@@ -175,11 +175,6 @@ from serial console. VM ID is collected by opening 'log-console' which is not re
 sub check_serial_redirection {
     # Do not select serial console if it is already done. This avoids log pollution and speeds up process.
     if (is_serial_terminal()) {
-        # Teminate the process when scripts timed out
-        unless (wait_serial($testapi::distri->{serial_term_prompt})) {
-            type_string('', terminate_with => 'ETX');
-            type_string("\n");
-        }
         select_serial_terminal();
         set_serial_term_prompt();
     }

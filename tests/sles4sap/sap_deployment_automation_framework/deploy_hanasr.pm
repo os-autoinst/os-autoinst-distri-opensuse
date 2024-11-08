@@ -84,7 +84,9 @@ sub run {
                 '--args="sudo zypper in -y fence-agents-azure-arm"');
             assert_script_run(join(' ', @cmd));
         }
+        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 1;
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
+        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 0;
     }
 
     # Display deployment information
