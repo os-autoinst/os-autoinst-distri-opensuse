@@ -274,6 +274,10 @@ sub select_all_patterns_by_menu {
         send_key 'alt-2';
         send_key 'alt-o';
     }
+    if (check_screen('fips_certified_conflict', 5)) {
+        send_key 'alt-1';
+        send_key 'alt-o';
+    }
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen 'inst-overview';
