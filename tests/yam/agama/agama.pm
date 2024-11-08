@@ -24,7 +24,7 @@ sub run {
 
     script_run("dmesg --console-off");
     assert_script_run("node --enable-source-maps /usr/share/agama/system-tests/" . $test . ".js " .
-          $test_options, timeout => 1200);
+          $test_options, timeout => 2400);
     script_run("dmesg --console-on");
 
     $self->upload_agama_logs();
