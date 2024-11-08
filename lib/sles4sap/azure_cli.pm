@@ -63,6 +63,9 @@ our @EXPORT = qw(
   az_resource_delete
   az_resource_list
   az_validate_uuid_pattern
+  az_keyvault_list
+  az_keyvault_secret_list
+  az_keyvault_secret_show
 );
 
 
@@ -1660,4 +1663,119 @@ sub az_storage_blob_update {
     push(@az_cmd, "--lease-id $args{lease_id}") if $args{lease_id};
 
     return script_run(join(' ', @az_cmd));
+}
+
+=head2 az_keyvault_list
+
+    az_keyvault_list(resource_group=>'resource group' [, query=>'[].id']);
+
+Lists all keyvault resource names located in specified resource group.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<resource_group> Existing resource group name.
+
+=item B<query> Modify output filter using jmespath query
+
+=back
+=cut
+
+sub az_keyvault_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    $args{query} //= '[].name';
+
+    my @az_cmd = ('az keyvault list',
+        '--only-show-errors',
+        '--resource_group', $args{resource_group},
+        '--query', "$args{query}",
+        '--output json'
+    );
+
+    return decode_json(script_output(join(' ', @az_cmd)));
+}
+
+=head2 az_keyvault_secret_list
+
+    az_keyvault_secret_list(vault_name=>'Gringotts' [, query=>'[].id']);
+
+Lists all keyvault secret names located in specified keyvault.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<vault_name> Existing keyvault name.
+
+=item B<query> Modify output filter using jmespath query
+
+=back
+=cut
+
+sub az_keyvault_secret_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'vault_name'" unless $args{vault_name};
+    $args{query} //= '[].name';
+
+    my @az_cmd = ('az keyvault secret list',
+        '--only-show-errors',
+        '--vault-name', $args{vault_name},
+        '--query', "$args{query}",
+        '--output json'
+    );
+
+    return decode_json(script_output(join(' ', @az_cmd)));
+}
+
+=head2 az_keyvault_secret_show
+
+    az_keyvault_secret_show(id=>'someid'
+        [, name=>'Vault 713', vault_name=>'Gringotts', query=>'[].id', output=>'json', save_to_file=>'/alohomora']);
+
+Lists all keyvault secret names located in specified keyvault.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<id> Existing secret resource ID. B<name> and B<vault_name> not needed if this is specified.
+
+=item B<name> Existing secret name. Required if B<id> not used.
+
+=item B<vault_name> Existing keyvault name. Required if B<id> not used.
+
+=item B<query> Modify output filter using jmespath query. Default: value
+
+=item B<output> Output format.  Allowed values: json, tsv. Default: tsv.
+
+=item B<save_to_file> Save output to a file specified.
+    This can be used to prevent the secret being shown in OpenQA outputs. Default: undefined/false
+
+=back
+=cut
+
+sub az_keyvault_secret_show {
+    my (%args) = @_;
+    croak 'Argument "id" cannot be used together with "name" and "vault_name".'
+      if $args{id} and grep(/name|vault_name/, keys %args);
+    croak 'Missing mandatory argument: id' if !$args{id} and !grep(/name|vault_name/, keys %args);
+    foreach ('name', 'vault_name') {
+        croak 'Missing mandatory argument: ' . $_ if !$args{id} and !$args{$_};
+    }
+
+    $args{query} //= 'value';
+    # 'tsv' is default because json mangles newlines. It's easier to use output directly.
+    $args{output} //= 'tsv';
+
+    my @az_cmd = ('az keyvault secret show',
+        '--only-show-errors',
+        '--query', "$args{query}",
+        '--output', "$args{output}"
+    );
+    push(@az_cmd, "--vault-name $args{vault_name}") if $args{vault_name};
+    push(@az_cmd, "--name $args{name}") if $args{name};
+    push(@az_cmd, "--id $args{id}") if $args{id};
+    push(@az_cmd, "> $args{save_to_file}") if $args{save_to_file};
+
+    return decode_json(script_output(join(' ', @az_cmd))) if $args{output} eq 'json';
+    return script_output(join(' ', @az_cmd));
 }

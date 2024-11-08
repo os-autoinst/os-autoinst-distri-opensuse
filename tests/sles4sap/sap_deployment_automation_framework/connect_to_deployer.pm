@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner az_login sdaf_get_deployer_ssh_key);
+  qw(serial_console_diag_banner az_login sdaf_ssh_key_from_keyvault);
 use sles4sap::sap_deployment_automation_framework::deployment_connector
   qw(get_deployer_vm_name get_deployer_ip find_deployment_id);
 use serial_terminal qw(select_serial_terminal);
@@ -33,7 +33,7 @@ sub run {
     # This will allow using connect_target_to_serial() without specifying user/host to deployer every time.
     set_var('REDIRECT_DESTINATION_USER', get_var('PUBLIC_CLOUD_USER', 'azureadm'));
     set_var('REDIRECT_DESTINATION_IP', $deployer_ip);    # IP addr to redirect console to
-    sdaf_get_deployer_ssh_key(key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'));
+    sdaf_ssh_key_from_keyvault(key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'));
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : end');
 }
 
