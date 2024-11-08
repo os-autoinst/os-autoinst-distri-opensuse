@@ -24,7 +24,12 @@ Please try not to add here complex functions that do much beyond returning a str
 
 =cut
 
+our $deployer_private_key_path = '~/.ssh/id_rsa';
+our $sut_private_key_path = '~/.ssh/sut_id_rsa';
+
 our @EXPORT = qw(
+  $deployer_private_key_path
+  $sut_private_key_path
   homedir
   deployment_dir
   log_dir
@@ -369,4 +374,39 @@ sub get_workload_vnet_code {
     # deployer-vnet_to_workload-vnet
     # if it is too long you might hit name length limit and test ID gets clipped.
     return ($args{job_id});
+}
+
+=head2 get_sdaf_inventory_path
+
+    get_sdaf_inventory_path();
+
+Returns full Ansible inventory filepath respective to deployment type.
+
+=over
+
+=item * B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
+
+=item * B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
+
+=item * B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
+
+=item * B<sap_sid>: SDAF parameter for sap system ID.
+
+=back
+=cut
+
+sub get_sdaf_inventory_path {
+    my (%args) = @_;
+
+    # Argument (%args) validation is done by 'get_sdaf_config_path()'
+    my $config_root_path = get_sdaf_config_path(
+        deployment_type => 'sap_system',
+        sap_sid => $args{sap_sid},
+        env_code => $args{env_code},
+        vnet_code => $args{vnet_code},
+        sdaf_region_code => $args{sdaf_region_code}
+    );
+
+    # file name is hard coded in SDAF
+    return "$config_root_path/$args{sap_sid}_hosts.yaml";
 }

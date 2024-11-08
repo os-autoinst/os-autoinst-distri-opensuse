@@ -1688,7 +1688,7 @@ sub az_keyvault_list {
 
     my @az_cmd = ('az keyvault list',
         '--only-show-errors',
-        '--resource_group', $args{resource_group},
+        '--resource-group', $args{resource_group},
         '--query', "$args{query}",
         '--output json'
     );
