@@ -243,6 +243,9 @@ sub run {
     enter_root_passwd;
 
     if (is_bootloader_sdboot) {
+        send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
+        send_key 'ret';
+
         send_key_until_needlematch 'jeos-fde-option-enroll-root-pw', 'down' unless check_screen('jeos-fde-option-enroll-root-pw', 1);
         send_key 'ret';
 
@@ -320,7 +323,7 @@ sub run {
 
     if (is_bootloader_sdboot) {
         # Verify that /etc/issue shows the recovery key
-        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
+        wait_serial(qr/^Recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
