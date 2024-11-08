@@ -60,6 +60,9 @@
       <li><a href="#az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</a></li>
       <li><a href="#az_storage_blob_list">az_storage_blob_list</a></li>
       <li><a href="#az_storage_blob_update">az_storage_blob_update</a></li>
+      <li><a href="#az_keyvault_list">az_keyvault_list</a></li>
+      <li><a href="#az_keyvault_secret_list">az_keyvault_secret_list</a></li>
+      <li><a href="#az_keyvault_secret_show">az_keyvault_secret_show</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -1207,6 +1210,77 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 </dd>
 <dt id="lease_id-Lease-id-in-case-there-is-a-lease-put-on-a-file"><b>lease_id</b> Lease id in case there is a lease put on a file</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_keyvault_list">az_keyvault_list</h2>
+
+<pre><code>az_keyvault_list(resource_group=&gt;&#39;resource group&#39; [, query=&gt;&#39;[].id&#39;]);</code></pre>
+
+<p>Lists all keyvault resource names located in specified resource group. Output can be modified using <b>query</b> argument.</p>
+
+<dl>
+
+<dt id="resource_group-Existing-resource-group-name3"><b>resource_group</b> Existing resource group name.</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query"><b>query</b> Modify output filter using jmespath query</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_keyvault_secret_list">az_keyvault_secret_list</h2>
+
+<pre><code>az_keyvault_secret_list(vault_name=&gt;&#39;Gringotts&#39; [, query=&gt;&#39;[].id&#39;]);</code></pre>
+
+<p>Lists all keyvault secret names located in specified keyvault. Output can be modified using <b>query</b> argument.</p>
+
+<dl>
+
+<dt id="vault_name-Existing-keyvault-name"><b>vault_name</b> Existing keyvault name.</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query1"><b>query</b> Modify output filter using jmespath query</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_keyvault_secret_show">az_keyvault_secret_show</h2>
+
+<pre><code>az_keyvault_secret_show(id=&gt;&#39;someid&#39;
+    [, name=&gt;&#39;Vault 713&#39;, vault_name=&gt;&#39;Gringotts&#39;, query=&gt;&#39;[].id&#39;, output=&gt;&#39;json&#39;, save_to_file=&gt;&#39;/alohomora&#39;]);</code></pre>
+
+<p>Lists all keyvault secret names located in specified keyvault. Output can be modified using <b>query</b> argument.</p>
+
+<dl>
+
+<dt id="id-Existing-secret-resource-ID.-name-and-vault_name-not-needed-if-this-is-specified"><b>id</b> Existing secret resource ID. <b>name</b> and <b>vault_name</b> not needed if this is specified.</dt>
+<dd>
+
+</dd>
+<dt id="name-Existing-secret-name.-Required-if-id-not-used"><b>name</b> Existing secret name. Required if <b>id</b> not used.</dt>
+<dd>
+
+</dd>
+<dt id="vault_name-Existing-keyvault-name.-Required-if-id-not-used"><b>vault_name</b> Existing keyvault name. Required if <b>id</b> not used.</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-value"><b>query</b> Modify output filter using jmespath query. Default: value</dt>
+<dd>
+
+</dd>
+<dt id="output-Output-format.-Allowed-values:-json-tsv.-Default:-tsv"><b>output</b> Output format. Allowed values: json, tsv. Default: tsv.</dt>
+<dd>
+
+</dd>
+<dt id="save_to_file-Save-output-to-a-file-specified.-This-can-be-used-to-prevent-the-secret-being-shown-in-OpenQA-outputs.-Default:-undefined-false"><b>save_to_file</b> Save output to a file specified. This can be used to prevent the secret being shown in OpenQA outputs. Default: undefined/false</dt>
 <dd>
 
 </dd>

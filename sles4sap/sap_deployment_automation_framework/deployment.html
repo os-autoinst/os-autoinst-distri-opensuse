@@ -21,8 +21,7 @@
       <li><a href="#get_os_variable">get_os_variable</a></li>
       <li><a href="#set_common_sdaf_os_env">set_common_sdaf_os_env</a></li>
       <li><a href="#load_os_env_variables">load_os_env_variables</a></li>
-      <li><a href="#sdaf_get_deployer_ssh_key">sdaf_get_deployer_ssh_key</a></li>
-      <li><a href="#az_get_ssh_key">az_get_ssh_key</a></li>
+      <li><a href="#sdaf_ssh_key_from_keyvault">sdaf_ssh_key_from_keyvault</a></li>
       <li><a href="#serial_console_diag_banner">serial_console_diag_banner</a></li>
       <li><a href="#sdaf_execute_deployment">sdaf_execute_deployment</a></li>
       <li><a href="#get_sdaf_deployment_command">get_sdaf_deployment_command</a></li>
@@ -204,9 +203,9 @@ tee - writes output also into the log file</code></pre>
 
 <p>Sources file containing OS env variables required for executing SDAF. Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing variables is not an option since tests would constantly overwrite variables between each other.</p>
 
-<h2 id="sdaf_get_deployer_ssh_key">sdaf_get_deployer_ssh_key</h2>
+<h2 id="sdaf_ssh_key_from_keyvault">sdaf_ssh_key_from_keyvault</h2>
 
-<pre><code>sdaf_get_deployer_ssh_key(key_vault=&gt;$key_vault);</code></pre>
+<pre><code>sdaf_ssh_key_from_keyvault(key_vault=&gt;$key_vault [, target_file=&gt;&#39;/path/to/glory/and_happiness&#39;]);</code></pre>
 
 <p>Retrieves public and private ssh key from specified keyvault and sets up permissions.</p>
 
@@ -215,23 +214,7 @@ tee - writes output also into the log file</code></pre>
 <li><p><b>key_vault</b>: Key vault name</p>
 
 </li>
-</ul>
-
-<h2 id="az_get_ssh_key">az_get_ssh_key</h2>
-
-<pre><code>az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);</code></pre>
-
-<p>Retrieves SSH key from specified keyvault.</p>
-
-<ul>
-
-<li><p><b>key_vault</b>: Key vault name</p>
-
-</li>
-<li><p><b>ssh_key_name</b>: SSH key name residing on keyvault</p>
-
-</li>
-<li><p><b>ssh_key_filename</b>: Target filename for SSH key</p>
+<li><p><b>target_file</b>: Full file path, where to write the public key. Default &#39;~/.ssh/id_rsa&#39;</p>
 
 </li>
 </ul>
