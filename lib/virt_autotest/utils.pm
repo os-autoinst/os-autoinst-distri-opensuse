@@ -1280,7 +1280,7 @@ sub get_guest_regcode {
     my $count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $guest)) : scalar(split("$args{separator}", $guest)));
     $regcode = join("$args{separator}", (get_var("SCC_REGCODE", "")) x $count) if (!$regcode);
     if (!$regcode_ltss) {
-        my @guest_parts = split($args{separator}, $guest);
+        my @guest_parts = $args{separator} eq '|' ? split("\\$args{separator}", $guest) : split("$args{separator}", $guest);
         my @regcode_ltss_parts;
         for my $part (@guest_parts) {
             push @regcode_ltss_parts, ($part =~ /12/ ? get_var("SCC_REGCODE_LTSS_12", "") : $part =~ /15/ ? get_var("SCC_REGCODE_LTSS_15", "") : "");
