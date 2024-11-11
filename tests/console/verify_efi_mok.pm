@@ -74,7 +74,7 @@ sub check_efi_state {
     diag "Found efi guid=$efi_guid_global";
     diag('Expected state of SecureBoot: ' . (get_var('DISABLE_SECUREBOOT', 0) ? 'Disabled' : 'Enabled'));
 
-    if (script_run("efivar -dn $efi_guid_global-SecureBoot") == !get_var('DISABLE_SECUREBOOT', 0)) {
+    if (script_run("efivar -dn $efi_guid_global-SecureBoot") == get_var('DISABLE_SECUREBOOT', 0)) {
         push @errors, 'System\'s SecureBoot state is unexpected according to efivar';
     }
 

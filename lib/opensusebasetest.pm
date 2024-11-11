@@ -382,7 +382,7 @@ sub wait_grub {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub = $args{in_grub} // 0;
     my @tags;
-    push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+    push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI') && !get_var('DISABLE_SECUREBOOT');
     push @tags, 'grub2';
     push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
     push @tags, 'bootloader' if get_var('OFW');

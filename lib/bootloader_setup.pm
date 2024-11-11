@@ -1072,13 +1072,11 @@ sub tianocore_enter_menu {
 }
 
 sub tianocore_disable_secureboot {
-
     my ($basetest, $revert) = @_;
 
     my $neelle_sb_conf_attempt = $revert ? 'tianocore-devicemanager-sb-conf-disabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
     my $neelle_sb_change_state = $revert ? 'tianocore-devicemanager-sb-conf-enabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
     my $neelle_sb_config_state = $revert ? 'tianocore-secureboot-enabled' : 'tianocore-secureboot-not-enabled';
-    my $timeout = is_aarch64 ? '30' : '20';
 
     assert_screen 'grub2';
     send_key 'c';
@@ -1101,7 +1099,6 @@ sub tianocore_disable_secureboot {
     send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
-    send_key 'ret' if (!is_aarch64() && check_screen($neelle_sb_config_state, $timeout));
     $basetest->wait_grub;
 }
 
