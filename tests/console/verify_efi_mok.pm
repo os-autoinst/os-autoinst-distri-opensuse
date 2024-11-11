@@ -245,7 +245,7 @@ sub disable_secureboot {
     my ($self, $exp_data, $esp_details) = @_;
     $self->verification('After grub2-install', $exp_data, sub {
             assert_script_run('sed -ie s/SECURE_BOOT=.*/SECURE_BOOT=no/ ' . SYSCONFIG_BOOTLADER);
-            assert_script_run "grub2-install --efi-directory=$esp_details->{mount} --target=x86_64-efi $esp_details->{drive}";
+            assert_script_run "grub2-install --efi-directory=$esp_details->{mount} $esp_details->{drive}";
             assert_script_run('grub2-mkconfig -o ' . GRUB_CFG);
         }
     );
