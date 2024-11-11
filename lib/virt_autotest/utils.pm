@@ -290,7 +290,7 @@ sub check_failures_in_journal {
     }
 
     # Search warnings from the journal log file
-    my @warnings = ('Started Process Core Dump', 'Call Trace');
+    my @warnings = ('Started Process Core Dump', 'sysfs group \'power\'', 'Call Trace');
     foreach (@warnings) {
         $cmd = "grep '$_' $logfile";
         $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
@@ -302,6 +302,11 @@ sub check_failures_in_journal {
         if (get_var('KNOWN_BUGS_FOUND_IN_JOURNAL')) {
             record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_BUGS_FOUND_IN_JOURNAL') . ". Please look into journal files to determine if it is a known bug. If it is a new issue, please take action as described in poo#151361.");
             record_info("Found failures in journal log", "Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_BUGS_FOUND_IN_JOURNAL') . ". Please look into journal files to determine if it is a known bug. If it is a new issue, please take action as described in poo#151361.", result => 'fail');
+	}
+	#bsc1205967 know bug  
+	elsif ($failures eq 'sysfs group \'power\'') {
+            record_soft_failure("BSC#1205967 \n");
+            record_info("Found BSC#1205967 failures in journal log. \n", result => 'fail');
         }
         else {
             record_soft_failure("Found new failures: " . $failures . " please take actions as described in poo#151361.\n");
