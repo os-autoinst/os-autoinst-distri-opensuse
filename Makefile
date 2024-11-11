@@ -18,7 +18,7 @@ prepare:
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
 link a local working copy of 'os-autoinst' into this \
-folder or call 'make prepare' to install download a copy necessary for \
+folder or call 'make prepare' to download and setup a copy necessary for \
 testing" && exit 2)
 
 tools/tidy: os-autoinst/
