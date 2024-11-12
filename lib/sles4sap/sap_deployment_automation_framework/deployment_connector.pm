@@ -189,6 +189,10 @@ In case of multi-machine test this can be either parent test ID or current job i
 This function collects all OpenQA job IDs related to current test run and checks if any of them match an existing
 deployer VM tagged with this ID.
 
+Using OpenQA parameter B<SDAF_DEPLOYMENT_ID> it is possible to override this value. It is mostly intended for development
+purposes where it allows you to run test code on already existing deployment. Use it with caution and override
+the value only with ID of the infrastructure that belongs to you.
+
 B<Example>:
 Job: 123456 - deployment module - created deployer VM tagged with "deployment_id=123456",
 Job: 123457 (child of 123456) - some test module
@@ -203,6 +207,7 @@ Deployment ID returned from both jobs: 123456 - because it matches with existing
 
 sub find_deployment_id {
     my (%args) = @_;
+    return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
     my @check_list = (get_current_job_id(), @{get_parent_ids()});
 
