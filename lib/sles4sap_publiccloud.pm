@@ -1242,12 +1242,17 @@ sub saphanasr_showAttr_version {
 =head2 wait_for_cluster
 
     Verifies that nodes are online, resources are started and DB is in sync
+    Returns (1, $crm_output) on success and either dies or 
+    returns (0, $crm_output) on failure depending on whether
+    proceed_on_failure is set
 
 =over
 
 =item B<wait_time> - time to wait before retry in seconds, default 10
 
 =item B<max_retries> - maximum number of retries, default 7
+
+=item B<proceed_on_failure> - whether to die or return crm output on failure
 
 =back
 =cut
@@ -1257,6 +1262,7 @@ sub wait_for_cluster {
 
     $args{wait_time} //= 10;
     $args{max_retries} //= 7;
+    $args{proceed_on_failure} //= 0;
     my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '[1-9]+' : 'online';
 
     while ($args{max_retries} > 0) {
@@ -1267,13 +1273,16 @@ sub wait_for_cluster {
 
         if ($hanasr_ready && $crm_ok) {
             record_info("OK", "Cluster is healthy: All nodes are online with one node in 'PRIM' and the other in 'SOK' state.");
-            return;
+            return (1, $crm_output);
         }
 
         $args{max_retries}--;
         if ($args{max_retries} <= 0) {
             record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
             $self->display_full_status();
+            if ($args{proceed_on_failure}) {
+                return (0, $crm_output);
+            }
             die "Cluster is not ready after specified retries.";
         }
         sleep($args{wait_time});

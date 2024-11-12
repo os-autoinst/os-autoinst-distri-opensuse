@@ -13,6 +13,7 @@ use testapi;
 use publiccloud::utils;
 use sles4sap_publiccloud;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
 
 sub test_flags {
     return {fatal => 1, publiccloud_multi_module => 1};
@@ -63,7 +64,22 @@ sub run {
         $self->{my_instance} = $instance;
         last if ($instance->{instance_id} =~ m/vmhana/);
     }
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+
+    # Special 12sp5 handling due to https://bugzilla.suse.com/show_bug.cgi?id=1233026
+    if (is_sle('=12-SP5')) {
+        my ($rc, $crm_output) = $self->wait_for_cluster(wait_time => 60, max_retries => 10, proceed_on_failure => 1);
+        if (!$rc) {
+            # Failure: Check for 'TimeoutError' in the output for bsc#1233026
+            if ($crm_output =~ /TimeoutError/) {
+                record_soft_failure("bsc#1233026 - Error occurred, see previous output: Proceeding despite failure.");
+            } else {
+                die "Cluster check failed - see previous output.";
+            }
+        }
+    }
+    else {
+        $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    }
 
     record_info(
         'Instances:', "Detected HANA instances:
