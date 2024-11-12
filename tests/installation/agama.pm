@@ -97,11 +97,11 @@ sub run {
 
     if (is_leap('>=16.0')) {
         assert_and_click('agama-product-leap16');
-        assert_and_click('agama-product-select');
     } else {    # Default to TW
         assert_and_click('agama-product-tumbleweed');
-        assert_and_click('agama-product-select');
     }
+    send_key "ctrl-down";    # ensure we see the product select button
+    assert_and_click('agama-product-select');
 
     # can take few minutes to get here
     assert_screen('agama-overview-screen');
