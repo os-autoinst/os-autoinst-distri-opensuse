@@ -99,6 +99,8 @@
 
 <p>Finds deployment ID for currently running test. Deployment ID is ID of an OpenQA test which created deployer VM. In case of multi-machine test this can be either parent test ID or current job id as well. This function collects all OpenQA job IDs related to current test run and checks if any of them match an existing deployer VM tagged with this ID.</p>
 
+<p>Using OpenQA parameter <b>SDAF_DEPLOYMENT_ID</b> it is possible to override this value. It is mostly intended for development purposes where it allows you to run test code on already existing deployment. Use it with caution and override the value only with ID of the infrastructure that belongs to you.</p>
+
 <p><b>Example</b>: Job: 123456 - deployment module - created deployer VM tagged with &quot;deployment_id=123456&quot;, Job: 123457 (child of 123456) - some test module Deployment ID returned from both jobs: 123456 - because it matches with existing VM tagged with &quot;deployment_id=123456&quot;</p>
 
 <ul>
