@@ -60,6 +60,7 @@ use constant {
           get_version_id
           php_version
           has_selinux_by_default
+          has_selinux
         )
     ],
     BACKEND => [
@@ -968,7 +969,7 @@ sub php_version {
 =head2 is_community_jeos
 
 Returns true for tests using the images built by the "JeOS" package on OBS
-=cut
+=cutHarvester
 
 sub is_community_jeos {
     return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
@@ -980,6 +981,9 @@ Returns true if the distro has SELinux as default MAC
 =cut
 
 sub has_selinux_by_default {
-    return (is_tumbleweed && check_var("VERSION", "Staging:D")) || (is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos);
+    return (is_tumbleweed && check_var("VERSION", "Staging:D")) || is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos;
 }
 
+sub has_selinux {
+    return get_var('SELINUX', has_selinux_by_default);
+}
