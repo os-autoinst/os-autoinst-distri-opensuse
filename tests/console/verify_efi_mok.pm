@@ -28,6 +28,15 @@ use constant {
 my @errors;
 
 sub get_expected_efi_settings {
+    my $loader = '';
+    if (is_x86_64) {
+        $loader = 'grubx64.efi';
+    } elsif (is_aarch64) {
+        $loader = 'grubaa64.efi';
+    } else {
+        die 'Unsupported ARCH';
+    }
+
     my $settings = {};
     $settings->{label} = is_opensuse() ? lc(get_var('DISTRI')) : 'sles';
     $settings->{mount} = ESP_MOUNT;
@@ -35,7 +44,7 @@ sub get_expected_efi_settings {
         $settings->{exec} = '/EFI/' . $settings->{label} . '/shim.efi';
         $settings->{label} .= '-secureboot';
     } else {
-        $settings->{exec} = '/EFI/' . $settings->{label} . '/grubx64.efi';
+        $settings->{exec} = '/EFI/' . $settings->{label} . '/' . $loader;
     }
 
     return $settings;
