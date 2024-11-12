@@ -359,7 +359,8 @@ sub set_grub_on_vh {
 sub ipmitool {
     my ($cmd) = @_;
 
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
+    my $ipmi_options = $bmwqemu::vars{IPMI_OPTIONS} // '-I lanplus';
+    my @cmd = ('ipmitool', split(' ', $ipmi_options), '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
     push(@cmd, split(/ /, $cmd));
 
     my ($stdin, $stdout, $stderr, $ret);
