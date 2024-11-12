@@ -353,7 +353,7 @@ sub wait_hana_node_up {
     Stops HANA database using default or specified method.
     "stop" - stops database using "HDB stop" command.
     "kill" - kills database processes using "HDB -kill" command.
-    "crash" - crashes entire os using "/proc-sysrq-trigger" method.
+    "crash" - crashes entire OS using "/proc/sysrq-trigger" method.
 
 =over
 
@@ -434,6 +434,7 @@ sub stop_hana {
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
+        $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
     }
 }
 
