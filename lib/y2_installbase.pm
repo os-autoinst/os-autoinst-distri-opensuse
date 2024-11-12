@@ -270,6 +270,10 @@ sub select_all_patterns_by_menu {
     wait_screen_change { send_key 'ret'; };
     mouse_hide;
     save_screenshot;
+    if (check_screen('wsl_systemd_conflict', 5)) {
+        send_key 'alt-2';
+        send_key 'alt-o';
+    }
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen 'inst-overview';
