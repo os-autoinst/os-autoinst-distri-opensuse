@@ -68,6 +68,9 @@ test_node_version(){
     quilt setup "../SPECS/nodejs$VERSION.spec"
     pushd "$SOURCE_DIR"
       quilt push -a
+      if [ "$VERSION" -eq 18 ]; then
+        patch test/parallel/test-crypto-rsa-dsa.js < /root/crypto_rsa_dsa.patch
+      fi
       # Run all test-crypto and test-tls available
       for f in $(find test \( -path \*sequential\* -or -path \*parallel\* \) \( -name test-crypto-\* -or -name test-tls-\* \)); do
         test_result_wrapper $VERSION $f
@@ -155,6 +158,8 @@ declare -A skip_test
 skip_test=(
   ["16.13.2-8.3.1 test/parallel/test-crypto-engine.js SLE_12_SP5"]="skip" # This should be skipped also on future versions
   ["16.13.2-150300.7.3.1 test/parallel/test-crypto-engine.js SLE_15_SP3"]="skip" # This should be skipped also on future versions
+  ["14.21.3-150200.15.58.1 test/parallel/test-crypto-rsa-dsa.js SLE_15_SP2"]="skip"
+  ["16.20.2-150300.7.36.2 test/parallel/test-crypto-rsa-dsa.js SLE_15_SP3"]="skip"
   ["14.15.1-6.3.1 test/sequential/test-tls-securepair-client.js SLE_12_SP5"]="skip"
   ["14.15.1-6.3.1 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15"]="skip"
