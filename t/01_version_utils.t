@@ -112,4 +112,61 @@ subtest 'package_version_cmp' => sub {
         '5.3.18-200.1.g3e09edd > 5.3.18-198.1.g6b7890d');
 };
 
+subtest 'has_selinux_by_default' => sub {
+    use version_utils 'has_selinux_by_default';
+
+    # Test Leap (SELinux not enabled by default)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', '42.3');
+    ok !has_selinux_by_default, "check !has_selinux_by_default for Leap";
+
+    # Test MicroOS (SELinux enabled by default)
+    set_var('DISTRI', 'microos');
+    set_var('VERSION', '0');
+    ok has_selinux_by_default, "check has_selinux_by_default for MicroOS";
+
+    # Test SLE Micro invalid version (SELinux not enabled by default)
+    set_var('DISTRI', 'sle-micro');
+    set_var('VERSION', '0');
+    ok !has_selinux_by_default, "check !has_selinux_by_default for invalid sle-micro";
+
+    # Test SLE Micro 5.3 (SELinux not enabled by default)
+    set_var('VERSION', '5.3');
+    ok !has_selinux_by_default, "check !has_selinux_by_default for sle-micro 5.3";
+
+    # Test SLE Micro 5.4 (SELinux enabled by default)
+    set_var('VERSION', '5.4');
+    ok has_selinux_by_default, "check has_selinux_by_default for sle-micro 5.4";
+
+    # Test Tumbleweed (SELinux enabled by default only in Staging:D)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !has_selinux_by_default, "check !has_selinux_by_default for Tumbleweed";
+
+    set_var('VERSION', 'Staging:D');
+    ok has_selinux_by_default, "check has_selinux_by_default for Tumbleweed Staging:D";
+};
+
+subtest 'has_selinux' => sub {
+    use version_utils 'has_selinux';
+
+    # Test SLE Micro 5.4 (enabled by default)
+    set_var('DISTRI', 'sle-micro');
+    set_var('VERSION', '5.4');
+    ok has_selinux, "check has_selinux with default settings (sle-micro 5.4)";
+
+    # Test SLE Micro 5.3 (not enabled by default)
+    set_var('VERSION', '5.3');
+    ok !has_selinux, "check !has_selinux with default settings (sle-micro 5.3)";
+
+    # Test Tumbleweed (default enabled in Staging:D)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !has_selinux, "check !has_selinux for Tumbleweed without SELINUX=1 environment";
+    set_var('SELINUX', '1');
+    ok has_selinux, "check has_selinux for Tumbleweed with SELINUX=1";
+    set_var('SELINUX', '0');
+    ok !has_selinux, "check !has_selinux for Tumbleweed with SELINUX=0";
+};
+
 done_testing;
