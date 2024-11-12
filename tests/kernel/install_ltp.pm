@@ -341,7 +341,7 @@ sub run {
 
     # Lock kernel default on transactional system and RT flavors
     # This is workaround for poo#165036 to prevent kernel-default and kernel-default-base installation
-    zypper_call("al kernel-default kernel-default-base") if (is_transactional && (get_var('FLAVOR', '') =~ /Base-RT-Updates|Base-RT|Base-RT-encrypted/));
+    zypper_call("al kernel-default kernel-default-base") if (is_transactional && (get_var('FLAVOR', '') =~ /Base-RT-Updates|Base-RT|Base-RT-encrypted|Base-Kernel-RT/));
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
