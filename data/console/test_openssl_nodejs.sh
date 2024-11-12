@@ -68,7 +68,7 @@ test_node_version(){
     quilt setup "../SPECS/nodejs$VERSION.spec"
     pushd "$SOURCE_DIR"
       quilt push -a
-      if [ "$VERSION" -eq 18 ]; then
+      if [[ "$VERSION" -eq 18 && -e /root/crypto_rsa_dsa.patch ]]; then
         patch test/parallel/test-crypto-rsa-dsa.js < /root/crypto_rsa_dsa.patch
       fi
       # Run all test-crypto and test-tls available
