@@ -1612,6 +1612,7 @@ sub load_extra_tests_desktop {
         # wine is only in openSUSE for various reasons, including legal ones
         loadtest 'x11/wine' if get_var('ARCH', '') =~ /x86_64|i586/;
         loadtest "x11/gnucash";
+        loadtest 'x11/doom.py' if get_var('ARCH', '') =~ /x86_64/ && is_opensuse && !is_leap;
 
     }
     if (gnomestep_is_applicable()) {
