@@ -228,7 +228,10 @@ sub setup_static_mm_network {
     configure_static_ip(ip => $ip, is_nm => $is_nm);
     configure_default_gateway(is_nm => $is_nm);
     configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
-    restart_networking(is_nm => $is_nm);
+    # Previous functions apply NM settings at runtime and no restart is required to apply them.
+    # Tracking if a restart is required troughout these functions would be cleaner but given their current implementation
+    # we can get away with not restarting if using NM.
+    restart_networking(is_nm => $is_nm) unless $is_nm;
 }
 
 sub restart_networking {
