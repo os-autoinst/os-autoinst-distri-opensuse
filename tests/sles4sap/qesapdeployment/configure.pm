@@ -50,6 +50,8 @@ sub run {
 
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
+    $variables{SCC_LTSS_REGCODE} = get_var('SCC_REGCODE_LTSS', '');
+    $variables{SCC_LTSS_MODULE} = get_var('QESAPDEPLOY_SCC_LTSS_MODULE', '');
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
     }
