@@ -45,8 +45,9 @@ sub run {
         diag("Debug info for reboot_and_wait_up_upgrade: this is online upgrade");
     }
     else {
-        #OpenQA needs ssh way to trigger offline upgrade
-        script_run("sed -i s/sshd=1/ssh=1/g /boot/grub2/grub.cfg /boot/grub/menu.lst");
+        #offline upgrade will be performed automatically on ipmi sol console with sshd=1 and console=ttyS1 in grub config, for example,
+        #linux path-to-linux autoupgrade=1 console=ttyS1,115200 vga=791 Y2DEBUG=1 xvideo=1024x768 ssh=1 sshpassword=xxxxx install=xxxxx
+        script_run("sed -i -r \'/autoupgrade=1/ s/\\bconsole=tty(\\b|\$)//g\' /boot/grub2/grub.cfg /boot/grub/menu.lst");
         diag("Debug info for reboot_and_wait_up_upgrade: this is offline upgrade. Need to clean up redundant disks using clean_up_red_disks.");
         clean_up_red_disks unless check_var('VIRT_PRJ2_HOST_UPGRADE', '');
     }
