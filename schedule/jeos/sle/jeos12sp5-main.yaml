@@ -19,6 +19,8 @@ conditional_schedule:
             'svirt-vmware70':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+            'uefi-virtio-vga':
+                - installation/bootloader_uefi
     efi:
         UEFI:
             '1':
