@@ -177,6 +177,9 @@ subtest "[stop_hana]" => sub {
             return; }
     );
     my $self = sles4sap_publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    $self->{my_instance} = $mock_pc;
 
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
     $self->stop_hana();
