@@ -42,7 +42,7 @@ sub initiator_service_tab {
                 after_reboot => {start_on_boot => 'alt-b'}
             );
         } else {
-            if (is_sle(`=15-SP6`)) {
+            if (is_sle('=15-SP6')) {
                 change_service_configuration(
                     after_writing => {start => 'alt-t'},
                     after_reboot => {start_on_demand => 'alt-a'}
@@ -69,7 +69,7 @@ sub initiator_discovered_targets_tab {
     }
     assert_screen 'iscsi-discovered-targets', 120;
     # press discovery button
-    if (is_sle(`=15-SP6`)) {
+    if (is_sle('=15-SP6')) {
         send_key "alt-i";
     } else {
         send_key "alt-d";
