@@ -59,8 +59,7 @@ sub is_loaded_completely {
     my $result;
     eval {
         $result = YuiRestClient::Wait::wait_until(object => sub {
-                my $overview_content = $self->get_overview_content();
-                return ($overview_content =~ m/Boot Loader Type/);
+                return $self->get_overview_content() !~ /Analyzing|Evaluating/;
         }, timeout => 60, message => "Overview content is not loaded.");
     };
     $result ? 1 : 0;
