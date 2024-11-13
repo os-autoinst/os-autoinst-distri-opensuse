@@ -1641,6 +1641,7 @@ sub load_extra_tests_zypper {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest "console/zypper_lr_validate" unless is_sle '15+';
     loadtest "console/zypper_ref";
+    loadtest "console/snapper_zypp";
     unless (is_jeos) {
         loadtest "console/zypper_info";
     }
