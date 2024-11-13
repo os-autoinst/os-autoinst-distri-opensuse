@@ -440,7 +440,7 @@ sub run {
         $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
     }
 
-    if ((is_ipmi && get_var('LTP_BAREMETAL')) || is_transactional) {
+    if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || is_transactional) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
     } else {
@@ -524,6 +524,7 @@ sub run {
         reboot_on_changes;
     } elsif (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
         $self->wait_boot if get_var('LTP_BAREMETAL');
     }
 }

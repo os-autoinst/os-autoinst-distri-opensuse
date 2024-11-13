@@ -30,7 +30,8 @@ sub load_kernel_tests {
         load_bootloader_s390x();
     }
 
-    loadtest_kernel "../installation/bootloader" if is_pvm;
+    # Schedule bootloader only for PowerVM non-installation tests
+    loadtest_kernel "../installation/bootloader" if (is_pvm && !get_var('LTP_BAREMETAL'));
 
     if (get_var('INSTALL_LTP')) {
         if (is_transactional) {
