@@ -124,6 +124,7 @@ schedule:
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/zypper_info
+    - console/snapper_zypp
     - '{{validate_packages_and_patterns}}'
     - console/zypper_extend
     - console/check_os_release
