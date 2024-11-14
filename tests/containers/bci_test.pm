@@ -101,6 +101,13 @@ sub run {
 
     $error_count = 0;
 
+    # For some containers we need to fake the OS version to distinguish them
+    my $os_version = get_var('BCI_OS_VERSION');
+    if ($os_version) {
+        script_run("export OS_VERSION=$os_version");
+        validate_script_output('echo $OS_VERSION', sub { m/$os_version/ });
+    }
+
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
