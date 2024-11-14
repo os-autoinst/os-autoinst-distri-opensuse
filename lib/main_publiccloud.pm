@@ -143,6 +143,8 @@ sub load_latest_publiccloud_tests {
             }
             elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
                 load_container_tests();
+            } elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')){
+                loadtest "publiccloud/azure_aitl", run_args => $args;
             } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
                 loadtest "publiccloud/smoketest", run_args => $args;
                 # flavor_check is concentrated on checking things which make sense only for image which is registered
@@ -160,6 +162,7 @@ sub load_latest_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image", run_args => $args;
+        loadtest "publiccloud/azure_aitl", run_args => $args;
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }

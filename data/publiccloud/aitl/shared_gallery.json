@@ -1,5 +1,5 @@
 {
-    "location": "westeurope",
+    "location": "westus3",
     "properties": {
         "jobTemplateInstance": {
             "templateTags": [],
@@ -48,7 +48,9 @@
                 }
             ],
             "region": [
-                "westeurope"
+                "westus",
+                "westus2",
+                "westus3"
             ],
             "vmSize": [],
             "concurrency": 4
