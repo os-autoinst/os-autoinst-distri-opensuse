@@ -27,7 +27,7 @@
     <guest_installation_method_others/>
     <guest_installation_media>http://dist.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/</guest_installation_media>
     <guest_installation_fine_grained/>
-    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-code.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,nvram.template=/usr/share/qemu/ovmf-x86_64-vars.bin</guest_boot_settings>
+    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes</guest_boot_settings>
     <guest_secure_boot>false</guest_secure_boot>
     <guest_os_variant/>
     <guest_storage_path/>
