@@ -155,6 +155,11 @@ sub sle12_zypp_resolve {
                 send y\\r
                 exp_continue
             }
+            \"View the notifications now\" {
+                sleep 1
+                send n\\r
+                exp_continue
+            }
             -timeout -1 \"# \$\" {
                 interact
             }
@@ -203,7 +208,7 @@ sub run {
     foreach (@modules) {
         # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
         $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/ if is_sle('15+');
-        $_ =~ s/SAP_(\d+(-SP\d)?)/SERVER_$1-LTSS/ if is_sle('=12-sp5');
+        $_ =~ s/SAP_(\d+(-SP\d)?)/SERVER_$1-LTSS/ if is_sle('=12-sp5') && !get_var('BUILD') =~ /saptune/;
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
