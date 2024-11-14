@@ -916,7 +916,7 @@ subtest '[az_keyvault_list]' => sub {
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az keyvault list/ } @calls), 'Correct composition of the main command');
     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--resource_group Arlecchino/, @calls), 'Check for argument "--resource_group"');
+    ok(grep(/--resource-group Arlecchino/, @calls), 'Check for argument "--resource_group"');
     ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
     ok(grep(/--output json/, @calls), 'Return output in "json" format');
     is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');

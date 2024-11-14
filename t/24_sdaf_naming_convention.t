@@ -135,4 +135,14 @@ subtest '[get_workload_vnet_code] ' => sub {
     is get_workload_vnet_code(job_id => '0087'), '0087', 'Return correct VNET code defined by named argument';
 };
 
+subtest '[get_tfvars_path] Test passing scenarios' => sub {
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
+
+    $mock_lib->redefine(get_sdaf_config_path => sub { return '/ProjectZeta'; });
+
+    is get_sdaf_inventory_path(sap_sid => 'ZETA', env_code => 'AnaheimElectronics', sdaf_region_code => 'AEUG'),
+      '/ProjectZeta/ZETA_hosts.yaml', 'Return correct inventory path.';
+};
+
+
 done_testing;
