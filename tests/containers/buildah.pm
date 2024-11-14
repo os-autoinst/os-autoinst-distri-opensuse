@@ -18,7 +18,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
-use version_utils qw(get_os_release is_sle);
+use version_utils qw(get_os_release is_sle is_public_cloud);
 use containers::common;
 
 sub run_tests {
@@ -100,7 +100,7 @@ sub run {
     run_tests($runtime);
 
     # Run tests as user
-    if ($runtime eq "podman") {
+    if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3')) {
         if (is_sle('<15-SP5')) {
             record_soft_failure("bsc#1232522 - buildah security update changes default network mode from slirp4netns to passt for rootless containers");
         } else {
