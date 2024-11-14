@@ -94,6 +94,9 @@ B<ssh_user>: SSH login user for B<destination_ip> - default value is defined by 
 
 B<destination_ip>: Destination host IP - default value is defined by OpenQA parameter REDIRECT_DESTINATION_IP
 
+B<switch_root>: Switch to root after login with unprivileged user with 'sudo su -'.
+    User B<MUST> have passwordless sudo permission.
+
 B<fail_ok>: Do not die, return 0 instead. Good for verifying if redirection works.
 
 Establishes ssh connection to destination host and redirects serial output to serial console on worker VM.
@@ -126,7 +129,11 @@ sub connect_target_to_serial {
     my $redirect_port = get_required_var("QEMUPORT") + 1;
     my $redirect_ip = get_var('QEMU_HOST_IP', '10.0.2.2');
     my $redirect_opts = "-R $redirect_port:$redirect_ip:$redirect_port";
-    enter_cmd "ssh $ssh_opt $redirect_opts $args{ssh_user}\@$args{destination_ip} 2>&1 | tee -a /dev/$serialdev";
+    my $switch_root_cmd = $args{switch_root} ? 'sudo su -' : '';
+    my $ssh_cmd = join(' ', 'ssh -t', $ssh_opt, $redirect_opts, "$args{ssh_user}\@$args{destination_ip}",
+        $switch_root_cmd, "2>&1 | tee -a /dev/$serialdev"
+    );
+    enter_cmd $ssh_cmd;
     handle_login_prompt($args{ssh_user});
 
     my $redirection_active = check_serial_redirection();
