@@ -57,7 +57,7 @@ sub run_tox_cmd {
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
     my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $bci_reruns_delay = get_var('BCI_RERUNS_DELAY', 10);
-    my $tox_out = "tox_output.txt";
+    my $tox_out = "tox_$env.txt";
     my $cmd = "tox -e $env -- -rxX -n auto";
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";
@@ -66,6 +66,7 @@ sub run_tox_cmd {
     record_info("tox " . $env_info, "Running command: $cmd");
     script_run("set -o pipefail");    # required because we don't want to rely on consoletest_setup for BCI tests.
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
+    upload_logs("$tox_out", failok => 1);
     if ($ret == 124) {
         # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
         record_info('TIMEOUT', "The command <tox -e $env> timed out.", result => 'fail');
