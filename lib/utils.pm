@@ -1197,9 +1197,8 @@ sub set_hostname {
                 next if ($dev eq 'lo');
                 next if !($line =~ /connected/);
 
-                # Default timeout (10 seconds) may be too short with qemu NO kvm, so increase to 20s - poo#131366
-                my $nmcli = get_var('QEMU_NO_KVM') ? 'nmcli -w 20' : 'nmcli';
-                assert_script_run "$nmcli device disconnect $dev";
+                # poo#169726
+                assert_script_run("nmcli -w 60 device disconnect $dev");
                 assert_script_run 'nmcli device connect ' . $dev;
             }
 
