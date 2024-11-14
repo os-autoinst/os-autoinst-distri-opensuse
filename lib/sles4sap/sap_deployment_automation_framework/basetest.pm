@@ -13,7 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use Exporter qw(import);
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables);
+use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file);
 use sles4sap::sap_deployment_automation_framework::deployment_connector
   qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip destroy_orphaned_resources);
 use sles4sap::console_redirection;
@@ -95,6 +95,10 @@ sub full_cleanup {
 
 sub post_fail_hook {
     record_info('Post fail', 'Executing post fail hook');
+    type_string('', terminate_with => 'ETX');
+    type_string("\n\n");
+    upload_logs($sles4sap::sap_deployment_automation_framework::deployment::output_log_file);
+    
     full_cleanup();
 }
 

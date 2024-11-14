@@ -63,7 +63,7 @@ sub run {
         # SAP Bill of Materials processing - this also mounts install media storage
         {playbook_filename => 'playbook_03_bom_processing.yaml'},
         # SAP HANA database installation
-        {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 1800},
+        {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 180},
         # SAP HANA high-availability configuration
         {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800},
     );

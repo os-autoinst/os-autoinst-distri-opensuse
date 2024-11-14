@@ -32,6 +32,9 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   get_workload_vnet_code
 );
 
+our @EXPORT = qw($output_log_file);
+our $output_log_file = '';
+
 =head1 SYNOPSIS
 
 Library with common functions for Microsoft SDAF deployment automation. Documentation can be found on the
@@ -460,7 +463,7 @@ sub sdaf_execute_deployment {
 
     record_info('SDAF exe', "Executing '$args{deployment_type}' deployment: $deploy_command");
     my $rc;
-    my $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
+    $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
     my $attempt_no = 1;
     while ($attempt_no <= $args{retries}) {
         $output_log_file =~ s/attempt/attempt-$attempt_no/;
@@ -665,7 +668,7 @@ sub sdaf_execute_remover {
         '--auto-approve');
 
     my $rc;
-    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
+    $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
     my $attempt_no = 1;
     # SDAF must be executed from the profile directory, otherwise it will fail
     assert_script_run("cd " . $tfvars_path);
@@ -770,7 +773,7 @@ sub sdaf_execute_playbook {
         '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"'
     );
 
-    my $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
+    $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
     my $playbook_file = join('/', deployment_dir(), 'sap-automation', 'deploy', 'ansible', $args{playbook_filename});
     my $playbook_cmd = join(' ', 'ansible-playbook', $playbook_options, $playbook_file);
 
