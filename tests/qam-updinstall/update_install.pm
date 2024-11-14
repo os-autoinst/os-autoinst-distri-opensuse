@@ -155,6 +155,11 @@ sub sle12_zypp_resolve {
                 send y\\r
                 exp_continue
             }
+            \"View the notifications now\" {
+                sleep 1
+                send n\\r
+                exp_continue
+            }
             -timeout -1 \"# \$\" {
                 interact
             }
