@@ -80,6 +80,7 @@ sub prepare_kernel_base {
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-default-base');
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     boot_to_console($self);
 }
 
