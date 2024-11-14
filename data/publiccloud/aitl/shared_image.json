@@ -1,0 +1,63 @@
+{
+    "location": "westeurope",
+    "properties": {
+        "jobTemplateInstance": {
+            "templateTags": [],
+            "selections": [
+                {
+                    "caseName": [
+                        "verify_connection_status",
+                        "verify_no_error_output",
+                        "verify_dri_node",
+                        "verify_disk_with_fio_verify_option",
+                        "validate_netvsc_reload",
+                        "verify_synthetic_add_max_nics_one_by_one_after_provision",
+                        "verify_synthetic_provision_with_max_nics_reboot_from_platform",
+                        "verify_synthetic_provision_with_max_nics_reboot",
+                        "verify_synthetic_add_max_nics_one_time_after_provision",
+                        "verify_synthetic_provision_with_max_nics",
+                        "verify_synthetic_provision_with_max_nics_stop_start_from_platform",
+                        "verify_kdumpcrash_smp",
+                        "verify_kdumpcrash_on_random_cpu",
+                        "verify_kdumpcrash_on_cpu32",
+                        "verify_reboot_in_platform",
+                        "smoke_test",
+                        "verify_deployment_provision_ephemeral_managed_disk",
+                        "verify_deployment_provision_standard_ssd_disk",
+                        "verify_stop_start_in_platform",
+                        "verify_deployment_provision_premium_disk",
+                        "verify_deployment_provision_synthetic_nic",
+                        "verify_deployment_provision_sriov",
+                        "verify_hot_add_disk_parallel",
+                        "verify_resource_disk_io",
+                        "verify_hot_add_disk_serial_premium_ssd",
+                        "verify_disks_device_timeout_setting",
+                        "verify_hot_add_disk_serial_standard_ssd",
+                        "verify_hot_add_disk_parallel_standard_ssd",
+                        "verify_resource_disk_mounted",
+                        "verify_swap",
+                        "verify_hot_add_disk_serial_random_lun_standard_ssd",
+                        "verify_hot_add_disk_serial_random_lun_premium_ssd",
+                        "perf_tcp_latency_synthetic",
+                        "verify_nvme_sriov_rescind",
+                        "verify_nvme_max_disk",
+                        "verify_nvme_rescind",
+                        "verify_nvme_function",
+                        "verify_nvme_basic"
+                    ]
+                }
+            ],
+            "region": [
+                "westeurope"
+            ],
+            "vmSize": [],
+            "concurrency": 4
+        },
+        "image": {
+            "type": "shared_gallery",
+            "gallery": "<IMAGE_GALLERY_NAME>",
+            "definition": "<IMAGE_NAME>",
+            "version": "<IMAGE_VERSION>"
+        }
+    }
+}
