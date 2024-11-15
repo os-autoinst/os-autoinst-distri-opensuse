@@ -241,7 +241,7 @@ sub restart_networking {
         # Wait until the connections are configured
         my $expected_nm_connectivity = get_var('EXPECTED_NM_CONNECTIVITY', 'full');
         if ($expected_nm_connectivity ne 'none') {
-            assert_script_run "until nmcli networking connectivity check | tee /dev/stderr | grep '$expected_nm_connectivity'; do sleep 10; done";
+            assert_script_run "timeout 90 bash -c \"until nmcli networking connectivity check | tee /dev/stderr | grep '$expected_nm_connectivity'; do sleep 10; done\"";
         }
     } else {
         assert_script_run 'rcnetwork restart';
