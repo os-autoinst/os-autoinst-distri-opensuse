@@ -1181,7 +1181,7 @@ sub set_hostname {
             systemctl('restart NetworkManager');
 
             for (my $i = 0; $i < 10; $i++) {
-                $state = script_output 'nmcli -w 5 networking connectivity check';
+                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
                 last if $state =~ /full/;
                 sleep 1;
             }
@@ -1209,7 +1209,7 @@ sub set_hostname {
             }
 
             for (my $i = 0; $i < 5; $i++) {
-                $state = script_output 'nmcli -w 5 networking connectivity check';
+                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
 
                 last if $state =~ /full/;
 

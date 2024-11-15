@@ -22,7 +22,8 @@ sub ping_check {
     assert_script_run("ping -c 5 $net_config{'dns_server'}");
     # disconnect the device, skip the test on remote worker with ssh connection
     unless (is_s390x || is_vmware) {
-        assert_script_run("nmcli device disconnect $nic_name");
+        # Increase timeout to 60s - poo#169726
+        assert_script_run("nmcli -w 60 device disconnect $nic_name");
         if (script_run("ping -c 5 $net_config{'dns_server'}") == 0) {
             die('The network is still up after disconnection');
         }
