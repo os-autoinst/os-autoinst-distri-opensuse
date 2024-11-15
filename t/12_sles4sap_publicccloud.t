@@ -611,6 +611,17 @@ subtest '[create_playbook_section_list]' => sub {
 };
 
 
+subtest '[create_playbook_section_list] ltss' => sub {
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(ltss => 'XuFu,Jofuku');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*sles_modules=.*key.*XuFu.*value.*Jofuku/ } @$ansible_playbooks), 'registration playbook is called with reg code from SCC_REGCODE_LTSS');
+};
+
+
 subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
     set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
