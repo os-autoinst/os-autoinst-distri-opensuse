@@ -11,7 +11,7 @@ vars:
     IBTEST_ROLE: IBTEST_MASTER
     IPXE: 1
     IPXE_CONSOLE: ttyS1,115200
-    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
+    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     SCC_ADDONS: sdk
     VIDEOMODE: ssh-x
 schedule:
