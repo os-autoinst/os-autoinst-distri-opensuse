@@ -1734,7 +1734,7 @@ sub load_extra_tests_console {
     loadtest "console/salt" if (is_jeos || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
-    loadtest "console/clamav";
+    loadtest "console/clamav" unless is_arm;
     loadtest "console/shells";
     loadtest 'console/sudo';
     # dstat is not in sle12sp1
