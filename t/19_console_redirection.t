@@ -104,6 +104,7 @@ subtest '[check_serial_redirection]' => sub {
     $redirect->redefine(select_serial_terminal => sub { return; });
     $redirect->redefine(set_serial_term_prompt => sub { return; });
     $redirect->redefine(is_serial_terminal => sub { return; });
+    $redirect->redefine(disconnect_target_from_serial => sub { return; });
     set_var('QEMUPORT', '1988');
 
     $redirect->redefine(script_run => sub { return '0'; });
@@ -112,18 +113,6 @@ subtest '[check_serial_redirection]' => sub {
     $redirect->redefine(script_run => sub { $executed_command = $_[0]; return '1'; });
     is check_serial_redirection(), '1', 'Return 1 if machine IDs do not match';
     is $executed_command, 'grep 7902847fcc554911993686a1d5eca2c8 /etc/machine-id', 'Check executed command';
-
-    # Test wait_serial is true
-    $redirect->redefine(is_serial_terminal => sub { return '1'; });
-    $redirect->redefine(wait_serial => sub { return '1'; });
-    $redirect->redefine(script_run => sub { return '0'; });
-    is check_serial_redirection(), '0', 'Return 0 if machine IDs match';
-
-    # Test wait_serial is false
-    $redirect->redefine(wait_serial => sub { return '0'; });
-    $redirect->redefine(type_string => sub { return; });
-    is check_serial_redirection(), '0', 'Return 0 if machine IDs match';
-
     unset_vars();
 };
 
