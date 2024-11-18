@@ -36,8 +36,9 @@ sub skip_testrun {
     return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
 
     # Skip Kiwi on RES, CentOS, Ubuntu
+    my $bci_image_name = get_var('BCI_IMAGE_NAME');
     return 1 if (
-        check_var('BCI_IMAGE_NAME', 'kiwi') &&
+        (get_var('BCI_IMAGE_NAME') =~ m/kiwi/g) &&
         (
             check_var('HOST_VERSION', 'LIBERTY9') ||
             check_var('HOST_VERSION', 'centos') ||
