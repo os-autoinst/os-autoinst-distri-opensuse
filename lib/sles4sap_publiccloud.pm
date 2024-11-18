@@ -17,23 +17,22 @@ use strict;
 use JSON;
 use warnings FATAL => 'all';
 use Exporter 'import';
-use Scalar::Util 'looks_like_number';
+use Scalar::Util qw(looks_like_number);
 use List::MoreUtils qw(uniq);
 use Carp qw(croak);
 use YAML::PP;
 use testapi;
 use utils qw(file_content_replace);
 use serial_terminal qw(serial_term_prompt);
-use version_utils qw(check_version);
+use version_utils qw(check_version is_sle);
 use hacluster;
 use qesapdeployment;
 use publiccloud::utils;
 use publiccloud::provider;
-use publiccloud::ssh_interactive 'select_host_console';
+use publiccloud::ssh_interactive qw(select_host_console);
 use publiccloud::instance;
 use sles4sap;
 use saputils;
-use version_utils 'is_sle';
 
 our @EXPORT = qw(
   run_cmd
@@ -901,6 +900,13 @@ sub delete_network_peering {
 
 =item B<ptf_container> - name of the container for PTF files (optional)
 
+=item B<ltss> - name and reg_code for LTSS extension to register.
+                This argument is a two element comma separated list string.
+                Like: 'SLES-LTSS-Extended-Security/12.5/x86_64,123456789'
+                First string before the comma has to be a valid SCC extension name, later used by Ansible
+                as argument for SUSEConnect or registercloudguest argument.
+                Second string has to be valid registration code for the particular LTSS extension.
+
 =back
 =cut
 
@@ -921,14 +927,19 @@ sub create_playbook_section_list {
     my @playbook_list;
 
     unless ($args{registration} eq 'noreg') {
+        my @reg_args = ('registration.yaml');
+        push @reg_args, '-e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
+        push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
+        if ($args{ltss}) {
+            my @ltss_args = split(/,/, $args{ltss});
+            die "Missing reg_code for '$ltss_args[0]'" if scalar @ltss_args != 2;
+            push @reg_args, "-e sles_modules='[{" .
+              "\"key\":\"$ltss_args[0]\"," .
+              "\"value\":\"$ltss_args[1]\"}]'";
+        }
         # Add registration module as first element
-        my $reg_code = '-e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
-        if ($args{registration} eq 'suseconnect') {
-            push @playbook_list, "registration.yaml $reg_code -e use_suseconnect=true";
-        }
-        else {
-            push @playbook_list, "registration.yaml $reg_code";
-        }
+        push @playbook_list, join(' ', @reg_args);
+
         # Add "fully patch system" module after registration module and before test start/configuration modules.
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
