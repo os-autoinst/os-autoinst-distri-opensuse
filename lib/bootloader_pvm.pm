@@ -114,14 +114,19 @@ sub enter_netboot_parameters {
     }
 
     assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
-    my $repo = get_required_var('REPO_0');
     my $mirror = get_netboot_mirror;
+    # If is not repo defined, use last part of mirror url as repo
+    my $repo = get_var('REPO_0') ? get_var('REPO_0') :  (split('/', $mirror))[-1];
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
     if (my $ppc64le_grub_http = get_var('PPC64LE_GRUB_HTTP')) {
-        # Enable grub http protocol to load file from OSD: (http,10.145.10.207)/assets/repo/$repo/boot/ppc64le
-        $mntpoint = "$ppc64le_grub_http/assets/repo/$repo/boot/ppc64le";
+        # Use grub http protocol to boot from MIRROR_HTTP url
+        $mntpoint = $mirror =~ s/https?:\/\/[^\/]+/$ppc64le_grub_http/r . "boot/ppc64le";
         record_info("Updated boot path for PPC64LE_GRUB_HTTP defined", $mntpoint);
     }
+#    type_string_slow "set debug=net";
+#    send_key 'ret';
+    type_string_slow "set debug=http";
+    send_key 'ret';
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
     bootmenu_default_params;
