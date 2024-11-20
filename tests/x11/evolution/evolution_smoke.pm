@@ -56,9 +56,7 @@ sub run {
     wait_still_screen(2, 2);
     assert_and_click("evolution_open_inbox_mail");
     wait_still_screen(2, 2);
-    send_key "ret";
-    wait_still_screen(2, 2);
-    assert_and_click("evolution_read_test_message");
+    send_key_until_needlematch('evolution_read_test_message', 'ret', 4, 2);
     # Exit
     send_key "ctrl-w";
     send_key "ctrl-q";
