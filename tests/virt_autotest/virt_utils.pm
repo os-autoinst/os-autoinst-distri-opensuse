@@ -495,25 +495,25 @@ sub generateXML_from_data {
         'testsuites',
         id => "0",
         error => "n/a",
-        failures => $xmldata{"fail_nums"},
-        softfailures => $xmldata{"softfail_nums"},
-        name => $xmldata{"product_name"},
-        skipped => $xmldata{"skip_nums"},
+        failures => $xmldata{"fail_nums"} // 0,
+        softfailures => $xmldata{"softfail_nums"} // 0,
+        name => $xmldata{"product_name"} // 'No product_name found',
+        skipped => $xmldata{"skip_nums"} // 0,
         tests => "$count",
-        time => $xmldata{"test_time"}
+        time => $xmldata{"test_time"} // 0
     );
     $writer->startTag(
         'testsuite',
         id => "0",
         error => "n/a",
-        failures => $xmldata{"fail_nums"},
-        softfailures => $xmldata{"softfail_nums"},
+        failures => $xmldata{"fail_nums"} // 0,
+        softfailures => $xmldata{"softfail_nums"} // 0,
         hostname => hostname(),
-        name => $xmldata{"product_tested_on"},
-        package => $xmldata{"package_name"},
-        skipped => $xmldata{"skip_nums"},
+        name => $xmldata{"product_tested_on"} // 'No product_tested_on found',
+        package => $xmldata{"package_name"} // 'No package_name found',
+        skipped => $xmldata{"skip_nums"} // 0,
         tests => $count,
-        time => $xmldata{"test_time"},
+        time => $xmldata{"test_time"} // 0,
         timestamp => $timestamp
     );
 
