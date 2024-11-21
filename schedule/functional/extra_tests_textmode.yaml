@@ -89,6 +89,11 @@ conditional_schedule:
                 - console/zziplib
                 - console/vsftpd
                 - console/year_2038_detection
+                - console/redis
+    leap_tests:
+        LEAP:
+            '1':
+                - console/redis
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
@@ -97,6 +102,7 @@ conditional_schedule:
                 - console/vsftpd
                 - console/year_2038_detection
                 - console/libjpeg_turbo
+                - console/valkey
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -144,7 +150,6 @@ schedule:
     - console/ca_certificates_mozilla
     - console/unzip
     - console/gpg
-    - console/redis
     - console/rsync
     - console/rust
     - console/shells
@@ -170,6 +175,7 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{opensuse_repos}}'
+    - '{{leap_tests}}'
     - '{{tumbleweed_tests}}'
     - console/journalctl
     - console/tar
