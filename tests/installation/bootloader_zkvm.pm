@@ -30,7 +30,12 @@ sub set_svirt_domain_elements {
         my $name = $svirt->name;
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-        my $cmdline = get_var('VIRSH_CMDLINE') . " $ntlm_p install=$repo";
+        my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
+        if (get_var('AGAMA')) {
+            $cmdline .= "root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_var('REPO_999');
+        } else {
+            $cmdline .= "install=$repo";
+        }
         $cmdline .= remote_install_bootmenu_params;
         if (get_var('UPGRADE')) {
             $cmdline .= "upgrade=1 ";
@@ -79,6 +84,7 @@ sub run {
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
 
+    return if (get_var('AGAMA'));
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
