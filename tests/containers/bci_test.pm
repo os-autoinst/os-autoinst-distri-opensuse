@@ -55,7 +55,7 @@ sub skip_testrun {
 sub run_tox_cmd {
     my ($self, $env) = @_;
     my $bci_marker = get_var('BCI_IMAGE_MARKER');
-    my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
+    my $bci_timeout = get_var('BCI_TIMEOUT', 1200) * get_var('TIMEOUT_SCALE', 1);
     my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $bci_reruns_delay = get_var('BCI_RERUNS_DELAY', 10);
     my $tox_out = "tox_$env.txt";
@@ -66,7 +66,7 @@ sub run_tox_cmd {
     my $env_info = (split(/[ _:-]/, $env))[0];    # first word on many separators,to shorten long $env
     record_info("tox " . $env_info, "Running command: $cmd");
     script_run("set -o pipefail");    # required because we don't want to rely on consoletest_setup for BCI tests.
-    my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
+    my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 60));
     upload_logs("$tox_out", failok => 1);
     if ($ret == 124) {
         # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
@@ -80,7 +80,7 @@ sub run_tox_cmd {
     }
     # Cut the tox log from the header onward and filter the text
     my $cmd_xf = "awk '/short test summary info/{f=1}f' $tox_out | grep XFAIL";
-    my $ret_xf = script_run("$cmd_xf", timeout => ($bci_timeout + 3));
+    my $ret_xf = script_run("$cmd_xf", timeout => ($bci_timeout + 60));
     record_info('Softfail', "The command <tox -e $env> has softfailures(XFAIL)", result => 'softfail') if ($ret_xf == 0);
     # Rename resulting junit file because it will be overwritten if we run
     # the same tox command later with another container engine. This way,
