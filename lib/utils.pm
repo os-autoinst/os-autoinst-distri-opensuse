@@ -1203,8 +1203,11 @@ sub set_hostname {
                 next if ($dev eq 'lo');
                 next if !($line =~ /connected/);
 
-                # poo#169726
-                assert_script_run("nmcli -w 60 device disconnect $dev");
+                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+                script_run("nmcli general logging level DEBUG");
+                assert_script_run("nmcli -w 120 device disconnect $dev");
+                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
+                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
                 assert_script_run 'nmcli device connect ' . $dev;
             }
 
