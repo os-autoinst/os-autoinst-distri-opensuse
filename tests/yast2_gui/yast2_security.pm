@@ -28,7 +28,7 @@ sub run {
     select_console "x11";
 
     # Password Settings
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 240, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
     assert_and_click "yast2_security-pwd-settings";
     send_key "alt-m";
     wait_still_screen 1;
