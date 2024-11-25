@@ -33,6 +33,8 @@ sub run {
     }
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
+    script_run("nmcli general logging level DEBUG");
+    record_info("Log", script_run("journalctl -u NetworkManager -b"));
 }
 
 sub test_flags {
