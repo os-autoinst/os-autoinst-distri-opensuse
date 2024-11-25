@@ -71,9 +71,7 @@ sub run {
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
     }
 
-    # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
     my $n = get_var('NUMDISKS', 1);
-    set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
 
     my $xenconsole = "hvc0";
     if (!get_var('SP2ORLATER')) {
