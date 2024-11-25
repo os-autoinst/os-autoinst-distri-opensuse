@@ -574,13 +574,6 @@ sub prepare_sdaf_project {
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_templates.log');
 
-    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
-    record_soft_failure 'gh#Azure/sap-automation#617';
-    file_content_replace(
-        "$deployment_dir/sap-automation/deploy/terraform/terraform-units/modules/sap_landscape/providers.tf",
-        '>= 3.23' => '3.116.0'
-    );
-
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
