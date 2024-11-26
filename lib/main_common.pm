@@ -2407,6 +2407,7 @@ sub set_mu_virt_vars {
 
     # Check if repo is LTSS-Extended-Security and sets EXTENDED_SECURITY to 1
     set_var('EXTENDED_SECURITY', (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? 1 : 0);
+
     # Set PATCH_WITH_ZYPPER
     set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
 
@@ -2436,6 +2437,12 @@ sub set_mu_virt_vars {
     diag("Host product is $product.");
     if (exists $ltss_products{"$product"}) {
         set_var('SCC_REGCODE_LTSS', $ltss_products{"$product"});
+    }
+
+    # Set SCC_REGCODE_LTSS_ES(for host), now only 12SP5 has this
+    my %ltss_es_products = @{get_var_array("LTSS_ES_REGCODES_SECRET")};
+    if (exists $ltss_es_products{"$product"}) {
+        set_var('SCC_REGCODE_LTSS_ES', $ltss_es_products{"$product"});
     }
 
     # Set SCC_ADDONS
