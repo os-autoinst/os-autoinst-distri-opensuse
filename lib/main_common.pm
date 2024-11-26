@@ -2310,7 +2310,8 @@ sub load_system_prepare_tests {
     loadtest 'kernel/install_kernel_flavor' if get_var('KERNEL_FLAVOR');
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
-    loadtest 'console/check_selinux_fails' if get_var('SELINUX');
+    # Check SELinux failures if SELinux is enabled
+    loadtest 'console/check_selinux_fails' if get_var('SELINUX') || has_selinux_by_default;
     loadtest 'security/cc/ensure_crypto_checks_enabled' if check_var('SYSTEM_ROLE', 'Common_Criteria');
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
