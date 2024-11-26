@@ -48,7 +48,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(buildah docker git-core glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
+    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
     push @pkgs, qw(crun) if is_tumbleweed;
     install_packages(@pkgs);
 
