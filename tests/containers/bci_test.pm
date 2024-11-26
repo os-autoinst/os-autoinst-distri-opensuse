@@ -104,10 +104,6 @@ sub run {
 
     # For some containers we need to fake the OS version to distinguish them
     my $os_version = get_var('BCI_OS_VERSION');
-    if ($os_version) {
-        script_run("export OS_VERSION=$os_version");
-        validate_script_output('echo $OS_VERSION', sub { m/$os_version/ });
-    }
 
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
@@ -130,9 +126,14 @@ sub run {
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
-    $version =~ s/-SP/./g;
-    $version = lc($version);
-    assert_script_run("export OS_VERSION=$version");
+    if ($os_version) {
+        script_run("export OS_VERSION=$os_version");
+        validate_script_output('echo $OS_VERSION', sub { m/$os_version/ });
+    } else {
+        $version =~ s/-SP/./g;
+        $version = lc($version);
+        assert_script_run("export OS_VERSION=$version");
+    }
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
