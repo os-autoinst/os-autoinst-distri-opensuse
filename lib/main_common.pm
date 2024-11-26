@@ -1106,7 +1106,8 @@ sub load_inst_tests {
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
-        loadtest "installation/enable_selinux" if get_var('SELINUX');
+        # Do not run enable_selinux in systems that have SELinux by default (bsc#1230118)
+        loadtest "installation/enable_selinux" if get_var('SELINUX') && !has_selinux_by_default;
 
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
