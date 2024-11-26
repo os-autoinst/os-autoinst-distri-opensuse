@@ -42,7 +42,7 @@ sub run {
     my $version = script_output 'rpm -q ibmswtpm2';
 
     # Select the relevant source
-    my $git_command = is_sle ? '-c http.sslVerify=false https://gitlab.suse.de/qe-security/ibmtpm20tss' : 'https://git.code.sf.net/p/ibmtpm20tss/tssi';
+    my $git_command = is_sle ? '-c http.sslVerify=false https://gitlab.suse.de/qe-security/ibmtpm20tss' : 'https://git.code.sf.net/p/ibmtpm20tss/tss';
 
     record_info("ibmswtpm2 version: $version");
 
