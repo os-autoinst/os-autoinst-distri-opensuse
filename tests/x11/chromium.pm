@@ -27,7 +27,13 @@ sub run {
 
     # avoid async keyring popups
     # allow key input before rendering is done, see poo#109737 for details
-    x11_start_program('chromium --password-store=basic --allow-pre-commit-input', target_match => 'chromium-main-window', match_timeout => 50);
+    x11_start_program('chromium --password-store=basic --allow-pre-commit-input', target_match => [qw(chromium-main-window authentication-required)], match_timeout => 50);
+    if (match_has_tag 'authentication-required') {
+        type_password;
+        assert_and_click "unlock";
+        assert_screen "chromium-main-window";
+    }
+
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
 
     type_address('chrome://version');
