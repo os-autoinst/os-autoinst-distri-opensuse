@@ -32,18 +32,21 @@ sub run {
     }
 
     # Download the test script.
-    # We are using our local copy at 'https://gitlab.suse.de/qe-security/ibmtpm20tss'
-    # which is cloned from 'https://git.code.sf.net/p/ibmtpm20tss/tssi' to avoid pulling
-    # files from the public Internet and avoid possible code injections.
+    # For SLE we are using our local copy at 'https://gitlab.suse.de/qe-security/ibmtpm20tss'
+    # which is cloned from 'https://git.code.sf.net/p/ibmtpm20tss/tssi' to avoid pulling files
+    # from the public Internet and avoid possible code injections.
     # poo#169957
     select_serial_terminal;
 
     # choose correct test suite version to download according to installed package
     my $version = script_output 'rpm -q ibmswtpm2';
 
+    # Select the relevant source
+    my $git_command = is_sle ? '-c http.sslVerify=false https://gitlab.suse.de/qe-security/ibmtpm20tss' : 'https://git.code.sf.net/p/ibmtpm20tss/tssi';
+
     record_info("ibmswtpm2 version: $version");
 
-    assert_script_run('git clone -c http.sslVerify=false --depth 1 https://gitlab.suse.de/qe-security/ibmtpm20tss', timeout => 240);
+    assert_script_run("git clone --depth 1 $git_command ibmtpm20tss", timeout => 240);
     # poo#128057 : latest upstream testsuite version (2.0) is not compatible with packaged binaries,
     # so let's use the previous stable
     assert_script_run('cd ibmtpm20tss/utils ; git fetch --tags ; git checkout v1.6.0');
