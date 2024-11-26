@@ -15,7 +15,7 @@ use warnings;
 use utils;
 use package_utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_leap is_sle_micro check_version is_transactional);
+use version_utils qw(is_sle is_leap is_sle_micro is_leap_micro check_version is_transactional);
 use Utils::Backends 'is_pvm';
 use transactional;
 
@@ -23,7 +23,7 @@ sub run {
     my ($self) = @_;
     # https://progress.opensuse.org/issues/165686
     # package name is now 'update-bootloader', it will remain 'perl-Bootloader' for older products
-    my $package = (!is_sle("<=15-SP7") && !is_leap("<=15.6") && !is_sle_micro("<=6.1")) ? 'update-bootloader' : 'perl-Bootloader';
+    my $package = (!is_sle("<=15-SP7") && !is_leap("<=15.6") && !is_sle_micro("<=6.1") && !is_leap_micro("<=6.1")) ? 'update-bootloader' : 'perl-Bootloader';
     select_serial_terminal;
 
     if (script_run "rpm -q $package") {
