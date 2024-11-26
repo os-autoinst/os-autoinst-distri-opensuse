@@ -48,7 +48,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(buildah docker git-core glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
+    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
     push @pkgs, qw(crun) if is_tumbleweed;
     install_packages(@pkgs);
 
@@ -72,7 +72,8 @@ sub run {
     assert_script_run "cd $test_dir/buildah-$buildah_version/";
 
     # Compile helpers used by the tests
-    assert_script_run "make bin/imgtype bin/copy bin/tutorial", timeout => 600;
+    my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
+    assert_script_run "make $helpers", timeout => 600;
 
     run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
 
