@@ -1,0 +1,175 @@
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall t="map">
+    <enable_firewall t="boolean">true</enable_firewall>
+    <start_firewall t="boolean">true</start_firewall>
+  </firewall>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <keyboard t="map">
+    <keyboard_values t="map">
+      <delay/>
+      <discaps t="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language t="map">
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <networking t="map">
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <ntp-client t="map">
+    <ntp_policy>auto</ntp_policy>
+  </ntp-client>
+  <partitioning t="list">
+    <drive t="map">
+      <initialize t="boolean">true</initialize>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report t="map">
+    <errors t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <scripts t="map">
+    <post-scripts t="list">
+      <script t="map">
+        <filename>post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+# zypper process is locked by some ruby process, modify the repo file
+cd /etc/zypp/repos.d
+sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
+zypper lr
+
+    # Regarding rpm lock see Q9@ https://documentation.suse.com/de-de/sles/15-SP1/html/SLES-all/app-ay-faq.html
+    # quote : "during the post-script phase, YaST still has an exclusive lock on the RPM database."
+    # the package cannot be installed the autoyast way, because of the changing package name (eg libyui-rest-api15)
+    # only zypper allows to install "by capability".
+    mv /var/run/zypp.pid /var/run/zypp.sav
+    zypper -n in libyui-rest-api
+    mv /var/run/zypp.sav /var/run/zypp.pid
+
+exit 0
+
+]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <disable t="list"/>
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wicked</service>
+	<service>sshd</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <packages t="list">
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-python3-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>shim</package>
+      <package>openssh</package>
+      <package>mokutil</package>
+      <package>kexec-tools</package>
+      <package>grub2-arm64-efi</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
