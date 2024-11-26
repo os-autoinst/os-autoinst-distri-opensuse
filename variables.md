@@ -45,7 +45,6 @@ CASEDIR | string | | Path to the directory which contains tests.
 CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test module.
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
-CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana"). This variable belongs to PUBLIC_CLOUD_.
 CONTAINER_RUNTIMES | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`. In addition, it is also used for other container tests, like  `kubectl`, `helm`, etc.
 CONTAINERS_CGROUP_VERSION | string | | If defined, cgroups version to switch to
 CONTAINERS_K3S_VERSION | string |  | If defined, install the provided version of k3s
@@ -255,7 +254,6 @@ ZDUPREPOS | string | | Comma separated list of repositories to be added/used for
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)
 LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are booting an installed system from the installer medium (for example, a DVD) with the menu option "Boot Linux System" (not "boot From Hard Disk"). This option uses linuxrc.
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
-PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
@@ -302,6 +300,7 @@ The following variables are relevant for publiccloud related jobs. Keep in mind 
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
+CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana").
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
@@ -322,6 +321,7 @@ PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tag
 PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
+PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PUBLIC_CLOUD_DOWNLOAD_TESTREPO | boolean | false | If set, it schedules `publiccloud/download_repos` job.
 PUBLIC_CLOUD_TOOLS_CLI | boolean | false | If set, it schedules `publiccloud_tools_cli` job group.
 PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be used for helper VM for upload some image. When not specified some predefined value will be used. Overwrite the value for `ec2uploadimg --ec2-ami`.
