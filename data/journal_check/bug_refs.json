@@ -525,7 +525,7 @@
         "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
         "products": {
             "sle-micro": ["5.4" , "5.5", "6.0", "6.1"],
-            "leap-micro": [ "5.5" ]
+            "leap-micro": [ "5.5", "6.0", "6.1"]
         },
         "type": "bug"
     },
