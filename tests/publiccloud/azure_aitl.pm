@@ -17,6 +17,8 @@ use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
+use JSON;
+use XML::LibXML;
 
 sub run {
     my ($self, $args) = @_;
@@ -61,8 +63,69 @@ sub run {
     assert_script_run ("sed -i -e 's/<IMAGE_NAME>/$aitl_image_name/g' -e 's/<IMAGE_VERSION>/$aitl_image_version/g' -e 's/<IMAGE_GALLERY_NAME>/$aitl_image_gallery/g' /tmp/$aitl_manifest");
 
     # Create AITL Job based on a manifest
-    record_info ("$aitl_manifest", "cat /tmp/$aitl_manifest");
+    script_output ("cat /tmp/$aitl_manifest");
     assert_script_run ("python3.11 /tmp/aitl.py job create -s $subscription_id -r $resource_group -n $aitl_job_name -b @/tmp/$aitl_manifest");
+
+    # Wait a few seconds to give Azure time to create the jobs
+    
+    sleep(10);
+
+    # Get AITL job status
+    # Need to save results to a variable
+    
+    my $results = script_output ("python3.11 /tmp/aitl.py job get -s $subscription_id -r $resource_group -n $aitl_job_name -q 'properties.results[]'");
+    record_info("results:", $results);
+
+    # Remove the first two non-JSON lines from the results JSON.
+    $results =~ s/^(?:.*\n){1,3}//;
+    record_info("results_clean:", $results);
+
+    my $status = script_output ("python3.11 /tmp/aitl.py job get -s $subscription_id -r $resource_group -n $aitl_job_name -q 'properties.results[].status|{RUNNING:length([?@==\"RUNNING\"]),QUEUED:length([?@==\"QUEUED\"])}'");
+
+    # Remove the first two non-JSON lines from the status JSON.
+    $status =~ s/^(?:.*\n){1,3}//;
+    my $status_data = decode_json($status);
+
+    while ($status_data->{RUNNING} ne 0 || $status_data->{QUEUED} ne 0) {
+        sleep(30);
+        $status = script_output ("python3.11 /tmp/aitl.py job get -s $subscription_id -r $resource_group -n $aitl_job_name -q 'properties.results[].status|{RUNNING:length([?@==\"RUNNING\"]),QUEUED:length([?@==\"QUEUED\"])}'");
+        $status =~ s/^(?:.*\n){1,3}//;
+        $status_data = decode_json($status);
+        print("Unfinished AITL Jobs! Running:", $status_data->{RUNNING}, " QUEUED: ", $status_data->{QUEUED});
+    }
+
+    # Convert to JUnit XML and upload to host
+    my $extra_log = json_to_xml($results, $aitl_image_name);
+
+    # Download file from host pool to the instance
+    assert_script_run('curl -s ' . autoinst_url('/files/aitl_results.xml') . ' -o /tmp/aitl_results.xml');
+    parse_extra_log('XUnit','/tmp/aitl_results.xml');
+
+}
+
+sub json_to_xml {
+  my ($json, $imageName) = @_;
+  my $data = decode_json($json);
+
+  my $dom = XML::LibXML::Document->new('1.0','UTF-8');
+  my $testsuite = $dom->createElement('testsuite');
+
+  $testsuite->setAttribute('name', 'AITL');
+  $testsuite->setAttribute('image', $imageName);
+
+  foreach my $test (@$data) {
+    my $testcase = $dom->createElement('testcase');
+    $testcase->setAttribute('name', $test->{testName});
+    $testcase->setAttribute('duration', $test->{duration});
+    $testcase->setAttribute('status', $test->{status});
+    $testcase->setAttribute('message', $test->{message});
+    
+    $testsuite->appendChild($testcase);
+  }
+
+  $dom->setDocumentElement($testsuite);
+  $dom->toFile(hashed_string('aitl_results.xml'),1);
+  
 }
 
 1;
