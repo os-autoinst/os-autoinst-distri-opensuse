@@ -29,7 +29,7 @@ use Carp;
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_sev_es_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
   is_monolithic_libvirtd turn_on_libvirt_debugging_log restart_libvirtd check_libvirtd restart_modular_libvirt_daemons check_modular_libvirt_daemons
   reset_log_cursor check_failures_in_journal check_host_health check_guest_health print_cmd_output_to_file collect_virt_system_logs setup_rsyslog_host download_script download_script_and_execute upload_virt_logs enable_nm_debug upload_nm_debug_log
-  ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
+  ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_sles is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
   create_guest import_guest ssh_copy_id add_guest_to_hosts ensure_default_net_is_active ensure_guest_started remove_additional_disks remove_additional_nic start_guests is_guest_online ensure_online wait_guest_online restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests shutdown_guests wait_guests_shutdown remove_vm recreate_guests download_vm_import_disks get_guest_regcode
 );
 
@@ -910,6 +910,16 @@ sub check_port_state {
     }
     record_info("Port $dst_port is not open", "The port $dst_port is not open on machine $dst_machine") if ($port_state == 0);
     return $port_state;
+}
+
+#Detect whether SUT host is installed with scc registration
+sub is_registered_sles {
+    if (!get_var('SCC_REGISTER') || check_var('SCC_REGISTER', 'none') || check_var('SCC_REGISTER', '')) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
 }
 
 =head2 is_registered_system
