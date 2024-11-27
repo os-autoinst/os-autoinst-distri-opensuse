@@ -40,6 +40,7 @@ sub run {
     my $resource_group = "openqa-aitl-$job_id";
     my $subscription_id = $provider->provider_client->subscription;
 
+    my $aitl_client_version = "20241118.1";
     my $aitl_image_gallery = "test_image_gallery";
     my $aitl_image_version = "latest";
     my $aitl_job_name = "openqa-aitl-$job_id";
@@ -52,7 +53,7 @@ sub run {
     my $tags = "openqa-aitl=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url";
     
     # Get the AITL script
-    assert_script_run("curl https://raw.githubusercontent.com/microsoft/lisa/refs/heads/main/microsoft/utils/aitl/aitl.py -o /tmp/aitl.py");
+    assert_script_run("curl https://raw.githubusercontent.com/microsoft/lisa/refs/tags/$aitl_client_version/microsoft/utils/aitl/aitl.py -o /tmp/aitl.py");
 
     # Configure default location and create Resource group
     assert_script_run("az configure --defaults location=$region");
@@ -67,7 +68,6 @@ sub run {
     assert_script_run ("python3.11 /tmp/aitl.py job create -s $subscription_id -r $resource_group -n $aitl_job_name -b @/tmp/$aitl_manifest");
 
     # Wait a few seconds to give Azure time to create the jobs
-    
     sleep(10);
 
     # Get AITL job status
@@ -86,6 +86,8 @@ sub run {
     $status =~ s/^(?:.*\n){1,3}//;
     my $status_data = decode_json($status);
 
+    # AITL Jobs run in parallel so it's possible to have Jobs in all kind of states.
+    # The goal of the loop is to check there are no Jobs Queued or currently Running.
     while ($status_data->{RUNNING} ne 0 || $status_data->{QUEUED} ne 0) {
         sleep(30);
         $status = script_output ("python3.11 /tmp/aitl.py job get -s $subscription_id -r $resource_group -n $aitl_job_name -q 'properties.results[].status|{RUNNING:length([?@==\"RUNNING\"]),QUEUED:length([?@==\"QUEUED\"])}'");
