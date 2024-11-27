@@ -1091,7 +1091,7 @@ sub runtime_registration {
     if (is_transactional) {
         trup_call('register' . $cmd);
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
-        if (is_sle_micro('>=6.0')) {
+        if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
             process_reboot(trigger => 1);
             add_suseconnect_product('SL-Micro-Extras');
         }
