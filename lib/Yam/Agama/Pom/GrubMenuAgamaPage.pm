@@ -24,6 +24,11 @@ sub expect_is_shown {
     assert_screen($self->{tag_first_entry_highlighted}, 60);
 }
 
+sub boot_from_hd {
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'down';
+    send_key 'ret';
+}
+
 sub edit_current_entry { shift->{grub_menu_base}->edit_current_entry() }
 
 1;
