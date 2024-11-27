@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
-use containers::utils qw(get_docker_version get_podman_version);
+use containers::utils qw(get_podman_version);
 
 my $test_dir = "test_dir";
 
@@ -23,15 +23,7 @@ sub run {
 
     select_serial_terminal();
 
-    my $docker_version = "";
-    my $podman_version = "";
-    if ($runtime eq "docker") {
-        $docker_version = get_docker_version();
-    } elsif ($runtime eq "podman") {
-        $podman_version = get_podman_version();
-    } else {
-        return;
-    }
+    my $podman_version = ($runtime eq "podman") ? get_podman_version() : "";
 
     # From https://docs.docker.com/storage/bind-mounts/
     # The --mount flag does not support z or Z options for modifying selinux labels.
@@ -134,16 +126,9 @@ sub run {
         assert_script_run("! $runtime volume inspect $test_volume");
     }
 
-    my $all = "";
-    if ($runtime eq "docker") {
-        $all = "-a";
-        # The -a option to docker volume prune was added to 23.0.5 according to:
-        # https://docs.docker.com/engine/release-notes/23.0/#2305
-        return if (version->parse($docker_version) < version->parse('23.0.5'));
-    }
     # Create a dangling (not used by any container) volume and test its removal
     assert_script_run("$runtime volume create $test_volume");
-    assert_script_run("$runtime volume prune $all -f | grep -Fx $test_volume");
+    assert_script_run("$runtime volume prune -a -f | grep -Fx $test_volume");
     assert_script_run("! $runtime volume inspect $test_volume");
     assert_script_run("[ \$($runtime volume ls --quiet --filter dangling=true | wc -l\) -eq 0 ]");
 
