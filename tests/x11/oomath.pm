@@ -29,6 +29,10 @@ sub run {
     # See https://progress.opensuse.org/issues/156628
     assert_and_click "oomath-textfield-ready";
 
+    if (check_screen "test-oomath-tip") {
+        assert_and_click "test-oomath-tip";
+    }
+
     # be more resilient during the automatic evaluation of formulas to prevent
     # mistyping with slow typing and retrying.
     my $retries = 7;
