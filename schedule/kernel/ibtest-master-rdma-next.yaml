@@ -9,7 +9,7 @@ vars:
     IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_MASTER
     IPXE: 1
-    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
+    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_CONSOLE: ttyS1,115200
     KERNEL_GIT_TREE: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
     KERNEL_GIT_BRANCH: for-next
