@@ -14,6 +14,7 @@ use Exporter qw(import);
 use Carp qw(croak);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw($deployer_private_key_path $sut_private_key_path);
+use publiccloud::azure;
 
 =head1 SYNOPSIS
 
@@ -61,6 +62,7 @@ our @EXPORT = qw(
   prepare_ssh_config
   verify_ssh_proxy_connection
   create_redirection_data
+  sdaf_create_instances
 );
 
 =head2 read_inventory_file
@@ -295,4 +297,47 @@ sub translate_hosts_data {
             ssh_user => $hosts_data{$_}{ansible_user}
     } } keys(%hosts_data);
     return %result;
+}
+
+
+=head2 sdaf_create_instances
+
+    sdaf_create_instances(inventory_content=>HASHREF);
+
+Creates and returns  B<$instances> class which is a main component of F<lib/sles4sap_publiccloud.pm> and
+general public cloud libraries F</lib/publiccloud/*>.
+Check SDAF inventory file example in B<SYNOPSIS>
+
+=over
+
+=item * B<inventory_content> Referenced content of the SDAF inventory yaml file
+
+=item * B<sut_ssh_key_path> Path to private key file allowing SSH connection to SUT
+
+=back
+=cut
+
+sub sdaf_create_instances {
+    my (%args) = @_;
+    my @instances;
+
+    for my $instance_type (keys(%{$args{inventory_content}})) {
+        my $hosts = $args{inventory_content}->{$instance_type}{hosts};
+        for my $physical_host (keys %$hosts) {
+            my $instance = publiccloud::instance->new(
+                public_ip => $hosts->{$physical_host}->{ansible_host},
+                instance_id => $physical_host,
+                username => $hosts->{$physical_host}->{ansible_user},
+                ssh_key => $args{sut_ssh_key_path},
+                # Provider does not seem to be needed for SDAF as SDAF does AZ authentication differently
+                # Calling it causes a lot of troubles like creating ssh keys and .ssh/config which breaks SSH connections
+                provider => 'dummy',
+                region => get_required_var('PUBLIC_CLOUD_REGION')
+            );
+            push(@instances, $instance);
+        }
+    }
+
+    publiccloud::instances::set_instances(@instances);
+    return \@instances;
 }
