@@ -332,7 +332,7 @@
         "description": "health-checker/fail.sh check\" failed|Failed to start MicroOS Health Checker|Machine didn't come up correct, do a rollback",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1" ],
-            "leap-micro": ["5.2", "5.3", "5.4", "5.5"],
+            "leap-micro": ["5.2", "5.3", "5.4", "5.5", "6.0", "6.1" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
@@ -341,7 +341,8 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
             "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1" ]
         },
         "type": "ignore"
     },
@@ -376,7 +377,7 @@
     "no-config-drive": {
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config|/UUID=)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
-            "leap-micro": ["5.3"],
+            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
             "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
             "microos":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
             "opensuse":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
@@ -440,7 +441,7 @@
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
             "sle-micro": ["5.2", "5.3", "5.4" , "5.5", "6.0", "6.1"],
-            "leap-micro": ["5.3"]
+            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
         },
         "type": "ignore"
     },
@@ -503,14 +504,16 @@
     "bsc#1231391": {
         "description": "pam_wtmpdb\\(login:session\\): (open_database_rw:.*unable to open database file|Cannot get ID from open session!)",
         "products": {
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
     "bsc#1231455": {
         "description": "systemd.* Failed to start SETroubleshoot daemon for processing new SELinux denial logs\\.",
         "products": {
-            "sle-micro": ["5.5", "6.0"]
+            "sle-micro": ["5.5", "6.0"],
+            "leap-micro": ["5.5", "6.0"]
         },
         "type": "bug"
     },
@@ -532,14 +535,16 @@
     "bsc#1223259": {
         "description": "sedispatch.*Connection Error.*Failed to connect to socket /run/dbus/system_bus_socket: Connection refused.*",
         "products": {
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
     "bsc#1215378": {
         "description": "(libvirtd|virtqemud).*: error from service: GDBus.Error:org.freedesktop.(login1.OperationInProgress: The operation inhibition has been requested for is already running|systemd1.ShuttingDown: Refusing activation, D-Bus is shutting down|DBus.Error.NoReply: Message recipient disconnected from message bus without replying)",
         "products": {
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
+            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
         },
         "type": "bug"
     },
@@ -547,7 +552,7 @@
         "description": "setroubleshoot.*(SELinux is preventing .*(rebootmgrd|NetworkManager|sshd).* from.* access.*icastats_0.*|failed to retrieve rpm info for path '/dev/shm/icastats_0')",
         "products": {
             "sle-micro": ["5.4" , "5.5", "6.0"],
-            "leap-micro": [ "5.5" ]
+            "leap-micro": ["5.4" , "5.5", "6.0"]
         },
         "type": "bug"
     },
@@ -576,7 +581,8 @@
     "bsc#1229146": {
         "description": "Job cockpit-ws-user\\.service/stop deleted to break ordering cycle starting with basic\\.target/stop",
         "products": {
-            "sle-micro": ["6.1"]
+            "sle-micro": ["6.1"],
+            "leap-micro": ["6.1"]
         },
         "type": "bug"
     },
@@ -612,7 +618,8 @@
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
@@ -635,7 +642,8 @@
     "bsc#1230472": {
         "description": "Failed to start selfinstallbootloader.service",
         "products": {
-            "sle-micro": ["6.1"]
+            "sle-micro": ["6.1"],
+            "leap-micro": ["6.1"]
         },
         "type": "bug"
     },
@@ -649,14 +657,16 @@
     "bsc#1218181": {
         "description": "Device luks is still in use|Device luks is not active\\.|Job.* deleted to break ordering cycle starting with.*",
         "products": {
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
     "bsc#1230314": {
         "description": "kernel: SED: plpks not available",
 	"products": {
-            "sle-micro": ["6.1"]
+            "sle-micro": ["6.1"],
+            "leap-micro": ["6.1"]
         },
         "type": "ignore"
     },
@@ -718,7 +728,8 @@
     "bsc#1228559": {
         "description": "kernel: I/O error, dev fd0|kernel: piix4_smbus",
         "products": {
-            "sle-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1"],
+            "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
     },
@@ -782,7 +793,8 @@
     "bsc#1215516": {
         "description": "kernel: kvm: RT requires X86_FEATURE_CONSTANT_TSC",
         "products": {
-            "sle-micro": ["6.1"]
+            "sle-micro": ["6.1"],
+            "leap-micro": ["6.1"]
         },
         "type": "bug"
     }
