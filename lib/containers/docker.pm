@@ -18,6 +18,7 @@ has runtime => 'docker';
 sub init {
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);
+    return if (get_var("DOCKER_RUNTIME") ne "docker");
     configure_insecure_registries();
 }
 

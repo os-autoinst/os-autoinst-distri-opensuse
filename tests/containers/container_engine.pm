@@ -55,8 +55,12 @@ sub basic_container_tests {
     die "Undefined container runtime" unless $runtime;
     my $image = "registry.opensuse.org/opensuse/tumbleweed";
 
+    my $docker = get_var("DOCKER_RUNTIME", "docker");
+
     ## Test search feature
-    validate_script_output("$runtime search --no-trunc --format 'table {{.Name}} {{.Description}}' tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 300);
+    unless ($docker eq "nerdctl") {
+        validate_script_output("$runtime search --no-trunc --format 'table {{.Name}} {{.Description}}' tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 300);
+    }
 
     # Test pulling and display of images
     script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
@@ -72,12 +76,14 @@ sub basic_container_tests {
     validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
     assert_script_run("$runtime pause basic_test_container");
     # docker and podman differ here - in docker paused containers are still in State.Running = true, in podman not
-    if ($runtime eq 'docker') {
-        validate_script_output("$runtime ps", sub { $_ =~ m/.*(Paused).*basic_test_container.*/ });
-        validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
-    } else {
-        validate_script_output("$runtime ps", sub { $_ !~ m/basic_test_container/ });
-        validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
+    unless ($docker eq "nerdctl") {
+        if ($runtime eq 'docker') {
+            validate_script_output("$runtime ps", sub { $_ =~ m/.*(Paused).*basic_test_container.*/ });
+            validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
+        } else {
+            validate_script_output("$runtime ps", sub { $_ !~ m/basic_test_container/ });
+            validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
+        }
     }
     assert_script_run("$runtime unpause basic_test_container");
     validate_script_output("$runtime ps", qr/basic_test_container/);
@@ -114,10 +120,12 @@ sub basic_container_tests {
     script_retry("$runtime container exec basic_test_container curl -sfIL http://conncheck.opensuse.org", retry => 3, delay => 60, fail_message => "cannot reach conncheck.opensuse.org");
 
     ## Test `--init` option, i.e. the container process won't be PID 1 (to avoid zombie processes)
-    # Ensure PID 1 has either the $runtime-init (e.g. podman-init) OR /init (e.g. `/dev/init) suffix
-    validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/\s*1 .*(${runtime}-|\/)init .*/ });
-    # Ensure the `ps` command is not running as PID 1. either
-    validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/[02-9][0-9]* .*ps.*/ });
+    unless ($docker eq "nerdctl") {
+        # Ensure PID 1 has either the $runtime-init (e.g. podman-init) OR /init (e.g. `/dev/init) suffix
+        validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/\s*1 .*(${runtime}-|\/)init .*/ });
+        # Ensure the `ps` command is not running as PID 1. either
+        validate_script_output("$runtime run --rm --init $image ps --no-headers -xo 'pid args'", sub { $_ =~ m/[02-9][0-9]* .*ps.*/ });
+    }
 
     ## Test prune
     assert_script_run("$runtime container commit basic_test_container example.com/prune-test");
@@ -152,7 +160,8 @@ sub run {
     my $engine = $self->containers_factory($self->{runtime});
 
     # Test the connectivity of Docker containers
-    check_containers_connectivity($engine);
+    # NOTE: nerdctl lacks .NetworkSettings.Gateway
+    check_containers_connectivity($engine) unless (check_var("DOCKER_RUNTIME", "nerdctl"));
 
     basic_container_tests(runtime => $self->{runtime});
     # Build an image from Dockerfile and run it
@@ -162,7 +171,7 @@ sub run {
     runtime_smoke_tests(runtime => $engine);
 
     # Smoke test for engine search
-    $self->test_search_registry($engine);
+    $self->test_search_registry($engine) unless (check_var("DOCKER_RUNTIME", "nerdctl"));
 
     # Clean the container host
     $engine->cleanup_system_host();

@@ -142,7 +142,7 @@ sub runtime_smoke_tests {
         assert_script_run("$runtime exec sleeper echo 'Hello'");
 
         # Test update command
-        test_update_cmd(runtime => $runtime, container => 'sleeper');
+        test_update_cmd(runtime => $runtime, container => 'sleeper') unless (check_var("DOCKER_RUNTIME", "nerdctl"));
 
         # Stop the container
         assert_script_run("$runtime stop sleeper");

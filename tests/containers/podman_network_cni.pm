@@ -58,9 +58,9 @@ sub run() {
         record_info('Prepare', 'Prepare three containers');
         script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
 
-        assert_script_run("podman run -id --rm --name container1 -p 1234:1234 $image");
-        assert_script_run("podman run -id --rm --name container2 -p 1235:1235 $image");
-        assert_script_run("podman run -id --rm --name container3 -p 1236:1236 $image");
+        assert_script_run("podman run -d --rm --name container1 -p 1234:1234 $image");
+        assert_script_run("podman run -d --rm --name container2 -p 1235:1235 $image");
+        assert_script_run("podman run -d --rm --name container3 -p 1236:1236 $image");
 
         my $container_id = script_output("podman inspect -f '{{.Id}}' container3");
 

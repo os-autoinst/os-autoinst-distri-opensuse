@@ -159,19 +159,20 @@ sub load_host_tests_podman {
 
 sub load_host_tests_docker {
     my ($run_args) = @_;
+    my $docker = get_var("DOCKER_RUNTIME", "docker");
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args);
+    load_3rd_party_image_test($run_args) if ($docker eq "docker");
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
-    load_firewall_test($run_args);
+    load_firewall_test($run_args) if ($docker eq "docker");
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is only available on SLES < 15-SP6
         loadtest 'containers/zypper_docker' if (is_sle("<15-SP6") || is_leap("<15.6"));
-        loadtest 'containers/docker_runc';
+        loadtest 'containers/docker_runc' if ($docker eq "docker");
     }
     unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro || is_staging) {
         # These tests use packages from Package Hub, so they are applicable
@@ -179,17 +180,17 @@ sub load_host_tests_docker {
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
     }
-    if (is_tumbleweed || is_microos) {
+    if ($docker eq "docker" && (is_tumbleweed || is_microos)) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
     }
-    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5') || $docker ne "docker");
+    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging || $docker ne "docker");
     load_volume_tests($run_args);
-    load_compose_tests($run_args);
+    load_compose_tests($run_args) if ($docker eq "docker");
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || $docker ne "docker") {
         loadtest 'containers/validate_btrfs';
     }
 }

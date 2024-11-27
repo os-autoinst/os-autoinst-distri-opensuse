@@ -91,7 +91,8 @@ sub install_podman_when_needed {
 
 sub install_docker_when_needed {
     my $host_os = shift;
-    if (script_run("which docker") != 0) {
+    my $docker = get_var("DOCKER_RUNTIME", "docker");
+    if (script_run("which $docker") != 0) {
         my $ltss_needed = 0;
         if (is_transactional) {
             select_console 'root-console';
@@ -118,7 +119,16 @@ sub install_docker_when_needed {
             }
 
             # docker package can be installed
-            zypper_call('in docker', timeout => 300);
+            zypper_call("in $docker", timeout => 300);
+
+            if ($docker eq "nerdctl") {
+                assert_script_run "ln -vf /usr/bin/nerdctl /usr/bin/docker";
+                assert_script_run "chattr +i /usr/bin/docker";
+                systemctl('enable --now containerd');
+                systemctl('enable --now buildkit');
+                record_info($docker, script_output("$docker info"));
+                return;
+            }
 
             # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
             if (script_run('systemctl is-active firewalld') == 0) {
@@ -128,6 +138,8 @@ sub install_docker_when_needed {
             remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
         }
     }
+
+    return if ($docker ne "docker");
 
     # Disable docker's own rate-limit in the service file (3 restarts in 60s)
     # Our tests might restart the docker service more frequently than that
@@ -220,7 +232,7 @@ sub check_containers_connectivity {
     my $image = "registry.opensuse.org/opensuse/busybox:latest";
 
     script_retry "$runtime pull $image", retry => 3, delay => 120;
-    assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 $image sleep infinity";
+    assert_script_run "$runtime run -d --name $container_name -p 1234:1234 $image sleep infinity";
     my $container_ip = container_ip $container_name, $runtime;
 
     my $_4 = is_sle("<15") ? "" : "-4";
@@ -244,6 +256,7 @@ sub check_containers_connectivity {
 
     # Kill the container running on background
     assert_script_run "$runtime kill $container_name";
+    assert_script_run "$runtime rm -vf $container_name";
 }
 
 sub switch_cgroup_version {
