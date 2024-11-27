@@ -569,7 +569,7 @@ sub set_ipxe_bootscript {
 
     $url =~ s/^\s+|\s+$//g;
 
-    diag "setting iPXE bootscript to:\n$content";
+    diag "setting iPXE bootscript on $http_server for $ip to:\n$content";
     my $response = HTTP::Tiny->new->request('POST', $url,
         {content => $content, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
