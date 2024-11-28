@@ -561,7 +561,7 @@ Return the mirror URL eg from the C<MIRROR_HTTP> var if C<INSTALL_SOURCE> is set
 
 sub get_netboot_mirror {
     my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-    return get_var('MIRROR_' . uc($m_protocol));
+    return get_required_var('MIRROR_' . uc($m_protocol));
 }
 
 =head2 zypper_call
