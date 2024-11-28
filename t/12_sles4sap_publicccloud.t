@@ -600,33 +600,37 @@ subtest '[check_takeover] fail if primary online' => sub {
 
 
 subtest '[create_playbook_section_list]' => sub {
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list();
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
-    ok((any { /.*registration\.yaml.*reg_code=Magellano/ } @$ansible_playbooks), 'registration playbook is called with reg code from SCC_REGCODE_SLES4SAP');
+    ok((any { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is called');
+    ok((any { /.*sap-hana-preconfigure\.yaml.*use_sapconf=Colombo/ } @$ansible_playbooks), 'pre-cluster playbook is called with use_sapconf from USE_SAPCONF');
+};
+
+
+subtest '[create_playbook_section_list] scc_code' => sub {
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(scc_code => 'Magellano');
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*reg_code=Magellano/ } @$ansible_playbooks), 'registration playbook is called with reg code from scc_code');
     ok((any { /.*sap-hana-preconfigure\.yaml.*use_sapconf=Colombo/ } @$ansible_playbooks), 'pre-cluster playbook is called with use_sapconf from USE_SAPCONF');
 };
 
 
 subtest '[create_playbook_section_list] ltss' => sub {
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(ltss => 'XuFu,Jofuku');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
-    ok((any { /.*registration\.yaml.*sles_modules=.*key.*XuFu.*value.*Jofuku/ } @$ansible_playbooks), 'registration playbook is called with reg code from SCC_REGCODE_LTSS');
+    ok((any { /.*registration\.yaml.*sles_modules=.*key.*XuFu.*value.*Jofuku/ } @$ansible_playbooks), 'registration playbook is called with additional reg codes');
 };
 
 
 subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(ha_enabled => 0);
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
@@ -638,10 +642,8 @@ subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
 subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'msi');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((none { /.*cluster_sbd_prep\.yaml.*/ } @$ansible_playbooks), 'cluster_sbd_prep playbook is not called when fencing => native');
@@ -652,10 +654,8 @@ subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
 subtest '[create_playbook_section_list] fencing => azure native spn' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'spn', spn_application_id => '123', spn_application_password => 'abc');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((none { /.*cluster_sbd_prep\.yaml.*/ } @$ansible_playbooks), 'cluster_sbd_prep playbook is not called when fencing => native');
@@ -664,10 +664,8 @@ subtest '[create_playbook_section_list] fencing => azure native spn' => sub {
 
 
 subtest '[create_playbook_section_list] registration => noreg' => sub {
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(registration => 'noreg');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((none { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is not called when registration => noreg');
@@ -677,10 +675,8 @@ subtest '[create_playbook_section_list] registration => noreg' => sub {
 subtest '[create_playbook_section_list] registration => suseconnect' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(registration => 'suseconnect');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /.*use_suseconnect=true.*/ } @$ansible_playbooks), 'registration playbook is called with use_suseconnect=true when registration => suseconnect');
@@ -690,14 +686,12 @@ subtest '[create_playbook_section_list] registration => suseconnect' => sub {
 subtest '[create_playbook_section_list] ptf' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(
         ptf_files => 'Marcantonio Colonna',
         ptf_token => 'Seb4sti4n0Ven1er',
         ptf_container => 'VettorPisani',
         ptf_account => 'LorenzoMarcello');
-    set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /ptf_installation\.yaml.*/ } @$ansible_playbooks), 'ptf_installation playbook');
