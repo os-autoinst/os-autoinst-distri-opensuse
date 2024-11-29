@@ -142,7 +142,7 @@ sub load_host_tests_podman {
     # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
     loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
     loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
-    loadtest 'containers/podman_quadlet' unless (is_sle("<16") || is_sle_micro("<6.0"));
+    loadtest 'containers/podman_quadlet' unless (is_sle("<16") || is_sle_micro("<6.1"));
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
