@@ -110,8 +110,8 @@ sub deregister_dropped_modules {
     return unless ((get_var('DROPPED_MODULES')) || ((get_var('SCC_ADDONS', '') =~ /ltss/) && (get_var('SCC_ADDONS', '') !~ /ltss_es/)));
 
     my $droplist = get_var('DROPPED_MODULES', '');
-    $droplist .= ',ltss' if (get_var('SCC_ADDONS', '') =~ /ltss/);
     my @all_addons = grep($_, split(/,/, get_var('SCC_ADDONS', '')));
+    $droplist .= ',ltss' if (grep { $_ eq 'ltss' } @all_addons);
     for my $name (grep($_, split(/,/, $droplist))) {
         record_info "deregister $name", "deregister $name module and remove it from SCC_ADDONS";
         if ($name eq 'ltss') {
