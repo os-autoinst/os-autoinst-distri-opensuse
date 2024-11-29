@@ -26,7 +26,7 @@ sub run {
     if (is_sle "<=15-SP6") {
         # Copy the keylime configuration file to /etc if not there
         $agent_cfg_path = "/etc/keylime.conf";
-        assert_script_run("cp -n /usr$agent_cfg_path $agent_cfg_path");
+        script_run("cp -n /usr$agent_cfg_path $agent_cfg_path");
     } else {
         script_run("mkdir -p /etc/keylime && test -d /usr/etc/keylime && cp -n /usr/etc/keylime/*.conf /etc/keylime");
         assert_script_run qq{test -f /etc/keylime/agent.conf || cp `rpm -ql keylime-config` /etc/keylime/agent.conf};
