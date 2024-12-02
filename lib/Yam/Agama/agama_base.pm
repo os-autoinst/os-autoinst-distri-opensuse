@@ -18,6 +18,7 @@ sub post_fail_hook {
 
 sub upload_agama_logs {
     select_console 'root-console';
+    save_and_upload_log('agama config show > /tmp/agama-config.json', "/tmp/agama-config.json");
     save_and_upload_log('agama logs store', "/tmp/agama-logs.tar.gz");
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log");
 }
