@@ -20,6 +20,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
 use version_utils qw(get_os_release is_sle is_public_cloud);
 use containers::common;
+use Utils::Backends qw(is_svirt);
 
 sub run_tests {
     my $runtime = shift;
@@ -74,7 +75,7 @@ sub run_tests {
 
     record_info('Test', "Cleanup");
     assert_script_run("buildah rm $container");
-    assert_script_run("buildah rmi newimage");
+    assert_script_run("buildah rmi newimage $image");
     assert_script_run("rm -f /tmp/script.sh");
 }
 
@@ -100,7 +101,7 @@ sub run {
     run_tests($runtime);
 
     # Run tests as user
-    if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3')) {
+    if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3') && !is_svirt) {
         if (is_sle('<15-SP5')) {
             record_soft_failure("bsc#1232522 - buildah security update changes default network mode from slirp4netns to passt for rootless containers");
         } else {

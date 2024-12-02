@@ -882,7 +882,16 @@ sub delete_network_peering {
 =item B<registration> - select registration mode, possible values are
                           * registercloudguest (default)
                           * suseconnect
-                          * noreg "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+                          * noreg skip scheduling of register.yaml at all
+
+=item B<scc_code> - registration code
+
+=item B<ltss> - name and reg_code for LTSS extension to register.
+                This argument is a two element comma separated list string.
+                Like: 'SLES-LTSS-Extended-Security/12.5/x86_64,123456789'
+                First string before the comma has to be a valid SCC extension name, later used by Ansible
+                as argument for SUSEConnect or registercloudguest argument.
+                Second string has to be valid registration code for the particular LTSS extension.
 
 =item B<fencing> - select fencing mechanism
 
@@ -915,6 +924,8 @@ sub create_playbook_section_list {
     $args{ha_enabled} //= 1;
     $args{registration} //= 'registercloudguest';
     $args{fencing} //= 'sbd';
+    $args{scc_code} //= '';
+
     if ($args{fencing} eq 'native' and is_azure) {
         croak "Argument <fence_type> missing" unless $args{fence_type};
     }
@@ -928,7 +939,7 @@ sub create_playbook_section_list {
 
     unless ($args{registration} eq 'noreg') {
         my @reg_args = ('registration.yaml');
-        push @reg_args, '-e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
+        push @reg_args, "-e reg_code=$args{scc_code} -e email_address=''";
         push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
         if ($args{ltss}) {
             my @ltss_args = split(/,/, $args{ltss});

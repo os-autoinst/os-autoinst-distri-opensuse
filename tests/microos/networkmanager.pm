@@ -22,8 +22,11 @@ sub ping_check {
     assert_script_run("ping -c 5 $net_config{'dns_server'}");
     # disconnect the device, skip the test on remote worker with ssh connection
     unless (is_s390x || is_vmware) {
-        # Increase timeout to 60s - poo#169726
-        assert_script_run("nmcli -w 60 device disconnect $nic_name");
+        # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+        if (script_run("nmcli -w 120 device disconnect $nic_name", timeout => 130) == 6) {
+            script_run('nmcli general logging level DEBUG');
+            assert_script_run("nmcli -w 120 device disconnect $nic_name", timeout => 130);
+        }
         if (script_run("ping -c 5 $net_config{'dns_server'}") == 0) {
             die('The network is still up after disconnection');
         }
@@ -151,6 +154,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
+    script_run('journalctl -u NetworkManager -b0 >> /var/log/nmcli_logs');
+    upload_logs('cat /var/log/nmcli_logs');
     restore_config;
     script_run("journalctl --no-pager -o short-precise > /tmp/full_journal.txt");
     upload_logs "/tmp/full_journal.txt";

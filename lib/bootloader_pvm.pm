@@ -236,7 +236,7 @@ sub boot_hmc_pvm {
 
     # Print the machine details before anything else, Firmware name might be useful when reporting bugs
     record_info("HMC machine details", "See the next screen to get details on $hmc_machine_name");
-    enter_cmd "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'";
+    enter_cmd "lslic -m $hmc_machine_name -t sys | sed 's/,/\\n/g'";
 
     # Fail the job when a lpar is not available
     die 'The managed system is not available' if check_screen('lpar_manage_status_unavailable', 3);

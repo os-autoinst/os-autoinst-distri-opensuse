@@ -71,6 +71,8 @@ It allows to have more control over diffs amongs snapshots.
 
 sub y2snapper_adding_new_snapper_conf {
     assert_script_run("btrfs subvolume create /test");
+    # we only allow certain snapshots to be labeled snapperd_data_t, see poo#168583
+    assert_script_run("semanage fcontext -a -t 'snapperd_data_t' -s system_u '/test(/.*)?'") if has_selinux;
     assert_script_run("snapper -c test create-config /test");
     assert_script_run('snapper -c test set-config TIMELINE_CREATE=no TIMELINE_MIN_AGE=0');
     assert_script_run('snapper -c test get-config');

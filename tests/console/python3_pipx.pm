@@ -43,11 +43,11 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip!", "either $python3_spec_release-pipx or $python3_spec_release-wheel doesn't exist");
         return;
     }
-    zypper_call("in $python3_spec_release-pipx $python3_spec_release-wheel");
+    zypper_call("in $python3_spec_release-pipx $python3_spec_release-setuptools $python3_spec_release-wheel");
     my $python_binary = get_python3_binary($python3_spec_release);
     my $version_number = (split("python", $python_binary))[1];
     script_run("$python_binary setup.py bdist_wheel");
-    assert_script_run("pipx install dist/package-0.1-py3-none-any.whl --python=/usr/bin/$python_binary");
+    assert_script_run("$python_binary -mpipx install dist/package-0.1-py3-none-any.whl");
     script_run("pipx list");
     assert_script_run("export PATH=\$PATH:~/.local/bin");
     validate_script_output("hello-world", sub { m/Hello world from package!/ });

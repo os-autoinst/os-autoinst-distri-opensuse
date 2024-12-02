@@ -45,7 +45,7 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip python39", 'https://jira.suse.com/browse/PED-8196');
         return;
     }
-    zypper_call("install $python3_spec_release");
+    zypper_call("install $python3_spec_release $python3_spec_release-setuptools");
     record_info("pip3 version:", script_output("rpm -q $python3_spec_release-pip"));
     record_info("python3-setuptools:", script_output("rpm -q $python3_spec_release-setuptools"));
     my $python_binary = get_python3_binary($python3_spec_release);
