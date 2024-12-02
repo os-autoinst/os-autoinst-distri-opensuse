@@ -28,7 +28,7 @@
     <guest_installation_media>http://dist.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/</guest_installation_media>
     <guest_installation_fine_grained/>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes</guest_boot_settings>
-    <guest_secure_boot>false</guest_secure_boot>
+    <guest_secure_boot>true</guest_secure_boot>
     <guest_os_variant/>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
@@ -41,7 +41,7 @@
     <guest_network_type>bridge</guest_network_type>
     <guest_network_mode>bridge</guest_network_mode>
     <guest_network_device/>
-    <guest_network_others>model=virtio,rom.bar=off</guest_network_others>
+    <guest_network_others>model=virtio,driver.iommu=on</guest_network_others>
     <guest_netaddr/>
     <guest_ipaddr/>
     <guest_ipaddr_static>false</guest_ipaddr_static>
