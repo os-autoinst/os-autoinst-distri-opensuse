@@ -27,7 +27,7 @@ sub configure_insecure_registries {
     # The debug output is messing with terminal in migration tests
     my $debug = (get_var('UPGRADE')) ? 'false' : 'true';
     # Allow our internal 'insecure' registry only if REGISTRY variable is set
-    assert_script_run "test -f /etc/docker/daemon.json || echo '{\"log-level\": \"warn\"}' > /etc/docker/daemon.json";
+    assert_script_run "test -f /etc/docker/daemon.json || echo '{\"log-level\": \"info\"}' > /etc/docker/daemon.json";
     assert_script_run "sed -i 's%^{%&\"debug\":$debug,\"insecure-registries\":[\"$registry\"],%' /etc/docker/daemon.json";
     record_info('daemon.json', script_output("cat /etc/docker/daemon.json"));
     systemctl('restart docker');
