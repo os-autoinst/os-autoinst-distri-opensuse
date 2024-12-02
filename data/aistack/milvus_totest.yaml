@@ -1,0 +1,46 @@
+global:
+  imagePullSecrets:
+  - application-collection
+cluster:
+  enabled: True
+image:
+  all:
+    registry: registry.suse.de 
+    repository: suse/sle-15-sp6/update/products/ai/totest/images/containers/milvus 
+    tag: 2.4.6
+    pullPolicy: IfNotPresent
+standalone:
+  persistence:
+    persistentVolumeClaim:
+      storageClass: local-path
+etcd:
+  replicaCount: 1
+  persistence:
+    storageClassName: local-path
+minio:
+  mode: distributed
+  replicas: 4
+  rootUser: "admin"
+  rootPassword: "adminminio"
+  persistence:
+    storageClass: local-path
+  resources:
+    requests:
+      memory: 1024Mi
+kafka:
+  enabled: True
+  persistence:
+    storageClassName: "local-path"
+#  #indexNode:
+  #  resources:
+  #    requests:
+  #      nvidia.com/gpu: "1"
+  #    limits:
+  #      nvidia.com/gpu: "1"
+  #queryNode:
+  #  resources:
+  #    requests:
+  #      nvidia.com/gpu: "1"
+  #    limits:
+  #      nvidia.com/gpu: "1"
+#
