@@ -305,6 +305,7 @@ sub prepare_kgraft {
     }
 
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm || get_var('LTP_BAREMETAL');
 
     return $incident_klp_pkg;
 }
