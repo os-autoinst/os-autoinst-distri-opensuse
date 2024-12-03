@@ -6,15 +6,6 @@
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
   </suse_register>
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <name>SUSE-MicroOS-<%= $get_var->('VERSION') %>-Updates</name>
-        <alias>SUSE-MicroOS-<%= $get_var->('VERSION') %>-Updates</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SUSE-MicroOS/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-    </add_on_products>
-  </add-on>
   <bootloader>
     <global>
       <timeout config:type="integer">-1</timeout>
