@@ -6,27 +6,21 @@ use utils;
 use publiccloud::utils;
 use version_utils;
 
-sub run_python_script {
-    my $script = shift;
-    my $logfile = "output.txt";
-    record_info($script, "Running python script: $script");
-    assert_script_run("$script");
-    assert_script_run("./$script 2>&1 | tee $logfile");
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub run {
     my ($self, $args) = @_;
 
-    my $instance = $self->{my_instance} = $args->{my_instance};
-    my $provider = $self->{provider} = $args->{my_provider};
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
 
     # Get Open WebUI ip address, add it to /etc/hosts, and verify connectivity
     my $ipaddr = get_var('OPENWEBUI_IP');
     my $host_name = get_var('OPENWEBUI_HOSTNAME');
-    record_info("debug $ipaddr");
     assert_script_run("echo \"$ipaddr $host_name\" | sudo tee -a /etc/hosts > /dev/null");
-    record_info("Added $ipaddr to /etc/hosts with hostname $host_name");
-    assert_script_run("cat /etc/hosts");
+    record_info("Added $ipaddr to /etc/hosts with hostname $host_name: " . script_output("cat /etc/hosts"));
 
     my $curl_cmd = "curl -v -k https://$host_name";
     my $curl_result = script_run($curl_cmd);
@@ -53,18 +47,6 @@ sub run {
     assert_script_run("export EMAIL='" . $admin_email . "' PASSWORD='" . $admin_password . "'");
     record_info("Set env variables EMAIL = $admin_email and PASSWORD = $admin_password to be used in tests");
     assert_script_run("pytest -vv --ENV remote tests");
-}
-
-sub post_fail_hook {
-    my $self = shift;
-    $self->cleanup();
-    $self->SUPER::post_fail_hook;
-}
-
-sub post_run_hook {
-    my $self = shift;
-    $self->cleanup();
-    $self->SUPER::post_run_hook;
 }
 
 1;
