@@ -27,7 +27,7 @@ sub run {
 
     my $provider = $self->provider_factory();
 
-    my $region = "westeurope"; #get_var('PUBLIC_CLOUD_REGION');
+    my $region = "westeurope";    #get_var('PUBLIC_CLOUD_REGION');
     my $resource_group = "openqa-aitl-$job_id";
     my $subscription_id = $provider->provider_client->subscription;
 
@@ -65,25 +65,25 @@ sub run {
     # The goal of the loop is to check there are no Jobs Queued or currently Running.
     my $status_data;
     while (1) {
-      # Get the current job status
-      my $status = script_output(qq(python3.11 /tmp/aitl.py job get $aitl_get_options -q "properties.results[].status|{RUNNING:length([?@=='RUNNING']),QUEUED:length([?@=='QUEUED']),ASSIGNED:length([?@=='ASSIGNED']),FAILED:length([?@=='FAILED'])}"));
-  
-      # Remove the first two non-JSON lines from the status JSON
-      $status =~ s/^(?:.*\n){1,3}//;
-  
-      # Decode the status JSON
-      $status_data = decode_json($status);
-  
-      # Check if there are still jobs in RUNNING, QUEUED, or ASSIGNED state
-      if ($status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
-          last;  # Exit the loop if no jobs are in these states
-      }
-  
-      # Print the status
-      print("Unfinished AITL Jobs! Running:", $status_data->{RUNNING}, " QUEUED: ", $status_data->{QUEUED}, " ASSIGNED: ", $status_data->{ASSIGNED});
-  
-      # Wait before checking again
-      sleep(65);
+        # Get the current job status
+        my $status = script_output(qq(python3.11 /tmp/aitl.py job get $aitl_get_options -q "properties.results[].status|{RUNNING:length([?@=='RUNNING']),QUEUED:length([?@=='QUEUED']),ASSIGNED:length([?@=='ASSIGNED']),FAILED:length([?@=='FAILED'])}"));
+
+        # Remove the first two non-JSON lines from the status JSON
+        $status =~ s/^(?:.*\n){1,3}//;
+
+        # Decode the status JSON
+        $status_data = decode_json($status);
+
+        # Check if there are still jobs in RUNNING, QUEUED, or ASSIGNED state
+        if ($status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
+            last;    # Exit the loop if no jobs are in these states
+        }
+
+        # Print the status
+        print("Unfinished AITL Jobs! Running:", $status_data->{RUNNING}, " QUEUED: ", $status_data->{QUEUED}, " ASSIGNED: ", $status_data->{ASSIGNED});
+
+        # Wait before checking again
+        sleep(65);
     }
 
     # Need to save results to a variable
@@ -120,18 +120,18 @@ sub json_to_xml {
         $testcase->setAttribute('duration', $test->{duration});
 
         if ($test->{status} =~ /FAILED/) {
-          my $failure = $dom->createElement('failure');
-          $failure->setAttribute('message', $test->{message});
-          $testcase->appendChild($failure);
-          $failed_tests++;
+            my $failure = $dom->createElement('failure');
+            $failure->setAttribute('message', $test->{message});
+            $testcase->appendChild($failure);
+            $failed_tests++;
 
         } elsif ($test->{status} =~ /SKIPPED/) {
-          my $skipped = $dom->createElement('skipped');
-          $skipped->setAttribute('message', $test->{message});
-          $testcase->appendChild($skipped);
+            my $skipped = $dom->createElement('skipped');
+            $skipped->setAttribute('message', $test->{message});
+            $testcase->appendChild($skipped);
 
-          } else {
-          $testcase->setAttribute('status', $test->{status});
+        } else {
+            $testcase->setAttribute('status', $test->{status});
         }
         $testsuite->setAttribute('failures', $failed_tests);
         $testsuite->appendChild($testcase);
