@@ -44,6 +44,7 @@ subtest '[prepare_sdaf_project]' => sub {
     $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
     $ms_sdaf->redefine(assert_script_run => sub {
             push(@git_commands, join('', $_[0])) if grep(/git/, $_[0]);
             return 1; });
@@ -55,6 +56,7 @@ subtest '[prepare_sdaf_project]' => sub {
             return '/some/useless/path'; });
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation.git');
     set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/sap-automation-samples.git');
+    set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);
 
@@ -84,6 +86,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     $ms_sdaf->redefine(record_soft_failure => sub { return; });
 
     $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
     $ms_sdaf->redefine(assert_script_run => sub { push(@mkdir_commands, $_[0]) if grep(/mkdir/, @_); return 1; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
@@ -93,6 +96,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
 
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
     set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
+    set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);
     is $mkdir_commands[0], 'mkdir -p /tmp/openqa_logs', 'Create logging directory';

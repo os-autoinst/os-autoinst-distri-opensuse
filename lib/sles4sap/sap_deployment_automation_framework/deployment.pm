@@ -10,6 +10,7 @@ package sles4sap::sap_deployment_automation_framework::deployment;
 
 use strict;
 use warnings;
+use version;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
@@ -562,8 +563,26 @@ sub prepare_sdaf_project {
     assert_script_run("cd $deployment_dir");
     assert_script_run('mkdir -p ' . log_dir());
 
+    # Calculate SDAF version used for deployment and picks latest -1
+    # SDAF_GIT_AUTOMATION_BRANCH variable will override calculated value
+    my $branch = get_var('SDAF_GIT_AUTOMATION_BRANCH', '');
+    if (!$branch || $branch eq 'latest') {
+        my $tags = script_output("curl -s https://api.github.com/repos/Azure/sap-automation/tags | jq -r '.[].name' | sort -rV");
+        record_info("Releases: $tags");
+        my @releases = split('\n', $tags);
+        my $branch_expected = ($branch eq 'latest') ? $releases[0] : $releases[1];
+        # Versions older or equal than 'v3.11.0.3' missing features so report failure
+        my $branch_er = version->new('v3.11.0.3');
+        $branch_expected = version->new("$branch_expected");
+        if ($branch_expected <= $branch_er) {
+            die "Version $branch_expected older or equal than $branch_er missing features";
+        }
+        $branch = $branch_expected;
+    }
+    record_info("Release: $branch");
+
     git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
-        branch => get_var('SDAF_GIT_AUTOMATION_BRANCH'),
+        branch => $branch,
         depth => '1',
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.txt');
