@@ -28,7 +28,7 @@ variable "name" {
 }
 
 variable "type" {
-  default = "t2.large"
+  default = "t3a.large"
 }
 
 variable "image_id" {
