@@ -70,5 +70,8 @@ done | \
     # Scheduled with s390x_tests/consoletest_${testset}${tc}
     grep -v 's390x_tests' |\
 
+    # running on a development job group https://openqa.suse.de/group_overview/616
+    grep -v 'velociraptor_client_event_collect' |\
+
     grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' \
     && { exit 1; } || { exit 0; }
