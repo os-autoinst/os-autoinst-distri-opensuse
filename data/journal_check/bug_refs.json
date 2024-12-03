@@ -543,7 +543,7 @@
     "bsc#1215378": {
         "description": "(libvirtd|virtqemud).*: error from service: GDBus.Error:org.freedesktop.(login1.OperationInProgress: The operation inhibition has been requested for is already running|systemd1.ShuttingDown: Refusing activation, D-Bus is shutting down|DBus.Error.NoReply: Message recipient disconnected from message bus without replying)",
         "products": {
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
             "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
         },
         "type": "bug"
