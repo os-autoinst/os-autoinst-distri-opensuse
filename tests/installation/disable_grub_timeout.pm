@@ -77,6 +77,8 @@ sub run {
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle('<12-SP1');
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
+    # Migrate 12-SP5 to 15-SP7 on aarch64
+    $timeout = "30" if (check_var('BASE_PRODUCT', 'sles-12-sp5') && get_var('VIRT_PRJ2_HOST_UPGRADE') && is_aarch64);
     type_string $timeout;
 
     wait_still_screen(1);
