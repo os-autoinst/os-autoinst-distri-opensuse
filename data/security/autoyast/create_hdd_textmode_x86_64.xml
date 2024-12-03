@@ -3,18 +3,8 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <bootloader t="map">
     <global t="map">
-      <cpu_mitigations>auto</cpu_mitigations>
-      <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
-      <os_prober>false</os_prober>
-      <secure_boot>true</secure_boot>
-      <terminal>gfxterm</terminal>
       <timeout t="integer">-1</timeout>
-      <trusted_grub>false</trusted_grub>
-      <update_nvram>true</update_nvram>
-      <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <firewall t="map">
     <default_zone>public</default_zone>
@@ -143,80 +133,6 @@
     <start_autofs t="boolean">false</start_autofs>
     <start_nis t="boolean">false</start_nis>
   </nis>
-  <partitioning t="list">
-    <drive t="map">
-      <device>/dev/vda</device>
-      <disklabel>gpt</disklabel>
-      <enable_snapshots t="boolean">true</enable_snapshots>
-      <partitions t="list">
-        <partition t="map">
-          <create t="boolean">true</create>
-          <create_subvolumes t="boolean">true</create_subvolumes>
-          <filesystem t="symbol">btrfs</filesystem>
-          <format t="boolean">true</format>
-          <mount>/</mount>
-          <mountby t="symbol">uuid</mountby>
-          <partition_id t="integer">131</partition_id>
-          <partition_nr t="integer">2</partition_nr>
-          <quotas t="boolean">true</quotas>
-          <resize t="boolean">false</resize>
-          <size>29525803008</size>
-          <subvolumes t="list">
-            <subvolume t="map">
-              <copy_on_write t="boolean">false</copy_on_write>
-              <path>var</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>usr/local</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>tmp</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>srv</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>root</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>opt</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>home</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>boot/grub2/x86_64-efi</path>
-            </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
-              <path>boot/grub2/i386-pc</path>
-            </subvolume>
-          </subvolumes>
-          <subvolumes_prefix>@</subvolumes_prefix>
-        </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
-          <filesystem t="symbol">swap</filesystem>
-          <format t="boolean">true</format>
-          <mount>swap</mount>
-          <mountby t="symbol">uuid</mountby>
-          <partition_id t="integer">130</partition_id>
-          <partition_nr t="integer">3</partition_nr>
-          <resize t="boolean">false</resize>
-          <size>2148515328</size>
-        </partition>
-      </partitions>
-      <type t="symbol">CT_DISK</type>
-      <use>all</use>
-    </drive>
-  </partitioning>
   <proxy t="map">
     <enabled t="boolean">false</enabled>
   </proxy>
