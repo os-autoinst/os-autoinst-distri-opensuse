@@ -440,7 +440,7 @@
     "bsc#1200490": {
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
-            "sle-micro": ["5.2", "5.3", "5.4" , "5.5", "6.0", "6.1"],
+            "sle-micro": ["5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
             "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
         },
         "type": "ignore"
@@ -535,7 +535,7 @@
     "bsc#1223259": {
         "description": "sedispatch.*Connection Error.*Failed to connect to socket /run/dbus/system_bus_socket: Connection refused.*",
         "products": {
-            "sle-micro": ["6.0", "6.1"],
+            "sle-micro": ["6.0", "6.1", "6.2"],
             "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
@@ -657,7 +657,7 @@
     "bsc#1218181": {
         "description": "Device luks is still in use|Device luks is not active\\.|Job.* deleted to break ordering cycle starting with.*",
         "products": {
-            "sle-micro": ["6.0", "6.1"],
+            "sle-micro": ["6.0", "6.1", "6.2"],
             "leap-micro": ["6.0", "6.1"]
         },
         "type": "bug"
@@ -793,7 +793,7 @@
     "bsc#1215516": {
         "description": "kernel: kvm: RT requires X86_FEATURE_CONSTANT_TSC",
         "products": {
-            "sle-micro": ["6.1"],
+            "sle-micro": ["6.1", "6.2"],
             "leap-micro": ["6.1"]
         },
         "type": "bug"
