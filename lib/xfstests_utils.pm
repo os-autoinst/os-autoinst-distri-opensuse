@@ -492,7 +492,7 @@ umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
     enter_cmd("$cmd");
-    record_info('fs_stat log', script_output("cat $LOG_DIR/$category/$num.fs_stat"));
+    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +"));
 }
 
 =head2 copy_all_log
