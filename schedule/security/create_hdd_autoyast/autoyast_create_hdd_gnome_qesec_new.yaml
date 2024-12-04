@@ -1,0 +1,22 @@
+---
+name: autoyast_gnome
+description: >
+  AutoYaST installation with gnome using default partitioning. Installation is
+  validated by execution set of smoke userspace tests.
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload}}'
+conditional_schedule:
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
