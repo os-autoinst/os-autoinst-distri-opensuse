@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+      <trusted_grub>false</trusted_grub>
+      <update_nvram>true</update_nvram>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <firewall t="map">
+    <default_zone>public</default_zone>
+    <enable_firewall t="boolean">true</enable_firewall>
+    <log_denied_packets>off</log_denied_packets>
+    <start_firewall t="boolean">true</start_firewall>
+    <zones t="list">
+      <zone t="map">
+        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+        <interfaces t="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <masquerade t="boolean">false</masquerade>
+        <name>public</name>
+        <ports t="list"/>
+        <protocols t="list"/>
+        <services t="list">
+          <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
+  </firewall>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking t="map">
+    <dhcp_options t="map">
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns t="map">
+      <dhcp_hostname t="boolean">false</dhcp_hostname>
+      <hostname>susetest</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <name>eth0</name>
+        <startmode>auto</startmode>
+        <zone>public</zone>
+      </interface>
+    </interfaces>
+    <ipv6 t="boolean">true</ipv6>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">65</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>8388608</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+	  <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>30054285312</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/powerpc-ieee1275</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2148515328</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>kdump</service>
+        <service>kdump-early</service>
+        <service>kdump-notify</service>
+        <service>wicked</service>
+        <service>sshd</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>xorg-x11-fonts</package>
+      <package>xorg-x11-Xvnc</package>
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-python3-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>iprutils</package>
+      <package>icewm</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+    </packages>
+    <patterns t="list">
+      <pattern>32bit</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>dhcp_dns_server</pattern>
+      <pattern>directory_server</pattern>
+      <pattern>documentation</pattern>
+      <pattern>file_server</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gateway_server</pattern>
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+      <pattern>lamp_server</pattern>
+      <pattern>lp_sles</pattern>
+      <pattern>mail_server</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>ofed</pattern>
+      <pattern>print_server</pattern>
+      <pattern>sap_server</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-python3</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-basesystem</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-server-applications</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-containers</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-live-patching</name>
+	<version>15.6</version>
+        <reg_code>{{SCC_REGCODE_LIVE}}</reg_code>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-public-cloud</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-legacy</name>
+        <version>15.6</version>
+      </addon>
+      <addon t="map">
+        <arch>ppc64le</arch>
+        <name>sle-module-web-scripting</name>
+        <version>15.6</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <email/>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>https://scc.suse.com</reg_server>
+    <slp_discovery t="boolean">false</slp_discovery>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <user_password>$6$IRmkDaGbGuVbtcr4$hFhH0xx6F12DaiQZKcdYvpSQTdBYNo2iaxrii../XkQyTztvRUic.BqxmKfITdbI8Mg5qjuV9hePPoAy0M17./</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$mrD1V5TvvYe5xd3C$z0hLfJRnn/jumDi90Lg8EL5oShj/QkJ7sCTNHovf3lQxua822/vIa1GgXPZ22SXoc4uJScuyXMOMZfhfoxs5k0</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report t="map">
+    <errors t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+</profile>
