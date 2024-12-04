@@ -36,6 +36,7 @@ our @EXPORT = qw(
   is_guest_ballooned
   is_xen_host
   is_kvm_host
+  is_sles_mu_virt_test
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -177,6 +178,11 @@ sub is_vmware_virtualization {
 #return 1 if it is a Hyper-V test judging by REGRESSION variable
 sub is_hyperv_virtualization {
     return get_var("REGRESSION", '') =~ /hyperv/;
+}
+
+# Return 1 if it is SLES MU virt test, otherwise return 0
+sub is_sles_mu_virt_test {
+    return is_sle && get_var('REGRESSION') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
 }
 
 #return 1 if it is a fv guest judging by name

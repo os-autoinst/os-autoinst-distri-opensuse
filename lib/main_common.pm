@@ -11,7 +11,7 @@ use base Exporter;
 use File::Basename;
 use File::Find;
 use Exporter;
-use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
+use testapi qw(check_var get_var get_required_var set_var check_var_array get_var_array diag);
 use autotest;
 use utils;
 use wicked::TestContext;
@@ -2403,20 +2403,62 @@ sub set_mu_virt_vars {
     }
 
     set_var('UPDATE_PACKAGE', $_update_package);
-    bmwqemu::save_vars();
     diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
 
     # Check if repo is LTSS-Extended-Security and sets EXTENDED_SECURITY to 1
     set_var('EXTENDED_SECURITY', (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? 1 : 0);
     # Set PATCH_WITH_ZYPPER
     set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
+
+    # Set AUTOYAST
+    if (check_var('HOST_INSTALL_AUTOYAST', 1) or check_var('AUTOYAST', 1)) {
+        if (is_sle('15+')) {
+            set_var('AUTOYAST', 'virtualization/autoyast/host_15.xml.ep');
+        } elsif (is_sle('12+')) {
+            set_var('AUTOYAST', 'virtualization/autoyast/host_12.xml.ep');
+        }
+    }
+
+    # Set PXE_PRODUCT_NAME
+    my $pxe_product_name = "SLE-" . get_required_var('VERSION');
+    if (is_sle('15+')) {
+        $pxe_product_name .= "-Full-LATEST";
+    } elsif (is_sle('12+')) {
+        $pxe_product_name .= "-Server-GM";
+    }
+    set_var('PXE_PRODUCT_NAME', $pxe_product_name);
+
+    # Set SCC_REGCODE_LTSS(for host)
+    my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
+    # $product final format: 12.5, 15.4, 15
+    my $product = get_required_var('VERSION');
+    $product =~ s/-SP/\./i;
+    diag("Host product is $product.");
+    if (exists $ltss_products{"$product"}) {
+        set_var('SCC_REGCODE_LTSS', $ltss_products{"$product"});
+    }
+
+    # Set SCC_ADDONS
+    my $scc_addons = '';
+    $scc_addons .= 'ltss' if (exists $ltss_products{"$product"});
+    if (is_sle('15+')) {
+        $scc_addons .= ',' if ($scc_addons);
+        $scc_addons .= 'base,sdk,serverapp,desktop';
+    }
+    set_var('SCC_ADDONS', "$scc_addons");
+
+    # Set TERADATA
+    if (get_var('INCIDENT_REPO', '') =~ /TERADATA/) {
+        # SLE12SP3 TERADATA test can't set TERADATA value
+        set_var('TERADATA', get_var('VERSION')) unless (is_sle('=12-sp3'));
+    }
+
+    # Save vars
+    bmwqemu::save_vars();
 }
 
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
-
-    # Some vars will affect loadtest logic, so need to be run on top
-    set_mu_virt_vars;
 
     if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
         if (get_var('AUTOYAST')) {
