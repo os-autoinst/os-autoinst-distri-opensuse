@@ -104,8 +104,10 @@ sub post_fail_hook {
         #   For playbook please do not use '> ' (or $testapi::distri->{serial_term_prompt})
         #   as there are lots of '> ' in the output of playbook.
         #   For playbook/script 'qr/-\d+-/' is usually the last output from playbook/script execution
+        #   For playbook if command contains -v (verbosity) the output may contain 'qr/-\d+-/',
+        #   so here uses 'qr/-\d+-Comment/' for regex as 'script_run(xxx, output => xxx)' is used to run playbook
         my $match_re = $testapi::distri->{serial_term_prompt};
-        $match_re = qr/-\d+-/ if ($serial_regexp_playbook);
+        $match_re = qr/-\d+-Comment/ if ($serial_regexp_playbook);
         unless (wait_serial($match_re)) {
             type_string('', terminate_with => 'ETX');
             # Wait for process returns
