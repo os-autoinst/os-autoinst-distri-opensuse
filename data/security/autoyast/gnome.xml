@@ -76,6 +76,7 @@
     <ntp_policy>auto</ntp_policy>
   </ntp-client>
   <software>
+    <install_recommended t="boolean">true</install_recommended>
     <packages config:type="list">
       <package>grub2</package>
       <package>sles-release</package>
@@ -136,6 +137,14 @@
     <hwclock>UTC</hwclock>
     <timezone>Europe/Berlin</timezone>
   </timezone>
+  <services-manager t="map">
+    <default_target>graphical</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">false</encrypted>
