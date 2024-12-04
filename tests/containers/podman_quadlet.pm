@@ -13,6 +13,11 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp);
 use Utils::Systemd qw(systemctl);
 use utils qw(script_retry);
+use containers::utils qw(check_min_runtime_version);
+
+# support for .build files was added in 5.2.0
+# https://github.com/containers/podman/releases/tag/v5.2.0
+my $has_build = check_min_runtime_version('5.2.0');
 
 my $quadlet_dir = '/etc/containers/systemd';
 my $unit_name = 'quadlet-test';
@@ -49,11 +54,6 @@ my @systemd_container = ("$quadlet_dir/$unit_name.container", <<_EOF_);
 Description=Test nginx container
 After=network.target
 
-[Container]
-Image=$unit_name.build
-Volume=$unit_name.volume:/opt
-Pod=$unit_name.pod
-
 [Service]
 Restart=always
 # Extend Timeout to allow time to pull the image
@@ -61,6 +61,10 @@ TimeoutStartSec=120
 
 [Install]
 WantedBy=multi-user.target
+
+[Container]
+Volume=$unit_name.volume:/opt
+Pod=$unit_name.pod
 _EOF_
 
 my @systemd_volume = ("$quadlet_dir/$unit_name.volume", <<_EOF_);
@@ -71,13 +75,12 @@ Label=org.test.Key=TESTING
 _EOF_
 
 my @files = (\@systemd_build, \@containerfile, \@systemd_network, \@systemd_pod, \@systemd_container, \@systemd_volume);
-my @units = map { "$unit_name$_.service" } ("", "-pod", "-build", "-network", "-volume");
+my @units;
 
-sub check_unit_states {
+sub check_unit_enabled {
+    my $unit = shift;
     my $expected = shift // 'generated';
-    foreach my $unit (@units) {
-        validate_script_output("systemctl --no-pager is-enabled $unit", qr/$expected/, proceed_on_failure => 1);
-    }
+    validate_script_output("systemctl --no-pager is-enabled $unit", qr/$expected/, proceed_on_failure => 1);
 }
 
 sub run {
@@ -98,30 +101,32 @@ sub run {
     record_info('Unit', script_output("$quadlet -v -dryrun"));
 
     # check that services are not present yet
-    check_unit_states('not-found');
+    for my $unit (@units) {
+        check_unit_enabled($unit, 'not-found');
+    }
 
     # start the generator and check whether the files are generated
     systemctl("daemon-reload");
-    check_unit_states();
     for my $unit (@units) {
+        check_unit_enabled($unit);
         systemctl("is-active $unit", expect_false => 1);
     }
 
     # start build unit
-    script_retry("podman pull $src_image", retry => 3, delay => 60, timeout => 180);
-    systemctl("start $unit_name-build.service", timeout => 180);
-    record_info('Build output', script_output("journalctl --no-pager -u $unit_name-build"));
-
-    systemctl("is-active $unit_name-build.service", expect_false => 1);
-    validate_script_output('podman images -n', qr/$build_imagetag/);
+    if ($has_build) {
+        script_retry("podman pull $src_image", retry => 3, delay => 60, timeout => 180);
+        systemctl("start $unit_name-build.service", timeout => 180);
+        record_info('Build output', script_output("journalctl --no-pager -u $unit_name-build"));
+        systemctl("is-active $unit_name-build.service", expect_false => 1);
+        validate_script_output('podman images -n', qr/$build_imagetag/);
+    }
 
     # start the container
     systemctl("start $unit_name.service");
-    check_unit_states();
-    systemctl("is-active $unit_name.service");
-    systemctl("is-active $unit_name-pod.service");
-    systemctl("is-active $unit_name-volume.service");
-    systemctl("is-active $unit_name-network.service");
+    for my $unit (@units) {
+        check_unit_enabled($unit);
+        systemctl("is-active $unit.service") unless $unit == "$unit_name-build";
+    }
 
     # check if the network exists on host
     my $net_if = script_output("podman network inspect -f '{{.NetworkInterface}}' systemd-$unit_name");
@@ -136,10 +141,21 @@ sub run {
     systemctl("disable --now $unit_name.service");
     systemctl("stop $unit_name-volume.service");
     systemctl("stop $unit_name-network.service");
-    systemctl("stop $unit_name-build.service");
+    systemctl("stop $unit_name-build.service") unless ($has_build);
     for my $unit (@units) {
         systemctl("is-active $unit", expect_false => 1);
     }
+}
+
+sub pre_run_hook {
+    my @unit_suffixes = ("", "-pod", "-network", "-volume");
+    if ($has_build) {
+        push @unit_suffixes, "-build";
+        $systemd_container[1] .= "Image=$unit_name.build\n";
+    } else {
+        $systemd_container[1] .= "Image=registry.opensuse.org/opensuse/nginx:latest\n";
+    }
+    @units = map { "$unit_name$_.service" } @unit_suffixes;
 }
 
 sub cleanup {
@@ -156,6 +172,7 @@ sub post_run_hook {
     $podman->cleanup_system_host();
     cleanup();
 }
+
 sub post_fail_hook {
     my $podman = shift->containers_factory('podman');
     $podman->cleanup_system_host();
