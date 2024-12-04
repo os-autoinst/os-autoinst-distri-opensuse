@@ -49,6 +49,8 @@
 
 <p><b>destination_ip</b>: Destination host IP - default value is defined by OpenQA parameter REDIRECT_DESTINATION_IP</p>
 
+<p><b>switch_root</b>: Switch to root after login with unprivileged user with &#39;sudo su -&#39;. User <b>MUST</b> have passwordless sudo permission.</p>
+
 <p><b>fail_ok</b>: Do not die, return 0 instead. Good for verifying if redirection works.</p>
 
 <p>Establishes ssh connection to destination host and redirects serial output to serial console on worker VM. Connection activates remote port forwarding of OpenQA QEMUPORT+1. This allows running standard OpenQA modules directly on a remote host accessed from worker VM via SSH. Returns 1 if redirection was successful, or dies if redirection fails. If <b>fail_ok</b> is set to true, function does not fail, but returns 0.</p>
