@@ -38,7 +38,7 @@ subtest '[connect_target_to_serial] Test exceptions' => sub {
     unset_vars();
 };
 
-subtest '[connect_target_to_serial]' => sub {
+subtest '[connect_target_to_serial] Connect with unprivileged user' => sub {
     my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
     my @ssh_cmd;
     my $redirection_status;
@@ -53,14 +53,32 @@ subtest '[connect_target_to_serial]' => sub {
     connect_target_to_serial(destination_ip => '192.168.1.1', ssh_user => 'Totoro');
     note('CMD:', join(' ', @ssh_cmd));
     ok(grep(/ssh/, @ssh_cmd), 'Execute main command');
+    ok(grep(/-t/, @ssh_cmd), 'Force pseudo terminal');
     ok(grep(/-o StrictHostKeyChecking=no/, @ssh_cmd), 'Disable strict host key checking');
     ok(grep(/-o ServerAliveInterval=60/, @ssh_cmd), 'Set option: "ServerAliveInterval"');
     ok(grep(/-o ServerAliveCountMax=120/, @ssh_cmd), 'Set option: "ServerAliveCountMax"');
     ok(grep(/-o ConnectionAttempts=3/, @ssh_cmd), 'Set option: "ConnectionAttempts"');
     ok(grep(/Totoro\@192.168.1.1/, @ssh_cmd), 'Host login');
     ok(grep(/2>&1 | tee -a \/dev\/ttyS0/, @ssh_cmd), 'Redirect output to serial device');
-
     is get_var('AUTOINST_URL_HOSTNAME'), 'localhost', 'Function must set "AUTOINST_URL_HOSTNAME" to "localhost"';
+    unset_vars();
+};
+
+subtest '[connect_target_to_serial] Switch root option' => sub {
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my @ssh_cmd;
+    my $redirection_status;
+    $redirect->redefine(enter_cmd => sub { @ssh_cmd = @_; return 1; });
+    # At this point Redirection is expected to work, therefore change $redirection_status to 1, so next check passed
+    $redirect->redefine(handle_login_prompt => sub { $redirection_status = 1; return; });
+    $redirect->redefine(record_info => sub { return; });
+    $redirect->redefine(check_serial_redirection => sub { return $redirection_status; });
+    $redirect->redefine(script_output => sub { return 'castleinthesky'; });
+    set_var('QEMUPORT', '1988');
+
+    connect_target_to_serial(destination_ip => '192.168.1.1', ssh_user => 'Totoro', switch_root => 'yes');
+    note('CMD:', join(' ', @ssh_cmd));
+    ok(grep(/sudo su \-/, @ssh_cmd), 'Check root switching command');
     unset_vars();
 };
 

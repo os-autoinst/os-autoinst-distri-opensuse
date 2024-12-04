@@ -23,10 +23,6 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions
   $sut_private_key_path
   generate_resource_group_name);
 
-sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
-}
-
 sub run {
     my ($self, $run_args) = @_;
     select_serial_terminal;
@@ -48,7 +44,9 @@ sub run {
     disconnect_target_from_serial();
 
     # Share inventory data between all tests
-    $self->{sdaf_inventory} = $inventory_data;
+    $run_args->{sdaf_inventory} = $inventory_data;
+    # Create console redirection data
+    $run_args->{redirection_data} = create_redirection_data(inventory_data => $inventory_data);
 
     my @workload_key_vault = @{az_keyvault_list(
             resource_group => generate_resource_group_name(deployment_type => 'workload_zone'))};
