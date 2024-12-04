@@ -84,17 +84,15 @@
       <package>grub2</package>
       <package>sles-release</package>
     </packages>
-    <patterns config:type="list">
+    <patterns t="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
-      <pattern>basesystem</pattern>
-      <pattern>documentation</pattern>
+      <pattern>basic_desktop</pattern>
       <pattern>enhanced_base</pattern>
-      <pattern>gnome_basic</pattern>
-      <pattern>gnome_basis</pattern>
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
-      <pattern>x11_enhanced</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
     </patterns>
     <products config:type="list">
       <product>SLES</product>
@@ -141,7 +139,7 @@
     <timezone>Europe/Berlin</timezone>
   </timezone>
   <services-manager t="map">
-    <default_target>graphical</default_target>
+    <default_target>multi-user</default_target>
     <services t="map">
       <enable t="list">
         <service>sshd</service>

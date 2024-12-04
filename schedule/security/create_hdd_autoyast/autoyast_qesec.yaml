@@ -1,8 +1,7 @@
 ---
-name: autoyast_gnome
+name: autoyast_qesec
 description: >
-  AutoYaST installation with gnome using default partitioning. Installation is
-  validated by execution set of smoke userspace tests.
+  Autoyast installation of a gnome/textmode SLES system. 
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
