@@ -29,7 +29,7 @@ sub run {
     # Install iscsi and make sure multipath-tools are installed
     zypper_call("in open-iscsi multipath-tools");
 
-    # Start isci amd multipath services
+    # Start isci and multipath services
     systemctl 'start iscsid';
     systemctl 'start multipathd';
     systemctl 'status multipathd';
