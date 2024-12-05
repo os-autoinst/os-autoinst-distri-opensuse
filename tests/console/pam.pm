@@ -54,6 +54,7 @@ sub run {
     my $limit_pam_version = '1.5.0';
     my $ret = "";
     my $tap_results = "results.tap";
+    assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $pamdir/*.sh");
     if (package_version_cmp($pam_version, $limit_pam_version) >= 0) {
         $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
     } else {

@@ -10,7 +10,7 @@ USER_PAM_BIG_PW='0aXKZztA.d1KYIuFXArmd2jU'
 USER_ERR='pamtestx'
 USER_ERR_PW='pamtestxx'
 ROOT='root'
-ROOT_PW='nots3cr3t'
+ROOT_PW='ROOT_PASSWORD'
 
 setup() {
     # the dir /etc/pam.d/pam_test is static in the tool pam-test

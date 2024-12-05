@@ -128,13 +128,7 @@ sub run {
     my $ret;
     # check that the VM is reachable using both public IP addresses
     foreach (1 .. 2) {
-        $az_cmd = join(' ',
-            'az network public-ip show',
-            "--resource-group $rg",
-            '--name', DEPLOY_PREFIX . "-pub_ip-$_",
-            '--query "ipAddress"',
-            '-o tsv');
-        $vm_ip = script_output($az_cmd);
+        $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-$_");
         $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
 
         my $start_time = time();
@@ -162,7 +156,8 @@ sub run {
                 'sudo', 'registercloudguest',
                 '--force-new',
                 '-r', "\"$reg_code\"",
-                '-e "testing@suse.com"'));
+                '-e "testing@suse.com"'),
+            timeout => 600);
         assert_script_run(join(' ', $ssh_cmd, 'sudo', 'SUSEConnect -s'));
     }
 }

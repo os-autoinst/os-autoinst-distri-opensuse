@@ -83,7 +83,7 @@ Description=Load bnxt_en driver manually
 After=sshd.service
 [Service]
 Type=oneshot
-ExecStart=modprobe bnxt_en
+ExecStart=/sbin/modprobe bnxt_en
 TimeoutSec=0
 RemainAfterExit=no
 TasksMax=12000

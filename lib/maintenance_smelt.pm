@@ -10,16 +10,19 @@ use warnings;
 use testapi;
 use List::Util qw(first);
 use Mojo::UserAgent;
+use version_utils qw(is_sle);
 
 use base "Exporter";
 use Exporter;
+
+my $smelt_url = get_var("SMELT_URL", "https://smelt.suse.de");
 
 
 our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules is_embargo_update);
 
 sub query_smelt {
     my $graphql = $_[0];
-    my $transaction = Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"});
+    my $transaction = Mojo::UserAgent->new->post("$smelt_url/graphql/" => json => {query => "$graphql"});
     my $resp_code = $transaction->res->code;
     if ($resp_code != 200) {
         record_info "Response: $resp_code", "Unexpected response code from SMELT";
@@ -47,7 +50,10 @@ sub get_packagebins_in_modules {
     # in different modules.
     my ($self) = @_;
     my ($package_name, $module_ref) = ($self->{package_name}, $self->{modules});
-    my $response = Mojo::UserAgent->new->get("https://smelt.suse.de/api/v1/basic/maintained/$package_name/")->result->body;
+    # substitute LTSS-ES, channel name in smelt is all upper case
+    # https://suse.slack.com/archives/C02CLB8TZP1/p1730783709126159
+    foreach (@{$module_ref}) { $_ =~ s/12-SP5-LTSS-Extended-Security/12-SP5-LTSS-EXTENDED-SECURITY/ if is_sle('=12-sp5'); }
+    my $response = Mojo::UserAgent->new->get("$smelt_url/api/v1/basic/maintained/$package_name/")->result->body;
     my $graph = JSON->new->utf8->decode($response);
     # Get the modules to which this package provides binaries.
     my @existing_modules = grep { exists($graph->{$_}) } @{$module_ref};
@@ -67,7 +73,7 @@ sub get_packagebins_in_modules {
 sub is_embargo_update {
     my ($incident, $type) = @_;
     return 0 if ($type =~ /PTF/);
-    my $url = "https://smelt.suse.de/api/v1/basic/incidents/$incident/";
+    my $url = "$smelt_url/api/v1/basic/incidents/$incident/";
     my $res = Mojo::UserAgent->new->get($url)->result;
     die "Request to $url failed, response code " . $res->code if $res->code > 299;
     return defined($res->json->{embargo});

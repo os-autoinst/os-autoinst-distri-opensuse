@@ -31,7 +31,7 @@ sub run() {
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
         my $dovecot_repo = get_required_var("DOVECOT_REPO");
         # Add dovecot repository and install dovecot
-        zypper_call("ar ${dovecot_repo} dovecot_repo");
+        zypper_call("ar -f ${dovecot_repo} dovecot_repo");
 
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);

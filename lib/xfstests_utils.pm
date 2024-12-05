@@ -27,6 +27,7 @@ use mmapi;
 use version_utils 'is_public_cloud';
 use LTP::utils;
 use LTP::WhiteList;
+use bugzilla;
 
 # Heartbeat variables, need to sync with tests/xfstests/run.pm
 my $HB_PATN = '<h>';    #shorter label <heartbeat> to getting stable under heavy stress
@@ -471,26 +472,16 @@ sub collect_fs_status {
     }
     if ($fstype eq 'xfs') {
         $cmd = <<END_CMD;
-echo "==> /sys/fs/$fstype/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
-cat /sys/fs/$fstype/stats/stats >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$fstype/*/log/* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$fstype/*/stats/stats >> $LOG_DIR/$category/$num.fs_stat
-xfs_info $TEST_FOLDER > $LOG_DIR/$category/$num.xfsinfo
+find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat
+xfs_info $TEST_FOLDER >> $LOG_DIR/$category/$num.xfsinfo
 xfs_info $SCRATCH_FOLDER >> $LOG_DIR/$category/$num.xfsinfo
 END_CMD
     }
     elsif ($fstype eq 'btrfs') {
-        $cmd = <<END_CMD;
-tail -n +1 /sys/fs/$fstype/*/allocation/data/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$fstype/*/allocation/metadata/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$fstype/*/allocation/metadata/dup/* >> $LOG_DIR/$category/$num.fs_stat
-tail -n +1 /sys/fs/$fstype/*/allocation/*/single/* >> $LOG_DIR/$category/$num.fs_stat
-END_CMD
+        $cmd = "find /sys/fs/$fstype/*/allocation/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
     }
     elsif ($fstype eq 'ext4') {
-        $cmd = <<END_CMD;
-tail -n +1 /sys/fs/$fstype/*/* >> $LOG_DIR/$category/$num.fs_stat
-END_CMD
+        $cmd = "find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
     }
     elsif ($fstype eq 'nfs') {
         enter_cmd("$cmd");
@@ -501,6 +492,7 @@ umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
     enter_cmd("$cmd");
+    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +"));
 }
 
 =head2 copy_all_log

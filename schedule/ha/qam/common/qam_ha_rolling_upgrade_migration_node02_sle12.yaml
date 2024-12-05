@@ -54,3 +54,6 @@ conditional_schedule:
     LTSS_TO_LTSS:
       1:
         - migration/online_migration/register_ltss
+    LTSS_TO_LTSS_ES:
+      1:
+        - migration/online_migration/register_ltss

@@ -352,7 +352,7 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
-        my @addons_with_code = qw(geo live rt ltss ses espos);
+        my @addons_with_code = qw(geo live rt ltss ltss_es ses espos);
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
@@ -371,11 +371,7 @@ sub register_addons {
                 assert_and_click("scc-code-field-$addon", timeout => 240);
             }
             # avoid duplicated tests to manage LTSS regcode by integrating new variables
-            if ($addon eq "ltss") {
-                my $os_sp_version = get_var("HDDVERSION");
-                $os_sp_version =~ s/-/_/g;
-                $regcode = get_var("SCC_REGCODE_LTSS_$os_sp_version", $regcode);
-            }
+            $regcode = get_ltss_regcode($regcode) if $addon eq "ltss";
             type_string $regcode;
             save_screenshot;
             $regcodes_entered++;
@@ -383,6 +379,20 @@ sub register_addons {
     }
 
     return $regcodes_entered;
+}
+
+sub get_ltss_regcode {
+    my $regcode = shift;
+    if (my $os_version = get_var("HDDVERSION")) {
+        $os_version =~ s/-/_/g;
+        return get_var("SCC_REGCODE_LTSS_$os_version", $regcode);
+    }
+    elsif ($os_version = get_var("VERSION_TO_INSTALL")) {
+        # Check if VERSION_TO_INSTALL contains "12" or "15"
+        return get_var("SCC_REGCODE_LTSS_12", $regcode) if $os_version =~ /12/;
+        return get_var("SCC_REGCODE_LTSS_15", $regcode) if $os_version =~ /15/;
+    }
+    return $regcode;
 }
 
 sub assert_registration_screen_present {
@@ -487,6 +497,12 @@ sub process_scc_register_addons {
         my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
         # remove empty elements
         @scc_addons = grep { $_ ne '' } @scc_addons;
+        # For HA LTSS_TO_LTSS_ES migration if the original version is 12-SP4 then it only has LTSS
+        if ((grep { $_ == 'ltss_es' } @scc_addons) && get_var('LTSS_TO_LTSS_ES') && is_sle('=12-SP4')) {
+            foreach my $addon (@scc_addons) {
+                $addon =~ s/ltss_es/ltss/g;
+            }
+        }
 
         for my $addon (@scc_addons) {
             next if (skip_package_hub_if_necessary($addon));
@@ -559,7 +575,7 @@ sub process_scc_register_addons {
             # Similarly for encrypted partitions activation
             push @needles, 'encrypted_volume_activation_prompt' if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'));
         }
-        push @needles, 'sles4sap-product-installation-mode' if (is_sles4sap() && is_sle('<=12-SP3'));
+        push @needles, 'sles4sap-product-installation-mode' if (is_sles4sap() && is_sle('<=12-SP5'));
         while ($counter--) {
             die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen([@needles], 90);
@@ -755,7 +771,7 @@ sub select_addons_in_textmode {
             record_info("Module preselected", "Module $addon is already selected and installed by default");
             # As we are not selecting this, scc will not bounce the focus,
             # hence we need to go up manually.
-            for (1 .. 15) {
+            for (1 .. 16) {
                 send_key 'up';
             }
         }
@@ -1075,7 +1091,10 @@ sub runtime_registration {
     if (is_transactional) {
         trup_call('register' . $cmd);
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
-        add_suseconnect_product('SL-Micro-Extras') if (is_sle_micro('>=6.0'));
+        if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
+            process_reboot(trigger => 1);
+            add_suseconnect_product('SL-Micro-Extras');
+        }
         process_reboot(trigger => 1);
     }
     else {

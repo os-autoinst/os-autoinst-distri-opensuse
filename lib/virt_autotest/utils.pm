@@ -29,7 +29,7 @@ use Carp;
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_sev_es_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
   is_monolithic_libvirtd turn_on_libvirt_debugging_log restart_libvirtd check_libvirtd restart_modular_libvirt_daemons check_modular_libvirt_daemons
   reset_log_cursor check_failures_in_journal check_host_health check_guest_health print_cmd_output_to_file collect_virt_system_logs setup_rsyslog_host download_script download_script_and_execute upload_virt_logs enable_nm_debug upload_nm_debug_log
-  ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
+  ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_sles is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
   create_guest import_guest ssh_copy_id add_guest_to_hosts ensure_default_net_is_active ensure_guest_started remove_additional_disks remove_additional_nic start_guests is_guest_online ensure_online wait_guest_online restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests shutdown_guests wait_guests_shutdown remove_vm recreate_guests download_vm_import_disks get_guest_regcode
 );
 
@@ -912,6 +912,16 @@ sub check_port_state {
     return $port_state;
 }
 
+#Detect whether SUT host is installed with scc registration
+sub is_registered_sles {
+    if (!get_var('SCC_REGISTER') || check_var('SCC_REGISTER', 'none') || check_var('SCC_REGISTER', '')) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+}
+
 =head2 is_registered_system
 
   is_registered_system(dst_machine => $machine)
@@ -1254,7 +1264,7 @@ in to preserve order. For multiple guest patterns, an empty registration
 code for specific guest pattern will not be filled out by any default
 value and at the same time this  means registration code is not needed
 for it at all. This subroutine has one argument separator and returns
-generated registration codes joined together by specified separator.  
+generated registration codes joined together by specified separator.
 
 =cut
 
@@ -1269,7 +1279,14 @@ sub get_guest_regcode {
     my $regcode_ltss = get_var("GUEST_SCC_REGCODE_LTSS", "");
     my $count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $guest)) : scalar(split("$args{separator}", $guest)));
     $regcode = join("$args{separator}", (get_var("SCC_REGCODE", "")) x $count) if (!$regcode);
-    $regcode_ltss = join("$args{separator}", (get_var("SCC_REGCODE_LTSS_15", "")) x $count) if (!$regcode_ltss);
+    if (!$regcode_ltss) {
+        my @guest_parts = $args{separator} eq '|' ? split("\\$args{separator}", $guest) : split("$args{separator}", $guest);
+        my @regcode_ltss_parts;
+        for my $part (@guest_parts) {
+            push @regcode_ltss_parts, ($part =~ /12/ ? get_var("SCC_REGCODE_LTSS_12", "") : $part =~ /15/ ? get_var("SCC_REGCODE_LTSS_15", "") : "");
+        }
+        $regcode_ltss = join($args{separator}, @regcode_ltss_parts);
+    }
     return $regcode, $regcode_ltss;
 }
 

@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro);
 use mm_network;
 use Utils::Backends;
 
@@ -482,30 +482,40 @@ sub uefi_bootmenu_params {
 
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (!is_sle('=12-SP5') || is_opensuse)) {
+    # The main branch should be used only for bootable pre-installed images that contain already full
+    # grub2 configuration
+    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_leap_micro || is_microos || is_sle_micro)) {
+        # skip healthchecker lines
+        if (is_leap_micro || is_microos || is_sle_micro) {
+            send_key "down" for (1 .. 4);
+        }
 
-        for (1 .. 3) { send_key "down"; }
-        send_key "end";
-        # delete "keep" word
-        for (1 .. 4) { send_key "backspace"; }
-        # hardcoded the value of gfxpayload to 1024x768
-        type_string "1024x768";
-        assert_screen "gfxpayload_changed", 10;
-        # back to the entry position
-        send_key "home";
-        for (1 .. 6) { send_key "down"; }
+        # navigate to gfxpayload=keep
+        if (!get_var('OFW')) {
+            my $gfx = is_sle('=12-SP5') ? 2 : 3;
+            send_key "down" for (1 .. $gfx);
+            wait_screen_change(sub { send_key "end"; }, 5);
+            # delete "keep" word
+            send_key "backspace" for (1 .. 4);
+            # hardcoded the value of gfxpayload to 1024x768
+            type_string "1024x768";
+            assert_screen "gfxpayload_changed", 10;
+        }
+
+        # navigate to the beginning of the line containing *linux* command
+        wait_screen_change(sub { send_key "home"; }, 5);
+        my $linux = is_sle('=12-SP5') ? 2 : 6;
         # On Leap/SLE we need to move down (grub 2.04)
         # skip additional movement downwards in
         # sle15sp4+, leap15.4+ and TW (grub 2.06)
-        if (is_sle('<15-SP4') || is_leap('<15.4')) {
-            for (1 .. 4) { send_key "down"; }
+        $linux += 4 if is_sle('>12-SP5') && is_sle('<15-SP4');
+        if (get_var('FLAVOR', '') =~ /encrypt/i) {
+            $linux += is_sle_micro('6.1+') ? 11 : 10;
         }
+        $linux-- if get_var('OFW');
+        send_key "down" for (1 .. $linux);
     }
     else {
-        if ((is_sle_micro || is_microos) && get_var('BOOT_HDD_IMAGE')) {
-            # skip healthchecker lines
-            for (1 .. 5) { send_key "down"; }
-        }
         for (1 .. 2) { send_key "down"; }
         send_key "end";
         # delete "keep" word
@@ -516,17 +526,12 @@ sub uefi_bootmenu_params {
         # back to the entry position
         send_key "home";
         for (1 .. 2) { send_key "up"; }
-        if (is_jeos) {
-            send_key "up";
-        }
         sleep 5;
         for (1 .. 4) { send_key "down"; }
-        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
-            for (1 .. 7) { send_key "down"; }
-        }
     }
 
     send_key "end";
+    save_screenshot();
 
     if (get_var("NETBOOT")) {
         type_string_slow " install=" . get_netboot_mirror;
@@ -1070,13 +1075,11 @@ sub tianocore_enter_menu {
 }
 
 sub tianocore_disable_secureboot {
-
     my ($basetest, $revert) = @_;
 
     my $neelle_sb_conf_attempt = $revert ? 'tianocore-devicemanager-sb-conf-disabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
     my $neelle_sb_change_state = $revert ? 'tianocore-devicemanager-sb-conf-enabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
     my $neelle_sb_config_state = $revert ? 'tianocore-secureboot-enabled' : 'tianocore-secureboot-not-enabled';
-    my $timeout = is_aarch64 ? '30' : '20';
 
     assert_screen 'grub2';
     send_key 'c';
@@ -1099,7 +1102,6 @@ sub tianocore_disable_secureboot {
     send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
-    send_key 'ret' if (!is_aarch64() && check_screen($neelle_sb_config_state, $timeout));
     $basetest->wait_grub;
 }
 

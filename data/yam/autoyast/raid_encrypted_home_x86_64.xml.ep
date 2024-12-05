@@ -84,7 +84,7 @@
       <partitions t="list">
         <partition t="map">
           <create t="boolean">false</create>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <crypt_method t="symbol">luks1</crypt_method>
           <filesystem t="symbol">xfs</filesystem>
           <format t="boolean">false</format>

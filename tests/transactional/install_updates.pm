@@ -27,10 +27,10 @@ sub run {
         assert_script_run 'update-ca-certificates -v';
 
         # Clean the journal to avoid capturing bugs that are fixed after installing updates
-        assert_script_run('journalctl --no-pager -o short-precise | tail -n +2 > /tmp/journal_before');
-        upload_logs('/tmp/journal_before');
-        assert_script_run('journalctl --sync --flush --rotate --vacuum-time=1second');
-        assert_script_run('rm /tmp/journal_before');
+        assert_script_run 'journalctl --no-pager -o short-precise | tail -n +2 > /tmp/journal_before';
+        upload_logs '/tmp/journal_before';
+        assert_script_run 'journalctl --sync --flush --rotate --vacuum-time=1second';
+        assert_script_run 'rm /tmp/journal_before';
     }
 
     # First we update the system
@@ -39,7 +39,16 @@ sub run {
     # Now we add the incident repositories and do a zypper patch
     add_test_repositories;
     record_info('Updates', script_output('zypper lu'));
-    my $ret = trup_call('up', timeout => 300, proceed_on_failure => 1);
+    trup_call('up', timeout => 300, proceed_on_failure => 1) unless get_var('DISABLE_UPDATE_WITH_PATCH');
+
+    # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
+    # see poo#169090
+    if (is_sle_micro) {
+        assert_script_run 'tar czf /tmp/audit_before.tgz /var/log/audit';
+        upload_logs '/tmp/audit_before.tgz';
+        assert_script_run 'rm -f /var/log/audit/* /tmp/audit_before.tgz';
+        # upon reboot, auditd service will be restarted and logfile recreated
+    }
     process_reboot(trigger => 1);
 }
 

@@ -49,8 +49,13 @@ our @EXPORT = qw(
   az_nic_name_get
   az_ipconfig_name_get
   az_ipconfig_update
+  az_ipconfig_delete
   az_ipconfig_pool_add
   az_storage_account_create
+  az_storage_blob_list
+  az_storage_blob_upload
+  az_storage_blob_update
+  az_storage_blob_lease_acquire
   az_network_peering_create
   az_network_peering_list
   az_network_peering_delete
@@ -58,6 +63,9 @@ our @EXPORT = qw(
   az_resource_delete
   az_resource_list
   az_validate_uuid_pattern
+  az_keyvault_list
+  az_keyvault_secret_list
+  az_keyvault_secret_show
 );
 
 
@@ -1062,6 +1070,38 @@ sub az_ipconfig_update {
     assert_script_run($az_cmd, timeout => 900);
 }
 
+=head2 az_ipconfig_delete
+
+    az_ipconfig_delete(
+        resource_group => 'openqa-rg',
+        ipconfig_name => 'openqa-ipconfig',
+        nic_name => 'openqa-nic')
+
+Delete a specific IpConfig to use a static IP
+
+=over
+
+=item B<resource_group> - existing resource group
+
+=item B<ipconfig_name> - existing IP configuration NAME (eg. from az_ipconfig_name_get)
+
+=item B<nic_name> - existing NIC NAME (eg. from az_nic_name_get)
+
+=back
+=cut
+
+sub az_ipconfig_delete {
+    my (%args) = @_;
+    foreach (qw(resource_group ipconfig_name nic_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az network nic ip-config delete',
+        '--resource-group', $args{resource_group},
+        '--name', $args{ipconfig_name},
+        '--nic-name', $args{nic_name});
+    assert_script_run($az_cmd);
+}
+
 =head2 az_ipconfig_pool_add
 
     az_ipconfig_pool_add(
@@ -1257,7 +1297,7 @@ sub az_network_peering_create {
 
     my $res = az_network_peering_list(
         resource_group => 'openqa-rg',
-        vnet => 'openqa-this-vnet')
+        vnet => 'openqa-this-vnet' [, query=>'[].name'])
 
 Return HASH representing existing net peering
 
@@ -1457,3 +1497,285 @@ sub az_validate_uuid_pattern {
     return 0;
 }
 
+
+=head2 az_storage_blob_upload
+
+    az_storage_blob_upload(
+        container_name=>'somecontainer',
+        storage_account_name=>'storageaccount',
+        file=>'somefilename' [, timeout=>42]);
+
+Uploads file to a storage container.
+
+=over 4
+
+=item B<container_name> Existing storage container name.
+
+=item B<storage_account_name> Storage account name.
+
+=item B<file> File to upload.
+
+=item B<timeout> Timeout for az command. Default: 90s
+
+=back
+=cut
+
+sub az_storage_blob_upload {
+    my (%args) = @_;
+    foreach ('container_name', 'storage_account_name', 'file') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    $args{timeout} //= '90';
+
+    my $az_cmd = join(' ',
+        'az storage blob upload',
+        '--only-show-errors',
+        "--container-name $args{container_name}",
+        "--account-name $args{storage_account_name}",
+        "--file $args{file}"
+    );
+    assert_script_run(join(' ', $az_cmd), timeout => $args{timeout});
+}
+
+=head2 az_storage_blob_lease_acquire
+
+    az_storage_blob_lease_acquire(
+        container_name=>'somecontainer',
+        storage_account_name=>'storageaccount',
+        blob_name => 'somefilename' [, lease_duration=>'42']
+    );
+
+Acquire a lease for a storage blob. Function returns UUID which is then required to modify the file and gives the
+UUID owner exclusive rights.
+Optionally B<lease_duration> can be defined to limit this file lock up to 60s instead of infinity.
+In case of function returns nothing, the reasons may vary and it is up to caller to decide how to deal with the result.
+In that case
+Possible reasons are that there is already a lease present (az cli returns a message which is not a valid UUID)
+
+=over 4
+
+=item B<container_name> Existing storage container name.
+
+=item B<storage_account_name> Storage account name.
+
+=item B<blob_name> Blob name to acquire lease for.
+
+=item B<lease_duration> Lease duration between 15-60s. Default: infinite
+
+=back
+=cut
+
+sub az_storage_blob_lease_acquire {
+    my (%args) = @_;
+    foreach ('container_name', 'storage_account_name', 'blob_name') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    $args{lease_duration} //= '-1';    # -1 = infinite lease
+
+    my $az_cmd = join(' ',
+        'az storage blob lease acquire',
+        '--only-show-errors',
+        "--container-name $args{container_name}",
+        "--account-name $args{storage_account_name}",
+        "--blob-name $args{blob_name}",
+        "--lease-duration $args{lease_duration}",
+        '--output tsv'    # Json output won't work here.
+                          # If it is not possible to acquire lease command will return a message which is not in json format.
+                          # decode_json() would cause function to fail instead of just returning
+    );
+
+    my $lease_id = script_output($az_cmd, proceed_on_failure => 1);
+    record_info('AZ CLI out', "AZ CLI returned output:\n $lease_id");
+    return ($lease_id) if az_validate_uuid_pattern(uuid => $lease_id);    # Return only valid output.
+}
+
+=head2 az_storage_blob_list
+
+    az_storage_blob_list(
+        container_name=>'somecontainer',
+        storage_account_name=>'storageaccount' [, query=>'[].name']
+    );
+
+List information about storage blob(s) specified by B<storage_account_name>, B<container_name> and B<query>.
+
+=over 3
+
+=item B<container_name> Existing storage container name.
+
+=item B<storage_account_name> Storage account name.
+
+=item B<query> Query in jmespath format
+
+=back
+=cut
+
+sub az_storage_blob_list {
+    my (%args) = @_;
+    foreach ('container_name', 'storage_account_name') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    $args{query} //= '[].name';
+
+    my $az_cmd = join(' ',
+        'az storage blob list',
+        '--only-show-errors',
+        "--container-name $args{container_name}",
+        "--account-name $args{storage_account_name}",
+        "--query \"$args{query}\"",
+        '--output json'
+    );
+
+    return decode_json(script_output($az_cmd));
+}
+
+=head2 az_storage_blob_update
+
+    az_storage_blob_update(container_name=>'container', account_name=>'stuff', name='blobby' [, lease_id=42]);
+
+Update properties of storage blob. Returns az cli command exit code.
+
+=over 4
+
+=item B<container_name> Existing resource group name.
+
+=item B<account_name> Name of the resource to delete
+
+=item B<name> Blob name
+
+=item B<lease_id> Lease id in case there is a lease put on a file
+
+=back
+=cut
+
+sub az_storage_blob_update {
+    my (%args) = @_;
+    foreach ('container_name', 'account_name', 'name') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+
+    my @az_cmd = ('az storage blob update',
+        '--only-show-errors',
+        '--container-name', $args{container_name},
+        '--account-name', $args{account_name},
+        '--name', $args{name},
+        '--output json'
+    );
+    push(@az_cmd, "--lease-id $args{lease_id}") if $args{lease_id};
+
+    return script_run(join(' ', @az_cmd));
+}
+
+=head2 az_keyvault_list
+
+    az_keyvault_list(resource_group=>'resource group' [, query=>'[].id']);
+
+Lists all keyvault resource names located in specified resource group.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<resource_group> Existing resource group name.
+
+=item B<query> Modify output filter using jmespath query
+
+=back
+=cut
+
+sub az_keyvault_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    $args{query} //= '[].name';
+
+    my @az_cmd = ('az keyvault list',
+        '--only-show-errors',
+        '--resource-group', $args{resource_group},
+        '--query', "$args{query}",
+        '--output json'
+    );
+
+    return decode_json(script_output(join(' ', @az_cmd)));
+}
+
+=head2 az_keyvault_secret_list
+
+    az_keyvault_secret_list(vault_name=>'Gringotts' [, query=>'[].id']);
+
+Lists all keyvault secret names located in specified keyvault.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<vault_name> Existing keyvault name.
+
+=item B<query> Modify output filter using jmespath query
+
+=back
+=cut
+
+sub az_keyvault_secret_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'vault_name'" unless $args{vault_name};
+    $args{query} //= '[].name';
+
+    my @az_cmd = ('az keyvault secret list',
+        '--only-show-errors',
+        '--vault-name', $args{vault_name},
+        '--query', "$args{query}",
+        '--output json'
+    );
+
+    return decode_json(script_output(join(' ', @az_cmd)));
+}
+
+=head2 az_keyvault_secret_show
+
+    az_keyvault_secret_show(id=>'someid'
+        [, name=>'Vault 713', vault_name=>'Gringotts', query=>'[].id', output=>'json', save_to_file=>'/alohomora']);
+
+Lists all keyvault secret names located in specified keyvault.
+Output can be modified using B<query> argument.
+
+=over
+
+=item B<id> Existing secret resource ID. B<name> and B<vault_name> not needed if this is specified.
+
+=item B<name> Existing secret name. Required if B<id> not used.
+
+=item B<vault_name> Existing keyvault name. Required if B<id> not used.
+
+=item B<query> Modify output filter using jmespath query. Default: value
+
+=item B<output> Output format.  Allowed values: json, tsv. Default: tsv.
+
+=item B<save_to_file> Save output to a file specified.
+    This can be used to prevent the secret being shown in OpenQA outputs. Default: undefined/false
+
+=back
+=cut
+
+sub az_keyvault_secret_show {
+    my (%args) = @_;
+    croak 'Argument "id" cannot be used together with "name" and "vault_name".'
+      if $args{id} and grep(/name|vault_name/, keys %args);
+    croak 'Missing mandatory argument: id' if !$args{id} and !grep(/name|vault_name/, keys %args);
+    foreach ('name', 'vault_name') {
+        croak 'Missing mandatory argument: ' . $_ if !$args{id} and !$args{$_};
+    }
+
+    $args{query} //= 'value';
+    # 'tsv' is default because json mangles newlines. It's easier to use output directly.
+    $args{output} //= 'tsv';
+
+    my @az_cmd = ('az keyvault secret show',
+        '--only-show-errors',
+        '--query', "$args{query}",
+        '--output', "$args{output}"
+    );
+    push(@az_cmd, "--vault-name $args{vault_name}") if $args{vault_name};
+    push(@az_cmd, "--name $args{name}") if $args{name};
+    push(@az_cmd, "--id $args{id}") if $args{id};
+    push(@az_cmd, "> $args{save_to_file}") if $args{save_to_file};
+
+    return decode_json(script_output(join(' ', @az_cmd))) if $args{output} eq 'json';
+    return script_output(join(' ', @az_cmd));
+}

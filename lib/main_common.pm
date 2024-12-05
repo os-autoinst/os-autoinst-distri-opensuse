@@ -1100,13 +1100,14 @@ sub load_inst_tests {
         loadtest "installation/resolve_dependency_issues" unless (get_var("DEPENDENCY_RESOLVER_FLAG") || get_var('KERNEL_64KB_PAGE_SIZE'));
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
-        # SELinux relabel reboots, so grub needs to timeout
-        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || get_var('SELINUX');
+        # SELinux relabel reboots on SLE <16 and Leap <16.0, so grub needs to timeout
+        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || (get_var('SELINUX') && (is_sle('<16') || is_leap('<16.0')));
         loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT');
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
-        loadtest "installation/enable_selinux" if get_var('SELINUX');
+        # Do not run enable_selinux in systems that have SELinux by default (bsc#1230118)
+        loadtest "installation/enable_selinux" if get_var('SELINUX') && !has_selinux_by_default;
 
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
@@ -1734,7 +1735,7 @@ sub load_extra_tests_console {
     loadtest "console/salt" if (is_jeos || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
-    loadtest "console/clamav";
+    loadtest "console/clamav" unless is_arm;
     loadtest "console/shells";
     loadtest 'console/sudo';
     # dstat is not in sle12sp1
@@ -2309,7 +2310,8 @@ sub load_system_prepare_tests {
     loadtest 'kernel/install_kernel_flavor' if get_var('KERNEL_FLAVOR');
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
-    loadtest 'console/check_selinux_fails' if get_var('SELINUX');
+    # Check SELinux failures if SELinux is enabled
+    loadtest 'console/check_selinux_fails' if has_selinux;
     loadtest 'security/cc/ensure_crypto_checks_enabled' if check_var('SYSTEM_ROLE', 'Common_Criteria');
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
@@ -2387,10 +2389,12 @@ sub set_mu_virt_vars {
     $BUILD =~ /^:(\d+):([^:]+)$/im;
 
     die "BUILD value is $BUILD, but does not match required format." if (!$2);
-
     my $_pkg = $2;
     my $_update_package = '';
-    if ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
+    # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
+    if ($_pkg =~ /none/) {
+        $_update_package = '';
+    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
@@ -2402,6 +2406,8 @@ sub set_mu_virt_vars {
     bmwqemu::save_vars();
     diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
 
+    # Check if repo is LTSS-Extended-Security and sets EXTENDED_SECURITY to 1
+    set_var('EXTENDED_SECURITY', (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? 1 : 0);
     # Set PATCH_WITH_ZYPPER
     set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
 }

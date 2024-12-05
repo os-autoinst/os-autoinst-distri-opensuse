@@ -126,7 +126,9 @@ sub run {
             $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
             $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
             $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
-            $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
+            my $install_path = "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
+            $install_path = 'install=' . get_required_var('MIRROR_HTTP') . "$device " if (get_var('FORCE_INSTALL_FROM_MIRROR_HTTP'));
+            $image_path .= $install_path;
         }
     }
     elsif (match_has_tag('pxe-menu')) {
@@ -184,6 +186,11 @@ sub run {
     # from disk.
     die 'PXE boot failed, installation repository likely does not exist'
       if (check_screen('pxe-kernel-not-found', timeout => 5));
+
+    # Click 'Yes' if prompted to download a matching boot image
+    if (get_var('PXE_PRODUCT_NAME') && get_var('FORCE_INSTALL_FROM_MIRROR_HTTP')) {
+        send_key 'ret' if (check_screen('download-matching-boot-image', 420));
+    }
 
     if (is_ipmi && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 420;

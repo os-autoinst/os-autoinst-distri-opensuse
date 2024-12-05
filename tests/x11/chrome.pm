@@ -24,7 +24,12 @@ sub install_google_repo_key {
 }
 
 sub avoid_async_keyring_popups {
-    x11_start_program('google-chrome --password-store=basic', target_match => 'chrome-default-browser-query');
+    x11_start_program('google-chrome --password-store=basic', target_match => [qw(chrome-default-browser-query authentication-required)]);
+    if (match_has_tag 'authentication-required') {
+        type_password;
+        assert_and_click "unlock";
+        assert_screen "chrome-default-browser-query";
+    }
 }
 
 sub preserve_privacy_of_non_human_openqa_workers {

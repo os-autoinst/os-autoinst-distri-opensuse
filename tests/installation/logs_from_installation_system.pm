@@ -29,6 +29,7 @@ use ipmi_backend_utils;
 
 sub run {
     my ($self) = @_;
+
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
 

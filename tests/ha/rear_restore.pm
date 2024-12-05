@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
@@ -23,7 +24,18 @@ sub run {
     assert_screen('rear-boot-screen');
     send_key_until_needlematch('rear-recover-selected', 'up');
     send_key 'ret';
-    $self->wait_boot_past_bootloader;
+
+    # Handle the output error about busy tty0 in ppc64
+    if (is_ppc64le) {
+        check_screen('rear_restore-tty-20241105', 120);
+        send_key 'ret';
+        type_string("root\n");
+        wait_still_screen(3);
+        type_string("clear\n");
+    }
+    else {
+        $self->wait_boot_past_bootloader;
+    }
 
     # Restore the OS backup
     set_var('LIVETEST', 1);    # Because there is no password in ReaR miniOS

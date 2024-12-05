@@ -296,6 +296,7 @@ sub get_expect_script {
     my $expect_script_name = 'get_guest_ip.sh';
     assert_script_run("curl -s -o ~/$expect_script_name " . data_url("mitigation/xen/$expect_script_name"));
     assert_script_run("chmod a+x " . $expect_script_name);
+    assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $expect_script_name");
 }
 sub get_guest_ip {
     return script_output("./get_guest_ip.sh \"${guest_name}\"", timeout => 3600);

@@ -10,6 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_opensuse);
 use utils;
 
 sub run {
@@ -21,11 +22,12 @@ sub run {
     record_info("Podman version", script_output("podman version"));
 
     record_info('Test', 'Launch a container with systemd');
-    assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx registry.suse.com/bci/bci-init:latest");
+    my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-init" : "registry.suse.com/bci/bci-init:latest";
+    assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx $image");
 
     record_info('Test', 'Install nginx');
     # Remove additional repos from the host, nginx package will be installed from BCI repo only.
-    assert_script_run("podman exec nginx rm /usr/lib/zypp/plugins/services/container-suseconnect-zypp");
+    assert_script_run("podman exec nginx rm /usr/lib/zypp/plugins/services/container-suseconnect-zypp") unless (is_opensuse);
     assert_script_run("podman exec nginx zypper -n in nginx");
     assert_script_run("podman exec nginx bash -c 'echo testpage123-content > /srv/www/htdocs/index.html'");
 

@@ -20,14 +20,20 @@ BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
 }
 use bootloader_s390;
+use bootloader_zkvm;
 
 sub run {
     my $self = shift;
 
     # for now using legacy code to handle s390x
-    if (is_s390x() && is_backend_s390x()) {
-        record_info('bootloader_s390x');
-        $self->bootloader_s390::run();
+    if (is_s390x()) {
+        if (is_backend_s390x()) {
+            record_info('bootloader_s390x');
+            $self->bootloader_s390::run();
+        } elsif (is_svirt) {
+            record_info('bootloader_zkvm');
+            $self->bootloader_zkvm::run();
+        }
         return;
     }
 
@@ -38,7 +44,7 @@ sub run {
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         my $path = data_url($agama_auto);
-        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS') . " agama.auto=\"$path\"");
+        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 

@@ -80,6 +80,7 @@ sub prepare_kernel_base {
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-default-base');
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     boot_to_console($self);
 }
 
@@ -304,6 +305,7 @@ sub prepare_kgraft {
     }
 
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm || get_var('LTP_BAREMETAL');
 
     return $incident_klp_pkg;
 }
@@ -440,7 +442,7 @@ sub run {
         $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
     }
 
-    if ((is_ipmi && get_var('LTP_BAREMETAL')) || is_transactional) {
+    if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || is_transactional) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
     } else {
@@ -524,6 +526,7 @@ sub run {
         reboot_on_changes;
     } elsif (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
         $self->wait_boot if get_var('LTP_BAREMETAL');
     }
 }

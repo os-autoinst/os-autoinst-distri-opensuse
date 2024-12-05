@@ -62,7 +62,6 @@ exit 0
       <pattern>enhanced_base</pattern>
       <pattern>enhanced_base-32bit</pattern>
       <pattern>file_server</pattern>
-      <pattern>fips</pattern>
       <pattern>fonts</pattern>
       <pattern>gateway_server</pattern>
       <pattern>kvm_server</pattern>
@@ -84,6 +83,7 @@ exit 0
       <pattern>xen_tools</pattern>
       <pattern>yast2_basis</pattern>
       <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
     </patterns>
     <products t="list">
       <product>SLES</product>

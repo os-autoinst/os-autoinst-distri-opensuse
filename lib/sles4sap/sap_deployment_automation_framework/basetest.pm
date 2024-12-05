@@ -13,12 +13,13 @@ use strict;
 use warnings;
 use testapi;
 use Exporter qw(import);
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables);
+use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file);
 use sles4sap::sap_deployment_automation_framework::deployment_connector
   qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip destroy_orphaned_resources);
 use sles4sap::console_redirection;
 
-our @EXPORT = qw(full_cleanup);
+our @EXPORT = qw(full_cleanup $serial_regexp_playbook);
+our $serial_regexp_playbook = 0;
 
 =head1 SYNOPSIS
 
@@ -68,9 +69,10 @@ sub full_cleanup {
         # Do not fail even if connection is not successful
         $redirection_works = connect_target_to_serial(fail_ok => '1');
     }
-    my $sut_cleanup_message = $redirection_works ?
-      'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.' :
-      'Console redirection works, proceeding with SUT cleanup';
+    my $sut_cleanup_message
+      = $redirection_works
+      ? 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.'
+      : 'Console redirection works, proceeding with SUT cleanup';
     record_info('SUT cleanup', $sut_cleanup_message);
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
@@ -95,6 +97,34 @@ sub full_cleanup {
 
 sub post_fail_hook {
     record_info('Post fail', 'Executing post fail hook');
+    if (testapi::is_serial_terminal()) {
+        # In case playbook/script times out, it will keep occupying the command line,
+        # therefore we need to press Ctrl+c to terminate the process.
+        # Note:
+        #   For playbook please do not use '> ' (or $testapi::distri->{serial_term_prompt})
+        #   as there are lots of '> ' in the output of playbook.
+        #   For playbook/script 'qr/-\d+-/' is usually the last output from playbook/script execution
+        #   For playbook if command contains -v (verbosity) the output may contain 'qr/-\d+-/',
+        #   so here uses 'qr/-\d+-Comment/' for regex as 'script_run(xxx, output => xxx)' is used to run playbook
+        my $match_re = $testapi::distri->{serial_term_prompt};
+        $match_re = qr/-\d+-Comment/ if ($serial_regexp_playbook);
+        unless (wait_serial($match_re)) {
+            type_string('', terminate_with => 'ETX');
+            # Wait for process returns
+            wait_serial(qr/-\d+-/);
+            type_string("\n");
+            if ($serial_regexp_playbook) {
+                record_info('Terminated playbook process');
+                $serial_regexp_playbook = 0;
+                # Upload playbook log file
+                upload_logs($sles4sap::sap_deployment_automation_framework::deployment::output_log_file);
+            }
+            else {
+                record_info('Terminated other script process');
+            }
+        }
+    }
+
     full_cleanup();
 }
 

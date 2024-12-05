@@ -33,22 +33,14 @@ sub run {
         '--query "[0].osProfile.adminUsername"',
         '-o tsv');
     my $vm_user = script_output($az_cmd);
-
-    $az_cmd = join(' ',
-        'az network public-ip show',
-        "--resource-group $rg",
-        '--name', DEPLOY_PREFIX . '-pub_ip-1',
-        '--query "ipAddress"',
-        '-o tsv');
-    my $vm_ip = script_output($az_cmd);
+    my $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-1");
     my $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
 
     # Delete an ip-config
-    $az_cmd = join(' ', 'az network nic ip-config delete',
-        '--resource-group', $rg,
-        '--name ipconfig2',
-        '--nic-name', DEPLOY_PREFIX . '-nic');
-    assert_script_run($az_cmd);
+    az_ipconfig_delete(
+        resource_group => $rg,
+        ipconfig_name => DEPLOY_PREFIX . '-nic',
+        nic_name => 'ipconfig2');
 
     # Intermediate optional test, check on the cloud side
     my $curl_cmd = join(' ', $ssh_cmd,

@@ -359,7 +359,8 @@ sub set_grub_on_vh {
 sub ipmitool {
     my ($cmd) = @_;
 
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
+    my $ipmi_options = $bmwqemu::vars{IPMI_OPTIONS} // '-I lanplus';
+    my @cmd = ('ipmitool', split(' ', $ipmi_options), '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
     push(@cmd, split(/ /, $cmd));
 
     my ($stdin, $stdout, $stderr, $ret);
@@ -568,7 +569,7 @@ sub set_ipxe_bootscript {
 
     $url =~ s/^\s+|\s+$//g;
 
-    diag "setting iPXE bootscript to:\n$content";
+    diag "setting iPXE bootscript on $http_server for $ip to:\n$content";
     my $response = HTTP::Tiny->new->request('POST', $url,
         {content => $content, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";

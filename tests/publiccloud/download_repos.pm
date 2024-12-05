@@ -67,12 +67,6 @@ sub run {
 
         set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
 
-        # workaround for buggy wget
-        my $cutdirs;
-        if (is_sle_micro(">=6.0")) {
-            $cutdirs = '--cut-dirs=5';
-        }
-
         for my $maintrepo (@repos) {
             unless (validate_repo($maintrepo)) {
                 set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
@@ -83,7 +77,7 @@ sub run {
             my ($parent) = $maintrepo =~ 'https?://(.*)$';
             my ($domain) = $parent =~ '^([a-zA-Z.]*)';
 
-            $ret = script_run "wget $cutdirs --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600;
+            $ret = script_run "wget --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600;
             if ($ret !~ /0|8/) {
                 # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
                 record_info('Softfail', "Download /failed (rc=$ret):\n$maintrepo", result => 'softfail');
@@ -95,7 +89,6 @@ sub run {
                     assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s/*.repo), random_string(4), $parent));
                     assert_script_run("find $parent >> /tmp/repos.list.txt");
                 } elsif (is_sle_micro(">=6.0")) {
-                    $parent =~ s/ibs\/SUSE:\/ALP:\/Products:\/Marble:\///;
                     assert_script_run("find $parent >> /tmp/repos.list.txt");
                 } else {
                     record_info('Softfail', "No .repo file found in $parent. This directory will be removed.", result => 'softfail');

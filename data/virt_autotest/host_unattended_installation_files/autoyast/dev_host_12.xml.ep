@@ -2,7 +2,11 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
+    % if ($check_var->('SCC_REGISTER', 'installation') or $check_var->('REGISTER', 'installation')) {
     <do_registration config:type="boolean">true</do_registration>
+    % } else {
+    <do_registration config:type="boolean">false</do_registration>
+    % }
     <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
     <install_updates config:type="boolean">true</install_updates>
     % if (keys %$addons) {
@@ -121,7 +125,7 @@
     </interfaces>
   </networking>
   <partitioning config:type="list">
-  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745', 'openqaipmi5' => 'wwn-0x5000c5008711f2fc', 'unreal2' => 'wwn-0x55cd2e415081e693', 'unreal3' => 'wwn-0x55cd2e4150817d43', 'blackbauhinia' => 'wwn-0x500a075129424bf7', 'bare-metal1' => 'nvme-eui.35354b3054a009160025384300000002', 'bare-metal2' => 'nvme-eui.35354b3054a008260025384300000002', 'bare-metal3' => 'nvme-eui.35354b3054a008880025384300000002', 'ph052' => 'wwn-0x5000c500e28a91bb', 'ph053' => 'wwn-0x5000c500e28a68d7', 'vh001' => 'wwn-0x50014ee0042a24ed', 'vh012' => 'wwn-0x5000c500b905e133', 'vh013' => 'wwn-0x6d0946606f4e7f0026b540d30c0d64a7', 'vh014' => 'wwn-0x6d0946606f4e620026b62d9505faa64b', 'vh015' => 'wwn-0x50000f0a47804240', 'vh016' => 'wwn-0x50000f0a47803ea0', 'vh017' => 'wwn-0x6f4ee0806affb000b856aefa170fa541', 'vh080' => 'wwn-0x6f4ee08011680e002ae552c4140dfb15', 'vh081' => 'wwn-0x6f4ee0801168bc0029aa28da5a049c94', 'vh082' => 'wwn-0x5002538e117150d5'};
+  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745', 'openqaipmi5' => 'wwn-0x5000c5008711f2fc', 'unreal2' => 'wwn-0x55cd2e415081e693', 'unreal3' => 'wwn-0x55cd2e4150817d43', 'blackbauhinia' => 'wwn-0x500a075129424bf7', 'bare-metal1' => 'nvme-eui.35354b3054a009160025384300000002', 'bare-metal2' => 'nvme-eui.35354b3054a008260025384300000002', 'bare-metal3' => 'nvme-eui.35354b3054a008880025384300000002', 'bare-metal5' => 'wwn-0x50026b76838e9fac', 'bare-metal6' => 'wwn-0x50026b76838e9cc4', 'ph052' => 'wwn-0x5000c500e28a91bb', 'ph053' => 'wwn-0x5000c500e28a68d7', 'vh001' => 'wwn-0x50014ee0042a24ed', 'vh012' => 'wwn-0x5000c500b905e133', 'vh013' => 'wwn-0x6d0946606f4e7f0026b540d30c0d64a7', 'vh014' => 'wwn-0x6d0946606f4e620026b62d9505faa64b', 'vh015' => 'wwn-0x50000f0a47804240', 'vh016' => 'wwn-0x50000f0a47803ea0', 'vh017' => 'wwn-0x6f4ee0806affb000b856aefa170fa541', 'vh080' => 'wwn-0x6f4ee08011680e002ae552c4140dfb15', 'vh081' => 'wwn-0x6f4ee0801168bc0029aa28da5a049c94', 'vh082' => 'wwn-0x5002538e117150d5'};
   % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
   % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
     <drive>

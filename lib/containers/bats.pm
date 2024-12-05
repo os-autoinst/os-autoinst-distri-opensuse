@@ -20,19 +20,9 @@ use version_utils qw(is_transactional is_sle is_sle_micro is_tumbleweed);
 use transactional qw(trup_call check_reboot_changes);
 use serial_terminal qw(select_user_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use Utils::Architectures qw(is_aarch64 is_x86_64);
+use Utils::Architectures 'is_aarch64';
 
-our @EXPORT = qw(install_bats install_htpasswd install_ncat install_pasta remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
-
-sub install_pasta {
-    return unless (is_x86_64 && script_run("which pasta") != 0);
-
-    my @files = ("pasta", "pasta.avx2", "passt", "qrap");
-    foreach my $file (@files) {
-        script_retry("curl -o /usr/local/bin/$file https://passt.top/builds/latest/x86_64/$file", retry => 5, delay => 60, timeout => 300);
-        assert_script_run "chmod +x /usr/local/bin/$file";
-    }
-}
+our @EXPORT = qw(install_bats install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -69,13 +59,6 @@ sub install_ncat {
             assert_script_run "$cmd";
         }
     }
-}
-
-sub install_htpasswd {
-    return if (script_run("which htpasswd") == 0);
-
-    assert_script_run "curl -o /usr/local/bin/htpasswd " . data_url("containers/htpasswd");
-    assert_script_run "chmod +x /usr/local/bin/htpasswd";
 }
 
 sub install_bats {

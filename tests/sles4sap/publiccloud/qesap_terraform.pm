@@ -34,6 +34,7 @@ use publiccloud::utils qw(is_azure is_gce get_ssh_private_key_path);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
+use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -173,6 +174,23 @@ sub run {
         if ($playbook_configs{fence_type} eq 'spn') {
             $playbook_configs{spn_application_id} = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
             $playbook_configs{spn_application_password} = get_var('AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
+        }
+    }
+
+    $playbook_configs{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os_image_name =~ 'byos');
+    my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS'));
+    # This implementation has a known limitation
+    # if SCC_ADDONS has two or more elements (like "ltss,ltss_es")
+    # only the last one will be added to the playbook argument.
+    foreach my $addon (@addons) {
+        my $name;
+        # Keep the code simple by only support ltss addons,
+        # it simplify version calculation.
+        $name = get_addon_fullname($addon) if ($addon =~ 'ltss');
+        if ($name) {
+            record_info($name, "Register '$name' with code '$ADDONS_REGCODE{$name}'");
+            $playbook_configs{ltss} = join(',', join('/', $name, scc_version(), 'x86_64'), $ADDONS_REGCODE{$name});
+            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ 'byos');
         }
     }
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);

@@ -23,7 +23,7 @@ expect {
 		exp_continue
         }
         \"*assword\" {
-                send \"nots3cr3t\r\"
+                send \"ROOT_PASSWORD\r\"
 		exp_continue
         }
         \"*:~ #\" {

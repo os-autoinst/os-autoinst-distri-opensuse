@@ -155,6 +155,11 @@ sub sle12_zypp_resolve {
                 send y\\r
                 exp_continue
             }
+            \"View the notifications now\" {
+                sleep 1
+                send n\\r
+                exp_continue
+            }
             -timeout -1 \"# \$\" {
                 interact
             }
@@ -203,7 +208,7 @@ sub run {
     foreach (@modules) {
         # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
         $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/ if is_sle('15+');
-        $_ =~ s/SAP_(\d+(-SP\d)?)/SERVER_$1-LTSS/ if is_sle('=12-sp5');
+        $_ =~ s/SAP_(\d+(-SP\d)?)/SERVER_$1-LTSS/ if is_sle('=12-sp5') && !get_var('BUILD') =~ /saptune/;
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
@@ -230,7 +235,7 @@ sub run {
     foreach (@packages) {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
         # hash of hashes with keys 'name', 'supportstatus' and 'package'.
-        # e.g. https://smelt.suse.de/api/v1/basic/maintained/grub2
+        # e.g. %SMELT_URL%/api/v1/basic/maintained/grub2
         record_info("$_", Dumper(\%bins));
     }
     die "Parsing binaries from SMELT data failed" if not keys %bins;
@@ -388,14 +393,14 @@ sub run {
             }
         }
         else {
-            zypper_call("in -l $patch_replacefiles -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            zypper_call("in -l $patch_replacefiles $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
         }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
             my $new_replacefiles = get_var('UPDATE_NEW_BIN_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l $new_replacefiles @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l $new_replacefiles $solver_focus @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         foreach (@new_binaries_conflicts) {

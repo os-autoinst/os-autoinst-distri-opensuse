@@ -113,7 +113,7 @@ sub pre_run_hook {
 }
 
 sub ensure_apparmor_disabled () {
-    unless (systemctl "is-active apparmor", proceed_on_failure => 1) {    # 0 if active, unless to revert
+    unless (systemctl "is-active apparmor", ignore_failure => 1) {    # 0 if active, unless to revert
         systemctl "disable --now apparmor";
         record_info "apparmor", "disabled";
     }

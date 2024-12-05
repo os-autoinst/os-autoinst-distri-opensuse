@@ -26,10 +26,10 @@ sub run {
     # Check connectivity to target inside multimachine network (supportserver)
     ping_size_check($target);
 
-    # Install iscsi
-    zypper_call("in open-iscsi");
+    # Install iscsi and make sure multipath-tools are installed
+    zypper_call("in open-iscsi multipath-tools");
 
-    # Start isci amd multipath services
+    # Start isci and multipath services
     systemctl 'start iscsid';
     systemctl 'start multipathd';
     systemctl 'status multipathd';

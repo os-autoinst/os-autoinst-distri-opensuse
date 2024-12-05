@@ -16,6 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 use Utils::Logging qw(tar_and_upload_log export_logs);
+use version_utils 'is_sle';
 
 our $file = 'tmpresults.xml';
 # xml vars
@@ -62,12 +63,15 @@ sub run ($self) {
 
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
-    $rt = assert_script_run("mpirun $exports_path{'bin'}/$mpi_bin");
+    # Define library path for mpich on 15-SP3
+    my $ld_library_path;
+    $ld_library_path = 'LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/mpich/lib64' if is_sle('=15-SP3');
+    $rt = assert_script_run("${ld_library_path} mpirun $exports_path{'bin'}/$mpi_bin");
     test_case("$mpi_compiler test 0", 'Run in a single node', $compile_rt);
 
     record_info('INFO', 'Run MPI over several nodes');
     my $nodes = join(',', @cluster_nodes);
-    $rt = assert_script_run("mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 120);
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 120);
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
     barrier_wait('MPI_RUN_TEST');

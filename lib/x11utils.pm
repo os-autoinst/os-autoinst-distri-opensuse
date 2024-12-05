@@ -553,11 +553,8 @@ sub untick_welcome_on_next_startup {
         last if match_has_tag("opensuse-welcome-show-on-boot-unselected");
         die "Unable to untick 'Show on next startup'" if $retry == 5;
     }
-    for my $retry (1 .. 5) {
-        send_key 'alt-f4';
-        last if check_screen("generic-desktop", timeout => 5);
-        die "Unable to close openSUSE Welcome screen" if $retry == 5;
-    }
+    assert_and_click_until_screen_change('opensuse-welcome-close', 5, 5);
+    assert_screen("generic-desktop");
 }
 
 =head2 handle_welcome_screen

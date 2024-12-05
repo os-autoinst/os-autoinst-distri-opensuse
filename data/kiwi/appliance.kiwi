@@ -261,7 +261,7 @@
         </type>
     </preferences>
         <users>
-        <user password="nots3cr3t" home="/root" name="root" groups="root"  pwdformat="plain"/>
+        <user password="USER_PASSWORD" home="/root" name="root" groups="root"  pwdformat="plain"/>
     </users>
           <repository type="rpm-md" alias="slebase">
         <source path="http://updates.suse.de/SUSE/Products/SLE-Module-Basesystem/SLE-version/x86_64/product/"/>

@@ -64,7 +64,6 @@ sub run {
         my $slmrepo;
         foreach my $repo (@repos) {
             if (is_sle_micro(">=6.0")) {
-                $repo =~ s/ibs\/SUSE:\/ALP:\/Products:\/Marble:\///;
                 $slmrepo = $repo;
             }
             assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");

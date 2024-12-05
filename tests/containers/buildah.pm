@@ -16,28 +16,16 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
-use version_utils qw(get_os_release is_sle);
+use version_utils qw(get_os_release is_sle is_public_cloud);
 use containers::common;
+use Utils::Backends qw(is_svirt);
 
-sub run {
-    my ($self, $args) = @_;
-    select_serial_terminal;
-    my ($running_version, $sp, $host_distri) = get_os_release;
+sub run_tests {
+    my $runtime = shift;
 
-    my $runtime = $args->{runtime};
     my $image = "registry.opensuse.org/opensuse/tumbleweed:latest";
-
-    record_info('Test', "Install buildah along with $runtime");
-    install_buildah_when_needed($host_distri);
-    install_podman_when_needed($host_distri) if ($runtime eq 'podman');
-    if ($runtime eq 'docker') {
-        install_docker_when_needed($host_distri);
-        zypper_call('install skopeo');
-    }
-    record_info('Version', script_output('buildah --version'));
-
     record_info('Test', "Pull image $image");
     assert_script_run("buildah pull $image", timeout => 300);
     validate_script_output('buildah images', sub { /registry.opensuse.org\/opensuse\/tumbleweed/ });
@@ -87,7 +75,42 @@ sub run {
 
     record_info('Test', "Cleanup");
     assert_script_run("buildah rm $container");
-    assert_script_run("buildah rmi newimage");
+    assert_script_run("buildah rmi newimage $image");
+    assert_script_run("rm -f /tmp/script.sh");
+}
+
+sub run {
+    my ($self, $args) = @_;
+    select_serial_terminal;
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
+    my $runtime = $args->{runtime};
+
+    record_info('Test', "Install buildah along with $runtime");
+    install_buildah_when_needed($host_distri);
+    if ($runtime eq 'podman') {
+        install_podman_when_needed($host_distri);
+    } elsif ($runtime eq 'docker') {
+        install_docker_when_needed($host_distri);
+        zypper_call('install skopeo');
+    }
+    record_info('Version', script_output('buildah --version'));
+
+    # Run tests as root
+    record_info('Test as root');
+    run_tests($runtime);
+
+    # Run tests as user
+    if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3') && !is_svirt) {
+        if (is_sle('<15-SP5')) {
+            record_soft_failure("bsc#1232522 - buildah security update changes default network mode from slirp4netns to passt for rootless containers");
+        } else {
+            select_user_serial_terminal;
+            record_info('Test as user');
+            run_tests($runtime) if ($runtime eq "podman");
+            select_serial_terminal;
+        }
+    }
 }
 
 1;

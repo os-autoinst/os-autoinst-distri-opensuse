@@ -61,6 +61,12 @@ subtest '[find_deployment_id]' => sub {
     is find_deployment_id(deployer_resource_group => 'Char'), '0083', 'Parent job ID belongs to VM';
 };
 
+subtest '[find_deployment_id]' => sub {
+    set_var('SDAF_DEPLOYMENT_ID', '0079');
+    is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Override deployment id using "SDAF_DEPLOYMENT_ID"';
+    set_var('SDAF_DEPLOYMENT_ID', undef);
+};
+
 subtest '[find_deployer_resources] Check command composition' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;

@@ -10,6 +10,7 @@ package sles4sap::sap_deployment_automation_framework::deployment;
 
 use strict;
 use warnings;
+use version;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
@@ -19,6 +20,7 @@ use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
+use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
   deployment_dir
@@ -30,6 +32,24 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   convert_region_to_short
   get_workload_vnet_code
 );
+
+our @EXPORT = qw(
+  az_login
+  sdaf_ssh_key_from_keyvault
+  serial_console_diag_banner
+  set_common_sdaf_os_env
+  prepare_sdaf_project
+  set_os_variable
+  get_os_variable
+  sdaf_execute_deployment
+  load_os_env_variables
+  sdaf_cleanup
+  sdaf_execute_playbook
+  ansible_hanasr_show_status
+  $output_log_file
+);
+
+our $output_log_file = '';
 
 =head1 SYNOPSIS
 
@@ -62,22 +82,6 @@ Since SUT VMs have no public IPs, this is also serving as a jump-host to reach t
 
 =back
 =cut
-
-our @EXPORT = qw(
-  az_login
-  sdaf_prepare_private_key
-  serial_console_diag_banner
-  set_common_sdaf_os_env
-  prepare_sdaf_project
-  set_os_variable
-  get_os_variable
-  sdaf_execute_deployment
-  load_os_env_variables
-  sdaf_cleanup
-  sdaf_execute_playbook
-  ansible_hanasr_show_status
-);
-
 
 =head2 log_command_output
 
@@ -335,9 +339,9 @@ sub load_os_env_variables {
     assert_script_run('source ' . env_variable_file());
 }
 
-=head2 sdaf_prepare_private_key
+=head2 sdaf_ssh_key_from_keyvault
 
-    sdaf_prepare_private_key(key_vault=>$key_vault);
+    sdaf_ssh_key_from_keyvault(key_vault=>$key_vault [, target_file=>'/path/to/glory/and_happiness']);
 
 Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
@@ -345,75 +349,45 @@ Retrieves public and private ssh key from specified keyvault and sets up permiss
 
 =item * B<key_vault>: Key vault name
 
-=back
-=cut
-
-sub sdaf_prepare_private_key {
-    my (%args) = @_;
-    croak 'Missing mandatory argument $args{key_vault}' unless $args{key_vault};
-    my $home = homedir();
-    my %ssh_keys;
-    my $az_cmd_out = script_output(
-        "az keyvault secret list --vault-name $args{key_vault} --query [].name --output tsv | grep sshkey");
-
-    foreach (split("\n", $az_cmd_out)) {
-        $ssh_keys{id_rsa} = $_ if grep(/sshkey$/, $_);
-        $ssh_keys{'id_rsa.pub'} = $_ if grep(/sshkey-pub$/, $_);
-    }
-
-    foreach ('id_rsa', 'id_rsa.pub') {
-        croak "Couldn't retrieve '$_' from keyvault" unless $ssh_keys{$_};
-    }
-
-    assert_script_run("mkdir -p $home/.ssh");
-    assert_script_run("chmod 700 $home/.ssh");
-    for my $key_file (keys %ssh_keys) {
-        az_get_ssh_key(
-            key_vault => $args{key_vault},
-            ssh_key_name => $ssh_keys{$key_file},
-            ssh_key_filename => $key_file
-        );
-    }
-    assert_script_run("chmod 600 $home/.ssh/id_rsa");
-    assert_script_run("chmod 644 $home/.ssh/id_rsa.pub");
-}
-
-=head2 az_get_ssh_key
-
-    az_get_ssh_key(key_vault=$key_vault, ssh_key_name=$key_name, ssh_key_filename=$ssh_key_filename);
-
-Retrieves SSH key from specified keyvault.
-
-=over
-
-=item * B<key_vault>: Key vault name
-
-=item * B<ssh_key_name>: SSH key name residing on keyvault
-
-=item * B<ssh_key_filename>: Target filename for SSH key
+=item * B<target_file>: Full file path, where to write the public key. Default '~/.ssh/id_rsa'
 
 =back
 =cut
 
-sub az_get_ssh_key {
+sub sdaf_ssh_key_from_keyvault {
     my (%args) = @_;
-    my $home = homedir();
-    my $cmd = join(' ',
-        'az', 'keyvault', 'secret', 'show',
-        '--vault-name', $args{key_vault},
-        '--name', $args{ssh_key_name},
-        '--query', 'value',
-        '--output', 'tsv', '>', "$home/.ssh/$args{ssh_key_filename}");
+    croak 'Missing mandatory argument: key_vault' unless $args{key_vault};
+    $args{target_file} //= homedir() . '/.ssh/id_rsa';
+    my ($target_filename, $target_path) = fileparse($args{target_file});
+    my @secret_ids = @{az_keyvault_secret_list(
+            vault_name => $args{key_vault}, query => '"[?ends_with(name, \'sshkey\')].id"')};
 
-    my $rc = 1;
-    my $retry = 3;
-    while ($rc) {
-        $rc = script_run($cmd, output => 'Retrieving SSH keys from keyvault');
-        last unless $rc;
-        die 'Failed to retrieve ssh key from keyvault' unless $retry;
-        $retry--;
+    croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
+
+    # Ensure private key file exists and has correct permissions
+    assert_script_run("mkdir -p $target_path");
+    assert_script_run("chmod 700 $target_path");
+    assert_script_run("touch $args{target_file}");
+    assert_script_run("chmod 600 $target_path/$target_filename");
+
+    my $private_key_content;
+
+    # Retry 3 (magic number) times in case of issues with az API
+    foreach (1 .. 3) {
+        $private_key_content = az_keyvault_secret_show(
+            id => $secret_ids[0],
+            query => 'value',
+            output => 'tsv',
+            save_to_file => $args{target_file});
+
+        # Check with ssh-keygen if SSH public key is malformed
+        last if !script_run("ssh-keygen -l -f $args{target_file}");
+        croak "Failed to retrieve private key content. Content returned: $private_key_content" if $_ == 3;
+        # Sleep between retries to give AZ API a little break
         sleep 5;
     }
+
+    record_info('SSH KEY', "SSH public key '$target_path/$target_filename' is ready to be used.");
 }
 
 =head2 serial_console_diag_banner
@@ -489,7 +463,7 @@ sub sdaf_execute_deployment {
 
     record_info('SDAF exe', "Executing '$args{deployment_type}' deployment: $deploy_command");
     my $rc;
-    my $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
+    $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
     my $attempt_no = 1;
     while ($attempt_no <= $args{retries}) {
         $output_log_file =~ s/attempt/attempt-$attempt_no/;
@@ -589,8 +563,26 @@ sub prepare_sdaf_project {
     assert_script_run("cd $deployment_dir");
     assert_script_run('mkdir -p ' . log_dir());
 
+    # Calculate SDAF version used for deployment and picks latest -1
+    # SDAF_GIT_AUTOMATION_BRANCH variable will override calculated value
+    my $branch = get_var('SDAF_GIT_AUTOMATION_BRANCH', '');
+    if (!$branch || $branch eq 'latest') {
+        my $tags = script_output("curl -s https://api.github.com/repos/Azure/sap-automation/tags | jq -r '.[].name' | sort -rV");
+        record_info("Releases: $tags");
+        my @releases = split('\n', $tags);
+        my $branch_expected = ($branch eq 'latest') ? $releases[0] : $releases[1];
+        # Versions older or equal than 'v3.11.0.3' missing features so report failure
+        my $branch_er = version->new('v3.11.0.3');
+        $branch_expected = version->new("$branch_expected");
+        if ($branch_expected <= $branch_er) {
+            die "Version $branch_expected older or equal than $branch_er missing features";
+        }
+        $branch = $branch_expected;
+    }
+    record_info("Release: $branch");
+
     git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
-        branch => get_var('SDAF_GIT_AUTOMATION_BRANCH'),
+        branch => $branch,
         depth => '1',
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.txt');
@@ -600,13 +592,6 @@ sub prepare_sdaf_project {
         depth => '1',
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_templates.log');
-
-    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
-    record_soft_failure 'gh#Azure/sap-automation#617';
-    file_content_replace(
-        "$deployment_dir/sap-automation/deploy/terraform/terraform-units/modules/sap_landscape/providers.tf",
-        '>= 3.23' => '3.116.0'
-    );
 
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
@@ -694,7 +679,7 @@ sub sdaf_execute_remover {
         '--auto-approve');
 
     my $rc;
-    my $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
+    $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
     my $attempt_no = 1;
     # SDAF must be executed from the profile directory, otherwise it will fail
     assert_script_run("cd " . $tfvars_path);
@@ -799,7 +784,7 @@ sub sdaf_execute_playbook {
         '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"'
     );
 
-    my $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
+    $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
     my $playbook_file = join('/', deployment_dir(), 'sap-automation', 'deploy', 'ansible', $args{playbook_filename});
     my $playbook_cmd = join(' ', 'ansible-playbook', $playbook_options, $playbook_file);
 
@@ -843,7 +828,7 @@ sub sdaf_ansible_verbosity_level {
 
 Display simple command outputs from all DB hosts using B<ansible> command.
 
-=over 2
+=over
 
 =item * B<sdaf_config_root_dir>: SDAF Config directory containing SUT ssh keys
 
@@ -863,6 +848,9 @@ sub ansible_hanasr_show_status {
         "--inventory=$args{sap_sid}_hosts.yaml",
         '--module-name=shell');
 
+    record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
     record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
     record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
 }
+
+1;

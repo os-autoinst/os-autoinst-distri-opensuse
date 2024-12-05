@@ -270,6 +270,14 @@ sub select_all_patterns_by_menu {
     wait_screen_change { send_key 'ret'; };
     mouse_hide;
     save_screenshot;
+    if (check_screen('wsl_systemd_conflict', 5)) {
+        send_key 'alt-2';
+        send_key 'alt-o';
+    }
+    if (check_screen('fips_certified_conflict', 5)) {
+        send_key 'alt-1';
+        send_key 'alt-o';
+    }
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen 'inst-overview';
@@ -324,7 +332,10 @@ sub deselect_pattern {
     @patterns{split(/,/, get_var('EXCLUDE_PATTERNS'))} = ();
     $self->go_to_patterns();
     for my $p (keys %patterns) {
-        my $count = $p =~ 'wsl' ? '40' : '20';
+        # send Home key to avoid some pattern can't be found
+        # on the sequence of exclude patterns
+        send_key 'home';
+        my $count = $p =~ 'wsl|fips' ? '40' : '20';
         send_key_until_needlematch "$p-selected", 'down', $count;
         send_key ' ';    #deselect pattern
         assert_screen 'on-pattern';

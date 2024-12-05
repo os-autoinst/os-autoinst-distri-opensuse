@@ -28,6 +28,15 @@ use constant {
 my @errors;
 
 sub get_expected_efi_settings {
+    my $loader = '';
+    if (is_x86_64) {
+        $loader = 'grubx64.efi';
+    } elsif (is_aarch64) {
+        $loader = 'grubaa64.efi';
+    } else {
+        die 'Unsupported ARCH';
+    }
+
     my $settings = {};
     $settings->{label} = is_opensuse() ? lc(get_var('DISTRI')) : 'sles';
     $settings->{mount} = ESP_MOUNT;
@@ -35,7 +44,7 @@ sub get_expected_efi_settings {
         $settings->{exec} = '/EFI/' . $settings->{label} . '/shim.efi';
         $settings->{label} .= '-secureboot';
     } else {
-        $settings->{exec} = '/EFI/' . $settings->{label} . '/grubx64.efi';
+        $settings->{exec} = '/EFI/' . $settings->{label} . '/' . $loader;
     }
 
     return $settings;
@@ -74,7 +83,10 @@ sub check_efi_state {
     diag "Found efi guid=$efi_guid_global";
     diag('Expected state of SecureBoot: ' . (get_var('DISABLE_SECUREBOOT', 0) ? 'Disabled' : 'Enabled'));
 
-    if (script_run("efivar -dn $efi_guid_global-SecureBoot") == !get_var('DISABLE_SECUREBOOT', 0)) {
+    my $sb_state = script_output("efivar -dn $efi_guid_global-SecureBoot");
+    my $sb_desired_state = !get_var('DISABLE_SECUREBOOT', 0);
+    record_info("SecureBoot states", "Actual (efivar): $sb_state :: Expected (!DISABLE_SECUREBOOT): $sb_desired_state");
+    if ($sb_state != $sb_desired_state) {
         push @errors, 'System\'s SecureBoot state is unexpected according to efivar';
     }
 
@@ -245,7 +257,7 @@ sub disable_secureboot {
     my ($self, $exp_data, $esp_details) = @_;
     $self->verification('After grub2-install', $exp_data, sub {
             assert_script_run('sed -ie s/SECURE_BOOT=.*/SECURE_BOOT=no/ ' . SYSCONFIG_BOOTLADER);
-            assert_script_run "grub2-install --efi-directory=$esp_details->{mount} --target=x86_64-efi $esp_details->{drive}";
+            assert_script_run "grub2-install --efi-directory=$esp_details->{mount} $esp_details->{drive}";
             assert_script_run('grub2-mkconfig -o ' . GRUB_CFG);
         }
     );

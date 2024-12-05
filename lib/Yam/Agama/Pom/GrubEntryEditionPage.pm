@@ -15,7 +15,7 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        max_interval => undef,
+        max_interval => $args->{max_interval},
         key_boot => 'ctrl-x'
     }, $class;
 }

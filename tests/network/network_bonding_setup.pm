@@ -18,7 +18,7 @@ use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
 use lockapi;
 use utils;
 use version_utils;
-use registration qw(runtime_registration);
+use registration qw(runtime_registration add_suseconnect_product);
 use transactional qw(trup_call process_reboot);
 
 my $server_ip = "10.0.2.101";
@@ -202,6 +202,7 @@ sub setup_server {
 
     set_resolv(nameservers => \@scc_dns) if scalar(@scc_dns) > 0;
     runtime_registration() if $requires_scc_registration;
+    add_suseconnect_product("sle-module-containers") if is_sle;
 
     install_pkgs($self, "podman", "ethtool", "dnsmasq");
 

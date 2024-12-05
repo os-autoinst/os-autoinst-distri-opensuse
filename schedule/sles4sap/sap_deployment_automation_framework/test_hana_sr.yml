@@ -5,4 +5,5 @@ description: |
 schedule:
   - boot/boot_to_desktop
   - sles4sap/sap_deployment_automation_framework/connect_to_deployer
+  - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
   - sles4sap/sap_deployment_automation_framework/cleanup

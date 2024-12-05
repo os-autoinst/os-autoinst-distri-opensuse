@@ -3,8 +3,14 @@ description: >
     This is used to publish the qcow2 file which is CC system role without
     bridge network, required packages for mm setup usage have been installed as well.
 schedule:
-    - installation/bootloader_start
-    - security/boot_disk
-    - security/cc/remove_bridge_network
-    - security/cc/cc_audit_test_setup
-    - shutdown/shutdown
+  - installation/bootloader_start
+  - security/boot_disk
+  - security/cc/remove_bridge_network
+  - security/cc/cc_audit_test_setup
+  - shutdown/shutdown
+  - '{{svirt_upload}}'
+conditional_schedule:
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets

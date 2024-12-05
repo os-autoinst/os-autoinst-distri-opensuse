@@ -51,8 +51,12 @@ sub run {
             record_info('google', $instance->ssh_script_output('systemctl --no-pager --full status google*', proceed_on_failure => 1));
             $instance->ssh_assert_script_run('systemctl is-active google-guest-agent.service');
             $instance->ssh_assert_script_run('systemctl is-active google-osconfig-agent.service');
-            $instance->ssh_assert_script_run('systemctl is-active google-shutdown-scripts.service');
             $instance->ssh_assert_script_run('systemctl is-active google-oslogin-cache.timer');
+            # Wait until google-startup-scripts.service is inactive (exited) with status=0/SUCCESS
+            $instance->ssh_script_retry('! systemctl is-active google-startup-scripts.service', retry => 3, delay => 5);
+            $instance->ssh_assert_script_run('! systemctl is-failed google-startup-scripts.service');
+            # Check that google-shutdown-scripts.service is active (exited)
+            $instance->ssh_assert_script_run('systemctl is-active google-shutdown-scripts.service');
         }
     }
     # cloud-netconfig

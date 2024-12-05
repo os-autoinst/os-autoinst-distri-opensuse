@@ -626,7 +626,9 @@ sub ha_export_logs {
     script_run "touch $corosync_conf";
     script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
     upload_logs("$bootstrap_log", failok => 1);
-    upload_logs("$crm_log.tar.bz2", failok => 1);
+
+    my $crm_log_name = script_output("ls $crm_log* | tail -1");
+    upload_logs("$crm_log_name", failok => 1);
 
     script_run "crm configure show > /tmp/crm.txt";
     upload_logs('/tmp/crm.txt');
@@ -947,19 +949,24 @@ sub set_lvm_config {
 
 =head2 add_lock_mgr
 
- add_lock_mgr( $lock_manager );
+ add_lock_mgr( $lock_manager, [ force => bool ] );
 
 Configures a B<$lock_manager> resource in the cluster configuration on SUT.
 B<$lock_mgr> usually is either B<clvmd> or B<lvmlockd>, but any other cluster
 primitive could work as well.
 
+Takes a second named argument B<force> which if set to true will add C<--force>
+to the B<crmsh> command. Should be used with care. Defaults to false.
+
 =cut
 
 sub add_lock_mgr {
-    my ($lock_mgr) = @_;
+    my ($lock_mgr, %args) = @_;
+    $args{force} //= 0;
+    my $cmd = join(' ', 'crm', ($args{force} ? '--force' : ''), 'configure', 'edit');
 
-    assert_script_run "EDITOR=\"sed -ie '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" crm configure edit";
-    assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" crm configure edit";
+    assert_script_run "EDITOR=\"sed -ie '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" $cmd";
+    assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" $cmd";
 
     # Wait to get clvmd/lvmlockd running on all nodes
     sleep 5;

@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats install_htpasswd patch_logfile remove_mounts_conf switch_to_user enable_modules);
+use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user enable_modules);
 use version_utils qw(is_sle is_sle_micro);
 
 my $test_dir = "/var/tmp";
@@ -50,13 +50,8 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(jq openssl podman skopeo);
-    push @pkgs, qw(apache2-utils) unless is_sle_micro;
-    # htpasswd clone dependency
-    push @pkgs, qw(python311-passlib) if is_sle_micro('>=6.0');
-    push @pkgs, qw(python3-passlib) if is_sle_micro('<6.0');
+    my @pkgs = qw(apache2-utils jq openssl podman skopeo);
     install_packages(@pkgs);
-    install_htpasswd if is_sle_micro;
 
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));

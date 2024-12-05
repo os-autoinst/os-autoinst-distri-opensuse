@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes a single LTP test case
-# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 # More documentation is at the bottom
 
 use 5.018;
@@ -12,6 +12,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
+use version_utils 'is_sle';
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use serial_terminal;
 use Mojo::File 'path';
@@ -113,7 +114,7 @@ sub parse_ltp_log {
                 $results->{fail}++;
             }
             else {
-                say $fh "Test process returned unkown none zero value ($1).";
+                say $fh "Test process returned unknown non-zero value ($1).";
                 $results->{brok}++;
             }
         }
@@ -332,7 +333,10 @@ sub pre_run_hook {
     # But change them to hard fail in this test module.
     for my $pattern (@{$self->{serial_failures}}) {
         my %tmp = %$pattern;
-        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type});
+
+        # don't switch to hard fail when test is expected to produce kernel warning
+        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type}) && !($tmp{soft_on_expect_warn} && get_var('LTP_WARN_EXPECTED'));
+
         push @pattern_list, \%tmp;
     }
 
@@ -356,7 +360,8 @@ sub run {
 
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
     my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
-    my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
+
+    my $klog_stamp = "OpenQA::run_ltp.pm: Starting $test->{name}";
     my $start_time = thetime();
 
     if (check_var_array('LTP_DEBUG', 'tcpdump')) {
@@ -366,7 +371,9 @@ sub run {
     }
 
     if (is_serial_terminal) {
-        script_run($klog_stamp);
+        script_run("echo '$klog_stamp' > /dev/kmsg");
+        # SLE11-SP4 doesn't support ignore_loglevel, due that stamp is not printed in console
+        script_run("echo '$klog_stamp' > /dev/$serialdev") if is_sle('<12');
         wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
         type_string($cmd_text);
         wait_serial($cmd_text, undef, 0, no_regex => 1);
@@ -478,7 +485,7 @@ The time in seconds which each test command has to run.
 =head2 LTP_DUMP_MEMORY_ON_TIMEOUT
 
 If set will request that the SUT's memory is dumped if the timer in this test
-module runs out. This is does not include timeouts which are built into the
+module runs out. This does not include timeouts which are built into the
 LTP test itself.
 
 =head2 LTP_ENV

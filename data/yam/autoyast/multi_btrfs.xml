@@ -220,7 +220,7 @@
                     <create config:type="boolean">true</create>
                     <create_subvolumes config:type="boolean">false</create_subvolumes>
                     <crypt_fs config:type="boolean">true</crypt_fs>
-                    <crypt_key>nots3cr3t</crypt_key>
+                    <crypt_key>{{PASSWORD}}</crypt_key>
                     <filesystem config:type="symbol">btrfs</filesystem>
                     <format config:type="boolean">true</format>
                     <label>test_multi_btrfs</label>

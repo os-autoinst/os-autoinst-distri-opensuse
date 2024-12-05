@@ -44,6 +44,7 @@ subtest '[prepare_sdaf_project]' => sub {
     $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
+    $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
     $ms_sdaf->redefine(assert_script_run => sub {
             push(@git_commands, join('', $_[0])) if grep(/git/, $_[0]);
             return 1; });
@@ -55,6 +56,7 @@ subtest '[prepare_sdaf_project]' => sub {
             return '/some/useless/path'; });
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation.git');
     set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/sap-automation-samples.git');
+    set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);
 
@@ -84,6 +86,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     $ms_sdaf->redefine(record_soft_failure => sub { return; });
 
     $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
     $ms_sdaf->redefine(assert_script_run => sub { push(@mkdir_commands, $_[0]) if grep(/mkdir/, @_); return 1; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
@@ -93,6 +96,7 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
 
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
     set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
+    set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);
     is $mkdir_commands[0], 'mkdir -p /tmp/openqa_logs', 'Create logging directory';
@@ -112,39 +116,6 @@ subtest '[serial_console_diag_banner] ' => sub {
     ok(grep(/Module: deploy_sdaf.pm/, @printed_lines), 'Banner must include message');
     dies_ok { serial_console_diag_banner() } 'Fail with missing test to be printed';
     dies_ok { serial_console_diag_banner('exeCuTing deploYment' x 6) } 'Fail with string exceeds max number of characters';
-};
-
-subtest '[sdaf_prepare_private_key]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $get_ssh_command;
-    my %private_key;
-    my %pubkey;
-    $ms_sdaf->redefine(script_run => sub { return 0; });
-    $ms_sdaf->redefine(homedir => sub { return '/home/dir/'; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(script_output => sub {
-            $get_ssh_command = $_[0] if grep /keyvault/, @_;
-            return "
-LAB-SECE-DEP05-sshkey
-LAB-SECE-DEP05-sshkey-pub
-LAB-SECE-DEP05-ssh
-"
-    });
-    $ms_sdaf->redefine(az_get_ssh_key => sub {
-            %private_key = @_ if grep /sshkey$/, @_;
-            %pubkey = @_ if grep /sshkey-pub$/, @_;
-    });
-
-    sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF');
-    is $get_ssh_command, 'az keyvault secret list --vault-name LABSECEDEP05userDDF --query [].name --output tsv | grep sshkey',
-      'Return correct command for retrieving private key';
-    is $pubkey{ssh_key_name}, 'LAB-SECE-DEP05-sshkey-pub', 'Public key';
-    is $private_key{ssh_key_name}, 'LAB-SECE-DEP05-sshkey', 'Private key';
-
-    dies_ok { sdaf_prepare_private_key() } 'Fail with missing "key_vault" argument';
-
-    $ms_sdaf->redefine(script_output => sub { return 1 });
-    dies_ok { sdaf_prepare_private_key(key_vault => 'LABSECEDEP05userDDF') } 'Fail with not keyfile being found';
 };
 
 subtest '[set_common_sdaf_os_env]' => sub {
@@ -458,7 +429,52 @@ subtest '[ansible_hanasr_show_status]' => sub {
 
     note("SAPHanaSR-showAttr command:\n\t $calls{saphanasr_showattr}");
     ok(grep(/--args="sudo SAPHanaSR-showAttr"/, $calls{saphanasr_showattr}), 'Check for executed "SAPHanaSR-showAttr" command');
+};
 
+subtest '[sdaf_ssh_key_from_keyvault] Test exceptions' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->redefine(homedir => sub { return '/home/Amuro'; });
+    my $croak_message;
+    $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; note("\n  -->  $_[0]"); die; });
+    $ms_sdaf->redefine(assert_script_run => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { return 1; });
+    $ms_sdaf->redefine(record_info => sub { return });
+    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return 'lol'; });
+
+    # Exception is handled by 'az_keyvault_secret_list'
+    dies_ok { sdaf_ssh_key_from_keyvault() } 'Croak with missing $args{key_vault}';
+    ok($croak_message =~ /key_vault/, 'Check if croak message is correct');
+
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['Amuro', 'Ray']; });
+    dies_ok { sdaf_ssh_key_from_keyvault(key_vault => 'SCV-70 White Base') } 'Croak with az cli returning multiple key vaults';
+    ok($croak_message =~ /Multiple/, 'Check if croak message is correct');
+
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['Amuro']; });
+
+    dies_ok { sdaf_ssh_key_from_keyvault(key_vault => 'SCV-70 White Base') } 'Croak with invalid private key returned';
+    ok($croak_message =~ /Failed/, 'Check if croak message is correct');
+};
+
+subtest '[sdaf_ssh_key_from_keyvault] Verify executed commands' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my @assert_script_run;
+    my @script_run;
+    $ms_sdaf->redefine(homedir => sub { return '/home/Amuro'; });
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['Amuro']; });
+    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return; });
+    $ms_sdaf->redefine(assert_script_run => sub { push @assert_script_run, $_[0]; return; });
+    $ms_sdaf->redefine(script_run => sub { push @script_run, $_[0]; return; });
+    $ms_sdaf->redefine(record_info => sub { return });
+
+    sdaf_ssh_key_from_keyvault(key_vault => 'SCV-70 White Base');
+    note("\n --> " . join("\n --> ", @assert_script_run));
+    ok(grep(/mkdir -p/, @assert_script_run), 'Create ssh directory');
+    ok(grep(/touch/, @assert_script_run), 'Create ssh file');
+    ok(grep(/chmod 700/, @assert_script_run), 'Set ssh directory permissions');
+    ok(grep(/chmod 600/, @assert_script_run), 'Set public key permissions');
+
+    note("\n --> " . join("\n --> ", @script_run));
+    ok(grep(//, @assert_script_run), 'Validate ssh key');
 };
 
 done_testing;

@@ -498,6 +498,20 @@ subtest '[az_ipconfig_update]' => sub {
     ok((any { /az network nic ip-config update/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_ipconfig_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_ipconfig_delete(
+        resource_group => 'Arlecchino',
+        ipconfig_name => 'Truffaldino',
+        nic_name => 'Mirandolina');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nic ip-config delete/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_ipconfig_pool_add]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -800,6 +814,191 @@ subtest '[az_resource_list] Check return values' => sub {
     my $output = az_resource_list();
     note("\n --> " . join("\n --> ", join(' ', @$output)));
     is join(' ', @$output), 'Carlo Goldoni', 'Check json based output';
+};
+
+subtest '[az_storage_blob_upload]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_storage_blob_upload(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        file => 'Colombina');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob upload/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--file Colombina/, @calls), 'Check for argument "--file"');
+};
+
+subtest '[az_storage_blob_lease_acquire]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '521fa121-4e04-448e-a8ec-d17e6b9c5e78'; });
+    $azcli->redefine(record_info => sub { return; });
+
+    az_storage_blob_lease_acquire(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        blob_name => 'Colombina',
+        lease_duration => 30
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob lease acquire/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--blob-name Colombina/, @calls), 'Check for argument "--blob-name"');
+    ok(grep(/--lease-duration 30/, @calls), 'Check for argument "--lease-duration"');
+};
+
+subtest '[az_storage_blob_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+
+    my $return_value = az_storage_blob_list(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+};
+
+subtest '[az_storage_blob_update]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_run => sub { @calls = @_; return 'wololo'; });
+
+    az_storage_blob_update(
+        container_name => 'Arlecchino',
+        account_name => 'Pantalone',
+        name => 'Colombina'
+    );
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az storage blob update/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    ok(grep(/--name Colombina/, @calls), 'Return output in "json" format');
+
+    az_storage_blob_update(
+        container_name => 'Arlecchino',
+        account_name => 'Pantalone',
+        name => 'Colombina',
+        lease_id => '12345'
+    );
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--lease-id 12345/, @calls), 'Check for argument "--lease-id"');
+};
+
+subtest '[az_keyvault_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+
+    my $return_value = az_keyvault_list(
+        resource_group => 'Arlecchino',
+        query => '[].Pantalone',
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az keyvault list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--resource-group Arlecchino/, @calls), 'Check for argument "--resource_group"');
+    ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+};
+
+subtest '[az_keyvault_list] Test exception' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(croak => sub { @calls = $_[0]; die; });
+
+    dies_ok { az_keyvault_list() } 'Fail with missing "resource_group" argument';
+    ok(grep(/resource_group/, @calls), 'Check if test fails for correct reason - Missing resource group argument');
+};
+
+subtest '[az_keyvault_secret_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+
+    my $return_value = az_keyvault_secret_list(
+        vault_name => 'Arlecchino',
+        query => '[].Pantalone',
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az keyvault secret list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--vault-name Arlecchino/, @calls), 'Check for argument "--vault-name"');
+    ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+};
+
+subtest '[az_keyvault_secret_list] Test exception' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(croak => sub { @calls = $_[0]; die; });
+
+    dies_ok { az_keyvault_secret_list() } 'Fail with missing "resource_group" argument';
+    ok(grep(/vault_name/, @calls), 'Check if test fails for correct reason - Missing vault name argument');
+};
+
+subtest '[az_keyvault_secret_show] Test exception' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(croak => sub { note("\n --> " . join("\n --> ", $_[0])); die; });
+    dies_ok { az_keyvault_secret_show(id => '123', vault_name => 'Arlecchino', name => 'Colombina') }
+    'Fail with mutually exclusive arguments defined';
+    dies_ok { az_keyvault_secret_show(vault_name => 'Pantalone') } 'Fail with missing "name" argument';
+    dies_ok { az_keyvault_secret_show(name => 'Colombina') } 'Fail with missing "vault_name" argument';
+    dies_ok { az_keyvault_secret_show() } 'Fail with missing "id" argument';
+};
+
+subtest '[az_keyvault_secret_show] Calling with "id" argument' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'SUper$ecretStuffAnD_even_m0re_secret$tuFF'; });
+
+    az_keyvault_secret_show(id => 'Arlecchino');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--id Arlecchino/, @calls), 'Check for argument "--id"');
+    ok(grep(/--query value/, @calls), 'Check for argument "--query"');
+    ok(grep(/--output tsv/, @calls), 'Return output in "tsv" format');
+};
+
+subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" arguments' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '"SUper$ecretStuffAnD_even_m0re_secret$tuFF"'; });
+
+    my $result = az_keyvault_secret_show(name => 'Arlecchino', vault_name => 'Pantalone', output => 'json');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok(grep(/--name Arlecchino/, @calls), 'Check for argument "--name"');
+    ok(grep(/--vault-name Pantalone/, @calls), 'Check for argument "--vault-name"');
+    ok(grep(/--query value/, @calls), 'Check for argument "--query"');
+    ok(grep(/--output json/, @calls), 'Return output in "json" format');
+    is $result, 'SUper$ecretStuffAnD_even_m0re_secret$tuFF', 'Decode JSON output';
 };
 
 done_testing;

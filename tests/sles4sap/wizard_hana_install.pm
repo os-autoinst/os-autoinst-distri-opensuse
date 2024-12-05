@@ -103,6 +103,7 @@ sub run {
     send_key $cmd{next};
 
     while (1) {
+        wait_still_screen 1;    # Slow down the loop
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
         last if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
@@ -112,7 +113,6 @@ sub run {
         }
         send_key 'alt-o' if match_has_tag 'sap-wizard-partition-issues';
         send_key 'alt-y' if match_has_tag 'sap-wizard-continue-installation';
-        wait_still_screen 1;    # Slow down the loop
     }
 
     if (check_var('DESKTOP', 'textmode')) {

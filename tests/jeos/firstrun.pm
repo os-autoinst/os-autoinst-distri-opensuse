@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot has_selinux_by_default);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -117,6 +117,24 @@ sub verify_partition_label {
     }
 
     script_output('sfdisk -l') =~ m/Disklabel type:\s+$label/ or die "Wrong partion label found, expected '$label'";
+}
+
+sub verify_selinux {
+    if (has_selinux_by_default) {
+        # SELinux is default, should be enabled
+        validate_script_output("sestatus", sub { m/SELinux status:.*enabled/ });
+    } else {
+        # SELinux is not default, but might be supported
+        my $selinux_supported = script_run("grep -qw selinux /sys/kernel/security/lsm") == 0;
+        if ($selinux_supported) {
+            # supported, so it must be disabled
+            assert_script_run("which sestatus", fail_message => "SELinux is supported but 'sestatus' is not available");
+            validate_script_output("sestatus", sub { m/SELinux status:.*disabled/ });
+        } else {
+            # otherwise, then for sure /sys/fs/selinux can't exist
+            assert_script_run("! test -d /sys/fs/selinux", fail_message => "SELinux is not supported but /sys/fs/selinux exists");
+        }
+    }
 }
 
 sub create_user_in_terminal {
@@ -243,6 +261,9 @@ sub run {
     enter_root_passwd;
 
     if (is_bootloader_sdboot) {
+        send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
+        send_key 'ret';
+
         send_key_until_needlematch 'jeos-fde-option-enroll-root-pw', 'down' unless check_screen('jeos-fde-option-enroll-root-pw', 1);
         send_key 'ret';
 
@@ -320,7 +341,7 @@ sub run {
 
     if (is_bootloader_sdboot) {
         # Verify that /etc/issue shows the recovery key
-        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
+        wait_serial(qr/^Recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
@@ -402,6 +423,7 @@ sub run {
     verify_norepos unless is_opensuse;
     verify_bsc if is_jeos;
     verify_partition_label;
+    verify_selinux;
 }
 
 sub test_flags {

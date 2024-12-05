@@ -214,7 +214,7 @@
         </partition>
         <partition t="map">
           <create t="boolean">true</create>
-          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_key>{{PASSWORD}}</crypt_key>
           <crypt_method t="symbol">luks1</crypt_method>
           <format t="boolean">false</format>
           <loop_fs t="boolean">true</loop_fs>

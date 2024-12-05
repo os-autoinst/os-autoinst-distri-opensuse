@@ -16,11 +16,13 @@ use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test load_container_engine_test);
 use main_publiccloud qw(load_publiccloud_download_repos);
 use main_security qw(load_security_tests is_security_test);
-use testapi qw(check_var get_required_var get_var set_var);
+use testapi qw(check_var get_required_var get_var set_var record_info);
 use version_utils;
 use utils;
 use Utils::Architectures;
 use Utils::Backends;
+use Data::Dumper;
+
 
 sub is_image {
     return get_required_var('FLAVOR') =~ /image|default|kvm|base/i;
@@ -46,6 +48,7 @@ sub load_config_tests {
 }
 
 sub load_boot_from_disk_tests {
+    return if is_ppc64le && get_var('MACHINE') !~ /ppc64le-emu/i;
     # add additional image handling module for svirt workers
     if (is_s390x()) {
         loadtest 'installation/bootloader_start';
@@ -57,6 +60,7 @@ sub load_boot_from_disk_tests {
     # read FIRST_BOOT_CONFIG in order to know how the image will be configured
     # ignition|combustion|ignition+combustion is considered as default path
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        loadtest 'installation/bootloader_uefi' unless is_vmware || is_s390x || is_bootloader_sdboot;
         loadtest 'jeos/firstrun';
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         unless (is_s390x) {
@@ -205,6 +209,7 @@ sub load_common_tests {
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
     loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
+    loadtest 'console/salt' unless (is_staging || is_sle_micro);
     # On s390x zvm setups we need more time to wait for system to boot up.
     # Skip this test with sd-boot. The reason is not what you'd think though:
     # With sd-boot, host_config does not perform a reboot and a snapshot is made while the serial terminal
@@ -311,6 +316,13 @@ sub load_slem_on_pc_tests {
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
             loadtest("publiccloud/run_ltp", run_args => $args);
+        } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
+            # AISTACK test verification
+            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+            loadtest("publiccloud/create_aistack_env", run_args => $args);
+            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+            #loadtest("publiccloud/<saintytest>", run_args => $args);
+            #loadtest("publiccloud/<rbac>", run_args => $args);
         } elsif (is_container_test) {
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/instance_overview", run_args => $args);
@@ -321,10 +333,8 @@ sub load_slem_on_pc_tests {
                 $run_args->{runtime} = $_;
                 load_container_engine_test($run_args);
             }
-
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        else {
+        } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
@@ -384,6 +394,9 @@ sub load_tests {
 
     if (get_var('BOOT_HDD_IMAGE')) {
         load_boot_from_disk_tests;
+    } elsif (is_pvm && is_sle_micro('>=6.1')) {
+        loadtest 'installation/bootloader';
+        loadtest 'microos/install_image';
     } elsif (is_selfinstall) {
         load_selfinstall_boot_tests;
     } elsif (get_var('AUTOYAST')) {

@@ -59,6 +59,8 @@ use constant {
           package_version_cmp
           get_version_id
           php_version
+          has_selinux_by_default
+          has_selinux
         )
     ],
     BACKEND => [
@@ -973,3 +975,15 @@ sub is_community_jeos {
     return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
 }
 
+=head2 has_selinux_by_default
+
+Returns true if the distro has SELinux as default MAC
+=cut
+
+sub has_selinux_by_default {
+    return (is_tumbleweed && check_var("VERSION", "Staging:D")) || is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos;
+}
+
+sub has_selinux {
+    return get_var('SELINUX', has_selinux_by_default);
+}

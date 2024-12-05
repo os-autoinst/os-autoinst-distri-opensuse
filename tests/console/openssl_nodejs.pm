@@ -18,6 +18,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'generate_version';
+use version_utils qw(is_sle);
 
 sub run {
     #Preparation
@@ -31,6 +32,7 @@ sub run {
         $source_repo = script_output(q{zypper lr | grep Source-Pool | awk -F '|' '/Web_and_Scripting_Module/ {print $2}'});
         zypper_call("mr -e $source_repo", exitcode => [0, 3]);
     }
+    assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5');
     assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');
     assert_script_run 'chmod +x test_openssl_nodejs.sh';
     assert_script_run "./test_openssl_nodejs.sh $os_version", 900;

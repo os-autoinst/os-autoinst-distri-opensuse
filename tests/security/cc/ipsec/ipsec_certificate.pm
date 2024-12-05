@@ -96,7 +96,7 @@ sub run {
     }
     wait_for_children() if ($role eq 'server');
 
-    my $netdev = get_var('NETDEV', 'eth0');
+    my $netdev = 'eth0';
     my $ip = $role eq 'server' ? $atsec_test::server_ip : $atsec_test::client_ip;
 
     # Delete the ip that we added if arch is s390x

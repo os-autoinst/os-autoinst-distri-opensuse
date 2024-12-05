@@ -513,9 +513,11 @@ sub wrap_script_run {
         elsif ($output =~ /ASE.*notes.*1410736/) {
             record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
         }
-        elsif ($output =~ /transparent_hugepage.*always\s\[madvise\]\snever/) {
-            # For Power, the default is changed to madavise
-            if (is_pvm) {
+        elsif ($output =~ /transparent_hugepage.*always\s\[madvise\]\snever ==/) {
+            # Default is changed to madavise in two contexts:
+            # - for Power
+            # - on 15-SP5+ according to SAP Note 2131662 and 2031375
+            if (is_pvm or is_sle('>=15-SP5')) {
                 record_info('Issue can be ignored, see jsc#TEAM-9086', "$output");
             }
             else {

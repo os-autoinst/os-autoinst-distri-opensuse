@@ -16,8 +16,7 @@ use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
-use Yam::Agama::Pom::AgamaUpAndRunningBasePage;
-use Yam::Agama::Pom::AgamaUpAndRunningOpensusePage;
+use Yam::Agama::Pom::AgamaUpAndRunningPage;
 use Yam::Agama::Pom::RebootPage;
 use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
@@ -50,16 +49,10 @@ sub get_grub_entry_edition {
       : Yam::Agama::Pom::GrubEntryEditionPage->new();
 }
 
-sub get_agama_up_an_running_base {
-    return is_ppc64le() ? Yam::Agama::Pom::AgamaUpAndRunningBasePage->new({
-            timeout_expect_is_shown => 300})
-      : Yam::Agama::Pom::AgamaUpAndRunningBasePage->new();
-}
-
 sub get_agama_up_an_running {
-    my $self = shift;
-    return Yam::Agama::Pom::AgamaUpAndRunningOpensusePage->new({
-            agama_up_and_running_base => $self->get_agama_up_an_running_base()});
+    return is_ppc64le() ? Yam::Agama::Pom::AgamaUpAndRunningPage->new({
+            timeout_expect_is_shown => 300})
+      : Yam::Agama::Pom::AgamaUpAndRunningPage->new();
 }
 
 sub get_reboot {

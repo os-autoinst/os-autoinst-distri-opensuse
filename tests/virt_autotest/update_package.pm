@@ -16,7 +16,7 @@ use version_utils 'is_sle';
 use virt_utils;
 use ipmi_backend_utils;
 use Utils::Architectures;
-use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host is_registered_sles);
 
 sub update_package {
     my $self = shift;
@@ -49,8 +49,8 @@ sub update_package {
 sub run {
     my $self = shift;
     #workaroud: skip update package for registered sles as the packages are already up-to-date
-    $self->update_package() unless (!!get_var('AUTOYAST') || (is_registered_sles && !is_s390x));
-    if (!!get_var('AUTOYAST') || (is_registered_sles && !is_s390x)) {
+    $self->update_package() unless is_registered_sles && !is_s390x;
+    if (is_registered_sles && !is_s390x) {
         my @files_to_upload = ("/boot/grub2/grub.cfg", "/etc/default/grub");
         push(@files_to_upload, script_output("ls /boot/efi/efi/sles/xen-*.cfg")) if is_xen_host and is_uefi_boot;
         upload_logs($_, failok => 1) foreach (@files_to_upload);

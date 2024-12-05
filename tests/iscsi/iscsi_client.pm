@@ -42,10 +42,16 @@ sub initiator_service_tab {
                 after_reboot => {start_on_boot => 'alt-b'}
             );
         } else {
-            change_service_configuration(
-                after_writing => {start => 'alt-f'},
-                after_reboot => {start_on_demand => 'alt-a'}
-            );
+            if (is_sle('>=15-SP6')) {
+                change_service_configuration(
+                    after_writing => {start => 'alt-t'},
+                    after_reboot => {start_on_demand => 'alt-a'}
+                ); }
+            else {
+                change_service_configuration(
+                    after_writing => {start => 'alt-f'},
+                    after_reboot => {start_on_demand => 'alt-a'}
+                ); }
         }
     }
     # go to initiator name field
@@ -56,10 +62,18 @@ sub initiator_service_tab {
 
 sub initiator_discovered_targets_tab {
     # go to discovered targets tab
-    send_key "alt-v";
+    if (is_sle('>=15-SP6')) {
+        send_key "alt-d";
+    } else {
+        send_key "alt-v";
+    }
     assert_screen 'iscsi-discovered-targets', 120;
     # press discovery button
-    send_key "alt-d";
+    if (is_sle('>=15-SP6')) {
+        send_key "alt-i";
+    } else {
+        send_key "alt-d";
+    }
     wait_still_screen(2);
     assert_screen 'iscsi-discovery';
     # go to IP address field

@@ -8,7 +8,7 @@
 # - refresh the database using freshclam
 # - change user vscan to root in clamd.conf (clamd runs as root)
 # - start clamd and freshclam using systemctl
-# - check that clamscan is able to recognize a fake vim virus
+# - check that clamscan is able to recognize a fake virus
 # - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
 # - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
 #
@@ -42,8 +42,11 @@ sub scan_and_parse {
 sub run {
     select_serial_terminal;
 
-    zypper_call('in clamav vim');
+    zypper_call('in clamav');
     zypper_call('info clamav');
+    # Create a random file
+    assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
+    assert_script_run "chmod +x /usr/local/bin/maybeavirus";
 
     # Check Clamav version
     # Jira ID SLE-16780: upgrade Clamav SLE
@@ -90,12 +93,12 @@ sub run {
     systemctl('start freshclam');
 
     # Create md5, sha1 and sha256 Hash-based signatures
-    # Assume /usr/bin/vim is an virus program and add its
+    # Assume /usr/local/bin/maybeavirus is an virus program and add its
     # signature to viruses database, then scan the virus
     for my $alg (qw(md5 sha1 sha256)) {
-        assert_script_run "sigtool --$alg /usr/bin/vim > test.hdb";
-        enter_cmd "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev";
-        die "Virus scan result was not expected" unless (wait_serial qr/vim\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
+        assert_script_run "sigtool --$alg /usr/local/bin/maybeavirus > test.hdb";
+        enter_cmd "clamscan -d test.hdb  /usr/local/bin/maybeavirus | tee /dev/$serialdev";
+        die "Virus scan result was not expected" unless (wait_serial qr/maybeavirus\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 
     # test 3 different file formats containing the EICAR signature
@@ -110,6 +113,7 @@ sub run {
     scan_and_parse "clamdscan";
 
     # Clean up
+    script_run "rm -f /usr/local/bin/maybeavirus";
     script_run "rm -f test.hdb";
     script_run "rm -rf eicar_test_files/";
     systemctl('stop clamd freshclam', timeout => 500);
