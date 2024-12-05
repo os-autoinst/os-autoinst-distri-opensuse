@@ -44,9 +44,9 @@ conditional_schedule:
         - yast2_gui/yast2_hostnames
         - yast2_gui/yast2_network_settings
         - yast2_gui/yast2_lan_ifcfg_errors
+        - yast2_gui/yast2_lan_restart_bond
         - yast2_gui/yast2_lan_restart_bridge
         - yast2_gui/yast2_lan_restart_vlan
-        - yast2_gui/yast2_lan_restart_bond
       aarch64:
         - console/setup_libyui_running_system
         - yast2_gui/yast2_system_settings
@@ -58,9 +58,9 @@ conditional_schedule:
         - yast2_gui/yast2_datetime
         - yast2_gui/yast2_hostnames
         - yast2_gui/yast2_network_settings
+        - yast2_gui/yast2_lan_restart_bond
         - yast2_gui/yast2_lan_restart_bridge
         - yast2_gui/yast2_lan_restart_vlan
-        - yast2_gui/yast2_lan_restart_bond
       ppc64le:
         - console/setup_libyui_running_system
         - yast2_gui/yast2_system_settings
@@ -73,9 +73,9 @@ conditional_schedule:
         - yast2_gui/yast2_datetime
         - yast2_gui/yast2_hostnames
         - yast2_gui/yast2_network_settings
+        - yast2_gui/yast2_lan_restart_bond
         - yast2_gui/yast2_lan_restart_bridge
         - yast2_gui/yast2_lan_restart_vlan
-        - yast2_gui/yast2_lan_restart_bond
       s390x:
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
