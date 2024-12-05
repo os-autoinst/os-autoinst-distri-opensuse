@@ -161,6 +161,7 @@ sub run {
     }
 
     bootmenu_default_params;
+    save_screenshot();
     unless (is_selfinstall) {
         bootmenu_remote_target;
         specific_bootmenu_params unless is_microos || is_jeos;
