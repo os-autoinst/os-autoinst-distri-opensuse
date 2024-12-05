@@ -19,7 +19,7 @@ sub run {
     select_serial_terminal;
     zypper_call("in systemd-journal-remote");
     # Test file comes from https://github.com/systemd/systemd/blob/24cc5082f6e4b6cacaa48e317c6501c3b739c7c7/test/units/TEST-04-JOURNAL.journal-remote.sh
-    assert_script_run 'wget --quiet ' . data_url('qe-core/systemd/journal_remote.sh'); 
+    assert_script_run 'wget --quiet ' . data_url('qe-core/systemd/journal_remote.sh');
     assert_script_run 'chmod +x journal_remote.sh';
     assert_script_run "./journal_remote.sh", 300;
 
