@@ -258,7 +258,7 @@ sub setup_network {
     # boo#1017616: missing link to ping6 in iputils >= s20150815
     assert_script_run('which ping6 >/dev/null 2>&1 || ln -s `which ping` /usr/local/bin/ping6');
 
-    unless (is_transactional) {
+    unless (is_transactional || is_sle('16+')) {
         # dhcpd
         assert_script_run('touch /var/lib/dhcp/db/dhcpd.leases');
         script_run('touch /var/lib/dhcp6/db/dhcpd6.leases');
