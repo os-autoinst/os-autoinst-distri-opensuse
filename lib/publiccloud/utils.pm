@@ -116,6 +116,7 @@ sub registercloudguest {
     # Check what version of registercloudguest binary we use
     $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
     record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
