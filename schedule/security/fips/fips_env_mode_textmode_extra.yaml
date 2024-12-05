@@ -1,6 +1,6 @@
-name: fips_crypt_tool
+name: fips_env_mode_textmode_extra
 description:    >
-    This is for the crypt_tool fips tests.
+    This is for ...
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -17,19 +17,53 @@ schedule:
     - security/ntpd
     - console/ntp_client
     - console/cups
-    - console/cryptsetup
     - console/syslog
     - x11/evolution/evolution_prepare_servers
     - console/mutt
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/links_https
+    - console/lynx_https
+    - console/curl_ipv6
+    - console/wget_ipv6
     - fips/squid/squid_init
     - fips/squid/squid_web_proxy
     - fips/squid/squid_reverse_proxy
+    - console/apache_ssl
+    - fips/mozilla_nss/apache_nssfips
     - security/ecryptfs/ecryptfs
-    - security/libserf/libserf
     - security/vsftpd/vsftpd_setup
     - security/vsftpd/vsftpd
     - security/vsftpd/lftp
-    - '{{kern_only_tests}}'
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/rsync
+    - console/shells
+    - console/sudo
+    - console/dstat
+    - console/supportutils
+    - console/mdadm
+    - console/quota
+    - console/vhostmd
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - console/iotop
+    - console/systemd_rpm_macros
+    - console/kmod
+    - console/suse_module_tools
+    - console/aaa_base
+    - console/gd
+    - console/coredump_collect
+    - console/osinfo_db
+    - console/ovn
+    - console/firewalld
+    - console/zziplib
+    - console/nginx
+    - console/gdb
+    - console/sysctl
+    - '{{suseconnect}}'
 conditional_schedule:
     repo_setup:
         BETA:
@@ -38,13 +72,7 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    kern_only_tests:
-        TEST:
-            fips_ker_mode_tests_crypt_tool:
-                - '{{live_patch_available}}'
-    live_patch_available:
+    suseconnect:
         ARCH:
-            s390x:
-                - console/suseconnect.pm
             x86_64:
                 - console/suseconnect.pm

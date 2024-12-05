@@ -8,7 +8,6 @@ conditional_schedule:
         REMOTE_DESKTOP_TYPE:
             'xrdp_server':
                 - boot/boot_to_desktop
-                - security/verify_fips_enabled
                 - x11/window_system
                 - security/fips_xrdp_server
             'win_client':
