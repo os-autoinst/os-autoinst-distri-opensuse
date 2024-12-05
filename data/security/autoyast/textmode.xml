@@ -83,6 +83,11 @@
     <packages config:type="list">
       <package>grub2</package>
       <package>sles-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-desktop-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>sle-module-python3-release</package>
     </packages>
     <patterns t="list">
       <pattern>apparmor</pattern>
