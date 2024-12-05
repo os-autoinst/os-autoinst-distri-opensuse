@@ -46,12 +46,20 @@ status=0
 action=$1 ; shift
 case $action in
 probe)
+	if [ $# -eq 0 ]; then
+		echo "ERROR: missing <id> parameter"
+		exit 2
+	fi
 	while [ $# -gt 0 ]; do
 		arg=$1 ; shift
 		call_probe "$arg" || status=$?
 	done
 ;;
 bind|up)
+	if [ $# -eq 0 ]; then
+		echo "ERROR: missing <ifname> parameter"
+		exit 2
+	fi
 	while [ $# -gt 0 ]; do
 		name=$1 ; shift
 		test -f "/tmp/if${name}.devinfo" || {
@@ -74,9 +82,14 @@ bind|up)
 	done
 ;;
 unbind|down)
+	if [ $# -eq 0 ]; then
+		echo "ERROR: missing <ifname> parameter"
+		exit 2
+	fi
 	while [ $# -gt 0 ]; do
 		name=$1 ; shift
 		test -d "/sys/class/net/$name" || { status=1 ; continue; }
+		test -d "/sys/class/net/$name/device" || { status=1 ; continue; }
 
 		DEVPATH=$(cd -P "/sys/class/net/$name/device" 2>/dev/null ; echo "$PWD")
 		test -n "$DEVPATH" || { status=1 ; continue; }
