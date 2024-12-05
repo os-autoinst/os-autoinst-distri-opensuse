@@ -15,9 +15,7 @@ use Utils::Systemd qw(systemctl);
 use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
 
-# support for .build files was added in 5.2.0
-# https://github.com/containers/podman/releases/tag/v5.2.0
-my $has_build = check_min_runtime_version('5.2.0');
+my $has_build;    # tracking if podman version has support for .build files
 
 my $quadlet_dir = '/etc/containers/systemd';
 my $unit_name = 'quadlet-test';
@@ -149,12 +147,18 @@ sub run {
 
 sub pre_run_hook {
     my @unit_suffixes = ("", "-pod", "-network", "-volume");
+
+    # support for .build files was added in 5.2.0
+    # https://github.com/containers/podman/releases/tag/v5.2.0
+    $has_build = check_min_runtime_version('5.2.0');
+
     if ($has_build) {
         push @unit_suffixes, "-build";
         $systemd_container[1] .= "Image=$unit_name.build\n";
     } else {
         $systemd_container[1] .= "Image=registry.opensuse.org/opensuse/nginx:latest\n";
     }
+
     @units = map { "$unit_name$_.service" } @unit_suffixes;
 }
 
