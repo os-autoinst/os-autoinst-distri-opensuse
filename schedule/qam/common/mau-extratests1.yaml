@@ -46,6 +46,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
+        - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP5:
         - console/openssl_nodejs
