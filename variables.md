@@ -45,7 +45,6 @@ CASEDIR | string | | Path to the directory which contains tests.
 CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test module.
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
-CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana"). This variable belongs to PUBLIC_CLOUD_.
 CONTAINER_RUNTIMES | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`. In addition, it is also used for other container tests, like  `kubectl`, `helm`, etc.
 CONTAINERS_CGROUP_VERSION | string | | If defined, cgroups version to switch to
 CONTAINERS_K3S_VERSION | string |  | If defined, install the provided version of k3s
@@ -255,7 +254,6 @@ ZDUPREPOS | string | | Comma separated list of repositories to be added/used for
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)
 LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are booting an installed system from the installer medium (for example, a DVD) with the menu option "Boot Linux System" (not "boot From Hard Disk"). This option uses linuxrc.
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
-PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
@@ -302,99 +300,102 @@ The following variables are relevant for publiccloud related jobs. Keep in mind 
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
+CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana").
+PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
-PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
+PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
+PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
+PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION | string | "" | Defines the image definition for uploading Arm64 images to the image gallery.
+PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP | string | "" | Name for the resource group which is subscribed the kubernetes cluster.
+PUBLIC_CLOUD_AZURE_OFFER | string | "" | Specific to Azure. Allow to query for image based on offer and sku. Should be used together with PUBLIC_CLOUD_AZURE_SKU.
+PUBLIC_CLOUD_AZURE_PUBLISHER | string | "SUSE" | Specific to Azure. Allows to define the used publisher, if it should not be "SUSE"
+PUBLIC_CLOUD_AZURE_SKU | string | "" | Specific to Azure.
+PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_TENANT_ID`.
 PUBLIC_CLOUD_AZ_API | string | "http://169.254.169.254/metadata/instance/compute" | For Azure, it is the metadata API endpoint.
 PUBLIC_CLOUD_AZ_API_VERSION | string | "2021-02-01" | For Azure, it is the API version used whe querying metadata API.
-PUBLIC_CLOUD_HDD2_SIZE | integer | "" | If set, the instance will have an additional disk with the given capacity in GB
-PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is set, this defines the additional disk type (optional). The required value depends on the cloud service provider.
-PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
-PUBLIC_CLOUD_AZURE_PUBLISHER | string | "SUSE" | Specific to Azure. Allows to define the used publisher, if it should not be "SUSE"
-PUBLIC_CLOUD_AZURE_OFFER | string | "" | Specific to Azure. Allow to query for image based on offer and sku. Should be used together with PUBLIC_CLOUD_AZURE_SKU.
-PUBLIC_CLOUD_AZURE_SKU | string | "" | Specific to Azure.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
+PUBLIC_CLOUD_CLOUD_INIT | boolean | false | If this is true custom `cloud-config` will be attached to the instance.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
-PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
-PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
-PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
+PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
+PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
+PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.
 PUBLIC_CLOUD_DOWNLOAD_TESTREPO | boolean | false | If set, it schedules `publiccloud/download_repos` job.
-PUBLIC_CLOUD_TOOLS_CLI | boolean | false | If set, it schedules `publiccloud_tools_cli` job group.
+PUBLIC_CLOUD_EC2_BOOT_MODE | string | "uefi-preferred" | The `--boot-mode` parameter for `ec2uploadimg` script. Available values: `legacy-bios`, `uefi`, `uefi-preferred` Currently unused variable. Use `git blame` to get context.
+PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT | string | 0 | How many IPv6 addresses should the instance have
 PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be used for helper VM for upload some image. When not specified some predefined value will be used. Overwrite the value for `ec2uploadimg --ec2-ami`.
 PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
-PUBLIC_CLOUD_EC2_BOOT_MODE | string | "uefi-preferred" | The `--boot-mode` parameter for `ec2uploadimg` script. Available values: `legacy-bios`, `uefi`, `uefi-preferred` Currently unused variable. Use `git blame` to get context.
-PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT | string | 0 | How many IPv6 addresses should the instance have
-PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
+PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
 PUBLIC_CLOUD_FIO | boolean | false | If set, storage_perf test module is added to the job.
 PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
 PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
-PUBLIC_CLOUD_CLOUD_INIT | boolean | false | If this is true custom `cloud-config` will be attached to the instance.
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
+PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
+PUBLIC_CLOUD_GEN_RESOLVER | boolean | 0 | Control use of `--debug-resolver` option during maintenance updates testing . In case option was used also controls uploading of resolver case into the test
+PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
+PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.
+PUBLIC_CLOUD_HDD2_SIZE | integer | "" | If set, the instance will have an additional disk with the given capacity in GB
+PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is set, this defines the additional disk type (optional). The required value depends on the cloud service provider.
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
-PUBLIC_CLOUD_IMAGE_URI | string | "" | The URI of the image to be used. Use 'auto' if you want the URI to be calculated.
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
-PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION | string | "" | Defines the image definition for uploading Arm64 images to the image gallery.
-PUBLIC_CLOUD_IMG_PROOF_TESTS | string | "test-sles" | Tests run by img-proof.
+PUBLIC_CLOUD_IMAGE_URI | string | "" | The URI of the image to be used. Use 'auto' if you want the URI to be calculated.
 PUBLIC_CLOUD_IMG_PROOF_EXCLUDE | string | "" | Tests to be excluded by img-proof.
-PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t2.large )
-PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
-PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t2.large" | Specify the new instance type to check bsc#1205002 in EC2
-PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE | boolean | false | Do not remove the instance when the test fails.
-PUBLIC_CLOUD_PERF_COLLECT | boolean | 1 | To enable `boottime` measures collection, at end of `create_instance` routine.
-PUBLIC_CLOUD_PERF_DB_URI | string | "http://publiccloud-ng.qe.suse.de:8086" | bootup time measures get pushed to this Influx database url.
-PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
-PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | defines the organization in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
-_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
-PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | 1 | To enable the test to push it's metrics to the InfluxDB, when PUBLIC_CLOUD_PERF_COLLECT true.
-PUBLIC_CLOUD_PERF_THRESH_CHECK | boolean | "" | If set to `1` or any not empty value, then the test run will _also_ execute the thresholds check on the collected metrics. By _default_ that check is _Not executed_.
-PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
-PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.
-PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
-PUBLIC_CLOUD_QAM | boolean | false |  1 : to identify jobs running to test "Maintenance" updates; 0 : for jobs testing "Latest" (in development). Used to control all behavioral implications which this brings.
-PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
-PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b). In `upload-img` for Azure Arm64 images, multiple comma-separated regions are supported (see `lib/publiccloud/azure.pm`)
-PUBLIC_CLOUD_RESOURCE_GROUP | string | "qesaposd" | Allows to specify resource group name on SLES4SAP PC tests.
-PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
-PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
-PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
-PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
-PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
-PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the TTL of created VM.
-PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
-PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_TENANT_ID`.
-PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
-PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
-PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP | string | "" | Name for the resource group which is subscribed the kubernetes cluster.
-PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.
-PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
-PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
-PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
-PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
-PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
-PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
-TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
-PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
-_SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
-PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
-PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which will be used to register image . Except default value only possible value is "SUSEConnect" anything else will lead to test failure!
-TERRAFORM_VM_CREATE_TIMEOUT | string | "20m" | Terraform timeout for creating the virtual machine resource.
-PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
-PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_more_cli_test.
-PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
-PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
-PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
+PUBLIC_CLOUD_IMG_PROOF_TESTS | string | "test-sles" | Tests run by img-proof.
 PUBLIC_CLOUD_INFRA | boolean | false | Would trigger special flow in [check_registercloudguest.pm](tests/publiccloud/check_registercloudguest.pm) needed for run test against special test infra (DO NOT use the variable if you don't know what is about)
 PUBLIC_CLOUD_INFRA_RMT_V4 | string | "" | Defines IPv4 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
 PUBLIC_CLOUD_INFRA_RMT_V6 | string | "" | Defines IPv6 registration server in test infra. Must be used together with PUBLIC_CLOUD_INFRA. (DO NOT use the variable if you don't know what is about)
-PUBLIC_CLOUD_GEN_RESOLVER | boolean | 0 | Control use of `--debug-resolver` option during maintenance updates testing . In case option was used also controls uploading of resolver case into the test
+PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
+PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t2.large )
+PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
+PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
+PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
+PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_instance" subroutine within lib/publiccloud/provider.md a limited amount of times. If set to 0 or undef, it allows an unlimited amount of calls.
+PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
+PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t2.large" | Specify the new instance type to check bsc#1205002 in EC2
+PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE | boolean | false | Do not remove the instance when the test fails.
+PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
+PUBLIC_CLOUD_PERF_COLLECT | boolean | 1 | To enable `boottime` measures collection, at end of `create_instance` routine.
+PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
+PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | defines the organization in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
+PUBLIC_CLOUD_PERF_DB_URI | string | "http://publiccloud-ng.qe.suse.de:8086" | bootup time measures get pushed to this Influx database url.
+PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | 1 | To enable the test to push it's metrics to the InfluxDB, when PUBLIC_CLOUD_PERF_COLLECT true.
+PUBLIC_CLOUD_PERF_THRESH_CHECK | boolean | "" | If set to `1` or any not empty value, then the test run will _also_ execute the thresholds check on the collected metrics. By _default_ that check is _Not executed_.
+PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
+PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
+PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
+PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_more_cli_test.
+PUBLIC_CLOUD_QAM | boolean | false |  1 : to identify jobs running to test "Maintenance" updates; 0 : for jobs testing "Latest" (in development). Used to control all behavioral implications which this brings.
+PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
+PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
+PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b). In `upload-img` for Azure Arm64 images, multiple comma-separated regions are supported (see `lib/publiccloud/azure.pm`)
+PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
+PUBLIC_CLOUD_RESOURCE_GROUP | string | "qesaposd" | Allows to specify resource group name on SLES4SAP PC tests.
+PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
 PUBLIC_CLOUD_ROOT_DISK_SIZE | int |  | Set size of system disk in GiB for public cloud instance. Default size is 30 for Azure and 20 for GCE and EC2 
+PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which will be used to register image . Except default value only possible value is "SUSEConnect" anything else will lead to test failure!
+PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
+PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
+PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
+PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
+PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
+PUBLIC_CLOUD_TOOLS_CLI | boolean | false | If set, it schedules `publiccloud_tools_cli` job group.
+PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
+PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
+PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the TTL of created VM.
+PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
+PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
+PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
+TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
+TERRAFORM_VM_CREATE_TIMEOUT | string | "20m" | Terraform timeout for creating the virtual machine resource.
+_SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
+_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
 
 
 ### Wicked testsuite specific variables
