@@ -54,15 +54,16 @@ sub run {
             '/tmp/results/',
             '-type', 'f',
             '-iname', "*.xml");
-        my $find_ansible_know_issue = qr/\[OSADO\]\[softfail\] bsc#(\d+) (.*)/;
-        my $cat_command = "cat '$ret[1]'";
-        my $ansibleOutput = script_output($cat_command);
+        my $ansible_output = script_output("cat $ret[1]");
+        my $reference;
+        my $desc_known_issue;
 
-        foreach my $ansible_line (split /\n/, $ansibleOutput) {
+        foreach my $ansible_line (split /\n/, $ansible_output) {
             chomp $ansible_line;
-            if ($ansible_line =~ $find_ansible_know_issue) {
-                my ($bug_id, $description) = ($1, $2);
-                record_soft_failure("bsc#$bug_id - $description");
+            if ($ansible_line =~ qr/\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)/) {
+                $reference = $1;
+                $desc_known_issue = $2;
+                record_soft_failure("$reference - $desc_known_issue");
             }
         }
         for my $log (split(/\n/, script_output($find_cmd))) {
