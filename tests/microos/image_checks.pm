@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);
+use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64);
 
 sub run {
@@ -25,7 +26,8 @@ sub run {
 
     # Verify that openQA resized the disk image
     my $disksize = script_output "sfdisk --show-size /dev/$disk";
-    die "Disk not bigger than the default size, got $disksize KiB" unless $disksize > (20 * 1024 * 1024);
+    # openQA cannot resize powerVM disk image since it is not QEMU backend, skip the check here, see poo#167986
+    die "Disk not bigger than the default size, got $disksize KiB" unless ($disksize > (20 * 1024 * 1024) || is_pvm);
 
     # Verify that the GPT has no errors (PMBR mismatch, backup GPT not at the end)
     # by looking for nonempty stderr.
