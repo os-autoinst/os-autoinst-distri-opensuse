@@ -113,7 +113,7 @@ sub rke2_server_setup {
     transactional::process_reboot(trigger => 1) if (is_transactional);
     record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
     # Set kernel hostname to avoid x509 server connection issue
-    assert_script_run('hostnamectl set-hostname $(uname -n)');
+    assert_script_run('hostnamectl set-hostname $(hostname -f)');
 
     $self->install_kubevirt_packages();
 
