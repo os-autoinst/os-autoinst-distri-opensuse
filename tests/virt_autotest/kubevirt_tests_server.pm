@@ -616,6 +616,11 @@ EOF
         }
     }
 
+    # Remove duplicate skipped testcases from xml result files
+    my $deduplication = "remove_dup_skipped_tests.py";
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$deduplication") . " -o $deduplication");
+    assert_script_run("python3 $deduplication $result_dir");
+
     $self->generate_test_report($result_dir);
     $self->upload_test_results($result_dir);
 }
