@@ -1,0 +1,27 @@
+global:
+  imagePullSecrets:
+  - application-collection
+cluster:
+  enabled: True
+standalone:
+  persistence:
+    persistentVolumeClaim:
+      storageClass: local-path
+etcd:
+  replicaCount: 1
+  persistence:
+    storageClassName: local-path
+minio:
+  mode: distributed
+  replicas: 4
+  rootUser: "admin"
+  rootPassword: "adminminio"
+  persistence:
+    storageClass: local-path
+  resources:
+    requests:
+      memory: 1024Mi
+kafka:
+  enabled: True
+  persistence:
+    storageClassName: "local-path"
