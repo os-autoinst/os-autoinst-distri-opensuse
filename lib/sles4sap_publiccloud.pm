@@ -1298,11 +1298,6 @@ sub wait_for_cluster {
         if ($args{max_retries} <= 0) {
             record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
             $self->display_full_status();
-            # softfail because of bsc#1233026 - if fixed remove the 'if' condition AND the 'use version_utils' from this file
-            if (is_sle('=12-SP5') && $crm_output =~ /TimeoutError/) {
-                record_soft_failure("bsc#1233026 - Error occurred, see previous output: Proceeding despite failure.");
-                return;
-            }
             die "Cluster is not ready after specified retries.";
         }
         sleep($args{wait_time});
