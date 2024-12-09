@@ -11,17 +11,17 @@ use testapi;
 use utils;
 use transactional;
 use Utils::Architectures qw(is_s390x);
-use Utils::Backends qw(is_qemu);
+use Utils::Backends qw(is_qemu is_pvm);
 use version_utils qw(is_vmware);
 use virt_autotest::esxi_utils;
 
-my (%network_s390x, %network_qemu, %network_vmware, %net_config, $nic_name);
+my (%network_pvm, %network_s390x, %network_qemu, %network_vmware, %net_config, $nic_name);
 
 sub ping_check {
     assert_script_run("ping -c 5 $net_config{'dhcp_server'}");
     assert_script_run("ping -c 5 $net_config{'dns_server'}");
     # disconnect the device, skip the test on remote worker with ssh connection
-    unless (is_s390x || is_vmware) {
+    unless (is_pvm || is_s390x || is_vmware) {
         # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
         if (script_run("nmcli -w 120 device disconnect $nic_name", timeout => 130) == 6) {
             script_run('nmcli general logging level DEBUG');
@@ -58,6 +58,20 @@ sub dns_mgr {
 }
 
 sub run {
+    # the below network confiration is used if on pvm
+    %network_pvm = ();
+    if (is_pvm) {
+        my $vm_mac = script_output qq(ip link show eth0 | grep -F 'link/ether' |awk '{print \$2}');
+        my $vm_ip = script_output qq(ip addr show eth0 | grep -F 'inet ' | awk '{print \$2}' |awk -F '/' '{print \$1}');
+        chomp($vm_mac);
+        chomp($vm_ip);
+        %network_pvm = (
+            'dhcp_server' => '10.145.10.254',
+            'dns_server' => '10.144.53.53',
+            'mac_addr' => $vm_mac,
+            'local_ip' => $vm_ip
+        );
+    }
     # the below network confiration is used if on s390x
     %network_s390x = (
         'dhcp_server' => '10.145.10.254',
@@ -88,6 +102,7 @@ sub run {
             'local_ip' => $vm_ip
         );
     }
+    %net_config = %network_pvm if (is_pvm);
     %net_config = %network_s390x if (is_s390x);
     %net_config = %network_qemu if (is_qemu);
     %net_config = %network_vmware if (is_vmware);
