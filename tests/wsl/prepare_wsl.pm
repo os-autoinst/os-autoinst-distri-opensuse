@@ -25,8 +25,6 @@ sub run {
 
     $self->open_powershell_as_admin;
 
-    $self->power_configuration if (is_aarch64);
-
     if (get_var('WSL2')) {
         # WSL2 platform must be enabled from the MSstore from now on
         $self->run_in_powershell(
@@ -41,10 +39,11 @@ sub run {
             }
         );
         # Disable HyperV in WSL2
+        # On aarch64 with WSL2 this gets stuck somehow or is too slow (>2h?).
         $self->run_in_powershell(
             cmd => 'Disable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Hypervisor -NoRestart',
             timeout => 60
-        );
+        ) unless is_aarch64;
     } else {
         # WSL1 will still be enabled in the legacy mode
         $self->run_in_powershell(
