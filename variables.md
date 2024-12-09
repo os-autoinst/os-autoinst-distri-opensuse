@@ -482,3 +482,13 @@ Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 SCC_RECGODE_LTSS | string | | This will hold the registration code for activating the product SLES-LTSS
 SCC_RECGODE_LTSS_ES | string | | This will hold the registration code for activating the product SLES-LTSS-Extended-Security
+
+### Agama specific variables
+
+Following variables are relevant for agama installation
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+AGAMA | boolean | 0 | Agama installation support
+AGAMA_AUTO | string | | The auto-installation is started by passing `agama.auto=<url>` on the kernel's command line
+AGAMA_INSTALL_URL | string | | This will supports using the agama.install_url boot parameter for overriding the default installation repositories. You can use multiple URLs separated by comma: agama.install_url=https://example.com/1,https://example.com/2
