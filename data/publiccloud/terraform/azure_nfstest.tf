@@ -235,3 +235,12 @@ output "public_ip" {
 output "resource_id" {
   value = element(random_id.service.*.hex, 0)
 }
+
+output "instance_id" {
+  value = azurerm_linux_virtual_machine.openqa-vm.*.id 
+}
+
+output "resource_group_name" {
+  value = azurerm_resource_group.openqa-group.*.name
+}
+
