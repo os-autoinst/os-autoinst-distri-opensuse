@@ -17,6 +17,7 @@ use audit_test qw(run_testcase compare_run_log);
 sub run {
     my ($self) = shift;
 
+    reset_consoles;
     select_console 'root-console';
 
     # Run test case
