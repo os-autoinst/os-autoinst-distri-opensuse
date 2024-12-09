@@ -26,6 +26,7 @@ ansible:
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
   az_key_name: '%HANA_KEYNAME%'
+  use_sap_hana_sr_angi: '%USE_SR_ANGI%'
   hana_media:
     - '%HANA_SAR%'
     - '%HANA_CLIENT_SAR%'
