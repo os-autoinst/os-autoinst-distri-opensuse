@@ -1068,6 +1068,7 @@ sub create_hana_vars_section {
         $hana_vars{sap_hana_install_sid} = get_required_var('INSTANCE_SID');
         $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
         $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
+        $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
         $hana_vars{primary_site} = $hana_sites[0];
         $hana_vars{secondary_site} = $hana_sites[1];
         set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
