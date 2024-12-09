@@ -15,7 +15,7 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
-use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro);
+use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_agama);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 use Utils::Backends qw(is_ipmi is_qemu);
@@ -132,6 +132,38 @@ END_BOOTSCRIPT
     set_ipxe_bootscript($bootscript);
 }
 
+sub set_bootscript_agama {
+    my $host = get_required_var('SUT_IP');
+    my $arch = get_required_var('ARCH');
+    my $mirror_http = get_required_var('MIRROR_HTTP');
+    my $openqa_hostname = get_var('OPENQA_HOSTNAME', 'openqa.suse.de');
+    my $agama_iso = get_required_var('ISO');
+    my $agama_live_iso = get_var("AGAMA_LIVE_ISO_URL", "http://$openqa_hostname/assets/iso/$agama_iso");
+    my $install = "root=live:$agama_live_iso live.password=$testapi::password";
+    my $kernel = "$mirror_http/boot/$arch/loader/linux";
+    my $initrd = "$mirror_http/boot/$arch/loader/initrd";
+
+    my $cmdline_extra = set_bootscript_agama_cmdline_extra();
+
+    my $bootscript = <<"END_BOOTSCRIPT";
+#!ipxe
+echo ++++++++++++++++++++++++++++++++++++++++++
+echo +++++++++ openQA agama ipxe boot +++++++++
+echo +    Host: $host
+echo ++++++++++++++++++++++++++++++++++++++++++
+
+echo Loading kernel
+kernel $kernel $install $cmdline_extra
+echo Loading initrd
+initrd $initrd
+sleep 3
+echo Starting the installation
+boot
+END_BOOTSCRIPT
+
+    set_ipxe_bootscript($bootscript);
+}
+
 sub enter_o3_ipxe_boot_entry {
     ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
     assert_screen('o3-ipxe-menu', 210);
@@ -147,8 +179,29 @@ sub enter_o3_ipxe_boot_entry {
     }
 }
 
-sub set_bootscript_cmdline_extra {
 
+sub set_bootscript_agama_cmdline_extra {
+    my $cmdline_extra = " ";
+    if (get_var('AGAMA_AUTO')) {
+        my $agama_auto = data_url(get_var('AGAMA_AUTO'));
+        $agama_auto =~ s/^\s+|\s+$//g;
+        $cmdline_extra .= "agama.auto=$agama_auto ";
+    }
+    # Agama Installation repository URL
+    # By default Agama installs the packages from the repositories specified in the product configuration.
+    # From now Agama supports using the agama.install_url boot parameter for overriding the default installation repositories.
+    if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
+        $agama_install_url =~ s/^\s+|\s+$//g;
+        $cmdline_extra .= "agama.install_url=$agama_install_url ";
+    }
+    if (is_ipmi) {
+        my $sol_console = get_required_var('IPXE_CONSOLE');
+        $cmdline_extra .= "console=$sol_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
+    }
+    return $cmdline_extra;
+}
+
+sub set_bootscript_cmdline_extra {
     my $cmdline_extra = " ";
     my $regurl = get_var('VIRT_AUTOTEST') ? get_var('HOST_SCC_URL', '') : get_var('SCC_URL', '');
     my $console = get_var('IPXE_CONSOLE', '');
@@ -214,7 +267,6 @@ sub set_bootscript_cmdline_extra {
     $cmdline_extra .= " reboot_timeout=" . get_var('REBOOT_TIMEOUT', 0) . ' '
       unless (is_leap('<15.2') || is_sle('<15-SP2'));
     $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
-
     return $cmdline_extra;
 }
 
@@ -277,7 +329,7 @@ sub run {
     die "Can't set AUTOYAST for usb boot!" if (get_var('AUTOYAST', '') && is_usb_boot);
 
     # virtualization tests use a static ipxe configuration file in O3
-    set_bootscript unless get_var('IPXE_STATIC');
+    is_agama ? set_bootscript_agama : set_bootscript unless (get_var('IPXE_STATIC'));
 
     set_pxe_boot;
 
@@ -287,6 +339,13 @@ sub run {
 
     if (is_disk_image) {
         check_screen([qw(load-linux-kernel load-initrd)], 120 / get_var('TIMEOUT_SCALE', 1));
+        return;
+    }
+
+    if (is_agama) {
+        assert_screen([qw(load-linux-kernel load-initrd)], 240);
+        record_info("Installing", "Please check the expected product is being installed");
+        assert_screen('agama-installer-live-root', 400);
         return;
     }
 
