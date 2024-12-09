@@ -26,6 +26,8 @@ use version_utils qw(is_openstack is_sle_micro);
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
 
+our $instance_counter;    # Package variable tracking create_instance calls
+
 has prefix => 'openqa';
 has terraform_env_prepared => 0;
 has terraform_applied => 0;
@@ -343,6 +345,10 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 =cut
 
 sub create_instance {
+    my $max = get_var('PUBLIC_CLOUD_MAX_INSTANCES', 1);
+    if ($max > 0 && ++$instance_counter > $max) {
+        die "Maximum number of instances reached ($instance_counter)";
+    }
     return (shift->create_instances(@_))[0];
 }
 
