@@ -1,12 +1,14 @@
-name: fips_crypt_core
+name: fips_ker_mode_textmode_core
 description:    >
-    This is for the crypt_core fips tests.
+    This is for FIPS testing of core modules in kernel mode on a textmode system.
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
-    - '{{repo_setup}}'
     - fips/fips_setup
+    - security/dm_crypt
+    - console/cryptsetup
+    - security/libserf/libserf
     - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
     - fips/openssl/openssl_fips_cipher
@@ -20,25 +22,13 @@ schedule:
     - fips/openssl/openssl_tlsv1_3
     - fips/openssl/openssl_pubkey_rsa
     - fips/openssl/openssl_pubkey_dsa
-    # dhparam only in ker mode
-    - '{{dhparam}}'
+    - fips/openssl/openssl_fips_dhparam
     - fips/openssh/openssh_fips
-    # ssh disabled in env mode, see poo#125648
-    - '{{ssh}}'
+    - console/libgcrypt
+    - '{{libica}}'
 conditional_schedule:
-    repo_setup:
-        BETA:
-            1:
-                - security/test_repo_setup
-        FLAVOR:
-            Online-QR:
-                - security/test_repo_setup
-    dhparam:
-        TEST:
-            fips_ker_mode_tests_crypt_core:
-                - fips/openssl/openssl_fips_dhparam
-    ssh:
-        TEST_SUITE_NAME:
-            fips_ker_mode_tests_crypt_core:
-                - console/sshd
-                - console/ssh_cleanup
+    libica:
+        ARCH:
+            s390x:
+                - fips/libica
+                - fips/libica_upstream_testsuite
