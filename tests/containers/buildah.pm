@@ -102,7 +102,7 @@ sub run {
 
     # Run tests as user
     if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3') && !is_svirt) {
-        if (is_sle('<15-SP5')) {
+        if (is_sle('<15-SP4')) {
             record_soft_failure("bsc#1232522 - buildah security update changes default network mode from slirp4netns to passt for rootless containers");
         } else {
             select_user_serial_terminal;
