@@ -50,6 +50,11 @@ sub run {
             cmd => 'Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart',
             timeout => 300
         );
+        # Some versions immediately want to install updates on the first wsl.exe run, do that now
+        $self->run_in_powershell(
+            cmd => 'wsl.exe --update',
+            timeout => 300
+        ) if check_var('WIN_VERSION', '11');
     }
 
     $self->reboot_or_shutdown(is_reboot => 1);
