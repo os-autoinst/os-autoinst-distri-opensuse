@@ -121,6 +121,7 @@ sub prepare_parmfile {
     }
     if (get_var('AGAMA_AUTO')) {
         my $url = data_url(get_var('AGAMA_AUTO'));
+        $url = shorten_url($url) unless (is_opensuse);
         $params .= " agama.auto=" . $url;
         set_var('AGAMA_AUTO', $url);
     }
