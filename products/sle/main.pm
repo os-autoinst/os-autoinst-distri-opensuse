@@ -24,7 +24,7 @@ use main_publiccloud;
 use main_security;
 use Utils::Architectures;
 use DistributionProvider;
-use virt_autotest::utils qw(is_registered_sles);
+use virt_autotest::utils qw(is_registered_sles is_sles_mu_virt_test);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -646,6 +646,12 @@ testapi::set_distribution(DistributionProvider->provide());
 # set failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
+
+# Do it only for SLES MU virt test before loadtest
+if (is_sles_mu_virt_test) {
+    set_mu_virt_vars;
+    diag "Set necessary variables for SLES MU virtualization test before loadtest is done!";
+}
 
 if (load_yaml_schedule) {
     if (YuiRestClient::is_libyui_rest_api) {

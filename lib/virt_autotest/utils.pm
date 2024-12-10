@@ -26,7 +26,7 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_sev_es_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_sev_es_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host is_sles_mu_virt_test
   is_monolithic_libvirtd turn_on_libvirt_debugging_log restart_libvirtd check_libvirtd restart_modular_libvirt_daemons check_modular_libvirt_daemons
   reset_log_cursor check_failures_in_journal check_host_health check_guest_health print_cmd_output_to_file collect_virt_system_logs setup_rsyslog_host download_script download_script_and_execute upload_virt_logs enable_nm_debug upload_nm_debug_log
   ssh_setup setup_common_ssh_config add_alias_in_ssh_config install_default_packages parse_subnet_address_ipv4 backup_file manage_system_service check_port_state is_registered_sles is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules check_activate_network_interface wait_for_host_reboot
@@ -117,6 +117,11 @@ sub is_vmware_virtualization {
 #return 1 if it is a Hyper-V test judging by REGRESSION variable
 sub is_hyperv_virtualization {
     return get_var("REGRESSION", '') =~ /hyperv/;
+}
+
+# Return 1 if it is SLES MU virt test, otherwise return 0
+sub is_sles_mu_virt_test {
+    return is_sle && get_var('REGRESSION') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
 }
 
 #return 1 if it is a fv guest judging by name
