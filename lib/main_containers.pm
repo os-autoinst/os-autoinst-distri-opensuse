@@ -278,7 +278,8 @@ sub load_container_tests {
         # Container Image tests common
         loadtest 'containers/host_configuration';
         if (get_var('BCI_TESTS') && !get_var('BCI_SKIP')) {
-            # bci_version_check required jq from bci_prepare.
+            loadtest 'containers/bci_collect_stats' if (get_var('IMAGE_STORE_DATA'));
+            # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
         }
     }

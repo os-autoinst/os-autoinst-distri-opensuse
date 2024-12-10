@@ -13,7 +13,6 @@
 
 use Mojo::Base qw(consoletest);
 use utils qw(zypper_call script_retry);
-use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -49,22 +48,6 @@ sub run {
         # Note: Both lines are aligned, thus the additional space
         record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
         die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$buildrelease$/);
-    }
-
-    ## Pull container and collect container stats, but only for podman.
-    # podman and docker collect the image size differently. To remain consistent we only collect the image size as reported by podman
-    if ($image && get_var('IMAGE_STORE_DATA') && $engine =~ /podman/) {
-        script_retry("podman pull -q $image", retry => 3, delay => 120);
-        my $size_mb = script_output("podman inspect --format \"{{.VirtualSize}}\" $image") / 1000000;
-        my %args;
-        $args{arch} = get_required_var('ARCH');
-        $args{distri} = 'bci';
-        $args{flavor} = get_required_var('BCI_IMAGE_NAME');
-        $args{flavor} =~ s/^bci-//;    # Remove optional bci prefix from the image name because the distri already determines that this is bci.
-        $args{type} = 'VirtualSize';
-        $args{version} = get_required_var('VERSION');
-        $args{build} = get_required_var('BUILD');
-        push_image_data_to_db('containers', $image, $size_mb, %args);
     }
 }
 
