@@ -152,7 +152,7 @@ sub login_to_console {
     }
 
     my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
-    unless (is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    unless (get_var('UPGRADE_AFTER_REBOOT') or is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
@@ -187,60 +187,32 @@ sub login_to_console {
         save_screenshot;
         #offline upgrade requires upgrading offline during reboot while online doesn't
         if (get_var('OFFLINE_UPGRADE')) {
-            #boot to upgrade menuentry
-            send_key 'down';
-            send_key 'ret';
-            #wait sshd up
-            die "Can not connect to machine to perform offline upgrade via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 10));
-            save_screenshot;
-            #switch to ssh console
-            use_ssh_serial_console;
-            save_screenshot;
-            #start upgrade
-            if (check_var('VIDEOMODE', 'text')) {
-                if (lc(get_var('VERSION_TO_INSTALL', '')) eq '12-sp5' and lc(get_var('UPGRADE_PRODUCT', '')) =~ /sles-15-sp[67]/) {
-                    # DISPLAY= might be culprit that prevents host upgrade from proceeding at SCC registration. Please refer to bsc#1218798.
-                    record_soft_failure("bsc#1218798 - [SLES][15-SP6][x86_64][Build46.40] Unable to create repository due to valid metadata not found");
-                    enter_cmd("yast.ssh");
-                }
-                else {
-                    enter_cmd("DISPLAY= yast.ssh");
-                }
+            # Wait offline upgrade starts with ssh port open. Press enter key and wait one more time to adapt to more situations
+            # like grub menu with disabled timeout.
+            unless (check_port_state(get_required_var('SUT_IP'), 22, 30, 10)) {
+                send_key('ret') for (0 .. 2);
+                die "Offline upgrade failed to start because ssh port is not open" unless (check_port_state(get_required_var('SUT_IP'), 22, 30, 10));
             }
-            else {
-                enter_cmd("yast.ssh");
+            record_info("First stage offline upgrade starts");
+            save_screenshot;
+            # Wait ssh port down after first stage upgrade finishes
+            my $wait_ssh_port_down = 7200;
+            while ($wait_ssh_port_down >= 0) {
+                last unless (check_port_state(get_required_var('SUT_IP'), 22));
+                sleep 30;
+                $wait_ssh_port_down -= 30;
             }
+            die "First stage offline upgrade failed to finish after 2hrs" if (check_port_state(get_required_var('SUT_IP'), 22));
+            record_info("First stage offline upgrade finishes");
             save_screenshot;
-            #wait upgrade finish
-            assert_screen('rebootnow', 2700);
-            save_screenshot;
-            send_key 'ret';
-            #leave ssh console and switch to sol console
-            switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-            save_screenshot;
-            send_key 'ret';
-            #wait grub2 boot menu after first stage upgrade
-            unless (check_screen('grub2', timeout => 290)) {
-                record_info("Reboot SUT", "Reboot " . get_required_var("SUT_IP") . " to match grub2 menu because last match failed");
-                ipmi_backend_utils::ipmitool("chassis power reset");
-                assert_screen('grub2', timeout => 300);
-            }
-            #wait sshd up after first stage upgrade
-            die "Can not connect to machine to perform offline upgrade second stage via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 20));
-            save_screenshot;
-            #switch to ssh console
-            use_ssh_serial_console;
-            save_screenshot;
-            #start second stage upgrade
-            enter_cmd("DISPLAY= yast.ssh");
-            save_screenshot;
-            #wait for second stage upgrade completion
-            assert_screen('yast2-second-stage-done', 300);
-            #leave ssh console and switch to sol console
-            switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-            save_screenshot;
-            send_key 'ret';
-            save_screenshot;
+            # Wait system boots up for second stage upgrade
+            die "Second stage offline upgrade can not start because ssh port is not open" unless (check_port_state(get_required_var('SUT_IP'), 22, 30, 10));
+            record_info("System boots up for second stage offline upgrade");
+            # Wait second stage upgrade finishes
+            wait_still_screen(stilltime => 60, timeout => 300);
+            send_key('ret') for (0 .. 2);
+            assert_screen('linux-login', timeout => 60);
+            record_info("Second stage offline upgrade finishes");
         }
         #setup vars
         set_var('UPGRADE_AFTER_REBOOT', '');
