@@ -18,6 +18,7 @@ use utils;
 use mmapi;
 use version_utils qw(is_transactional);
 use File::Basename;
+use Cwd 'abs_path';
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
@@ -626,6 +627,15 @@ sub generate_test_report {
     my $build_xml = "/tmp/buildTestReports.xml";
     my $html_dir = "$result_dir/html";
 
+    # Remove duplicate skipped testcases from xml result files
+    my $deduplication_script = "remove_dup_skipped_tests.py";
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$deduplication_script") . " -o $deduplication_script");
+    assert_script_run("python3 $deduplication_script $result_dir");
+
+    my $xsl_file = "junit-noframes.xsl";
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$xsl_file") . " -o $xsl_file");
+    my $xsl_dir = dirname(abs_path($xsl_file));
+
     record_info('Generate test report', '');
     assert_script_run(qq(cat > $build_xml <<__END
 <project name="genTestReport" default="gen" basedir="$result_dir">
@@ -640,7 +650,9 @@ sub generate_test_report {
             <fileset dir="$result_dir">
                 <include name="*_test.xml" />
             </fileset>
-            <report format="frames" todir="$html_dir" />
+            <report format="noframes" todir="$html_dir" styledir="$xsl_dir">
+                <param name="TITLE" expression="Kubevirt Test Results"/>
+            </report>
         </junitreport>
     </target>
 </project>
@@ -684,7 +696,7 @@ sub upload_test_results {
 
         my $openqa_host = get_var('OPENQA_URL');
         my $job_id = get_current_job_id();
-        record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/index.html");
+        record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/junit-noframes.html");
     }
 }
 
