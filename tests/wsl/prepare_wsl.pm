@@ -54,7 +54,7 @@ sub run {
         $self->run_in_powershell(
             cmd => 'wsl.exe --update',
             timeout => 300
-        ) if check_var('WIN_VERSION', '11');
+        ) if get_var('HDD_1') =~ /24H2/;
     }
 
     $self->reboot_or_shutdown(is_reboot => 1);
