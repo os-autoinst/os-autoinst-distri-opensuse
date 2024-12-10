@@ -17,6 +17,8 @@ use bootloader_setup 'add_grub_cmdline_settings';
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
 use Mojo::JSON;
+use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image
@@ -108,7 +110,7 @@ sub install_docker_when_needed {
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module;
+                activate_containers_module unless is_sle('=12-SP5') && is_aarch64;
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
