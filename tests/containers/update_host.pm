@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Copying and distribution of this file, with or without modification,
@@ -36,6 +36,9 @@ sub run {
     } elsif ($host_distri eq 'ubuntu') {
         assert_script_run("dhclient -v");
         script_retry("apt-get update -y", timeout => $update_timeout);
+        # We can't rely on DEBIAN_FRONTEND alone here due to
+        # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1950314
+        script_retry("yes yes | DEBIAN_FRONTEND=noninteractive apt-get upgrade -y", timeout => $update_timeout);
     } elsif ($host_distri eq 'centos') {
         assert_script_run("dhclient -v");
         script_retry("dnf update -y --nobest", timeout => $update_timeout);
