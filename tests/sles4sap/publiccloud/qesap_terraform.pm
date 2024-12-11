@@ -210,7 +210,8 @@ sub run {
         verbose => 1,
         timeout => 3600,
         retries => 2,
-        error_string => 'An internal execution error occurred. Please retry later');
+        error_string => 'An internal execution error occurred. Please retry later',
+        destroy_terraform => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
 
     $provider->terraform_applied(1);

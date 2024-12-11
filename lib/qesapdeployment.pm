@@ -601,6 +601,17 @@ sub qesap_execute_conditional_retry {
         if ($ret[0]) {
             if (qesap_file_find_string(file => $ret[1], search_string => $args{error_string})) {
                 record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_string});
+
+                # Executing terraform destroy before retrying terraform apply
+                if ($args{destroy_terraform}) {
+                    qesap_execute(
+                        cmd => 'terraform',
+                        cmd_options => '-d',
+                        logname => "qesap_exec_terraform_destroy_before_retry$args{retries}.log.txt",
+                        verbose => 1,
+                        timeout => 1200);
+                }
+
                 @ret = qesap_execute(cmd => $args{cmd},
                     logname => 'qesap_' . $args{cmd} . '_retry_' . $args{retries} . '.log.txt',
                     timeout => $args{timeout});
