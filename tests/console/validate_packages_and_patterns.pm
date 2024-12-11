@@ -22,35 +22,6 @@ use version_utils qw(is_sle is_jeos);
 
 my %software = ();
 
-# Define test data
-
-$software{'salt-minion'} = {
-    repo => 'Basesystem',
-    installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
-    condition => sub { is_sle('15+') },
-};
-$software{'sles-ltss-release'} = {
-    repo => 'LTSS',
-    installed => 1,
-    condition => sub { is_sle('15+') },
-    available => sub { get_var('SCC_REGCODE_LTSS') }
-};
-$software{'update-test-feature'} = {    # See poo#36451
-    repo => is_sle('15+') ? 'Basesystem' : 'SLES',
-    installed => 0,
-    available => sub { get_var('BETA') },
-    # Skip the check on sle15sp6 due to bsc#1225970
-    condition => sub { is_sle('<15-SP6') },
-};
-# Define more packages with the same set of expectations
-$software{'update-test-interactive'} = $software{'update-test-feature'};
-$software{'update-test-security'} = $software{'update-test-feature'};
-if (is_sle('15+')) {
-    $software{'update-test-trivial'} = $software{'update-test-feature'};
-} else {
-    $software{'update-test-trival'} = $software{'update-test-feature'};
-}
-
 sub verify_pattern {
     my ($name) = shift;
     my $errors = '';
@@ -70,6 +41,44 @@ sub verify_pattern {
 
 sub run {
     select_serial_terminal;
+
+    # check if sles-ltss-release update is present then look for update repo instead of 'LTSS'
+    my $ltss_release_repo;
+    if ((get_var('LTSS_TEST_REPOS') || get_var('BUILD') =~ /sles-ltss-release/) && script_run('SUSEConnect --list-extensions|grep LTSS.*ALPHA.*Activated') == 1) {
+        my $arch = get_var('ARCH');
+        for my $repo (split(/,/, get_var('LTSS_TEST_REPOS', '') . get_var('INCIDENT_REPO', ''))) {
+            $ltss_release_repo = script_output("zypper lr -u|grep $repo|awk '{print\$3}'") if script_run("curl $repo/$arch/|grep sles-ltss-release") == 0;
+        }
+    }
+
+    # Define test data
+
+    $software{'salt-minion'} = {
+        repo => 'Basesystem',
+        installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
+        condition => sub { is_sle('15+') },
+    };
+    $software{'sles-ltss-release'} = {
+        repo => $ltss_release_repo ? $ltss_release_repo : 'LTSS',
+        installed => 1,
+        condition => sub { is_sle('15+') },
+        available => sub { get_var('SCC_REGCODE_LTSS') && script_run('SUSEConnect --list-extensions|grep LTSS.*ALPHA.*Activated') == 1 }
+    };
+    $software{'update-test-feature'} = {    # See poo#36451
+        repo => is_sle('15+') ? 'Basesystem' : 'SLES',
+        installed => 0,
+        available => sub { get_var('BETA') },
+        # Skip the check on sle15sp6 due to bsc#1225970
+        condition => sub { is_sle('<15-SP6') },
+    };
+    # Define more packages with the same set of expectations
+    $software{'update-test-interactive'} = $software{'update-test-feature'};
+    $software{'update-test-security'} = $software{'update-test-feature'};
+    if (is_sle('15+')) {
+        $software{'update-test-trivial'} = $software{'update-test-feature'};
+    } else {
+        $software{'update-test-trival'} = $software{'update-test-feature'};
+    }
 
     my $errors = '';    # Variable to accumulate errors
     for my $name (keys %software) {
