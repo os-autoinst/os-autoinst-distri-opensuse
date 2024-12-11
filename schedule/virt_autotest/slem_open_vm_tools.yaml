@@ -6,9 +6,9 @@ schedule:
     - installation/bootloader_svirt
     - installation/bootloader_uefi
     - jeos/firstrun
+    - console/system_prepare
     - console/suseconnect_scc
     - '{{install_updates}}'
-    - console/system_prepare
     - console/check_network
     - console/system_state
     - console/integration_services
