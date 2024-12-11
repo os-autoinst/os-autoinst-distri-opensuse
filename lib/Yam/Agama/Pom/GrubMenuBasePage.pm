@@ -14,13 +14,19 @@ use testapi;
 sub new {
     my ($class, $args) = @_;
     return bless {
-        key_edit_entry => 'e'
+        key_edit_entry => 'e',
+        key_cmd_entry => 'c'
     }, $class;
 }
 
 sub edit_current_entry {
     my ($self) = @_;
     wait_screen_change { send_key($self->{key_edit_entry}) };
+}
+
+sub cmd {
+    my ($self) = @_;
+    wait_screen_change { send_key($self->{key_cmd_entry}) };
 }
 
 sub select_first_entry {

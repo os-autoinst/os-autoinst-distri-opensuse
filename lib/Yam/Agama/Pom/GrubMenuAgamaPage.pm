@@ -31,4 +31,6 @@ sub boot_from_hd {
 
 sub edit_current_entry { shift->{grub_menu_base}->edit_current_entry() }
 
+sub cmd { shift->{grub_menu_base}->cmd() }
+
 1;

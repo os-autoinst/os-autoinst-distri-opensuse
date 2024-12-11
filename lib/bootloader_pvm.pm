@@ -284,7 +284,7 @@ sub boot_hmc_pvm {
         return;
     }
     get_into_net_boot;
-    prepare_pvm_installation;
+    prepare_pvm_installation unless get_var('AGAMA_TEST');
 }
 
 =head2 boot_spvm

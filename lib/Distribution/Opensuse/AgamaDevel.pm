@@ -16,6 +16,7 @@ use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
+use Yam::Agama::Pom::GrubCmdPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
 use Yam::Agama::Pom::RebootPage;
 use Yam::Agama::Pom::RebootTextmodePage;
@@ -43,9 +44,8 @@ sub get_grub_menu_installed_system {
     });
 }
 
-sub get_grub_entry_edition {
-    return is_ppc64le() ? Yam::Agama::Pom::GrubEntryEditionPage->new({
-            max_interval => utils::VERY_SLOW_TYPING_SPEED})
+sub get_grub_editor {
+    return is_ppc64le() ? Yam::Agama::Pom::GrubCmdPage->new()
       : Yam::Agama::Pom::GrubEntryEditionPage->new();
 }
 
@@ -56,7 +56,7 @@ sub get_agama_up_an_running {
 }
 
 sub get_reboot {
-    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x();
+    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || is_ppc64le();
     return Yam::Agama::Pom::RebootPage->new();
 }
 
