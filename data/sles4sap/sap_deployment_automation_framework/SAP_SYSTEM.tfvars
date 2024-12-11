@@ -155,7 +155,7 @@ database_platform = "HANA"
 database_server_count = 1
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
-database_high_availability = true
+database_high_availability = "%SDAF_HANA_HA_SETUP%"
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
@@ -232,13 +232,13 @@ database_vm_use_DHCP = true
 # in this case os_type must also be specified
 
 database_vm_image = {
-  os_type = "%SDAF_DB_IMAGE_OS_TYPE%",
-  source_image_id = "%SDAF_DB_SOURCE_IMAGE_ID%",
-  publisher = "%SDAF_DB_IMAGE_PUBLISHER%",
-  offer = "%SDAF_DB_IMAGE_OFFER%",
-  sku = "%SDAF_DB_IMAGE_SKU%",
-  version = "%SDAF_DB_IMAGE_VERSION%",
-  type = "%SDAF_DB_IMAGE_TYPE%"
+  os_type = "%SDAF_IMAGE_OS_TYPE%",
+  source_image_id = "%SDAF_SOURCE_IMAGE_ID%",
+  publisher = "%SDAF_IMAGE_PUBLISHER%",
+  offer = "%SDAF_IMAGE_OFFER%",
+  sku = "%SDAF_IMAGE_SKU%",
+  version = "%SDAF_IMAGE_VERSION%",
+  type = "%SDAF_IMAGE_TYPE%"
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
@@ -285,10 +285,10 @@ sid = "%SAP_SID%"
 #########################################################################################
 
 # scs_server_count defines how many SCS servers to deploy
-scs_server_count = "0"
+scs_server_count = "%SDAF_ASCS_SERVER%"
 
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
-scs_high_availability = false
+scs_high_availability = "%SDAF_ERS_SERVER%"
 
 # scs_instance_number defines the instance number for SCS
 scs_instance_number = "01"
@@ -301,7 +301,7 @@ pas_instance_number = "03"
 
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones = ["0"]
+scs_server_zones = ["1"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku = ""
@@ -310,13 +310,13 @@ scs_server_zones = ["0"]
 # if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 scs_server_image = {
-  os_type = "LINUX",
-  source_image_id = "",
-  publisher = "SUSE",
-  offer = "sles-sap-15-sp5",
-  sku = "gen2",
-  version = "latest",
-  type = "marketplace"
+  os_type = "%SDAF_IMAGE_OS_TYPE%",
+  source_image_id = "%SDAF_SOURCE_IMAGE_ID%",
+  publisher = "%SDAF_IMAGE_PUBLISHER%",
+  offer = "%SDAF_IMAGE_OFFER%",
+  sku = "%SDAF_IMAGE_SKU%",
+  version = "%SDAF_IMAGE_VERSION%",
+  type = "%SDAF_IMAGE_TYPE%"
 }
 
 # scs_server_use_ppg defines the that the SCS virtual machines will be placed in a proximity placement group
@@ -351,10 +351,10 @@ scs_server_use_avset = false
 #########################################################################################
 
 # application_server_count defines how many application servers to deploy
-application_server_count = 0
+application_server_count = "%SDAF_APP_SERVER_COUNT%"
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
-application_server_zones = ["0"]
+application_server_zones = ["1"]
 
 # application_server_sku, if defined provides the SKU to use for the application servers
 #application_server_sku = ""
@@ -393,13 +393,13 @@ application_server_use_avset = true
 # if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 application_server_image = {
-  os_type = "LINUX",
-  source_image_id = "",
-  publisher = "SUSE",
-  offer = "sles-sap-15-sp4",
-  sku = "gen2",
-  version = "latest",
-  type = "marketplace"
+  os_type = "%SDAF_IMAGE_OS_TYPE%",
+  source_image_id = "%SDAF_SOURCE_IMAGE_ID%",
+  publisher = "%SDAF_IMAGE_PUBLISHER%",
+  offer = "%SDAF_IMAGE_OFFER%",
+  sku = "%SDAF_IMAGE_SKU%",
+  version = "%SDAF_IMAGE_VERSION%",
+  type = "%SDAF_IMAGE_TYPE%"
 }
 
 #application_server_vm_avset_arm_ids = []
@@ -449,7 +449,7 @@ webdispatcher_server_use_avset = false
 #webdispatcher_server_tags = {}
 
 # webdispatcher_server_zones is an optional list defining the availability zones to which deploy the web dispatchers
-#webdispatcher_server_zones = ["0"]
+#webdispatcher_server_zones = ["1"]
 
 # The vm_image defines the Virtual machine image to use for the web dispatchers,
 # if source_image_id is specified the deployment will use the custom image provided,
@@ -498,9 +498,9 @@ dns_a_records_for_secondary_names = true
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider = "NFS"
+NFS_provider = "AFS"
 # sapmnt_volume_size defines the size of the sapmnt volume in GB
-sapmnt_volume_size = 32
+sapmnt_volume_size = 128
 
 # azure_files_sapmnt_id defines the Resource identifier for Azure Files for NFS storage account for sapmnt
 #azure_files_sapmnt_id = ""
@@ -854,7 +854,7 @@ use_spn = true
 
 # bom_name is the name of the SAP Application Bill of Materials file
 
-bom_name = "HANA_2_00_075_v0001ms"
+bom_name = "%SDAF_BOM_NAME%"
 
 # configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
 #configuration_settings = {}

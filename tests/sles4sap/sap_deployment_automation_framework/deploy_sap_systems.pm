@@ -18,6 +18,41 @@ use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 
+=head1 SYNOPSIS
+
+Executes SDAF deployment of SAP systems infrastructure (SUT VM and related resources).
+No APP installation or configuration is done at this point.
+
+TFVARS file is composed using OpenQA setting B<`SDAF_DEPLOYMENT_SCENARIO`>.
+It is defined by list of components delimited by a comma ",".
+Example: B<SDAF_DEPLOYMENT_SCENARIO="db_install,db_ha,nw_pas,nw_aas,nw_ensa">
+
+B<Available options are:>
+
+=over
+
+=item * B<db_install> - installation and setup of hana database.
+    In combination with B<db_ha>, two databases will be deployed in HanaSR setup.
+
+=item * B<db_ha> - Hana SR setup
+
+=item * B<db_ha> - Hana SR setup
+
+=item * B<nw_pas> - Installation od primary application server (PAS)
+    This includes ASCS (optionally ERS) and database load.
+
+=item * B<nw_aas> - Installs additional application server (AAS)
+
+=item * B<nw_ensa> - Installs ERS and sets up ENSA2 scenario
+
+=back
+B<Required OpenQA variables:>
+    SDAF_DEPLOYMENT_SCENARIO See above
+    SDAF_ENV_CODE  Code for SDAF deployment env.
+    PUBLIC_CLOUD_REGION SDAF internal code for azure region.
+    SAP_SID SAP system ID.
+=cut
+
 sub test_flags {
     return {fatal => 1};
 }
@@ -39,7 +74,8 @@ sub run {
     connect_target_to_serial();
     load_os_env_variables();
 
-    prepare_tfvars_file(deployment_type => 'sap_system');
+    my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
+    prepare_tfvars_file(deployment_type => 'sap_system', components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file

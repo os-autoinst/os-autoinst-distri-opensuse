@@ -46,6 +46,8 @@ our @EXPORT = qw(
   sdaf_cleanup
   sdaf_execute_playbook
   ansible_hanasr_show_status
+  ansible_ensa2_show_status
+  playbook_settings
   $output_log_file
 );
 
@@ -851,6 +853,100 @@ sub ansible_hanasr_show_status {
     record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
     record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
     record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
+}
+
+=head2 ansible_ensa2_show_status
+
+    ansible_ensa2_show_status(sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
+
+Display simple command outputs from all DB hosts using B<ansible> command.
+
+=over
+
+=item * B<sdaf_config_root_dir>: SDAF Config directory containing SUT ssh keys
+
+=item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=back
+=cut
+
+sub ansible_ensa2_show_status {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
+    $args{sap_sid} //= get_required_var('SAP_SID');
+
+    # Note: QES_DB is database host group in SDAF inventory file.
+    my @cmd = ('ansible', 'QES_SCS',
+        "--private-key=$args{sdaf_config_root_dir}/sshkey",
+        "--inventory=$args{sap_sid}_hosts.yaml",
+        '--module-name=shell');
+
+    record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
+    record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
+}
+
+=head2 playbook_settings
+
+    playbook_settings(components=>['db_install', 'db_ha']);
+
+Display simple command outputs from all DB hosts using B<ansible> command.
+
+=over
+
+=item * B<components>: B<ARRAYREF> of components that should be installed
+
+=back
+=cut
+
+sub playbook_settings {
+    my (%args) = @_;
+    # General playbooks that must be run in all scenarios
+    my @playbooks = (
+        # Fetches SSH key from Workload zone keyvault for accesssing SUTs
+        {playbook_filename => 'pb_get-sshkey.yaml', timeout => 90},
+        # Validate parameters
+        {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 120},
+        # Base operating system configuration
+        {playbook_filename => 'playbook_01_os_base_config.yaml'});
+
+    # DB installation pulls in SAP specific configuration
+    if (grep /db_install/, @{$args{components}}) {
+        # SAP-specific operating system configuration
+        push @playbooks, {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'};
+        # SAP Bill of Materials processing - this also mounts install media storage
+        push @playbooks, {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 7200};
+        # SAP HANA database installation
+        push @playbooks, {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 1800};
+    }
+
+    # playbooks required for all nw* scenarios
+    if (grep /nw/, @{$args{components}}) {
+        # SAP ASCS installation, including ENSA if specified in tfvars
+        push @playbooks, {playbook_filename => 'playbook_05_00_00_sap_scs_install.yaml', timeout => 7200};
+        # Execute database import
+        push @playbooks, {playbook_filename => 'playbook_05_01_sap_dbload.yaml', timeout => 7200};
+    }
+
+    ### Run HA related playbooks at the end as it can mix up node order ###
+    if (grep /db_ha/, @{$args{components}}) {
+        # SAP HANA high-availability configuration
+        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800};
+    }
+
+    # playbooks required for all nw* scenarios
+    if (grep /nw/, @{$args{components}}) {
+        # SAP primary application server installation
+        push @playbooks, {playbook_filename => 'playbook_05_02_sap_pas_install.yaml', timeout => 7200};
+        # SAP additional application server installation
+        push @playbooks, {playbook_filename => 'playbook_05_03_sap_app_install.yaml', timeout => 3600};
+    }
+
+    if (grep /nw_ensa/, @{$args{components}}) {
+        # Configure ENSA cluster
+        push @playbooks, {playbook_filename => 'playbook_06_00_acss_registration.yaml', timeout => 1800};
+    }
+
+    return (\@playbooks);
 }
 
 1;
