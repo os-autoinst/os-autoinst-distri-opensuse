@@ -29,7 +29,7 @@ sub run {
     $ping_group_range = script_output('sysctl net.ipv4.ping_group_range');
 
     zypper_call('in iputils libcap-progs sudo');
-    $capability = script_output('getcap $(which ping)', proceed_on_failure => 1);
+    $capability = script_output('getcap $(command -v ping)', proceed_on_failure => 1);
 
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('net.ipv4.ping_group_range', $ping_group_range);
