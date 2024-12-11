@@ -190,7 +190,7 @@ sub run {
         if ($name) {
             record_info($name, "Register '$name' with code '$ADDONS_REGCODE{$name}'");
             $playbook_configs{ltss} = join(',', join('/', $name, scc_version(), 'x86_64'), $ADDONS_REGCODE{$name});
-            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ 'byos');
+            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ 'byos' && $reg_mode !~ 'noreg');
         }
     }
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
