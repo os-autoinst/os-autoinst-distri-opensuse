@@ -13,11 +13,12 @@ use warnings;
 use testapi;
 use utils;
 use audit_test qw(run_testcase compare_run_log);
+use Utils::Architectures qw(is_s390x);
 
 sub run {
     my ($self) = shift;
 
-    reset_consoles;
+    reset_consoles if !is_s390x;
     select_console 'root-console';
 
     # Run test case
