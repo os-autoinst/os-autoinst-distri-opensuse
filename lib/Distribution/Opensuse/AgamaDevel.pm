@@ -22,7 +22,6 @@ use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
-use Yam::Agama::Pom::GrubMenuBaseBug1231658Page;
 
 use Utils::Architectures;
 
@@ -33,8 +32,7 @@ sub get_grub_menu_agama {
 }
 
 sub get_grub_menu_base {
-    return is_aarch64() ? Yam::Agama::Pom::GrubMenuBaseBug1231658Page->new()
-      : Yam::Agama::Pom::GrubMenuBasePage->new();
+    return Yam::Agama::Pom::GrubMenuBasePage->new();
 }
 
 sub get_grub_menu_installed_system {
