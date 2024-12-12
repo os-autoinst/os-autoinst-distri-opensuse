@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use registration 'add_suseconnect_product';
 use utils 'zypper_call';
-use version_utils qw(is_sle is_sle_micro is_microos is_transactional is_tumbleweed is_rt is_jeos);
+use version_utils qw(is_sle is_sle_micro is_microos is_transactional is_tumbleweed is_rt is_jeos is_sled);
 
 use base 'Exporter';
 
@@ -36,7 +36,7 @@ sub get_openssl_x_y_version {
 }
 
 sub has_no_legacy_module {
-    return is_rt || is_jeos;
+    return is_rt || is_jeos || is_sled;
 }
 
 sub has_default_openssl1 {
@@ -50,13 +50,13 @@ sub has_default_openssl3 {
 sub install_openssl {
     zypper_call 'in openssl' unless is_transactional;
     if (is_sle '>=15-SP6') {
-        if (has_no_legacy_module())
-        {
+        if (has_no_legacy_module()) {
             install_11_workaround_when_no_legacy();
-            return;
+        } else {
+            record_info('Extensions List', script_output("SUSEConnect --list-extensions"));
+            add_suseconnect_product('sle-module-legacy');
+            zypper_call 'in openssl-1_1';
         }
-        add_suseconnect_product('sle-module-legacy');
-        zypper_call 'in openssl-1_1';
     }
 }
 
