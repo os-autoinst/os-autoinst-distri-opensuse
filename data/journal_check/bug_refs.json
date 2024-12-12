@@ -647,6 +647,13 @@
         },
         "type": "bug"
     },
+    "bsc#1231457": {
+        "description": "vas: API is supported only with radix page tables|SED: plpks not available|NX-GZIP is not supported|ibmvscsi.*couldn't initialize crq",
+        "products": {
+            "sle-micro": ["6.1", "6.2"]
+        },
+        "type": "bug"
+    },
     "bsc#1217773": {
         "description": "Unable to send container stderr message to parent Broken pipe",
         "products": {
