@@ -126,9 +126,6 @@ sub enter_netboot_parameters {
     if (get_var('AGAMA')) {
         type_string_slow "linux $mntpoint/linux vga=normal root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO');
         type_string_slow " " . get_var('EXTRABOOTPARAMS');
-        if (my $agama_auto = get_var('AGAMA_AUTO')) {
-            type_string_slow " agama.auto=\"" . data_url($agama_auto) . "\"";
-        }
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";

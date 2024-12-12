@@ -878,6 +878,10 @@ sub specific_bootmenu_params {
         push @params, "autoupgrade=1";
     }
 
+    if (my $agama_auto = get_var('AGAMA_AUTO')) {
+        type_string_slow " agama.auto=\"" . data_url($agama_auto) . "\"";
+    }
+
     # Boot the system with the debug options if shutdown takes suspiciously long time.
     # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
     # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
