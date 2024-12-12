@@ -353,19 +353,7 @@ sub run {
     if (get_var('VIRT_AUTOTEST')) {
         #it is static menu and choose the TW entry to start installation
         enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
-        check_screen([qw(load-linux-kernel load-initrd)], 240);
-        # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
-        # Downloading from O3 became much more quick, some needles may not be caught.
-        check_screen([qw(start-tw-install start-sle-install network-config-created autoyast-installation)], 60);
-        if (match_has_tag('start-tw-install')) {
-            record_info("Install TW", "Start installing Tumbleweed...");
-        }
-        elsif (match_has_tag('start-sle-install')) {
-            record_info("Install SLE", "Start installing SLE...");
-        }
-        else {
-            record_info("Installing", "Pls check if the expected product is being installed.");
-        }
+        check_screen([qw(load-linux-kernel load-initrd)], 80);
         assert_screen([qw(network-config-created loading-installation-system sshd-server-started autoyast-installation)], 300);
         return if get_var('AUTOYAST');
         wait_still_screen(stilltime => 12, similarity_level => 60, timeout => 30) unless check_screen('sshd-server-started', timeout => 60);
