@@ -91,8 +91,16 @@ sub run {
 
     # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIMES');
-    my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
-    my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
+    my $bci_tests_repo = get_var('BCI_TESTS_REPO', 'https://github.com/SUSE/BCI-tests.git');
+    my $bci_tests_branch = get_var('BCI_TESTS_BRANCH', '');    # Keep BCI_TESTS_BRANCH for backwards compatibility.
+    if ($bci_tests_repo =~ m/(.*)#(.*)/) {
+        $bci_tests_repo = $1;
+        $bci_tests_branch = $2;
+    } elsif ($bci_tests_repo =~ m/(.*)\/tree\/(.*)/) {
+        # Also accept directly pasted links, e.g. 'https://github.com/SUSE/BCI-tests/tree/only-jdk11-sucks-on-ppc64'
+        $bci_tests_repo = "$1.git";
+        $bci_tests_branch = $2;
+    }
     my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
 
     record_info('Install', 'Install needed packages');
@@ -134,7 +142,7 @@ sub run {
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
 
-    record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
+    record_info('Clone', "Clone BCI tests repository: $bci_tests_repo\nBranch: $bci_tests_branch");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
     script_run('rm -rf /root/BCI-tests');
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
