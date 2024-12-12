@@ -241,3 +241,12 @@ data "azurerm_public_ip" "openqa-publicip" {
 output "public_ip" {
   value = data.azurerm_public_ip.openqa-publicip.*.ip_address
 }
+
+output "instance_id" {
+  value = azurerm_linux_virtual_machine.openqa-vm.*.id 
+}
+
+output "resource_group_name" {
+  value = azurerm_resource_group.openqa-group.*.name
+}
+

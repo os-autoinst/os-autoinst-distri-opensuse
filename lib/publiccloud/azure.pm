@@ -11,7 +11,6 @@ package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
-use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
 use mmapi 'get_current_job_id';
 use utils qw(script_output_retry);
@@ -633,13 +632,23 @@ This method is called called after each test on failure or success to revoke the
 
 sub cleanup {
     my ($self, $args) = @_;
+
+    script_run('cd ' . get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '~/terraform'));
+    #my $terraform_output = script_output('terraform output -json', proceed_on_failure => 1);
+    #my $terraform_output_json = decode_json($terraform_output);
+    #my $instance_id = $terraform_output_json->{instance_id}->{value}[0];
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    #my $resource_group = $terraform_output_json->{resource_group_name}->{value}[0];
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+    script_run('cd');
+
     select_host_console(force => 1);
 
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
 
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($args->{my_instance}->{instance_id})) {
-        my $id = $args->{my_instance}->{instance_id};
-        script_run("timeout 110 az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120);
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id) && defined($resource_group)) {
+        script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > bootlog.txt", timeout => 120);
         upload_logs("bootlog.txt", failok => 1);
     }
     $self->SUPER::cleanup();
