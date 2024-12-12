@@ -34,6 +34,11 @@ sub install_package {
     else {
         script_run "zypper --non-interactive rr server-repo";
         zypper_call("--no-gpg-checks ar -f '$qa_server_repo' server-repo");
+        # Use julie repo to verify a PR to qa_lib_virtauto temporarilly
+        # This line will be removed before the PR is merged
+        zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/home:/Julie_CAO/SLE_15_SP7 julie");
+#	zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/home:/farosas:/branches:/Devel:/Virt:/SLE-15-SP6:/Staging:/bsc1232283/SUSE_SLE-15-SP6_Update_standard/ prj3_fix");
+#	zypper_call("--no-gpg-checks ar -f -p 80 http://download.suse.de/ibs/Devel:/Virt:/SLE-12-SP5/SUSE_SLE-12-SP5_Update_standard dev");
     }
 
     #Install KVM role patterns for aarch64 virtualization host
@@ -56,6 +61,7 @@ sub install_package {
     else {
         zypper_call("--gpg-auto-import-keys ref", 180);
         zypper_call("in qa_lib_virtauto", 1800);
+        script_run("rpm -q qa_lib_virtauto");  #julie
     }
 
     if (get_var("PROXY_MODE")) {
