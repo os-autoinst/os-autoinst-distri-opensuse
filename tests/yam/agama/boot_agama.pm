@@ -10,6 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
+use autoyast qw(expand_variables);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -22,6 +23,19 @@ BEGIN {
 use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
+
+sub expand_profile {
+    my ($self, $profile) = @_;
+    my $content = expand_variables(get_test_data($profile));
+    record_info("expand_profile", $content);
+    my $profile_expanded = 'profile.json';
+    save_tmp_file($profile_expanded, $content);
+    my $profile_url = autoinst_url . "/files/$profile_expanded";
+    record_info("expand_profile_url", $profile_url);
+    # assert_script_run("curl -O $profile_url");
+    # upload_logs($profile_expanded);
+    return $profile_url;
+}
 
 sub run {
     my $self = shift;
@@ -48,7 +62,7 @@ sub run {
 
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
-        my $path = data_url($agama_auto);
+        my $path = $self->expand_profile($agama_auto);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
