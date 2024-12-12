@@ -54,7 +54,7 @@ sub get_agama_up_an_running {
 }
 
 sub get_reboot {
-    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x();
+    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || is_ppc64le();
     return Yam::Agama::Pom::RebootPage->new();
 }
 

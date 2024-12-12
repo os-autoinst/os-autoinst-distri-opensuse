@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Boot to agama adding bootloader kernel parameters and expecting web ui up and running.
-# At the moment redirecting to legacy handling for s390x booting.
+# At the moment redirecting to legacy handling for remote architectures booting.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
@@ -21,11 +21,12 @@ BEGIN {
 }
 use bootloader_s390;
 use bootloader_zkvm;
+use bootloader_pvm;
 
 sub run {
     my $self = shift;
 
-    # for now using legacy code to handle s390x
+    # For now using legacy code to handle remote architectures
     if (is_s390x()) {
         if (is_backend_s390x()) {
             record_info('bootloader_s390x');
@@ -34,6 +35,10 @@ sub run {
             record_info('bootloader_zkvm');
             $self->bootloader_zkvm::run();
         }
+        return;
+    }
+    elsif (is_pvm_hmc()) {
+        $self->bootloader_pvm::boot_pvm();
         return;
     }
 

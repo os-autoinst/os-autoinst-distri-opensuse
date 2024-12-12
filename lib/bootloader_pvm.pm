@@ -123,14 +123,22 @@ sub enter_netboot_parameters {
         record_info("Updated boot path for PPC64LE_GRUB_HTTP defined", $mntpoint);
     }
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-    type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
-    bootmenu_default_params;
+    if (get_var('AGAMA')) {
+        type_string_slow "linux $mntpoint/linux vga=normal root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO');
+        type_string_slow " " . get_var('EXTRABOOTPARAMS');
+    }
+    else {
+        type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
+    }
+    # Skipping this setup due to it triggers general code for openSUSE that breaks powerVM scenario
+    bootmenu_default_params unless get_var('AGAMA');
     bootmenu_network_source;
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
     type_string_slow remote_install_bootmenu_params;
     type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
+
     send_key 'ret';
     assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # kernel is downloaded while waiting
     enter_cmd_slow "initrd $mntpoint/initrd";
@@ -151,6 +159,7 @@ sub prepare_pvm_installation {
     enter_netboot_parameters;
     enter_cmd "boot";
     save_screenshot;
+    return if get_var('AGAMA');
 
     # pvm has sometimes extrem performance issue, increase timeout for booting up after enter_netboot_parameters
     assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 300);
