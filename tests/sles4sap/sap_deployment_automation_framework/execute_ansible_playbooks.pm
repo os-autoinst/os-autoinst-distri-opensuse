@@ -3,7 +3,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary:  Executes setup of HanaSR scenario using SDAF ansible playbooks according to:
+# Summary:  Executes SDAF ansible playbooks according to scenario defined in tfvars file:
 #           https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#sap-application-installation
 # Playbooks can be found in SDAF repo: https://github.com/Azure/sap-automation/tree/main/deploy/ansible
 
@@ -60,12 +60,22 @@ sub run {
         {playbook_filename => 'playbook_01_os_base_config.yaml'},
         # SAP-specific operating system configuration
         {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'},
-        # SAP Bill of Materials processing - this also mounts install media storage
-        {playbook_filename => 'playbook_03_bom_processing.yaml'},
+        # SAP Bill of Materials processing - this also mounts install media storage and copies media to ASCS instance
+        {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 6400},
         # SAP HANA database installation
         {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 1800},
         # SAP HANA high-availability configuration
         {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800},
+        # installation of ASCS/ERS instance
+        {playbook_filename => 'playbook_05_00_00_sap_scs_install.yaml', timeout => 1800},
+        # Loads database content for SAP APP server
+        {playbook_filename => 'playbook_05_01_sap_dbload.yaml', timeout => 7200},
+        # Primary application server installation
+        {playbook_filename => 'playbook_05_02_sap_pas_install.yaml', timeout => 1800},
+        # Secondary application server installation
+        {playbook_filename => 'playbook_05_03_sap_app_install.yaml', timeout => 1800},
+        # installation of web dispatcher
+        {playbook_filename => 'playbook_05_04_sap_web_install.yaml', timeout => 1800},
     );
 
     connect_target_to_serial();
