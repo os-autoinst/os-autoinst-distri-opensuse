@@ -107,7 +107,16 @@ sub run {
 
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
-    my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
+    my $bci_tests_repo = get_var('BCI_TESTS_REPO', 'https://github.com/SUSE/BCI-tests.git');
+    my $bci_tests_branch = get_var('BCI_TESTS_BRANCH', '');    # Keep BCI_TESTS_BRANCH for backwards compatibility.
+    if ($bci_tests_repo =~ m/(.*)#(.*)/) {
+        $bci_tests_repo = $1;
+        $bci_tests_branch = $2;
+    } elsif ($bci_tests_repo =~ m/(.*)\/tree\/(.*)/) {
+        # Also accept directly pasted links, e.g. 'https://github.com/SUSE/BCI-tests/tree/only-jdk11-sucks-on-ppc64'
+        $bci_tests_repo = "$1.git";
+        $bci_tests_branch = $2;
+    }
     if (my $bci_repo = get_var('REPO_BCI')) {
         $bci_devel_repo = "http://openqa.suse.de/assets/repo/$bci_repo";
     }
@@ -115,7 +124,7 @@ sub run {
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
     my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
-    my $bci_tests_branch = get_var('BCI_TESTS_BRANCH', 'origin/main');
+
     return if ($test_envs eq '-');
 
     reset_container_network_if_needed($engine);
