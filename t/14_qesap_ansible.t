@@ -519,4 +519,17 @@ subtest '[qesap_ansible_fetch_file] integration' => sub {
         'The default local file path is /tmp/ansible_script_output/testout.txt');
 };
 
+subtest '[qesap_ansible_reg_module]' => sub {
+    my $ret = qesap_ansible_reg_module(reg => 'CRAB,ALGAE');
+    note("ret:$ret");
+    ok($ret eq "-e sles_modules='[{\"key\":\"CRAB\",\"value\":\"ALGAE\"}]'");
+};
+
+subtest '[qesap_ansible_reg_module] wrong arguments' => sub {
+    dies_ok { qesap_ansible_reg_module() } "Missing argument";
+    dies_ok { qesap_ansible_reg_module(reg => '') } "Empty argument";
+    dies_ok { qesap_ansible_reg_module(reg => 'CRAB') } "Only one argument instead of exactly 2";
+    dies_ok { qesap_ansible_reg_module(reg => 'CRAB,ALGAE,SPONGE') } "Too much arguments";
+};
+
 done_testing;

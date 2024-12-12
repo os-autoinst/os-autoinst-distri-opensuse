@@ -909,13 +909,6 @@ sub delete_network_peering {
 
 =item B<ptf_container> - name of the container for PTF files (optional)
 
-=item B<ltss> - name and reg_code for LTSS extension to register.
-                This argument is a two element comma separated list string.
-                Like: 'SLES-LTSS-Extended-Security/12.5/x86_64,123456789'
-                First string before the comma has to be a valid SCC extension name, later used by Ansible
-                as argument for SUSEConnect or registercloudguest argument.
-                Second string has to be valid registration code for the particular LTSS extension.
-
 =back
 =cut
 
@@ -941,13 +934,7 @@ sub create_playbook_section_list {
         my @reg_args = ('registration.yaml');
         push @reg_args, "-e reg_code=$args{scc_code} -e email_address=''";
         push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
-        if ($args{ltss}) {
-            my @ltss_args = split(/,/, $args{ltss});
-            die "Missing reg_code for '$ltss_args[0]'" if scalar @ltss_args != 2;
-            push @reg_args, "-e sles_modules='[{" .
-              "\"key\":\"$ltss_args[0]\"," .
-              "\"value\":\"$ltss_args[1]\"}]'";
-        }
+        push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
 
