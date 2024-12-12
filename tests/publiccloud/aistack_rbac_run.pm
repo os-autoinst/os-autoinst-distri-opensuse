@@ -5,6 +5,7 @@ use testapi;
 use utils;
 use publiccloud::utils;
 use version_utils;
+use transactional qw(trup_call);
 
 sub test_flags {
     return {fatal => 1, publiccloud_multi_module => 1};
@@ -36,8 +37,8 @@ sub run {
     my $admin_password = get_var('OPENWEBUI_ADMIN_PWD');
     record_info("Got Open WebUI admin credentials: $admin_email and $admin_password");
 
-    # Prepare and call tests
-    zypper_call("in python311");
+    # Install requirements and call tests
+    trup_call("pkg install python311");
     assert_script_run("curl -O " . $rbac_tests_url);
     assert_script_run("mkdir -p open-webui-rbac-tests && tar -xzvf open-webui-rbac-tests.tar.gz -C open-webui-rbac-tests && cd open-webui-rbac-tests");
     assert_script_run("python3.11 -m venv myenv");
