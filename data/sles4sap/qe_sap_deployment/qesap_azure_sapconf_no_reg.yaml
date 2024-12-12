@@ -30,6 +30,7 @@ ansible:
     sap_domain: 'qe-test.example.com'
     primary_site: 'goofy'
     secondary_site: 'miky'
+    use_sap_hana_sr_angi: '%USE_SR_ANGI%'
   create:
     - fully-patch-system.yaml
     - pre-cluster.yaml

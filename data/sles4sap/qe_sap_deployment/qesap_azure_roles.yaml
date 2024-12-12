@@ -33,6 +33,7 @@ ansible:
     sap_domain: 'qe-test.example.com'
     primary_site: 'goofy'
     secondary_site: 'miky'
+    use_sap_hana_sr_angi: '%USE_SR_ANGI%'
   create:
     - registration_role.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
     - fully-patch-system.yaml
