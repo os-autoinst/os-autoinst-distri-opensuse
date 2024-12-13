@@ -476,6 +476,36 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
     ok scalar @calls == 3, "Exactly '" . scalar @calls . "' as expected 3 retry";
 };
 
+subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @return_list = (0, 1, 1, 1, 1);
+
+    $qesap->redefine(record_info => sub {
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
+            push @calls, $cmd;
+            my @results = (pop @return_list, 0);
+            return @results; });
+
+    $qesap->redefine(qesap_file_find_string => sub { return 1; });
+    $qesap->redefine(get_required_var => sub { return ''; });
+
+    my @res = qesap_execute_conditional_retry(
+        cmd => 'test',
+        error_string => 'AERIS',
+        logname => 'FOO',
+        retries => 2,
+        destroy_terraform => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
+    ok scalar @terraform_destroy == 2, "Terraform destroy as expected 2 retry";
+};
+
 subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     $qesap->redefine(record_info => sub {

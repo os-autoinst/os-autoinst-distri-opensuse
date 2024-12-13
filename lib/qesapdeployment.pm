@@ -581,6 +581,8 @@ sub qesap_execute {
 
 =item B<ERROR_STRING> - error string to look for
 
+=item B<destroy_terraform> - destroy terraform before retrying terraform apply
+
 =back
 =cut
 
