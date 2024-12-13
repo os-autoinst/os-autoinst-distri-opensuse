@@ -35,7 +35,7 @@ sub run {
     my $aitl_image_gallery = "test_image_gallery";
     my $aitl_image_version = "latest";
     my $aitl_job_name = "openqa-aitl-$job_id";
-    my $aitl_manifest = "shared_gallery.json";
+    my $aitl_manifest = "custom.json";
     my $aitl_image_name = $provider->generate_azure_image_definition();
 
     my $aitl_get_options = "-s $subscription_id -r $resource_group -n $aitl_job_name";
@@ -53,6 +53,15 @@ sub run {
     # Get manifest from data folder
     assert_script_run("curl " . data_url("publiccloud/aitl/$aitl_manifest") . " -o /tmp/$aitl_manifest");
     assert_script_run("sed -i -e 's/<IMAGE_NAME>/$aitl_image_name/g' -e 's/<IMAGE_VERSION>/$aitl_image_version/g' -e 's/<IMAGE_GALLERY_NAME>/$aitl_image_gallery/g' /tmp/$aitl_manifest");
+
+    # Exclude tests (if any to exclude are invoked)
+    # Wildcards are supported, e.g. `nvme` will disable all tests with nvme.
+    if (get_var('PUBLIC_CLOUD_AITL_EXCLUDE_TESTS')) {
+        my @excluded_tests_list = split(',', get_var('PUBLIC_CLOUD_AITL_EXCLUDE_TESTS'));
+        foreach my $aitl_test (@excluded_tests_list) {
+            assert_script_run(qq(sed -i -e "/$aitl_test/d" /tmp/$aitl_manifest));
+        }
+    }
 
     # Create AITL Job based on a manifest
     assert_script_run("python3.11 /tmp/aitl.py job create $aitl_get_options -b @/tmp/$aitl_manifest");
