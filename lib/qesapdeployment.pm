@@ -69,6 +69,8 @@ our @EXPORT = qw(
   qesap_ansible_script_output_file
   qesap_ansible_script_output
   qesap_ansible_fetch_file
+  qesap_ansible_reg_module
+  qesap_ansible_error_detection
   qesap_create_ansible_section
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
@@ -105,7 +107,6 @@ our @EXPORT = qw(
   qesap_az_list_container_files
   qesap_az_diagnostic_log
   qesap_terrafom_ansible_deploy_retry
-  qesap_ansible_error_detection
   qesap_test_postfail
 );
 
@@ -1133,6 +1134,37 @@ sub qesap_ansible_fetch_file {
 
     # reflect the same logic implement in the playbook
     return $args{out_path} . $args{file};
+}
+
+=head3 qesap_ansible_reg_module
+
+    Compose the ansible-playbook argument for the registration.yaml playbook,
+    about an additional module registration
+
+    -e sles_modules='[{"key":"SLES-LTSS-Extended-Security/12.5/x86_64","value":"*******"}]'
+
+    Known limitation is that registration.yaml supports multiple modules to be registered,
+    this code only supports one.
+
+=over
+=item B<reg> - name and reg_code for the additional extension to register.
+                This argument is a two element comma separated list string.
+                Like: 'SLES-LTSS-Extended-Security/12.5/x86_64,123456789'
+                First string before the comma has to be a valid SCC extension name, later used by Ansible
+                as argument for SUSEConnect or registercloudguest argument.
+                Second string has to be valid registration code for the particular extension.
+
+=back
+=cut
+
+sub qesap_ansible_reg_module {
+    my (%args) = @_;
+    croak 'Missing mandatory "reg" argument' unless $args{reg};
+    my @reg_args = split(/,/, $args{reg});
+    die "Missing reg_code for '$reg_args[0]'" if (@reg_args != 2);
+    return "-e sles_modules='[{" .
+      "\"key\":\"$reg_args[0]\"," .
+      "\"value\":\"$reg_args[1]\"}]'";
 }
 
 =head3 qesap_create_aws_credentials

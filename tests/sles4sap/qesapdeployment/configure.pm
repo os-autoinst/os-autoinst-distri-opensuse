@@ -11,6 +11,7 @@ use publiccloud::azure_client;
 use publiccloud::utils qw(get_ssh_private_key_path);
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 use qesapdeployment;
 
 sub run {
@@ -47,7 +48,25 @@ sub run {
     $variables{SLES4SAP_PUBSSHKEY} = get_ssh_private_key_path() . '.pub';
     $variables{REGISTRATION_PLAYBOOK} = get_var('QESAPDEPLOY_REGISTRATION_PLAYBOOK', 'registration');
     $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
-    $variables{SUSECONNECT} = get_var('QESAPDEPLOY_USE_SUSECONNECT', 'false');
+
+    my $reg_args;
+    $reg_args = "-e use_suseconnect=true " if (get_var('QESAPDEPLOY_USE_SUSECONNECT'));
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    # This implementation has a known limitation
+    # if SCC_ADDONS has two or more elements (like "ltss,ltss_es")
+    # only the first one will be added to the playbook argument.
+    foreach my $addon (@addons) {
+        my $name;
+        # Keep the code simple by only support ltss addons,
+        # it simplifies version calculation.
+        $name = get_addon_fullname($addon) if ($addon =~ 'ltss');
+        if ($name) {
+            $reg_args .= qesap_ansible_reg_module(reg => join(',', join('/', $name, scc_version(), 'x86_64'), $ADDONS_REGCODE{$name}));
+            # exit from the addons loop not to pack on the playbook command line more than one "-e sles_module"
+            last;
+        }
+    }
+    $variables{REG_ARGS} = $reg_args;
 
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
