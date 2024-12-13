@@ -170,7 +170,7 @@ sub run {
         $playbook_configs{ptf_account} = get_required_var('PTF_ACCOUNT');
     }
     if ($playbook_configs{fencing} eq 'native' and is_azure) {
-        $playbook_configs{fence_type} = get_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
+        $playbook_configs{fence_type} = get_required_var('AZURE_FENCE_AGENT_CONFIGURATION');
         if ($playbook_configs{fence_type} eq 'spn') {
             $playbook_configs{spn_application_id} = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
             $playbook_configs{spn_application_password} = get_var('AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
@@ -226,7 +226,7 @@ sub run {
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
-        if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE' && !check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn')) {
+        if (get_var('FENCING_MECHANISM') eq 'native' && is_azure() && check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi')) {
             qesap_az_setup_native_fencing_permissions(
                 vm_name => $instance->instance_id,
                 resource_group => qesap_az_get_resource_group());
