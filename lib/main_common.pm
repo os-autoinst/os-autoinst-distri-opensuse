@@ -2396,6 +2396,8 @@ sub set_mu_virt_vars {
         $_update_package = '';
     } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
         $_update_package = $_pkg;
+    } elsif ($_pkg =~ /guestfs-tools/) {
+        $_update_package = 'libguestfs';
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
     } else {
