@@ -1,3 +1,15 @@
+# SUSE's openQA tests
+#
+# Copyright 2024 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Open WebUI RBAC tests
+
+# Summary: This test creates a Python virtual env, install requirements, and run the
+# Open WebUI RBAC tests with pytest, in the test environment created by create_aistack_env.
+# Maintainer: Aline Werner <aline.werner@suse.com>
+#
+
 use Mojo::Base 'publiccloud::basetest';
 use strict;
 use warnings;
