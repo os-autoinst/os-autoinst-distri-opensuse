@@ -69,8 +69,8 @@
       % if ($check_var->('SYSTEM_ROLE', 'kvm')) {
         % if ($check_var->('AMD', '1')) {
           % if ($check_var->('VIRT_SEV_ES_GUEST_INSTALL', '1')) {
-            <!-- Do not add mem_encrypt=on option on 15-SP6 KVM host due to bsc#1224107 -->
-            % if ($check_var->('VERSION', '15-SP6')) { 
+            <!-- Do not add mem_encrypt=on on kernel command line for amd-zen3-gpu-sut1 which is the only machine affected by bsc#1224107 -->
+            % if ($get_var->('WORKER_CLASS', 'EMPTY_WORKER_CLASS') =~ /amd-zen3-gpu-sut1/) { 
       <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS', '') %></append>
             % } else {
       <append>splash=silent console=<%= $get_var->('SERIALDEV', 'ttyS1') %>,115200 console=tty mem_encrypt=on kvm_amd.sev=1 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= $get_var->('OPT_KERNEL_PARAMS', '') %></append>
