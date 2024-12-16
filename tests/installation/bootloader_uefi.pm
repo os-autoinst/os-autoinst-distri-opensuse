@@ -72,6 +72,11 @@ sub run {
         }
     }
 
+    if (is_jeos && get_required_var('FLAVOR') =~ /sdboot/) {
+        assert_screen("bootloader-sdboot");
+        return;
+    }
+
     if (get_var("IPXE") && !is_usb_boot) {
         sleep 60;
         return;
