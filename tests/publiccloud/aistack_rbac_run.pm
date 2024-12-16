@@ -29,8 +29,9 @@ sub run {
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
 
-    # Get Open WebUI tests and admin credentials
-    my $rbac_tests_url = data_url("aistack/open-webui-rbac-tests.tar.gz");
+    # Get Open WebUI tests location and admin credentials
+    my $rbac_tests_archive = get_required_var('OPENWEBUI_RBAC_TESTS_ARCHIVE');
+    my $rbac_tests_url = data_url("aistack/" . $rbac_tests_archive);
     my $admin_email = get_var('OPENWEBUI_ADMIN_EMAIL');
     my $admin_password = get_var('OPENWEBUI_ADMIN_PWD');
     record_info("Got Open WebUI admin credentials: $admin_email and $admin_password.");
@@ -39,7 +40,7 @@ sub run {
     # Install requirements and call tests
     trup_call("pkg install python311");
     assert_script_run("curl -O " . $rbac_tests_url);
-    assert_script_run("mkdir -p open-webui-rbac-tests && tar -xzvf open-webui-rbac-tests.tar.gz -C open-webui-rbac-tests && cd open-webui-rbac-tests");
+    assert_script_run("mkdir -p open-webui-rbac-tests && tar -xzvf $rbac_tests_archive -C open-webui-rbac-tests && cd open-webui-rbac-tests");
     assert_script_run("python3.11 -m venv myenv");
     assert_script_run("source myenv/bin/activate");
     assert_script_run("pip3 install -r requirements.txt");
