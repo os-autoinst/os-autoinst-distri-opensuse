@@ -273,7 +273,6 @@
     <default_target>multi-user</default_target>
     <services t="map">
       <enable t="list">
-        <service>bluetooth</service>
         <service>firewalld</service>
         <service>wickedd-auto4</service>
         <service>wickedd-dhcp4</service>
