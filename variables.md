@@ -191,6 +191,7 @@ RESET_HOSTNAME| boolean | false | If set to true content of /etc/hostname file w
 SCC_DEBUG_SUSECONNECT | boolean | false | Set to pass debug flag to SUSEConnect
 SCC_ADDONS | string | | Comma separated list of modules to be enabled using SCC/RMT.
 SCC_DOCKER_IMAGE | string | | The content of /etc/zypp/credentials.d/SCCcredentials used by container-suseconnect-zypp zypper service in SLE base container images
+SECURITY_MAC | string | "apparmor", "selinux" | MAC LSM to use with container tests.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
 ENABLE_SELINUX | boolean | false | Explicitly enable SELinux in transactional server environments.
 SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.

@@ -363,6 +363,7 @@ sub load_container_tests {
         } else {
             # Container Host tests
             loadtest 'microos/toolbox' if (/podman/i && !is_staging && (is_sle_micro || is_microos || is_leap_micro));
+            loadtest 'console/enable_mac' if get_var("SECURITY_MAC");
             load_host_tests_podman($run_args) if (/podman/i);
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_multi_runtime($run_args) if (/multi_runtime/i);
