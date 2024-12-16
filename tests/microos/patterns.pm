@@ -28,7 +28,7 @@ sub run {
     @inst_patterns = grep (!/elemental_client/, @patterns) if is_sle_micro('>=6.0');
 
     # install new patterns
-    trup_call('pkg install -t pattern ' . join(" ", @inst_patterns), timeout => 720);
+    trup_call('pkg install -t pattern ' . join(" ", @inst_patterns), timeout => 900);
     process_reboot(trigger => 1);
 
     # expect empty list therefore ZYPPER_EXIT_INF_CAP_NOT_FOUND
