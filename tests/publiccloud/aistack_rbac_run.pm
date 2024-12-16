@@ -8,7 +8,7 @@
 # Summary: This test creates a Python virtual env, install requirements, and run the
 # Open WebUI RBAC tests with pytest, in the test environment created by create_aistack_env.
 # Maintainer: Aline Werner <aline.werner@suse.com>
-#
+# Ticket: https://jira.suse.com/browse/SUSEAI-22
 
 use Mojo::Base 'publiccloud::basetest';
 use strict;
