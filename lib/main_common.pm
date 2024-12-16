@@ -2398,6 +2398,8 @@ sub set_mu_virt_vars {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
+    } elsif ($_pkg =~ /guestfs-tools/) {
+        $_update_package = 'libguestfs';
     } else {
         $_update_package = 'kernel-default';
     }
