@@ -8,7 +8,6 @@
 #   For more information read 'README.md'
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-
 use warnings;
 use strict;
 use testapi;
@@ -29,8 +28,8 @@ sub run {
 
             # Check if hostnames matches with what is expected
             # Check API calls: script_output, assert_script_run
-            my $hostname_real = script_output('hostname');
-            assert_script_run("echo \$(hostname) > /tmp/hostname_$hostname_real");
+            my $hostname_real = script_output('hostname', quiet => 1);
+            assert_script_run("echo \$(hostname) > /tmp/hostname_$hostname_real", quiet => 1);
             die "Expected hostname '$hostname' does not match hostname returned '$hostname_real'"
               unless $hostname_real eq $hostname;
             record_info('API check', "script_output: PASS\nassert_script_run: PASS\nhostname match: PASS");
@@ -39,7 +38,7 @@ sub run {
             # Check API calls: save_tmp_file, upload_logs
             upload_logs("/tmp/hostname_$hostname_real");
             save_tmp_file('hostname.txt', $hostname);
-            assert_script_run('curl -s ' . autoinst_url . "/files/hostname.txt| grep $hostname");
+            assert_script_run('curl -s ' . autoinst_url . "/files/hostname.txt| grep $hostname", quiet => 1);
             record_info('API check', "upload_logs: PASS\nsave_tmp_file: PASS\nOpenQA connection: PASS");
 
             disconnect_target_from_serial();

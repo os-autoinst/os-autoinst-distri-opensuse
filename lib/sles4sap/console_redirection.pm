@@ -129,7 +129,11 @@ sub connect_target_to_serial {
     my $redirect_port = get_required_var("QEMUPORT") + 1;
     my $redirect_ip = get_var('QEMU_HOST_IP', '10.0.2.2');
     my $redirect_opts = "-R $redirect_port:$redirect_ip:$redirect_port";
-    my $switch_root_cmd = $args{switch_root} ? 'sudo su -' : '';
+    my $switch_root_cmd = $args{switch_root} && $args{ssh_user} ne 'root' ? 'sudo su -' : '';
+    if ($args{switch_root} && $args{ssh_user} eq 'root') {
+        record_info('WARNING', 'No need to use switch_root when ssh_user is root. Omitting "sudo su-"');
+    }
+
     my $ssh_cmd = join(' ', 'ssh -t', $ssh_opt, $redirect_opts, "$args{ssh_user}\@$args{destination_ip}",
         $switch_root_cmd, "2>&1 | tee -a /dev/$serialdev"
     );

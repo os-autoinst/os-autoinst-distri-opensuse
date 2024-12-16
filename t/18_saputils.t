@@ -256,4 +256,20 @@ subtest '[check_crm_output] starting and failed' => sub {
     ok $ret eq 0, "Ret:$ret has to be 0";
 };
 
+subtest '[get_primary_node] starting and failed' => sub {
+    my $mock_input = {
+        hana_node_01 => {sync_state => 'PRIM'},
+        hana_node_02 => {sync_state => 'SOK'}
+    };
+    is get_primary_node(topology_data => $mock_input), 'hana_node_01', 'Return correct primary node name';
+};
+
+subtest '[get_failover_node] starting and failed' => sub {
+    my $mock_input = {
+        hana_node_01 => {sync_state => 'PRIM'},
+        hana_node_02 => {sync_state => 'SOK'}
+    };
+    is get_failover_node(topology_data => $mock_input), 'hana_node_02', 'Return correct primary node name';
+};
+
 done_testing;

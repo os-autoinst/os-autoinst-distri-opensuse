@@ -12,4 +12,4 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
   - sles4sap/redirection_tests/redirection_check
   - sles4sap/redirection_tests/hana_cluster_check
-  - sles4sap/sap_deployment_automation_framework/cleanup
+  - sles4sap/redirection_tests/hanasr_schedule_tests

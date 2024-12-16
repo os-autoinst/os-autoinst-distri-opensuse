@@ -83,6 +83,8 @@ our @EXPORT = qw(
   crm_wait_for_maintenance
   crm_check_resource_location
   generate_lun_list
+  show_cluster_parameter
+  set_cluster_parameter
 );
 
 =head1 SYNOPSIS
@@ -1460,4 +1462,58 @@ sub generate_lun_list {
         $index += $num_luns;
     }
 }
+
+
+=head2 set_cluster_parameter
+
+    set_cluster_parameter(resource=>'Totoro', parameter=>'neighbour', value=>'my');
+
+Manage HA cluster parameter using crm shell.
+
+=over
+
+=item * B<resource>: Resource containing parameter
+
+=item * B<parameter>: Parameter name
+
+=item * B<value>: Target parameter value
+
+=back
+
+=cut
+
+sub set_cluster_parameter {
+    my (%args) = @_;
+    for my $arg ('resource', 'parameter', 'value') {
+        croak("Mandatory argument '$arg' missing.") unless $arg;
+    }
+    my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'set', $args{parameter}, $args{value});
+    assert_script_run($cmd);
+}
+
+=head2 show_cluster_parameter
+
+    show_cluster_parameter(resource=>'Totoro', parameter=>'neighbour');
+
+Show cluster parameter value using CRM shell.
+
+=over
+
+=item * B<resource>: Resource containing parameter
+
+=item * B<parameter>: Parameter name
+
+=back
+
+=cut
+
+sub show_cluster_parameter {
+    my (%args) = @_;
+    for my $arg ('resource', 'parameter') {
+        croak("Mandatory argument '$arg' missing.") unless $arg;
+    }
+    my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'show', $args{parameter});
+    return script_output($cmd);
+}
+
 1;
