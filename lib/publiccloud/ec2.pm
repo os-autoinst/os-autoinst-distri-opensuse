@@ -199,7 +199,7 @@ sub terraform_apply {
 sub img_proof {
     my ($self, %args) = @_;
 
-    $args{instance_type} //= 't2.large';
+    $args{instance_type} //= 't3a.large';
     $args{user} //= 'ec2-user';
     $args{provider} //= 'ec2';
     $args{ssh_private_key_file} //= SSH_KEY_PEM;

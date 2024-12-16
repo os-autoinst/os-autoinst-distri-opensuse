@@ -30,7 +30,7 @@ sub run {
 
     $provider->stop_instance($instance);
 
-    my $instance_type = get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE', 't2.large');
+    my $instance_type = get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE', 't3a.large');
     $provider->change_instance_type($instance, $instance_type);
 
     $provider->start_instance($instance);
