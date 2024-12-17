@@ -237,7 +237,7 @@ sub problem_detection {
     clear_console;
 
     # Unapplied configuration files
-    save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1});
+    save_and_upload_log("find /* -name '*.rpmnew'", "unapplied-configuration-files.txt", {screenshot => 1, noupload => 1, timeout => 300});
     clear_console;
 
     # Errors, warnings, exceptions, and crashes mentioned in dmesg
