@@ -100,10 +100,10 @@ sub pre_run_hook {
 
     # disable packagekitd
     quit_packagekit();
-    ensure_apparmor_disabled();
+    ensure_service_disabled('apparmor');
 
     # Stop firewall
-    systemctl 'stop ' . $self->firewall;
+    ensure_service_disabled($self->firewall);
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
 
@@ -112,10 +112,11 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 }
 
-sub ensure_apparmor_disabled () {
-    unless (systemctl "is-active apparmor", ignore_failure => 1) {    # 0 if active, unless to revert
-        systemctl "disable --now apparmor";
-        record_info "apparmor", "disabled";
+sub ensure_service_disabled {
+    my ($service) = @_;
+    unless (systemctl "is-active " . $service, ignore_failure => 1) {    # 0 if active, unless to revert
+        systemctl "disable --now " . $service;
+        record_info $service, "disabled";
     }
 }
 
