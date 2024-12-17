@@ -2280,11 +2280,12 @@ sub qesap_az_setup_native_fencing_permissions {
 
     # Assign role
     my $subscription_id = script_output('az account show --query "id" -o tsv');
+    my $role_id = script_output('az role definition list --name "Linux Fence Agent Role" --query "[].id" --output tsv');
     my $az_cmd = join(' ', 'az role assignment',
         'create --only-show-errors',
         "--assignee-object-id $vm_id",
         '--assignee-principal-type ServicePrincipal',
-        "--role 'Virtual Machine Contributor'",
+        "--role '$role_id'",
         "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
     assert_script_run($az_cmd);
 }
