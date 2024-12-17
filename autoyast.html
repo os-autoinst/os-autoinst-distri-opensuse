@@ -36,6 +36,7 @@
       <li><a href="#adjust_network_conf">adjust_network_conf</a></li>
       <li><a href="#expand_variables">expand_variables</a></li>
       <li><a href="#adjust_user_password">adjust_user_password</a></li>
+      <li><a href="#expand_profile_url">expand_profile_url</a></li>
       <li><a href="#upload_profile">upload_profile</a></li>
       <li><a href="#inject_registration">inject_registration</a></li>
       <li><a href="#test_ayp_url">test_ayp_url</a></li>
@@ -268,6 +269,12 @@ $testapi::password = get_var(&quot;PASSWORD&quot;) if defined get_var(&quot;PASS
 ---
 
 $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="expand_profile_url">expand_profile_url</h2>
+
+<pre><code>expand_profile_url($profile, $profile_expanded);
+
+Return the PATH of profile with expanded vars</code></pre>
 
 <h2 id="upload_profile">upload_profile</h2>
 
