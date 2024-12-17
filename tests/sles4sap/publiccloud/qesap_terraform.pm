@@ -144,7 +144,6 @@ sub run {
     }
     set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
 
-    set_var_output('USE_SAPCONF', 'true');
     # This is the path where community.sles-for-sap repo
     # has been cloned.
     # Not all the conf.yaml used by this file needs it but
