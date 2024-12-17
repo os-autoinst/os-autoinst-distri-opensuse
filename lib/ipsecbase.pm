@@ -112,12 +112,4 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 }
 
-sub ensure_service_disabled {
-    my ($service) = @_;
-    unless (systemctl "is-active " . $service, ignore_failure => 1) {    # 0 if active, unless to revert
-        systemctl "disable --now " . $service;
-        record_info $service, "disabled";
-    }
-}
-
 1;
