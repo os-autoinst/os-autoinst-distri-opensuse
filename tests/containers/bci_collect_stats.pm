@@ -25,7 +25,7 @@ sub run {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     return unless ($engines =~ /podman/);
 
-    script_retry("podman pull -q $image", retry => 3, delay => 120);
+    script_retry("podman pull -q $image", timeout => 300, retry => 3, delay => 120);
     my $size_mb = script_output("podman inspect --format \"{{.VirtualSize}}\" $image") / 1000000;
     my %args;
     $args{arch} = get_required_var('ARCH');
