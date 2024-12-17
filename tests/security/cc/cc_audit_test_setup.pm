@@ -25,15 +25,16 @@ sub run {
 
     select_console 'root-console';
 
-    if (script_run('which SUSEConnect') != 0) {
-        record_soft_failure('bsc#1193782 - SUSEConnect is not installed when system role is common criteria');
-        zypper_call('in SUSEConnect');
+    unless (check_var('FLAVOR', 'Full-QR')) {
+        if (script_run('which SUSEConnect') != 0) {
+            record_soft_failure('bsc#1193782 - SUSEConnect is not installed when system role is common criteria');
+            zypper_call('in SUSEConnect');
+        }
+
+        add_suseconnect_product('sle-module-legacy');
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product('sle-module-development-tools');
     }
-
-    add_suseconnect_product('sle-module-legacy');
-    add_suseconnect_product('sle-module-desktop-applications');
-    add_suseconnect_product('sle-module-development-tools');
-
     zypper_call('in -t pattern devel_basis');
 
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
