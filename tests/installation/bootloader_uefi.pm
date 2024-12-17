@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro);
+use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_bootloader_sdboot);
 use Utils::Backends qw(is_ipmi);
 
 # hint: press shift-f10 trice for highest debug level
@@ -72,7 +72,7 @@ sub run {
         }
     }
 
-    if (is_jeos && get_required_var('FLAVOR') =~ /sdboot/) {
+    if (is_bootloader_sdboot) {
         assert_screen("bootloader-sdboot");
         return;
     }
