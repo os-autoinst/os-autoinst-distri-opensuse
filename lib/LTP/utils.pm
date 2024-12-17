@@ -404,19 +404,25 @@ sub parse_openposix_runfile {
 sub parse_runtest_file {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export, $suffix) = @_;
     my $whitelist = LTP::WhiteList->new();
+    my @tests = ();
 
     for my $line (@$cmds) {
         next if ($line =~ /(^#)|(^$)/);
-
         #Command format is "<name> <command> [<args>...] [#<comment>]"
         next if ($line !~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx);
         next if (is_svirt && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
-        my $test = {name => $1 . $suffix, command => $2};
-        my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
 
+        my $test = {name => $1 . $suffix, command => $2, last => 0};
         if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
-            loadtest_runltp($test->{name}, $tinfo, $whitelist);
+            push @tests, $test;
         }
+    }
+
+    ${tests [-1]}->{last} = 1 if (@tests);
+
+    for my $test (@tests) {
+        my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
+        loadtest_runltp($test->{name}, $tinfo, $whitelist);
     }
 }
 
