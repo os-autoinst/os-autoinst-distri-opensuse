@@ -879,7 +879,8 @@ sub specific_bootmenu_params {
     }
 
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
-        type_string_slow " agama.auto=\"" . data_url($agama_auto) . "\"";
+        my $url = autoyast::expand_profile_url($agama_auto);
+        push @params, "agama.auto=$url";
     }
 
     # Boot the system with the debug options if shutdown takes suspiciously long time.
