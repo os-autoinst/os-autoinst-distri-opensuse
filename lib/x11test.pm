@@ -1048,9 +1048,10 @@ sub add_input_resource {
     }
 
     assert_and_click 'ibus-input-source-add';
-    assert_and_click 'ibus-input-language-list';
+    send_key_until_needlematch("more-input-source", "tab", 22, 6);
+    assert_and_click 'more-input-source';
+    assert_screen 'ibus-input-language-list';
     type_string_slow $tag;
-
     assert_and_click "ibus-input-$tag";
     if ($tag eq "japanese") {
         assert_and_dclick 'ibus-input-japanese-kkc';
