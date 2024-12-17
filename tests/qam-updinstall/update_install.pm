@@ -206,6 +206,10 @@ sub run {
     # Extract module name from repo url.
     my @modules = split(/,/, $repos);
     foreach (@modules) {
+        # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
+        # workaround only availabe for 15-SP2
+        $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/ if is_sle('=15-SP2');
+
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
