@@ -968,7 +968,7 @@ sub create_playbook_section_list {
 
     # SLES4SAP/HA related playbooks
     if ($args{ha_enabled}) {
-        push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_required_var('USE_SAPCONF');
+        push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_var('USE_SAPCONF', 'false');
         push @playbook_list, 'cluster_sbd_prep.yaml' if ($args{fencing} eq 'sbd');
         push @playbook_list, qw(
           sap-hana-storage.yaml

@@ -1,11 +1,6 @@
 {
   "product": {
-    "id": "Tumbleweed"
-  },
-  "software": {
-    "patterns": [
-      "gnome"
-    ]
+    "id": "SLES_16.0"
   },
   "user": {
     "fullName": "Bernhard M. Wiedemann",

@@ -28,6 +28,10 @@ use File::Basename;
 use version_utils;
 use Data::Dumper;
 
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
+}
+
 sub install_dependency_package {
     my ($instance) = @_;
     my $rke2_url = get_var('RKE2_URL');
@@ -35,31 +39,31 @@ sub install_dependency_package {
     my $helm_url = get_var('HELM_URL');
 
     record_info('Dep pkg install');
-    trup_call("pkg install curl git docker");
+    trup_call("pkg install curl git podman python311");
 
-    # docker activation section
+    # podman activation section
     process_reboot(trigger => 1);
-    systemctl("enable docker");
-    systemctl("start docker");
-    systemctl("status docker");
+    systemctl("enable podman");
+    systemctl("start podman");
+    systemctl("status podman");
 
     # rke2 activation section
-    script_run("curl -sSL $rke2_url -o ./install_rke2.sh && chmod 775 ./install_rke2.sh");
-    script_run("sh ./install_rke2.sh");
-    script_run("echo 'export PATH=\$PATH:/opt/rke2/bin' >> ~/.bashrc");
+    assert_script_run("curl -sSL $rke2_url -o ./install_rke2.sh && chmod 775 ./install_rke2.sh");
+    assert_script_run("sh ./install_rke2.sh");
+    assert_script_run("echo 'export PATH=\$PATH:/opt/rke2/bin' >> ~/.bashrc");
+    assert_script_run("source ~/.bashrc");
     systemctl("enable rke2-server.service");
     systemctl("start rke2-server.service");
     systemctl("status rke2-server.service");
-    script_run("rke2 --version");
+    assert_script_run("rke2 --version");
 
     # helm activation section
-    script_run("curl -sSL $helm_url -o ./install_helm.sh && chmod 775 ./install_helm.sh");
-    script_run("sh ./install_helm.sh");
+    assert_script_run("curl -sSL $helm_url -o ./install_helm.sh && chmod 775 ./install_helm.sh");
+    assert_script_run("sh ./install_helm.sh");
     script_run("helm version");
 
     # kubectl activation section
-    script_run("curl -sSL $kubectl_url -o ./kubectl && chmod +x ./kubectl");
-    script_run("sudo mv ./kubectl /usr/local/bin/");
+    assert_script_run("curl -sSL $kubectl_url -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl");
     script_run("kubectl version --client");
 }
 
@@ -93,37 +97,60 @@ sub config_kubectl {
 }
 
 sub install_aistack_chart {
-    my ($instance, $ai_chart_repo, $namespace, $vf_name) = @_;
+    my ($instance, $namespace) = @_;
     my $SECRET_application_collection = get_var('_SECRET_DOCKER');
+    my $SECRET_minio = get_var('_SECRET_MINIO');
     my $cert_repo = get_var('HELM_CERTS');
     my $ingress_repo = get_var('HELM_INGRESS');
     my $docker_user_name = get_var('USER_DOCKER');
     my $repo_url = get_var('HELM_CHARTS');
-    my $git_token = get_var('_SECRET_SSH');
     my $ing_ver = get_var('ING_VERSION');
     my $local_storage_name = 'local_path_storage.yaml';
+    #my $milvus_values = get_var('MILVUS_TOTEST');
+    #my $ollama_values = get_var('OLLAMA_TOTEST');
+    #my $openwebui_values = get_var('OPENWEBUI_TEST');
+    #my $openwebui_gpu_values = get_var('OPENWEBUI_GPU_TEST');
+    my $milvus_values = 'milvus_values.yaml';
+    my $ollama_values = 'ollama_values.yaml';
+    my $openwebui_values = 'open_webui_values.yaml';
+    my $openwebui_gpu_values = 'open_webui_gpu_values.yaml';
+    my $milvus_helm_repo = 'oci://dp.apps.rancher.io/charts/milvus';
+    my $ollama_helm_repo = 'oci://dp.apps.rancher.io/charts/ollama';
+    my $openwebui_helm_repo = 'oci://dp.apps.rancher.io/charts/open-webui';
 
     record_info('AISTACK charts install');
     assert_script_run("helm list --all-namespaces");
     assert_script_run("kubectl get pods --all-namespaces");
 
     # Access to Application collection registery
-    # Get docker username and password
+    # local-path-storage.yaml is a copy off https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.28/deploy/local-path-storage.yaml
     assert_script_run("kubectl create ns $namespace");
     assert_script_run("kubectl create secret docker-registry application-collection --docker-server=dp.apps.rancher.io --docker-username='$docker_user_name' --docker-password='$SECRET_application_collection' -n $namespace", timeout => 120);
-
-    # Install private-ai-stack
-    my $gitlab_clone_url = 'https://git:' . $git_token . '@' . $repo_url;
-    assert_script_run("git clone $gitlab_clone_url");
-    assert_script_run("curl " . data_url("aistack/$vf_name") . " -o $vf_name", 60);
-    assert_script_run("curl -o $vf_name $ai_chart_repo", timeout => 120);
-
-    # local-path-storage.yaml is a copy off https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.28/deploy/local-path-storage.yaml
     assert_script_run("curl " . data_url("aistack/$local_storage_name") . " -o $local_storage_name", 60);
     assert_script_run("kubectl apply -f $local_storage_name", timeout => 120);
-    assert_script_run("helm upgrade --install suse-private-ai private-ai-charts --namespace $namespace --create-namespace --values $vf_name --set open-webui.ingress.class=nginx", timeout => 600);
+
+    # Install milvus
+    assert_script_run("curl " . data_url("aistack/$milvus_values") . " -o $milvus_values", 60);
+    assert_script_run("helm registry login dp.apps.rancher.io/charts -u $docker_user_name -p $SECRET_application_collection");
+    assert_script_run("helm install milvus -f $milvus_values -n $namespace $milvus_helm_repo", timeout => 100);
+
+    # Install Ollama
+    assert_script_run("curl " . data_url("aistack/$ollama_values") . " -o $ollama_values", 60);
+    assert_script_run("helm registry login dp.apps.rancher.io/charts -u $docker_user_name -p $SECRET_application_collection");
+    assert_script_run("helm install ollama -f $ollama_values -n $namespace $ollama_helm_repo", timeout => 100);
+
+    # Install open-webui
+    assert_script_run("helm registry login dp.apps.rancher.io/charts -u $docker_user_name -p $SECRET_application_collection");
+    if (check_var('PUBLIC_CLOUD_NVIDIA_GPU_AISTACK', 1)) {
+        assert_script_run("curl " . data_url("aistack/$openwebui_gpu_values") . " -o $openwebui_gpu_values", 60);
+        assert_script_run("helm install open-webui -f $openwebui_gpu_values -n $namespace $openwebui_helm_repo --set open-webui.ingress.class=nginx", timeout => 100);
+    } else {
+        assert_script_run("curl " . data_url("aistack/$openwebui_values") . " -o $openwebui_values", 60);
+        assert_script_run("helm install open-webui -f $openwebui_values -n $namespace $openwebui_helm_repo --set open-webui.ingress.class=nginx", timeout => 100);
+    }
+
     assert_script_run("kubectl get all --namespace $namespace");
-    sleep 180;
+    sleep 60;
 
     # Check pod status and log for successful
     # Loop thru each pod and pod status is running,error,failed,CrashLoopBackoff,ContainerStatusUnknown skip to next pod
@@ -131,7 +158,8 @@ sub install_aistack_chart {
     # if not loop thru till it reaches the max_retries to ensure the pod comes to running or failure state.
     # After reaching max_retries , record the pod details which does not run after reaching max_retries
     my $max_retries = 15;
-    my $sleep_interval = 10;
+    my @failed_pods;
+    my $sleep_interval = 20;
     my @out = split(' ', script_output("kubectl get pods --namespace $namespace -o custom-columns=':metadata.name'"));
     record_info("Pod names", join(" ", @out));
   POD_LOOP: foreach my $pod (@out) {
@@ -145,27 +173,50 @@ sub install_aistack_chart {
                 next POD_LOOP;
             } elsif ($status =~ /^(Error|Failed|CrashLoopBackOff|ContainerStatusUnknown)$/) {
                 record_info("$pod failed due to error in log: $logs \n ");
+                push @failed_pods, {name => $pod, status => $status};
                 next POD_LOOP;
             } else {
                 if ($logs =~ /ERROR|FAILURE|Exception|Failed/) {
                     record_info("$pod failed due to error in log: $logs \n ");
+                    push @failed_pods, {name => $pod, status => $status};
                     next POD_LOOP;
                 }    # if log
                 sleep $sleep_interval;
             }    # if status
         }    # while loop
         record_info("$pod is not running after $max_retries ");
-    }    #pod loop
+    }    # pod loop
 
     assert_script_run("kubectl get all --namespace $namespace");
-    record_info("Logs for the pods which is not in running or pending state");
-    foreach my $pod (@out) {
-        my $status = script_output("kubectl get pod $pod -n $namespace -o=jsonpath='{.status.phase}'", proceed_on_failure => 1);
-        if ($status !~ /^(Running|Pending|Completed)$/) {
-            my $logs = script_output("kubectl logs $pod -n $namespace", proceed_on_failure => 1);
-            record_info("$pod is in $status state. Logs:\n$logs\n");
-        }
-    }    # pod loop
+    if (@failed_pods) {
+        die "Failed pods:\n" . join("\n", map { "$_->{name}: $_->{status}" } @failed_pods) . "\n";
+    }
+}
+
+sub totest_install {
+    my ($instance, $namespace) = @_;
+
+    # Get values.yaml
+    assert_script_run("curl " . data_url("aistack/get_var('MILVUS_TOTEST')") . " -o " . get_var('MILVUS_TOTEST'), 60);
+    assert_script_run("curl " . data_url("aistack/get_var('OLLAMA_TOTEST')") . " -o " . get_var('OLLAMA_TOTEST'), 60);
+    assert_script_run("curl " . data_url("aistack/get_var('OPENWEBUI_TEST')") . " -o " . get_var('OPENWEBUI_TEST'), 60);
+
+    # Replace tag values
+    file_content_replace("get_var('MILVUS_TOTEST')", array('tag: .*' => "tag: " . get_var('MILVUS_TAG'), '--debug' => 1));
+    #to handle first and last occurance to update the tag
+    assert_script_run(sprintf("sed -E '0,/tag: .*/s/%s/%s/' -i %s", 'tag: .*', "tag: " . get_var('OPENWEBUI_TAG'), get_var('OPENWEBUI_TEST')));
+    assert_script_run(sprintf("sed -E ':a; N; $!ba; s/%s/%s/; ta' -i %s", 'tag: .*', "tag: " . get_var('OLLAMA_TAG'), get_var('OPENWEBUI_TEST')));
+
+    # Download tgz file
+    assert_script_run("curl " . get_var('AI_TOTEST_URL') . "/charts/" . get_var('MILVUS_TGZ') . " -o " . get_var('MILVUS_TGZ'), 60);
+    assert_script_run("curl " . get_var('AI_TOTEST_URL') . "/charts/" . get_var('OLLAMA_TGZ') . " -o " . get_var('OLLAMA_TGZ'), 60);
+    assert_script_run("curl " . get_var('AI_TOTEST_URL') . "/charts/" . get_var('OPENWEBUI_TGZ') . " -o " . get_var('OPENWEBUI_TGZ'), 60);
+
+    # Helm Install
+    assert_script_run("helm install milvus -f " . get_var('MILVUS_TOTEST') . " -n $namespace ./" . get_var('MILVUS_TGZ'), timeout => 100);
+    assert_script_run("helm install ollama -f " . get_var('OLLAMA_TOTEST') . " -n $namespace ./" . get_var('OLLAMA_TGZ'), timeout => 100);
+    assert_script_run("helm install open-webui -f " . get_var('OPENWEBUI_TEST') . " -n $namespace ./" . get_var('OPENWEBUI_TGZ'), timeout => 100);
+
 }
 
 sub test_openwebui_service {
@@ -181,13 +232,24 @@ sub test_openwebui_service {
     set_var('OPENWEBUI_IP', "$ipaddr");
     record_info("Added $ipaddr to /etc/hosts with hostname $host_name");
 
-    # connect open-webui service
-    my $curl_cmd = "curl -v -k https://$host_name";
-    my $curl_result = script_run($curl_cmd);
-    if ($curl_result == 0) {
-        record_info("Successfully connected to the open-webui service at $curl_cmd \n");
+    # get endpoints
+    assert_script_run("kubectl get endpoints $sr_name -n $namespace -o=jsonpath='{.subsets[*].addresses[*].ip}'");
+    my $endpoint_cmd = "kubectl get endpoints $sr_name -n $namespace -o=jsonpath='{.subsets[*].addresses[*].ip}'";
+    my $endpoint_result = script_output($endpoint_cmd);
+    record_info("Endpoint code: $endpoint_result \n");
+    if (!$endpoint_result) {
+        die "No healthy endpoints found for the open-webui service in $namespace\n";
     } else {
-        die "Unable to connect to the open-webui service at $curl_cmd\n";
+        # connect open-webui service
+        assert_script_run("curl --output /dev/null --silent --head --write-out \"%{http_code}\n\" -k -L https://$host_name");
+        my $curl_cmd = "curl --output /dev/null --silent --head --write-out \"%{http_code}\n\" -k -L https://$host_name";
+        my $curl_result = script_output($curl_cmd);
+        record_info("http code: $curl_result \n");
+        if ($curl_result == 200) {
+            record_info("Successfully connected to the open-webui service at $curl_cmd \n");
+        } else {
+            die "Received unexpected HTTP error code $curl_result for $curl_cmd\n";
+        }
     }
 
     # create Admin user
@@ -210,29 +272,27 @@ sub test_openwebui_service {
 
 
 sub install_nvidia_drivers {
-    my ($instance, $values_url, $file_name) = @_;
+    my ($instance) = @_;
     my $easyinstall_url = 'https://gitlab.nue.suse.com/cloud-solutions-sys-eng/nvidia-drivers-easy-install/-/blob/main/nvidia_easy_install.sh';
     my $driver_version = '550.54.14';
     my $gpu_op_url = get_var('GPU_OPERATOR');
-
-
+    my $file_name = 'nvidia_gpu_values.yaml';
 
     record_info('Install nvidia drivers');
-    script_run("curl -sSL $easyinstall_url -o ./nvidia_easy_install.sh && chmod +x ./nvidia_easy_install.sh");
-    #script_run("sh ./nvidia_easy_install.sh");
+    # assert_script_run("curl -sSL $easyinstall_url -o ./nvidia_easy_install.sh && chmod +x ./nvidia_easy_install.sh");
+    # script_run("sh ./nvidia_easy_install.sh");
     script_run("sudo zypper ar https://download.nvidia.com/suse/sle15sp6/ nvidia-sle15sp6-main");
     script_run("sudo zypper --gpg-auto-import-keys refresh");
     trup_call("pkg install -y --auto-agree-with-licenses nvidia-open-driver-G06-signed-kmp=$driver_version nvidia-compute-utils-G06=$driver_version");
 
     record_info('Install nvidia gpu operator');
-    assert_script_run("curl -o $file_name $values_url", timeout => 120);
-    #assert_script_run( "curl " . data_url("aistack/$file_name") . " -o $file_name", 60);
+    assert_script_run("curl " . data_url("aistack/$file_name") . " -o $file_name", 60);
     assert_script_run("helm repo add $gpu_op_url", timeout => 600);
     assert_script_run("helm repo update", timeout => 600);
     assert_script_run("helm repo list", timeout => 600);
     assert_script_run("helm install gpu-operator -n gpu-operator --create-namespace nvidia/gpu-operator --set driver.enabled=false -f $file_name ", timeout => 600);
 
-    #After reboot validate nvidia driver and gpu-operator installed
+    # After reboot validate nvidia driver and gpu-operator installed
     process_reboot(trigger => 1);
     script_run("sudo nvidia-smi");
     script_run("kubectl get pods -n gpu-operator");
@@ -240,9 +300,7 @@ sub install_nvidia_drivers {
 
 sub run {
     my ($self, $args) = @_;
-    my $values_url = get_var('HELM_VALUES');
     my $ai_ns = 'suse-private-ai';
-    my $value_file_name = '';
 
     my $instance = $self->{my_instance} = $args->{my_instance};
     my $provider = $self->{provider} = $args->{my_provider};
@@ -254,19 +312,11 @@ sub run {
 
     # choose the correct values.yaml based on the test flavor
     if (check_var('PUBLIC_CLOUD_NVIDIA_GPU_AISTACK', 1)) {
-        my $gpu_values = 'nvidia_gpu_values.yaml';
-        my $gpu_url = "$values_url";
-        $gpu_url .= "$gpu_values";
-        install_nvidia_drivers($instance, $gpu_url, $gpu_values);
-        $value_file_name = 'aistack_gpu_values.yaml';
-        $values_url .= "$value_file_name";
-    } else {
-        $values_url .= 'aistack_values.yaml';
-        $value_file_name = 'aistack_values.yaml';
+        install_nvidia_drivers($instance);
     }
 
     # Install private_ai_stack chart
-    install_aistack_chart($instance, $values_url, $ai_ns, $value_file_name);
+    install_aistack_chart($instance, $ai_ns);
 
     # OpenWebUI service test
     test_openwebui_service($instance, $ai_ns);

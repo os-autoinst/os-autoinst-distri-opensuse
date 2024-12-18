@@ -63,7 +63,8 @@ my @core_tests = (
     'console_test',
     'vnc_test',
     'expose_test',
-    'replicaset_test'
+    'replicaset_test',
+    'migration_test'
 );
 
 sub run {

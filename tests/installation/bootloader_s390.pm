@@ -23,6 +23,7 @@ use bootloader_setup;
 use registration;
 use utils 'shorten_url';
 use version_utils qw(is_sle is_tumbleweed is_opensuse);
+use autoyast qw(expand_profile_url);
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -120,7 +121,7 @@ sub prepare_parmfile {
         set_var('AUTOYAST', $url);
     }
     if (get_var('AGAMA_AUTO')) {
-        my $url = data_url(get_var('AGAMA_AUTO'));
+        my $url = expand_profile_url(get_var('AGAMA_AUTO'));
         $url = shorten_url($url) unless (is_opensuse);
         $params .= " agama.auto=" . $url;
         set_var('AGAMA_AUTO', $url);

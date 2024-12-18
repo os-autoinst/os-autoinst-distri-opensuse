@@ -19,6 +19,7 @@ use registration;
 use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
+use autoyast qw(expand_profile_url);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -45,7 +46,7 @@ sub set_svirt_domain_elements {
             $cmdline .= ' ' . join(' ', autoyast_boot_params);
         }
         if (get_var('AGAMA_AUTO')) {
-            my $url = data_url(get_var('AGAMA_AUTO'));
+            my $url = expand_profile_url(get_var('AGAMA_AUTO'));
             $cmdline .= " agama.auto=" . $url;
             set_var('AGAMA_AUTO', $url);
         }

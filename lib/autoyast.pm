@@ -36,6 +36,7 @@ our @EXPORT = qw(
   expand_template
   expand_version
   adjust_network_conf
+  expand_profile_url
   expand_variables
   adjust_user_password
   upload_profile
@@ -741,6 +742,24 @@ sub adjust_user_password {
     my ($profile) = @_;
     $profile =~ s/\{\{PASSWORD\}\}/$testapi::password/g;
     return $profile;
+}
+
+=head2 expand_profile_url
+
+ expand_profile_url($profile, $profile_expanded);
+
+ Return the PATH of profile with expanded vars
+
+=cut
+
+sub expand_profile_url {
+    my ($profile, $profile_expanded) = @_;
+    $profile_expanded //= $profile;
+    my $content = expand_variables(get_test_data($profile));
+    save_tmp_file($profile_expanded, $content);
+    my $profile_url = autoinst_url . "/files/$profile_expanded";
+    upload_profile(path => $profile_expanded, profile => $content);
+    return $profile_url;
 }
 
 =head2 upload_profile

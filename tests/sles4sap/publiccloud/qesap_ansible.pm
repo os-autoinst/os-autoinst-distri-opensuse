@@ -83,7 +83,7 @@ sub run {
             my $instances = create_instance_data(provider => $provider_instance);
             foreach my $instance (@$instances) {
                 record_info 'New Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
-                if (get_var('FENCING_MECHANISM') eq 'native' && $provider eq 'AZURE' && !check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn')) {
+                if (get_var('FENCING_MECHANISM') eq 'native' && is_azure && check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi')) {
                     qesap_az_setup_native_fencing_permissions(
                         vm_name => $instance->instance_id,
                         resource_group => qesap_az_get_resource_group());

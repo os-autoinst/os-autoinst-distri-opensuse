@@ -1,0 +1,9 @@
+global:
+  imagePullSecrets:
+  - application-collection
+ingress:
+  enabled: false
+defaultModel: "gemma:2b"
+ollama:
+  models:
+    - "gemma:2b"

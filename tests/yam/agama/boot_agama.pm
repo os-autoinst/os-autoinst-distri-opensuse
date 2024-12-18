@@ -10,6 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
+use autoyast qw(expand_profile_url);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -48,7 +49,7 @@ sub run {
 
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
-        my $path = data_url($agama_auto);
+        my $path = expand_profile_url($agama_auto);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));

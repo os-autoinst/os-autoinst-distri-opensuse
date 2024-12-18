@@ -24,6 +24,7 @@ use constant {
           is_sle_micro
           is_micro
           is_alp
+          is_agama
           is_selfinstall
           is_gnome_next
           is_jeos
@@ -986,4 +987,13 @@ sub has_selinux_by_default {
 
 sub has_selinux {
     return get_var('SELINUX', has_selinux_by_default);
+}
+
+=head2 is_agama
+
+Check if agama installation is being used
+=cut
+
+sub is_agama {
+    return (get_var('AGAMA') || get_var('AGAMA_AUTO'));
 }

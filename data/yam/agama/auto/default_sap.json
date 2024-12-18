@@ -1,11 +1,7 @@
 {
   "product": {
-    "id": "Tumbleweed"
-  },
-  "software": {
-    "patterns": [
-      "gnome"
-    ]
+    "id": "SLES_SAP_16.0",
+    "registrationCode": "{{SCC_REGCODE_SLES4SAP}}"
   },
   "user": {
     "fullName": "Bernhard M. Wiedemann",

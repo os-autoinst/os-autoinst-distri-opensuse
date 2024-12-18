@@ -51,7 +51,7 @@ sub run {
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
 
-        my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 480);
+        my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 600);
         # No reboot needed if no package update
         check_reboot_changes if ($results !~ /zypper: nothing to update/);
     }
