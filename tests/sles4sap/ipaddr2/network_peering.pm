@@ -1,8 +1,8 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Create network peering with IBSm
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use strict;
 use warnings;
@@ -10,31 +10,23 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_bastion_pubip
-  ipaddr2_cluster_sanity
   ipaddr2_deployment_logs
-  ipaddr2_infra_destroy
   ipaddr2_cloudinit_logs
-  ipaddr2_os_sanity
   ipaddr2_clean_network_peering
+  ipaddr2_infra_destroy
+  ipaddr2_network_peering
+  ipaddr2_add_server_repos_to_hosts
 );
 
 sub run {
     my ($self) = @_;
 
-    die('Azure is the only CSP supported for the moment')
-      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-
     select_serial_terminal;
 
-    my $bastion_ip = ipaddr2_bastion_pubip();
+    # Create network peering
+    ipaddr2_network_peering(ibsm_rg => get_required_var('IBSM_RG'));
 
-    # Default for ipaddr2_os_sanity is cloudadmin.
-    # It has to know about it to decide which ssh are expected in internal VMs
-    my %sanity_args = (bastion_ip => $bastion_ip);
-    $sanity_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
-    ipaddr2_os_sanity(%sanity_args);
-    ipaddr2_cluster_sanity(bastion_ip => $bastion_ip);
+    ipaddr2_add_server_repos_to_hosts(ibsm_ip => get_required_var('IBSM_IP'), incident_repo => get_var('INCIDENT_REPO', ''));
 }
 
 sub test_flags {

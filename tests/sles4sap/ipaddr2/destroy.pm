@@ -13,6 +13,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_deployment_logs
   ipaddr2_infra_destroy
   ipaddr2_cloudinit_logs
+  ipaddr2_clean_network_peering
 );
 
 sub run {
@@ -23,6 +24,9 @@ sub run {
 
     select_serial_terminal;
 
+    if (my $ibsm_rg = get_var('IBSM_RG')) {
+        ipaddr2_clean_network_peering(ibsm_rg => $ibsm_rg);
+    }
     ipaddr2_infra_destroy();
 }
 
@@ -34,6 +38,10 @@ sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_cloudinit_logs();
+    if (my $ibsm_rg = get_var('IBSM_RG')) {
+        ipaddr2_clean_network_peering(ibsm_rg => $ibsm_rg);
+    }
+    ipaddr2_clean_network_peering();
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }

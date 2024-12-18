@@ -6,8 +6,10 @@ use Test::Warnings;
 use Test::MockModule;
 use Test::Mock::Time;
 use List::Util qw(any none all);
+use testapi qw(set_var);
 
 use sles4sap::ipaddr2;
+use qesapdeployment;
 
 subtest '[ipaddr2_infra_deploy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
@@ -938,6 +940,35 @@ subtest '[ipaddr2_refresh_repo]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /zypper ref/ } @calls), 'Call zypper ref');
+};
+
+subtest '[get_private_ip_range]' => sub {
+    my %ip_range = sles4sap::ipaddr2::get_private_ip_range();
+    my %expected_value = (vnet_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24', priv_ip_range => '192.168.0');
+    is_deeply \%ip_range, \%expected_value, "No worker_id, return 192.168.0.0 ip range";
+
+    set_var('WORKER_ID', '123');
+    %ip_range = sles4sap::ipaddr2::get_private_ip_range();
+    $expected_value{vnet_address_range} = '10.3.208.0/21';
+    $expected_value{subnet_address_range} = '10.3.208.0/24';
+    $expected_value{priv_ip_range} = '10.3.208';
+    is_deeply \%ip_range, \%expected_value, "IP range is count according by worker_id";
+    set_var('WORKER_ID', undef);
+};
+
+subtest 'ipaddr2_clean_network_peering' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'test'; });
+
+    my $peering_string;
+
+    $ipaddr2->redefine(qesap_az_vnet_peering_delete => sub {
+            my (%args) = @_;
+            $peering_string = "source_group is $args{source_group}, target_group is $args{target_group}";
+            return;
+    });
+    ipaddr2_clean_network_peering(ibsm_rg => 'ibsm');
+    is $peering_string, "source_group is test, target_group is ibsm", "Clean network peering successfully";
 };
 
 done_testing;

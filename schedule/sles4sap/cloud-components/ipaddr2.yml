@@ -6,9 +6,23 @@ vars:
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
     - boot/boot_to_desktop
+    - '{{validate_repos}}'
     - sles4sap/ipaddr2/deploy
     - sles4sap/ipaddr2/configure
+    - '{{patch_system}}'
+    - sles4sap/ipaddr2/cluster_create
     - sles4sap/ipaddr2/sanity_os
     - sles4sap/ipaddr2/sanity_cluster
     - sles4sap/ipaddr2/test_move_resource
     - sles4sap/ipaddr2/destroy
+conditional_schedule:
+    validate_repos:
+        IS_MAINTENANCE:
+            1:
+                - publiccloud/validate_repos
+    patch_system:
+        IS_MAINTENANCE:
+            1:
+                - sles4sap/ipaddr2/network_peering
+                - sles4sap/ipaddr2/registration
+                - sles4sap/ipaddr2/patch_system
