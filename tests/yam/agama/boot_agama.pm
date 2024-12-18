@@ -16,6 +16,7 @@ use Utils::Backends;
 
 use Mojo::Util 'trim';
 use File::Basename;
+use Yam::Agama::agama_base 'upload_agama_logs';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -23,6 +24,10 @@ BEGIN {
 use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
+
+sub post_fail_hook {
+    Yam::Agama::agama_base::upload_agama_logs();
+}
 
 sub run {
     my $self = shift;
