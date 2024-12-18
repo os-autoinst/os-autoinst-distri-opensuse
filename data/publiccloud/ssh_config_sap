@@ -3,5 +3,4 @@ PasswordAuthentication no
 UserKnownHostsFile /dev/null
 IdentityFile %SSH_KEY%
 HostKeyAlgorithms +ssh-rsa
-LogLevel DEBUG3
 
