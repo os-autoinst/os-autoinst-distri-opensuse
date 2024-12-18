@@ -83,7 +83,7 @@ sub run {
         $self->{my_instance} = $instance;
         # do not probe VMs that are not part of the cluster
         next unless grep(/^$instance->{instance_id}$/, @cluster_nodes);
-        $instance->wait_for_ssh(scan_ssh_host_key => 1);
+        $instance->wait_for_ssh();
         my $scp_cmd = join('', 'scp /tmp/bashrc ',
             $instance->{username},
             '@', $instance->{public_ip},
