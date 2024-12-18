@@ -1158,6 +1158,7 @@ sub load_console_server_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
+    loadtest "console/journal_check";
     loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
