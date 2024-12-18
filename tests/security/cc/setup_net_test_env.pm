@@ -32,6 +32,11 @@ sub run {
 
     # Get netdev
     my $netdev = 'eth0';
+    if (is_s390x) {
+        $netdev = 'eth1';
+        assert_script_run('ip link set eth1 up');
+        script_run('ip a');
+    }
 
     # Configure the network
     my $data = get_test_suite_data();
