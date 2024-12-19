@@ -25,6 +25,8 @@ sub run {
 
     select_console 'root-console';
 
+    script_run("zypper lr | awk '{print \$3}' | grep -E '_[0-9]+\$' | xargs -I{} zypper rr {}");
+
     unless (check_var('FLAVOR', 'Full-QR')) {
         if (script_run('which SUSEConnect') != 0) {
             record_soft_failure('bsc#1193782 - SUSEConnect is not installed when system role is common criteria');
