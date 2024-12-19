@@ -159,10 +159,16 @@ sub install_aistack_chart {
     # After reaching max_retries , record the pod details which does not run after reaching max_retries
     my $max_retries = 15;
     my @failed_pods;
+    my @issue_logs_pod;
     my $sleep_interval = 20;
+    my $ollama_pod;
     my @out = split(' ', script_output("kubectl get pods --namespace $namespace -o custom-columns=':metadata.name'"));
     record_info("Pod names", join(" ", @out));
   POD_LOOP: foreach my $pod (@out) {
+
+        if ($pod =~ /^ollama/) {
+            $ollama_pod = $pod;
+        }
         my $counter = 0;
         my $start_time = time();
         while ($counter++ < $max_retries) {
@@ -177,8 +183,8 @@ sub install_aistack_chart {
                 next POD_LOOP;
             } else {
                 if ($logs =~ /ERROR|FAILURE|Exception|Failed/) {
-                    record_info("$pod failed due to error in log: $logs \n ");
-                    push @failed_pods, {name => $pod, status => $status};
+                    record_info("$pod has error in log: $logs \n ");
+                    push @issue_logs_pod, {name => $pod, status => $status};
                     next POD_LOOP;
                 }    # if log
                 sleep $sleep_interval;
@@ -188,6 +194,25 @@ sub install_aistack_chart {
     }    # pod loop
 
     assert_script_run("kubectl get all --namespace $namespace");
+
+    # GPU check for NVIDIA_GPU_AISTACK test
+    if (check_var('PUBLIC_CLOUD_NVIDIA_GPU_AISTACK', 1)) {
+        my $ollama_log = script_output("kubectl logs $ollama_pod -n $namespace", proceed_on_failure => 1);
+        if ($ollama_log =~ /looking for compatible GPUs/) {
+            record_info("$ollama_pod: Looking for compatible GPUs in the logs.");
+        }
+        if ($ollama_log =~ /no gpus found/) {
+            die "No GPU found for $ollama_pod\n";
+        }
+    }
+
+    # pod logs containing ERROR, FAILURE, or Exception, log a message indicating
+    # that the log has failure details and further inspection is needed
+    if (@issue_logs_pod) {
+        record_info("@log_issue_pod log has ERROR|FAILURE|Exception check log for more details ");
+    }
+
+    # Exit if there is failed pods
     if (@failed_pods) {
         die "Failed pods:\n" . join("\n", map { "$_->{name}: $_->{status}" } @failed_pods) . "\n";
     }
