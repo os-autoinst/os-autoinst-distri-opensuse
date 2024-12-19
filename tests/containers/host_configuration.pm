@@ -48,7 +48,8 @@ sub run {
             assert_script_run("dhclient -v");
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
-            assert_script_run("dhclient -v");
+            # dhclient is no longer available in CentOS 10
+            script_run("dhclient -v");
             script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
             script_retry("dnf update -q -y", timeout => $update_timeout);
