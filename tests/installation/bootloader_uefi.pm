@@ -72,11 +72,6 @@ sub run {
         }
     }
 
-    if (is_bootloader_sdboot) {
-        assert_screen("bootloader-sdboot");
-        return;
-    }
-
     if (get_var("IPXE") && !is_usb_boot) {
         sleep 60;
         return;
@@ -111,12 +106,15 @@ sub run {
         assert_screen("bootloader-grub2-agama", $bootloader_timeout);
     }
     else {
-        assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
+        assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2 bootloader-sdboot)], $bootloader_timeout);
     }
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
-        assert_screen "bootloader-grub2", $bootloader_timeout;
+        assert_screen([qw(bootloader-grub2 bootloader-sdboot)], $bootloader_timeout);
+    }
+    if (match_has_tag("bootloader-sdboot")) {
+        return if is_bootloader_sdboot;
     }
     if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
         $self->tianocore_disable_secureboot;
