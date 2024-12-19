@@ -242,7 +242,12 @@ sub set_config {
         script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
         script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/opt/export/scratch >> $CONFIG_FILE");
         script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
-        script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
+        if ($NFS_VERSION == 'pnfs') {
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1\"' >> $CONFIG_FILE");
+        }
+        else {
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
+        }
     }
     record_info('Config file', script_output("cat $CONFIG_FILE"));
 }
@@ -385,9 +390,15 @@ sub setup_nfs_server {
     else {
         assert_script_run("sed -i 's/NFSV4LEASETIME=\"\"/NFSV4LEASETIME=\"$nfsgrace\"/' /etc/sysconfig/nfs");
         assert_script_run("echo -e '[nfsd]\\ngrace-time=$nfsgrace\\nlease-time=$nfsgrace' > /etc/nfs.conf.local");
+        if ($nfsversion == 'pnfs') {
+            assert_script_run('mkdir -p /srv/pnfs_data && chown nobody:nogroup /srv/pnfs_data && echo \'/srv/pnfs_data *(rw,no_subtree_check,no_root_squash,fsid=10)\' >> /etc/exports');
+            assert_script_run('sed -i \'/^\[nfsd\\]$/a pnfs_dlm_device = localhost:/srv/pnfs_data\' /etc/nfs.conf');
+            assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.1' >> /etc/nfsmount.conf && echo 'Nfsvers=4.1' >> /etc/nfsmount.conf");
+        }
     }
     assert_script_run('exportfs -a && systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
-
+    record_info('/proc/fs/nfsd/pnfs_dlm_device', script_output('cat /proc/fs/nfsd/pnfs_dlm_device', proceed_on_failure => 1)) if ($nfsversion == 'pnfs');
+    record_info('nfsstat -m', script_output('nfsstat -m', proceed_on_failure => 1));
 
     # There's a graceful time we need to wait before using the NFS server
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
