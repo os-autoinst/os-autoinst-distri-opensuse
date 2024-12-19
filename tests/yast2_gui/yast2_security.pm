@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_sle);
 use YaST::workarounds;
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     select_console "x11";
@@ -38,6 +39,11 @@ sub run {
     wait_screen_change { type_string "30" };
     wait_screen_change { send_key "alt-o" };
 
+    # on Aarch64, reset consoles to refresh x11.
+    if (is_aarch64) {
+        reset_consoles;
+        wait_still_screen 10;
+    }
     # Check previously set values + Login Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
     assert_and_click "yast2_security-pwd-settings";
@@ -50,6 +56,11 @@ sub run {
     wait_screen_change { send_key "alt-o" };
     wait_still_screen 3;
 
+    # on Aarch64, reset consoles to refresh x11.
+    if (is_aarch64) {
+        reset_consoles;
+        wait_still_screen 10;
+    }
     # Check previously set values + Miscellaneous Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
     apply_workaround_poo124652('yast2_security-login-settings') if (is_sle('>=15-SP4'));
@@ -61,6 +72,11 @@ sub run {
     wait_screen_change { send_key "down" };
     wait_screen_change { send_key "alt-o" };
 
+    # on Aarch64, reset consoles to refresh x11.
+    if (is_aarch64) {
+        reset_consoles;
+        wait_still_screen 10;
+    }
     # Check previously set values
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
     assert_and_click "yast2_security-misc-settings";
