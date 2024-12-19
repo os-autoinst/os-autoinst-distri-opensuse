@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use openjdktest;
 use registration qw(add_suseconnect_product);
-use version_utils qw(is_sle is_rt);
+use version_utils qw(is_sle is_sled is_rt);
 
 sub run {
     my $self = @_;
@@ -27,7 +27,7 @@ sub run {
         push @java_versions, 21;
         # on newer version we need legacy module for openjdk 11, but
         # is not available on SLERT, can't test openjdk 11
-        if (is_rt) {
+        if (is_rt || is_sled) {
             shift @java_versions;
         } else {
             add_suseconnect_product 'sle-module-legacy';
