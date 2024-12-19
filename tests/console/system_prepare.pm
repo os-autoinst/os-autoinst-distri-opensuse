@@ -27,6 +27,7 @@ use strict;
 use Utils::Architectures 'is_ppc64le';
 use warnings;
 use virt_autotest::hyperv_utils 'hyperv_cmd';
+use transactional qw(process_reboot);
 
 sub run {
     my ($self) = @_;
@@ -81,11 +82,13 @@ sub run {
         }
     }
 
-    # bsc#997263 - VMware screen resolution defaults to 800x600
+    # bsc#997263 - VMware screen resolution defaults to 800x600 and longer GRUB_TIMEOUT for better needle detection
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
-        change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
+        #change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
+        #change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
+        change_grub_config('=.*', '=30', 'GRUB_TIMEOUT=');
         grub_mkconfig;
+        process_reboot(trigger => 1);
     }
 
     # Save output info to logfile
