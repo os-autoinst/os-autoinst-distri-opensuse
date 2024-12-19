@@ -75,6 +75,8 @@ sub run {
         # enable business one repositories
         add_suseconnect_product('sle-module-development-tools');
         add_suseconnect_product('sle-module-sap-business-one');
+        # also enable legacy module, due to bsc#1231763
+        add_suseconnect_product('sle-module-legacy');
         zypper_call('in patterns-sap-bone jq libidn11 rpm-build xmlstarlet glibc-i18ndata libicu60_2 nfs-kernel-server libcap-progs');
     }
 
