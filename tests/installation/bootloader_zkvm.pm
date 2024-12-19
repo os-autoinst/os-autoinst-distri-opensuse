@@ -45,11 +45,6 @@ sub set_svirt_domain_elements {
         if (get_var('AUTOYAST')) {
             $cmdline .= ' ' . join(' ', autoyast_boot_params);
         }
-        if (get_var('AGAMA_AUTO')) {
-            my $url = expand_profile_url(get_var('AGAMA_AUTO'));
-            $cmdline .= " agama.auto=" . $url;
-            set_var('AGAMA_AUTO', $url);
-        }
 
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         $cmdline .= specific_bootmenu_params;

@@ -120,12 +120,6 @@ sub prepare_parmfile {
         $params .= " autoyast=" . $url;
         set_var('AUTOYAST', $url);
     }
-    if (get_var('AGAMA_AUTO')) {
-        my $url = expand_profile_url(get_var('AGAMA_AUTO'));
-        $url = shorten_url($url) unless (is_opensuse);
-        $params .= " agama.auto=" . $url;
-        set_var('AGAMA_AUTO', $url);
-    }
     return split_lines($params);
 }
 
