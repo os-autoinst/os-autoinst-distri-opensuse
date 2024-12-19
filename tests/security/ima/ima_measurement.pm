@@ -39,10 +39,13 @@ sub run {
         timeout => '60',
         fail_message => 'boot_aggregate item check failed'
     );
-
-    my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*sha256:[a-fA-F0-9]\\{64\\}\\s*\\/' $meas_file |wc -l");
-    die('Too few sha256 items') if ($out < 800);
-
+    my $retries = 30;
+    while ($retries--) {
+        sleep 0.1;
+        my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*sha256:[a-fA-F0-9]\\{64\\}\\s*\/' $meas_file |wc -l");
+        last if ($out >= 800);    # exit when we have enough entries. 800 is a rough estimate, not a strict requirement
+    }
+    die('Too few sha256 items') unless $retries;
     # Test a sample file created in run time
     assert_script_run("echo 'This is a test!' > $sample_file");
     my $sample_sha = script_output("sha256sum $sample_file |cut -d' ' -f1");

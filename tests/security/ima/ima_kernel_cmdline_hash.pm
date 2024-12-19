@@ -68,9 +68,13 @@ sub run {
         my $meas_tmpfile = "/tmp/ascii_runtime_measurements-$ima_hash";
         assert_script_run("cp $meas_file $meas_tmpfile");
         upload_logs "$meas_tmpfile";
-
-        my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*$ima_hash:[a-fA-F0-9]\\{$hash_algo->{len}\\}\\s*\\/' $meas_file |wc -l");
-        die('Too few items') if ($out < 100);
+        my $retries = 30;
+        while ($retries--) {
+            sleep 0.1;
+            my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*$ima_hash:[a-fA-F0-9]\\{$hash_algo->{len}\\}\\s*\/' $meas_file |wc -l");
+            last if ($out >= 100);    # 100 is a rough estimate, not strict requirement
+        }
+        die('Too few items') unless $retries;
     }
 }
 

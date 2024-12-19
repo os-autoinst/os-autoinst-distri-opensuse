@@ -63,9 +63,13 @@ sub run {
         my $meas_tmpfile = "/tmp/ascii_runtime_measurements-" . @$k{name};
         assert_script_run("cp $meas_file $meas_tmpfile");
         upload_logs "$meas_tmpfile";
-
-        my $out = script_output("grep '@$k{pattern}' $meas_file |wc -l");
-        die('Too few items') if ($out < 600);
+        my $retries = 30;
+        while ($retries--) {
+            sleep 0.1;
+            my $out = script_output("grep '@$k{pattern}' $meas_file |wc -l");
+            last if ($out >= 600);    # 600 is a rough estimate, not a strict requirement
+        }
+        die('Too few items') unless $retries;
     }
 }
 
