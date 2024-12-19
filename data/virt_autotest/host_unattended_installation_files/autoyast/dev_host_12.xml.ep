@@ -40,7 +40,9 @@
       % for my $repo (@$repos) {
       <listentry>
 	<media_url><%= $repo %></media_url>
+	<name>TEST_<%= $n++ %></name>
 	<alias>TEST_<%= $n++ %></alias>
+        <priority config:type="integer">1</priority>
       </listentry>
       % }
     </add_on_products>
