@@ -195,8 +195,9 @@ sub set_bootscript_agama_cmdline_extra {
         $cmdline_extra .= "agama.install_url=$agama_install_url ";
     }
     if (is_ipmi) {
-        my $sol_console = get_required_var('IPXE_CONSOLE');
-        $cmdline_extra .= "console=$sol_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
+        my $ipxe_console = get_required_var('IPXE_CONSOLE');
+        my $sol_console = (split(/,/, $ipxe_console))[0];
+        $cmdline_extra .= "console=$ipxe_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
     }
     return $cmdline_extra;
 }
