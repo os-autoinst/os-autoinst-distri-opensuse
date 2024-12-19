@@ -2420,14 +2420,29 @@ sub set_mu_virt_vars {
         }
     }
 
-    # Set PXE_PRODUCT_NAME
-    my $pxe_product_name = "SLE-" . get_required_var('VERSION');
-    if (is_sle('15+')) {
-        $pxe_product_name .= "-Full-LATEST";
-    } elsif (is_sle('12+')) {
-        $pxe_product_name .= "-Server-GM";
+    # Set PXE resource
+    unless (get_var('PXE_PRODUCT_NAME') || get_var('MIRROR_HTTP')) {
+        unless (get_var('IPXE')) {
+            # PRG1 lab SUTs use pxe way
+            my $pxe_product_name = "SLE-" . get_required_var('VERSION');
+            if (is_sle('15+')) {
+                $pxe_product_name .= "-Full-LATEST";
+            } elsif (is_sle('12+')) {
+                $pxe_product_name .= "-Server-GM";
+            }
+            set_var('PXE_PRODUCT_NAME', $pxe_product_name);
+        } else {
+            # OSD SUTs use ipxe way
+            my $mirror_http = 'http://' . get_required_var('OPENQA_HOSTNAME') . '/assets/repo/fixed/';
+            $mirror_http .= 'SLE-' . get_required_var('VERSION');
+            if (is_sle('15+')) {
+                $mirror_http .= '-Full-' . get_required_var('ARCH') . '-GM-Media1/';
+            } elsif (is_sle('12+')) {
+                $mirror_http .= '-Server-DVD-' . get_required_var('ARCH') . '-GM-DVD1/';
+            }
+            set_var('MIRROR_HTTP', $mirror_http);
+        }
     }
-    set_var('PXE_PRODUCT_NAME', $pxe_product_name);
 
     # Set SCC_REGCODE_LTSS(for host)
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
@@ -2471,7 +2486,11 @@ sub load_hypervisor_tests {
         if (get_var('AUTOYAST')) {
             loadtest "autoyast/prepare_profile";
         }
-        loadtest "boot/boot_from_pxe";
+        if (get_var("IPXE")) {
+            loadtest "installation/ipxe_install";
+        } else {
+            loadtest "boot/boot_from_pxe";
+        }
         if (get_var('AUTOYAST')) {
             loadtest "autoyast/installation";
         } else {
