@@ -48,6 +48,11 @@ our @EXPORT = qw(
   ipaddr2_test_other_vm
   ipaddr2_cloudinit_create
   ipaddr2_cloudinit_logs
+  ipaddr2_clean_network_peering
+  ipaddr2_azure_resource_group
+  ipaddr2_ssh_internal
+  ipaddr2_bastion_ssh_addr
+  ipaddr2_get_internal_vm_private_ip
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -1913,6 +1918,26 @@ sub ipaddr2_test_other_vm {
             bastion_ip => $args{bastion_ip});
         die "Resource $resource is running on $vm and should not" if ($res =~ m/is running on: $vm/);
     }
+}
+
+=head2 ipaddr2_clean_network_peering
+
+    ipaddr2_clean_network_peering(rg => );
+
+Cleanup the network peering if needed.
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_clean_network_peering {
+    my (%args) = @_;
+    my $source_group = ipaddr2_azure_resource_group();
+    my $ibs_mirror_resource_group = get_required_var('IBSM_RG');
+
+    qesap_az_vnet_peering_delete(source_group => $source_group, target_group => $ibs_mirror_resource_group);
 }
 
 1;
