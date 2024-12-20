@@ -784,7 +784,7 @@
     },
     "boo#1227081": {
         "description": "Activation request for 'org\\.freedesktop\\.nm_dispatcher' failed\\.",
-	"products": {
+        "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
         },
@@ -804,5 +804,12 @@
             "leap-micro": ["6.1"]
         },
         "type": "bug"
+    },
+    "Spectre-V2-LFENCE": {
+        "description": "kernel: Spectre V2 : Spectre mitigation: LFENCE not serializing, switching to generic retpoline",
+        "products": {
+            "sle-micro": ["5.2"]
+        },
+        "type": "ignore"
     }
 }
