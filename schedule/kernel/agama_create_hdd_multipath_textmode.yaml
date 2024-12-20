@@ -1,0 +1,12 @@
+name: agama-create-hdd-multipath-textmode
+
+description:  >
+    Prepare image with multipath enabled using agama for kernel testing.
+
+schedule:
+  - yam/agama/boot_agama
+  - installation/agama_multipath
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - shutdown/shutdown
