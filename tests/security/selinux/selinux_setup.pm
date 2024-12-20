@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro);
+use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro has_selinux);
 use transactional qw(process_reboot trup_call);
 use Utils::Architectures;
 
@@ -67,8 +67,15 @@ sub run {
         my $results = script_output('zypper se -s selinux policycore', timeout => 300);
         record_info('Pkg_ver', "SELinux packages' version is: $results");
 
-        # Check that SELinux is disabled by default.
-        validate_script_output('sestatus', sub { m/SELinux status: .*disabled/ }, fail_message => 'SELinux is enabled when it should not be');
+        # ensure that SELinux is disabled (or enabled) by default as it should be
+        my $expected_state = "disabled";
+        my $fail_msg = 'SELinux is enabled when it should not be';
+        record_info('has_selinux', has_selinux());
+        if (has_selinux()) {
+            $expected_state = "enabled";
+            $fail_msg = 'SELinux is disabled when it should be enabled';
+        }
+        validate_script_output('sestatus', sub { m/SELinux status: .*$expected_state/ }, fail_message => $fail_msg);
     }
 }
 
