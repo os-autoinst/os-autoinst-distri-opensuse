@@ -20,7 +20,8 @@ sub new {
             qw(agama-product-selection
               agama-configuring-the-product
               agama-installing
-              agama-sle-overview)],
+              agama-sle-overview
+              agama-multipath)],
         timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 240
     }, $class;
 }
