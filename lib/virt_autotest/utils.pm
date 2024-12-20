@@ -115,7 +115,8 @@ sub check_modular_libvirt_daemons {
     my @daemons = @_;
 
     if (!@daemons) {
-        @daemons = qw(network nodedev nwfilter secret storage lock);
+        @daemons = qw(network nodedev secret storage lock);
+        #@daemons = qw(network nodedev nwfilter secret storage lock);
         # For details, please refer to poo#137096
         (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
     }
@@ -140,7 +141,8 @@ sub restart_modular_libvirt_daemons {
     my @daemons = @_;
 
     if (!@daemons) {
-        @daemons = qw(network nodedev nwfilter secret storage lock);
+        @daemons = qw(network nodedev secret storage lock);
+        #@daemons = qw(network nodedev nwfilter secret storage lock);
         # For details, please refer to poo#137096
         (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
     }
