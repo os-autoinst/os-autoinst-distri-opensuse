@@ -20,7 +20,7 @@ use testapi;
 use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
-use version_utils 'is_upgrade';
+use version_utils qw(is_agama is_upgrade);
 use Utils::Backends;
 use YuiRestClient;
 use ntlm_auth;
@@ -123,19 +123,24 @@ sub enter_netboot_parameters {
         record_info("Updated boot path for PPC64LE_GRUB_HTTP defined", $mntpoint);
     }
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-    if (get_var('AGAMA')) {
-        type_string_slow "linux $mntpoint/linux vga=normal root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO');
+    if (is_agama) {
+        type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password";
+        type_string_slow " agama.auto=" . data_url(get_var('AGAMA_AUTO')) if (get_var('AGAMA_AUTO'));
+        type_string_slow " agama.install_url=" . get_var('AGAMA_INSTALL_URL') if (get_var('AGAMA_INSTALL_URL'));
         type_string_slow " " . get_var('EXTRABOOTPARAMS');
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
     }
     # Skipping this setup due to it triggers general code for openSUSE that breaks powerVM scenario
-    bootmenu_default_params unless get_var('AGAMA');
-    bootmenu_network_source;
-    specific_bootmenu_params;
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
-    type_string_slow remote_install_bootmenu_params;
+    unless (is_agama) {
+        bootmenu_default_params;
+        bootmenu_network_source;
+        specific_bootmenu_params;
+        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
+        type_string_slow remote_install_bootmenu_params;
+    }
+
     type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
 
@@ -159,7 +164,11 @@ sub prepare_pvm_installation {
     enter_netboot_parameters;
     enter_cmd "boot";
     save_screenshot;
-    return if get_var('AGAMA');
+    if (is_agama) {
+        record_info("Installing", "Please check the expected product is being installed");
+        assert_screen('agama-installer-live-root', 400);
+        return;
+    }
 
     # pvm has sometimes extrem performance issue, increase timeout for booting up after enter_netboot_parameters
     assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 300);
