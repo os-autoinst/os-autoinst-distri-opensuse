@@ -2,7 +2,8 @@ name:           kubevirt-tests
 description:    >
     Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
     Kubevirt server & agent node installation and test modules
-vars: {}
+vars:
+    MAX_JOB_TIME: 72000
 schedule:
     - '{{barrier_setup}}'
     - '{{bootup_and_install}}'
