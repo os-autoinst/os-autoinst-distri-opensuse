@@ -321,6 +321,9 @@ sub run {
     select_serial_terminal;
     export_ltp_env;
 
+    # cockpit login message sporadically breaks login in boot_ltp
+    script_run '[ -f /etc/issue.d/cockpit.issue ] && rm /etc/issue.d/cockpit.issue';
+
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');
         $grub_param .= ' printk.time=1';
