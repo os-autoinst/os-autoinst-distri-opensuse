@@ -18,6 +18,7 @@ use constant {
     VERSION => [
         qw(
           is_sle
+          is_sled
           is_pre_15
           is_microos
           is_leap_micro
@@ -403,6 +404,15 @@ sub is_sle {
 
     # Version check
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+}
+
+=head2 is_sled
+
+Check if distribution is SLED
+=cut
+
+sub is_sled {
+    return check_var('SLE_PRODUCT', 'sled');
 }
 
 =head2 is_transactional
