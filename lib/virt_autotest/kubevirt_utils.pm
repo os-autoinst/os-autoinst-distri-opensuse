@@ -16,10 +16,23 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_transactional);
+use bootloader_setup qw(change_grub_config);
 
 our @EXPORT = qw(
+  set_grub_timeout
   install_cni_plugins
 );
+
+sub set_grub_timeout {
+    my $grub_timeout = shift // 30;
+
+    if (is_transactional) {
+        change_grub_config('=.*', '=' . $grub_timeout, 'GRUB_TIMEOUT');
+        record_info('GRUB', script_output('cat /etc/default/grub'));
+        assert_script_run('transactional-update grub.cfg');
+    }
+}
 
 sub install_cni_plugins {
     # Setup cnv-bridge containernetworking plugin: one of the tests requires
