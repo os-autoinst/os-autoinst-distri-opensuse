@@ -630,8 +630,7 @@ iptables -P OUTPUT ACCEPT;
 iptables -t nat -F;
 iptables -F;
 sysctl -w net.ipv4.ip_forward=1;
-sysctl -w net.ipv4.conf.all.forwarding=1;
-sysctl -w net.ipv6.conf.all.forwarding=1"
+sysctl -w net.ipv4.conf.all.forwarding=1"
     );
     save_screenshot;
     setup_common_ssh_config;
