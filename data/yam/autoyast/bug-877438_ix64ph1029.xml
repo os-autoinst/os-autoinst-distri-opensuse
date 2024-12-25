@@ -40,18 +40,6 @@
       </device_map_entry>
     </device_map>
     <global>
-      <activate>true</activate>
-      <append> splash=silent quiet showopts</append>
-      <append_failsafe>showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe</append_failsafe>
-      <boot_boot>false</boot_boot>
-      <boot_extended>false</boot_extended>
-      <boot_mbr>true</boot_mbr>
-      <boot_root>true</boot_root>
-      <default>0</default>
-      <generic_mbr>true</generic_mbr>
-      <gfxmode>auto</gfxmode>
-      <gfxtheme/>
-      <os_prober>true</os_prober>
       <timeout config:type="integer">-1</timeout>
       <vgamode/>
     </global>

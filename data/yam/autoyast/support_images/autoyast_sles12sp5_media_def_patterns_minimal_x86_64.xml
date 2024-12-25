@@ -6,22 +6,7 @@
   </add-on>
   <bootloader>
     <global>
-      <activate>true</activate>
-      <append>mitigations=auto showopts crashkernel=173M,high</append>
-      <boot_boot>false</boot_boot>
-      <boot_extended>false</boot_extended>
-      <boot_mbr>false</boot_mbr>
-      <boot_root>true</boot_root>
-      <cpu_mitigations>auto</cpu_mitigations>
-      <generic_mbr>true</generic_mbr>
-      <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
-      <os_prober>false</os_prober>
-      <terminal>gfxterm</terminal>
       <timeout config:type="integer">8</timeout>
-      <trusted_grub>false</trusted_grub>
-      <xen_append>crashkernel=173M,high</xen_append>
-      <xen_kernel_append>vga=gfx-1024x768x16 crashkernel=173M\&lt;4G</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
