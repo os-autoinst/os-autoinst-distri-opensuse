@@ -14,7 +14,7 @@
 # 3) workaround for no ability to disable grub timeout in agama
 #    https://github.com/openSUSE/agama/issues/1594
 #    grub_test() is too slow to catch boot screen for us
-# 4) for ipmi backend, vnc access during the installation is not available now,
+# 4) for ipmi/pvm backend, vnc access during the installation is not available now,
 #    we need to access to live root system to monitor installation process
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
@@ -26,7 +26,7 @@ use version_utils qw(is_leap is_sle);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
-use Utils::Backends qw(is_ipmi);
+use Utils::Backends qw(is_ipmi is_pvm);
 use Utils::Architectures qw(is_aarch64);
 
 sub upload_agama_logs {
@@ -57,7 +57,7 @@ sub verify_agama_auto_install_done_cmdline {
     die "Install phase is not done, please check agama logs";
 }
 
-sub agama_system_prepare_ipmi {
+sub agama_system_prepare {
     # Mount the root disk after installation, and do some prepare tasks:
     # Configure serial console, enable root ssh access, etc
 
@@ -71,13 +71,19 @@ sub agama_system_prepare_ipmi {
     assert_script_run("mount ${root_partition} /mnt");
     # Set correct serial console to be able to see login in first boot
     record_info("Set serial console");
-    my $sol_console = (is_aarch64) ? get_var('SERIALCONSOLE', 'ttyAMA0') : get_var('SERIALCONSOLE', 'ttyS1');
-    assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/boot/grub2/grub.cfg");
-    # Upload original grub configuration
+    if (is_ipmi) {
+        my $sol_console = (is_aarch64) ? get_var('SERIALCONSOLE', 'ttyAMA0') : get_var('SERIALCONSOLE', 'ttyS1');
+        assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/boot/grub2/grub.cfg");
+        # Set permanent grub configuration
+        assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/etc/default/grub");
+    }
+    if (is_pvm) {
+        assert_script_run("sed -i 's/quiet/console=hvc0/g' /mnt/boot/grub2/grub.cfg");
+        assert_script_run("sed -i 's/quiet/console=hvc0/g' /mnt/etc/default/grub");
+    }
+    # Upload grub configuration files
     upload_logs("/mnt/etc/default/grub", failok => 1);
     upload_logs("/mnt/boot/grub2/grub.cfg", failok => 1);
-    # Set permanent grub configuration
-    assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/etc/default/grub");
     # Enable root ssh access
     record_info("Enable root ssh login");
     assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
@@ -87,18 +93,19 @@ sub agama_system_prepare_ipmi {
 sub run {
     my ($self) = @_;
 
-    if (is_ipmi && get_var('AGAMA_AUTO')) {
+    if ((is_ipmi || is_pvm) && get_var('AGAMA_AUTO')) {
         select_console('root-console');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
         script_run('agama logs store -d /tmp');
         upload_logs('/tmp/agama-logs.tar.gz');
         record_info 'Prepare system before rebooting';
-        agama_system_prepare_ipmi();
+        agama_system_prepare();
         record_info 'Reboot system to disk boot';
         enter_cmd 'reboot';
         # Swith back to sol console, then user can monitor the boot log
-        select_console 'sol', await_console => 0;
+        select_console 'sol', await_console => 0 if is_ipmi;
+        reconnect_mgmt_console if is_pvm;
         wait_still_screen 10;
         save_screenshot;
         return;

@@ -887,6 +887,10 @@ sub specific_bootmenu_params {
         push @params, "agama.auto=$url";
     }
 
+    if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
+        push @params, "agama.install_url=$agama_install_url";
+    }
+
     # Boot the system with the debug options if shutdown takes suspiciously long time.
     # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
     # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
