@@ -20,6 +20,7 @@ use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
 use autoyast qw(expand_profile_url);
+use version_utils qw(is_agama);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -32,12 +33,12 @@ sub set_svirt_domain_elements {
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
         my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
-        if (get_var('AGAMA')) {
-            $cmdline .= "root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_var('REPO_999');
+        if (is_agama) {
+            $cmdline .= "root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_required_var('ISO') . " live.password=$testapi::password";
         } else {
             $cmdline .= "install=$repo";
+            $cmdline .= remote_install_bootmenu_params;
         }
-        $cmdline .= remote_install_bootmenu_params;
         if (get_var('UPGRADE')) {
             $cmdline .= "upgrade=1 ";
         }
@@ -47,8 +48,9 @@ sub set_svirt_domain_elements {
         }
 
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
+        # agama.auto and agama.install_url are defined in 'specific_bootmenu_params'
         $cmdline .= specific_bootmenu_params;
-        $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') && !get_var('NTLM_AUTH_INSTALL');
+        $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') && !get_var('NTLM_AUTH_INSTALL') && !(is_agama);
 
         $svirt->change_domain_element(os => initrd => "$zkvm_img_path/$name.initrd");
         $svirt->change_domain_element(os => kernel => "$zkvm_img_path/$name.kernel");
@@ -85,7 +87,10 @@ sub run {
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
 
-    return if (get_var('AGAMA'));
+    if (is_agama) {
+        wait_serial('Connect to the Agama installer using these URLs', 300) || die "Agama installer didn't start";
+        return;
+    }
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";

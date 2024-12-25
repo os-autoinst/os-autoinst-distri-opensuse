@@ -9,12 +9,12 @@
 # Exepcted to be executed right after agama.pm or agama auto install
 # This test handles actions that happen once we see the reboot button after install
 # 1) Switch from installer to console to Upload logs
-# 2) Switch back to X11/Wayland and reset_console s
+# 2) Switch back to X11/Wayland and reset_consoles
 #    so newly booted system does not think that we're still logged in console
 # 3) workaround for no ability to disable grub timeout in agama
 #    https://github.com/openSUSE/agama/issues/1594
 #    grub_test() is too slow to catch boot screen for us
-# 4) for ipmi/pvm backend, vnc access during the installation is not available now,
+# 4) for ipmi/pvm/s390x backend, vnc access during the installation is not available now,
 #    we need to access to live root system to monitor installation process
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
@@ -27,7 +27,7 @@ use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
 use Utils::Backends qw(is_ipmi is_pvm);
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_s390x);
 
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
@@ -93,7 +93,7 @@ sub agama_system_prepare {
 sub run {
     my ($self) = @_;
 
-    if ((is_ipmi || is_pvm) && get_var('AGAMA_AUTO')) {
+    if ((is_ipmi || is_pvm || is_s390x) && get_var('AGAMA_AUTO')) {
         select_console('root-console');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
