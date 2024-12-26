@@ -435,7 +435,7 @@ sub wait_grub {
       if (is_aarch64_uefi_boot_hdd
         && !is_jeos
         && !$in_grub
-        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP') || (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION'))));
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP') || (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION')) || (get_var('WORKAROUND_BSC1022064'))));
     # sle micro on ppc64le with qemu backend has low performance, so skip the first bootloader check
     assert_screen(\@tags, $bootloader_time) unless (is_sle_micro && is_ppc64le && is_qemu);
     if (match_has_tag("bootloader-shim-import-prompt")) {
