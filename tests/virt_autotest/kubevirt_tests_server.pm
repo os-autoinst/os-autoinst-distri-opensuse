@@ -72,7 +72,7 @@ sub run {
 
     if (check_var('RUN_TEST_ONLY', 0)) {
         use_ssh_serial_console;
-        $self->set_grub_timeout();
+        set_grub_timeout;
 
         # Synchronize the server & agent node before setup
         barrier_wait('kubevirt_test_setup');
