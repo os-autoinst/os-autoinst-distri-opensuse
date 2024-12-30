@@ -19,7 +19,7 @@
         "chroot": true,
         "body": |||
           #!/usr/bin/env bash
-          zypper rm openssh-server-config-rootlogin
+          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
         |||
       }
     ]
