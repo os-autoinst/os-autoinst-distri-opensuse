@@ -8,17 +8,8 @@
   </suse_register>
   <bootloader>
     <global>
-      <append>hvc_iucv=8 TERM=dumb resume=/dev/disk/by-path/ccw-0.0.0000-part3 crashkernel=163M</append>
-      <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
-      <os_prober>false</os_prober>
-      <terminal>console</terminal>
       <timeout config:type="integer">-1</timeout>
-      <trusted_grub>false</trusted_grub>
-      <xen_append>crashkernel=163M</xen_append>
-      <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <dasd>
     <devices config:type="list"/>

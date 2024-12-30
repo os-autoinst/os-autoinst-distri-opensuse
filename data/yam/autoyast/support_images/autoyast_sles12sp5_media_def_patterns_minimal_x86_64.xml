@@ -6,9 +6,8 @@
   </add-on>
   <bootloader>
     <global>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>

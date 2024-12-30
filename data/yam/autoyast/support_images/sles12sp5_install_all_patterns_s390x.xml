@@ -8,17 +8,8 @@
   </suse_register>
   <bootloader>
     <global>
-      <append>hvc_iucv=8 TERM=dumb resume=/dev/disk/by-path/ccw-0.0.0000-part3 crashkernel=163M</append>
-      <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
-      <os_prober>false</os_prober>
-      <terminal>console</terminal>
       <timeout config:type="integer">-1</timeout>
-      <trusted_grub>false</trusted_grub>
-      <xen_append>crashkernel=163M</xen_append>
-      <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <dasd>
     <devices config:type="list"/>
@@ -49,71 +40,14 @@
     <start_firewall config:type="boolean">true</start_firewall>
   </firewall>
   <networking>
-    <dhcp_options>
-      <dhclient_client_id/>
-      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
-    </dhcp_options>
-    <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
-      <hostname>susetest</hostname>
-      <nameservers config:type="list">
-        <nameserver>10.144.53.53</nameserver>
-      </nameservers>
-      <resolv_conf_policy>auto</resolv_conf_policy>
-      <searchlist config:type="list">
-        <search>suse.de</search>
-      </searchlist>
-      <write_hostname config:type="boolean">false</write_hostname>
-    </dns>
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <name>eth0</name>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
         <startmode>auto</startmode>
-        <zone>public</zone>
-      </interface>
-      <interface>
-        <bootproto>static</bootproto>
-        <device>lo</device>
-        <firewall>no</firewall>
-        <ipaddr>127.0.0.1</ipaddr>
-        <netmask>255.0.0.0</netmask>
-        <network>127.0.0.0</network>
-        <prefixlen>8</prefixlen>
-        <startmode>nfsroot</startmode>
-        <usercontrol>no</usercontrol>
       </interface>
     </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
-    <keep_install_network config:type="boolean">true</keep_install_network>
-    <managed config:type="boolean">false</managed>
-    <routing>
-      <ipv4_forward config:type="boolean">false</ipv4_forward>
-      <ipv6_forward config:type="boolean">false</ipv6_forward>
-      <routes config:type="list">
-        <route>
-          <destination>default</destination>
-          <device>eth0</device>
-          % if ( $get_var->('WORKER_HOSTNAME') =~ /prg2/ ) {
-          <gateway>10.145.10.254</gateway>
-          % }
-          % if ( $get_var->('WORKER_HOSTNAME') =~ /nue2/ ) {
-          <gateway>10.161.159.254</gateway>
-          % }
-          <netmask>-</netmask>
-        </route>
-      </routes>
-    </routing>
-    <s390-devices config:type="list">
-      <listentry>
-        <chanids>   </chanids>
-        <type/>
-      </listentry>
-      <listentry>
-        <chanids>   </chanids>
-        <type/>
-      </listentry>
-    </s390-devices>
   </networking>
   <report>
     <errors>
