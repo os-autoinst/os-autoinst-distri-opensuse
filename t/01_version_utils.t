@@ -138,6 +138,15 @@ subtest 'has_selinux_by_default' => sub {
     set_var('VERSION', '5.4');
     ok has_selinux_by_default, "check has_selinux_by_default for sle-micro 5.4";
 
+    # Test SLE < 16 (SELinux not enabled by default)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    ok !has_selinux_by_default, "check !has_selinux_by_default for sle 15-SP6";
+
+    # Test SLES 16 (SELinux enabled by default)
+    set_var('VERSION', '16.0');
+    ok has_selinux_by_default, "check has_selinux_by_default for sle 16.0";
+
     # Test Tumbleweed (SELinux enabled by default only in Staging:D)
     set_var('DISTRI', 'opensuse');
     set_var('VERSION', 'Tumbleweed');
@@ -158,6 +167,15 @@ subtest 'has_selinux' => sub {
     # Test SLE Micro 5.3 (not enabled by default)
     set_var('VERSION', '5.3');
     ok !has_selinux, "check !has_selinux with default settings (sle-micro 5.3)";
+
+    # Test SLE < 16 (not enabled by default)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    ok !has_selinux, "check !has_selinux with default settings (sle 15-SP6)";
+
+    # Test SLES 16 (enabled by default)
+    set_var('VERSION', '16.0');
+    ok has_selinux, "check !has_selinux with default settings (sle 16.0)";
 
     # Test Tumbleweed (default enabled in Staging:D)
     set_var('DISTRI', 'opensuse');
