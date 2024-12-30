@@ -31,8 +31,7 @@ sub configure_insecure_registries {
 }
 
 sub get_storage_driver {
-    my $json = shift->info(json => 1);
-    my $storage = $json->{store}->{graphDriverName};
+    my $storage = script_output("podman info -f '{{.Store.GraphDriverName}}'");
     record_info 'Storage', "Detected storage driver=$storage";
 
     return $storage;

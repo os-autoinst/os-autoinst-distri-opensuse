@@ -34,8 +34,7 @@ sub configure_insecure_registries {
 }
 
 sub get_storage_driver {
-    my $json = shift->info(json => 1);
-    my $storage = $json->{Driver};
+    my $storage = script_output("docker info -f '{{.Driver}}'");
     record_info 'Storage', "Detected storage driver=$storage";
 
     return $storage;
