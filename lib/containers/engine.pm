@@ -218,6 +218,7 @@ Otherwise it prints the output of info.
 sub info {
     my ($self, %args) = @_;
     my $stdout;
+    my $json_error = "";
 
     if (exists $args{json} && $args{json}) {
         my $raw = $self->_engine_script_output("info -f '{{json .}}' 2> ./error", proceed_on_failure => 1);
@@ -227,7 +228,13 @@ sub info {
         if ($raw =~ m/(?s)(\{(?:[^{}"]++|"(?:\\.|[^"])*+"|(?1))*\})/gm) {
             $raw = $1;
         }
-        $stdout = decode_json($raw);
+        eval {
+            $stdout = decode_json($raw);
+        };
+        if ($@) {
+            $json_error = $@;
+            $stdout = $raw;
+        }
     } else {
         $stdout = $self->_engine_script_output("info 2> ./error", proceed_on_failure => 1);
     }
@@ -239,6 +246,8 @@ sub info {
             die "Error found executing info";
         }
     }
+
+    die "Error decoding JSON: $json_error for $stdout" if $json_error;
 
     return $stdout;
 }
