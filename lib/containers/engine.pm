@@ -14,7 +14,6 @@ use Test::Assert 'assert_equals';
 use utils qw(systemctl file_content_replace script_retry);
 use version_utils qw(package_version_cmp);
 use containers::utils qw(get_podman_version);
-use Mojo::JSON qw(decode_json);
 use overload
   '""' => sub { return shift->runtime },
   bool => sub { return 1 },
@@ -206,50 +205,6 @@ sub enum_containers {
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;
     return \@containers;
-}
-
-=head2 info
-
-Assert a C<property> against given expected C<value> if C<value> is given.
-Otherwise it prints the output of info.
-
-=cut
-
-sub info {
-    my ($self, %args) = @_;
-    my $stdout;
-    my $json_error = "";
-
-    if (exists $args{json} && $args{json}) {
-        my $raw = $self->_engine_script_output("info -f '{{json .}}' 2> ./error", proceed_on_failure => 1);
-        # issue related to podman v2.0 (sle15sp2, s390x) -> bsc#1200623
-        # extract only the json part as there might be other error messages from info output
-        # e.g. 2023-09-11T08:01:40.788854+02:00 susetest systemd[31629]: Failed to start podman-31709.scope
-        if ($raw =~ m/(?s)(\{(?:[^{}"]++|"(?:\\.|[^"])*+"|(?1))*\})/gm) {
-            $raw = $1;
-        }
-        eval {
-            $stdout = decode_json($raw);
-        };
-        if ($@) {
-            $json_error = $@;
-            $stdout = $raw;
-        }
-    } else {
-        $stdout = $self->_engine_script_output("info 2> ./error", proceed_on_failure => 1);
-    }
-
-    if (script_run('test -s ./error') == 0) {
-        my $error = script_output('cat ./error');
-
-        if ($error !~ /$args{expected_error}/) {
-            die "Error found executing info";
-        }
-    }
-
-    die "Error decoding JSON: $json_error for $stdout" if $json_error;
-
-    return $stdout;
 }
 
 =head2 get_container_logs($container, $filename)

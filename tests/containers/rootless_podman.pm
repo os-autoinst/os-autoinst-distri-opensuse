@@ -106,7 +106,7 @@ sub run {
     if ($storage ne 'overlay') {
         die "Unexpected storage driver -> $storage";
     }
-    $podman->info();
+    record_info("podman info", script_output("podman info"));
 
     test_container_image(image => $image, runtime => $podman);
     build_and_run_image(base => $image, runtime => $podman);
