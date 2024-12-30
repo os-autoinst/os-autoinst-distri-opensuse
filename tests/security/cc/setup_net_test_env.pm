@@ -32,15 +32,22 @@ sub run {
 
     # Get netdev
     my $netdev = 'eth0';
+    if (is_s390x) {
+        $netdev = 'eth1';
+        assert_script_run('ip link set eth1 up');
+        script_run('ip a');
+    }
 
     # Configure the network
+    my $version = get_required_var('VERSION');
     my $data = get_test_suite_data();
-
     my $role = get_required_var('ROLE');
-    foreach my $key (keys %{$data->{$role}}) {
-        my $n = $data->{$role}->{$key};
+
+    foreach my $key (keys %{$data->{$version}->{$role}}) {
+        my $n = $data->{$version}->{$role}->{$key};
         my $netcard = $netdev . '.' . $n->{netcard};
         my $dev = $netcard;
+
         assert_script_run("ip link add link $netdev address $n->{mac_addr} $netcard type macvlan");
 
         # Network Bridge setting for Target of Evaluation(TOE)
@@ -65,15 +72,14 @@ sub run {
     if ($role eq 'server') {
         mutex_create('NETFILTER_SERVER_READY');
         wait_for_children;
-    }
-    else {
+    } else {
         mutex_wait('NETFILTER_SERVER_READY');
 
         # Export the variables
-        my $client_first = $data->{client}->{first_interface};
-        my $client_second = $data->{client}->{second_interface};
-        my $server_first = $data->{server}->{first_interface};
-        my $server_second = $data->{server}->{second_interface};
+        my $client_first = $data->{$version}->{client}->{first_interface};
+        my $client_second = $data->{$version}->{client}->{second_interface};
+        my $server_first = $data->{$version}->{server}->{first_interface};
+        my $server_second = $data->{$version}->{server}->{second_interface};
 
         # Deal with ipv4 address: change 192.168.0.1/24 to 192.168.0.1
         $client_first->{ipv4} =~ s/\/.*//g;
