@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
 use hacluster qw(wait_until_resources_started);
+use sles4sap::sapcontrol;
 use lockapi;
 
 sub run {
@@ -57,8 +58,7 @@ sub run {
         barrier_wait('ENSA_CLUSTER_SETUP');
     }
     wait_until_resources_started();
-    $self->sap_show_status_info(cluster => 1, netweaver => 1,
-        instance_id => $install_data->{instances}{$instance_type}{instance_id});
+    sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $install_data->{instances}{$instance_type}{instance_id});
 }
 
 1;
