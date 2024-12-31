@@ -3,8 +3,8 @@
 # Copyright 2018-2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Install HANA with SAP Installation Wizard. Verify installation with
-# sles4sap/hana_test
+# Summary: Install HANA and Business One with SAP Installation Wizard.
+# Verify installation with sles4sap/hana_test
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'sles4sap';
@@ -27,7 +27,11 @@ sub turn_off_low_disk_warning {
 
 sub run {
     my ($self) = @_;
+    my $bone;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
+    if (get_var('BONE')) {
+        ($proto, $bone) = $self->fix_path(get_required_var('BONE'));
+    }
     my $timeout = bmwqemu::scale_timeout(3600);
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
@@ -51,8 +55,11 @@ sub run {
     $self->install_libopenssl_legacy($path);
 
     # Get package version
-    my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' sap-installation-wizard");
+    # in SLE15SP5 and above wizard is called "bone-installation-wizard"
+    my $wiz_name = (is_sle('15-SP5+') and get_var('BONE')) ? "bone-installation-wizard" : "sap-installation-wizard";
+    my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' $wiz_name");
 
+    # start wizard
     if (check_var('DESKTOP', 'textmode')) {
         script_run "yast2 sap-installation-wizard; echo yast2-sap-installation-wizard-status-\$? > /dev/$serialdev", 0;
         assert_screen 'sap-installation-wizard';
@@ -100,8 +107,30 @@ sub run {
         wait_screen_change { send_key $cmd{next} };
     }
     assert_screen 'sap-wizard-profile-ready', 300;
-    send_key $cmd{next};
 
+    # BONE requires another repo
+    if (get_var('BONE')) {
+        send_key 'alt-y';
+        wait_screen_change { send_key 'tab' };
+        send_key_until_needlematch 'sap-wizard-proto-' . $proto . '-selected', 'down';
+        send_key 'ret' if check_var('DESKTOP', 'textmode');
+        send_key 'alt-p';
+        send_key_until_needlematch 'sap-wizard-inst-master-empty', 'backspace', 31 if check_var('DESKTOP', 'textmode');
+        type_string_slow "$bone", wait_still_screen => 1;
+        save_screenshot;
+        send_key $cmd{next};
+        assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
+        send_key $cmd{next};
+        assert_screen 'sap-wizard-profile-ready', 300;
+        send_key 'alt-n';
+        # BONE wizard prints a warning about compatibility, usual safe to ignore
+        assert_screen 'sap-wizard-not-certified', $timeout;
+        send_key 'alt-y';
+    } else {
+        send_key $cmd{next};
+    }
+
+    # wait for wizard to finish
     while (1) {
         wait_still_screen 1;    # Slow down the loop
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
