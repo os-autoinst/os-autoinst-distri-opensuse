@@ -42,14 +42,6 @@ sub run {
         modify_kernel_multiversion("disable");
     }
     workaround_bsc_1220091;
-    # Workaround of bsc#1224249, remove python3-argcomplete-1.9.2-150000.3.8.1 before migration
-    # because the higher python3-argcomplete version is not synced to SLES15SP6 update channel yet
-    # It will be only few weeks after the GM, will remove this workaround then
-    my $pkg = 'python3-argcomplete-1.9.2-150000.3.8.1';
-    if ((check_var("MIGRATION_METHOD", "zypper")) && (script_run("rpm -q $pkg")) == 0) {
-        record_soft_failure "Workaround for bsc#1224249: remove $pkg before migration";
-        zypper_call("rm $pkg");
-    }
     cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
     # Sometimes we can't wait the grub screen before it booting into system,
     # we can change the GRUB_TIMEOUT in /etc/default/grub to fix this.
