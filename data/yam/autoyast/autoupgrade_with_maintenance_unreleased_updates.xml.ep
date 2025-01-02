@@ -3,11 +3,6 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <bootloader>
     <global>
-      <activate>false</activate>
-      <boot_extended>false</boot_extended>
-      <boot_mbr>true</boot_mbr>
-      <boot_root>true</boot_root>
-      <generic_mbr>false</generic_mbr>
       <timeout config:type="integer">5</timeout>
     </global>
     <loader_type></loader_type>
