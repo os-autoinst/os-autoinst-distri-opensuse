@@ -279,7 +279,7 @@ sub do_local_initialization {
     my $_localfqdn = '';
     set_var('LOCAL_IPADDR', $_localip);
     set_var('LOCAL_FQDN', $_localfqdn);
-    $_localip = script_output("hostname -i", type_command => 1) if (script_retry("hostname -i", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
+    $_localip = script_output("hostname -i | cut -d' ' -f 2", type_command => 1) if (script_retry("hostname -i", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
     (($_localip eq '' or $_localip eq '127.0.0.1' or $_localip eq '::1 127.0.0.1') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_IPADDR', (split(/ /, script_output("hostname -I", type_command => 1)))[0]) : set_var('LOCAL_IPADDR', $_localip);
     $_localfqdn = script_output("hostname -f", type_command => 1) if (script_retry("hostname -f", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
     (($_localfqdn eq '' or $_localfqdn eq 'localhost') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_FQDN', (split(/ /, script_output("hostname -A", type_command => 1)))[0]) : set_var('LOCAL_FQDN', $_localfqdn);
@@ -630,8 +630,7 @@ iptables -P OUTPUT ACCEPT;
 iptables -t nat -F;
 iptables -F;
 sysctl -w net.ipv4.ip_forward=1;
-sysctl -w net.ipv4.conf.all.forwarding=1;
-sysctl -w net.ipv6.conf.all.forwarding=1"
+sysctl -w net.ipv4.conf.all.forwarding=1"
     );
     save_screenshot;
     setup_common_ssh_config;

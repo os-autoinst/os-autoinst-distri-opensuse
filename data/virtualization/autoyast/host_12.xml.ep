@@ -286,6 +286,28 @@
     </user>
   </users>
   <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>pre_erase_all_disks.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+for disk in $disks;do
+    echo "Wiping /dev/$disk..."
+    wipefs -af /dev/$disk
+    sync
+    parted -s /dev/$disk mklabel gpt
+    sync
+done
+echo "All disks are wiped out."
+lsblk
+]]>
+        </source>
+        <feedback config:type="boolean">false</feedback>
+        <notification>Please wait while pre-script is running...</notification>
+      </script>
+    </pre-scripts>
     <post-scripts config:type="list">
       <script>
         <filename>debug_libvirtd.sh</filename>
