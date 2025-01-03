@@ -98,6 +98,17 @@ sub check_guest_secure_boot {
     return $self;
 }
 
+# PED-87 Do NOT auto-generate EFI secret-key for hibernation verification leads
+# to bsc#1230977 Fail to dompmsuspend 15SP7 FV UEFI guest system. In order to
+# continue to perform power management, regenerating efi secret key and reboot
+# for uefi guest is needed. Only hybrid and disk suspend modes need do this.
+sub regen_efi_secret_key {
+    my ($self, $guest) = @_;
+
+    execute_over_ssh(address => $guest, command => 'echo 1 > /sys/firmware/efi/secret-key/regen');
+    reboot_virtual_machine(address => $guest);
+}
+
 sub check_guest_pmsuspend_enabled {
     my $self = shift;
 
@@ -108,6 +119,7 @@ sub check_guest_pmsuspend_enabled {
                 record_info("PMSUSPEND to hyrbrid is not supported here", "Guest $_ on kvm sles 15+ host");
                 next;
             }
+            $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
             $self->do_guest_pmsuspend($_, 'hybrid');
         }
         foreach (keys %virt_autotest::common::guests) {
@@ -115,6 +127,7 @@ sub check_guest_pmsuspend_enabled {
                 record_info("PMSUSPEND to disk is not supported here", "Guest $_ on kvm sles 15+ host");
                 next;
             }
+            $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
             $self->do_guest_pmsuspend($_, 'disk');
         }
     }
@@ -154,4 +167,3 @@ sub post_fail_hook {
 }
 
 1;
-
