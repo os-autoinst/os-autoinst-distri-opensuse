@@ -40,7 +40,8 @@ sub run {
         # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1950314
         script_retry("yes yes | DEBIAN_FRONTEND=noninteractive apt-get upgrade -y", timeout => $update_timeout);
     } elsif ($host_distri eq 'centos') {
-        assert_script_run("dhclient -v");
+        # dhclient is no longer available in CentOS 10
+        script_run("dhclient -v");
         script_retry("dnf update -y --nobest", timeout => $update_timeout);
     } elsif ($host_distri eq 'rhel') {
         script_retry("dnf update -y", timeout => $update_timeout);
