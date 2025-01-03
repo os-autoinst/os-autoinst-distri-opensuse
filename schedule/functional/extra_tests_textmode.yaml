@@ -33,6 +33,7 @@ conditional_schedule:
                 - update/zypper_clear_repos
                 - console/zypper_ar
                 - console/zypper_ref
+                - console/snapper_zypp
     sound_tests:
         ARCH:
             x86_64:
