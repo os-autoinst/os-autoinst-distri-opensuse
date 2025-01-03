@@ -14,6 +14,7 @@ use lockapi;
 use hacluster;
 use strict;
 use warnings;
+use sles4sap::sapcontrol;
 
 sub raise_barriers {
     my (%args) = @_;
@@ -92,7 +93,7 @@ sub run {
     record_info('SAPINST EXEC', "Executing sapinst command:\n$swpm_command");
     assert_script_run($swpm_command, timeout => 600);
 
-    $self->sapcontrol_process_check(sidadm => $nw_install_data->{sidadm},
+    sapcontrol_process_check(sidadm => $nw_install_data->{sidadm},
         instance_id => $instance_data->{instance_id},
         expected_state => 'started');
 
@@ -100,7 +101,7 @@ sub run {
     release_barrier(instance_type => $instance_type, instances => \@instances);
     # sync all nodes after installation done and show status info on SAP instances
     barrier_wait('SAPINST_INSTALLATION_FINISHED');
-    $self->sap_show_status_info(netweaver => 1, instance_id => $instance_data->{instance_id})
+    sap_show_status_info(netweaver => 1, instance_id => $instance_data->{instance_id})
       if grep($instance_type, ('ERS', 'ASCS', 'PAS', 'AAS'));
 }
 

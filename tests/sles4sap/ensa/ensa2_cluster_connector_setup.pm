@@ -16,6 +16,7 @@ use testapi;
 use hacluster;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
+use sles4sap::sapcontrol;
 use lockapi;
 
 sub run {
@@ -32,7 +33,7 @@ sub run {
 
     if ($instance_type eq 'ASCS') {
         my $profile_path_ascs = $self->get_instance_profile_path(instance_id => $instance_id, instance_type => 'ASCS');
-        my $instance_id_ers = $self->get_remote_instance_number(instance_type => 'ERS');
+        my $instance_id_ers = get_remote_instance_number(instance_type => 'ERS');
         my $profile_path_ers = $self->get_instance_profile_path(instance_type => 'ERS', instance_id => $instance_id_ers);
 
         record_info('SAP params', 'Changing SAP instance parameters required for cluster connector');
@@ -55,18 +56,17 @@ sub run {
 
     # Restart instances to apply parameter values
     record_info('SAP restart', 'Restarting ASCS and ERS to apply parameters');
-    $self->sapcontrol(webmethod => 'StopService', instance_id => $instance_id);
-    $self->sapcontrol_process_check(expected_state => 'failed', wait_for_state => 1);    # After stop service sapcontrol returns RC1 (NIECONN_REFUSED)
-    $self->sapcontrol(webmethod => 'StartService', additional_args => $sap_sid, instance_id => $instance_id);
-    $self->sapcontrol_process_check(expected_state => 'started', wait_for_state => 1);
+    sapcontrol(webmethod => 'StopService', sidadm => $sidadm, instance_id => $instance_id);
+    sapcontrol_process_check(expected_state => 'failed', wait_for_state => 1);    # After stop service sapcontrol returns RC1 (NIECONN_REFUSED)
+    sapcontrol(webmethod => 'StartService', sidadm => $sidadm, additional_args => $sap_sid, instance_id => $instance_id);
+    sapcontrol_process_check(expected_state => 'started', wait_for_state => 1);
 
     assert_script_run("crm configure property maintenance-mode='false'");
     crm_wait_for_maintenance(target_state => 'false');
 
     # Ensure resource groups are started in correct place (physical hostname)
     crm_check_resource_location(resource => "grp_$sap_sid\_$instance_type$instance_id", wait_for_target => $physical_hostname);
-    $self->sap_show_status_info(cluster => 1, netweaver => 1,
-        instance_id => $instance_id);
+    sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
 }
 
 1;

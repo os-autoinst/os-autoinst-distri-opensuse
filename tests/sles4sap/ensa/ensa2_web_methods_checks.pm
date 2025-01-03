@@ -14,24 +14,26 @@ use testapi;
 use hacluster;
 use lockapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use sles4sap::sapcontrol;
 
 sub webmethod_checks {
-    my ($self, $instance_id) = @_;
+    my ($self, $instance_id,) = @_;
     my $outputs;
     my $looptime = 300;
 
     # General status will help with troubleshooting
-    $self->sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
+    my $sidadm = $self->get_sidadm();
+    sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
     record_info('ENSA check', "Executing 'HACheckConfig' and 'HACheckFailoverConfig'");
-    while ($outputs = $self->sapcontrol(webmethod => 'HACheckConfig', instance_id => $instance_id, return_output => 1)) {
+    while ($outputs = sapcontrol(webmethod => 'HACheckConfig', instance_id => $instance_id, sidadm => $sidadm, return_output => 1)) {
         last unless ($outputs =~ /ERROR/);
         record_info("ERROR found in HACheckConfig: $outputs", "sleep 30s and try again");
         sleep 30;
         $looptime -= 30;
         last if ($looptime <= 0);
     }
-    $self->sapcontrol(webmethod => 'HACheckFailoverConfig', instance_id => $instance_id);
+    sapcontrol(webmethod => 'HACheckFailoverConfig', instance_id => $instance_id, sidadm => $sidadm);
 }
 
 sub run {
@@ -41,7 +43,8 @@ sub run {
     my $instance_type_original = get_required_var('INSTANCE_TYPE');
     my $instance_type_remote = $instance_type_original eq 'ASCS' ? 'ERS' : 'ASCS';
     my $physical_hostname = get_required_var('HOSTNAME');
-    my $instance_id_remote = $self->get_remote_instance_number(instance_type => $instance_type_remote);
+    my $instance_id_remote = get_remote_instance_number(instance_type => $instance_type_remote);
+    my $sidadm = $self->get_sidadm();
 
     select_serial_terminal;
 
@@ -56,7 +59,7 @@ sub run {
     # Execute failover from ASCS instance
     if ($instance_type eq 'ASCS') {
         record_info('Failover', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
-        $self->sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
+        sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
     }
 
     # After failover, instance type, ID etc is switched.
@@ -76,7 +79,8 @@ sub run {
             record_info "sleep 300s for 12-SP5";
         }
         record_info('Failover', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
-        $self->sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
+        sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, sidadm => $sidadm,
+            additional_args => "\"\"");
     }
 
     # After failover, instance type, ID etc is switched.
