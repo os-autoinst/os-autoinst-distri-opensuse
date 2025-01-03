@@ -1,0 +1,13 @@
+---
+name: agama desktop
+description: >
+  Perform agama installation with graphical environment.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - yam/agama/switch_to_product
+  - installation/first_boot
+  - installation/opensuse_welcome
