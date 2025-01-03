@@ -80,7 +80,8 @@ our @EXPORT = qw(
   remove_additional_nic
   start_guests
   is_guest_online
-  ensure_online wait_guest_online
+  ensure_online
+  wait_guest_online
   restore_downloaded_guests
   save_original_guest_xmls
   restore_original_guests
@@ -92,6 +93,7 @@ our @EXPORT = qw(
   recreate_guests
   download_vm_import_disks
   get_guest_regcode
+  run_command_over_ssh
 );
 
 my %log_cursors;
@@ -1371,6 +1373,27 @@ sub wait_for_host_reboot {
     record_info("Host rebooted");
     reset_consoles;
     select_console('root-ssh');
+}
+
+=head2 run_command_over_ssh
+
+  run_command_over_ssh(address => $address, timeout => $timeout)
+
+Run command over passwordless ssh session. Arguments include address, which can take
+the form of FQDN or IP, and timeout, which sets amount of time to wait before return.
+
+=cut
+
+sub run_command_over_ssh {
+    my %args = @_;
+    $args{username} //= 'root';
+    $args{address} //= '';
+    $args{command} //= '';
+    $args{timeout} //= 90;
+    croak('Argument address must be given to run command over ssh') if (!$args{address} or !$args{command});
+
+    my $command = "ssh $args{username}\@$args{address} $args{command}";
+    script_retry($command, timeout => $args{timeout}, delay => 15, retry => 3, die => 1);
 }
 
 1;
