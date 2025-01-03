@@ -57,10 +57,6 @@
       <li><a href="#share_hosts_entry">share_hosts_entry</a></li>
       <li><a href="#add_hosts_file_entries">add_hosts_file_entries</a></li>
       <li><a href="#get_sidadm">get_sidadm</a></li>
-      <li><a href="#sap_show_status_info">sap_show_status_info</a></li>
-      <li><a href="#sapcontrol">sapcontrol</a></li>
-      <li><a href="#sapcontrol_process_check">sapcontrol_process_check</a></li>
-      <li><a href="#get_remote_instance_number">get_remote_instance_number</a></li>
       <li><a href="#get_instance_profile_path">get_instance_profile_path</a></li>
       <li><a href="#load_ase_env">load_ase_env</a></li>
       <li><a href="#upload_ase_logs">upload_ase_logs</a></li>
@@ -403,83 +399,6 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <p>Returns sidadm username created from SAP sid - parameter INSTANCE_SID. check_if_exists - if set to true, test will fail if user does not exist. tests inconsistency between OpenQA parameter and real username</p>
 
 <p><b>must_exist</b> Checks if sidadm exists, croaks on failure. Default &#39;false&#39;</p>
-
-<h2 id="sap_show_status_info">sap_show_status_info</h2>
-
-<pre><code>$self-&gt;sap_show_status_info(cluster=&gt;1, netweaver=&gt;1);</code></pre>
-
-<p>Prints output for standard set of commands to show info about system in various stages of the test for troubleshooting. It is possible to activate or deactivate various output sections by named args:</p>
-
-<p><b>cluster</b> - Shows cluster related outputs</p>
-
-<p><b>netweaver</b> - Shows netweaver related outputs</p>
-
-<h2 id="sapcontrol">sapcontrol</h2>
-
-<pre><code>$self-&gt;sapcontrol(instance_id=&gt;$instance_id,
-   webmethod=&gt;$webmethod,
-   [additional_args=&gt;$additional_args,
-   remote_execution=&gt;$remote_execution]);</code></pre>
-
-<p>Executes sapcontrol webmethod for instance specified in arguments and returns exit code received from command. Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.</p>
-
-<p>Sapcontrol return codes:</p>
-
-<pre><code>RC 0 = webmethod call was successful
-RC 1 = webmethod call failed
-RC 2 = last webmethod call in progress (processes are starting/stopping)
-RC 3 = all processes GREEN
-RC 4 = all processes GREY (stopped)</code></pre>
-
-<p><b>instance_id</b> 2 digit instance number</p>
-
-<p><b>webmethod</b> webmethod name to be executed (Ex: Stop, GetProcessList, ...)</p>
-
-<p><b>additional_args</b> additional arguments to be appended at the end of command</p>
-
-<p><b>return_output</b> returns output instead of RC</p>
-
-<p><b>remote_hostname</b> hostname of the target instance for remote execution. Local execution does not need this.</p>
-
-<p><b>sidadm_password</b> Password for sidadm user. Only required for remote execution.</p>
-
-<h2 id="sapcontrol_process_check">sapcontrol_process_check</h2>
-
-<pre><code>$self-&gt;sapcontrol_process_check(expected_state=&gt;expected_state,
-   [instance_id=&gt;$instance_id,
-   loop_sleep=&gt;$loop_sleep,
-   timeout=&gt;$timeout,
-   wait_for_state=&gt;$wait_for_state]);</code></pre>
-
-<p>Runs &quot;sapcontrol -nr &lt;INST_NO&gt; -function GetProcessList&quot; via SIDadm and compares RC against expected state. Croaks if state is not correct.</p>
-
-<p>Expected return codes are:</p>
-
-<pre><code>RC 0 = webmethod call was successfull
-RC 1 = webmethod call failed (This includes NIECONN_REFUSED status)
-RC 2 = last webmethod call in progress (processes are starting/stopping)
-RC 3 = all processes GREEN
-RC 4 = all processes GREY (stopped)</code></pre>
-
-<p>Method arguments:</p>
-
-<p><b>expected_state</b> State that is expected (failed, started, stopped)</p>
-
-<p><b>instance_id</b> Instance number - two digit number</p>
-
-<p><b>loop_sleep</b> sleep time between checks - only used if &#39;wait_for_state&#39; is true</p>
-
-<p><b>timeout</b> timeout for waiting for target state, after which function croaks</p>
-
-<p><b>wait_for_state</b> If set to true, function will wait for expected state until success or timeout</p>
-
-<h2 id="get_remote_instance_number">get_remote_instance_number</h2>
-
-<pre><code>$self-&gt;get_instance_number(instance_type=&gt;$instance_type);</code></pre>
-
-<p>Finds instance number from remote instance using sapcontrol &quot;GetSystemInstanceList&quot; webmethod. Local system instance number is required to execute sapcontrol though.</p>
-
-<p><b>instance_type</b> Instance type (ASCS, ERS) - this can be expanded to other instances</p>
 
 <h2 id="get_instance_profile_path">get_instance_profile_path</h2>
 
