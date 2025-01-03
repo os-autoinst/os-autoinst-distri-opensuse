@@ -80,7 +80,8 @@ our @EXPORT = qw(
   remove_additional_nic
   start_guests
   is_guest_online
-  ensure_online wait_guest_online
+  ensure_online
+  wait_guest_online
   restore_downloaded_guests
   save_original_guest_xmls
   restore_original_guests
@@ -92,6 +93,8 @@ our @EXPORT = qw(
   recreate_guests
   download_vm_import_disks
   get_guest_regcode
+  execute_over_ssh
+  reboot_virtual_machine
 );
 
 my %log_cursors;
@@ -1371,6 +1374,65 @@ sub wait_for_host_reboot {
     record_info("Host rebooted");
     reset_consoles;
     select_console('root-ssh');
+}
+
+=head2 execute_over_ssh
+
+  execute_over_ssh(username => $user, address => $address,
+      command => $command, timeout => $timeout, assert => $assert)
+
+Run command over passwordless ssh session. Arguments include username default 
+value of which is 'root', address which can take the form of FQDN or IP and is
+mandatory, command to be executed, timeout value to wait before next step and
+assert which determines assertive call or not.
+
+=cut
+
+sub execute_over_ssh {
+    my %args = @_;
+    $args{username} //= 'root';
+    $args{address} //= '';
+    $args{command} //= '';
+    $args{timeout} //= 90;
+    $args{assert} //= 1;
+    croak('Argument address and command must be given to run over ssh') if (!$args{address} or !$args{command});
+
+    wait_guest_online($args{address});
+    my $command = "ssh $args{username}\@$args{address} \"$args{command}\"";
+    script_retry($command, timeout => $args{timeout}, delay => 15, retry => 3, die => $args{assert});
+}
+
+=head2 reboot_virtual_machine
+
+  reboot_virtual_machine(username => $user, address => $address, domain => $domain)
+
+Reboot virtual machine by issuing 'reboot' over ssh and then 'virsh command' if
+'reboot' does not succeed and virtual machine domain name is given as arguement
+domain which is default to argument address if it is also a domain name. Address
+can also takes the form of FQDN and IP as long as it is reachable over ssh. And
+another argument username has the default value of 'root' if no passed in value. 
+
+=cut
+
+sub reboot_virtual_machine {
+    my %args = @_;
+    $args{username} //= 'root';
+    $args{address} //= '';
+    $args{domain} //= $args{address};
+    croak('Argument address must be given to reboot virtual machine') if (!$args{address});
+
+    my $test_ssh_open = "nmap $args{address} -PN -p ssh | grep -i open";
+    my $test_ssh_not_open = "nmap $args{address} -PN -p ssh | grep -i -v open";
+    if (script_retry($test_ssh_open, delay => 1, retry => 30, die => 0) == 0) {
+        script_run("ssh $args{username}\@$args{address} \"reboot\"");
+        script_run("virsh destroy $args{domain}") if (script_retry($test_ssh_not_open, delay => 1, retry => 60, die => 0) != 0);
+    }
+    croak("Virtual machine $args{domain} $args{address} failed to stop") if (script_retry($test_ssh_not_open, delay => 1, retry => 30, die => 0) != 0);
+    if (script_retry($test_ssh_open, delay => 1, retry => 30, die => 0) != 0) {
+        script_run("virsh destroy $args{domain}");
+        script_run("virsh start $args{domain}");
+        script_retry($test_ssh_open, delay => 1, retry => 30, die => 1);
+    }
 }
 
 1;
