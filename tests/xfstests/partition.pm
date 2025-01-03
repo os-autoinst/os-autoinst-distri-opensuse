@@ -27,7 +27,8 @@ use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
 use registration;
-use version_utils qw(is_transactional);
+use version_utils qw(is_transactional is_sle_micro);
+use Utils::Architectures 'is_ppc64le';
 use transactional;
 use List::Util 'sum';
 
@@ -422,6 +423,10 @@ sub setup_nfs_server {
 
 sub run {
     my ($self) = @_;
+    if (is_sle_micro && is_ppc64le) {
+        record_info('INFO', 'Booting microos on ppc64le');
+        $self->wait_boot(ready_time => 1800);
+    }
     select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
