@@ -18,6 +18,9 @@ use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
 
+use serial_terminal qw(select_serial_terminal);
+use utils qw(script_retry);
+
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
 }
@@ -44,6 +47,7 @@ sub run {
         return;
     }
     elsif (is_pvm_hmc()) {
+        record_info('bootloader_pvm');
         $self->bootloader_pvm::boot_pvm();
         return;
     }
@@ -64,7 +68,16 @@ sub run {
     $grub_entry_edition->move_cursor_to_end_of_kernel_line();
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
-    $agama_up_an_running->expect_is_shown();
+
+    wait_serial('agama login', 120) || die "Agama cannot be connected";
+    select_serial_terminal();
+    script_retry('journalctl -u agama-web-server | grep "response: 200 OK"',
+        fail_message => "No internal successful GET request found in logs: " .
+          "Firefox, X server and tty might not be accessible yet.");
+
+    # only required for unattended installation for now,
+    # unless decided to control them from terminal in the future even for qemu
+    select_console('installation', timeout => 120);
 }
 
 1;
