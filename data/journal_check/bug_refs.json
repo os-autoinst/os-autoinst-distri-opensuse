@@ -808,7 +808,8 @@
     "Spectre-V2-LFENCE": {
         "description": "kernel: Spectre V2 : Spectre mitigation: LFENCE not serializing, switching to generic retpoline",
         "products": {
-            "sle-micro": ["5.1", "5.2"]
+            "sle-micro": ["5.1", "5.2"],
+            "sle": ["15-SP3"]
         },
         "type": "ignore"
     }
