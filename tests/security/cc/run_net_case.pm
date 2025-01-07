@@ -20,7 +20,7 @@ sub run {
     my $case_name = $run_args->{case_name};
     my $result = 'ok';
     assert_script_run("cd $audit_test::test_dir/audit-test/$case_name/");
-    my $output = script_output('./run.bash --list');
+    my $output = script_output('./run.bash --list', timeout => 300);
     my @lines = split(/\n/, $output);
 
     # Start lblnet_tst_server
