@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2024 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman & docker
@@ -17,7 +17,7 @@ use containers::container_images;
 use containers::urls qw(get_image_uri);
 use db_utils qw(push_image_data_to_db);
 use containers::utils qw(reset_container_network_if_needed);
-use version_utils qw(check_version get_os_release is_sle);
+use version_utils qw(check_version get_os_release is_sle is_tumbleweed);
 
 sub scc_apply_docker_image_credentials {
     my $regcode = get_var 'SCC_DOCKER_IMAGE';
@@ -77,6 +77,15 @@ sub run {
     reset_container_network_if_needed($runtime);
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && $runtime eq 'docker');
+
+    # Running podman as root with docker installed may be problematic as netavark uses nftables
+    # while docker still uses iptables.
+    # Use workaround suggested in:
+    # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
+    # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
+    if (is_tumbleweed && $runtime eq "podman" && get_var("CONTAINER_RUNTIMES") =~ /docker/) {
+        assert_script_run "iptables -I DOCKER-USER -j ACCEPT";
+    }
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
