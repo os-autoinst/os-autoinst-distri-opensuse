@@ -120,7 +120,12 @@ sub install_docker_when_needed {
             }
 
             # docker package can be installed
-            zypper_call('in docker', timeout => 300);
+            my @pkgs = qw(docker);
+            if (is_tumbleweed) {
+                push @pkgs, "iptables-backend-nft";
+                assert_script_run "sed -i 's/^FlushAllOnReload=no/FlushAllOnReload=yes/' /etc/firewalld/firewalld.conf";
+            }
+            zypper_call("in @pkgs", timeout => 300);
 
             # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
             if (script_run('systemctl is-active firewalld') == 0) {
