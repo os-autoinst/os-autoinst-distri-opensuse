@@ -517,7 +517,7 @@ sub on_terraform_apply_timeout {
 
     eval { $self->upload_boot_diagnostics('resource_group' => $resgroup) }
       or record_info('Bootlog upl error', 'Failed to upload bootlog');
-    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP');
 }
 
 sub get_resource_group_from_terraform_show {

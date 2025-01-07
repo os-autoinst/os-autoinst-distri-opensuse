@@ -22,7 +22,7 @@ use publiccloud::utils;
 use File::Basename;
 
 our $target_version = get_required_var('TARGET_VERSION');
-our $not_clean_vm = get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+our $not_clean_vm = get_var('PUBLIC_CLOUD_NO_CLEANUP');
 
 sub run {
     my ($self, $args) = @_;
