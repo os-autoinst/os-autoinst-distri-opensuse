@@ -57,39 +57,6 @@ sub verify_agama_auto_install_done_cmdline {
     die "Install phase is not done, please check agama logs";
 }
 
-sub agama_system_prepare {
-    # Mount the root disk after installation, and do some prepare tasks:
-    # Configure serial console, enable root ssh access, etc
-
-    # Get the root disk name
-    my $device = script_output qq(agama config show | grep -oP '(?<="disk": ")[^"]+');
-    # Use partition prefix for nvme devices
-    my $prefix = $device =~ /nvme/ ? "p" : "";
-    my $root_partition_id = 2;
-    my $root_partition = "${device}" . $prefix . $root_partition_id;
-    record_info("Device information", "Device: ${device}\nRoot partition: ${root_partition}");
-    assert_script_run("mount ${root_partition} /mnt");
-    # Set correct serial console to be able to see login in first boot
-    record_info("Set serial console");
-    if (is_ipmi) {
-        my $sol_console = (is_aarch64) ? get_var('SERIALCONSOLE', 'ttyAMA0') : get_var('SERIALCONSOLE', 'ttyS1');
-        assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/boot/grub2/grub.cfg");
-        # Set permanent grub configuration
-        assert_script_run("sed -i 's/quiet/console=$sol_console,115200/g' /mnt/etc/default/grub");
-    }
-    if (is_pvm) {
-        assert_script_run("sed -i 's/quiet/console=hvc0/g' /mnt/boot/grub2/grub.cfg");
-        assert_script_run("sed -i 's/quiet/console=hvc0/g' /mnt/etc/default/grub");
-    }
-    # Upload grub configuration files
-    upload_logs("/mnt/etc/default/grub", failok => 1);
-    upload_logs("/mnt/boot/grub2/grub.cfg", failok => 1);
-    # Enable root ssh access
-    record_info("Enable root ssh login");
-    assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
-    assert_script_run("umount /mnt");
-}
-
 sub run {
     my ($self) = @_;
 
@@ -99,9 +66,10 @@ sub run {
         verify_agama_auto_install_done_cmdline();
         script_run('agama logs store -d /tmp');
         upload_logs('/tmp/agama-logs.tar.gz');
-        record_info 'Prepare system before rebooting';
-        agama_system_prepare();
+        script_run('agama config show > /tmp/agama_config_show.txt');
+        upload_logs('/tmp/agama_config_show.txt');
         record_info 'Reboot system to disk boot';
+        wait_still_screen 3;
         enter_cmd 'reboot';
         # Swith back to sol console, then user can monitor the boot log
         select_console 'sol', await_console => 0 if is_ipmi;
@@ -142,6 +110,8 @@ sub post_fail_hook {
 
     select_console("root-console");
     export_healthcheck_basic();
+    script_run('agama config show > /tmp/agama_config_show.txt');
+    upload_logs('/tmp/agama_config_show.txt');
     upload_agama_logs();
 }
 

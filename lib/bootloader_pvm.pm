@@ -125,8 +125,7 @@ sub enter_netboot_parameters {
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     if (is_agama) {
         type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password";
-        # agama.auto and agama.install_url are defined in below function
-        specific_bootmenu_params;
+        type_string_slow " agama.install_url=" . get_var('AGAMA_INSTALL_URL') if (get_var('AGAMA_INSTALL_URL'));
         type_string_slow " " . get_var('EXTRABOOTPARAMS') if (get_var('EXTRABOOTPARAMS'));
     }
     else {
@@ -184,11 +183,19 @@ sub prepare_pvm_installation {
     }
 
     # For Agama unattended tests, disks will be formatted by default
-    if (!is_upgrade && !get_var('KEEP_DISKS') && !get_var('AGAMA_AUTO')) {
+    if (!is_upgrade && !get_var('KEEP_DISKS')) {
         prepare_disks;
     }
 
-    return if is_agama;
+    if (is_agama) {
+        if (get_var('AGAMA_AUTO')) {
+            my $agama_auto = data_url(get_var('AGAMA_AUTO'));
+            assert_script_run("agama profile import $agama_auto");
+            assert_script_run("agama config show");
+            background_script_run("agama install");
+        }
+        return;
+    }
     # Switch to installation console (ssh or vnc)
     select_console('installation');
     # We need to start installer only if it's pure ssh installation
