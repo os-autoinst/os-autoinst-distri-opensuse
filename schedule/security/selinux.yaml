@@ -21,6 +21,7 @@ schedule:
     - security/selinux/chcat
     - security/selinux/set_get_enforce
     - security/selinux/selinuxexeccon
+    - security/selinux/setroubleshootd
     - '{{alp_shutdown}}'
 conditional_schedule:
     bootloader_zkvm:
