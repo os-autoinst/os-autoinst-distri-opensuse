@@ -178,14 +178,17 @@ sub prepare_pvm_installation {
     if (is_agama) {
         record_info("Installing", "Please check the expected product is being installed");
         assert_screen('agama-installer-live-root', 400);
-        return;
+    }
+    else {
+        assert_screen("run-yast-ssh", 300);
     }
 
-    assert_screen("run-yast-ssh", 300);
-
-    if (!is_upgrade && !get_var('KEEP_DISKS')) {
+    # For Agama unattended tests, disks will be formatted by default
+    if (!is_upgrade && !get_var('KEEP_DISKS') && !get_var('AGAMA_AUTO')) {
         prepare_disks;
     }
+
+    return if is_agama;
     # Switch to installation console (ssh or vnc)
     select_console('installation');
     # We need to start installer only if it's pure ssh installation
