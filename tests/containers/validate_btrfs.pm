@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2023 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test Docker’s btrfs storage driver features for image and container management
@@ -18,7 +18,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::common;
 use btrfs_test qw(set_playground_disk);
-use containers::utils qw(get_docker_version);
 use version_utils;
 use Utils::Systemd qw(systemctl);
 
@@ -46,18 +45,12 @@ sub _sanity_test_btrfs {
     my $btrfs_head = '/tmp/subvolumes_saved';
 
     my $storage = $rt->get_storage_driver();
-    if (version->parse(get_docker_version()) >= version->parse('23.0.5')) {
-        if ($storage ne 'overlay2') {
-            die "Expected storage driver for this docker version is 'overlay2', got '$storage'";
-        }
-        assert_script_run('docker system prune -af');
-        assert_script_run(q[sed -i 's/^{/{ "storage-driver": "btrfs",/' /etc/docker/daemon.json]);
-        systemctl('restart docker');
-    } else {
-        if ($storage ne 'btrfs') {
-            die "Expected storage driver for this docker version is 'btrfs', got '$storage'";
-        }
+    if ($storage ne 'overlay2') {
+        die "Expected storage driver for this docker version is 'overlay2', got '$storage'";
     }
+    assert_script_run('docker system prune -af');
+    assert_script_run(q[sed -i 's/^{/{ "storage-driver": "btrfs",/' /etc/docker/daemon.json]);
+    systemctl('restart docker');
 
     $rt->build($dockerfile_path, 'huge_image');
     assert_script_run "btrfs fi df $dev_path/btrfs/";
