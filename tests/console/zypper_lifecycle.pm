@@ -43,7 +43,7 @@ sub lifecycle_output_check {
         record_info 'poo#129026';
         return;
     }
-    if (get_var('SCC_REGCODE_LTSS') || get_var('SCC_REGCODE_LTSS_ES')) {
+    if (get_var('SCC_REGCODE_LTSS') || get_var('SCC_REGCODE_LTSS_ES') || get_var('SCC_REGCODE_LTSS_TD')) {
         if ($output =~ /No products.*before/) {
             record_info('Softfail', "poo#95593 https://jira.suse.com/browse/MSC-70");
             return;

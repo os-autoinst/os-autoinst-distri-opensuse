@@ -352,7 +352,7 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
-        my @addons_with_code = qw(geo live rt ltss ltss_es ses espos);
+        my @addons_with_code = qw(geo live rt ltss ltss_es ltss_td ses espos);
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
@@ -863,6 +863,7 @@ sub get_addon_fullname {
         lgm => 'sle-module-legacy',
         ltss => is_hpc('15+') ? 'SLE_HPC-LTSS' : 'SLES-LTSS',
         ltss_es => 'SLES-LTSS-Extended-Security',
+        ltss_td => 'SLES-LTSS-TERADATA',
         pcm => 'sle-module-public-cloud',
         rt => 'SUSE-Linux-Enterprise-RT',
         sapapp => 'sle-module-sap-applications',
