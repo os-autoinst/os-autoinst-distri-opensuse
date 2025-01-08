@@ -33,6 +33,7 @@ sub run {
     my $version = get_required_var('VERSION');
     if (is_sle()) {
         my $qa_head_repo = "http://download.suse.de/ibs/QA:/Head/" . 'SLE-' . $version;
+        $qa_head_repo = get_required_var('QA_HEAD_REPO') unless (is_sle('<16'));
         zypper_ar("$qa_head_repo", name => 'qa-head-repo');
     }
     zypper_call('install bats pam-test pam pam-config snapper perl');
