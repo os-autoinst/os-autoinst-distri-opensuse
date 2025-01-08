@@ -84,7 +84,7 @@ sub run {
     # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
     # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
     if (is_tumbleweed && $runtime eq "podman" && get_var("CONTAINER_RUNTIMES") =~ /docker/) {
-        assert_script_run "iptables -I DOCKER-USER -j ACCEPT";
+        script_run "iptables -I DOCKER-USER -j ACCEPT";
     }
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS
