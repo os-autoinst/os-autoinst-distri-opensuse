@@ -84,9 +84,6 @@ sub test_update_cmd {
             record_info("SKIP", "The update command is not supported on podman $version");
             return;
         }
-    } elsif ($runtime ne 'docker') {
-        record_info("SKIP", "The update command is not supported on $runtime");
-        return;
     }
 
     my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
