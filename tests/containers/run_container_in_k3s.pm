@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Installs local k3s locally and executes a test
@@ -16,7 +16,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
-use containers::utils qw(check_min_runtime_version);
 use Utils::Architectures qw(is_ppc64le);
 use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
@@ -50,7 +49,7 @@ sub run {
 
     # Staging does not have access to repositories, only to DVD
     # curl -sfL https://get.k3s.io is not supported on ppc poo#128456
-    if (check_min_runtime_version('4.4.0') && !is_staging && !is_ppc64le) {
+    if (!is_staging && !is_ppc64le) {
         prepare_pod_yaml();
         record_info('Test', 'kube apply');
         assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -13,7 +13,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils qw(script_retry);
-use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_staging);
 
@@ -81,45 +80,40 @@ sub run {
         assert_script_run('podman play kube --down hello-kubic.yaml');
     }
 
-    unless (!check_min_runtime_version('4.4.2')) {
-        # Kube generate
-        record_info('Test', 'Generate the yaml from a pod');
-        assert_script_run('podman pod create testing-pod');
-        my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
-        script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
-        assert_script_run("podman container create --pod testing-pod --name container $image sh -c \"sleep 3600\"");
-        assert_script_run("podman kube generate testing-pod | tee pod.yaml");
-        assert_script_run("grep 'image: $image' pod.yaml");
-        assert_script_run("podman pod rm testing-pod");
+    # Kube generate
+    record_info('Test', 'Generate the yaml from a pod');
+    assert_script_run('podman pod create testing-pod');
+    my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
+    script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
+    assert_script_run("podman container create --pod testing-pod --name container $image sh -c \"sleep 3600\"");
+    assert_script_run("podman kube generate testing-pod | tee pod.yaml");
+    assert_script_run("grep 'image: $image' pod.yaml");
+    assert_script_run("podman pod rm testing-pod");
 
-        record_info('Test', 'Test the pod yaml creates a pod');
-        assert_script_run('podman play kube pod.yaml');
-        record_info('Test', 'Confirm pod is running');
-        record_info('pod ps', script_output('podman pod ps'));
-        validate_script_output('podman pod ps', sub { m/testing-pod/ });
-        validate_script_output('podman ps', sub { m/testing-pod-container/ });
+    record_info('Test', 'Test the pod yaml creates a pod');
+    assert_script_run('podman play kube pod.yaml');
+    record_info('Test', 'Confirm pod is running');
+    record_info('pod ps', script_output('podman pod ps'));
+    validate_script_output('podman pod ps', sub { m/testing-pod/ });
+    validate_script_output('podman ps', sub { m/testing-pod-container/ });
 
-        record_info('Test', 'Removing one pod');
-        assert_script_run('podman pod rm -f testing-pod');
+    record_info('Test', 'Removing one pod');
+    assert_script_run('podman pod rm -f testing-pod');
 
-        # kube play
-        record_info('Test', 'kube play');
-        assert_script_run('podman kube play pod.yaml');
-        validate_script_output('podman pod ps', sub { m/testing-pod/ });
-        validate_script_output('podman ps', sub { m/testing-pod-container/ });
+    # kube play
+    record_info('Test', 'kube play');
+    assert_script_run('podman kube play pod.yaml');
+    validate_script_output('podman pod ps', sub { m/testing-pod/ });
+    validate_script_output('podman ps', sub { m/testing-pod-container/ });
 
-        # kube down
-        record_info('Test', 'kube down');
-        assert_script_run('podman kube down pod.yaml');
-        validate_script_output('podman pod ps', sub { !m/testing-pod/ });
-        validate_script_output('podman ps', sub { !m/testing-pod-container/ });
+    # kube down
+    record_info('Test', 'kube down');
+    assert_script_run('podman kube down pod.yaml');
+    validate_script_output('podman pod ps', sub { !m/testing-pod/ });
+    validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
-    }
-
-    if (check_min_runtime_version('4.4.4')) {
-        check_container_nspid();
-        check_container_nspid(1);
-    }
+    check_container_nspid();
+    check_container_nspid(1);
 
 }
 

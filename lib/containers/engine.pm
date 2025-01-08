@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2024 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Abstraction layer to operate docker and podman containers through same interfaces
@@ -13,7 +13,6 @@ use Carp 'croak';
 use Test::Assert 'assert_equals';
 use utils qw(systemctl file_content_replace script_retry);
 use version_utils qw(package_version_cmp);
-use containers::utils qw(get_podman_version);
 use overload
   '""' => sub { return shift->runtime },
   bool => sub { return 1 },
@@ -277,12 +276,8 @@ sub cleanup_system_host {
     # all containers should be stopped before running prune
     # https://github.com/containers/podman/issues/19038
     if ($self->runtime eq 'podman') {
-        if (package_version_cmp(get_podman_version(), '4.0.0') < 0) {
-            $self->_engine_script_run("pod rm --force --all", 120);
-        }
-        $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60); # retry because on older hosts there can be remnants that take some time before they are cleaned
-                                                                                                  # podman system prune -f --external was added to podman 4.0.0
-            # and it allows to prune external containers created by buildah
+        # retry because on older hosts there can be remnants that take some time before they are cleaned
+        $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60);
         $self->_engine_script_run("system prune -f --external", 300);
     }
     $self->_engine_assert_script_run("volume prune -f", 300);
