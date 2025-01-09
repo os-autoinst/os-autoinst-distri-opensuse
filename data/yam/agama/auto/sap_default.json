@@ -1,6 +1,6 @@
 {
   "product": {
-    "id": "SLES_SAP_16.0",
+    "id": "SLES-SAP",
     "registrationCode": "{{SCC_REGCODE_SLES4SAP}}"
   },
   "user": {
