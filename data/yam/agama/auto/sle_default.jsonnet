@@ -1,6 +1,6 @@
 {
   "product": {
-    "id": "SLES_16.0",
+    "id": "SLES",
     "registrationCode": "{{SCC_REGCODE}}"
   },
   "user": {
