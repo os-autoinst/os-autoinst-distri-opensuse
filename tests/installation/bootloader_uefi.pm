@@ -100,6 +100,15 @@ sub run {
     # By pressing a random key, we stop the grub timeout
     send_key 'backspace' if (is_jeos && is_aarch64);
 
+    if (get_var('FLAVOR') =~ /VMware-Updates/) {
+        # VMware guests have a short GRUB timeout, which can cause issues with needle matching.
+        # After the VMware guest boots to the OS, we press the left arrow key to stop the GRUB timeout.
+        assert_screen('bootloader-vmware');
+        record_info('Flavor is VMWare-Updates', 'Flavor is VMWare-Updates');
+        wait_screen_change(sub { sleep(0.1); }, 90, similarity_level => 20);
+        send_key 'left';
+    }
+
     if (get_var('VERSION') =~ /agama/) {
         # For agama test, it is too short time to match the grub2(10s), so we create
         # a new needle to avoid too much needles loaded.
