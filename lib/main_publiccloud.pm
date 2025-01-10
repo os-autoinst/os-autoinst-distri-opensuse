@@ -100,7 +100,9 @@ my $should_use_runargs = sub {
       PUBLIC_CLOUD_SMOKETEST
       PUBLIC_CLOUD_AZURE_NFS_TEST
       PUBLIC_CLOUD_NVIDIA
-      PUBLIC_CLOUD_NETCONFIG);
+      PUBLIC_CLOUD_NETCONFIG
+      PUBLIC_CLOUD_AHB
+      PUBLIC_CLOUD_NEW_INSTANCE_TYPE);
     return grep { exists $bmwqemu::vars{$_} } @public_cloud_variables;
 };
 
