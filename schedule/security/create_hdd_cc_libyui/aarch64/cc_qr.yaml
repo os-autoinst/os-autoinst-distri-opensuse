@@ -7,6 +7,12 @@ schedule:
   access_beta: []
   product_selection:
     - installation/product_selection/install_SLES
+  registration:
+    - security/installation/registration
+  extension_module_selection:
+    - security/installation/module_selection
+  add_on_product:
+    - security/installation/add_on_selection
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
