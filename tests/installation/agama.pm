@@ -156,8 +156,11 @@ sub run {
     mouse_set(600, 600);
     mouse_click;
     send_key "ctrl-down";
+    wait_still_screen 5;
 
     assert_and_click('agama-install-button');
+    wait_still_screen 5;
+
     # confirmation dialog if we keep default partitioning layout
     assert_and_click('agama-confirm-installation');
 
