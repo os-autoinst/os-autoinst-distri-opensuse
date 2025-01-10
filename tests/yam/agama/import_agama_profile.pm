@@ -12,9 +12,8 @@ use testapi qw(assert_script_run data_url get_required_var select_console script
 sub run {
     select_console 'root-console';
     my $profile = get_required_var('AGAMA_PROFILE');
-    my $profile_url = data_url($profile);
     script_run("dmesg --console-off");
-    assert_script_run("/usr/bin/agama profile import $profile_url", timeout => 300);
+    assert_script_run("/usr/bin/agama profile import $profile", timeout => 300);
     script_run("dmesg --console-on");
 }
 

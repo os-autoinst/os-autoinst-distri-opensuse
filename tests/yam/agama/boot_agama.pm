@@ -52,9 +52,16 @@ sub run {
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
     my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
 
+    # prepare profile
+    if (my $agama_profile = get_var('AGAMA_PROFILE')) {
+        my $path = expand_profile_url($agama_profile);
+        set_var('AGAMA_PROFILE', $path);
+    }
+
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         my $path = expand_profile_url($agama_auto);
+        set_var('AGAMA_AUTO', $path);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
