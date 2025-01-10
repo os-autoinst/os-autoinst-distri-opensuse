@@ -13,7 +13,7 @@ sub run {
     select_console 'root-console';
     my $profile = get_required_var('AGAMA_PROFILE');
     script_run("dmesg --console-off");
-    assert_script_run("/usr/bin/agama profile import $profile", timeout => 300);
+    assert_script_run("agama profile import $profile", timeout => 300);
     script_run("dmesg --console-on");
 }
 

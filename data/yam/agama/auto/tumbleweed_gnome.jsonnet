@@ -1,7 +1,11 @@
 {
   product: {
-    id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE}}'
+    id: '{{AGAMA_PRODUCT_ID}}'
+  },
+  software: {
+    patterns: [
+      'gnome'
+    ]
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',

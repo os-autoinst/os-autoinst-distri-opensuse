@@ -35,8 +35,9 @@ our @EXPORT = qw(
   detect_profile_directory
   expand_template
   expand_version
+  expand_agama_variables
   adjust_network_conf
-  expand_profile_url
+  expand_agama_profile
   expand_variables
   adjust_user_password
   upload_profile
@@ -667,6 +668,26 @@ sub expand_version {
     return $profile;
 }
 
+=head2 expand_agama_variables
+
+ expand_agama_variables($profile);
+
+ Expand variables from job settings which do not require further processing
+
+ $profile is the agama profile.
+
+=cut
+
+sub expand_agama_variables {
+    my ($profile) = @_;
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_SLES4SAP AGAMA_PRODUCT_ID);
+    for my $var (@vars) {
+        next unless my ($value) = get_var($var);
+        $profile =~ s/\{\{$var\}\}/$value/g;
+    }
+    return $profile;
+}
+
 =head2 adjust_network_conf
 
  adjust_network_conf($profile);
@@ -744,18 +765,18 @@ sub adjust_user_password {
     return $profile;
 }
 
-=head2 expand_profile_url
+=head2 expand_agama_profile
 
- expand_profile_url($profile, $profile_expanded);
+ expand_agama_profile($profile, $profile_expanded);
 
  Return the PATH of profile with expanded vars
 
 =cut
 
-sub expand_profile_url {
+sub expand_agama_profile {
     my ($profile, $profile_expanded) = @_;
     $profile_expanded //= $profile;
-    my $content = expand_variables(get_test_data($profile));
+    my $content = expand_agama_variables(get_test_data($profile));
     save_tmp_file($profile_expanded, $content);
     my $profile_url = autoinst_url . "/files/$profile_expanded";
     upload_profile(path => $profile_expanded, profile => $content);

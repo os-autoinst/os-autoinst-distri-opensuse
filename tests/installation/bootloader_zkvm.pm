@@ -19,7 +19,6 @@ use registration;
 use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
-use autoyast qw(expand_profile_url);
 use version_utils qw(is_agama);
 
 sub set_svirt_domain_elements {

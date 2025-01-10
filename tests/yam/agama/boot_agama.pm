@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
-use autoyast qw(expand_profile_url);
+use autoyast qw(expand_agama_profile expand_agama_variables);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -32,6 +32,7 @@ sub post_fail_hook {
 sub run {
     my $self = shift;
 
+    # Please, avoid adding code here that would be a dependency for specific booting implementations
     # For now using legacy code to handle remote architectures
     if (is_s390x()) {
         if (is_backend_s390x()) {
@@ -60,9 +61,13 @@ sub run {
 
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
-        my $path = expand_profile_url($agama_auto);
+        my $path = expand_agama_profile($agama_auto);
         set_var('AGAMA_AUTO', $path);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
+    }
+    if (my $agama_profile = get_var('AGAMA_PROFILE')) {
+        my $path = expand_agama_profile($agama_profile);
+        set_var('AGAMA_PROFILE', $path);
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 

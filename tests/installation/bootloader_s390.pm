@@ -23,7 +23,6 @@ use bootloader_setup;
 use registration;
 use utils 'shorten_url';
 use version_utils qw(is_sle is_tumbleweed is_opensuse);
-use autoyast qw(expand_profile_url);
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
