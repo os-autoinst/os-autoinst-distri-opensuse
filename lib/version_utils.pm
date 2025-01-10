@@ -992,7 +992,7 @@ Returns true if the distro has SELinux as default MAC
 =cut
 
 sub has_selinux_by_default {
-    return (is_tumbleweed && check_var("VERSION", "Staging:D")) || is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos || is_sle('16+');
+    return is_tumbleweed || is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos || is_sle('16+');
 }
 
 sub has_selinux {
