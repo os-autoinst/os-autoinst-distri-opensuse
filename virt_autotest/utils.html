@@ -21,6 +21,8 @@
       <li><a href="#subscribe_extensions_and_modules">subscribe_extensions_and_modules</a></li>
       <li><a href="#is_sev_es_guest">is_sev_es_guest</a></li>
       <li><a href="#get_guest_regcode">get_guest_regcode</a></li>
+      <li><a href="#execute_over_ssh">execute_over_ssh</a></li>
+      <li><a href="#reboot_virtual_machine">reboot_virtual_machine</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -66,6 +68,19 @@
 <pre><code>get_guest_regcode(separator =&gt; &#39;string separator&#39;)</code></pre>
 
 <p>Pass guest registration code in dynamically via GUEST_SCC_REGCODE and GUEST_SCC_REGCODE_LTSS. If they are not provided, SCC_REGCODE and SCC_REGCODE_LTSS_15 will be used. If there are multiple guest patterns , their corresponding registration codes should also be specified in the same order and separated by separators like pipe, comma or others. Empty value is allowed. For example, regcode_guest1|regcode_guest2|| regcode_guest4, because regcode_guest3 is emety, empty value is passed in to preserve order. For multiple guest patterns, an empty registration code for specific guest pattern will not be filled out by any default value and at the same time this means registration code is not needed for it at all. This subroutine has one argument separator and returns generated registration codes joined together by specified separator.</p>
+
+<h2 id="execute_over_ssh">execute_over_ssh</h2>
+
+<pre><code>execute_over_ssh(username =&gt; $user, address =&gt; $address,
+    command =&gt; $command, timeout =&gt; $timeout, assert =&gt; $assert)</code></pre>
+
+<p>Run command over passwordless ssh session. Arguments include username default value of which is &#39;root&#39;, address which can take the form of FQDN or IP and is mandatory, command to be executed, timeout value to wait before next step and assert which determines assertive call or not.</p>
+
+<h2 id="reboot_virtual_machine">reboot_virtual_machine</h2>
+
+<pre><code>reboot_virtual_machine(username =&gt; $user, address =&gt; $address, domain =&gt; $domain)</code></pre>
+
+<p>Reboot virtual machine by issuing &#39;reboot&#39; over ssh and then &#39;virsh command&#39; if &#39;reboot&#39; does not succeed and virtual machine domain name is given as arguement domain which is default to argument address if it is also a domain name. Address can also takes the form of FQDN and IP as long as it is reachable over ssh. And another argument username has the default value of &#39;root&#39; if no passed in value.</p>
 
 
 </body>
