@@ -1,0 +1,24 @@
+---
+description: WE gnome tests
+name: extra tests we gnome or desktopapps gnome
+schedule:
+    - boot/boot_to_desktop
+    - x11/window_system
+    - x11/gdm_session_switch
+    - x11/gnomecase/nautilus_cut_file
+    - x11/gnomecase/nautilus_permission
+    - x11/gnomecase/nautilus_open_ftp
+    - x11/gnomecase/application_starts_on_login
+    - x11/gnomecase/login_test
+    - x11/gnomecase/gnome_classic_switch
+    - x11/gnomecase/gnome_default_applications
+    - x11/gnomecase/gnome_window_switcher
+    - x11/gnomecase/change_password
+    - x11/gnome_control_center
+    - x11/gnome_tweak_tool
+    - x11/gnome_terminal
+    - x11/gnome_documents
+    - x11/gnome_music
+    - x11/desktop_mainmenu
+    - x11/reboot_gnome
+    - shutdown/shutdown
