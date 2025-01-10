@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'is_sle';
 
 sub ensure_setroubleshootd_cannot_be_directly_run_as_root {
     # ensure current test is run as root user
@@ -45,6 +46,10 @@ sub validate_invocation_via_polkit() {
 sub run {
     my ($self) = shift;
     select_serial_terminal;
+    if (is_sle) {    # bail out on SLE
+        record_info 'TEST SKIPPED', 'setroubleshootd is not yet implemented on SLE';
+        return;
+    }
     # ensure selinux is in enforcing mode
     validate_script_output 'getenforce', sub { m/Enforcing/ };
     # ensure pkg installation
