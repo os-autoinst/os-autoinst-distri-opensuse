@@ -1,5 +1,6 @@
-# Copyright 2015-2024 SUSE LLC
+# Copyright 2015-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
+# Maintainer: qac team <qa-c@suse.de>
 
 package containers::common;
 
@@ -79,7 +80,6 @@ sub install_podman_when_needed {
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sle';
-            push(@pkgs, 'podman-cni-config') if is_jeos() && is_sle('<=15-SP2');    # 1217509#c8
             zypper_call "in @pkgs";
             install_oci_runtime("podman");
         }

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -13,7 +13,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::utils qw(get_podman_version);
 use version_utils;
 
 sub run {
@@ -21,10 +20,6 @@ sub run {
     my $output = '';
 
     my $engine = $self->containers_factory('podman');
-
-    my $podman_version = get_podman_version();
-    # Skip this module on podman < 3.1.0
-    return if (version->parse($podman_version) < version->parse('3.1.0'));
 
     select_serial_terminal();
 
@@ -41,19 +36,15 @@ sub run {
         fail_message => "Error creating secret from CLI", timeout => 60);
     record_info("secret inspect CLI", script_output("podman secret inspect secret2"));
 
-    # "podman secret exists" was added to podman 4.5.0 according to
-    # https://github.com/containers/podman/blob/main/RELEASE_NOTES.md#450
-    if (version->parse($podman_version) >= version->parse('4.5.0')) {
-        # Check if secret exists
-        record_info("secret exists", "In Podman, check that each created secret exists");
-        assert_script_run("podman secret exists secret1",
-            fail_message => "Error checking if secret exists");
-        assert_script_run("podman secret exists secret2",
-            fail_message => "Error checking if secret exists");
-        # This secret3 does not exist and thus `secret exists` must return 1
-        assert_script_run("! podman secret exists secret3",
-            fail_message => "Error checking that secret doesn't exist");
-    }
+    # Check if secret exists
+    record_info("secret exists", "In Podman, check that each created secret exists");
+    assert_script_run("podman secret exists secret1",
+        fail_message => "Error checking if secret exists");
+    assert_script_run("podman secret exists secret2",
+        fail_message => "Error checking if secret exists");
+    # This secret3 does not exist and thus `secret exists` must return 1
+    assert_script_run("! podman secret exists secret3",
+        fail_message => "Error checking that secret doesn't exist");
 
     # List all secrets
     record_info("secret ls", script_output("podman secret ls"));

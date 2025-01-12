@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2024 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing docker
-# Maintainer: Anna Minou <anna.minou@suse.de>, qa-c@suse.de
+# Maintainer: qac team <qa-c@suse.de>
 
 package containers::utils;
 
@@ -76,18 +76,6 @@ sub test_update_cmd {
     my %args = @_;
     my $runtime = $args{runtime};
     my $container = $args{container};
-
-    # podman update was added to v4.3.0
-    if ($runtime eq 'podman') {
-        my $version = get_podman_version();
-        if (package_version_cmp($version, '4.3.0') <= 0) {
-            record_info("SKIP", "The update command is not supported on podman $version");
-            return;
-        }
-    } elsif ($runtime ne 'docker') {
-        record_info("SKIP", "The update command is not supported on $runtime");
-        return;
-    }
 
     my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
     die "Default for cpu-shares != 0" if ($old_value != 0);

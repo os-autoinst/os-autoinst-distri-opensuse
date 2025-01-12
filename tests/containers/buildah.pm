@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021-2024 SUSE LLC
+# Copyright 2021-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: buildah
@@ -101,7 +101,7 @@ sub run {
     run_tests($runtime);
 
     # Run tests as user
-    if ($runtime eq "podman" && !is_public_cloud && !is_sle('<15-SP3') && !is_svirt) {
+    if ($runtime eq "podman" && !is_public_cloud && !is_svirt) {
         select_user_serial_terminal;
         record_info('Test as user');
         run_tests($runtime);

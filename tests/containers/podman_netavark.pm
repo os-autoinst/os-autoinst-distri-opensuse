@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman, netavark, aardvark
@@ -12,7 +12,6 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
-use containers::utils qw(get_podman_version);
 use Utils::Systemd qw(systemctl);
 use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
@@ -46,9 +45,7 @@ sub is_cni_in_tw {
 # but images build with older pre-installed podman come with cni
 # fresh install of sle-micro comes with netavark
 sub is_cni_default {
-    my $podman_version = get_podman_version();
-    return package_version_cmp($podman_version, '4.8.0') < 0 ||
-      (is_sle_micro('<6.0') && !check_var('FLAVOR', 'DVD-Updates'));
+    return (is_sle_micro('<6.0') && !check_var('FLAVOR', 'DVD-Updates'));
 }
 
 sub remove_subtest_setup {
@@ -106,12 +103,6 @@ sub run {
     my ($self, $args) = @_;
 
     my $podman = $self->containers_factory('podman');
-
-    my $podman_version = get_podman_version();
-    if (package_version_cmp($podman_version, '4.0.0') < 0) {
-        record_info('No support', "Netavark backend is not supported in podman-$podman_version");
-        return 1;
-    }
 
     if (is_cni_default || is_cni_in_tw) {
         switch_to_netavark;
