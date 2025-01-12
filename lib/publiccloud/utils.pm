@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
@@ -113,8 +113,16 @@ sub registercloudguest {
     my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
     my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
     my $cmd_time = time();
+
     # Check what version of registercloudguest binary we use
-    $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
+    my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client');
+    # Only a specific version of the package has issue and only on a specific SP
+    # Do not activate the workaround if the user explicitly decide using a specific ENDPOINT
+    record_info("DEBUG", "is_sle():" . is_sle('15-SP2+') . " version:$version check_version:" . check_version('<10.1.7', $version) . " PCSE:" . (!get_var('PUBLIC_CLOUD_SCC_ENDPOINT')));
+    if (is_sle('15-SP2+') && check_version('<10.1.7', $version) && !get_var('PUBLIC_CLOUD_SCC_ENDPOINT')) {
+        record_soft_failure("bsc#1217583 IPv6 handling during registration. Force use SUSEConnect to work around it.");
+        $suseconnect = 'SUSEConnect';
+    }
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
         assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
