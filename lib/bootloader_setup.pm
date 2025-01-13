@@ -886,6 +886,10 @@ sub specific_bootmenu_params {
         }
         push @params, "agama.auto=$url";
     }
+    if (my $agama_profile = get_var('AGAMA_PROFILE')) {
+        my $path = autoyast::expand_agama_profile($agama_profile);
+        set_var('AGAMA_PROFILE', $path);
+    }
 
     if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
         push @params, "agama.install_url=$agama_install_url";
