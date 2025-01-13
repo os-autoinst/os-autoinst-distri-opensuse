@@ -50,7 +50,7 @@
 
 <pre><code>save_and_upload_systemd_unit_log($unit);</code></pre>
 
-<p>Saves the journal of the systemd unit <code>$unit</code> to <code>journal_$unit.log</code> and uploads it to openQA.</p>
+<p>Saves the journal of the systemd unit <code>$unit</code> to <code>journal_$unit.txt</code> and uploads it to openQA.</p>
 
 <h2 id=""></h2>
 
@@ -60,7 +60,7 @@
 
 <p>example:</p>
 
-<p>$out = script_output(&#39;journalctl --no-pager -axb -o short-precise&#39;); $filename = &quot;my-test.log&quot;;</p>
+<p>$out = script_output(&#39;journalctl --no-pager -axb -o short-precise&#39;); $filename = &quot;my-test.txt&quot;;</p>
 
 <h2 id="export_healthcheck_basic">export_healthcheck_basic</h2>
 
