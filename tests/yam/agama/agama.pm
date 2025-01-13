@@ -14,6 +14,7 @@ use testapi qw(
   script_run
   assert_script_run
   record_soft_failure
+  parse_extra_log
 );
 
 sub run {
@@ -21,12 +22,15 @@ sub run {
     my $test = get_required_var('AGAMA_TEST');
     my $test_options = get_required_var('AGAMA_TEST_OPTIONS');
     my $reboot_page = $testapi::distri->get_reboot();
+    my $log = "$test.tap";
 
     script_run("dmesg --console-off");
-    assert_script_run("node --enable-source-maps /usr/share/agama/system-tests/" . $test . ".js " .
-          $test_options, timeout => 2400);
+    assert_script_run("node --enable-source-maps --test-reporter tap /usr/share/agama/system-tests/${test}.js $test_options | tee /tmp/$log", timeout => 2400);
     script_run("dmesg --console-on");
 
+    # see https://github.com/os-autoinst/openQA/blob/master/lib/OpenQA/Parser/Format/TAP.pm#L36
+    assert_script_run("sed -i 's/TAP version 13/$log ../' /tmp/$log");
+    parse_extra_log(TAP => "/tmp/$log");
     $self->upload_agama_logs();
     $reboot_page->reboot();
 }
