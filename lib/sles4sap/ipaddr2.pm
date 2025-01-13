@@ -9,7 +9,7 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use qesapdeployment qw (qesap_az_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings qesap_az_get_vnet);
+use qesapdeployment qw (qesap_az_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings);
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
@@ -49,12 +49,12 @@ our @EXPORT = qw(
   ipaddr2_test_other_vm
   ipaddr2_cloudinit_create
   ipaddr2_cloudinit_logs
-  ipaddr2_clean_network_peering
   ipaddr2_azure_resource_group
   ipaddr2_ssh_internal
   ipaddr2_bastion_ssh_addr
   ipaddr2_get_internal_vm_private_ip
-  ipaddr2_network_peering
+  ipaddr2_network_peering_create
+  ipaddr2_network_peering_clean
   ipaddr2_patch_system
   ipaddr2_register_addons
   ipaddr2_registration
@@ -1952,47 +1952,49 @@ sub ipaddr2_test_other_vm {
     }
 }
 
-=head2 ipaddr2_clean_network_peering
+=head2 ipaddr2_network_peering_clean
 
-    ipaddr2_clean_network_peering(ibsm_rg => );
+    ipaddr2_network_peering_clean(ibsm_rg => );
 
 Cleanup the network peering if needed.
 
 =over
 
+=item B<ibsm_rg> - Resource group of the IBSm
+
 =back
 
 =cut
 
-sub ipaddr2_clean_network_peering {
+sub ipaddr2_network_peering_clean {
     my (%args) = @_;
     croak 'Missing mandatory argument < ibsm_rg >' unless $args{'ibsm_rg'};
     qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $args{'ibsm_rg'});
 }
 
-=head2 ipaddr2_network_peering
+=head2 ipaddr2_network_peering_create
 
-    ipaddr2_network_peering(ibsm_rg => );
+    ipaddr2_network_peering_create(ibsm_rg => 'IBSmMyRg');
 
 Create network peering
 
 =over
 
+=item B<ibsm_rg> - Resource group of the IBSm
+
 =back
 
 =cut
 
-sub ipaddr2_network_peering {
+sub ipaddr2_network_peering_create {
     my (%args) = @_;
     croak 'Missing mandatory argument < ibsm_rg >' unless $args{ibsm_rg};
-    my $ibs_mirror_resource_group = $args{ibsm_rg};
 
     # remove the older peering
-    my $vnet_name = qesap_az_get_vnet($ibs_mirror_resource_group);
-    qesap_az_clean_old_peerings(rg => $ibs_mirror_resource_group, vnet => $vnet_name);
+    my $vnet_name = az_network_vnet_get(resource_group => $args{ibsm_rg}, query => "[0].name");
+    qesap_az_clean_old_peerings(rg => $args{ibsm_rg}, vnet => $vnet_name);
 
-    my $rg = ipaddr2_azure_resource_group();
-    qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_resource_group);
+    qesap_az_vnet_peering(source_group => ipaddr2_azure_resource_group(), target_group => $args{ibsm_rg});
 }
 
 =head2 ipaddr2_add_server_repos_to_hosts
