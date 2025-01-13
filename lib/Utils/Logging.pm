@@ -78,13 +78,13 @@ sub tar_and_upload_log {
 
  save_and_upload_systemd_unit_log($unit);
 
-Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploads it to openQA.
+Saves the journal of the systemd unit C<$unit> to C<journal_$unit.txt> and uploads it to openQA.
 
 =cut
 
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
-    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.log");
+    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.txt");
 }
 
 =head2
@@ -97,7 +97,7 @@ This is particularily useful when the SUT has no network connection.
 example: 
 
 $out = script_output('journalctl --no-pager -axb -o short-precise');
-$filename = "my-test.log";
+$filename = "my-test.txt";
 
 =cut
 
@@ -168,8 +168,8 @@ sub upload_coredumps {
     my $res = script_run('coredumpctl --no-pager');
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
-        script_run("coredumpctl info --no-pager | tee coredump-info.log");
-        upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
+        script_run("coredumpctl info --no-pager | tee coredump-info.txt");
+        upload_logs("coredump-info.txt", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
         my @files = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
         foreach my $file (@files) {
@@ -193,20 +193,20 @@ sub export_logs {
     problem_detection();
 
     # Just after the setup: let's see the network configuration
-    save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
-    save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
+    save_and_upload_log("ip addr show", "/tmp/ip-addr-show.txt");
+    save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.txt");
 
     export_logs_desktop();
 
-    save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
-    save_and_upload_log('systemctl status', '/tmp/systemctl_status.log');
-    save_and_upload_log('systemctl', '/tmp/systemctl.log', {screenshot => 1});
+    save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.txt');
+    save_and_upload_log('systemctl status', '/tmp/systemctl_status.txt');
+    save_and_upload_log('systemctl', '/tmp/systemctl.txt', {screenshot => 1});
 
     if ($utils::IN_ZYPPER_CALL) {
         upload_solvertestcase_logs();
     }
 
-    my $audit_log = "/var/log/audit/audit.log";
+    my $audit_log = "/var/log/audit/audit.txt";
     upload_logs("$audit_log", failok => 1);
 }
 
@@ -318,13 +318,13 @@ This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<d
 
 sub export_logs_basic {
     save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    save_and_upload_log('ps axf', '/tmp/psaxf.log', {screenshot => 1});
-    save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
-    save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 1});
+    save_and_upload_log('ps axf', '/tmp/psaxf.txt', {screenshot => 1});
+    save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.txt', {screenshot => 1});
+    save_and_upload_log('dmesg', '/tmp/dmesg.txt', {screenshot => 1});
     tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.gz', {gzip => 1});
 
     for my $service (get_started_systemd_services()) {
-        save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.log", {screenshot => 1});
+        save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.txt", {screenshot => 1});
     }
 }
 
@@ -359,17 +359,17 @@ sub export_logs_desktop {
     }
     $log_path = '/var/log/X*';
     if (!script_run("ls -l $log_path")) {
-        save_and_upload_log("cat $log_path", '/tmp/Xlogs.system.log', {screenshot => 1});
+        save_and_upload_log("cat $log_path", '/tmp/Xlogs.system.txt', {screenshot => 1});
     }
 
     # do not upload empty .xsession-errors
     $log_path = '/home/*/.xsession-errors*';
     if (!script_run("ls -l $log_path")) {
-        save_and_upload_log("cat $log_path", '/tmp/xsession-errors.log', {screenshot => 1});
+        save_and_upload_log("cat $log_path", '/tmp/xsession-errors.txt', {screenshot => 1});
     }
-    $log_path = '/home/*/.local/share/sddm/*session.log';
+    $log_path = '/home/*/.local/share/sddm/*session.txt';
     if (!script_run("ls -l $log_path")) {
-        save_and_upload_log("cat $log_path", '/tmp/sddm_session.log', {screenshot => 1});
+        save_and_upload_log("cat $log_path", '/tmp/sddm_session.txt', {screenshot => 1});
     }
 }
 
