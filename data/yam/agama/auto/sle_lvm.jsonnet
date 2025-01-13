@@ -1,32 +1,33 @@
 {
   product: {
-    id: "SLES_16.0"
+    id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}'
   },
   user: {
-    fullName: "Bernhard M. Wiedemann",
-    password: "$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/",
+    fullName: 'Bernhard M. Wiedemann',
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true,
-    userName: "bernhard"
+    userName: 'bernhard'
   },
   root: {
-    password: "$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/",
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
   },
   storage: {
     drives: [
       {
-        alias: "pvs-disk",
-        id: "lvm"
+        alias: 'pvs-disk',
+        id: 'lvm'
        }
     ],
     volumeGroups: [
       {
-        name: "system",
+        name: 'system',
         physicalVolumes: [
-          { generate: ["pvs-disk"] }
+          { generate: ['pvs-disk'] }
         ],
         logicalVolumes: [
-          { generate: "default" }
+          { generate: 'default' }
         ]
       }
     ]
@@ -34,7 +35,7 @@
   scripts: {
     post: [
       {
-        name: "enable root login",
+        name: 'enable root login',
         chroot: true,
         body: |||
           #!/usr/bin/env bash
