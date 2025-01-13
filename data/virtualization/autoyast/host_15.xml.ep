@@ -146,7 +146,7 @@
     <bootproto>dhcp</bootproto>
     <bridge>yes</bridge>
     <bridge_forwarddelay>0</bridge_forwarddelay>
-    <bridge_ports>eth0 eth1</bridge_ports>
+    <bridge_ports>eth0 eth1 em1 em2</bridge_ports>
     <bridge_stp>off</bridge_stp>
     <startmode>auto</startmode>
   </interface>
