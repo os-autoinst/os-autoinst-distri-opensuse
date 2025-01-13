@@ -52,10 +52,9 @@ sub configure_java_version {
 sub run_crypto_test {
     my ($version) = @_;
 
-    assert_script_run("cd ~; test -d JavaCryptoTest || git clone -q https://github.com/ecki/JavaCryptoTest");
-    script_run("cd ~/JavaCryptoTest/src/main/java/");
-    script_run("javac net/eckenfels/test/jce/JCEProviderInfo.java");
-    my $crypto = script_output("java -cp ~/JavaCryptoTest/src/main/java/ net.eckenfels.test.jce.JCEProviderInfo");
+    assert_script_run 'curl -O ' . data_url('security/openjdk/JCEProviderInfo.java');
+    script_run("javac JCEProviderInfo.java");
+    my $crypto = script_output("java JCEProviderInfo");
     record_info("FAIL", "Cannot list all crypto providers", result => 'fail') if ($crypto !~ /Listing all JCA Security Providers/);
 
     my $JDK_TCHECK = get_var("JDK_TCHECK", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.java");
