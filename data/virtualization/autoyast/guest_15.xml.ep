@@ -51,6 +51,12 @@
   </suse_register>
   <add-on>
     <add_on_products config:type="list">
+      % if ($check_var->('VERSION', '15-SP2')) {
+      <listentry>
+        <media_url>http://updates.nue.suse.com/download/SUSE/Updates/SLE-Product-SLES/15-SP2-LTSS-TERADATA/x86_64/update/</media_url>
+        <alias>SLES15-SP2-LTSS-TERADATA</alias>
+      </listentry>
+      % }
       <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/CA/{{CA_STR}}/</media_url>
       </listentry>
