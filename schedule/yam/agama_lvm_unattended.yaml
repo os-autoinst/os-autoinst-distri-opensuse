@@ -1,7 +1,7 @@
 ---
 name: agama unattended lvm
 description: >
-  Perform agama auto installation with LVM.
+  Perform agama unattended installation with LVM.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/agama_auto

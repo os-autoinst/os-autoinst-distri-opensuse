@@ -1,7 +1,7 @@
 ---
 name: agama unattended lvm
 description: >
-  Perform agama auto installation with LVM on ppc64le.
+  Perform agama unattended installation with LVM on ppc64le.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
