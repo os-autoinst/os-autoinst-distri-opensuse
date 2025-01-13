@@ -9,13 +9,14 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
+use qesapdeployment qw (qesap_az_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings qesap_az_get_vnet);
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
 use mmapi qw( get_current_job_id );
 use sles4sap::azure_cli;
-use publiccloud::utils qw( get_ssh_private_key_path );
-use utils qw( write_sut_file );
+use publiccloud::utils qw( get_ssh_private_key_path register_addon);
+use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 
@@ -48,6 +49,16 @@ our @EXPORT = qw(
   ipaddr2_test_other_vm
   ipaddr2_cloudinit_create
   ipaddr2_cloudinit_logs
+  ipaddr2_clean_network_peering
+  ipaddr2_azure_resource_group
+  ipaddr2_ssh_internal
+  ipaddr2_bastion_ssh_addr
+  ipaddr2_get_internal_vm_private_ip
+  ipaddr2_network_peering
+  ipaddr2_patch_system
+  ipaddr2_register_addons
+  ipaddr2_registration
+  ipaddr2_add_server_repos_to_hosts
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -60,10 +71,29 @@ our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
 # Storage account name must be between 3 and 24 characters in length
 # and use numbers and lower-case letters only.
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
-our $priv_ip_range = '192.168.';
-our $frontend_ip = $priv_ip_range . '0.50';
+our %priv_net_address_range = get_private_ip_range();
+our $priv_ip_range = $priv_net_address_range{priv_ip_range};
+our $frontend_ip = $priv_ip_range . '.50';
 our $ping_cmd = 'ping -c 3';
 our $key_id = 'id_rsa';
+
+=head2 get_private_ip_range
+
+    my $range = get_private_ip_range();
+
+count the private ip range and return
+=cut
+
+sub get_private_ip_range {
+    my %range = (vnet_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
+    if (my $worker_id = get_var("WORKER_ID")) {
+        %range = qesap_az_calculate_address_range(slot => $worker_id);
+    }
+
+    $range{priv_ip_range} = ($range{vnet_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
+
+    return %range;
+}
 
 =head2 ipaddr2_azure_resource_group
 
@@ -218,9 +248,9 @@ sub ipaddr2_infra_deploy {
         resource_group => $rg,
         region => $args{region},
         vnet => $vnet,
-        address_prefixes => $priv_ip_range . '0.0/16',
+        address_prefixes => $priv_net_address_range{vnet_address_range},
         snet => $subnet,
-        subnet_prefixes => $priv_ip_range . '0.0/24');
+        subnet_prefixes => $priv_net_address_range{subnet_address_range});
 
     # Create a Network Security Group
     # only needed later when creating the VM
@@ -954,7 +984,7 @@ sub ipaddr2_cloudinit_sanity {
     foreach my $id (1 .. 2) {
         foreach (
             'grep -E "root|cloudadmin|hacluster" /etc/passwd',
-            'zypper se -s -i cloud-init',
+            'sudo zypper se -s -i cloud-init',
             'cloud-init -v',
             'cloud-init status --wait --long',
             'sudo systemctl status cloud-init-local.service',
@@ -963,7 +993,8 @@ sub ipaddr2_cloudinit_sanity {
             'sudo systemctl status cloud-final.service') {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $_,
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                tiemout => 180);    # increase the timeout for zypper se -s -i cloud-init
         }
     }
 }
@@ -1028,7 +1059,7 @@ sub ipaddr2_os_network_sanity {
 
     foreach (1 .. 2) {
         ipaddr2_ssh_internal(id => $_,
-            cmd => 'ip a show eth0 | grep -E "inet .*192\.168"',
+            cmd => "ip a show eth0 | grep -E \"inet .*$priv_ip_range\"",
             bastion_ip => $args{bastion_ip});
     }
 }
@@ -1233,7 +1264,8 @@ sub ipaddr2_ssh_internal_cmd {
     ipaddr2_ssh_internal(
         id => 2,
         bastion_ip => '1.2.3.4',
-        cmd => 'whoami');
+        cmd => 'whoami',
+        method => script_run/assert_script_run);
 
 run a command on one of the two internal VM through the bastion
 using the assert_script_run API
@@ -1250,6 +1282,8 @@ using the assert_script_run API
 
 =item B<timeout> - Execution timeout, default 90sec
 
+=item B<method> - Specify which function use when running command
+
 =back
 =cut
 
@@ -1259,13 +1293,16 @@ sub ipaddr2_ssh_internal {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
+    $args{method} //= 'assert_script_run';
 
-    assert_script_run(
-        ipaddr2_ssh_internal_cmd(
-            id => $args{id},
-            bastion_ip => $args{bastion_ip},
-            cmd => $args{cmd}),
-        timeout => $args{timeout});
+    my $command = ipaddr2_ssh_internal_cmd(id => $args{id}, bastion_ip => $args{bastion_ip}, cmd => $args{cmd});
+
+    if ($args{method} eq "script_run") {
+        return script_run($command, timeout => $args{timeout});
+    }
+    else {
+        assert_script_run($command, timeout => $args{timeout});
+    }
 }
 
 =head2 ipaddr2_ssh_internal_output
@@ -1337,7 +1374,7 @@ sub ipaddr2_cluster_create {
         cmd => 'sudo crm --version',
         bastion_ip => $args{bastion_ip});
     ipaddr2_ssh_internal(id => 1,
-        cmd => 'zypper se -s -i crmsh',
+        cmd => 'sudo zypper se -s -i crmsh',
         bastion_ip => $args{bastion_ip});
 
     ipaddr2_ssh_internal(id => 1,
@@ -1554,7 +1591,7 @@ sub ipaddr2_refresh_repo {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo zypper ref',
-        timeout => 240,
+        timeout => 600,
         bastion_ip =>
           $args{bastion_ip});
 }
@@ -1620,7 +1657,7 @@ compose and return a string representing the VM private IP
 sub ipaddr2_get_internal_vm_private_ip {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
-    return $priv_ip_range . '0.4' . $args{id};
+    return $priv_ip_range . '.4' . $args{id};
 }
 
 =head2 ipaddr2_get_worker_tmp_for_internal_vm
@@ -1912,6 +1949,247 @@ sub ipaddr2_test_other_vm {
             cmd => "sudo crm resource locate $resource",
             bastion_ip => $args{bastion_ip});
         die "Resource $resource is running on $vm and should not" if ($res =~ m/is running on: $vm/);
+    }
+}
+
+=head2 ipaddr2_clean_network_peering
+
+    ipaddr2_clean_network_peering(ibsm_rg => );
+
+Cleanup the network peering if needed.
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_clean_network_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory argument < ibsm_rg >' unless $args{'ibsm_rg'};
+    qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $args{'ibsm_rg'});
+}
+
+=head2 ipaddr2_network_peering
+
+    ipaddr2_network_peering(ibsm_rg => );
+
+Create network peering
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_network_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory argument < ibsm_rg >' unless $args{ibsm_rg};
+    my $ibs_mirror_resource_group = $args{ibsm_rg};
+
+    # remove the older peering
+    my $vnet_name = qesap_az_get_vnet($ibs_mirror_resource_group);
+    qesap_az_clean_old_peerings(rg => $ibs_mirror_resource_group, vnet => $vnet_name);
+
+    my $rg = ipaddr2_azure_resource_group();
+    qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_resource_group);
+}
+
+=head2 ipaddr2_add_server_repos_to_hosts
+
+    ipaddr2_add_server_repos_to_hosts(ibsm_ip => , incident_repo => );
+
+Add download.suse.de server to hosts by specifying IBSM address
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_add_server_repos_to_hosts {
+    my (%args) = @_;
+    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    foreach my $id (1 .. 2) {
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "echo \"$args{'ibsm_ip'} download.suse.de\" | sudo tee -a /etc/hosts",
+            bastion_ip => $args{bastion_pubip});
+    }
+
+    # Add repos
+    my $count = 0;
+    my @repos = split(/,/, $args{incident_repo});
+    while (defined(my $maintrepo = shift @repos)) {
+        next if $maintrepo =~ /^\s*$/;
+        if ($maintrepo =~ /Development-Tools/ or $maintrepo =~ /Desktop-Applications/) {
+            record_info("MISSING REPOS", "There are repos in this incident, that are not uploaded to IBSM. ($maintrepo). Later errors, if they occur, may be due to these.");
+            next;
+        }
+        my $zypper_cmd = "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count";
+
+        foreach my $id (1 .. 2) {
+            ipaddr2_ssh_internal(id => $id,
+                cmd => $zypper_cmd,
+                bastion_ip => $args{bastion_pubip});
+        }
+        $count++;
+    }
+}
+
+=head2 ipaddr2_patch_system
+
+    ipaddr2_patch_system();
+
+Patch system
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_patch_system {
+    my (%args) = @_;
+    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+
+    my @vms = ();
+    foreach my $id (1 .. 2) {
+        my $vm_private_ip = ipaddr2_get_internal_vm_private_ip(id => $id);
+        push @vms, $vm_private_ip;
+
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo zypper -n ref",
+            bastion_ip => $args{bastion_pubip},
+            timeout => 1500);
+    }
+
+    # zypper patch
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
+    foreach my $vm_ip (@vms) {
+        my $remote = "-J $host_ip cloudadmin@" . "$vm_ip";
+        ssh_fully_patch_system($remote);
+    }
+
+    foreach my $vm_id (1 .. 2) {
+        # To avoid the zypper lock issue
+        ipaddr2_ssh_internal(id => $vm_id,
+            cmd => "sudo systemctl mask packagekit; sudo systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done",
+            bastion_ip => $args{bastion_pubip},
+            method => "script_run",
+            timeout => 120);
+
+        # on 12-SP5, reboot will cause the VM to restart too fast which can cause failures with
+        # assert_script_run. Use script_run instead to avoid that
+        ipaddr2_ssh_internal(id => $vm_id,
+            cmd => "sudo reboot",
+            bastion_ip => $args{bastion_pubip},
+            method => "script_run",
+            timeout => 60);
+    }
+
+    # check if the VMs have rebooted sucessfully
+    foreach my $ip (@vms) {
+        my $timeout = 600;
+        while ($timeout > 0) {
+            if (script_run("ssh $host_ip 'nc -vz -w 1 $ip 22'") != 0) {
+                record_info("waiting $ip boot");
+                sleep 30;
+                $timeout = $timeout - 30;
+            }
+            else {
+                record_info("$ip reboot successfully");
+                last;
+            }
+        }
+        die "$ip failed to reboot" if ($timeout <= 0);
+    }
+
+    # wait quit zypper
+    foreach my $v_id (1 .. 2) {
+        my $loop = 20;
+        while ($loop > 0) {
+            my $ret = ipaddr2_ssh_internal(
+                id => $v_id,
+                cmd => 'pgrep "zypper|purge-kernels|rpm"',
+                bastion_ip => $args{bastion_pubip},
+                method => "script_run",
+                timeout => 60);
+            if ($ret == 0) {
+                record_info("There are zypper progress, need to quit");
+                sleep 30;
+                $loop = $loop - 1;
+            }
+            else {
+                record_info("There is no zypper progress");
+                last;
+            }
+        }
+        die "On machine $v_id, there are still zypper progress which will cause zypper se fail" if ($loop <= 0);
+    }
+}
+
+=head2 ipaddr2_registration
+
+    ipaddr2_registration();
+
+Register SUT
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_registration {
+    my (%args) = @_;
+    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+
+    # For Azure, payg don't need to register, and byos already register by cloud-init
+    foreach my $id (1 .. 2) {
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo SUSEConnect -s",
+            bastion_ip => $args{bastion_pubip},
+            method => 'script_run');
+    }
+}
+
+=head2 ipaddr2_register_addons
+
+    ipaddr2_register_addons();
+
+Register addons on SUT
+
+=over
+
+=back
+
+=cut
+
+sub ipaddr2_register_addons {
+    my (%args) = @_;
+    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+
+    foreach my $id (1 .. 2) {
+        my $vm_ip = ipaddr2_get_internal_vm_private_ip(id => $id);
+        my $remote = "-J $host_ip cloudadmin@" . "$vm_ip";
+        for my $addon (@addons) {
+            next if ($addon =~ /^\s+$/);
+            register_addon($remote, $addon);
+        }
+
+        # refresh repo
+        ipaddr2_refresh_repo(id => $id, bastion_pubip => $args{bastion_pubip});
+
+        # record repo lr
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo zypper lr",
+            bastion_ip => $args{bastion_pubip});
+        # record repo ls
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo zypper ls",
+            bastion_ip => $args{bastion_pubip});
     }
 }
 
