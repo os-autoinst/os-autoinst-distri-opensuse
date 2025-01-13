@@ -18,6 +18,7 @@ use strict;
 use utils;
 use publiccloud::utils;
 use publiccloud::ssh_interactive "select_host_console";
+use File::Basename 'basename';
 
 sub run {
     my ($self, $args) = @_;
@@ -36,7 +37,11 @@ sub run {
 
 sub cleanup {
     my ($self) = @_;
-    $self->{instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    my @logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
+    $self->{instance}->ssh_script_run("sudo chmod a+r " . join(' ', @logs));
+    for my $file (@logs) {
+        $self->{instance}->upload_log($file, log_name => $autotest::current_test->{name} . '-' . basename($file) . '.txt');
+    }
     if (is_azure()) {
         record_info('azuremetadata', $self->{instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }
