@@ -182,10 +182,9 @@ sub enter_o3_ipxe_boot_entry {
 
 sub set_bootscript_agama_cmdline_extra {
     my $cmdline_extra = " ";
-    if (get_var('AGAMA_AUTO')) {
-        my $agama_auto = data_url(get_var('AGAMA_AUTO'));
-        $agama_auto =~ s/^\s+|\s+$//g;
-        $cmdline_extra .= "agama.auto=$agama_auto ";
+    if (my $agama_auto = get_var('AGAMA_AUTO')) {
+        my $agama_auto_url = autoyast::expand_agama_profile($agama_auto);
+        $cmdline_extra .= "agama.auto=$agama_auto_url ";
     }
     # Agama Installation repository URL
     # By default Agama installs the packages from the repositories specified in the product configuration.
