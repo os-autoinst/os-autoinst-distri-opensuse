@@ -14,6 +14,7 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#get_private_ip_range">get_private_ip_range</a></li>
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
       <li><a href="#ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</a></li>
       <li><a href="#ipaddr2_cloudinit_create">ipaddr2_cloudinit_create</a></li>
@@ -54,6 +55,12 @@
       <li><a href="#ipaddr2_get_web">ipaddr2_get_web</a></li>
       <li><a href="#ipaddr2_test_master_vm">ipaddr2_test_master_vm</a></li>
       <li><a href="#ipaddr2_test_other_vm">ipaddr2_test_other_vm</a></li>
+      <li><a href="#ipaddr2_clean_network_peering">ipaddr2_clean_network_peering</a></li>
+      <li><a href="#ipaddr2_network_peering">ipaddr2_network_peering</a></li>
+      <li><a href="#ipaddr2_add_server_repos_to_hosts">ipaddr2_add_server_repos_to_hosts</a></li>
+      <li><a href="#ipaddr2_patch_system">ipaddr2_patch_system</a></li>
+      <li><a href="#ipaddr2_registration">ipaddr2_registration</a></li>
+      <li><a href="#ipaddr2_register_addons">ipaddr2_register_addons</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -61,6 +68,12 @@
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
 <p>Library to manage ipaddr2 tests</p>
+
+<h2 id="get_private_ip_range">get_private_ip_range</h2>
+
+<pre><code>my $range = get_private_ip_range();</code></pre>
+
+<p>count the private ip range and return</p>
 
 <h2 id="ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</h2>
 
@@ -440,7 +453,8 @@
 <pre><code>ipaddr2_ssh_internal(
     id =&gt; 2,
     bastion_ip =&gt; &#39;1.2.3.4&#39;,
-    cmd =&gt; &#39;whoami&#39;);</code></pre>
+    cmd =&gt; &#39;whoami&#39;,
+    method =&gt; script_run/assert_script_run);</code></pre>
 
 <p>run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
 
@@ -459,6 +473,10 @@
 
 </dd>
 <dt id="timeout---Execution-timeout-default-90sec"><b>timeout</b> - Execution timeout, default 90sec</dt>
+<dd>
+
+</dd>
+<dt id="method---Specify-which-function-use-when-running-command"><b>method</b> - Specify which function use when running command</dt>
 <dd>
 
 </dd>
@@ -752,6 +770,42 @@
 
 </dd>
 </dl>
+
+<h2 id="ipaddr2_clean_network_peering">ipaddr2_clean_network_peering</h2>
+
+<pre><code>ipaddr2_clean_network_peering(ibsm_rg =&gt; );</code></pre>
+
+<p>Cleanup the network peering if needed.</p>
+
+<h2 id="ipaddr2_network_peering">ipaddr2_network_peering</h2>
+
+<pre><code>ipaddr2_network_peering(ibsm_rg =&gt; );</code></pre>
+
+<p>Create network peering</p>
+
+<h2 id="ipaddr2_add_server_repos_to_hosts">ipaddr2_add_server_repos_to_hosts</h2>
+
+<pre><code>ipaddr2_add_server_repos_to_hosts(ibsm_ip =&gt; , incident_repo =&gt; );</code></pre>
+
+<p>Add download.suse.de server to hosts by specifying IBSM address</p>
+
+<h2 id="ipaddr2_patch_system">ipaddr2_patch_system</h2>
+
+<pre><code>ipaddr2_patch_system();</code></pre>
+
+<p>Patch system</p>
+
+<h2 id="ipaddr2_registration">ipaddr2_registration</h2>
+
+<pre><code>ipaddr2_registration();</code></pre>
+
+<p>Register SUT</p>
+
+<h2 id="ipaddr2_register_addons">ipaddr2_register_addons</h2>
+
+<pre><code>ipaddr2_register_addons();</code></pre>
+
+<p>Register addons on SUT</p>
 
 
 </body>
