@@ -19,6 +19,7 @@ use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_aga
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 use Utils::Backends qw(is_ipmi is_qemu);
+use autoyast qw(expand_agama_profile);
 use virt_autotest::utils qw(is_kvm_host is_xen_host);
 use HTTP::Tiny;
 use IPC::Run;
