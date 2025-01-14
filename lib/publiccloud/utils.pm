@@ -52,6 +52,45 @@ our @EXPORT = qw(
   ssh_update_transactional_system
 );
 
+# Check if we are a BYOS test run
+sub is_byos() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'BYOS';
+}
+
+# Check if we are a OnDemand test run
+sub is_ondemand() {
+    # By convention OnDemand images are not marked explicitly.
+    # Check all the other flavors, and if they don't match, it must be on_demand.
+    return is_public_cloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
+}
+
+# Check if we are on an AWS test run
+sub is_ec2() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+# Check if we are on an Azure test run
+sub is_azure() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+}
+
+# Check if we are on an GCP test run
+sub is_gce() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+}
+
+sub is_container_host() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
+}
+
+sub is_hardened() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
+}
+
+sub is_cloudinit_supported {
+    return ((is_azure || is_ec2) && !is_sle_micro);
+}
+
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
 sub utc_timestamp {
     my @weekday = ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
@@ -155,14 +194,17 @@ sub registercloudguest {
     my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
     my $cmd_time = time();
 
-    # Check what version of registercloudguest binary we use
-    my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client');
-    # Only a specific version of the package has issue and only on a specific SP
-    # Do not activate the workaround if the user explicitly decide using a specific ENDPOINT
-    record_info("DEBUG", "is_sle():" . is_sle('15-SP2+') . " version:$version check_version:" . check_version('<10.1.7', $version) . " PCSE:" . (!get_var('PUBLIC_CLOUD_SCC_ENDPOINT')));
-    if (is_sle('15-SP2+') && check_version('<10.1.7', $version) && !get_var('PUBLIC_CLOUD_SCC_ENDPOINT')) {
-        record_soft_failure("bsc#1217583 IPv6 handling during registration. Force use SUSEConnect to work around it.");
-        $suseconnect = 'SUSEConnect';
+    # Check what version of registercloudguest binary we use, chost images have none pre-installed
+    my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
+    if ($version =~ /cloud-regionsrv-client is not installed/) {
+        die 'cloud-regionsrv-client should not be installed' if !is_container_host;
+    } else {
+        # Only a specific version of the package has issue and only on a specific SP
+        # Do not activate the workaround if the user explicitly decide using a specific ENDPOINT
+        if (is_sle('15-SP2+') && check_version('<10.1.7', $version) && !get_var('PUBLIC_CLOUD_SCC_ENDPOINT')) {
+            record_soft_failure("bsc#1217583 IPv6 handling during registration. Force use SUSEConnect to work around it.");
+            $suseconnect = 'SUSEConnect';
+        }
     }
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
@@ -213,45 +255,6 @@ sub validate_repo {
         return 1;
     }
     die "Unexpected URL \"$maintrepo\"";
-}
-
-# Check if we are a BYOS test run
-sub is_byos() {
-    return is_public_cloud && get_var('FLAVOR') =~ 'BYOS';
-}
-
-# Check if we are a OnDemand test run
-sub is_ondemand() {
-    # By convention OnDemand images are not marked explicitly.
-    # Check all the other flavors, and if they don't match, it must be on_demand.
-    return is_public_cloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
-}
-
-# Check if we are on an AWS test run
-sub is_ec2() {
-    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-}
-
-# Check if we are on an Azure test run
-sub is_azure() {
-    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-}
-
-# Check if we are on an GCP test run
-sub is_gce() {
-    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-}
-
-sub is_container_host() {
-    return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
-}
-
-sub is_hardened() {
-    return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
-}
-
-sub is_cloudinit_supported {
-    return ((is_azure || is_ec2) && !is_sle_micro);
 }
 
 # Get credentials from the Public Cloud micro service, which requires user
