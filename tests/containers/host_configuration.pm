@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Setup system which will host containers
@@ -13,6 +13,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use Utils::Systemd qw(systemctl);
 use version_utils qw(check_os_release get_os_release is_sle is_sle_micro);
 use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
@@ -49,7 +50,12 @@ sub run {
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             # dhclient is no longer available in CentOS 10
-            script_run("dhclient -v");
+            if (script_run("which dhclient") == 0) {
+                script_run("dhclient -v");
+            } else {
+                assert_script_run("sed -i 's/^StrictForwardPorts=yes/StrictForwardPorts=no/' /etc/firewalld/firewalld.conf");
+                systemctl("restart firewalld");
+            }
             script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
             script_retry("dnf update -q -y", timeout => $update_timeout);
