@@ -1,0 +1,8 @@
+name:          sle16-virt-guest-installation
+description:    >
+    Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
+vars:
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - virt_autotest/login_console

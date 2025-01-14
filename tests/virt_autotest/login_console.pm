@@ -14,7 +14,7 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
-use version_utils qw(is_sle is_tumbleweed is_sle_micro);
+use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama);
 use utils qw(is_ipxe_boot);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd);
@@ -152,7 +152,7 @@ sub login_to_console {
     }
 
     my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
-    unless (get_var('UPGRADE_AFTER_REBOOT') or is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    unless (get_var('UPGRADE_AFTER_REBOOT') or is_agama or is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
@@ -234,7 +234,7 @@ sub login_to_console {
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
     # For SLE15 and TW autoyast installation, sshd configurations have been created in its autoyast profiles
-    if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST') and !(is_sle('15+') and get_var('AUTOYAST'))) {
+    if (!is_agama and is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST') and !(is_sle('15+') and get_var('AUTOYAST'))) {
         if (is_sle) {
             set_ssh_console_timeout_before_use;
         }
@@ -270,7 +270,8 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
-    config_ssh_client if get_var('VIRT_AUTOTEST') and !get_var('AUTOYAST') and !is_s390x;
+
+    config_ssh_client if get_var('VIRT_AUTOTEST') and !is_agama and !get_var('AUTOYAST') and !is_s390x;
     # Provide a screenshot to check if the kernel parameters are correct before tests begin
     script_run("cat /proc/cmdline") if !is_s390x;
     save_screenshot;
