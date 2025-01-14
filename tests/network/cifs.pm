@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: samba samba-client cifs-utils nmap coreutils util-linux
@@ -46,7 +46,7 @@ sub run {
 
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     # The test host is only available from the internal openqa.suse.de
-    my $smb_remote = get_var("CIFS_TEST_REMOTE", is_opensuse ? "local" : "currywurst.qam.suse.de");
+    my $smb_remote = get_var("CIFS_TEST_REMOTE", is_opensuse ? "local" : "currywurst.qe.suse.de");
     select_serial_terminal;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
 
