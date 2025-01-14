@@ -22,7 +22,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_registeration_check
   ipaddr2_registeration_set
   ipaddr2_refresh_repo
-  ipaddr2_clean_network_peering
+  ipaddr2_network_peering_clean
 );
 
 sub run {
@@ -87,7 +87,7 @@ sub post_fail_hook {
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
     if (my $ibsm_rg = get_var('IBSM_RG')) {
-        ipaddr2_clean_network_peering(ibsm_rg => $ibsm_rg);
+        ipaddr2_network_peering_clean(ibsm_rg => $ibsm_rg);
     }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;

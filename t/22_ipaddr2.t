@@ -9,7 +9,6 @@ use List::Util qw(any none all);
 use testapi qw(set_var);
 
 use sles4sap::ipaddr2;
-use qesapdeployment;
 
 subtest '[ipaddr2_infra_deploy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
@@ -956,7 +955,7 @@ subtest '[get_private_ip_range]' => sub {
     set_var('WORKER_ID', undef);
 };
 
-subtest 'ipaddr2_clean_network_peering' => sub {
+subtest 'ipaddr2_network_peering_clean' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'test'; });
 
@@ -967,8 +966,22 @@ subtest 'ipaddr2_clean_network_peering' => sub {
             $peering_string = "source_group is $args{source_group}, target_group is $args{target_group}";
             return;
     });
-    ipaddr2_clean_network_peering(ibsm_rg => 'ibsm');
+    ipaddr2_network_peering_clean(ibsm_rg => 'ibsm');
     is $peering_string, "source_group is test, target_group is ibsm", "Clean network peering successfully";
+};
+
+subtest '[ipaddr2_network_peering_create]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(az_network_vnet_get => sub { return 'DavidCuartielles'; });
+    $ipaddr2->redefine(qesap_az_clean_old_peerings => sub { return; });
+    $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'Volta'; });
+
+    my $create_peering = 0;
+    $ipaddr2->redefine(qesap_az_vnet_peering => sub { $create_peering = 1; });
+
+    ipaddr2_network_peering_create(ibsm_rg => 'MassimoBanzi');
+
+    ok $create_peering, "qesap_az_vnet_peering called";
 };
 
 done_testing;
