@@ -20,7 +20,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
-use registration 'get_addon_fullname';
+use registration qw(get_addon_fullname add_suseconnect_product);
 use maintenance_smelt qw(is_embargo_update);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
