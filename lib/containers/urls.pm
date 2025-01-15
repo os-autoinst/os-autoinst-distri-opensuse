@@ -50,44 +50,44 @@ sub get_opensuse_registry_prefix {
 
 my %sles_containers = (
     '12-SP5' => {
-        released => sub { 'registry.suse.com/suse/sles12sp5' },
+        released => sub { 'registry.suse.com/suse/ltss/sle12.5/sles12sp5' },
         totest => sub {
-            'registry.suse.de/suse/sle-12-sp5/docker/update/cr/totest/images/suse/sles12sp5';
-        },
-        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-    },
-    '15-SP2' => {
-        released => sub { 'registry.suse.com/suse/sle15:15.2' },
-        totest => sub {
-            'registry.suse.de/suse/sle-15-sp2/update/cr/totest/images/suse/sle15:15.2';
+            'registry.suse.de/suse/containers/sle-server/12-sp5/containers/suse/ltss/sle12.5/sles12sp5';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
     '15-SP3' => {
-        released => sub { 'registry.suse.com/suse/sle15:15.3' },
+        released => sub { 'registry.suse.com/suse/ltss/sle15.3/sle15:15.3' },
         totest => sub {
-            'registry.suse.de/suse/sle-15-sp3/update/cr/totest/images/suse/sle15:15.3';
+            'registry.suse.de/suse/sle-15-sp3/update/bci/images/suse/ltss/sle15.3/sle15:latest';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
     '15-SP4' => {
-        released => sub { 'registry.suse.com/suse/sle15:15.4' },
+        released => sub { 'registry.suse.com/suse/ltss/sle15.4/sle15:15.4' },
         totest => sub {
-            'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4';
+            'registry.suse.de/suse/sle-15-sp4/update/bci/images/suse/ltss/sle15.4/sle15:latest';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
     '15-SP5' => {
-        released => sub { 'registry.suse.com/suse/sle15:15.5' },
+        released => sub { 'registry.suse.com/suse/ltss/sle15.5/sle15:15.5' },
         totest => sub {
-            'registry.suse.de/suse/sle-15-sp5/ga/test/containers/suse/sle15:15.5';
+            'registry.suse.de/suse/sle-15-sp5/update/bci/images/suse/ltss/sle15.5/sle15:latest';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
     '15-SP6' => {
         released => sub { 'registry.suse.com/suse/sle15:15.6' },
         totest => sub {
-            'registry.suse.de/suse/sle-15-sp6/ga/test/containers/suse/sle15:15.6';
+            'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/sle15:15.6';
+        },
+        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+    },
+    '15-SP7' => {
+        released => sub { 'registry.suse.com/suse/sle15:15.7' },
+        totest => sub {
+            'registry.suse.de/suse/sle-15-sp7/ga/test/containers/suse/sle15:15.7';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     }
