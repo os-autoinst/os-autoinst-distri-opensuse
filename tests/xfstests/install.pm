@@ -34,6 +34,10 @@ sub install_xfstests_from_repo {
     if (is_sle) {
         zypper_call('rr qa-head');
         add_qa_head_repo(priority => 100);
+        if (is_sle('16+')) {
+            my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
+            zypper_ar($dep_url, name => 'dependency-repo');
+        }
     }
     elsif (is_tumbleweed) {
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/oss/', name => 'repo-oss');
