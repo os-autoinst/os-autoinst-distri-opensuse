@@ -16,6 +16,7 @@ use Mojo::Base 'publiccloud::basetest';
 use File::Basename qw(dirname);
 use testapi;
 use utils;
+use version_utils qw(get_os_release is_sle);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures qw(is_ppc64le);
 use containers::k8s;
@@ -24,8 +25,9 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    # Skip HELM tests on PPC, where k3s is not available
-    return if (is_ppc64le || check_var('CONTAINER_RUNTIMES', 'k8s'));
+    my ($version, $sp, $host_distri) = get_os_release;
+    # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
+    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le || check_var('CONTAINER_RUNTIMES', 'k8s'));
 
     systemctl 'stop firewalld';
     ensure_ca_certificates_suse_installed();
