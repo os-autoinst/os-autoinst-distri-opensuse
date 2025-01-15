@@ -19,8 +19,8 @@ use strict;
 use warnings;
 
 sub run {
-    my @sappatterns = qw(sap-nw sap-b1 sap-hana);
-    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
+    my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");
+    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+') && !is_sle('16+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
     my $output = '';
 
     select_serial_terminal;
@@ -29,14 +29,18 @@ sub run {
     quit_packagekit;
 
     # Is HA pattern needed?
-    push @sappatterns, 'ha_sles' if get_var('HA_CLUSTER');
+    if (get_var('HA_CLUSTER')) {
+        is_sle('16+') ? push(@sappatterns, 'sles_ha', 'sles_sap_HAAPP', 'sles_sap_HADB') : push(@sappatterns, 'ha_sles');
+    }
 
     my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+    $base_pattern = 'patterns-sap-base_sap_server' if (is_sle('16+'));
 
     zypper_enable_install_dvd;
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
-    $output = script_output("zypper info -t pattern sap_server");
+    my $sap_server = is_sle('16+') ? "sles_sap_base_sap_server" : "sap_server";
+    $output = script_output("zypper info -t pattern $sap_server");
     if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
         # Pattern sap_server is not installed. Could be a due to a bug, caused by the
         # use of the 'textmode' system role during install, or on upgrades when the
@@ -44,8 +48,10 @@ sub run {
         die "Pattern sap_server not installed by default"
           unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade() or is_updates_tests() or check_var('SLE_PRODUCT', 'sles'));
         record_info('install sap_server', 'Installing sap_server pattern');
-        zypper_call('in -y -t pattern sap_server');
+        zypper_call("in -y -t pattern $sap_server");
     }
+
+    record_info("pattern list", script_output("zypper se -t pattern"));
 
     # This test is also used for testing SAP products installation on plain SLE
     # All SAP patterns are not available in SLE
@@ -63,6 +69,7 @@ sub run {
             $output = script_output "zypper info -t pattern $pattern";
             # Name of HA pattern is weird...
             $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
+            $pattern =~ s/^sles_sap_/sap-/ if (is_sle('16+'));
             die "SAP zypper pattern [$pattern] info check failed"
               unless ($output =~ /i.?\s+\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
         }
