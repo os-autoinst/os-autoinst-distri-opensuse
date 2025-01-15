@@ -24,7 +24,6 @@ sub run {
 
     my $instance = $args->{my_instance};
     my $remote = $instance->username . '@' . $args->{my_instance}->public_ip;
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
     my $repodir = "/opt/repos/";
     # Trigger to skip the download to speed up verification runs
