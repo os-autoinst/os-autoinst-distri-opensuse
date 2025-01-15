@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -139,7 +139,7 @@ sub run {
     systemctl("disable --now $unit_name.service");
     systemctl("stop $unit_name-volume.service");
     systemctl("stop $unit_name-network.service");
-    systemctl("stop $unit_name-build.service") unless ($has_build);
+    systemctl("stop $unit_name-build.service") if ($has_build);
     for my $unit (@units) {
         systemctl("is-active $unit", expect_false => 1);
     }
