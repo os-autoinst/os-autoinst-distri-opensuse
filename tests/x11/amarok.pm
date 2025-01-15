@@ -17,17 +17,12 @@ sub run {
     ensure_installed("amarok");
     x11_start_program('amarok');
     assert_screen([qw(test-amarok-new-1 test-amarok-1)]);
-    if (match_has_tag ('test-amarok-new-1')) {
-        send_key "alt-u";
-    }
-    else {
-        send_key "alt-y";
-        # use music path as collection folder
-        # a workaround for librivox authentication popup window.
-        # and don't put this after opening oga file, per video
-        # the window pop-up meanwhile x11_start_progran typeing,
-        # and 40 sec to wait that window pop-up should enough
-    }
+    # use music path as collection folder
+    # a workaround for librivox authentication popup window.
+    # and don't put this after opening oga file, per video
+    # the window pop-up meanwhile x11_start_progran typeing,
+    # and 40 sec to wait that window pop-up should enough
+    send_key match_has_tag 'test-amarok-new-1' ? 'alt-u' : 'alt-y';
     assert_screen([qw(librivox-authentication test-amarok-2)]);
     if (match_has_tag('librivox-authentication')) {
         send_key "alt-c";    # cancel librivox certificate
