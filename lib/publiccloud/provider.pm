@@ -444,6 +444,17 @@ sub terraform_prepare_env {
     $self->terraform_env_prepared(1);
 }
 
+sub terraform_plan_cmd {
+    my (%vars) = @_;
+    my $cmd = 'terraform plan -no-color ';
+    for my $var (keys %vars) {
+        $cmd .= sprintf(q(-var '%s=%s' ), $var, $vars{$var});
+    }
+    $cmd .= "-out myplan";
+    record_info('TFM cmd', $cmd);
+    return $cmd;
+}
+
 =head2 terraform_apply
 
 Calls terraform tool and applies the corresponding configuration .tf file
@@ -538,13 +549,7 @@ sub terraform_apply {
         $vars{ssh_public_key} = $self->ssh_key . '.pub';
     }
 
-    my $cmd = 'terraform plan -no-color ';
-    for my $var (keys %vars) {
-        $cmd .= sprintf(q(-var '%s=%s' ), $var, $vars{$var});
-    }
-    $cmd .= "-out myplan";
-    record_info('TFM cmd', $cmd);
-
+    my $cmd = terraform_plan_cmd(%vars);
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
 
     # 3) Terraform apply
@@ -554,9 +559,29 @@ sub terraform_apply {
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
     # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
-    my $ret = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", $terraform_timeout);
+    my $tf_apply_output = script_output("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", timeout => $terraform_timeout, proceed_on_failure => 1);
+    my $exit_code = script_output('echo $?');
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
-    unless (defined $ret) {
+
+    # when testing instances that have nvidia gpus,
+    # the zone (i.e. "sub-region") might not have them available and
+    # suggest other zones instead (the pattern is GCE specific)
+    if ($exit_code != 0 && get_var('PUBLIC_CLOUD_NVIDIA') && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone\. Consider trying your request in the (.*) zone\(s\)/)) {
+        # split captured suggestions by a ',' char, trim whitespace
+        my @alternative_zones = split /\s*,\s*/, $1;
+        record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
+        for my $zone (@alternative_zones) {
+            # try to apply in all regions before hardfailing
+            record_info('RETRYING', "Attempting with zone $zone");
+            $vars{region} = $zone;
+            $cmd = terraform_plan_cmd(%vars);
+            script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
+            $exit_code = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", timeout => $terraform_timeout, proceed_on_failure => 1);
+            last if $exit_code == 0;
+        }
+    }
+
+    unless ($exit_code == 0) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
         }
@@ -570,7 +595,7 @@ sub terraform_apply {
         $self->on_terraform_apply_timeout();
         die('Terraform apply failed with timeout');
     }
-    die('Terraform exit with ' . $ret) if ($ret != 0);
+    die('Terraform exit with ' . $exit_code) if ($exit_code != 0);
 
     # 4) Terraform output
 
