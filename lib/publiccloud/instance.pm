@@ -148,7 +148,9 @@ sub _prepare_ssh_cmd {
         $cmd = "\$'$cmd'";
     }
 
-    my $ssh_cmd = sprintf('ssh -E /var/tmp/ssh_sut.log %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    my $log = '/var/tmp/ssh_sut.log';
+    my $ssh_cmd = sprintf('ssh %s %s "%s@%s" -- %s', (($args{ssh_opts} !~ m{-E\s+\Q$log\E}) ? "-E $log" : ''), $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+
     return $ssh_cmd;
 }
 
