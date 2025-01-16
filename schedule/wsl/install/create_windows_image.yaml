@@ -9,9 +9,10 @@ conditional_schedule:
   unattended_install:
     WIN_UNATTENDED:
       '0':
-      - wsl/install/ms_win_firstboot
+      - wsl/install/win_firstboot
 
 schedule:
-  - wsl/install/ms_win_installation
+  - wsl/install/win_installation
   - '{{unattended_install}}'
-  - wsl/update_windows
+  - wsl/install/update_windows
+  - wsl/install/prepare_wsl

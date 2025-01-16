@@ -29,9 +29,6 @@ sub run {
         bmwqemu::diag("Applying updates while shutting down the machine...");
     }
     $self->wait_boot_windows;
-
-    # Shutdown
-    $self->reboot_or_shutdown;
 }
 
 1;
