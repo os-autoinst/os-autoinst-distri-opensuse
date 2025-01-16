@@ -13,18 +13,24 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
 
-    my $ssh_config_file = "/usr/etc/ssh/ssh_config";
+    if (is_sle('>=16')) {
+      # create a new config snippet
+      my $gssapi_config_snippet = <<EOF;
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+EOF
+      script_output("echo '$gssapi_config_snippet' >> /etc/ssh/ssh_config.d/gssapi.conf");
 
-    # Test if ssh config exists
-    assert_script_run "grep GSSAPIAuthentication $ssh_config_file";
-
-    # Enable necessary options
-    foreach my $i ('GSSAPIAuthentication', 'GSSAPIDelegateCredentials') {
-        assert_script_run "sed -i 's/^.*$i.*\$/$i yes/' $ssh_config_file";
+    } else {
+      # modify existing config file
+      foreach my $i ('GSSAPIAuthentication', 'GSSAPICleanupCredentials') {
+          assert_script_run "sed -i 's/^#$i.*\$/$i yes/' /etc/ssh/ssh_config";
+      }
     }
 
     mutex_wait('CONFIG_READY_SSH_SERVER');

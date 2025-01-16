@@ -13,6 +13,7 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
@@ -20,12 +21,21 @@ sub run {
     assert_script_run "kadmin -p $adm -w $pass_a -q 'addprinc -pw $pass_t $tst'";
     assert_script_run "useradd -m $tst";
 
-    my $sshd_config_file = "/usr/etc/ssh/sshd_config";
+    if (is_sle('>=16')) {
+      # create a new config snippet
+      my $gssapi_config_snippet = <<EOF;
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+EOF
+      script_output("echo '$gssapi_config_snippet' >> /etc/ssh/sshd_config.d/gssapi.conf");
 
-    # Config sshd
-    foreach my $i ('GSSAPIAuthentication', 'GSSAPICleanupCredentials') {
-        assert_script_run "sed -i 's/^#$i.*\$/$i yes/' $sshd_config_file";
+    } else {
+      # modify existing config file
+      foreach my $i ('GSSAPIAuthentication', 'GSSAPICleanupCredentials') {
+          assert_script_run "sed -i 's/^#$i.*\$/$i yes/' /etc/ssh/sshd_config";
+      }
     }
+
     systemctl("restart sshd");
 
     mutex_create('CONFIG_READY_SSH_SERVER');
