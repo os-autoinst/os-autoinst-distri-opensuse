@@ -95,6 +95,7 @@ our @EXPORT = qw(
   get_guest_regcode
   execute_over_ssh
   reboot_virtual_machine
+  get_guest_settings
 );
 
 my %log_cursors;
@@ -1433,6 +1434,39 @@ sub reboot_virtual_machine {
         script_run("virsh start $args{domain}");
         script_retry($test_ssh_open, delay => 1, retry => 30, die => 1);
     }
+}
+
+=head2 get_guest_settings
+
+  get_guest_settings(separator => 'string separator')
+
+Settings for guests can be provided just only once and then it should be replicated
+to all guests specified by GUEST_PATTERN, GUEST_LIST or GUEST. This subroutine has
+two arguments list of names of settings and separator. Multiple settings are seperated
+by comma. The generated value of settings joined together by specified separator.
+Multiple settings and their values are put in a hash object and returns its reference.
+
+=cut
+
+sub get_guest_settings {
+    my (%args) = @_;
+    $args{settings} //= "";
+    $args{separator} //= ",";
+
+    my $guest = (get_var("GUEST_PATTERN") ? get_var("GUEST_PATTERN") : (get_var("GUEST_LIST") ? get_var("GUEST_LIST") : get_var("GUEST", "")));
+    croak("Settings and guests (GUEST_PATTERN, GUEST_LIST or GUEST exclusively) to be involved must be given") if (!$args{settings} or !$guest);
+
+    my %settings_matrix = ();
+    my $guest_count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $guest)) : scalar(split("$args{separator}", $guest)));
+    foreach (split(/,/, $args{settings})) {
+        my $value = get_var($_, "");
+        my $setting_count = ($args{separator} eq '|' ? scalar(split("\\$args{separator}", $value)) : scalar(split("$args{separator}", $value)));
+        $value = join("$args{separator}", ($value) x $guest_count) if ($guest_count != $setting_count);
+        my $setting_pointer = \%settings_matrix;
+        $setting_pointer->{$_} = $value;
+    }
+
+    return \%settings_matrix;
 }
 
 1;
