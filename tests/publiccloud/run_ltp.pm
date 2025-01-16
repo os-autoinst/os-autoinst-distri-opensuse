@@ -132,10 +132,15 @@ sub run {
         my @skipped = $whitelist->list_skipped_tests($ltp_env, $ltp_command);
         if (@skipped) {
             $skip_tests = '^(' . join("|", @skipped) . ')$';
+            $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
         }
+        record_info("Exclude", "Excluding tests: $skip_tests");
+    } elsif ($ltp_exclude) {
+        $skip_tests = $ltp_exclude;
+        record_info("Exclude", "Excluding only 'LTP_COMMAND_EXCLUDE' tests: $skip_tests");
+    } else {
+        record_info("Exclude", "None");
     }
-    $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
-    record_info("Exclude", "Excluding tests: $skip_tests");
 
     my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
     my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
