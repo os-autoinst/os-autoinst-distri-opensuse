@@ -473,22 +473,22 @@ sub terraform_apply {
 
     # 2) Terraform plan
 
-    my $cmd = 'terraform plan -no-color ';
+    my %vars = ();
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # Some auxiliary variables, requires for fine control and public cloud provider specifics
         for my $key (keys %{$args{vars}}) {
             my $value = $args{vars}->{$key};
-            $cmd .= sprintf(q(-var '%s=%s' ), $key, escape_single_quote($value));
+            $vars{$key} = escape_single_quote($value);
         }
 
         # image_uri and image_id are mutally exclusive
         if ($image_uri && $image_id) {
             die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
         } elsif ($image_uri) {
-            $cmd .= "-var 'image_uri=" . $image_uri . "' ";
+            $vars{image_uri} = $image_uri;
             record_info('INFO', "Creating instance $instance_type from $image_uri ...");
         } elsif ($image_id) {
-            $cmd .= "-var 'image_id=" . $image_id . "' ";
+            $vars{image_id} = $image_id;
             record_info('INFO', "Creating instance $instance_type from $image_id ...");
         }
         if (is_ec2) {
@@ -496,46 +496,51 @@ sub terraform_apply {
             my $availability_zone = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
             my $subnet_id = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $availability_zone . "' --query 'Subnets[0].SubnetId' --output text");
             my $ipv6_address_count = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
-            $cmd .= "-var 'vpc_security_group_ids=$vpc_security_group_ids' ";
-            $cmd .= "-var 'availability_zone=$availability_zone' ";
-            $cmd .= "-var 'subnet_id=$subnet_id' ";
-            $cmd .= "-var 'ipv6_address_count=$ipv6_address_count' " if ($ipv6_address_count);
+            $vars{vpc_security_group_ids} = $vpc_security_group_ids;
+            $vars{availability_zone} = $availability_zone;
+            $vars{subnet_id} = $subnet_id;
+            $vars{ipv6_address_count} = $ipv6_address_count if ($ipv6_address_count);
         } elsif (is_azure) {
             my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
-            $cmd .= "-var 'subnet_id=$subnet_id' " if ($subnet_id);
+            $vars{subnet_id} = $subnet_id if ($subnet_id);
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-            $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
+            $vars{'storage-account'} = $storage_account if ($storage_account);
         } elsif (is_gce) {
             my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
-            $cmd .= "-var 'stack_type=$stack_type' ";
+            $vars{stack_type} = $stack_type;
         }
-        $cmd .= "-var 'instance_count=" . $args{count} . "' ";
-        $cmd .= "-var 'type=" . $instance_type . "' ";
-        $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
-        $cmd .= "-var 'name=" . $self->resource_name . "' ";
-        $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-        $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
-        $cmd .= "-var 'enable_confidential_vm=true' " if ($args{confidential_compute} && is_gce());
-        $cmd .= "-var 'enable_confidential_vm=enabled' " if ($args{confidential_compute} && is_ec2());
+        $vars{instance_count} = $args{count};
+        $vars{type} = $instance_type;
+        $vars{region} = $self->provider_client->region;
+        $vars{name} = $self->resource_name;
+        $vars{project} = $args{project} if ($args{project});
+        $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+        $vars{vm_create_timeout} = $terraform_vm_create_timeout if $terraform_vm_create_timeout;
+        $vars{enable_confidential_vm} = 'true' if ($args{confidential_compute} && is_gce());
+        $vars{enable_confidential_vm} = 'enabled' if ($args{confidential_compute} && is_ec2());
         my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
-        $cmd .= "-var 'root-disk-size=" . $root_size . "' " if ($root_size);
-        $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
+        $vars{'root-disk-size'} = $root_size if ($root_size);
+        $vars{tags} = escape_single_quote($self->terraform_param_tags);
         if ($args{use_extra_disk}) {
-            $cmd .= "-var 'create-extra-disk=true' ";
-            $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
-            $cmd .= "-var 'extra-disk-type=" . $args{use_extra_disk}->{type} . "' " if $args{use_extra_disk}->{type};
+            $vars{'create-extra-disk'} = 'true';
+            $vars{'extra-disk-size'} = $args{use_extra_disk}->{size} if $args{use_extra_disk}->{size};
+            $vars{'extra-disk-type'} = $args{use_extra_disk}->{type} if $args{use_extra_disk}->{type};
         }
     }
     if (get_var('FLAVOR') =~ 'UEFI') {
-        $cmd .= "-var 'uefi=true' ";
+        $vars{uefi} = 'true';
     }
     if (get_var('PUBLIC_CLOUD_NVIDIA')) {
-        $cmd .= "-var gpu=true ";
+        $vars{gpu} = 'true';
     }
     unless (is_openstack) {
-        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+        $vars{ssh_public_key} = $self->ssh_key . '.pub';
+    }
+
+    my $cmd = 'terraform plan -no-color ';
+    for my $var (keys %vars) {
+        $cmd .= sprintf(q(-var '%s=%s' ), $var, $vars{$var});
     }
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
