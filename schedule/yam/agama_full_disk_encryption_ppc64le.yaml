@@ -1,0 +1,17 @@
+---
+name: agama full disk encryption for ppc64le
+description: >
+  Perform full disk encryption installation with agama.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - yam/agama/boot_full_disk_encryption
+  - installation/first_boot
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 2
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml
