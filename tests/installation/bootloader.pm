@@ -29,6 +29,7 @@ use warnings;
 
 use testapi;
 use lockapi 'mutex_wait';
+use autoyast qw(expand_agama_profile);
 use bootloader_setup;
 use bootloader_pvm;
 use registration;
