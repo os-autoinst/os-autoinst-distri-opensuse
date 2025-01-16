@@ -46,7 +46,7 @@ sub add_custom_ports_to_selinux {
     my $add_semanage_port = sub {
         my ($port, $context) = @_;
         my $cmd = "semanage port -a -t $context -p tcp $port";
-        my $output = script_output($cmd, proceed_on_failure => 1);
+        my $output = script_output($cmd);
         record_info("Port $port", $output =~ /already added/ ? "Already added." : "Added.");
     };
 
@@ -76,6 +76,7 @@ sub start_service {
 # Configure nginx so it can be tested
 sub config_service {
     my $selinux_enabled = script_run('selinuxenabled') == 0;
+    zypper_call('in policycoreutils-python-utils') if ($selinux_enabled && script_run('which semanage') != 0);
     zypper_call('in curl') if (script_run('which curl') != 0);
     zypper_call('in openssl') if (script_run('which openssl') != 0);
 
