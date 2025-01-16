@@ -64,30 +64,26 @@ sub run_crypto_test {
     validate_script_output("java Tcheck", sub { m/.* 1\. SunPKCS11-NSS-FIPS using library null.*/ });
 }
 
-sub download_and_set_permissions {
-    my ($url, $file) = @_;
-
-    script_run("test -f $file || (wget --quiet --no-check-certificate $url && chmod 777 $file)");
-}
-
 sub run_ssh_test {
     my ($version) = @_;
 
+    select_console 'root-console';
+    zypper_call('in jsch');
+
     select_console 'user-console';
 
-    my $JSCH_JAR = "jsch-0.1.55.jar";
-    download_and_set_permissions(get_var("JSCH_JAR", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/$JSCH_JAR"), $JSCH_JAR);
+    my $java_src = "Shell.java";
+    my $url = get_var("TEST_JAVA", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/$java_src");
+    my $cp = script_output('rpm -ql jsch |grep jsch.jar') . ':.';
 
-    my $TEST_JAVA = "Shell.java";
-    download_and_set_permissions(get_var("TEST_JAVA", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/$TEST_JAVA"), $TEST_JAVA);
-
-    assert_script_run("javac -cp jsch-0.1.55.jar:. Shell.java");
+    script_run("test -f $java_src || wget --quiet --no-check-certificate $url");
+    assert_script_run("javac -cp $cp Shell.java");
 
     select_console 'x11';
     x11_start_program("xterm");
     # wait before typing to avoid typos
     wait_still_screen 5;
-    script_run("java -cp jsch-0.1.55.jar:. Shell", timeout => 0);
+    script_run("java -cp $cp Shell", timeout => 0);
     assert_screen "openjdk-hostname";
     for (1 .. 30) { send_key "backspace"; }
     type_string get_var("OPENJDK_HN", 'bernhard@localhost');
