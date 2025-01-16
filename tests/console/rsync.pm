@@ -59,7 +59,7 @@ sub run {
     # from https://bugzilla.suse.com/show_bug.cgi?id=1235895 and https://github.com/RsyncProject/rsync/issues/697
     assert_script_run('rsync -av -H /tmp/rsync_test_folder_c /tmp/rsync_test_folder_out');
     # check that inode numbers match (hard link was preserved)
-    assert_script_run('cd /tmp/rsync_test_folder_out/rsync_test_folder_c; [ text.txt -ef hard-link.txt ]');
+    assert_script_run('cd /tmp/rsync_test_folder_out/rsync_test_folder_c; [ text.txt -ef hard-link.txt ]; cd -');
 }
 
 sub post_run_hook {
