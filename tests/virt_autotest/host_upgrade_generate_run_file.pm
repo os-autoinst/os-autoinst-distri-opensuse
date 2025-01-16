@@ -33,6 +33,8 @@ sub get_script_run {
     my $do_registration = (check_var('SCC_REGISTER', 'installation') || check_var('REGISTER', 'installation') || get_var('AUTOYAST', '')) ? "true" : "false";
     my $registration_server = get_var('SCC_URL', 'https://scc.suse.com');
     my $registration_code = get_var('SCC_REGCODE', 'INVALID_REGCODE');
+    my $host_kernel_params = get_var('HOST_EXT_KERNEL_PARAMS', 'NA');
+    my $guest_kernel_params = get_guest_settings(settings => 'GUEST_EXT_KERNEL_PARAMS', separator => '|');
 
     $pre_test_cmd = "/usr/share/qa/tools/_generate_vh-update_tests.sh";
     $pre_test_cmd .= " -m $mode";
@@ -46,6 +48,8 @@ sub get_script_run {
     $pre_test_cmd .= " -e $do_registration";
     $pre_test_cmd .= " -s $registration_server";
     $pre_test_cmd .= " -c $registration_code";
+    $pre_test_cmd .= " -K \"$host_kernel_params\"";
+    $pre_test_cmd .= " -k \"$guest_kernel_params->{GUEST_EXT_KERNEL_PARAMS}\"";
 
     return "$pre_test_cmd";
 }
