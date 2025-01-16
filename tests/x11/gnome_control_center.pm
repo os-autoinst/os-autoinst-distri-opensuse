@@ -26,6 +26,11 @@ sub run {
     mouse_hide(1);
     # for timeout selection see bsc#965857
     x11_start_program('gnome-control-center', match_timeout => 120);
+    if (match_has_tag 'gnome-control-center-broken') {
+        send_key 'alt-f4';
+        wait_still_screen;
+        x11_start_program('gnome-control-center', match_timeout => 120);
+    }
     # The gnome control center updated, the work flow for non-default page
     # will be same as gnome-control-center-new-layout.
     if (match_has_tag('gnome-control-center-new-layout') || match_has_tag('gnome-control-center-detail-layout')) {
