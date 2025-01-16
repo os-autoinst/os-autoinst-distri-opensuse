@@ -201,7 +201,7 @@ sub poweroff_x11 {
             assert_and_click 'authentication-required_cancel_btn';
         }
         # opens logout dialog
-        x11_start_program('shutdown', target_match => [qw(authentication-required authorization_failed lxqt_shutdowndialog)], match_timeout => 60);
+        x11_start_program('Shutdown', target_match => [qw(authentication-required authorization_failed lxqt_shutdowndialog)], match_timeout => 60);
         # we have typing issue because of poor performance, to record this if happens.
         # Double check for bsc#1137230
         if (match_has_tag 'authorization_failed' || 'authentication-required') {
