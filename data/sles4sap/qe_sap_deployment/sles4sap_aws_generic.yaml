@@ -17,7 +17,6 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     aws_credentials: '/root/amazon_credentials'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
-    os_owner: '%SLE_IMAGE_OWNER%'
 
     # HANA
     hana_count: '%NODE_COUNT%'
