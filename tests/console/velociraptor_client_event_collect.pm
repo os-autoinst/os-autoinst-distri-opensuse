@@ -28,7 +28,14 @@ sub run {
     my $sp_version = "$version.$sp";
 
     if (is_sle) {
-        if (is_sle('=15-SP6') || $sp_version == '15.6') {
+        # beta1 has dependency issue will enable with beta2
+        #if (is_sle('=16') || $sp_version == '16') {
+        #zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_16/ sensor");
+        #        }
+        if (is_sle('=15-SP7') || $sp_version == '15.7') {
+            zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP7/ sensor");
+        }
+        elsif (is_sle('=15-SP6') || $sp_version == '15.6') {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP6/ sensor");
         }
         elsif (is_sle('=15-SP5') || $sp_version == '15.5') {
@@ -64,7 +71,7 @@ sub run {
     systemctl "is-enabled velociraptor-client";
 
     # generate config files
-    script_run('cat > init-config.json <<EOF
+    script_output('cat > init-config.json <<EOF
 {
   "defaults": {
     "event_max_wait": 1,
@@ -78,8 +85,7 @@ sub run {
     "default_max_wait": 1
   }
 }
-EOF
-(exit \$?)');
+EOF');
 
     script_run "velociraptor-client config generate --merge_file=init-config.json > server.conf";
     background_script_run "velociraptor-client frontend -v --config server.conf > /dev/null 2>&1 &";
@@ -92,7 +98,7 @@ EOF
     assert_script_run "velociraptor-client --api_config ~/api.config.yaml query 'SELECT * FROM info()'";
 
     # add client monitoring
-    my @artifacts = qw(SUSE.Linux.Events.DNS SUSE.Linux.Events.ExecutableFiles SUSE.Linux.Events.ImmutableFile SUSE.Linux.Events.NewFiles SUSE.Linux.Events.NewFilesNoOwner SUSE.Linux.Events.NewHiddenFile SUSE.Linux.Events.NewZeroSizeLogFile SUSE.Linux.Events.Packages SUSE.Linux.Events.ProcessStatuses SUSE.Linux.Events.SSHLogin SUSE.Linux.Events.Services SUSE.Linux.Events.SshAuthorizedKeys SUSE.Linux.Events.SystemLogins SUSE.Linux.Events.TCPConnections SUSE.Linux.Events.Timers SUSE.Linux.Events.UserAccount SUSE.Linux.Events.UserGroupMembershipUpdates);
+    my @artifacts = qw(SUSE.Linux.Events.Crontab SUSE.Linux.Events.DNS SUSE.Linux.Events.ExecutableFiles SUSE.Linux.Events.ImmutableFile SUSE.Linux.Events.NewFiles SUSE.Linux.Events.NewFilesNoOwner SUSE.Linux.Events.NewHiddenFile SUSE.Linux.Events.NewZeroSizeLogFile SUSE.Linux.Events.Packages SUSE.Linux.Events.ProcessStatuses SUSE.Linux.Events.SSHLogin SUSE.Linux.Events.Services SUSE.Linux.Events.SshAuthorizedKeys SUSE.Linux.Events.SystemLogins SUSE.Linux.Events.TCPConnections SUSE.Linux.Events.Timers SUSE.Linux.Events.UserAccount SUSE.Linux.Events.UserGroupMembershipUpdates);
     foreach my $artifact (@artifacts) {
         if ($artifact == 'SUSE.Linux.Events.Packages' || $artifact == 'SUSE.Linux.Events.SshAuthorizedKeys') {
             script_run("velociraptor-client --api_config ~/api.config.yaml query 'SELECT add_client_monitoring(artifact=\"$artifact\", parameters=dict(period=\"10\")) FROM scope()' > /dev/null");
@@ -168,9 +174,21 @@ EOF
     # trigger SUSE.Linux.Events.TCPConnections
     script_run "nc localhost 8080";
     # trigger SUSE.Linux.Events.Timers
+    script_run "echo -e \"[Unit]\nDescription=Simple Task\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'date >> /tmp/mytimer.log'\" | tee /etc/systemd/system/mytimer.service";
+    script_run "echo -e \"[Unit]\nDescription=Runs mytimer.service every minute\n\n[Timer]\nOnUnitActiveSec=1m\nOnBootSec=1m\nPersistent=true\n\n[Install]\nWantedBy=timers.target\" | tee /etc/systemd/system/mytimer.timer";
+    script_run "systemctl daemon-reload";
+    script_run "systemctl enable --now mytimer.timer";
+    script_run "systemctl list-timers --all";
+    script_run "systemctl status mytimer.timer";
+    script_run "systemctl restart mytimer.timer";
     # trigger SUSE.Linux.Events.UserAccount
+    script_run "groupadd testgroup && useradd -m -s /bin/bash -G testgroup testuser";
     # trigger SUSE.Linux.Events.UserGroupMembershipUpdates
-
+    script_run "groupadd newgroup";
+    script_run "usermod -aG newgroup testuser";
+    script_run "userdel -r testuser && groupdel testgroup";
+    # trigger SUSE.Linux.Events.Crontab
+    script_run "(crontab -l 2>/dev/null; echo \"* * * * * echo 'Test cronevent $(date)' >> /tmp/cronevent-test.log\") | crontab -";
     # get client id
     my $clientid = script_output('velociraptor-client --api_config ~/api.config.yaml query \'SELECT *, os_info.hostname as Hostname, client_id FROM clients()\' | grep -oP \'"client_id": "\K.*(?=")\'', 120);
 
@@ -212,6 +230,14 @@ EOF
     script_output "grep -r -i cron* /var/tmp/velociraptor/clients/$clientid/*";
     # search for SUSE.Linux.Events.SshAuthorizedKeys
     script_output "grep -r -i test\@testkey* /var/tmp/velociraptor/clients/$clientid/*";
+    # search SUSE.Linux.Events.Timers
+    script_output "grep -r -i mytimer.timer /var/tmp/velociraptor/clients/$clientid/*";
+    # search for SUSE.Linux.Crontab
+    script_output "grep -r -i cronevent /var/tmp/velociraptor/clients/$clientid/*";
+    # search for SUSE.Linux.Events.UserGroupMembershipUpdates
+    script_output "grep -r -i testgroup /var/tmp/velociraptor/clients/$clientid/*";
+    # search for SUSE.Linux.Events.UserAccount
+    script_output "grep -r -i testuser /var/tmp/velociraptor/clients/$clientid/*";
     # The eBPF based plugins don't get built on SLE12SP5
     if (!is_sle('=12-SP5')) {
         # search for SUSE.Linux.Events.ImmutableFile
@@ -228,3 +254,4 @@ EOF
     zypper_call("rr factory");
 }
 1;
+
