@@ -58,7 +58,6 @@ our @EXPORT = qw(
   add_grub_cmdline_settings
   add_grub_xen_replace_cmdline_settings
   change_grub_config
-  get_cmdline_var
   grep_grub_cmdline_settings
   grep_grub_settings
   grub_mkconfig
@@ -76,6 +75,7 @@ my $in_grub_edit = 0;
 
 use constant GRUB_CFG_FILE => "/boot/grub2/grub.cfg";
 use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
+use constant GRUB_CMDLINE_VAR => "GRUB_CMDLINE_LINUX_DEFAULT";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
@@ -1371,7 +1371,7 @@ GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.
 
 sub grep_grub_cmdline_settings {
     my ($pattern, $search) = @_;
-    $search //= get_cmdline_var();
+    $search //= '^' . GRUB_CMDLINE_VAR;
     return grep_grub_settings($search . ".*${pattern}");
 }
 
@@ -1418,7 +1418,7 @@ sub add_grub_cmdline_settings {
         {
             add => $add,
             update_grub => 0,
-            search => get_cmdline_var(),
+            search => '^' . GRUB_CMDLINE_VAR,
         },
         ['update_grub', 'search'],
         @_
@@ -1470,7 +1470,7 @@ sub replace_grub_cmdline_settings {
             old => $old,
             new => $new,
             update_grub => 0,
-            search => get_cmdline_var(),
+            search => '^' . GRUB_CMDLINE_VAR,
         },
         ['update_grub', 'search'],
         @_
@@ -1529,19 +1529,6 @@ sub grub_mkconfig {
     $config //= GRUB_CFG_FILE;
     my $grub_update = is_transactional ? 'transactional-update -c grub.cfg' : "grub2-mkconfig -o $config";
     assert_script_run "${grub_update}";
-}
-
-=head2 get_cmdline_var
-
-    get_cmdline_var();
-
-Get default grub cmdline variable:
-GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
-=cut
-
-sub get_cmdline_var {
-    my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
-    return "^${label}=";
 }
 
 =head2 parse_bootparams_in_serial
