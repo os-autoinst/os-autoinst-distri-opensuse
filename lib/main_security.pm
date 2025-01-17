@@ -9,10 +9,10 @@
 package main_security;
 use Mojo::Base 'Exporter';
 use Exporter;
+use testapi;
 use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
-use testapi qw(get_var check_var diag);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -136,6 +136,10 @@ sub load_security_tests_fips_setup {
 
 sub load_security_tests_apparmor {
     load_security_console_prepare();
+
+    # Switch from SELinux to AppArmor if necessary
+    set_var('SECURITY_MAC', 'apparmor');
+    loadtest 'console/enable_mac';
 
     if (check_var('TEST', 'mau-apparmor') || is_jeos) {
         loadtest "security/apparmor/aa_prepare";
