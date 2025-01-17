@@ -44,20 +44,21 @@ sub run {
     } else {
         record_info "SECURITY_MAC", "Switching from $current_mac to $security_mac";
 
-        zypper_call "rm --clean-deps -t pattern $current_mac" if ($current_mac);
         zypper_call "in -t pattern $security_mac";
 
         if ($security_mac eq "selinux") {
             replace_grub_cmdline_settings('security=apparmor', 'security=selinux selinux=1', update_grub => 1);
             assert_script_run "sed -i -e 's/^SELINUX=.*/SELINUX=enforcing/g' /etc/selinux/config";
-            assert_script_run "touch /.autorelabel";
         } else {
             replace_grub_cmdline_settings('security=selinux selinux=1', 'security=apparmor', update_grub => 1);
+            assert_script_run "rm -f /etc/selinux/config";
         }
 
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => 300);
         select_serial_terminal;
+
+        zypper_call "rm --clean-deps -t pattern $current_mac" if ($current_mac);
     }
 
     $current_mac = script_output("grep -Eo '(selinux|apparmor)' /sys/kernel/security/lsm");
