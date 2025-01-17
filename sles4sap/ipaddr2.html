@@ -40,8 +40,8 @@
       <li><a href="#ipaddr2_ssh_internal">ipaddr2_ssh_internal</a></li>
       <li><a href="#ipaddr2_ssh_internal_output">ipaddr2_ssh_internal_output</a></li>
       <li><a href="#ipaddr2_cluster_create">ipaddr2_cluster_create</a></li>
-      <li><a href="#ipaddr2_registeration_check">ipaddr2_registeration_check</a></li>
-      <li><a href="#ipaddr2_registeration_set">ipaddr2_registeration_set</a></li>
+      <li><a href="#ipaddr2_scc_check">ipaddr2_scc_check</a></li>
+      <li><a href="#ipaddr2_scc_register">ipaddr2_scc_register</a></li>
       <li><a href="#ipaddr2_configure_web_server">ipaddr2_configure_web_server</a></li>
       <li><a href="#ipaddr2_refresh_repo">ipaddr2_refresh_repo</a></li>
       <li><a href="#ipaddr2_deployment_logs">ipaddr2_deployment_logs</a></li>
@@ -59,8 +59,7 @@
       <li><a href="#ipaddr2_network_peering_create">ipaddr2_network_peering_create</a></li>
       <li><a href="#ipaddr2_add_server_repos_to_hosts">ipaddr2_add_server_repos_to_hosts</a></li>
       <li><a href="#ipaddr2_patch_system">ipaddr2_patch_system</a></li>
-      <li><a href="#ipaddr2_registration">ipaddr2_registration</a></li>
-      <li><a href="#ipaddr2_register_addons">ipaddr2_register_addons</a></li>
+      <li><a href="#ipaddr2_scc_addons">ipaddr2_scc_addons</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -529,11 +528,11 @@
 </dd>
 </dl>
 
-<h2 id="ipaddr2_registeration_check">ipaddr2_registeration_check</h2>
+<h2 id="ipaddr2_scc_check">ipaddr2_scc_check</h2>
 
-<pre><code>my $is_registered = ipaddr2_registeration_check(id =&gt; 1);</code></pre>
+<pre><code>my $is_registered = ipaddr2_scc_check(id =&gt; 1);</code></pre>
 
-<p>Check if image is registered. Return 1 is it is registered, 0 if at least one is not.</p>
+<p>Check if image is registered by calling SUSEConnect -s. Return 1 if all modules are registered, 0 if at least one is not.</p>
 
 <dl>
 
@@ -547,11 +546,11 @@
 </dd>
 </dl>
 
-<h2 id="ipaddr2_registeration_set">ipaddr2_registeration_set</h2>
+<h2 id="ipaddr2_scc_register">ipaddr2_scc_register</h2>
 
-<pre><code>ipaddr2_registeration_set(id =&gt; 1, scc_code =&gt; &#39;1234567890&#39;);</code></pre>
+<pre><code>ipaddr2_scc_register(id =&gt; 1, scc_code =&gt; &#39;1234567890&#39;);</code></pre>
 
-<p>Register the image. Notice that this library also support registration through ipaddr2_infra_deploy</p>
+<p>Register the image. (For the moment) it only support registercloudguest endpoint. Notice that this library also support registration through ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.</p>
 
 <dl>
 
@@ -811,17 +810,19 @@
 
 <p>Patch system</p>
 
-<h2 id="ipaddr2_registration">ipaddr2_registration</h2>
+<h2 id="ipaddr2_scc_addons">ipaddr2_scc_addons</h2>
 
-<pre><code>ipaddr2_registration();</code></pre>
-
-<p>Register SUT</p>
-
-<h2 id="ipaddr2_register_addons">ipaddr2_register_addons</h2>
-
-<pre><code>ipaddr2_register_addons();</code></pre>
+<pre><code>ipaddr2_scc_addons();</code></pre>
 
 <p>Register addons on SUT</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it28"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
