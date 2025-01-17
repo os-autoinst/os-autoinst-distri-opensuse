@@ -150,7 +150,7 @@ use constant SLOW_TYPING_SPEED => 13;
 use constant VERY_SLOW_TYPING_SPEED => 4;
 
 # openQA internal ftp server url
-our $OPENQA_FTP_URL = "ftp://" . get_var("REPO_MIRROR_HOST", "openqa.suse.de");
+our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
 
 # set flag IN_ZYPPER_CALL in zypper_call and unset when leaving
 our $IN_ZYPPER_CALL = 0;
