@@ -176,7 +176,7 @@ sub run {
         }
     }
 
-    $playbook_configs{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os_image_name =~ 'byos');
+    $playbook_configs{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os_image_name =~ /byos/i);
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     # This implementation has a known limitation
     # if SCC_ADDONS has two or more elements (like "ltss,ltss_es")
@@ -188,7 +188,7 @@ sub run {
         $name = get_addon_fullname($addon) if ($addon =~ 'ltss');
         if ($name) {
             $playbook_configs{ltss} = join(',', join('/', $name, scc_version(), 'x86_64'), $ADDONS_REGCODE{$name});
-            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ 'byos' && $reg_mode !~ 'noreg');
+            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ /byos/i && $reg_mode !~ 'noreg');
         }
     }
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
