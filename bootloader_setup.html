@@ -28,7 +28,6 @@
       <li><a href="#remove_grub_cmdline_settings">remove_grub_cmdline_settings</a></li>
       <li><a href="#remove_grub_xen_cmdline_settings">remove_grub_xen_cmdline_settings</a></li>
       <li><a href="#grub_mkconfig">grub_mkconfig</a></li>
-      <li><a href="#get_cmdline_var">get_cmdline_var</a></li>
       <li><a href="#parse_bootparams_in_serial">parse_bootparams_in_serial</a></li>
       <li><a href="#compare_bootparams">compare_bootparams</a></li>
       <li><a href="#create_encrypted_part">create_encrypted_part</a></li>
@@ -154,12 +153,6 @@ boot_grub_item(3);</code></pre>
 grub_mkconfig($config);</code></pre>
 
 <p>Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.</p>
-
-<h2 id="get_cmdline_var">get_cmdline_var</h2>
-
-<pre><code>get_cmdline_var();</code></pre>
-
-<p>Get default grub cmdline variable: GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.</p>
 
 <h2 id="parse_bootparams_in_serial">parse_bootparams_in_serial</h2>
 
