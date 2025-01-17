@@ -764,40 +764,40 @@ subtest '[ipaddr2_configure_web_server] external_repo' => sub {
     ok((any { /zypper in.*nginx/ } @calls), 'Install nginx using zypper');
 };
 
-subtest '[ipaddr2_registeration_check] all registered' => sub {
+subtest '[ipaddr2_scc_check] all registered' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
-            # due to the itnernal implementation of the
+            # due to the internal implementation of the
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}]'; });
 
-    my $ret = ipaddr2_registeration_check(id => 42);
+    my $ret = ipaddr2_scc_check(id => 42);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /SUSEConnect -s/ } @calls), 'SUSEConnect to check what is registered');
     ok(($ret eq 1), "Is registered ret:$ret");
 };
 
-subtest '[ipaddr2_registeration_check] one not registered' => sub {
+subtest '[ipaddr2_scc_check] one not registered' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
-            # due to the itnernal implementation of the
+            # due to the internal implementation of the
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}, {"status":"Not Registered"}]'; });
 
-    my $ret = ipaddr2_registeration_check(id => 42);
+    my $ret = ipaddr2_scc_check(id => 42);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 0), "Is not registered ret:$ret");
 };
 
-subtest '[ipaddr2_registeration_set]' => sub {
+subtest '[ipaddr2_scc_register]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
@@ -808,7 +808,7 @@ subtest '[ipaddr2_registeration_set]' => sub {
             return;
     });
 
-    ipaddr2_registeration_set(id => 42, scc_code => '1234567890');
+    ipaddr2_scc_register(id => 42, scc_code => '1234567890');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
