@@ -1,0 +1,8 @@
+name:  agama-create-hdd-textmode_pvm
+description:    >
+    Install sle16 via agama auto on pvm setup, but it can not publish qcow2 image
+
+schedule:
+    - installation/bootloader
+    - installation/agama_reboot
+    - installation/first_boot
