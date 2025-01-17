@@ -15,8 +15,9 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_cloudinit_logs
   ipaddr2_network_peering_clean
   ipaddr2_infra_destroy
-  ipaddr2_registration
-  ipaddr2_register_addons
+  ipaddr2_scc_addons
+  ipaddr2_refresh_repo
+  ipaddr2_ssh_internal
   ipaddr2_bastion_pubip
 );
 
@@ -26,8 +27,22 @@ sub run {
     select_serial_terminal;
 
     my $bastion_pubip = ipaddr2_bastion_pubip();
-    ipaddr2_registration(bastion_pubip => $bastion_pubip);
-    ipaddr2_register_addons(bastion_pubip => $bastion_pubip);
+
+    # Addons registration not needed at the moment
+    #ipaddr2_scc_addons(bastion_pubip => $bastion_pubip);
+    foreach my $id (1 .. 2) {
+        # refresh repo
+        ipaddr2_refresh_repo(id => $id, bastion_pubip => $bastion_pubip);
+
+        # record repo lr
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo zypper lr",
+            bastion_ip => $bastion_pubip);
+        # record repo ls
+        ipaddr2_ssh_internal(id => $id,
+            cmd => "sudo zypper ls",
+            bastion_ip => $bastion_pubip);
+    }
 }
 
 sub test_flags {

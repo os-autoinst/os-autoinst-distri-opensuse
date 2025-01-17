@@ -19,8 +19,8 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_cloudinit_logs
-  ipaddr2_registeration_check
-  ipaddr2_registeration_set
+  ipaddr2_scc_check
+  ipaddr2_scc_register
   ipaddr2_refresh_repo
   ipaddr2_network_peering_clean
 );
@@ -46,30 +46,41 @@ sub run {
     $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_internal_key_gen(%int_key_args);
 
+    # Check if cloudinit is active or not. In case it is,
+    # registration was eventually there and no need to per performed here.
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
+        # Check if reg code is provided or not, PAYG does not need it
         if (get_var('SCC_REGCODE_SLES4SAP')) {
-            # Registration was not part of cloud-init
+            # Registration was not part of cloud-init but still needed
             record_info("TEST STAGE", "Registration");
             foreach (1 .. 2) {
-                my $is_registered = ipaddr2_registeration_check(
+                # Check if somehow the image is already registered or not
+                my $is_registered = ipaddr2_scc_check(
                     bastion_ip => $bastion_ip,
                     id => $_);
                 record_info('is_registered', "$is_registered");
-                ipaddr2_registeration_set(
+                # Only perform registration if it is no
+                # So test can be programmatically configured not to perform
+                # any registration, by not providing SCC_REGCODE_SLES4SAP variable.
+                # But even if it is, registration is only performed if image
+                # at this test moment is not registered.
+                ipaddr2_scc_register(
                     bastion_ip => $bastion_ip,
                     id => $_,
                     scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
             }
         }
         record_info("TEST STAGE", "Install the web server");
-        my %cloudinit_args;
-        $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
-        $cloudinit_args{bastion_ip} = $bastion_ip;
+        my %web_install_args;
+        $web_install_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
+        $web_install_args{bastion_ip} = $bastion_ip;
         foreach (1 .. 2) {
-            $cloudinit_args{id} = $_;
-            ipaddr2_configure_web_server(%cloudinit_args);
+            $web_install_args{id} = $_;
+            ipaddr2_configure_web_server(%web_install_args);
         }
     } else {
+        # Registartion eventually performed at first boot by cloud-init script.
+        # Just a repo sync is needed now.
         foreach (1 .. 2) {
             ipaddr2_refresh_repo(
                 bastion_ip => $bastion_ip,

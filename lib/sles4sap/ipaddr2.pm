@@ -40,8 +40,9 @@ our @EXPORT = qw(
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
-  ipaddr2_registeration_check
-  ipaddr2_registeration_set
+  ipaddr2_scc_check
+  ipaddr2_scc_register
+  ipaddr2_scc_addons
   ipaddr2_crm_move
   ipaddr2_crm_clear
   ipaddr2_wait_for_takeover
@@ -56,8 +57,6 @@ our @EXPORT = qw(
   ipaddr2_network_peering_create
   ipaddr2_network_peering_clean
   ipaddr2_patch_system
-  ipaddr2_register_addons
-  ipaddr2_registration
   ipaddr2_add_server_repos_to_hosts
 );
 
@@ -1434,11 +1433,12 @@ sub ipaddr2_cluster_create {
         bastion_ip => $args{bastion_ip});
 }
 
-=head2 ipaddr2_registeration_check
+=head2 ipaddr2_scc_check
 
-    my $is_registered = ipaddr2_registeration_check(id => 1);
+    my $is_registered = ipaddr2_scc_check(id => 1);
 
-Check if image is registered. Return 1 is it is registered, 0 if at least one is not.
+Check if image is registered by calling SUSEConnect -s.
+Return 1 if all modules are registered, 0 if at least one is not.
 
 =over
 
@@ -1452,7 +1452,7 @@ Check if image is registered. Return 1 is it is registered, 0 if at least one is
 
 =cut
 
-sub ipaddr2_registeration_check {
+sub ipaddr2_scc_check {
     my (%args) = @_;
     croak("Argument < id > missing") unless $args{id};
 
@@ -1473,12 +1473,13 @@ sub ipaddr2_registeration_check {
     return $registered;
 }
 
-=head2 ipaddr2_registeration_set
+=head2 ipaddr2_scc_register
 
-    ipaddr2_registeration_set(id => 1, scc_code => '1234567890');
+    ipaddr2_scc_register(id => 1, scc_code => '1234567890');
 
-Register the image. Notice that this library also support registration through
-ipaddr2_infra_deploy
+Register the image. (For the moment) it only support registercloudguest endpoint.
+Notice that this library also support registration through
+ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
 
 =over
 
@@ -1494,7 +1495,7 @@ ipaddr2_infra_deploy
 
 =cut
 
-sub ipaddr2_registeration_set {
+sub ipaddr2_scc_register {
     my (%args) = @_;
     foreach (qw(id scc_code)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
@@ -2130,68 +2131,39 @@ sub ipaddr2_patch_system {
     }
 }
 
-=head2 ipaddr2_registration
+=head2 ipaddr2_scc_addons
 
-    ipaddr2_registration();
-
-Register SUT
-
-=over
-
-=back
-
-=cut
-
-sub ipaddr2_registration {
-    my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
-
-    # For Azure, payg don't need to register, and byos already register by cloud-init
-    foreach my $id (1 .. 2) {
-        ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo SUSEConnect -s",
-            bastion_ip => $args{bastion_pubip},
-            method => 'script_run');
-    }
-}
-
-=head2 ipaddr2_register_addons
-
-    ipaddr2_register_addons();
+    ipaddr2_scc_addons();
 
 Register addons on SUT
 
 =over
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
 =back
 
 =cut
 
-sub ipaddr2_register_addons {
+sub ipaddr2_scc_addons {
     my (%args) = @_;
     $args{bastion_pubip} //= ipaddr2_bastion_pubip();
     my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
     foreach my $id (1 .. 2) {
-        my $vm_ip = ipaddr2_get_internal_vm_private_ip(id => $id);
-        my $remote = "-J $host_ip cloudadmin@" . "$vm_ip";
+        # Register through an external library function register_addon.
+        # In order to make it able to run the addons registration
+        # on the two internal VMs, compose command do do it
+        my $remote_cmd = join(' ',
+            '-J', $host_ip,
+            'cloudadmin@', ipaddr2_get_internal_vm_private_ip(id => $id));
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
-            register_addon($remote, $addon);
+            register_addon($remote_cmd, $addon);
         }
-
-        # refresh repo
-        ipaddr2_refresh_repo(id => $id, bastion_pubip => $args{bastion_pubip});
-
-        # record repo lr
-        ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo zypper lr",
-            bastion_ip => $args{bastion_pubip});
-        # record repo ls
-        ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo zypper ls",
-            bastion_ip => $args{bastion_pubip});
     }
 }
 
