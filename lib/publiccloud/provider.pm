@@ -444,13 +444,12 @@ sub terraform_prepare_env {
     $self->terraform_env_prepared(1);
 }
 
-sub terraform_plan_cmd {
-    my (%vars) = @_;
-    my $cmd = 'terraform plan -no-color ';
+sub terraform_cmd {
+    my ($prefix, %vars) = @_;
+    my $cmd = $prefix . ' ';
     for my $var (keys %vars) {
         $cmd .= sprintf(q(-var '%s=%s' ), $var, $vars{$var});
     }
-    $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
     return $cmd;
 }
@@ -549,7 +548,7 @@ sub terraform_apply {
         $vars{ssh_public_key} = $self->ssh_key . '.pub';
     }
 
-    my $cmd = terraform_plan_cmd(%vars);
+    my $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
 
     # 3) Terraform apply
@@ -574,7 +573,7 @@ sub terraform_apply {
             # try to apply in all regions before hardfailing
             record_info('RETRYING', "Attempting with zone $zone");
             $vars{region} = $zone;
-            $cmd = terraform_plan_cmd(%vars);
+            $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
             script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
             $exit_code = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", timeout => $terraform_timeout, proceed_on_failure => 1);
             last if $exit_code == 0;
@@ -647,15 +646,15 @@ sub terraform_destroy {
 
     select_host_console(force => 1);
 
-    my $cmd = 'terraform destroy -no-color -auto-approve ';
+    my %vars = ();
     record_info('INFO', 'Removing terraform plan...');
 
     assert_script_run('cd ' . TERRAFORM_DIR);
     # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-    $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
-    $cmd .= "-var 'cloud_init=" . TERRAFORM_DIR . "/cloud-init.yaml' " if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    $vars{region} = $self->provider_client->region;
+    $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml' if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
     unless (is_openstack) {
-        $cmd .= "-var 'ssh_public_key=" . $self->ssh_key . ".pub' ";
+        $vars{ssh_public_key} = $self->ssh_key . '.pub';
     }
     # Add image_id, offer and sku on Azure runs, if defined.
     if (is_azure) {
@@ -664,14 +663,14 @@ sub terraform_destroy {
         my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
         my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
         my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-        $cmd .= "-var 'image_id=$image' " if ($image);
-        $cmd .= "-var 'image_uri=${image_uri}' " if ($image_uri);
-        $cmd .= "-var 'offer=$offer' " if ($offer);
-        $cmd .= "-var 'sku=$sku' " if ($sku);
-        $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
+        $vars{image_id} = $image if ($image);
+        $vars{image_uri} = $image_uri if ($image_uri);
+        $vars{offer} = $offer if ($offer);
+        $vars{sku} = $sku if ($sku);
+        $vars{'storage-account'} = $storage_account if ($storage_account);
     }
-    # Ignore lock to avoid "Error acquiring the state lock"
-    $cmd .= "-lock=false ";
+    # Regarding the use of '-lock=false': Ignore lock to avoid "Error acquiring the state lock"
+    my $cmd = terraform_cmd('terraform destroy -no-color -auto-approve -lock=false', %vars);
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
     my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
