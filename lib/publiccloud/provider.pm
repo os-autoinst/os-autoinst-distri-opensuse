@@ -487,11 +487,10 @@ sub terraform_apply {
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # Some auxiliary variables, requires for fine control and public cloud provider specifics
         for my $key (keys %{$args{vars}}) {
-            my $value = $args{vars}->{$key};
-            $vars{$key} = escape_single_quote($value);
+            $vars{$key} = escape_single_quote($args{vars}->{$key});
         }
 
-        # image_uri and image_id are mutally exclusive
+        # image_uri and image_id are mutually exclusive
         if ($image_uri && $image_id) {
             die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
         } elsif ($image_uri) {
@@ -502,14 +501,10 @@ sub terraform_apply {
             record_info('INFO', "Creating instance $instance_type from $image_id ...");
         }
         if (is_ec2) {
-            my $vpc_security_group_ids = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
-            my $availability_zone = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
-            my $subnet_id = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $availability_zone . "' --query 'Subnets[0].SubnetId' --output text");
-            my $ipv6_address_count = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
-            $vars{vpc_security_group_ids} = $vpc_security_group_ids;
-            $vars{availability_zone} = $availability_zone;
-            $vars{subnet_id} = $subnet_id;
-            $vars{ipv6_address_count} = $ipv6_address_count if ($ipv6_address_count);
+            $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
+            $vars{availability_zone} = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
+            $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
+            $vars{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
         } elsif (is_azure) {
             my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
             $vars{subnet_id} = $subnet_id if ($subnet_id);
