@@ -5,8 +5,11 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base 'opensusebasetest';
-use strict;
 use warnings;
+use strict;
+use v5.20;
+use feature qw(signatures);
+no warnings qw(experimental::signatures);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -20,6 +23,7 @@ sub run {
     select_serial_terminal;
     setup_bind();
     setup_gnutls();
+    setup_nss();
     foreach my $s (@services) {
         systemctl "enable --now $s.service";
     }
@@ -31,6 +35,7 @@ sub run {
         }
         ensure_bind_is_working();
         ensure_gnutls_is_working();
+        ensure_nss_is_working_with($policy);
     }
 }
 
@@ -53,6 +58,24 @@ sub ensure_bind_is_working {
 
 sub setup_gnutls {
     zypper_call 'in gnutls';
+}
+
+sub setup_nss {
+    zypper_call 'in mozilla-nss mozilla-nss-tools';
+    assert_script_run 'curl -O ' . data_url('security/crypto_policies/test_nss_client.sh');
+    assert_script_run 'chmod +x test_nss_client.sh';
+}
+
+sub ensure_nss_is_working_with($policy) {
+    # run the test script with each policy
+    my $logfile = "nss_client_${policy}_policy.txt";
+    assert_script_run("./test_nss_client.sh $logfile");
+    upload_logs $logfile;
+    # check if result is good
+    assert_script_run('grep "HTTP/1.0 200 ok" ' . $logfile);
+    assert_script_run('grep "1 server accepts (SSL_accept())" ' . $logfile);
+    # cleanup for next run
+    assert_script_run "rm -rf localhost.pem localhost.key nssdb";
 }
 
 sub ensure_gnutls_is_working {
