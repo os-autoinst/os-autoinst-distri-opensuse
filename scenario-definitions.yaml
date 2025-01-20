@@ -13,7 +13,6 @@ machines:
       HDDSIZEGB: "20"
       QEMUCPU: host
       VIRTIO_CONSOLE: "1"
-      OFFLINE_SUT: "1"
       WORKER_CLASS: qemu_x86_64
 
 .common: &common
