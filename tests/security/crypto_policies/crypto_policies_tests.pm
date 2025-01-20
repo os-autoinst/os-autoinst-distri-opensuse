@@ -61,7 +61,7 @@ sub setup_gnutls {
 }
 
 sub setup_nss {
-    zypper_call 'in mozilla-nss mozilla-nss-tools';
+    zypper_call 'in mozilla-nss mozilla-nss-tools openssl';
     assert_script_run 'curl -O ' . data_url('security/crypto_policies/test_nss_client.sh');
     assert_script_run 'chmod +x test_nss_client.sh';
 }
