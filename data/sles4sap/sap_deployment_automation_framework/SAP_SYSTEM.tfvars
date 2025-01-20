@@ -1,3 +1,4 @@
+# The original template is https://github.com/Azure/SAP-automation-samples/blob/main/Terraform/WORKSPACES/SYSTEM/LAB-SECE-SAP04-L00/LAB-SECE-SAP04-L00.tfvars
 
 ##########################################################################################
 #                                                                                        #

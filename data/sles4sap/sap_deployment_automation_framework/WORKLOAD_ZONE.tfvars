@@ -1,3 +1,4 @@
+# The original template is https://github.com/Azure/SAP-automation-samples/blob/main/Terraform/WORKSPACES/LANDSCAPE/LAB-SECE-SAP04-INFRASTRUCTURE/LAB-SECE-SAP04-INFRASTRUCTURE.tfvars 
 
 #########################################################################################
 #                                                                                       #
