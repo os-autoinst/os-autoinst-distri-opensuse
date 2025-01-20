@@ -26,13 +26,13 @@ sub get_snapshot_id {
 
 sub run_zypper_cmd {
     my ($zypper_cmd, $package) = @_;
-    my $before_snapshot_id = get_snapshot_id();
+    my $pre_snapshot_id = get_snapshot_id() + 1;
     zypper_call($zypper_cmd);
-    my $after_snapshot_id = get_snapshot_id();
-    record_info("Snapshot IDs", "Before: $before_snapshot_id, After: $after_snapshot_id");
-    assert_equals($after_snapshot_id, $before_snapshot_id + 2, "Snapshot ID did not increment as expected");
-    my $grep_pattern = "snapshot.*$before_snapshot_id.*$package.*$after_snapshot_id.*differ";
-    assert_script_run("snapper diff $before_snapshot_id..$after_snapshot_id | grep '$grep_pattern'", fail_message => "No changes between snapshots for $package");
+    my $post_snapshot_id = get_snapshot_id();
+    record_info("Snapshot IDs", "Pre: $pre_snapshot_id, Post: $post_snapshot_id");
+    assert_equals($post_snapshot_id, $pre_snapshot_id + 1, "Snapshot ID did not increment as expected");
+    my $grep_pattern = "snapshot.*$pre_snapshot_id.*$package.*$post_snapshot_id.*differ";
+    assert_script_run("snapper diff $pre_snapshot_id..$post_snapshot_id | grep '$grep_pattern'", fail_message => "No changes between snapshots for $package");
 }
 
 sub run {
