@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
-use autoyast qw(expand_agama_profile expand_agama_variables);
+use autoyast qw(expand_agama_profile);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -58,10 +58,6 @@ sub run {
         my $path = expand_agama_profile($agama_auto);
         set_var('AGAMA_AUTO', $path);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
-    }
-    if (my $agama_profile = get_var('AGAMA_PROFILE')) {
-        my $path = expand_agama_profile($agama_profile);
-        set_var('AGAMA_PROFILE', $path);
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 
