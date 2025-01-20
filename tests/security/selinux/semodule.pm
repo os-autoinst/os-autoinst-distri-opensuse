@@ -11,7 +11,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle_micro);
+use version_utils qw(has_selinux);
 
 sub run {
     my $test_module = "openvpn";
@@ -47,7 +47,7 @@ sub run {
     assert_script_run("semodule -lfull | grep -w $test_module", sub { m/100\ $test_module\ .*pp.*/sx });
 
     # test option "-l": list all modules and verify some of them (disabled + enabled)
-    if (is_sle_micro('>=6.0')) {
+    if (has_selinux) {
         validate_script_output(
             "semodule -lfull",
             sub {

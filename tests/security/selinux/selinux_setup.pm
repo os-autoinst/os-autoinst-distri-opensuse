@@ -76,6 +76,8 @@ sub run {
             $fail_msg = 'SELinux is disabled when it should be enabled';
         }
         validate_script_output('sestatus', sub { m/SELinux status: .*$expected_state/ }, fail_message => $fail_msg);
+
+        $self->set_sestatus('permissive', 'minimum') unless has_selinux();
     }
 }
 

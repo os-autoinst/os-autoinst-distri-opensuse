@@ -1,7 +1,7 @@
 # Copyright 2018-2020 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Test with SELinux is "enabled" and in "permissive" mode system still
+# Summary: Test that with with SELinux "enabled" the system still
 #          works, can access files, directories, ports and processes, e.g.,
 #          no problem with refreshing and updating,
 #          packages should be installed and removed without any problems,
@@ -21,8 +21,8 @@ use version_utils qw(is_sle is_tumbleweed);
 sub run {
     select_serial_terminal;
 
-    # make sure SELinux is "enabled" and in "permissive" mode
-    validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
+    # make sure SELinux is "enabled"
+    validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled/sx });
 
     if (is_tumbleweed && script_run('fixfiles check /etc/selinux/config |& grep "command not found"') == 0) {
         record_soft_failure('boo#1190813');
