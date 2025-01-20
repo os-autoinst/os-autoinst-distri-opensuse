@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2022 SUSE LLC
+# Copyright 2017-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for all wicked scenarios
@@ -1201,9 +1201,9 @@ sub prepare_containers {
     my $self = shift;
 
     if ($self->container_runtime eq 'docker') {
-        install_docker_when_needed(get_var('DISTRI'));
+        install_docker_when_needed();
     } else {
-        install_podman_when_needed(get_var('DISTRI'));
+        install_podman_when_needed();
     }
 
     my $containers = $self->get_containers();

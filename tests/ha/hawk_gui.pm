@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman MozillaFirefox
@@ -15,12 +15,11 @@ use lockapi;
 use hacluster;
 use x11test;
 use x11utils;
-use version_utils qw(is_desktop_installed get_os_release);
+use version_utils qw(is_desktop_installed);
 use containers::common qw(install_podman_when_needed);
 
 sub install_podman {
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_podman_when_needed($host_distri);
+    install_podman_when_needed();
 }
 
 sub run {

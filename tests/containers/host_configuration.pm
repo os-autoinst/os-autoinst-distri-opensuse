@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright 2022-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Setup system which will host containers
@@ -57,8 +57,8 @@ sub run {
     }
 
     # Install engines in case they are not installed
-    install_docker_when_needed($host_distri) if ($engine =~ 'docker');
-    install_podman_when_needed($host_distri) if ($engine =~ 'podman');
+    install_docker_when_needed() if ($engine =~ 'docker');
+    install_podman_when_needed() if ($engine =~ 'podman');
     reset_container_network_if_needed($engine);
 
     # Record podman|docker version

@@ -34,7 +34,6 @@ sub is_unreleased_sle {
 sub activate_containers_module {
     my $registered = 0;
     my $json = Mojo::JSON::decode_json(script_output_retry('SUSEConnect -s', timeout => 240, retry => 3, delay => 60));
-    my ($running_version, $sp, $host_distri) = get_os_release;
     foreach (@$json) {
         if ($_->{identifier} =~ 'sle-module-containers' && $_->{status} =~ '^Registered') {
             $registered = 1;
@@ -70,7 +69,7 @@ sub install_oci_runtime {
 }
 
 sub install_podman_when_needed {
-    my $host_os = shift;
+    my ($running_version, $sp, $host_os) = get_os_release;
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os =~ /centos|rhel/) {
@@ -79,7 +78,7 @@ sub install_podman_when_needed {
             script_retry("apt-get -y install @pkgs", timeout => 300);
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-            activate_containers_module if $host_os =~ 'sle';
+            activate_containers_module if ($host_os =~ 'sle' && $running_version =~ "16");
             zypper_call "in @pkgs";
             install_oci_runtime("podman");
         }
@@ -92,7 +91,7 @@ sub install_podman_when_needed {
 }
 
 sub install_docker_when_needed {
-    my $host_os = shift;
+    my ($running_version, $sp, $host_os) = get_os_release;
     if (script_run("which docker") != 0) {
         my $ltss_needed = 0;
         if (is_transactional) {
@@ -110,7 +109,7 @@ sub install_docker_when_needed {
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module unless is_sle('=12-SP5') && is_aarch64;
+                activate_containers_module unless ($running_version =~ "16");
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
@@ -147,7 +146,7 @@ sub install_docker_when_needed {
 }
 
 sub install_buildah_when_needed {
-    my $host_os = shift;
+    my ($running_version, $sp, $host_os) = get_os_release;
     if (script_run("which buildah") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y update", timeout => 900;

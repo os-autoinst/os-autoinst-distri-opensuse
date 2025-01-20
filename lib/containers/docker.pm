@@ -12,12 +12,10 @@ use testapi;
 use containers::utils qw(registry_url);
 use containers::common qw(install_docker_when_needed);
 use utils qw(systemctl file_content_replace);
-use version_utils qw(get_os_release);
 has runtime => 'docker';
 
 sub init {
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
+    install_docker_when_needed();
     configure_insecure_registries();
 }
 

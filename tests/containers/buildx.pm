@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: buildx
@@ -15,7 +15,6 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
-use version_utils qw(get_os_release);
 use containers::common qw(install_docker_when_needed install_packages);
 
 my $test_image = "test_buildx";
@@ -24,9 +23,7 @@ my $test_container = "test_buildx";
 sub run {
     select_serial_terminal;
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
-
+    install_docker_when_needed();
     install_packages('docker-buildx');
 
     my $docker_info = script_output("docker info");
