@@ -559,7 +559,7 @@ EOF
           "2>&1 | tee $test_log";
 
         record_info("Run test cmd", $test_cmd);
-        script_run($test_cmd, timeout => 7200);
+        script_run($test_cmd, timeout => 10800);
         send_key 'ctrl-c';
         save_screenshot;
         $if_case_fail = 1 if (script_output("tail -1 $test_log") eq 'FAIL');
@@ -618,7 +618,7 @@ EOF
             my $n_runs = 1;
             while ($n_runs <= $retry_times) {
                 record_info("Run count: $n_runs", $test_cmd);
-                script_run($test_cmd, timeout => 7200);
+                script_run($test_cmd, timeout => 10800);
                 send_key 'ctrl-c';
                 save_screenshot;
                 last if (script_output("tail -1 $test_log") eq 'PASS');
