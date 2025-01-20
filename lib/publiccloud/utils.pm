@@ -132,6 +132,8 @@ sub register_addon {
 
     if ($addon =~ /ltss/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . get_required_var('SCC_REGCODE_LTSS'), timeout => $timeout, retries => $retries, delay => $delay);
+    } elsif (is_ondemand) {
+        record_info($addon, 'This is on demand image, we will not register this addon.');
     } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '`echo ${VERSION} | cut -d- -f1`', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
     } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
