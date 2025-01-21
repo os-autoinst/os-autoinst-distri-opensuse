@@ -193,11 +193,6 @@ sub load_host_tests_docker {
     }
 }
 
-sub load_host_tests_multi_runtime {
-    my ($run_args) = @_;
-    loadtest('containers/podman_docker_interop', run_args => $run_args);
-}
-
 sub load_host_tests_containerd_crictl {
     loadtest 'containers/containerd_crictl';
 }
@@ -365,7 +360,7 @@ sub load_container_tests {
             loadtest 'console/enable_mac' if get_var("SECURITY_MAC");
             load_host_tests_podman($run_args) if (/podman/i);
             load_host_tests_docker($run_args) if (/docker/i);
-            load_host_tests_multi_runtime($run_args) if (/multi_runtime/i);
+            loadtest 'containers/multi_runtime' if (/multi_runtime/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
             loadtest('containers/kubectl') if (/kubectl/i);
