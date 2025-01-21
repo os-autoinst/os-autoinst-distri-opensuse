@@ -5,7 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#40358, poo#105202, tc#1769801
 
-use base 'opensusebasetest';
+use base 'selinuxtest';
 use strict;
 use warnings;
 use testapi;
