@@ -1,0 +1,17 @@
+---
+name: saptune_on_pvm
+description: >
+  SLES4SAP Installation on pvm_hmc and test saptune.
+vars:
+  AUTOMATED_REGISTER: 'false'
+  DESKTOP: 'textmode'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: 'HA1'
+  INSTANCE_TYPE: 'HDB'
+  MULTIPATH_CONFIRM: 'yes'
+schedule:
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/saptune/mr_test
