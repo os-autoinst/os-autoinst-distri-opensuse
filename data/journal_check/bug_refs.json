@@ -267,7 +267,7 @@
         "description": "fail to add MMCONFIG information, can't access extended (PCI|.*configuration) space under this bridge|PCI: System does not support PCI",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
@@ -352,8 +352,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
-
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
@@ -381,7 +380,7 @@
             "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
             "microos":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
             "opensuse":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": ["15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
@@ -727,7 +726,7 @@
     "minimal vm cloud image - gpt": {
         "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|\\d+ != \\d+)",
         "products": {
-            "sle": ["15-SP6", "15-SP7"],
+            "sle": ["15-SP6", "15-SP7", "16.0"],
             "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
