@@ -501,8 +501,9 @@ sub terraform_apply {
             record_info('INFO', "Creating instance $instance_type from $image_id ...");
         }
         if (is_ec2) {
-            $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
             $vars{availability_zone} = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
+            die('Instance type not supported by the selected Availability Zone') if ($vars{availability_zone} == "None");
+            $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
             $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
             $vars{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
         } elsif (is_azure) {
