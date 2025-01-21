@@ -23,14 +23,10 @@ sub run {
     select_serial_terminal;
 
     # list and verify some (not all as it changes often) boolean(s)
-    validate_script_output(
-        "semanage boolean -l",
-        sub {
-            m/
-            authlogin_.*(off.*,.*off).*
-            daemons_.*(off.*,.*off).*
-            domain_.*(off.*,.*off).*/sx
-        });
+    my $booleans = script_output("semanage boolean -l");
+    for my $prefix (qw(authlogin_ daemons_ domain_)) {
+        die "Missing boolean ${prefix}*" unless $booleans =~ m/^${prefix}.*\(off.*,.*off\)/m;
+    }
 
     # test option "-m": to set boolean value "off/on"
     assert_script_run("semanage boolean -m --off $test_boolean");
