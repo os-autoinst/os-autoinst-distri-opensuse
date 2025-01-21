@@ -46,22 +46,6 @@ subtest '[qesap_az_calculate_address_range]' => sub {
     dies_ok { qesap_az_calculate_address_range(slot => 8193); } "Expected die for slot > 8192";
 };
 
-subtest '[qesap_az_get_vnet]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DIVER'; });
-
-    my $result = qesap_az_get_vnet('AUSTRALIA');
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az network vnet list.*/ } @calls), 'az command properly composed');
-    ok($result eq 'DIVER', 'function return is equal to the script_output return');
-};
-
-subtest '[qesap_az_get_vnet] no resource_group' => sub {
-    dies_ok { qesap_az_get_vnet() } "Expected die for missing resource_group";
-};
-
 subtest '[qesap_az_vnet_peering] missing group arguments' => sub {
     dies_ok { qesap_az_vnet_peering() } "Expected die for missing arguments";
     dies_ok { qesap_az_vnet_peering(source_group => 'JELLYFISH') } "Expected die for missing target_group";
@@ -71,9 +55,10 @@ subtest '[qesap_az_vnet_peering] missing group arguments' => sub {
 subtest '[qesap_az_vnet_peering]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    $qesap->redefine(qesap_az_get_vnet => sub {
-            return 'VNET_JELLYFISH' if ($_[0] =~ /JELLYFISH/);
-            return 'VNET_SQUID' if ($_[0] =~ /SQUID/);
+    $qesap->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            return 'VNET_JELLYFISH' if ($args{resource_group} =~ /JELLYFISH/);
+            return 'VNET_SQUID' if ($args{resource_group} =~ /SQUID/);
             return 'VNET_UNKNOWN';
     });
     $qesap->redefine(script_output => sub { push @calls, $_[0];
@@ -109,8 +94,9 @@ subtest '[qesap_az_vnet_peering_delete]' => sub {
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(record_soft_failure => sub { note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
-    $qesap->redefine(qesap_az_get_vnet => sub {
-            return 'VNET_WHALE' if ($_[0] =~ /WHALE/);
+    $qesap->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            return 'VNET_WHALE' if ($args{resource_group} =~ /WHALE/);
             return;
     });
 
@@ -133,8 +119,9 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
     $qesap->redefine(record_soft_failure => sub {
             push @soft_failure, $_[0];
             note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
-    $qesap->redefine(qesap_az_get_vnet => sub {
-            return 'VNET_WHALE' if ($_[0] =~ /WHALE/);
+    $qesap->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            return 'VNET_WHALE' if ($args{resource_group} =~ /WHALE/);
             return;
     });
 

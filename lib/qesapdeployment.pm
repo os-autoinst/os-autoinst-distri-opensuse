@@ -93,7 +93,6 @@ our @EXPORT = qw(
   qesap_import_instances
   qesap_file_find_string
   qesap_is_job_finished
-  qesap_az_get_vnet
   qesap_az_get_resource_group
   qesap_az_calculate_address_range
   qesap_az_vnet_peering
@@ -1899,29 +1898,6 @@ sub qesap_is_job_finished {
     return ($job_state ne 'running');
 }
 
-=head3 qesap_az_get_vnet
-
-Return the output of az network vnet list
-
-=over
-
-=item B<RESOURCE_GROUP> - resource group name to query
-
-=back
-=cut
-
-sub qesap_az_get_vnet {
-    my ($resource_group) = @_;
-    croak 'Missing mandatory resource_group argument' unless $resource_group;
-
-    my $cmd = join(' ', 'az network',
-        'vnet list',
-        '-g', $resource_group,
-        '--query "[0].name"',
-        '-o tsv');
-    return script_output($cmd, 180);
-}
-
 =head3 qesap_az_get_resource_group
 
 Query and return the resource group used
@@ -1996,8 +1972,8 @@ sub qesap_az_calculate_address_range {
 sub qesap_az_vnet_peering {
     my (%args) = @_;
     foreach (qw(source_group target_group)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    my $source_vnet = qesap_az_get_vnet($args{source_group});
-    my $target_vnet = qesap_az_get_vnet($args{target_group});
+    my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => "[0].name");
+    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => "[0].name");
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
     my $vnet_show_cmd = 'az network vnet show --query id --output tsv';
@@ -2100,7 +2076,7 @@ sub qesap_az_vnet_peering_delete {
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $target_vnet = qesap_az_get_vnet($args{target_group});
+    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => "[0].name");
 
     my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
@@ -2113,7 +2089,7 @@ sub qesap_az_vnet_peering_delete {
     my $source_ret = 0;
     record_info('Destroying job_resources->IBSM peering');
     if ($args{source_group}) {
-        my $source_vnet = qesap_az_get_vnet($args{source_group});
+        my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => "[0].name");
         $source_ret = qesap_az_simple_peering_delete(
             rg => $args{source_group},
             vnet_name => $source_vnet,
@@ -2185,7 +2161,7 @@ sub qesap_az_get_peering_name {
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
 
     my $job_id = get_current_job_id();
-    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{resource_group}, vnet => qesap_az_get_vnet($args{resource_group}));
+    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{resource_group}, vnet => az_network_vnet_get(resource_group => $args{resource_group}, query => "[0].name"));
     $cmd .= ' | grep ' . $job_id;
     return script_output($cmd, proceed_on_failure => 1);
 }

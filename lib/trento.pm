@@ -37,6 +37,7 @@ use Carp;
 use utils qw(script_retry random_string);
 use testapi;
 use qesapdeployment;
+use sles4sap::azure_cli;
 
 use Exporter 'import';
 
@@ -930,9 +931,9 @@ sub cluster_trento_net_peering {
     my $cmd = join(' ',
         $basedir . '/00.050-trento_net_peering_tserver-sap_group.sh',
         '-s', $trento_rg,
-        '-n', qesap_az_get_vnet($trento_rg),
+        '-n', az_network_vnet_get(resource_group => $trento_rg, query => "[0].name"),
         '-t', $cluster_rg,
-        '-a', qesap_az_get_vnet($cluster_rg));
+        '-a', az_network_vnet_get(resource_group => $cluster_rg, query => "[0].name"));
     record_info('NET PEERING');
     assert_script_run($cmd, 360);
 }
