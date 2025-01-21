@@ -1,10 +1,14 @@
 ---
 name: agama unattended lvm
 description: >
-  Perform agama unattended installation with LVM.
+  Perform agama unattended installation with LVM on s390x and ppc64le.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_auto
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - yam/agama/agama_reboot
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm
+test_data:
+  <<: !include test_data/yam/agama_sle.yaml

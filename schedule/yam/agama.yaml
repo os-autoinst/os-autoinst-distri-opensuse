@@ -4,8 +4,10 @@ description: >
   Perform interactive installation with agama.
 schedule:
   - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
+  - yam/agama/agama_reboot
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_product

@@ -4,9 +4,7 @@ description: >
   Perform agama unattended installation with non default root filesystem.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/patch_agama_tests
-  - yam/agama/agama
-  - boot/reconnect_mgmt_console
+  - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
   - console/validate_partition_table
