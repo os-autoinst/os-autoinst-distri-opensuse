@@ -31,82 +31,82 @@ our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles15sp2HVM => {
-            name => 'sles15sp2HVM',
-            autoyast => 'autoyast_xen/sles15sp2HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',    # sle15sp2 is unknown on 12.3
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            name         => 'sles15sp2HVM',
+            autoyast     => 'autoyast_xen/sles15sp2HVM_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',       # sle15sp2 is unknown on 12.3
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp2PV => {
-            name => 'sles15sp2PV',
-            autoyast => 'autoyast_xen/sles15sp2PV_PRG.xml',
+            name         => 'sles15sp2PV',
+            autoyast     => 'autoyast_xen/sles15sp2PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',    # sle15sp2 is unknown on 12.3
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp3PV => {
-            name => 'sles15sp3PV',
-            autoyast => 'autoyast_xen/sles15sp3PV_PRG.xml',
+            name         => 'sles15sp3PV',
+            autoyast     => 'autoyast_xen/sles15sp3PV_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp3HVM => {
-            name => 'sles15sp3HVM',
-            autoyast => 'autoyast_xen/sles15sp3HVM_PRG.xml',
+            name         => 'sles15sp3HVM',
+            autoyast     => 'autoyast_xen/sles15sp3HVM_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles12sp5HVM => {
-            name => 'sles12sp5HVM',
-            autoyast => 'autoyast_xen/sles12sp5HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',    # old system compatibility
-            distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            name         => 'sles12sp5HVM',
+            autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',            # old system compatibility
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles12sp5PV => {
-            name => 'sles12sp5PV',
-            autoyast => 'autoyast_xen/sles12sp5PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',    # old system compatibility
-            distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            name         => 'sles12sp5PV',
+            autoyast     => 'autoyast_xen/sles12sp5PV_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',       # old system compatibility
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles15sp4PV => {
-            name => 'sles15sp4PV',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp4PV',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15_SP4',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp4HVM => {
-            name => 'sles15sp4HVM',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp4HVM',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15_SP4',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5PV => {
-            name => 'sles15sp5PV',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp5PV',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5HVM => {
-            name => 'sles15sp5HVM',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp5HVM',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp6PV => {
-            name => 'sles15sp6PV',
+            name         => 'sles15sp6PV',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         },
         sles15sp6HVM => {
-            name => 'sles15sp6HVM',
+            name         => 'sles15sp6HVM',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -148,50 +148,50 @@ if (get_var("REGRESSION", '') =~ /xen/) {
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
-            name => 'sles12sp3',
-            autoyast => 'autoyast_kvm/sles12sp3_PRG.xml',
+            name         => 'sles12sp3',
+            autoyast     => 'autoyast_kvm/sles12sp3_PRG.xml',
             extra_params => '--os-variant sles12sp3',
-            distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            distro       => 'SLE_12_SP3',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
         },
         sles15sp2 => {
-            name => 'sles15sp2',
-            autoyast => 'autoyast_kvm/sles15sp2_PRG.xml',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade (originally sle15sp2)
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            name         => 'sles15sp2',
+            autoyast     => 'autoyast_kvm/sles15sp2_PRG.xml',
+            extra_params => '--os-variant sle15-unknown',                                          # problems after kernel upgrade (originally sle15sp2)
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp3 => {
-            name => 'sles15sp3',
-            autoyast => 'autoyast_kvm/sles15sp3_PRG.xml',
+            name         => 'sles15sp3',
+            autoyast     => 'autoyast_kvm/sles15sp3_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles12sp5 => {
-            name => 'sles12sp5',
-            autoyast => 'autoyast_kvm/sles12sp5_PRG.xml',
-            extra_params => '--os-variant sles12sp4',    # old system compatibility
-            distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            name         => 'sles12sp5',
+            autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
+            extra_params => '--os-variant sles12sp4',                                                    # old system compatibility
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles15sp4 => {
-            name => 'sles15sp4',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp4',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5 => {
-            name => 'sles15sp5',
-            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            name         => 'sles15sp5',
+            extra_params => '--os-variant sle15-unknown',                                                # problems after kernel upgrade
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp6 => {
-            name => 'sles15sp6',
+            name         => 'sles15sp6',
             extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -249,6 +249,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2 => {
             name => 'sles15sp2',
         },
+        sles15sp2TD => {
+            name => 'sles15sp2TD',
+        },
         sles15sp3 => {
             name => 'sles15sp3',
         },
@@ -278,7 +281,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles12sp5ES => {
             vm_name => 'sles-12.5_openQA-virtualization-maintenance-ES',
         },
-        sles15sp2 => {
+        sles15sp2TD => {
             vm_name => 'sles-15.2_openQA-virtualization-maintenance',
         },
         sles15sp3 => {
@@ -304,28 +307,28 @@ our %imports = ();    # imports are virtual machines that we don't install but j
 if (get_var("REGRESSION", '') =~ /xen/) {
     %imports = (
         win2k19 => {
-            name => 'win2k19',
-            extra_params => '--connect xen:/// --hvm --os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
-            disk => '/var/lib/libvirt/images/win2k19.raw',
-            source => '/mnt/virt_images/xen/win2k19.raw',
-            macaddress => '52:54:00:78:73:66',
-            version => 'Microsoft Windows Server 2019',
-            memory => 4096,
-            vcpus => 4,
+            name          => 'win2k19',
+            extra_params  => '--connect xen:/// --hvm --os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
+            disk          => '/var/lib/libvirt/images/win2k19.raw',
+            source        => '/mnt/virt_images/xen/win2k19.raw',
+            macaddress    => '52:54:00:78:73:66',
+            version       => 'Microsoft Windows Server 2019',
+            memory        => 4096,
+            vcpus         => 4,
             network_model => "e1000",
         },
     );
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %imports = (
         win2k19 => {
-            name => 'win2k19',
-            extra_params => '--os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
-            disk => '/var/lib/libvirt/images/win2k19.raw',
-            source => '/mnt/virt_images/kvm/win2k19.raw',
-            macaddress => '52:54:00:78:73:66',
-            version => 'Microsoft Windows Server 2019',
-            memory => 4096,
-            vcpus => 4,
+            name          => 'win2k19',
+            extra_params  => '--os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
+            disk          => '/var/lib/libvirt/images/win2k19.raw',
+            source        => '/mnt/virt_images/kvm/win2k19.raw',
+            macaddress    => '52:54:00:78:73:66',
+            version       => 'Microsoft Windows Server 2019',
+            memory        => 4096,
+            vcpus         => 4,
             network_model => "e1000",
         },
     );
