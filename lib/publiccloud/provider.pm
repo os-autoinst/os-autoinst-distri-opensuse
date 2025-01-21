@@ -553,14 +553,17 @@ sub terraform_apply {
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
     # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
-    my $tf_apply_output = script_output("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", timeout => $terraform_timeout, proceed_on_failure => 1);
-    my $exit_code = script_output('echo $?');
+    my $ret = script_run("set -o pipefail; TF_LOG=$tf_log terraform apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+    my $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
+
+    record_info("TFM apply output", $tf_apply_output);
+    record_info("TFM apply exit code", $ret);
 
     # when testing instances that have nvidia gpus,
     # the zone (i.e. "sub-region") might not have them available and
     # suggest other zones instead (the pattern is GCE specific)
-    if ($exit_code != 0 && get_var('PUBLIC_CLOUD_NVIDIA') && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone\. Consider trying your request in the (.*) zone\(s\)/)) {
+    if ($ret != 0 && get_var('PUBLIC_CLOUD_NVIDIA') && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone\. Consider trying your request in the (.*) zone\(s\)/)) {
         # split captured suggestions by a ',' char, trim whitespace
         my @alternative_zones = split /\s*,\s*/, $1;
         record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
@@ -570,12 +573,15 @@ sub terraform_apply {
             $vars{region} = $zone;
             $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
             script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-            $exit_code = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", timeout => $terraform_timeout, proceed_on_failure => 1);
-            last if $exit_code == 0;
+            $ret = script_run("set -o pipefail; TF_LOG=$tf_log terraform apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+            $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
+            record_info("TFM apply output", $tf_apply_output);
+            record_info("TFM apply exit code", $ret);
+            last if $ret == 0;
         }
     }
 
-    unless ($exit_code == 0) {
+    unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
         }
@@ -589,7 +595,7 @@ sub terraform_apply {
         $self->on_terraform_apply_timeout();
         die('Terraform apply failed with timeout');
     }
-    die('Terraform exit with ' . $exit_code) if ($exit_code != 0);
+    die('Terraform exit with ' . $ret) if ($ret != 0);
 
     # 4) Terraform output
 
