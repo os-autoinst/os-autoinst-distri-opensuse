@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test rootless mode on docker.
@@ -22,7 +22,6 @@ use containers::common;
 use containers::docker;
 use containers::container_images;
 use Utils::Architectures;
-use version_utils qw(get_os_release);
 use containers::common qw(install_docker_when_needed);
 
 sub run {
@@ -30,8 +29,7 @@ sub run {
     select_serial_terminal;
     my $user = $testapi::username;
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
+    install_docker_when_needed();
 
     my $docker = containers::docker->new();
 

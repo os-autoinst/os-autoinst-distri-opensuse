@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2024 SUSE LLC
+# Copyright 2022-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Copying and distribution of this file, with or without modification,
@@ -19,14 +19,12 @@ use utils 'systemctl';
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common 'install_docker_when_needed';
-use version_utils 'get_os_release';
 
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
+    install_docker_when_needed();
 
     # Initialize the AWS provider
     my $provider = $self->provider_factory();
