@@ -229,12 +229,13 @@ sub t09_basic() {
 }
 
 sub t10_basic() {
-    my $name = 'pdsh-slurm over mrsh';
-    my $description = 'Basic check of pdsh-slurm over mrsh';
+    my $sh = is_sle('15-sp7+') ? 'ssh' : 'mrsh';
+    my $name = "pdsh-slurm over $sh";
+    my $description = "Basic check of pdsh-slurm over $sh";
     my $result = 0;
 
     my $sinfo_nodeaddr = script_output('sinfo -a --Format=nodeaddr -h');
-    my $pdsh_nodes = script_output("runuser -l nobody -c 'pdsh -R mrsh -P minor /usr/bin/hostname'");
+    my $pdsh_nodes = script_output("runuser -l nobody -c 'pdsh -R $sh -P minor /usr/bin/hostname'");
     my @sinfo_nodeaddr = (split ' ', $sinfo_nodeaddr);
 
     foreach my $i (@sinfo_nodeaddr) {

@@ -14,6 +14,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
+use version_utils 'is_sle';
 
 our $file = 'tmpresults.xml';
 
@@ -39,8 +40,9 @@ sub run ($self) {
 
     $self->switch_user('nobody');
     my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '-g type=genders-test' : '';
-    $rt = (assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log")) ? 1 : 0;
-    test_case('Run remotelly mrsh module on the server', 'pdsh remote invocation', $rt);
+    my $sh = is_sle('15-sp7+') ? 'ssh' : 'mrsh';
+    $rt = (assert_script_run("pdsh -R $sh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log")) ? 1 : 0;
+    test_case("Run remotelly over $sh", 'pdsh remote invocation', $rt);
     assert_script_run("test -s /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';
     barrier_wait("PDSH_SLAVE_DONE");
