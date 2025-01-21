@@ -1,27 +1,26 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE}}'
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true,
-    userName: 'bernhard'
+    userName: 'bernhard',
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
   },
   storage: {
     drives: [
       {
         partitions: [
           { generate: 'default' },
-          { filesystem: { path: '/', type: 'ext4' } }
-        ]
-      }
-    ]
+          { filesystem: { path: '/', type: 'ext4' } },
+        ],
+      },
+    ],
   },
   scripts: {
     post: [
@@ -31,8 +30,8 @@
         body: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-        |||
-      }
-    ]
-  }
+        |||,
+      },
+    ],
+  },
 }
