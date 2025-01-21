@@ -28,6 +28,7 @@ use Utils::Architectures 'is_ppc64le';
 use warnings;
 use virt_autotest::hyperv_utils 'hyperv_cmd';
 use transactional qw(process_reboot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -121,6 +122,22 @@ sub run {
 
     # stop and disable PackageKit
     quit_packagekit;
+    ########
+    record_info "agama pscc de-register";
+    zypper_call('in suseconnect-ng');
+    assert_script_run("suseconnect -d");
+    record_info "agama pscc register";
+    my $regcode = get_var('SCC_REGCODE');
+    my $regurl = get_var('SCC_URL');
+    assert_script_run("suseconnect -r $regcode --url $regurl");
+    zypper_call("up", timeout => 300);
+    # Reboot to make settings work and change grub timeout
+    assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=45/\' /etc/default/grub');
+    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
+    power_action('reboot', textmode => 1);
+    $self->wait_boot;
+    select_console 'root-console';
+    ########
 }
 
 sub test_flags {
