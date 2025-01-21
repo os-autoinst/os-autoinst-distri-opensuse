@@ -1661,12 +1661,19 @@ sub qesap_aws_filter_query {
 
     Return the Transient Gateway ID of the IBS Mirror
 
+=over
+
+=item B<MIRROR_TAG> - Value of Project tag applied to the IBS Mirror
+
+=back
 =cut
 
 sub qesap_aws_get_mirror_tg {
+    my (%args) = @_;
+    croak "Missing mandatory $_ argument" unless $args{mirror_tag};
     return qesap_aws_filter_query(
         cmd => 'describe-transit-gateways',
-        filter => '"Name=tag-key,Values=Project" "Name=tag-value,Values=IBS Mirror"',
+        filter => '"Name=tag-key,Values=Project" "Name=tag-value,Values=' . $args{mirror_tag} . '"',
         query => '"TransitGateways[].TransitGatewayId"'
     );
 }
@@ -1730,14 +1737,16 @@ sub qesap_aws_get_routing {
 
 =item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
 
+=item B<MIRROR_TAG> - Value of Project tag applied to the IBS Mirror
+
 =back
 =cut
 
 sub qesap_aws_vnet_peering {
     my (%args) = @_;
-    foreach (qw(target_ip vpc_id)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(target_ip vpc_id mirror_tag)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my $trans_gw_id = qesap_aws_get_mirror_tg();
+    my $trans_gw_id = qesap_aws_get_mirror_tg(mirror_tag => $args{mirror_tag});
     unless ($trans_gw_id) {
         record_info('AWS PEERING', 'Empty trans_gw_id');
         return 0;

@@ -30,7 +30,7 @@ sub run {
         my $vpc_id = qesap_aws_get_vpc_id(resource_group => $self->deployment_name() . '*');
         die "No vpc_id in this deployment" if $vpc_id eq 'None';
         my $ibs_mirror_target_ip = get_required_var('IBSM_IPRANGE');    # '10.254.254.240/28'
-        die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id);
+        die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id, mirror_tag => get_var('IBSM_PRJ_TAG', 'IBS Mirror'));
     }
     $run_args->{network_peering_present} = $self->{network_peering_present} = 1;
 }

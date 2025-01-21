@@ -31,8 +31,9 @@ subtest '[qesap_aws_get_vpc_id]' => sub {
 };
 
 subtest '[qesap_aws_vnet_peering] died args' => sub {
-    dies_ok { qesap_aws_vnet_peering(target_ip => 'OCEAN') } "Expected die for missing vpc_id";
-    dies_ok { qesap_aws_vnet_peering(vpc_id => 'OCEAN') } "Expected die for missing target_ip";
+    dies_ok { qesap_aws_vnet_peering(target_ip => 'OCEAN', mirror_tag => 'BLUE') } "Expected die for missing vpc_id";
+    dies_ok { qesap_aws_vnet_peering(vpc_id => 'OCEAN', mirror_tag => 'BLUE') } "Expected die for missing target_ip";
+    dies_ok { qesap_aws_vnet_peering(target_ip => 'OCEAN', vpc_id => 'OCEAN') } "Expected die for missing mirror_tag";
 };
 
 subtest '[qesap_aws_get_region_subnets]' => sub {
@@ -319,7 +320,7 @@ subtest '[qesap_aws_get_mirror_tg]' => sub {
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'tgw-00deadbeef00'; });
 
-    my $res = qesap_aws_get_mirror_tg();
+    my $res = qesap_aws_get_mirror_tg(mirror_tag => 'BLUE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /aws ec2 describe-transit-gateways/ } @calls), 'Composition of describe-transit-gateways command');
@@ -361,7 +362,7 @@ subtest '[qesap_aws_vnet_peering]' => sub {
     $qesap->redefine(qesap_aws_get_routing => sub { return 'rtb-00deadbeef00'; });
     $qesap->redefine(qesap_aws_get_vpc_workspace => sub { return 'VPC_TAG_NAME'; });
 
-    qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON');
+    qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON', mirror_tag => 'BLUE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /qesap_aws_add_route_to_tgw/ } @calls), 'qesap_aws_add_route_to_tgw called');
@@ -384,25 +385,25 @@ subtest '[qesap_aws_vnet_peering] died when aws does not return expected output'
 
     my $res;
     $tgw_return = '';
-    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON');
+    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON', mirror_tag => 'BLUE');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok !$res, 'Expected die for missing return from qesap_aws_vnet_peering.';
 
     $tgw_return = 'tgw-00deadbeef00';
     $vpc_name = '';
-    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON');
+    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON', mirror_tag => 'BLUE');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok !$res, 'Expected die for missing return from qesap_aws_get_vpc_workspace.';
 
     $vpc_name = 'VPC_TAG_NAME';
     @subnets = ();
-    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON');
+    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON', mirror_tag => 'BLUE');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok !$res, 'Expected die for missing return from qesap_aws_get_region_subnets.';
 
     @subnets = ('subnet-00000000000000000', 'subnet-11111111111111111');
     $routing_id = '';
-    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON');
+    $res = qesap_aws_vnet_peering(target_ip => '10.0.0.1/28', vpc_id => 'PLANKTON', mirror_tag => 'BLUE');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok !$res, 'Expected die for missing return from qesap_aws_get_routing.';
     $routing_id = 'rtb-00deadbeef00';
