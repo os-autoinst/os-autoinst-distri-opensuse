@@ -78,7 +78,7 @@ sub install_podman_when_needed {
             script_retry("apt-get -y install @pkgs", timeout => 300);
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-            activate_containers_module if ($host_os =~ 'sle' && $running_version =~ "16");
+            activate_containers_module if ($host_os =~ 'sle' && $running_version =~ "15");
             zypper_call "in @pkgs";
             install_oci_runtime("podman");
         }
@@ -109,7 +109,7 @@ sub install_docker_when_needed {
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module unless ($running_version =~ "16");
+                activate_containers_module if ($running_version =~ "12|15");
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
@@ -158,7 +158,7 @@ sub install_buildah_when_needed {
             script_retry('dnf update -y', timeout => 300);
             script_retry('dnf install -y buildah', timeout => 300);
         } else {
-            activate_containers_module if $host_os =~ 'sle';
+            activate_containers_module if ($host_os =~ 'sle' && $running_version =~ "12|15");
             zypper_call('in buildah', timeout => 300);
         }
     }
