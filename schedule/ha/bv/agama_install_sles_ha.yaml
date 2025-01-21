@@ -1,0 +1,20 @@
+---
+name: agama_install_sles_ha
+description: >
+  Agama installation tests for plain SLES HA.
+  Can be used to generate a qcow2 image.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/first_boot
+  - console/system_prepare
+  - '{{generate_image}}'
+conditional_schedule:
+  generate_image:
+    GENERATE_IMAGE:
+      1:
+        - console/hostname
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
