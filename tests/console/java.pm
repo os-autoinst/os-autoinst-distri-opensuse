@@ -35,7 +35,7 @@ sub run {
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module
-    if (is_sle && !(is_updates_tests || is_migration_tests)) {
+    if (is_sle("<16") && !(is_updates_tests || is_migration_tests)) {
         if (is_transactional) {
             trup_call("register -p sle-module-legacy/$version_id/$arch");
         } else {
