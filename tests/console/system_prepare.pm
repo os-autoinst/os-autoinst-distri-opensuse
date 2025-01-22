@@ -16,7 +16,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use zypper;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_agama);
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
@@ -121,6 +121,19 @@ sub run {
 
     # stop and disable PackageKit
     quit_packagekit;
+    ########
+    # Workaround to install sle16 in beta1
+    # Don't register the system during the installation and use daily build as install url
+    # Register the system once installation done
+    if (is_agama && is_sle) {
+        zypper_call('in suseconnect-ng');
+        record_info "agama pscc register";
+        my $regcode = (get_var('AGAMA_PRODUCT_ID') =~ /SAP/) ? get_var('SCC_REGCODE_SLES4SAP') : get_var('SCC_REGCODE');
+        my $regurl = get_var('SCC_URL');
+        assert_script_run("suseconnect -r $regcode --url $regurl");
+    }
+    ########
+
 }
 
 sub test_flags {

@@ -6,3 +6,4 @@ schedule:
     - installation/bootloader
     - installation/agama_reboot
     - installation/first_boot
+    - console/system_prepare
