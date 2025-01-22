@@ -24,7 +24,7 @@ sub run {
     # setup
     select_serial_terminal;
 
-    add_suseconnect_product('sle-module-desktop-applications') if is_sle && !main_common::is_updates_tests();
+    add_suseconnect_product('sle-module-desktop-applications') if (is_sle("<16") && !main_common::is_updates_tests());
     zypper_call 'in vorbis-tools libvorbis0';
     # download ogg sample
     assert_script_run 'curl -v -o sample.ogg ' . data_url('libvorbis/glass.ogg');
