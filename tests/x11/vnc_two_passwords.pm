@@ -50,6 +50,8 @@ sub start_vnc_server {
     # Disable remote administration from previous tests
     script_run 'systemctl stop vncmanager';
 
+    select_console "user-console";
+
     # Create password file
     enter_cmd "tput civis";
     type_and_wait "vncpasswd /tmp/file.passwd";
@@ -66,7 +68,7 @@ sub start_vnc_server {
 
     # Also set the password via `vncpasswd -f` for vncserver and to test for https://bugzilla.opensuse.org/show_bug.cgi?id=1171519
     assert_script_run('umask 0077');
-    script_run('mkdir $HOME/.vnc');
+    script_run('mkdir -Z $HOME/.vnc');
     assert_script_run('chmod go-rwx "$HOME/.vnc"');
     if (script_run("echo \"$options[1]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[0]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
         record_soft_failure('vncpasswd crashes - bsc#1171519');
@@ -115,7 +117,7 @@ sub configure_vnc_server {
     # Config done following this guide:
     # https://github.com/TigerVNC/tigervnc/blob/master/unix/vncserver/HOWTO.md
     #   1. Add a user mapping
-    assert_script_run("echo -e \"$display=root\\n\" >> /etc/tigervnc/vncserver.users");
+    assert_script_run("echo -e \"$display=${testapi::username}\\n\" >> /etc/tigervnc/vncserver.users");
     #   2. Configure Xvnc options
     assert_script_run('echo -e "session=gnome\ngeometry=1024x768\ndepth=16" >> /etc/tigervnc/vncserver-config-defaults');
     #   3. Set VNC password
