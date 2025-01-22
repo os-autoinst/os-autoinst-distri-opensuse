@@ -100,10 +100,11 @@ subtest '[cluster_trento_net_peering] cluster_trento_net_peering has to compose 
     my $expected_net_name = 'PIZZANET';
     $trento->redefine(get_resource_group => sub { return 'VALLUTATA'; });
     $trento->redefine(qesap_az_get_resource_group => sub { return 'ZUPPA'; });
-    $trento->redefine(qesap_az_get_vnet => sub {
-            push @calls, $_[0];
-            return "PIATTO_DI_VALLUTATA" if ($_[0] =~ /VALLUTATA/);
-            return "PIATTO_DI_ZUPPA" if ($_[0] =~ /ZUPPA/);
+    $trento->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            push @calls, $args{resource_group};
+            return "PIATTO_DI_VALLUTATA" if ($args{resource_group} =~ /VALLUTATA/);
+            return "PIATTO_DI_ZUPPA" if ($args{resource_group} =~ /ZUPPA/);
     });
 
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
