@@ -35,10 +35,8 @@ sub run {
     }
     sleep 1;    # at least a second of silence
 
-    # firefox_audio is unstable due to bsc#1048271, we don't want to invest
-    # time in rerunning it, if it fails, so instead of assert, simply soft-fail
     unless (check_recorded_sound 'DTMF-159D') {
-        record_soft_failure 'bsc#1048271';
+        record_info("bsc#1048271", "WONTFIX - Tones are sporadically played with lower frequencies");
     }
     send_key 'alt-f4';
     assert_screen([qw(firefox-save-and-quit generic-desktop)]);
