@@ -242,4 +242,31 @@ subtest '[crm_check_resource_location]' => sub {
       $hostname, "Return correct hostname: $hostname";
 };
 
+subtest '[set_cluster_parameter]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
+
+    set_cluster_parameter(resource => 'Hogwarts', parameter => 'RoomOfRequirement', value => 'open');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /resource param Hogwarts/, @calls), 'Call "resource" option');
+    ok((grep /set/, @calls), 'Specify "set" action');
+    ok((grep /RoomOfRequirement open/, @calls), 'Specify parameter name');
+};
+
+
+subtest '[show_cluster_parameter]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_output => sub { @calls = @_; return 'false'; });
+
+    show_cluster_parameter(resource => 'Hogwarts', parameter => 'RoomOfRequirement');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /resource param Hogwarts/, @calls), 'Call "resource" option');
+    ok((grep /show/, @calls), 'Specify "show" action');
+    ok((grep /RoomOfRequirement/, @calls), 'Specify parameter name');
+};
+
 done_testing;
