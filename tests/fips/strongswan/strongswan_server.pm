@@ -17,12 +17,13 @@ use warnings;
 use utils;
 use lockapi;
 use mmapi qw(wait_for_children get_children);
-use version_utils 'package_version_cmp';
+use version_utils qw(package_version_cmp is_sle);
 
 sub run {
     my $self = shift;
     select_console 'root-console';
     zypper_call 'in strongswan strongswan-hmac tcpdump';
+    zypper_call 'in strongswan-mysql strongswan-sqlite wget' if is_sle('>=16');
 
     my $test_dir = '/root/strongswan';
     my $ca_pem = 'ca.pem';
@@ -43,8 +44,8 @@ sub run {
     }
 
     # Integrate hkdf function test
-    # POO: https://progress.opensuse.org/issues/111581
-    validate_script_output('rpm -q strongswan --changelog', sub { m/bsc#1195919/ });
+    # on SLE >= 15 we have version 5.8.x or greater, which includes the fix.
+    validate_script_output('rpm -q strongswan --changelog', sub { m/bsc#1195919/ }) if is_sle('<15');
     assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -hexdump');
     assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -pkeyopt mode:EXTRACT_ONLY -hexdump');
     assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -pkeyopt mode:EXTRACT_AND_EXPAND -hexdump');
@@ -100,18 +101,18 @@ sub run {
     # Edit /etc/ipsec.secrets
     assert_script_run('echo ": RSA host1.pem" >> /etc/ipsec.secrets');
 
-    # Start stronswan daemon
-    assert_script_run('rcstrongswan start');
+    systemctl 'start strongswan';
 
     mutex_create('STRONGSWAN_HOST1_SERVER_START');
 
     mutex_wait('STRONGSWAN_HOST2_START', (keys %$children)[0]);
 
-    validate_script_output('rcstrongswan status', sub { m/Active: active/ });
+    systemctl 'is-active strongswan';
 
     # Check the tcpdump result
     my $tcpdump_log_file = '/tmp/tcpdump.log';
-    my $pid = background_script_run("tcpdump -n -i eth0 -e \"esp\" -vv > $tcpdump_log_file 2>&1");
+    my $net_device = script_output("ip route | awk '/default/ {print \$5}'");
+    my $pid = background_script_run("tcpdump -n -i $net_device -e \"esp\" -vv > $tcpdump_log_file 2>&1");
     mutex_create('TCPDUMP_READY');
     mutex_wait('PING_DONE', (keys %$children)[0]);
     assert_script_run("kill -15 $pid");

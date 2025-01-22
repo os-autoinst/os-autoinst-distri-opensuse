@@ -13,9 +13,12 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
+
+    zypper_call('in cryptsetup');
 
     my $crypt_pass = "dm#*crypt_iYBJY_rIekeV123";
     my $crypt_tmp = "/tmp/foo";
@@ -35,18 +38,16 @@ sub run {
             my $check = script_run "grep '$i' $bench_log | grep -E -v 'N\/A\\s+N\/A'";
             die "$i should not be supported anywhere!" if ($check eq 0);
         }
-    }
-    elsif ($ret) {
+    } elsif ($ret) {
         die "Benchmark failed with return value $ret";
     }
 
     # Here we check the ciphers in the practice with LUKS support, since
     # cryptsetup benchmark does not support cipher+hash combination as a
     # parameter
-    assert_script_run "dd if=/dev/urandom of=$crypt_tmp bs=4M count=3";
+    assert_script_run "dd if=/dev/urandom of=$crypt_tmp bs=4M count=25";
 
     my @check_list = (
-        {name => "aes", mode => "xts-plain64", hash => "sha1"},
         {name => "aes", mode => "xts-plain64", hash => "md5", no_support => 1},
         {name => "aes", mode => "xts-plain64", hash => "sha256"},
         {name => "aes", mode => "xts-plain", hash => "sha512"},
@@ -54,6 +55,7 @@ sub run {
         {name => "serpent", mode => "xts-plain64", hash => "sha256", no_fips => 1},
         {name => "twofish", mode => "cbc-plain64", hash => "sha1", no_fips => 1},
     );    # Not all the combinations will be checked here
+    push @check_list, {name => "aes", mode => "xts-plain64", hash => "sha1"} if is_sle('<16');
 
     foreach my $c (@check_list) {
         my $cipher = "@$c{name}-@$c{mode}";
@@ -64,20 +66,24 @@ sub run {
             die "$cipher with @$c{hash} verification failed";
         }
 
-        validate_script_output "cryptsetup luksDump $crypt_tmp", sub {
-            m/
-            Cipher\sname:\s+@$c{name}.*
-            Cipher\smode:\s+@$c{mode}.*
-            Hash\sspec:\s+@$c{hash}/sxx
-        };
+        if (is_sle('>=16')) {
+            validate_script_output "cryptsetup luksDump $crypt_tmp", sub {
+                m/
+                .*Cipher:\s+@$c{name}-@$c{mode}.*
+                .*AF\shash:\s+@$c{hash}/sxx
+            };
+        } else {
+            validate_script_output "cryptsetup luksDump $crypt_tmp", sub {
+                m/
+                Cipher\sname:\s+@$c{name}.*
+                Cipher\smode:\s+@$c{mode}.*
+                Hash\sspec:\s+@$c{hash}/sxx
+            };
+        }
 
         assert_script_run "echo -e $crypt_pass | cryptsetup -q luksOpen $crypt_tmp $crypt_dev";
         assert_script_run "cryptsetup luksClose $crypt_dev";
     }
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

@@ -58,15 +58,14 @@ sub run {
     mutex_create('STRONGSWAN_HOST2_UP');
     mutex_wait('STRONGSWAN_HOST1_SERVER_START');
 
-    # Start stronswan daemon
-    assert_script_run('rcstrongswan start');
+    systemctl 'start strongswan';
 
     # Establish the ipsec tunnel
     assert_script_run('ipsec up host-host');
 
     mutex_create('STRONGSWAN_HOST2_START');
 
-    validate_script_output('rcstrongswan status', sub { m/Active: active/ });
+    systemctl 'is-active strongswan';
 
     validate_script_output('ipsec status', sub { m/Routed Connections/ && m/host-host\{\d\}:\s+$local_ip\/32\s===\s$remote_ip\/32/ && m/Security Associations.*1 up/ });
 

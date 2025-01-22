@@ -14,17 +14,21 @@ use base 'consoletest';
 use testapi;
 use Utils::Logging 'save_and_upload_log';
 use serial_terminal 'select_serial_terminal';
+use utils 'zypper_call';
 use version_utils 'is_sle';
 use strict;
 use warnings;
 
 sub run {
     select_serial_terminal;
-    my $timeout = 360;
+
+    zypper_call('in mdadm');
 
     record_info("mdadm build", script_output("rpm -q --qf '%{version}-%{release}' mdadm"));
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
+
+    my $timeout = 360;
     if (is_sle('<15')) {
         if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout)) {
             record_soft_failure 'bsc#1105628';
