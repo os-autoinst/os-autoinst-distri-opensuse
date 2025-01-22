@@ -37,7 +37,9 @@ sub run {
     my $failover_method = $scenario{failover_method};
 
     croak "Failover type $failover_method not supported" unless grep /$failover_method/, @supported_scenarios;
-    record_info('Test INFO', "Performing primary DB failover scenario: $failover_method");
+    record_info('Test INFO', "Performing primary DB failover scenario: $failover_method\n
+    Primary database '$expected_failover_db' will be disrupted\n
+    Failover database '$expected_primary_db' will take over as a primary.\n ");
 
     # Connect to one of the DB nodes and collect topology data
     my %databases = %{$run_args->{redirection_data}{db_hana}};
@@ -49,14 +51,7 @@ sub run {
     my %target_node_data = %{$databases{$expected_primary_db}};
     connect_target_to_serial(
         destination_ip => $target_node_data{ip_address}, ssh_user => $target_node_data{ssh_user}, switch_root => 1);
-    my $node_roles = get_node_roles();
-
-    record_info('Roles', Dumper($node_roles));
-    # Check if cluster node state is correct
-    die "Incorrect cluster state\nExpected primary: '$expected_primary_db'\nCurrent primary: '$node_roles->{primary_node}'" if
-      $expected_primary_db ne $node_roles->{primary_node};
-    die "Incorrect cluster state\nExpected failover: '$expected_failover_db'\nCurrent failover: '$node_roles->{failover_node}'" if
-      $expected_failover_db ne $node_roles->{failover_node};
+    check_node_roles(expected_primary => $expected_primary_db, expected_failover => $expected_failover_db);
 
     # Retrieve database information: DB SID and instance ID
     my @db_data = @{(saphostctrl_list_databases())};
@@ -65,6 +60,8 @@ sub run {
     my ($db_sid, $db_id) = @{parse_instance_name($db_data[0]->{instance_name})};
 
     # Perform failover on primary
+    record_info('Failover', "Performing failover method '$failover_method' on database '$expected_primary_db'");
+    my $node_roles = get_node_roles();
     sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $db_id);
     wait_until_resources_started();
     wait_for_idle_cluster();
@@ -92,7 +89,7 @@ sub run {
     # Wait for database processes to start
     record_info('DB wait', "Waiting for database node '$node_roles->{primary_node}' to start");
     sapcontrol_process_check(
-        instance_id => $db_id, expected_state => 'started', wait_for_state => 'yes', timeout => 600);
+        instance_id => $db_id, expected_state => 'started', wait_for_state => 'yes', timeout => 600, loop_sleep => 60);
     record_info('DB started', "All database node '$node_roles->{primary_node}' processes are 'GREEN'");
 
     # Wait for cluster co come up

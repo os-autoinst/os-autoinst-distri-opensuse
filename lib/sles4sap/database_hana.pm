@@ -20,6 +20,7 @@ our @EXPORT = qw(
   wait_for_takeover
   register_replica
   get_node_roles
+  check_node_roles
   find_hana_resource_name
 );
 
@@ -172,6 +173,36 @@ sub get_node_roles {
         primary_node => get_primary_node(topology_data => $topology),
         failover_node => get_failover_node(topology_data => $topology));
     return (\%result);
+}
+
+=head2 check_node_roles
+
+    check_node_roles(expected_primary=>'Albus', expected_failover=>'Dumbledore');
+
+Checks if expected node roles match current node order. Returns if roles match, otherwise test dies.
+
+=over
+
+=item * B<expected_primary> hostname of expected primary node
+
+=item * B<expected_failover> hostname of expected failover node
+
+=back
+
+=cut
+
+sub check_node_roles {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: expected_primary' unless $args{expected_primary};
+    croak 'Missing mandatory argument: expected_failover' unless $args{expected_failover};
+
+    my $node_roles = get_node_roles();
+    # Check if cluster node state is correct
+    die "Incorrect cluster state\nExpected primary: '$args{expected_primary}'\nCurrent primary: '$node_roles->{primary_node}'" if
+      $args{expected_primary} ne $node_roles->{primary_node};
+    die "Incorrect cluster state\nExpected failover: '$args{expected_failover}'\nCurrent failover: '$node_roles->{failover_node}'" if
+      $args{expected_failover} ne $node_roles->{failover_node};
+    return;
 }
 
 =head2 find_hana_resource_name
