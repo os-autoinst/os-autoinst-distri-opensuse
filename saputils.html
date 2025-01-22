@@ -17,6 +17,8 @@
       <li><a href="#calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology(input =&gt; $saphanasr_showAttr_format_script_output);</a></li>
       <li><a href="#check_hana_topology-check_hana_topology-input-calculate_hana_topology-saphanasr_showAttr_format_script_output-online_str-12345678">check_hana_topology check_hana_topology(input =&gt; calculate_hana_topology($saphanasr_showAttr_format_script_output) [, online_str =&gt; &#39;12345678&#39;]]);</a></li>
       <li><a href="#check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output(input =&gt; $crm_mon_output);</a></li>
+      <li><a href="#get_primary_node-get_primary_node-topology_data-topology_data">get_primary_node get_primary_node(topology_data=&gt;$topology_data);</a></li>
+      <li><a href="#get_failover_node-get_failover_node-topology_data-topology_data">get_failover_node get_failover_node(topology_data=&gt;$topology_data);</a></li>
     </ul>
   </li>
 </ul><h1>lib/saputils.pm</h1>
@@ -95,6 +97,31 @@ Conditions:
 <dl>
 
 <dt id="input---stdout-of-crm_mon--R--r--n--N--1"><b>input</b> - stdout of &#39;crm_mon -R -r -n -N -1&#39;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="get_primary_node-get_primary_node-topology_data-topology_data">get_primary_node get_primary_node(topology_data=&gt;$topology_data);</h2>
+
+<pre><code>Returns hostname of current primary node obtained from B&lt;calculate_hana_topology()&gt; output.</code></pre>
+
+<dl>
+
+<dt id="topology_data---Output-from-calculate_hana_topology-function"><b>topology_data</b> - Output from `calculate_hana_topology()` function</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="get_failover_node-get_failover_node-topology_data-topology_data">get_failover_node get_failover_node(topology_data=&gt;$topology_data);</h2>
+
+<pre><code>Returns hostname of current failover (replica) node obtained from B&lt;calculate_hana_topology()&gt; output.
+Returns node hostname even if it&#39;s in &#39;SFAIL&#39; state.</code></pre>
+
+<dl>
+
+<dt id="topology_data---Output-from-calculate_hana_topology-function1"><b>topology_data</b> - Output from `calculate_hana_topology()` function</dt>
 <dd>
 
 </dd>
