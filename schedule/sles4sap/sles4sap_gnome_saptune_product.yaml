@@ -11,6 +11,7 @@ vars:
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
   # START_AFTER_TEST: create_hdd_sles4sap_gnome
+  PUBLIC_CLOUD_SSH_CONFIG: 'publiccloud/ssh_config_sap'
 schedule:
   - boot/boot_to_desktop
   - '{{PC_instance_ssh_interactive_start}}'
