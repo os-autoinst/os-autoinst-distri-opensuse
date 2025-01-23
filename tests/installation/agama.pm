@@ -24,8 +24,16 @@ use x11utils 'ensure_unlocked_desktop';
 
 # Unlike passwod_screen diag has just a single input box
 sub agama_set_root_password_diag {
-    wait_still_screen 5;
+    wait_still_screen 2;
+    send_key 'tab';    # The little arrow on the top
+    wait_still_screen 2;
+    send_key 'tab';    # Activate password input box
+    wait_still_screen;
     type_password();
+    send_key 'tab';    # Show password button
+    wait_still_screen 2;
+    send_key 'tab';    # Accept button
+    wait_still_screen 2;
     send_key 'ret';
 }
 
@@ -125,8 +133,8 @@ sub run {
     assert_and_click('agama-show-tabs');
 
     assert_and_click('agama-users-tab');
-#    assert_and_click('agama-set-root-password');
-#    agama_set_root_password_screen();
+    #    assert_and_click('agama-set-root-password');
+    #    agama_set_root_password_screen();
 
 
     # Define user and set autologin on
