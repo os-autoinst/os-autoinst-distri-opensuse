@@ -164,12 +164,12 @@ sub test_container_runtimes {
     $instance->ssh_assert_script_run("sudo zypper install -y docker", timeout => 300);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
-    $instance->ssh_assert_script_run("sudo docker pull $image");
+    $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
     $instance->ssh_assert_script_run("sudo systemctl stop docker.service");
 
     record_info('Test podman');
     $instance->ssh_assert_script_run("sudo zypper install -y podman");
-    $instance->ssh_assert_script_run("podman pull $image");
+    $instance->ssh_script_retry("podman pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }
 
