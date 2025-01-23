@@ -16,7 +16,9 @@
     drives: [
       {
         alias: 'pvs-disk',
-        id: 'lvm',
+        partitions: [
+          { search: "*", delete: true }
+        ]
       },
     ],
     volumeGroups: [
