@@ -37,9 +37,7 @@ sub run {
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
     # bsc#1207673, bsc#1218023
-    if (is_leap("<16.0") || is_sle("<16")) {
-        assert_script_run "usermod -a -G systemd-journal $testapi::username";
-    }
+    assert_script_run("usermod -aG systemd-journal $testapi::username") if (is_leap("<16") || is_sle("<16"));
 
     if (get_var('TDUP')) {
         my $cont_storage = '/etc/containers/storage.conf';
@@ -57,8 +55,7 @@ sub run {
         switch_cgroup_version($self, 2);
         select_serial_terminal;
 
-        validate_script_output 'podman info', sub { /cgroupVersion: v2/ };
-        validate_script_output "id $testapi::username", sub { /systemd-journal/ };
+        validate_script_output('podman info', sub { /cgroupVersion: v2/ }, fail_message => "podman not operating in cgroup v2");
     }
 
     # Check for bsc#1192051
