@@ -11,24 +11,6 @@ use testapi;
 use version_utils;
 use Utils::Architectures 'is_aarch64';
 
-sub install_certificates {
-    my ($self) = @_;
-    my $certs = {
-        opensuse => 'wsl/openSUSE-UEFI-CA-Certificate.crt',
-        sle => 'wsl/SLES-UEFI-CA-Certificate.crt'
-    };
-    my $ms_cert_store = 'cert:\\LocalMachine\\Root';
-    my $cert_file_path = 'C:\Users\Public\image-ca.cert';
-    # The certificates should be downloaded from the web
-    $self->run_in_powershell(
-        cmd => 'Invoke-WebRequest -Uri "' . data_url($certs->{get_required_var('DISTRI')}) . '" -O "' . $cert_file_path . '" -UseBasicParsing',
-    );
-    $self->run_in_powershell(
-        cmd => 'Import-Certificate -FilePath "' . $cert_file_path . '" -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
-        timeout => 120
-    );
-}
-
 sub run {
     my ($self) = @_;
     assert_screen 'windows-desktop';
@@ -54,18 +36,13 @@ sub run {
     if ($install_from eq 'build') {
         my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
         my $wsl_appx_uri = "\\\\10.0.2.4\\qemu\\$wsl_appx_filename";
-        # Enable the 'developer mode' in Windows
-        $self->run_in_powershell(
-            cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
-        );
+
         # On Win 11 for Arm Build 25931, smb transfers don't work (poo#126083)
         $wsl_appx_uri = data_url('ASSET_1') if is_aarch64;
         $self->run_in_powershell(
             cmd => "Start-BitsTransfer -Source $wsl_appx_uri -Destination C:\\\\$wsl_appx_filename",
             timeout => 60
         );
-
-        $self->install_certificates;
 
         $self->run_in_powershell(
             cmd => "Add-AppxPackage -Path C:\\$wsl_appx_filename",

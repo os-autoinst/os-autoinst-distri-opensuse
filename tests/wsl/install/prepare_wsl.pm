@@ -20,6 +20,30 @@ use Utils::Architectures qw(is_aarch64);
 use testapi;
 use version_utils qw(is_sle is_opensuse);
 
+sub install_certificates {
+    my ($self) = @_;
+    my $ms_cert_store = 'cert:\\LocalMachine\\Root';
+    # We install both openSUSE and SLE to make the qcow "universal" as the Windows
+    # instalation DISTRI var is 'windows'.
+
+    # openSUSE certificate
+    $self->run_in_powershell(
+        cmd => 'Invoke-WebRequest -Uri "' . data_url('wsl/openSUSE-UEFI-CA-Certificate.crt') . '" -O C:\\Users\\Public\\image-ca-openSUSE.cert -UseBasicParsing',
+    );
+    $self->run_in_powershell(
+        cmd => 'Import-Certificate -FilePath C:\\Users\\Public\\image-ca-openSUSE.cert -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
+        timeout => 120
+    );
+    # SLE certificate
+    $self->run_in_powershell(
+        cmd => 'Invoke-WebRequest -Uri "' . data_url('wsl/SLES-UEFI-CA-Certificate.crt') . '" -O C:\\Users\\Public\\image-ca-SLE.cert -UseBasicParsing',
+    );
+    $self->run_in_powershell(
+        cmd => 'Import-Certificate -FilePath C:\\Users\\Public\\image-ca-SLE.cert -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
+        timeout => 120
+    );
+}
+
 sub run {
     my ($self) = @_;
 
@@ -57,8 +81,14 @@ sub run {
         ) if get_var('HDD_1') =~ /24H2/;
     }
 
-    $self->reboot_or_shutdown(is_reboot => 1);
-    $self->wait_boot_windows;
+    # Enable the 'developer mode' in Windows
+    $self->run_in_powershell(
+        cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
+    );
+    $self->install_certificates;
+
+    # Poweroff machine to upload new image
+    $self->reboot_or_shutdown;
 }
 
 1;
