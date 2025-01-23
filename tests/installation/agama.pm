@@ -24,11 +24,11 @@ use x11utils 'ensure_unlocked_desktop';
 
 # Unlike passwod_screen diag has just a single input box
 sub agama_set_root_password_diag {
-    wait_still_screen 2;
+    wait_still_screen 5;
     send_key 'tab';    # The little arrow on the top
-    wait_still_screen 2;
+    wait_still_screen 5;
     send_key 'tab';    # Activate password input box
-    wait_still_screen;
+    wait_still_screen 5;
     type_password();
     send_key 'tab';    # Show password button
     wait_still_screen 2;
