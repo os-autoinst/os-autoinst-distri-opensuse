@@ -16,6 +16,7 @@
     drives: [
       {
         partitions: [
+          { search: "*", delete: true },
           { generate: 'default' },
           { filesystem: { path: '/', type: 'xfs' } },
         ],
