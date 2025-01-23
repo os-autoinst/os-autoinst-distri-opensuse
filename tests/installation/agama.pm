@@ -37,20 +37,6 @@ sub agama_set_root_password_diag {
     send_key 'ret';
 }
 
-# A More complex screen for root auth
-sub agama_set_root_password_screen {
-    wait_still_screen 5;
-
-    type_password();
-    send_key 'tab';    # show password btn
-    send_key 'tab';
-    wait_still_screen 5;
-    type_password();
-    send_key 'tab';
-    send_key 'tab';    # show password btn
-    send_key 'ret';
-}
-
 sub agama_define_user_screen {
     wait_still_screen 5;
 
@@ -133,9 +119,6 @@ sub run {
     assert_and_click('agama-show-tabs');
 
     assert_and_click('agama-users-tab');
-    #    assert_and_click('agama-set-root-password');
-    #    agama_set_root_password_screen();
-
 
     # Define user and set autologin on
     assert_and_click('agama-define-user-button');
