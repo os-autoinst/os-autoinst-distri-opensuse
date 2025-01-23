@@ -12,14 +12,15 @@ use testapi;
 sub run {
     my $self = shift;
 
-    my $vbs_url = data_url("wsl/UpdateInstall.vbs");
+    my $vbs_url = data_url("wsl/UpdateInstall.ps1");
     $self->open_powershell_as_admin;
-    $self->run_in_powershell(cmd => "Invoke-WebRequest -Uri \"$vbs_url\" -OutFile \"C:\\UpdateInstall.vbs\"");
+    $self->run_in_powershell(cmd => "Invoke-WebRequest -Uri \"$vbs_url\" -OutFile \"\$env:TEMP\\UpdateInstall.ps1\"");
+    $self->run_in_powershell(cmd => "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force");
     $self->run_in_powershell(
-        cmd => 'cd \\; $port.WriteLine($(cscript .\\UpdateInstall.vbs /Automate))',
+        cmd => "cd \$env:TEMP; .\\UpdateInstall.ps1",
         code => sub {
             die("Update script finished unespectedly or timed out...")
-              unless wait_serial("The update process finished with value 1", timeout => 3600);
+              unless wait_serial('0', timeout => 3600);
         }
     );
     save_screenshot;
