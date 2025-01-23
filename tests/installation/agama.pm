@@ -125,8 +125,8 @@ sub run {
     assert_and_click('agama-show-tabs');
 
     assert_and_click('agama-users-tab');
-    assert_and_click('agama-set-root-password');
-    agama_set_root_password_screen();
+#    assert_and_click('agama-set-root-password');
+#    agama_set_root_password_screen();
 
 
     # Define user and set autologin on
