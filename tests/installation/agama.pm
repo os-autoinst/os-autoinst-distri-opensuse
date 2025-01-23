@@ -103,7 +103,7 @@ sub run {
     send_key "ctrl-down";    # ensure we see the product select button
     assert_and_click('agama-product-select');
 
-	# A newly introduced set root password dialog
+    # A newly introduced set root password dialog
     assert_screen('agama-set-root-password-diag');
 
     # can take few minutes to get here
