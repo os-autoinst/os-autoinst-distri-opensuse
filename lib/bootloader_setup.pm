@@ -109,7 +109,11 @@ And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 =cut
 
 sub add_custom_grub_entries {
-    my @grub_params = split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
+    # grep: ignore empty items (helps to avoid trailing semicolon)
+    my @grub_params = grep { /\S/ } split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
+
+    bmwqemu::fctinfo("Number of GRUB_PARAM params (empty skipped): " . $#grub_params);
+
     return unless $#grub_params >= 0;
 
     my $script_old = "/etc/grub.d/10_linux";
@@ -149,6 +153,7 @@ sub add_custom_grub_entries {
     foreach my $grub_param (@grub_params) {
         $i++;
         my $script_new = "/etc/grub.d/${i}_linux_openqa";
+        bmwqemu::fctinfo("Processing script '$script_new'");
         my $script_new_esc = $script_new =~ s~/~\\/~rg;
         assert_script_run("cp -v $script_old $script_new");
 
