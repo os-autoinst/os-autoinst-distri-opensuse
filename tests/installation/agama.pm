@@ -22,7 +22,15 @@ use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
 
-sub agama_set_root_password_dialog {
+# Unlike passwod_screen diag has just a single input box
+sub agama_set_root_password_diag {
+    wait_still_screen 5;
+    type_password();
+    send_key 'ret';
+}
+
+# A More complex screen for root auth
+sub agama_set_root_password_screen {
     wait_still_screen 5;
 
     type_password();
@@ -105,6 +113,7 @@ sub run {
 
     # A newly introduced set root password dialog
     assert_screen('agama-set-root-password-diag');
+    agama_set_root_password_diag();
 
     # can take few minutes to get here
     assert_screen('agama-overview-screen');
@@ -117,7 +126,7 @@ sub run {
 
     assert_and_click('agama-users-tab');
     assert_and_click('agama-set-root-password');
-    agama_set_root_password_dialog();
+    agama_set_root_password_screen();
 
 
     # Define user and set autologin on
