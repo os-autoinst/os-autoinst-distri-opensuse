@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for openJDK test cases
@@ -52,9 +52,9 @@ sub configure_java_version {
 sub run_crypto_test {
     my ($version) = @_;
 
-    assert_script_run 'curl -O ' . data_url('security/openjdk/JCEProviderInfo.java');
-    script_run("javac JCEProviderInfo.java");
-    my $crypto = script_output("java JCEProviderInfo");
+    assert_script_run 'curl -O ' . data_url('security/openjdk/GetJCEProviderInfo.java');
+    script_run("javac GetJCEProviderInfo.java");
+    my $crypto = script_output("java GetJCEProviderInfo");
     record_info("FAIL", "Cannot list all crypto providers", result => 'fail') if ($crypto !~ /Listing all JCA Security Providers/);
 
     my $JDK_TCHECK = get_var("JDK_TCHECK", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.java");
