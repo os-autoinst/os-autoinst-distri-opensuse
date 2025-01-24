@@ -41,8 +41,11 @@ sub run {
         assert_script_run 'systemctl status rsyncd.service';
     }
 
+    # The custom path needs to be explicitly allowed
+    assert_script_run 'semanage fcontext -a -t rsync_data_t "/srv/rsync_test(/.*)"' if has_selinux;
+
     #making testing files for download
-    assert_script_run 'mkdir -p /srv/rsync_test/pub';
+    assert_script_run 'mkdir -Zp /srv/rsync_test/pub';
     assert_script_run 'echo "content of rsync testing file" > /srv/rsync_test/pub/file1';
     assert_script_run 'echo "content of second file" > /srv/rsync_test/pub/file2';
     assert_script_run 'echo "third file" > /srv/rsync_test/pub/file3';

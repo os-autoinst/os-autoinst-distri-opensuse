@@ -92,6 +92,7 @@ sub install_podman_when_needed {
 
 sub install_docker_when_needed {
     my ($running_version, $sp, $host_os) = get_os_release;
+    record_info("get_os_release", "'$running_version', '$sp', '$host_os'");
     if (script_run("which docker") != 0) {
         my $ltss_needed = 0;
         if (is_transactional) {
@@ -109,7 +110,7 @@ sub install_docker_when_needed {
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module if ($running_version =~ "12|15");
+                activate_containers_module if ($running_version =~ "15");
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {

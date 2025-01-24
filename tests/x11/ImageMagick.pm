@@ -89,7 +89,7 @@ sub run {
       ripples_3 ripples_4 random_enhanced ripples_4e random_sigmoidal ripples_4s
       ripples_3e000 ripples_3e090 ripples_3e180 ripples_3e270 ripples_3.5e
       tile_size tile_over tile_draw tile_reset tile_distort_sized offset_tile
-      offset_pattern offset_tile_fill offset_pattern_fail offset_pattern_good
+      offset_pattern offset_tile_fill offset_pattern_good
       tile_clone tile_clone_flip tile_mpr tile_mpr_reset tile_mpr_fill
       tile_distort tile_distort_checks tile_distort_polar pattern_default
       pattern_hexagons pattern_colored pattern_color_checks

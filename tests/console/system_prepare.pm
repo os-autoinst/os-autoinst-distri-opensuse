@@ -28,6 +28,7 @@ use Utils::Architectures 'is_ppc64le';
 use warnings;
 use virt_autotest::hyperv_utils 'hyperv_cmd';
 use transactional qw(process_reboot);
+use suseconnect_register qw(command_register);
 
 sub run {
     my ($self) = @_;
@@ -61,7 +62,8 @@ sub run {
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
             add_suseconnect_product(get_addon_fullname('serverapp'), undef, undef, undef, 300, 1);
-            add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef, 300, 1) if is_sle('=12-sp5', get_var('ORIGIN_SYSTEM_VERSION')) && is_ppc64le;
+            add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef, 300, 1)
+              if is_sle('=12-sp5', get_var('ORIGIN_SYSTEM_VERSION')) && is_ppc64le;
         }
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled')) {
             add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
@@ -131,6 +133,17 @@ sub run {
         my $regcode = (get_var('AGAMA_PRODUCT_ID') =~ /SAP/) ? get_var('SCC_REGCODE_SLES4SAP') : get_var('SCC_REGCODE');
         my $regurl = get_var('SCC_URL');
         assert_script_run("suseconnect -r $regcode --url $regurl");
+
+        # Register HA extension and output some debug info for reference
+        if (get_var('SCC_ADDONS', '') eq 'ha') {
+            record_info('Register HA extension');
+            command_register(get_required_var('VERSION'), 'ha', get_required_var('SCC_REGCODE_HA'));
+            # Just for debug purpose
+            zypper_call('up', timeout => 600);
+            record_info('REPOS', script_output('zypper lr -u'));
+            record_info('PKGs', script_output('zypper se ha | grep -i high'));
+            record_info('PATTERNS', script_output('zypper patterns'));
+        }
     }
     ########
 
