@@ -37,17 +37,25 @@ sub run {
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
     # bsc#1207673, bsc#1218023
-    assert_script_run("usermod -aG systemd-journal $testapi::username") if (is_leap("<16") || is_sle("<16"));
+    assert_script_run("usermod -aG systemd-journal $user") if (is_leap("<16") || is_sle("<16"));
 
     if (get_var('TDUP')) {
         my $cont_storage = '/etc/containers/storage.conf';
+        my $local_storage = "/home/$user/.local";
 
         # use only packaged storage config in /usr/share/containers/storage.conf
-        if (!script_run("test -f $cont_storage &> /dev/null")) {
+        if (script_run("test -f $cont_storage &> /dev/null") == 0) {
             assert_script_run("rm -rf $cont_storage");
             assert_script_run('rm -rf /var/lib/containers/storage');
-            assert_script_run('podman system reset -f');
         }
+
+        # prevent database graph driver mismatch
+        if (script_run("test -d $local_storage &> /dev/null") == 0) {
+            record_soft_failure('gh#containers/podman#24738');
+            assert_script_run("rm -rf $local_storage");
+        }
+
+        assert_script_run('podman system reset -f');
     }
 
     # Prepare for Podman 3.4.4 and CGroups v2
