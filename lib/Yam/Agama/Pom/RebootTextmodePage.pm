@@ -9,6 +9,7 @@
 package Yam::Agama::Pom::RebootTextmodePage;
 use strict;
 use warnings;
+use power_action_utils 'power_action';
 
 use testapi;
 
@@ -19,7 +20,13 @@ sub new {
 
 sub reboot {
     my ($self) = @_;
-    enter_cmd 'reboot';
+    select_console 'installation';
+    # svirt: Make sure we will boot from hard disk next time
+    if (is_s390x()) {
+        my $svirt = console('svirt');
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+    }
+    power_action('reboot', keepconsole => 1, first_reboot => 1);
 }
 
 1;
