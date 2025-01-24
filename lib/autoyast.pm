@@ -680,7 +680,7 @@ sub expand_version {
 
 sub expand_agama_variables {
     my ($profile) = @_;
-    my @vars = qw(SCC_REGCODE SCC_REGCODE_SLES4SAP AGAMA_PRODUCT_ID);
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_SLES4SAP AGAMA_PRODUCT_ID _SECRET_RSA_PRIV_KEY _SECRET_RSA_PUB_KEY);
     for my $var (@vars) {
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
