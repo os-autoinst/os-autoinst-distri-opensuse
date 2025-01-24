@@ -84,7 +84,13 @@ sub run {
         add_suseconnect_product('sle-module-sap-business-one');
         # also enable legacy module, due to bsc#1231763
         add_suseconnect_product('sle-module-legacy');
-        zypper_call('in patterns-sap-bone jq libidn11 rpm-build xmlstarlet glibc-i18ndata libicu60_2 nfs-kernel-server libcap-progs');
+        my @bonepatterns = qw(patterns-sap-bone jq libidn11 rpm-build xmlstarlet glibc-i18ndata libicu60_2 nfs-kernel-server libcap-progs);
+        my $wiz_name = is_sle('>=15-SP5') ? 'bone-installation-wizard' : 'sap-installation-wizard';    # wizard is called bone-installation-wizard in SLE15SP5+
+        push @bonepatterns, $wiz_name;
+        foreach my $pkg (@bonepatterns) {
+            zypper_call("in -y $pkg");
+        }
+
     }
 
     # Some specific package may be needed in HA mode

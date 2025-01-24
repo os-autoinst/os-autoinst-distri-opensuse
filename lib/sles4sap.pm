@@ -1040,7 +1040,9 @@ Package and upload HANA installation logs from SUT.
 =cut
 
 sub upload_hana_install_log {
-    script_run 'tar -Jcf /tmp/hana_install.log.tar.xz /var/adm/autoinstall/logs /var/tmp/hdb*';
+    my @hana_logs = qw(/var/adm/autoinstall/logs /var/tmp/hdb*);
+    push(@hana_logs, "/var/log/SAPBusinessOne/B1Installer*") if get_var('BONE');
+    script_run 'tar -Jcf /tmp/hana_install.log.tar.xz ' . join(' ', map { "'$_'" } @hana_logs);
     upload_logs '/tmp/hana_install.log.tar.xz';
 }
 
