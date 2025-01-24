@@ -65,38 +65,8 @@ sub prepare_packages {
 sub install_additional_pkgs {
     my $self = shift;
 
-    if (get_var("INSTALL_OTHER_REPOS")) {
-        # SLE Micro is a lightweight operating system purpose built for containerized
-        # and virtualized workloads. It does not provide equally abundant functionality
-        # compared with SLES, so it becomes necessary to install some useful utilities
-        # from SLES repos to facilitate test run. At the same time, ensure it will not
-        # alter SLEM and its features and characteristics. Althought operating system
-        # should not prevent user from installing legitimate tools and utilities, it
-        # is expected that use of additional packages should be limited to the minimum
-        # and their impact should be analyzed beforehand.
-        my @repos_to_install = split(/,/, get_var("INSTALL_OTHER_REPOS"));
-        my @repos_names = ();
-        my $repo_name = "";
-        foreach (@repos_to_install) {
-            $repo_name = (split(/\//, $_))[-1] . "-" . bmwqemu::random_string(8);
-            push(@repos_names, $repo_name);
-            zypper_call("--gpg-auto-import-keys ar --enable --refresh $_ $repo_name");
-            save_screenshot;
-        }
-        zypper_call("--gpg-auto-import-keys refresh");
-        save_screenshot;
-
-        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
-        $cmd = $cmd . " $_" foreach (split(/,/, get_required_var("INSTALL_OTHER_PACKAGES")));
-        zypper_call($cmd);
-        save_screenshot;
-
-        # Remove additional repos from SLEM after packages installation finishes.
-        $cmd = "rr";
-        $cmd = $cmd . " $_" foreach (@repos_names);
-        zypper_call($cmd);
-        save_screenshot;
-    }
+    # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
+    install_extra_packages;
 }
 
 sub prepare_bootloader {

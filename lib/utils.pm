@@ -129,6 +129,8 @@ our @EXPORT = qw(
   ensure_testuser_present
   is_disk_image
   is_ipxe_with_disk_image
+  is_reboot_needed
+  install_extra_packages
 );
 
 our @EXPORT_OK = qw(
@@ -3213,6 +3215,70 @@ Identify whether test runs boots from ipxe and deploy linux disk image built by 
 sub is_ipxe_with_disk_image {
     return 1 if (is_ipxe_boot and is_disk_image);
     return 0;
+}
+
+=head2 is_reboot_needed
+
+ is_reboot_needed(username => 'name', address => 'address');
+
+Identify whether rebooting needed after system being changed. Arguments username
+and address can be used to specify remote user and host if operation is not local.
+=cut
+
+sub is_reboot_needed {
+    my %args = @_;
+    $args{username} //= 'root';
+    $args{address} //= 'localhost';
+
+    my $check_reboot_needed = "zypper needs-rebooting";
+    $check_reboot_needed = "ssh $args{username}\@$args{address} \"$check_reboot_needed\"" if ($args{address} ne 'localhost');
+    return 1 if (script_run("$check_reboot_needed") == 102 or get_var('NEEDS_REBOOTING'));
+    return 0;
+}
+
+=head2 install_extra_packages
+
+ install_extra_packages(repos => 'repositories', packages => 'packages');
+
+Install extra packages that are only available in extra repositories. User may
+need to install some useful utilities from other repositories to facilitate test
+run. At the same time, it also needs to ensure such operations will not alter
+existing system. Althought user should not be prevented from installing legitimate
+tools and utilities, it is expected that use of additional packages should be
+limited to the minimum and their impact should be paid attention to. User can
+specify required repositories and pacakges via arguments, repos and packages or
+settings INSTALL_OTHER_REPOS and INSTALL_OTHER_PACKAGES.
+=cut
+
+sub install_extra_packages {
+    my %args = @_;
+    $args{repos} //= get_var('INSTALL_OTHER_REPOS', '');
+    $args{packages} //= get_var('INSTALL_OTHER_PACKAGES', '');
+
+    if (!$args{repos} or !$args{packages}) {
+        record_info("No repositories/packags to be installed", "Specify arguments repos/packages or settings INSTALL_OTHER_REPOS/INSTALL_OTHER_PACKAGES");
+        return;
+    }
+
+    my @repos_to_install = split(/,/, $args{repos});
+    my @repos_names = ();
+    my $repo_name = "";
+    foreach (@repos_to_install) {
+        $repo_name = (split(/\//, $_))[-1] . "-" . bmwqemu::random_string(8);
+        push(@repos_names, $repo_name);
+        zypper_call("--gpg-auto-import-keys ar --enable --refresh $_ $repo_name");
+        save_screenshot;
+    }
+    zypper_call("--gpg-auto-import-keys refresh");
+    save_screenshot;
+    my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
+    $cmd = $cmd . " $_" foreach (split(/,/, $args{packages}));
+    zypper_call($cmd);
+    save_screenshot;
+    $cmd = "rr";
+    $cmd = $cmd . " $_" foreach (@repos_names);
+    zypper_call($cmd);
+    save_screenshot;
 }
 
 1;
