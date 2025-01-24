@@ -69,6 +69,7 @@ sub instantiate_guests_and_profiles {
         my $_guest_profile = (XML::Simple->new)->XMLin($_res->content, SuppressEmpty => '');
         $_guest_profile->{guest_name} = $_element;
         $_guest_profile->{guest_installation_media} = $_store_of_guests{$_element}{INSTALL_MEDIA} if ($_store_of_guests{$_element}{INSTALL_MEDIA} ne '');
+        $_guest_profile->{guest_build} = $_store_of_guests{$_element}{INSTALL_BUILD} if ($_store_of_guests{$_element}{INSTALL_BUILD} ne '');
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $guest_instances_profiles{$_element} = $_guest_profile;

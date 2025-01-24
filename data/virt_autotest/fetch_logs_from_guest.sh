@@ -289,8 +289,8 @@ for single_subnet in ${subnets_in_route[@]};do
     mkdir -p "${virt_logs_folder}/nmap_subnets_scan_results"
     single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
     subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
-    echo -e "nmap -sn $single_subnet -oX $single_subnet_scan_results" | tee -a ${fetch_logs_from_guest_log}
-    nmap -T4 -sn $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
+    echo -e "nmap -T4 -sn --exclude 127.0.0.0/8 $single_subnet -oX $single_subnet_scan_results" | tee -a ${fetch_logs_from_guest_log}
+    nmap -T4 -sn --exclude 127.0.0.0/8 $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
     subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
 done
 
