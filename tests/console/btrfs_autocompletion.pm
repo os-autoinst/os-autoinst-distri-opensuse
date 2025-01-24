@@ -49,9 +49,8 @@ sub run {
     if (is_sle('>=16') || is_leap('>=16.0')) {
         # Split bash completion to sub package
         zypper_call('in btrfsprogs-bash-completion');
-        # Execute bash to make sure changes work and back to original session
+        # Execute bash to make sure changes work in running shell session
         enter_cmd('bash');
-        send_key 'ctrl-c';
     }
     compare_commands("btrfs device stats ", "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
