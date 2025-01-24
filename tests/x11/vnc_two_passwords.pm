@@ -174,7 +174,7 @@ sub run {
 
     # Stop Xvnc
     send_key "alt-f4";
-    select_console 'root-console', await_console => 0;
+    select_console 'user-console', await_console => 0;
     send_key "ctrl-c";
     wait_still_screen 2;
 
@@ -190,6 +190,7 @@ sub run {
     }
     else {
         record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is greater than of equal to 1.12.0");
+        select_console 'root-console';
         configure_vnc_server;
     }
 
@@ -249,11 +250,12 @@ sub run {
         record_info("skipping graphical vnc tests (non-gnome desktop)");
     }
     # Terminate server
-    select_console('root-console');
     if ($curr_vers < 0) {
+        select_console('user-console');
         assert_script_run("vncserver -kill $display");
     }
     else {
+        select_console('root-console');
         assert_script_run("systemctl stop vncserver\@$display");
     }
     # Done
