@@ -27,7 +27,7 @@ use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-
+use File::Basename qw(dirname);
 
 sub packages_to_install {
     my ($version, $sp, $host_distri) = @_;
@@ -81,6 +81,28 @@ sub activate_virtual_env {
     assert_script_run('source bci/bin/activate');
 }
 
+sub scc_credentials_host {
+    # Non-RMT SCC credentials for Non-suse host running BCI tests
+    my ($runtime, $scc_reg_code) = @_;
+    record_info('Credentials', "check");
+    die("Input parameter missing: $runtime, $scc_reg_code.") unless ($runtime && $scc_reg_code);
+    my @commands = (
+        # Automatically get scc credentials from a sle container and put those in temporary file on the local-host
+        "$runtime run --rm registry.suse.com/suse/sle15:latest " .
+          "bash -c '(zypper -q -n in SUSEConnect; SUSEConnect --regcode $scc_reg_code) 2>&1 >/dev/null && " .
+          "cat /etc/zypp/credentials.d/SCCcredentials' > /tmp/SCCcredentials",
+        # Validate file content, expected syntax
+        "grep -q 'password=' /tmp/SCCcredentials",
+        # Put credentials in the SUSE standard expected folder
+        "sudo mkdir -p /etc/zypp/credentials.d/; sudo mv /tmp/SCCcredentials /etc/zypp/credentials.d/SCCcredentials",
+    );
+    for my $cmd (@commands) {
+        assert_script_run($cmd);
+    }
+    record_info('Credentials', "SCC Credentials in local file: /etc/zypp/credentials.d/SCCcredentials");
+    return;
+}
+
 sub run {
     select_serial_terminal;
 
@@ -102,6 +124,10 @@ sub run {
         $bci_tests_branch = $2;
     }
     my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
+
+    # Provide SCC credentials for non_SLE host running specific BCI tests
+    scc_credentials_host(($engines =~ /podman/) ? 'podman' : 'docker', get_required_var('SCC_REGCODE'))
+      if $host_distri !~ /sle|micro|opensuse/i;
 
     record_info('Install', 'Install needed packages');
     my @packages = packages_to_install($version, $sp, $host_distri);
@@ -138,6 +164,7 @@ sub run {
     }
 
     return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
+
 
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
