@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils 'is_jeos';
+use version_utils qw(is_jeos is_sle is_leap);
 
 # Btrfs understands short commands like "btrfs d st"
 # Compare autocompleted commands as strings
@@ -46,6 +46,13 @@ sub run {
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
 
+    if (is_sle('>=16') || is_leap('>=16.0')) {
+        # Split bash completion to sub package
+        zypper_call('in btrfsprogs-bash-completion');
+        # Execute bash to make sure changes work and back to original session
+        enter_cmd('bash');
+        send_key 'ctrl-c';
+    }
     compare_commands("btrfs device stats ", "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
     compare_commands("btrfs filesystem usage ", "btrfs fi\tu\t");
