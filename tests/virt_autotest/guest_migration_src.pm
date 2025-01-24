@@ -142,7 +142,6 @@ sub run {
     script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', 30);
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
-    record_soft_failure("Use NFS v3 instead v4 to get around bsc#1230971");
     $self->run_test($timeout, "", "yes", "yes", "$log_dirs", "$upload_log_name");
 }
 
