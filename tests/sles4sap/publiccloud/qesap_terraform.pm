@@ -30,7 +30,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
-use publiccloud::utils qw(is_azure is_gce get_ssh_private_key_path);
+use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
@@ -143,6 +143,7 @@ sub run {
         $os_image_name = $provider->get_image_id();
     }
     set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
+    set_var_output('SLES4SAP_OS_OWNER', 'aws-marketplace') if is_ec2();
 
     # This is the path where community.sles-for-sap repo
     # has been cloned.
@@ -168,7 +169,7 @@ sub run {
         $playbook_configs{ptf_container} = (split("/", get_required_var('PTF_CONTAINER')))[0];
         $playbook_configs{ptf_account} = get_required_var('PTF_ACCOUNT');
     }
-    if ($playbook_configs{fencing} eq 'native' and is_azure) {
+    if ($playbook_configs{fencing} eq 'native' and is_azure()) {
         $playbook_configs{fence_type} = get_required_var('AZURE_FENCE_AGENT_CONFIGURATION');
         if ($playbook_configs{fence_type} eq 'spn') {
             $playbook_configs{spn_application_id} = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
@@ -220,7 +221,7 @@ sub run {
         $self->set_cli_ssh_opts unless (get_var('MR_TEST', 0));    # Set CLI SSH opts in HanaSR test, not in saptune/mr_test tests
         my $expected_hostname = $instance->{instance_id};
         $instance->wait_for_ssh();
-        # Does not fail for some reason.
+
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
