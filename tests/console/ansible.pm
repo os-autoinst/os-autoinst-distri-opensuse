@@ -98,11 +98,6 @@ sub run {
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
 
-    if (is_sle('<15-SP5')) {
-        record_soft_failure 'bsc#1210875 Package ansible-test requires Python2.7';
-        script_run 'echo -e "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg';
-    }
-
     # 2. Ansible basics
 
     # Check Ansible version
