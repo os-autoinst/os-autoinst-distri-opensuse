@@ -17,8 +17,13 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
+use utils qw(zypper_call);
 
 sub run {
+    select_console 'root-console';
+    zypper_call('in rsync');
+    assert_script_run('setsebool -P rsync_full_access 1') if has_selinux;
+
     select_console 'user-console';
 
     #waiting for configuration of rsync server
