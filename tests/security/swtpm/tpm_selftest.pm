@@ -30,7 +30,8 @@ sub run {
     # Based on bsc#1193350, swtpm 1.2 device is not supported
     # on arch64 platform any more, so skip the test on aarch64
     if (!is_aarch64) {
-        assert_script_run('udevadm control --reload-rules && udevadm trigger') if (is_sle '<15-SP4');
+        # https://bugzilla.suse.com/show_bug.cgi?id=1236457
+        assert_script_run('udevadm control --reload-rules && udevadm trigger') if (is_sle '<=15-SP7');
 
         # Make sure tpm device can be created
         assert_script_run('ls -l /dev/tpm*');
