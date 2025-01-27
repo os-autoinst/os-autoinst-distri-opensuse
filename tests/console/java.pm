@@ -35,12 +35,14 @@ sub run {
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module
+    my $legacy_module_registered = 0;
     if (is_sle("<16") && !(is_updates_tests || is_migration_tests)) {
         if (is_transactional) {
             trup_call("register -p sle-module-legacy/$version_id/$arch");
         } else {
             add_suseconnect_product('sle-module-legacy');
         }
+        $legacy_module_registered = 1;
     }
 
     # Supported Java versions for sle15sp1+ and sle12sp5
@@ -80,8 +82,8 @@ sub run {
     assert_script_run 'chmod +x test_java.sh';
     assert_script_run('./test_java.sh' . (is_transactional ? ' --transactional-server' : ''), timeout => 180);
 
-    # if !QAM test suite then cleanup test suite environment
-    unless (is_updates_tests || is_opensuse || is_migration_tests) {
+    # Cleanup legacy module if it has been registered for this test module
+    if ($legacy_module_registered) {
         if (is_transactional) {
             trup_call("register -d -p sle-module-legacy/$version_id/$arch");
             (script_run "rpm -qa | grep $pkgs_legacy") || trup_call("pkg remove --no-confirm $pkgs_legacy");
