@@ -19,7 +19,11 @@ use testapi qw(
   record_soft_failure
   parse_extra_log
   upload_logs
+  select_console
+  console
 );
+use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_svirt);
 
 sub run {
     my $self = shift;
@@ -30,9 +34,9 @@ sub run {
     my $tap = "tap.txt";
     my $reporters = "--test-reporter=spec --test-reporter=tap --test-reporter-destination=/tmp/$spec --test-reporter-destination=/tmp/$tap";
     my $node_cmd = "node --enable-source-maps $reporters /usr/share/agama/system-tests/${test}.js $test_options";
-    record_info("node cmd", $node_cmd);
 
     script_run("dmesg --console-off");
+    record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
     script_run("dmesg --console-on");
 
@@ -43,7 +47,15 @@ sub run {
     my $content = script_output("cat /tmp/$spec /tmp/$tap");
     diag($content);
     croak("command \n'$node_cmd'\n failed") unless $ret == 0;
+
     $self->upload_agama_logs();
+
+    # make sure we will boot from hard disk next time
+    if (is_s390x && is_svirt) {
+        select_console 'installation';
+        my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
+    }
+
     $reboot_page->reboot();
 }
 

@@ -9,8 +9,7 @@
 package Yam::Agama::Pom::RebootTextmodePage;
 use strict;
 use warnings;
-
-use testapi;
+use power_action_utils 'power_action';
 
 sub new {
     my ($class, $args) = @_;
@@ -19,7 +18,7 @@ sub new {
 
 sub reboot {
     my ($self) = @_;
-    enter_cmd 'reboot';
+    power_action('reboot', keepconsole => 1, first_reboot => 1);
 }
 
 1;
