@@ -30,7 +30,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
-use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path);
+use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
@@ -177,7 +177,7 @@ sub run {
         }
     }
 
-    $playbook_configs{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os_image_name =~ /byos/i);
+    $playbook_configs{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if is_byos();
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     # This implementation has a known limitation
     # if SCC_ADDONS has two or more elements (like "ltss,ltss_es")
@@ -189,7 +189,7 @@ sub run {
         $name = get_addon_fullname($addon) if ($addon =~ 'ltss');
         if ($name) {
             $playbook_configs{ltss} = join(',', join('/', $name, scc_version(), 'x86_64'), $ADDONS_REGCODE{$name});
-            $playbook_configs{registration} = 'suseconnect' if ($os_image_name =~ /byos/i && $reg_mode !~ 'noreg');
+            $playbook_configs{registration} = 'suseconnect' if (is_byos() && $reg_mode !~ 'noreg');
         }
     }
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
