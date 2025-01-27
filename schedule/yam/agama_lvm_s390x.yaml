@@ -8,6 +8,5 @@ schedule:
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - boot/reconnect_mgmt_console
-  - installation/grub_test
   - installation/first_boot
   - console/validate_lvm
