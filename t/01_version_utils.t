@@ -50,12 +50,12 @@ subtest 'is_leap' => sub {
 
     set_var('VERSION', '42.3');
     ok is_leap, "check is_leap";
-    ok is_leap($_), "check $_" for qw(=42.3 <=15.0 >42.1 >=42.3);
-    ok !is_leap($_), "check $_" for qw(=15.0 >42.3 <42.3 <13.0);
-    dies_ok { is_leap $_ } "check $_" for (qw(13+ <=15 =42 42+ 42.1:S:A+ =42.3:S:A));
+    ok is_leap($_), "check $_" for qw(=42.3 <=15.0 >42.1 >=42.3 12+);
+    ok !is_leap($_), "check $_" for qw(=15.0 >42.3 <42.3 <13.0 15+);
+    dies_ok { is_leap $_ } "check $_" for (qw(42.1:S:A+ =42.3:S:A 12 15- =12+ >1 <15+));
 
     set_var('VERSION', '42.3:S:A');
-    ok is_leap($_), "check $_" for qw(=42.3 <=15.0);
+    ok is_leap($_), "check $_" for qw(=42.3 <=15.0 <15);
 };
 
 subtest 'is_sle' => sub {
