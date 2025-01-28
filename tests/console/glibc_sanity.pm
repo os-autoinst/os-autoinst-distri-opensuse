@@ -20,12 +20,13 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';
+use version_utils qw(is_sle is_leap);
 
 sub run {
     select_console 'root-console';
 
     my $libcstr = 'GNU C Library';
-    if (is_x86_64) {
+    if (is_x86_64 && !(is_sle('16+') || is_leap("16+"))) {
         # On Tumbleweed we still support 32-bit x86
         zypper_call 'in -C libc.so.6';
         assert_script_run "/lib/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
