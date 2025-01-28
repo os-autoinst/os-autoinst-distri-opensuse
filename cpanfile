@@ -33,7 +33,7 @@ requires 'Mojo::Util';
 requires 'NetAddr::IP';
 requires 'Net::IP';
 requires 'POSIX';
-requires 'Perl::Critic::Freenode';
+requires 'Perl::Critic::Community';
 requires 'Regexp::Common';
 requires 'Selenium::Chrome';
 requires 'Selenium::Remote::Driver';
