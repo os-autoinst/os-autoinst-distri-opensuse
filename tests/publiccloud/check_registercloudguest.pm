@@ -168,8 +168,27 @@ sub test_container_runtimes {
     $instance->ssh_assert_script_run("sudo systemctl stop docker.service");
 
     record_info('Test podman');
+    # cloud-regionsrv-client creates registries.conf file if it is not pre-installed from the package
+    # in such a case the umask of the file is wrong
+    # registercloudguest should not change the permissions of already existing file
+    if ($instance->ssh_script_output(cmd => 'sudo stat -c "%a" /etc/containers/registries.conf') != 644) {
+        record_soft_failure('bsc#1233333');
+        if ($instance->ssh_script_run('sudo rpm -q libcontainers-common')) {
+            record_info('permissions #1', 'permissions when libcontainers-common is missing');
+            $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
+            $instance->ssh_script_run('sudo rm -rf /etc/containers/registries.conf');
+            $instance->ssh_assert_script_run("sudo zypper -n install libcontainers-common");
+            record_info('permissions #2', 'The previous registries.conf has been removed, then libcontainers-common was installed');
+            $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
+            cleanup_instance($instance);
+            new_registration($instance);
+            record_info('permissions #3', 'The libcontainers-common is present and then the image was re-registered');
+            $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
+        }
+        $instance->ssh_script_run('sudo chmod 644 /etc/containers/registries.conf');
+    }
     $instance->ssh_assert_script_run("sudo zypper install -y podman");
-    $instance->ssh_script_retry("podman pull $image", retry => 3, delay => 60, timeout => 600);
+    $instance->ssh_script_retry("podman --debug pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }
 
