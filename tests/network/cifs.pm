@@ -26,9 +26,13 @@ my @versions = qw(2.0 2.1 3 3.0 3.0.2 3.1.1);
 
 sub setup_local_server() {
     # Setup a local samba server with "currywurst" and "filedrop" shares
-    zypper_call('in samba');
+    my $pkgs = "samba";
+    $pkgs .= " policycoreutils-python-utils" if has_selinux;
+    zypper_call("in $pkgs");
     assert_script_run("useradd geekotest");
-    assert_script_run("mkdir -p /srv/samba/{currywurst,filedrop}");
+    # The custom path needs to be explicitly allowed
+    assert_script_run('semanage fcontext -a -t samba_share_t "/srv/samba(/.*)"') if has_selinux;
+    assert_script_run("mkdir -Zp /srv/samba/{currywurst,filedrop}");
     assert_script_run('echo -e \'[currywurst]\npath = /srv/samba/currywurst\nread only = yes\nbrowseable = yes\nguest ok = yes\n\n\' >> /etc/samba/smb.conf');
     assert_script_run('echo -e \'[filedrop]\npath = /srv/samba/filedrop\nbrowseable = no\nwrite list = geekotest\ncreate mask = 0644\ndirectory mask = 0755\n\' >> /etc/samba/smb.conf');
     assert_script_run('curl ' . data_url('samba/Currywurst.txt') . ' -o /srv/samba/currywurst/Recipe.txt');
