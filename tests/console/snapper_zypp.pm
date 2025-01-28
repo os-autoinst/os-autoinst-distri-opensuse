@@ -20,8 +20,11 @@ use version_utils 'is_sle';
 use Test::Assert 'assert_equals';
 
 sub get_snapshot_id {
-    my $snapshot_id = is_sle("<=12-SP5") ? '$3' : '$1';
-    return script_output("snapper ls | awk 'END {print $snapshot_id}'");
+    # Temporarily silence messages on the console to avoid unwanted output
+    script_run("dmesg --console-off");
+    my $snapshot_id = is_sle("<=12-SP5") ? script_output("snapper ls | awk 'END {print \$3}'") : script_output("snapper ls --disable-used-space --columns number | tail -n1");
+    script_run("dmesg --console-on");
+    return $snapshot_id;
 }
 
 sub run_zypper_cmd {
