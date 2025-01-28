@@ -1238,7 +1238,7 @@ sub load_consoletests {
     }
     loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
-    loadtest "console/yast2_lan" unless is_bridged_networking;
+    loadtest "console/yast2_lan" unless ((is_sle("16+") || is_leap("16+")) || is_bridged_networking);
     # no local certificate store
     if (!is_krypton_argon) {
         loadtest "console/curl_https";
@@ -1264,8 +1264,8 @@ sub load_consoletests {
     loadtest "console/zypper_in";
     loadtest "console/zypper_log";
     if (!get_var("LIVETEST")) {
-        loadtest "console/yast2_i";
-        loadtest "console/yast2_bootloader" unless is_bootloader_sdboot;
+        loadtest "console/yast2_i" unless (is_sle("16+") || is_leap("16+"));
+        loadtest "console/yast2_bootloader" unless ((is_sle("16+") || is_leap("16+")) || is_bootloader_sdboot);
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
 # textmode install comes without firewall by default atm on openSUSE. For virtualization server xen and kvm is disabled by default: https://fate.suse.com/324207
