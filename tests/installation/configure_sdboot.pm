@@ -37,7 +37,6 @@ sub run {
     send_key 'spc', wait_screen_change => 1;
     send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down';
     send_key 'ret', wait_screen_change => 1;    # Select the option
-    send_key 'ret', wait_screen_change => 1;    # Acknowledge the warning that this is WIP
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
         assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
