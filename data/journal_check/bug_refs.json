@@ -297,7 +297,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
@@ -679,14 +679,14 @@
     "Truncating stdout of dmi_memory_id": {
         "description": "Truncating stdout of 'dmi_memory_id' up to .* byte",
         "products": {
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": ["15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
     "skip watchdog check": {
         "description": "clocksource: Long readout interval, skipping watchdog check:.*$",
         "products": {
-            "sle": ["15-SP6", "15-SP7"],
+            "sle": ["15-SP6", "15-SP7", "16.0"],
             "opensuse": ["Tumbleweed"]
         },
         "type": "ignore"
@@ -694,7 +694,7 @@
     "combustion_test_prepare": {
         "description": "combustion: test_prepare function ran OK",
         "products": {
-            "sle": ["15-SP5","15-SP6","15-SP7"],
+            "sle": ["15-SP5","15-SP6","15-SP7","16.0"],
             "sle-micro": ["5.4","5.5", "6.0"],
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
@@ -749,28 +749,31 @@
     "boo#1227900": {
         "description": "Speculative Return Stack Overflow: IBPB-extending microcode not applied!|Speculative Return Stack Overflow: WARNING: See https://kernel.org/doc/html/latest/admin-guide/hw-vuln/srso.html for mitigation options.",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "ignore"
     },
     "boo#1227908": {
         "description": "Option builtin_af_unix line \\d+ is obsolete - using /sbin/audisp-af_unix|Option builtin line \\d+ is obsolete - update it",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "bug"
     },
     "boo#1229139": {
         "description": "amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "ignore"
     },
     "bsc#1225914": {
         "description": "Audit daemon is low on disk space for logging",
         "products": {
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": ["15-SP6", "15-SP7", "16.0"]
         },
         "type": "bug"
     },
@@ -792,7 +795,7 @@
     "vmware-RETBleed": {
         "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!",
         "products": {
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": ["15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
