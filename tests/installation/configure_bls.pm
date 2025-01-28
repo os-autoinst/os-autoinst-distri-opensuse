@@ -47,28 +47,12 @@ sub run {
         send_key_until_needlematch 'inst-bootloader-settings-first_tab_highlighted', 'tab';
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
-        # changes are for now confined to Staging:F
-        if (!is_sle && !is_leap && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
-            # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
-            # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
-            send_key 'alt-a';
-            send_key 'spc' if $is_textmode;
-            wait_still_screen(1);
-        } else {
-            # Keep old behavior around for now
-            # Select Timeout dropdown box and disable
-            send_key 'alt-t';
-            # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
-            record_soft_failure "boo#1216366: Disabling the timeout is not possible";
-            type_string "42";
-        }
-
-        wait_still_screen(1);
-        save_screenshot;
-        # ncurses uses blocking modal dialog, so press return is needed
-        send_key 'ret' if $is_textmode;
+        assert_screen 'installation-bootloader-options';
+        # Uncheck the "automatically boot" checkbox
+        send_key 'alt-a', wait_screen_change => 1;
     }
 
+    save_screenshot;
     send_key $cmd{ok};
     # It doesn't immediately notice that the overview needs recalculation.
     # Give it some time to make sure that it's fully loaded.
