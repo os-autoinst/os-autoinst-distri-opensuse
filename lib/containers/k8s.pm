@@ -28,7 +28,14 @@ sub check_k3s {
     record_info('kubectl version', script_output('k3s kubectl version'));
     assert_script_run('uname -a');
     assert_script_run('test -e /etc/rancher/k3s/k3s.yaml');
-    assert_script_run('k3s check-config');
+    if (script_run('k3s check-config | tee /tmp/k3s-config.txt') != 0) {
+        if (script_run('test $(grep -cE "CONFIG_CGROUP_(CPUACCT|DEVICE|FREEZER).*missing \(fail\)" /tmp/k3s-config.txt) -eq 3') == 0) {
+            record_soft_failure("gh#k3s-io/k3s#11676", "k3s check-config fails on pure cgroups v2 systems without legacy controllers");
+        } else {
+            upload_logs('/tmp/k3s-config.txt');
+            die "k3s check-config failed";
+        }
+    }
     validate_script_output('k3s kubectl config get-clusters', qr/default/);
     validate_script_output('k3s kubectl config get-users', qr/default/);
     validate_script_output('k3s kubectl config get-contexts --no-headers=true -o name', qr/default/);
