@@ -52,7 +52,9 @@ sub run {
             script_run("dhclient -v");
             script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
-            script_retry("dnf update -q -y", timeout => $update_timeout);
+            # Disabled for now https://progress.opensuse.org/issues/176331
+            # script_retry("dnf update -q -y", timeout => $update_timeout);
+            script_run("dnf update -q -y", timeout => $update_timeout);
         }
     }
 
