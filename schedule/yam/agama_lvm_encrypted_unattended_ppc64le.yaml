@@ -1,0 +1,16 @@
+---
+name: Agama unattended lvm
+description: >
+  Perform Agama unattended installation with encryptedLVM on ppc64le.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml

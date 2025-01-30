@@ -1,0 +1,17 @@
+---
+name: Agama unattended lvm with encryption
+description: >
+  Perform Agama unattended installation with an encrypted LVM on s390x.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml
