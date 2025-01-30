@@ -26,8 +26,12 @@ sub run {
     my $fs_lun = undef;
     my $fs_rsc = undef;
     my $resource = 'lun';
-    my $fs_type = 'ocfs2';
-    my $fs_opts = '-F -N 16';    # Force the filesystem creation and allows 16 nodes
+    my $fs_type = get_var('HA_CLUSTER_MD_FS_TYPE', is_sle('16+') ? 'gfs2' : 'ocfs2');
+    my %fs_opts = (
+        xfs => '-f',
+        ocfs2 => '-F -N 16',    # Force the filesystem creation and allows 16 nodes
+        gfs2 => '-t hacluster:mygfs2 -p lock_dlm -j 16 -O'    # https://documentation.suse.com/it-it/sle-ha/15-SP6/html/SLE-HA-all/cha-ha-gfs2.html
+    );
 
     # This Filesystem test can be called multiple time
     if ($tag eq 'cluster_md') {
@@ -37,7 +41,6 @@ sub run {
         $resource = 'drbd_passive';
         $fs_lun = '/dev/drbd_passive' if is_node(1);
         $fs_type = 'xfs';
-        $fs_opts = '-f';
     }
     elsif ($tag eq 'drbd_active') {
         $resource = 'drbd_active';
@@ -66,17 +69,22 @@ sub run {
     # DLM process needs to be started
     ensure_process_running 'dlm_controld';
 
-    # ocfs2 package should be installed by default
-    if ($fs_type eq 'ocfs2') {
-        die 'ocfs2-kmp-default kernel package is not installed' unless is_package_installed 'ocfs2-kmp-default';
-    }
-
+    # gfs2-utils is not installed by default, so we need to install it if needed
+    # Not known currently if behaviour will be the same in 16. The below line assumes
+    # gfs2 packages will come pre-installed in 16, so an explicit installation will not
+    # be needed. If this is not the case, we drop the `&& is_sle('<16')` in a later commit
+    zypper_call 'in gfs2-utils gfs2-kmp-default' if ($fs_type eq 'gfs2' && is_sle('<16'));
     # xfsprogs is not installed by default, so we need to install it if needed
     zypper_call 'in xfsprogs' if (!is_package_installed 'xfsprogs' and ($fs_type eq 'xfs'));
 
+    # ocfs2 package should be installed by default. Also check for gfs2-kmp-default if needed
+    if ($fs_type ne 'xfs') {
+        die "$fs_type-kmp-default kernel package is not installed" unless is_package_installed "$fs_type-kmp-default";
+    }
+
     # Format the Filesystem device
     if (is_node(1)) {
-        assert_script_run "mkfs -t $fs_type $fs_opts \"$fs_lun\"", $default_timeout;
+        assert_script_run "mkfs.$fs_type $fs_opts{$fs_type} \"$fs_lun\"", $default_timeout;
     }
     else {
         diag 'Wait until Filesystem device is formatted...';
@@ -91,8 +99,8 @@ sub run {
         my $edit_crm_config_script = "#!/bin/sh
 EDITOR='sed -ie \"\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device=\'$fs_lun\' directory=\'/srv/$fs_rsc\' fstype=\'$fs_type\'\"' crm configure edit
 ";
-        # Only OCFS2 can be cloned
-        if ($fs_type eq 'ocfs2') {
+        # Only OCFS2 and GFS can be cloned
+        if ($fs_type eq 'ocfs2' || $fs_type eq 'gfs2') {
             $edit_crm_config_script .= "
 EDITOR='sed -ie \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
 ";
