@@ -24,9 +24,9 @@ sub run {
         'pwd', 'uname -a',
         'cat /etc/os-release',
         'sudo SUSEConnect --status-text',
-        'zypper ref', 'zypper lr',
-        'zypper in -f -y vim',
-        'zypper -n in ClusterTools2'
+        'zypper -n ref -s -f', 'zypper -n lr',
+        'zypper -n in -f -y vim',
+        'zypper -n in -y ClusterTools2'
     );
     qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
 }
