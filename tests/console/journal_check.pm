@@ -89,8 +89,8 @@ sub run {
     }
 
     # Write full journal output for reference and upload it into Uploaded Logs section in test webUI
-    script_run("journalctl --no-pager -o short-precise > /tmp/full_journal.log");
-    upload_logs "/tmp/full_journal.log";
+    script_run("journalctl --no-pager -o short-precise > /tmp/full_journal.txt");
+    upload_logs "/tmp/full_journal.txt";
 
     # Check for failed systemd services and examine them
     # script_run("pkill -SEGV dbus-daemon"); # comment out for a test
