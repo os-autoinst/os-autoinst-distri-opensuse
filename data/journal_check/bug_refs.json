@@ -814,5 +814,12 @@
             "sle": ["15-SP3"]
         },
         "type": "ignore"
+    },
+    "sshd": {
+        "description": "pam_lastlog2\\(sshd:session\\).*database is locked|fatal: mm_request_receive: read: Connection reset by peer",
+        "products": {
+            "sle-micro": ["6.0", "6.1", "6.2"]
+        },
+        "type": "ignore"
     }
 }
