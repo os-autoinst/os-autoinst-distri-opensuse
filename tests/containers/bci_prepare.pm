@@ -28,7 +28,6 @@ use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 
-
 sub packages_to_install {
     my ($version, $sp, $host_distri) = @_;
     my $arch = get_required_var('ARCH');
@@ -138,6 +137,11 @@ sub run {
     }
 
     return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
+
+    # Ensure LTSS subscription is active when testing LTSS containers.
+    my $ltss_command = q(SUSEConnect -s | jq -Mr '.[] | select(.identifier == "SLES-LTSS") | .subscription_status');
+    validate_script_output($ltss_command, qr/ACTIVE/, fail_message => "Host requires LTSS subscription for LTSS container")
+      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i);
 
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
