@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: firewalld
@@ -339,6 +339,7 @@ sub test_firewall_offline_cmd {
 # Test #10 - Verify default backend on 15+ (SLES and Leap)
 #            Factory derived products, should have nf_tables too
 sub test_default_backend {
+    return if (script_run("command -v iptables") != 0);
     validate_script_output('iptables --version', sub {
             # This could have been done using capture groups too
             # removing the need for repeating regexes and nesting ifs
