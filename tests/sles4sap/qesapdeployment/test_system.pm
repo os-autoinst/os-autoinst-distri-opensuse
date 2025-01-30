@@ -28,7 +28,7 @@ sub run {
         'zypper in -f -y vim',
         'zypper -n in ClusterTools2'
     );
-    qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
+    qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 600) for @remote_cmd;
 }
 
 sub post_fail_hook {
