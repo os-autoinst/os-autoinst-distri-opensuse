@@ -22,6 +22,7 @@ schedule:
     - console/system_prepare
     - console/force_scheduled_tasks
     - security/cc/ensure_crypto_checks_enabled
+    - security/installation/enable_repos
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
