@@ -821,5 +821,13 @@
             "sle-micro": ["6.0", "6.1", "6.2"]
         },
         "type": "ignore"
+    },
+    "sshd-mm-reap": {
+        "description": "sshd-session[.*]: error: (mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe)",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
