@@ -56,3 +56,13 @@ schedule/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiu
 tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
 tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
 
+# Security
+data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+lib/atsec_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
