@@ -14,4 +14,4 @@ conditional_schedule:
 schedule:
   - wsl/install/ms_win_installation
   - '{{unattended_install}}'
-  - wsl/update_windows
+  - wsl/install/update_windows
