@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2024 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: rsync
@@ -59,12 +59,7 @@ sub run {
         s/https?:\/\/// for @repos;
 
         # Create list of directories for rsync
-        # hold last processed repo in sub scope; for PI its only one repo and we need reuse this var
-        my $slmrepo;
-        foreach my $repo (@repos) {
-            if (is_sle_micro(">=6.0")) {
-                $slmrepo = $repo;
-            }
+        for my $repo (@repos) {
             assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
         }
         # VM repos.dir support preparation
@@ -84,7 +79,11 @@ sub run {
         $instance->upload_log('/tmp/rpm_list.txt');
 
         if (is_sle_micro(">=6.0")) {
-            $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $slmrepo . " ToTest");
+            my $counter = 0;
+            for my $repo (@repos) {
+                $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $repo . " ToTest_$counter");
+                $counter += 1;
+            }
         }
         else {
             $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
