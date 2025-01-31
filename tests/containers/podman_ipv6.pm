@@ -37,18 +37,18 @@ sub run {
     install_packages('bind-utils');
 
     # Test host IPv6 connectivity
-    assert_script_run('curl -sSf6 -o /dev/null https://opensuse.org');
+    script_retry('curl -sSf6 -o /dev/null https://opensuse.org', delay => 25, retry => 4);
     # Test openSUSE registry over IPv6
-    assert_script_run('curl -sSf6 https://registry.opensuse.org/v2/; echo $?');
+    script_retry('curl -sSf6 https://registry.opensuse.org/v2/; echo $?', delay => 25, retry => 4);
 
     # Block access to openSUSE registry via IPv4
     my $registry_ipv4 = script_output('dig +short registry.opensuse.org A | grep -v suse');
     assert_script_run("iptables -A OUTPUT -d $registry_ipv4 -j DROP");
     validate_script_output('iptables -L OUTPUT', sub { m/$registry_ipv4/g });
     # Test that access to openSUSE registry no longer works via IPv4
-    assert_script_run("!curl -sSf4 https://registry.opensuse.org/v2/");
+    script_retry("!curl -sSf4 https://registry.opensuse.org/v2/", delay => 25, retry => 4);
     # Test that access to openSUSE registry still works (IPv6 should work)
-    assert_script_run('curl -sSf https://registry.opensuse.org/v2/');
+    script_retry('curl -sSf https://registry.opensuse.org/v2/', delay => 25, retry => 4);
     # Pull image from openSUSE registry (over IPv6 now)
     script_retry("podman pull $image", timeout => 300, delay => 15, retry => 3);
 
@@ -71,18 +71,18 @@ sub run {
 
     # Test host IPv6 connectivity
     my $curl_test = '-w "Local: %{local_ip}:%{local_port}\nRemote: %{remote_ip}:%{remote_port}\nReturn: %{http_code}\n"';
-    assert_script_run("curl -sSf6 -o /dev/null $curl_test https://opensuse.org");
+    script_retry("curl -sSf6 -o /dev/null $curl_test https://opensuse.org", delay => 25, retry => 4);
 
     # Test container IPv6 connectivity
     #   there is iptables masquarade so the container appears under the host address
-    assert_script_run("podman exec -it test-ipv6 curl -sSf6 -o /dev/null $curl_test https://opensuse.org");
+    script_retry("podman exec -it test-ipv6 curl -sSf6 -o /dev/null $curl_test https://opensuse.org", delay => 25, retry => 4);
 
     # Check if a IPv6-only container can be reached
     $image = 'registry.opensuse.org/opensuse/nginx:latest';
-    assert_script_run('curl ' . data_url('containers/nginx.conf') . ' -o nginx.conf');
+    script_retry('curl ' . data_url('containers/nginx.conf') . ' -o nginx.conf', delay => 25, retry => 4);
     script_retry("podman pull $image", timeout => 300, delay => 15, retry => 3);
     assert_script_run("podman run --name http-ipv6 -d -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z --network podman-ipv6 --ip6 fd00:c0de:ba5e::3 $image", timeout => 180);
-    script_retry("curl -v http://[fd00:c0de:ba5e::3]:80/", delay => 15, retry => 3);
+    script_retry("curl -v http://[fd00:c0de:ba5e::3]:80/", delay => 25, retry => 4);
 }
 
 sub post_run_hook {
