@@ -192,6 +192,7 @@ sub sapcontrol_process_check {
 
     while ($rc ne $state_to_rc{$expected_state}) {
         last unless $wait_for_state;
+        record_info('Status wait', "Sapcontrol waiting until expected process state: $expected_state");
         $rc = sapcontrol(instance_id => $instance_id, webmethod => 'GetProcessList');
         croak "Timeout while waiting for expected state: $expected_state" if (time - $start_time > $timeout);
         sleep $loop_sleep;

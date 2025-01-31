@@ -65,7 +65,7 @@ sub run {
     my %scenarios;
     my @failover_actions = split(",", get_var("HANASR_FAILOVER_SCENARIOS", 'stop,kill'));
     for my $method (@failover_actions) {
-        my $test_name = ucfirst($method) . "_DB-$primary_site-$primary_db";
+        my $test_name = ucfirst($method) . "_primary_DB-$primary_site";
         $scenarios{$test_name} = {
             primary_db => $primary_db,
             failover_db => $failover_db,
@@ -78,7 +78,7 @@ sub run {
         Failover site $failover_db will take over.");
 
         # Reverse roles and put cluster into original state using same failover method
-        $test_name = ucfirst($method) . "_DB-$failover_site-$failover_db";
+        $test_name = ucfirst($method) . "_primary_DB-$failover_site";
         $scenarios{$test_name} = {
             primary_db => $failover_db,
             failover_db => $primary_db,
@@ -89,6 +89,19 @@ sub run {
         Test name: $test_name\n
         Primary site $failover_db will be stopped.\n
         Failover site $primary_db will take over.");
+
+        # Failover test for replica database
+        $test_name = ucfirst($method) . "_failover_DB-$failover_site";
+        $scenarios{$test_name} = {
+            primary_db => $primary_db,
+            failover_db => $failover_db,
+            failover_method => $method
+        };
+        loadtest('sles4sap/redirection_tests/hana_sr_replica_failover', name => $test_name, run_args => $run_args, @_);
+        record_info('Load test', "Scheduling failover DB failover using '$method' method.\n
+        Test name: $test_name\n
+        Failover site $primary_db will be restarted.\n
+        Primary site $failover_db will stay intact.");
     }
 
     loadtest('sles4sap/sap_deployment_automation_framework/cleanup', name => "SDAF cleanup", run_args => $run_args, @_);
