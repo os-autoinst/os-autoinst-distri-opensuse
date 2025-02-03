@@ -1,7 +1,7 @@
 [SUSE_Maintenance_10954]
 name=SUSE:Maintenance:10954 (SUSE_SLE-15_Update)
 type=rpm-md
-baseurl=http://download.suse.de/ibs/SUSE:/Maintenance:/10954/SUSE_SLE-15_Update/
+baseurl=http://openqa.suse.de/assets/repo/fixed/update-test-trivial/
 gpgcheck=1
-gpgkey=http://download.suse.de/ibs/SUSE:/Maintenance:/10954/SUSE_SLE-15_Update/repodata/repomd.xml.key
+gpgkey=http://openqa.suse.de/assets/repo/fixed/update-test-trivial/repodata/repomd.xml.key
 enabled=1
