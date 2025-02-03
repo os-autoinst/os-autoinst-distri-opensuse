@@ -22,7 +22,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use version_utils qw(is_sle);
 
 my @redis_versions = ("redis");
-push(@redis_versions, 'redis7') unless is_sle('<=15-sp4');
+push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6');
 my %ROLES = (
     MASTER => 'MASTER',
     REPLICA => 'REPLICA',
