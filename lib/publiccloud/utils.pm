@@ -54,7 +54,7 @@ our @EXPORT = qw(
 
 # Check if we are a BYOS test run
 sub is_byos() {
-    return is_public_cloud && get_var('FLAVOR') =~ 'BYOS';
+    return is_public_cloud && get_var('FLAVOR') =~ /byos/i;
 }
 
 # Check if we are a OnDemand test run
