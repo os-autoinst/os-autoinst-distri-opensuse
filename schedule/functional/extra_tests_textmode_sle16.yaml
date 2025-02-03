@@ -47,7 +47,6 @@ conditional_schedule:
                 - '{{steamcmd}}'
                 - console/libqca2
                 - console/vmstat
-                - console/kdump_and_crash
                 - console/ansible
                 - console/libgit2
     opensuse_repos:
