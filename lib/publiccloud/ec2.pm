@@ -14,6 +14,7 @@ use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
+use DateTime;
 
 has ssh_key_pair => undef;
 use constant SSH_KEY_PEM => 'QA_SSH_KEY.pem';
@@ -193,7 +194,35 @@ sub upload_img {
 sub terraform_apply {
     my ($self, %args) = @_;
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
-    return $self->SUPER::terraform_apply(%args);
+    my @instances = $self->SUPER::terraform_apply(%args);
+    my $instance_id = $self->get_terraform_output('.vm_name.value[]');
+
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
+        $self->upload_boot_diagnostics(instance_id => $instance_id);
+    }
+    return @instances;
+}
+
+sub upload_boot_diagnostics {
+    my ($self, %args) = @_;
+    return if !defined($args{instance_id});
+    my $instance_id = $args{instance_id};
+
+    my $dt = DateTime->now;
+    my $time = $dt->hms;
+    assert_script_run("aws ec2 get-console-output --latest --color=on --no-paginate --output text --instance-id $instance_id &> console-$time.txt");
+    if (script_output("du console-$time.txt | cut -f1") < 8) {
+        record_soft_failure('poo#155116 - The console log is empty.');
+    } else {
+        upload_logs("console-$time.txt", failok => 1);
+    }
+
+    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > console-$time.jpg");
+    if (script_output("du console-$time.jpg | cut -f1") < 8) {
+        record_info('empty screenshot', 'The console screenshot is empty.');
+    } else {
+        upload_logs("console-$time.jpg", failok => 1);
+    }
 }
 
 sub img_proof {
@@ -214,16 +243,11 @@ sub cleanup {
     select_host_console(force => 1);
 
     script_run('cd ' . get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '~/terraform'));
-    #my $instance_id = script_output('terraform output -json | jq -r ".vm_name.value[0]"', proceed_on_failure => 1);
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
     script_run('cd');
 
     if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        script_run("aws ec2 get-console-output --latest --color=on --no-paginate --output text --instance-id $instance_id &> console.txt");
-        upload_logs("console.txt", failok => 1);
-
-        script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > console.jpg");
-        upload_logs("console.jpg", failok => 1);
+        $self->upload_boot_diagnostics(instance_id => $instance_id);
     }
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();

@@ -16,6 +16,7 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';
+use DateTime;
 
 sub init {
     my ($self, %params) = @_;
@@ -85,9 +86,35 @@ sub terraform_apply {
     my ($self, %args) = @_;
     $args{project} //= $self->provider_client->project_id;
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
-    return $self->SUPER::terraform_apply(%args);
+    my @instances = $self->SUPER::terraform_apply(%args);
+
+    my $region = $self->{provider_client}->{region};
+    my $project = $self->{provider_client}->{project_id};
+    my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
+    # gce provides full serial log, so extended timeout
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
+        if ($instance_id =~ /$self->{resource_name}/) {
+            $self->upload_boot_diagnostics(project => $project, region => $region, instance_id => $instance_id);
+        } else {
+            record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
+        }
+    }
+
+    return @instances;
 }
 
+sub upload_boot_diagnostics {
+    my ($self, %args) = @_;
+    return if !defined($args{instance_id});
+    my $project = $args{project};
+    my $region = $args{region};
+    my $instance_id = $args{instance_id};
+
+    my $dt = DateTime->now;
+    my $time = $dt->hms;
+    assert_script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial-$time.txt", timeout => 180);
+    upload_logs("instance_serial-$time.txt", failok => 1);
+}
 
 # In GCE we need to account for project name, if given
 sub get_image_id {
@@ -174,8 +201,7 @@ sub cleanup {
     # gce provides full serial log, so extended timeout
     if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
         if ($instance_id =~ /$self->{resource_name}/) {
-            script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
-            upload_logs("instance_serial.txt", failok => 1);
+            $self->upload_boot_diagnostics(project => $project, region => $region, instance_id => $instance_id);
         } else {
             record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
         }
