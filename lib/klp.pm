@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_sle_micro);
 use transactional;
+use package_utils;
 
 our @EXPORT = qw(
   install_klp_product is_klp_pkg find_installed_klp_pkg klp_pkg_eq
@@ -53,11 +54,17 @@ sub install_klp_product {
 
     # Enable live patching
     if (is_sle_micro) {
+        my $livepatch_pack = 'kernel-default-livepatch';
+
+        if (check_var('SLE_PRODUCT', 'slert')) {
+            $livepatch_pack = 'kernel-rt-livepatch';
+        }
+
         assert_script_run 'cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf.orig';
         assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
         assert_script_run 'sed -i "/^multiversion\.kernels =.*/c\\multiversion.kernels = latest" /etc/zypp/zypp.conf';
         assert_script_run 'echo "LIVEPATCH_KERNEL=\'always\'" >> /etc/sysconfig/livepatching';
-        reboot_on_changes;
+        install_package($livepatch_pack, trup_reboot => 1);
     } else {
         zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
         zypper_call("mr -e kgraft-update") unless $livepatch_repo;
