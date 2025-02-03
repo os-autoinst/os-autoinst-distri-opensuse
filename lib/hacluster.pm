@@ -636,7 +636,7 @@ sub ha_export_logs {
     upload_logs('/tmp/crm.txt');
 
     # Extract YaST logs and upload them
-    upload_y2logs(failok => 1);
+    upload_y2logs(failok => 1) if is_sle('<16');
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
