@@ -7,21 +7,9 @@
     <install_updates config:type="boolean">true</install_updates>
   </suse_register>
   <bootloader>
-    <device_map config:type="list">
-      <device_map_entry>
-        <firmware>hd0</firmware>
-        <linux>/dev/vda</linux>
-      </device_map_entry>
-    </device_map>
     <global>
-      <timeout config:type="integer">1</timeout>
-      <activate>true</activate>
       <timeout config:type="integer">-1</timeout>
-      <boot_boot>false</boot_boot>
-      <xen_append>fadump= crashkernel=201M</xen_append>
-      <xen_kernel_append><![CDATA[vga=gfx-1024x768x16 vga=gfx-1024x768x16 crashkernel=201M<4G]]></xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>

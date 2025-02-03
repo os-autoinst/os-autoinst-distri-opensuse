@@ -6,10 +6,8 @@
   </suse_register>
   <bootloader>
     <global>
-      <terminal>console</terminal>
       <timeout config:type="integer">-1</timeout>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <general>
     <ask-list config:type="list"/>

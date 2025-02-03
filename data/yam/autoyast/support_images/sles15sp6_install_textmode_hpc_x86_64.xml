@@ -14,19 +14,6 @@
       <confirm t="boolean">false</confirm>
     </mode>
   </general>
-  <keyboard t="map">
-    <keyboard_values t="map">
-      <delay/>
-      <discaps t="boolean">false</discaps>
-      <numlock>bios</numlock>
-      <rate/>
-    </keyboard_values>
-    <keymap>english-us</keymap>
-  </keyboard>
-  <language t="map">
-    <language>en_US</language>
-    <languages/>
-  </language>
   <networking t="map">
     <interfaces t="list">
       <interface t="map">

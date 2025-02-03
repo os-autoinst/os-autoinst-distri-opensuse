@@ -7,21 +7,9 @@
     <install_updates config:type="boolean">true</install_updates>
   </suse_register>
   <bootloader>
-    <device_map config:type="list">
-      <device_map_entry>
-        <firmware>hd0</firmware>
-        <linux>/dev/vda</linux>
-      </device_map_entry>
-    </device_map>
     <global>
-      <timeout config:type="integer">1</timeout>
-      <activate>true</activate>
       <timeout config:type="integer">-1</timeout>
-      <boot_boot>false</boot_boot>
-      <xen_append>fadump= crashkernel=201M</xen_append>
-      <xen_kernel_append><![CDATA[vga=gfx-1024x768x16 vga=gfx-1024x768x16 crashkernel=201M<4G]]></xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
@@ -100,16 +88,6 @@
     <languages/>
   </language>
   <networking>
-    <dhcp_options>
-      <dhclient_client_id/>
-      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
-    </dhcp_options>
-    <dns>
-      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
-      <hostname>susetest</hostname>
-      <resolv_conf_policy>auto</resolv_conf_policy>
-      <write_hostname config:type="boolean">false</write_hostname>
-    </dns>
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
@@ -117,32 +95,7 @@
         <dhclient_set_default_route>yes</dhclient_set_default_route>
         <startmode>auto</startmode>
       </interface>
-      <interface>
-        <bootproto>static</bootproto>
-        <device>lo</device>
-        <firewall>no</firewall>
-        <ipaddr>127.0.0.1</ipaddr>
-        <netmask>255.0.0.0</netmask>
-        <network>127.0.0.0</network>
-        <prefixlen>8</prefixlen>
-        <startmode>nfsroot</startmode>
-        <usercontrol>no</usercontrol>
-      </interface>
     </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
-    <keep_install_network config:type="boolean">true</keep_install_network>
-    <managed config:type="boolean">false</managed>
-    <net-udev config:type="list">
-      <rule>
-        <name>eth0</name>
-        <rule>KERNELS</rule>
-        <value>0000:01:00.0</value>
-      </rule>
-    </net-udev>
-    <routing>
-      <ipv4_forward config:type="boolean">false</ipv4_forward>
-      <ipv6_forward config:type="boolean">false</ipv6_forward>
-    </routing>
   </networking>
   <partitioning config:type="list">
     <drive>
