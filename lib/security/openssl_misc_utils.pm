@@ -49,7 +49,7 @@ sub has_default_openssl3 {
 
 sub install_openssl {
     zypper_call 'in openssl' unless is_transactional;
-    if (is_sle '>=15-SP6') {
+    if (is_sle('>=15-SP6') || is_sle('<16')) {
         if (has_no_legacy_module()) {
             install_11_workaround_when_no_legacy();
         } else {
