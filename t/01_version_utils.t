@@ -75,6 +75,11 @@ subtest 'is_sle' => sub {
 
     set_var('VERSION', '12-SP2');
     ok is_sle($_), "check $_" for qw(=12-sp2 =12-sP2 <=15 >11-sp3 <12-sp3 >12-sp1 <12-SP3 >12-SP1);
+
+    set_var('VERSION', '16.0');
+    ok is_sle($_), "check $_" for qw(=16 =16.0 <16.9 <=16.0 >=16.0 >15-SP2 15-SP7+);
+    ok !is_sle($_), "check $_" for qw(>16.1 <15-sp9 <=15 >16 =16.9);
+    dies_ok { is_sle $_ } "check $_" for (qw(12 15- =12+ <15+ 16.0 >15_sp2 =XY));
 };
 
 subtest 'package_version_cmp' => sub {
