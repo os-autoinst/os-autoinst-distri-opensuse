@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(file_content_replace);
+use utils qw(file_content_replace zypper_call);
 use Utils::Logging qw(save_and_upload_log);
 use version_utils qw(is_sle);
 
@@ -43,6 +43,9 @@ sub prepare_system_for_ase {
     assert_script_run 'sysctl kernel.randomize_va_space=0';
     record_info 'kernel.randomize_va_space', script_output('sysctl kernel.randomize_va_space', proceed_on_failure => 1);
     assert_script_run "mkdir -p $args{target}";
+
+    # wget is currently not in the default install of SLE16.
+    zypper_call("in wget") if (is_sle('16+'));
 }
 
 =head2 download_ase_assets
