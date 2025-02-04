@@ -403,7 +403,7 @@ sub is_sle {
     return 1 unless $query;
 
     # Version check
-    return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+    return check_version($query, $version, qr/\d{2}((?:-sp\d)?|(?:\.\d)?)/);
 }
 
 =head2 is_sled
