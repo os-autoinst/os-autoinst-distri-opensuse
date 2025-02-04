@@ -73,6 +73,7 @@ sub enable_accelerated_net {
     sleep 60 * 3;    # Sometimes, IP is not reachable after the restart and 5 minutes is enough.
     $instance->{private_ip} = get_new_ip($instance);
     $instance->public_ip(get_new_ip($instance, 1));
+    script_run("ssh-keyscan " . $instance->public_ip . " | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
     die('SR-IOV flags not found') if (!$self->check_sriov($instance));
 }
 
