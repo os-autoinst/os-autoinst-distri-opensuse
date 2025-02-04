@@ -81,7 +81,7 @@ sub run {
     my $ver = get_openssl_full_version;
     record_info("Testing OpenSSL $ver");
     run_fips_rsa_tests;
-    if (is_sle '>=15-SP6') {
+    if (is_sle('>=15-SP6') && is_sle('<16')) {
         $ver = get_openssl_full_version(OPENSSL1_BINARY);
         record_info("Testing OpenSSL $ver");
         run_fips_rsa_tests(OPENSSL1_BINARY);
