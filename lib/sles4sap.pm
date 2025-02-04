@@ -1445,7 +1445,7 @@ sub post_fail_hook {
     select_console('root-console');
 
     # YaST logs
-    upload_y2logs;
+    upload_y2logs if is_sle('<16');
 
     # HANA installation logs, if needed
     $self->upload_hana_install_log if get_var('HANA');
