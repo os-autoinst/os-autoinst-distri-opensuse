@@ -17,6 +17,7 @@ use utils qw(script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
+use DateTime;
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
@@ -505,48 +506,51 @@ sub terraform_apply {
     $args{vars}->{sku} = $sku if ($sku);
 
     my @instances = $self->SUPER::terraform_apply(%args);
-    $self->upload_boot_diagnostics('resource_group' => $self->get_resource_group_from_terraform_show());
+
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    record_info('INSTANCE_ID', $instance_id);
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+    record_info('RESOURCE_GROUP', $resource_group);
+
+    $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
     return @instances;
 }
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
 
-    my $resgroup = $self->get_resource_group_from_terraform_show();
-    return if (!defined($resgroup));
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    record_info('INSTANCE_ID', $instance_id);
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+    record_info('RESOURCE_GROUP', $resource_group);
 
-    eval { $self->upload_boot_diagnostics('resource_group' => $resgroup) }
-      or record_info('Bootlog upl error', 'Failed to upload bootlog');
-    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP');
-}
-
-sub get_resource_group_from_terraform_show {
-    my $resgroup;
-    my $out = script_output('terraform show -json');
-    eval {
-        my $json = decode_azure_json($out);
-        for my $resource (@{$json->{values}->{root_module}->{resources}}) {
-            next unless ($resource->{type} eq 'azurerm_resource_group');
-            $resgroup = $resource->{values}->{name};
-            last;
-        }
-    };
-    if ($@ || !defined($resgroup)) {
-        record_info('ERROR', "Unable to get resource-group:\n$out", result => 'fail');
-    }
-    return $resgroup;
+    $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
+    assert_script_run("az group delete --yes --no-wait --name $resource_group") unless get_var('PUBLIC_CLOUD_NO_CLEANUP');
 }
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    return if !defined($args{instance_id});
     return if !defined($args{resource_group});
+    my $instance_id = $args{instance_id};
+    my $resource_group = $args{resource_group};
 
-    my $bootlog_name = '/tmp/azure-bootlog.txt';
-    my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv)';
+    my $dt = DateTime->now;
+    my $time = $dt->hms;
+    my $bootlog_name = "/tmp/bootlog-$time.txt";
+
+    my $cmd_enable = "az vm boot-diagnostics enable --ids $instance_id";
     my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
     record_info('INFO', $cmd_enable . $/ . $out);
-    assert_script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv) | jq -r "." > ' . $bootlog_name);
-    upload_logs($bootlog_name, failok => 1);
+
+    script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > $bootlog_name", timeout => 120);
+    if (script_output("du $bootlog_name | cut -f1") < 8) {
+        record_soft_failure("poo#155116 - The console log is empty.");
+    } else {
+        upload_logs($bootlog_name, failok => 1);
+    }
 }
 
 sub on_terraform_destroy_timeout {
@@ -634,13 +638,11 @@ sub cleanup {
     my ($self, $args) = @_;
 
     script_run('cd ' . get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '~/terraform'));
-    #my $terraform_output = script_output('terraform output -json', proceed_on_failure => 1);
-    #my $terraform_output_json = decode_json($terraform_output);
-    #my $instance_id = $terraform_output_json->{instance_id}->{value}[0];
     my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
     $instance_id =~ s/.*\/(.*)/$1/;
-    #my $resource_group = $terraform_output_json->{resource_group_name}->{value}[0];
+    record_info('INSTANCE_ID', $instance_id);
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+    record_info('RESOURCE_GROUP', $resource_group);
     script_run('cd');
 
     select_host_console(force => 1);
@@ -648,8 +650,7 @@ sub cleanup {
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
 
     if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id) && defined($resource_group)) {
-        script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > bootlog.txt", timeout => 120);
-        upload_logs("bootlog.txt", failok => 1);
+        $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
     }
     $self->SUPER::cleanup();
 }
