@@ -13,21 +13,10 @@ use testapi;
 use version_utils qw(is_sle_micro is_leap_micro);
 
 sub run {
+    my ($self) = @_;
     my $textmode = check_var('VIDEOMODE', 'text');
-    # Verify Installation Settings overview is displayed as starting point
-    assert_screen "installation-settings-overview-loaded";
 
-    if ($textmode) {
-        # Select section booting on Installation Settings overview on text mode
-        send_key $cmd{change};
-        assert_screen 'inst-overview-options';
-        send_key 'alt-e';
-    }
-    else {
-        # Select section booting on Installation Settings overview (video mode)
-        send_key_until_needlematch 'security-section-selected', 'tab', 31, 2;
-        send_key 'ret';
-    }
+    $self->go_to_security_settings();
 
     if (is_sle_micro('<5.3') || is_leap_micro('<5.3')) {
         # Combobox for SELinux specifically

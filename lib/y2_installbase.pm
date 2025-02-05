@@ -181,6 +181,29 @@ sub go_to_search_packages {
     }
 }
 
+=head2 go_to_security_settings
+
+    go_to_security_settings();
+
+From the installation overview screen, open the security settings.
+=cut
+
+sub go_to_security_settings {
+    my ($self) = @_;
+    assert_screen "installation-settings-overview-loaded";
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key $cmd{change};
+        assert_screen 'inst-overview-options';
+        send_key 'alt-e';
+    }
+    else {
+        send_key_until_needlematch 'security-section-selected', 'tab', 31, 2;
+        send_key 'ret';
+    }
+
+    wait_still_screen stilltime => 9, timeout => 45;
+}
+
 =head2 move_down
 
     move_down();
