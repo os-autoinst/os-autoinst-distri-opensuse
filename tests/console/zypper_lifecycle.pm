@@ -168,7 +168,7 @@ EOF
     # dash is accepted in prod EOL, despite it does not match zypper lifecycle, see poo#126794
     $output = script_output "zypper lifecycle $package", 300;
     if (is_sle('=12-sp5') && $output =~ /ImageMagick-config-6-SUSE.*n\/a\*/) {
-        record_soft_failure 'poo#167602';
+        record_info 'bsc#1231125', 'poo#167602';
         return;
     }
     unless ($output =~ /$package(-\S+)?\s+($product_eol|-$)/) {
