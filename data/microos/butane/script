@@ -51,6 +51,9 @@ create_fs() {
     # mount new partition
     mount -t ext4 "$PART" /home
 
+    # Tell the kernel about the new layout
+    partx -u "$DRIVE"
+
     # DEBUG
     blkid
     lsblk
@@ -79,13 +82,55 @@ test_prepare() {
     echo "combustion: test_prepare function ran OK" > /dev/kmsg
 }
 
+can_encrypt() {
+    [ -c "/dev/tpm0" ] && command -v disk-encryption-tool >/dev/null
+}
+
 if [ "${1-}" = "--prepare" ]; then
     test_prepare
+
+    if can_encrypt; then
+        mkdir -p /run/credstore
+        echo "force" > /run/credstore/disk-encryption-tool-dracut.encrypt
+        echo "cr_root /dev/vda3" >> /run/credstore/disk-encryption-tool-dracut.partitions
+    fi
+
     exit 0
 fi
 
 # Redirect output to the console
 exec > >(exec tee -a /dev/console) 2>&1
+
+. /etc/os-release
+
+if [ "{ID}" = "opensuse-microos" ]; then
+    mount /home
+fi
+
+if [ "{ID_LIKE}" = "suse" ]; then
+    create_fs
+    systemd_mount
+fi
+
+
+if can_encrypt; then
+    systemd-machine-id-setup
+    [ -z "${TRANSACTIONAL_UPDATE+x}" ] || mount /var
+    mkdir -p /etc/credstore.encrypted
+    credential="$(mktemp disk-encryption-tool.XXXXXXXXXX)"
+    # Enroll recovery key
+    echo "1" > "$credential"
+    systemd-creds encrypt --name=sdbootutil-enroll.rk "$credential" /etc/credstore.encrypted/sdbootutil-enroll.rk
+    # Enroll TPM2
+    echo "1" > "$credential"
+    systemd-creds encrypt --name=sdbootutil-enroll.tpm2 "$credential" /etc/credstore.encrypted/sdbootutil-enroll.tpm2
+    shred -u "$credential"
+    # hack as heck, skip jeos-firstboot
+    # https://github.com/openSUSE/jeos-firstboot/issues/128
+    rm -f /sysroot/var/lib/YaST2/reconfig_system
+    # Umount back /var to not confuse tukit later
+    [ -z "${TRANSACTIONAL_UPDATE+x}" ] || umount /var
+fi
 
 ### set locale, keyboard and timezone
 # exception: sle-micro comes with symlink /etc/localtime, thus systemd-firstboot fails
@@ -93,13 +138,6 @@ exec > >(exec tee -a /dev/console) 2>&1
 rm -f /etc/localtime
 systemd-firstboot --force --timezone=UTC --locale=en_US.UTF-8 --keymap=us
 echo 'FONT=eurlatgr.psfu' >> /etc/vconsole.conf
-
-if ! grep -q tumbleweed /etc/os-release; then
-    create_fs
-    systemd_mount
-else
-    mount /home
-fi
 
 #
 ### users and groups

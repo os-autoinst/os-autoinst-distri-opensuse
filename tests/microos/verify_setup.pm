@@ -316,6 +316,10 @@ sub run {
         }
     }
 
+    if (get_var('QEMUTPM', '')) {
+        validate_script_output('cryptsetup status /dev/mapper/cr_root', qr/cr_root is active and is in use./);
+    }
+
     $self->result('failure') if $fail;
 }
 
