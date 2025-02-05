@@ -26,11 +26,11 @@ sub run {
     if (is_byos()) {
         validate_script_output('instance-flavor-check || true', sub { m/^BYOS$/m }, fail_message => "The command did not return 'BYOS'.");
         die('The command should return code 11 for BYOS flavor!') if (script_run('instance-flavor-check') != 11);
-        validate_script_output("cat $log_path", sub { m/^BYOS$/m }, fail_message => "The log file did not contain 'BYOS'.");
+        validate_script_output("cat $log_path", sub { m/BYOS$/m }, fail_message => "The log file did not contain 'BYOS'.");
     } elsif (is_ondemand()) {
         validate_script_output('instance-flavor-check || true', sub { m/^PAYG$/m }, fail_message => "The command did not return 'PAYG'.");
         die('The command should return code 10 for PAYG flavor!') if (script_run('instance-flavor-check') != 10);
-        validate_script_output("cat $log_path", sub { m/^PAYG$/m }, fail_message => "The log file did not contain 'PAYG'.");
+        validate_script_output("cat $log_path", sub { m/PAYG$/m }, fail_message => "The log file did not contain 'PAYG'.");
     } else {
         # Check the return code for unknown flavor but fail anyways because we so far have only BYOS or PAYG.
         die('The command should return code 12 for unknown flavor!') if (script_run('instance-flavor-check') != 12);
