@@ -20,6 +20,7 @@ use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
 use version_utils qw(is_agama);
+use autoyast qw(expand_agama_profile);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
