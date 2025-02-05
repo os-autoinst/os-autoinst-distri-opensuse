@@ -76,7 +76,7 @@ sub is_klp_pkg {
     my $base = qr/(?:kgraft-|kernel-live)patch/;
 
     if ($$pkg{name} =~ m/^${base}-\d+/) {
-        if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+(?:_stage|_*\d*)_\d*)-([a-z][a-z0-9]*)$/) {
+        if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+(?:_stage_\d+|(?:_\d+){1,2})?)-([a-z][a-z0-9]*)$/) {
             my $kver = $1;
             my $kflavor = $2;
             $kver =~ s/_(?!stage)/./g;
