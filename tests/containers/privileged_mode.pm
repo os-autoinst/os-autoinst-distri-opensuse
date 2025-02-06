@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(validate_script_output_retry);
-use containers::utils qw(reset_container_network_if_needed);
+use containers::utils qw(reset_container_network_if_needed registry_url);
 use Utils::Architectures;
 use Utils::Backends qw(is_xen_pv is_hyperv);
 use version_utils qw(is_public_cloud is_sle is_vmware is_opensuse);
@@ -65,7 +65,8 @@ sub run {
     unless (is_sle('<15') || check_var('BETA', '1')) {
         if ($runtime eq 'docker' && (is_x86_64 || is_aarch64)) {
             # Docker-in-Docker (DinD) uses the special dind image, which is only available for x86_64 and aarch64
-            assert_script_run("docker run -d --privileged --name dind docker.io/docker:dind");
+            my $dind = registry_url('docker:dind');
+            assert_script_run("docker run -d --privileged --name dind $dind");
             script_retry("docker exec -it dind docker run -it $image ls", timeout => 300, retry => 3, delay => 60);  # docker is sometimes not immediately ready
             script_run("docker container stop dind");
             script_run("docker container rm dind");
