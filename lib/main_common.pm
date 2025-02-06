@@ -1503,7 +1503,6 @@ sub load_extra_tests_y2uitest_ncurses {
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         loadtest "console/yast2_dns_server";
-        loadtest "console/yast2_nfs_client";
     }
     loadtest "console/yast2_snapper_ncurses";
 }

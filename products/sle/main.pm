@@ -1072,9 +1072,6 @@ else {
         if (get_var("NFSSERVER")) {
             loadtest "console/yast2_nfs_server";
         }
-        else {
-            loadtest "console/yast2_nfs_client";
-        }
     }
     elsif (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
         set_var('INSTALLONLY', 1);
