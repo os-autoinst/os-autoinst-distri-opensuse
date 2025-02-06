@@ -75,7 +75,7 @@ sub run {
     assert_script_run 'echo {1..6} |  xargs touch';
     #quota return 1 when user exceed quota limte. Line bellow accept when return is 1.
     die 'Quota should report failure' if script_run('quota') == 0;
-    assert_script_run "cd" unless $use_templated_service;
+    assert_script_run "cd";    # return back to ~ to be in a defined state for the next test modules
 
     select_console 'root-console';
     #quota report
@@ -85,7 +85,8 @@ sub run {
     assert_script_run("systemctl stop quotaon@" . $escaped_mount) if $use_templated_service;
     systemctl "stop quotaon" unless $use_templated_service;
     script_retry("umount -l /tmp/quota", timeout => 180, retry => 3) if $use_templated_service;
-    assert_script_run "cd ; umount /tmp/quota" unless $use_templated_service;
+    assert_script_run "cd";    # return back to ~ to be in a defined state for the next test modules
+    assert_script_run "umount /tmp/quota" unless $use_templated_service;
     assert_script_run "rm /tmp/quota.img";
 }
 
