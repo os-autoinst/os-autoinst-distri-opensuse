@@ -29,7 +29,7 @@ sub run {
     zypper_call("in vsftpd expect openssl wget");
 
     # Create self-signed certificate
-    assert_script_run("mkdir $vsftpd_path && cd $vsftpd_path");
+    assert_script_run("(test -d $vsftpd_path || mkdir $vsftpd_path) && cd $vsftpd_path");
     assert_script_run "expect -c 'spawn openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $key_file -out $cert_file;
 expect \"Country Name (2 letter code) \\[AU\\]\"; send \"DE\\r\";
 expect \"State or Province Name (full name) \\[Some-State\\]:\"; send \"Nuremberg\\r\";

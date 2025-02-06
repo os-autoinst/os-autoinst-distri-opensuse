@@ -361,6 +361,8 @@ sub test_default_backend {
 sub run {
     select_serial_terminal;
 
+    zypper_call('in iptables') if is_sle('>=16');
+
     # Check Service State, enable it if necessary, set default zone to public
     pre_test;
 
