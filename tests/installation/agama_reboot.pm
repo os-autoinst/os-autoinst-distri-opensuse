@@ -26,8 +26,9 @@ use version_utils qw(is_leap is_sle);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
-use Utils::Backends qw(is_ipmi is_pvm);
+use Utils::Backends qw(is_ipmi is_pvm is_svirt);
 use Utils::Architectures qw(is_aarch64 is_s390x);
+use power_action_utils 'assert_shutdown_and_restore_system';
 
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
@@ -73,6 +74,10 @@ sub run {
         # Swith back to sol console, then user can monitor the boot log
         select_console 'sol', await_console => 0 if is_ipmi;
         reconnect_mgmt_console if is_pvm;
+        if (is_s390x && is_svirt) {
+            assert_shutdown_and_restore_system;
+            reconnect_mgmt_console;
+        }
         wait_still_screen 10;
         save_screenshot;
         return;
