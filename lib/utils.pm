@@ -97,6 +97,7 @@ our @EXPORT = qw(
   is_efi_boot
   install_patterns
   common_service_action
+  ensure_service_disabled
   script_output_retry
   validate_script_output_retry
   get_secureboot_status
@@ -2543,6 +2544,21 @@ sub common_service_action {
         systemctl $action . ' ' . $service;
     } else {
         die "Unsupported service type, please check it again.";
+    }
+}
+
+=head2 ensure_service_disabled
+    ensure_service_disabled();
+
+Make sure service is disabled before test.
+
+=cut
+
+sub ensure_service_disabled {
+    my ($service) = @_;
+    unless (systemctl "is-active " . $service, ignore_failure => 1) {    # 0 if active, unless to revert
+        systemctl "disable --now " . $service;
+        record_info $service, "disabled";
     }
 }
 
