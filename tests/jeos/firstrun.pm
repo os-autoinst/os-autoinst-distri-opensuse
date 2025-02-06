@@ -21,8 +21,6 @@ use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
 
-my $user_created = 0;
-
 sub post_fail_hook {
     assert_script_run('timedatectl');
     assert_script_run('locale');
@@ -138,15 +136,13 @@ sub verify_selinux {
 }
 
 sub create_user_in_terminal {
-    if ($user_created) {
+    if (script_run("getent passwd $username") == 0) {
         record_info('user', sprintf("%s has already been created", script_output("getent passwd $username")));
         return;
     }
 
     assert_script_run "useradd -m $username -c '$realname'";
     assert_script_run "echo $username:$password | chpasswd";
-
-    $user_created = 1;
 }
 
 sub enter_root_passwd {
@@ -181,8 +177,6 @@ sub create_user_in_ui {
     wait_screen_change(sub { send_key "down" }, 25);
     type_password;
     send_key 'ret';
-
-    $user_created = 1;
 }
 
 sub run {
