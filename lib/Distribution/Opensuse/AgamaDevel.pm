@@ -17,8 +17,6 @@ use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
-use Yam::Agama::Pom::RebootPage;
-use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
@@ -51,11 +49,6 @@ sub get_agama_up_an_running {
     return is_ppc64le() ? Yam::Agama::Pom::AgamaUpAndRunningPage->new({
             timeout_expect_is_shown => 300})
       : Yam::Agama::Pom::AgamaUpAndRunningPage->new();
-}
-
-sub get_reboot {
-    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || is_ppc64le();
-    return Yam::Agama::Pom::RebootPage->new();
 }
 
 sub get_enter_passphrase_for_root {

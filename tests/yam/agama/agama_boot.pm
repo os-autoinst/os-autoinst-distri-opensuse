@@ -25,14 +25,13 @@ use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
 
-sub post_fail_hook {
-    Yam::Agama::agama_base::upload_agama_logs();
-}
-
 sub run {
     my $self = shift;
 
+    #
     # Please, avoid adding code here that would be a dependency for specific booting implementations
+    #
+
     # For now using legacy code to handle remote architectures
     if (is_s390x()) {
         if (is_backend_s390x()) {
@@ -67,6 +66,10 @@ sub run {
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
     $agama_up_an_running->expect_is_shown();
+}
+
+sub post_fail_hook {
+    Yam::Agama::agama_base::upload_agama_logs();
 }
 
 1;

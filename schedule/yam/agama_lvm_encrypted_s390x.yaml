@@ -4,8 +4,7 @@ description: >
   Installation with lvm encrypted
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/import_agama_profile
-  - yam/agama/patch_agama_tests
+  - yam/agama/agama_arrange
   - yam/agama/agama
   - boot/reconnect_mgmt_console
   - installation/boot_encrypt
