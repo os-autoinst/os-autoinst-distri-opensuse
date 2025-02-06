@@ -13,8 +13,18 @@ use utils;
 
 sub check_hash {
     my ($expected_hash, $calculated_hash) = @_;
-    my $message = ($expected_hash eq $calculated_hash) ? "Pass: Hash values matched" : "Error: Hash values did not match. Expected: $expected_hash, Got: $calculated_hash";
-    record_info($message);
+    my $message;
+    my $result;
+
+    if ($expected_hash eq $calculated_hash) {
+        $message = 'Pass: Hash values matched';
+        $result = 'ok';
+    } else {
+        $message = "Error: Hash values did not match. Expected: $expected_hash, Got: $calculated_hash";
+        $result = 'fail';
+    }
+
+    record_info('Hash Check', $message, result => $result);
 }
 
 sub run {
