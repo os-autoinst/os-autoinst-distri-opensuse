@@ -79,7 +79,7 @@ sub run {
         die('There is no default route on eth1') if ($instance->ssh_script_output("ip route show default dev eth1 | wc -l") == 0);
 
         # Remove eth0 secondary address and eth1 default route and check if it reappears
-        my $resource_group = $provider->get_resource_group_from_terraform_show();
+        my $resource_group = $provider->get_terraform_output('.resource_group_name.value[0]');
         my $nic_name = script_output(qq(az network nic list --resource-group $resource_group | jq -r '.[]|select(.primary==false).name'));
         my $jq_query = qq('.[]|select(.primary==false).ipConfigurations[]|select(.privateIPAddress=="$local_eth1_secondary_ip").name');
         my $ipConfig_name = script_output("az network nic list --resource-group $resource_group | jq -r $jq_query");
@@ -123,7 +123,7 @@ sub debug {
     $instance->ssh_script_run("ip -6 neighbor show");
 
     if (is_azure) {
-        my $resource_group = $provider->get_resource_group_from_terraform_show();
+        my $resource_group = $provider->get_terraform_output('.resource_group_name.value[0]');
         script_run("az network nic list --resource-group $resource_group");
     }
 }
