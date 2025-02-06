@@ -13,8 +13,18 @@ use utils;
 
 sub check_hash {
     my ($expected_hash, $calculated_hash) = @_;
-    my $message = ($expected_hash eq $calculated_hash) ? "Pass: Hash values matched" : "Error: Hash values did not match. Expected: $expected_hash, Got: $calculated_hash";
-    record_info($message);
+    my $message;
+    my $result;
+
+    if ($expected_hash eq $calculated_hash) {
+        $message = 'Pass: Hash values matched';
+        $result = 'ok';
+    } else {
+        $message = "Error: Hash values did not match. Expected: $expected_hash, Got: $calculated_hash";
+        $result = 'fail';
+    }
+
+    record_info('Hash Check', $message, result => $result);
 }
 
 sub run {
@@ -47,16 +57,16 @@ sub run {
     assert_script_run('ls | grep f1.txt');
 
     # Compare file hashes
-    my $hash_orig = script_output("sha256sum $ftp_users_path/$user/$ftp_served_dir/f1.txt");
-    my $hash_downloaded = script_output('sha256sum f1.txt');
+    my $hash_orig = script_output(qq[sha256sum "$ftp_users_path/$user/$ftp_served_dir/f1.txt" | awk '{print \$1}']);
+    my $hash_downloaded = script_output(qq[sha256sum f1.txt | awk '{print \$1}']);
     check_hash($hash_orig, $hash_downloaded);
 
     # Check if file has been uploaded
     assert_script_run("ls $ftp_users_path/$user/$ftp_received_dir | grep f2.txt");
 
     # Compare file hashes
-    my $hash_created = script_output('sha256sum f2.txt');
-    my $hash_uploaded = script_output("sha256sum $ftp_users_path/$user/$ftp_received_dir/f2.txt");
+    my $hash_created = script_output(qq[sha256sum f2.txt | awk '{print \$1}']);
+    my $hash_uploaded = script_output(qq[sha256sum "$ftp_users_path/$user/$ftp_received_dir/f2.txt" | awk '{print \$1}']);
     check_hash($hash_created, $hash_uploaded);
 }
 
