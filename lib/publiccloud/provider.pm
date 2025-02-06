@@ -383,6 +383,8 @@ sub create_instances {
         $instance->wait_for_guestregister() if ($args{check_guestregister});
         $self->upload_boot_diagnostics() if ($args{upload_boot_diagnostics});
 
+        $self->show_instance_details();
+
         # Performance data: boottime
         next if is_openstack;
 
@@ -651,9 +653,10 @@ sub terraform_destroy {
     select_host_console(force => 1);
 
     my %vars = ();
-    record_info('INFO', 'Removing terraform plan...');
 
     assert_script_run('cd ' . TERRAFORM_DIR);
+    $self->show_instance_details();
+    record_info('INFO', 'Removing terraform plan...');
     # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
     $vars{region} = $self->provider_client->region;
     $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml' if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
@@ -790,6 +793,12 @@ sub get_state_from_instance
 
 sub query_metadata {
     die('query_metadata() isn\'t implemented');
+}
+
+sub show_instance_details {
+    my ($self) = @_;
+    record_info('NAME', $self->get_terraform_output(".vm_name.value[0]"));
+    record_info('IP', $self->get_public_ip());
 }
 
 1;

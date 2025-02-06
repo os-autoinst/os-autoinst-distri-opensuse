@@ -563,12 +563,14 @@ sub get_state_from_instance
     return $1;
 }
 
-sub get_ip_from_instance
-{
-    my ($self, $instance) = @_;
-    my $id = $instance->instance_id();
+sub get_public_ip {
+    my ($self) = @_;
 
-    my $out = decode_azure_json(script_output("az vm list-ip-addresses --ids '$id'", quiet => 1));
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+
+    my $out = decode_azure_json(script_output("az vm list-ip-addresses --name '$instance_id' --resource-group '$resource_group'", quiet => 1));
     return $out->[0]->{virtualMachine}->{network}->{publicIpAddresses}->[0]->{ipAddress};
 }
 
@@ -579,9 +581,10 @@ sub stop_instance
     # which is equal to the resource group
     # TODO maybe we need to change the azure.tf file to retrieve the id instead of the name
     my $id = $instance->instance_id();
+    my $resource_group = $instance->resource_group();
     my $attempts = 60;
 
-    die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
+    die('Outdated instance object') if ($self->get_public_ip() ne $instance->public_ip);
 
     assert_script_run("az vm stop --ids '$id'", quiet => 1);
     while ($self->get_state_from_instance($instance) ne 'stopped' && $attempts-- > 0) {
@@ -594,11 +597,12 @@ sub start_instance
 {
     my ($self, $instance, %args) = @_;
     my $id = $instance->instance_id();
+    my $resource_group = $instance->resource_group();
 
     die("Try to start a running instance") if ($self->get_state_from_instance($instance) ne 'stopped');
 
     assert_script_run("az vm start --ids '$id'", quiet => 1);
-    $instance->public_ip($self->get_ip_from_instance($instance));
+    $instance->public_ip($self->get_public_ip());
 }
 
 =head2
