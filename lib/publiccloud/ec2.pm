@@ -212,7 +212,7 @@ sub upload_boot_diagnostics {
     my $time = $dt->hms;
     $time =~ s/:/-/g;
     my $asset_path = "/tmp/console-$time.txt";
-    assert_script_run("aws ec2 get-console-output --latest --color=on --no-paginate --output text --instance-id $instance_id &> $asset_path");
+    script_run("aws ec2 get-console-output --latest --color=off --no-paginate --output text --instance-id $instance_id &> $asset_path", proceed_on_failure => 1);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_soft_failure('poo#155116 - The console log is empty.');
     } else {
