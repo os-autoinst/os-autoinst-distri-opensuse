@@ -30,6 +30,9 @@ sub run_tests {
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
 
+    my $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
+    assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
+
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
     my %_env = (
         BATS_TMPDIR => "/var/tmp",
