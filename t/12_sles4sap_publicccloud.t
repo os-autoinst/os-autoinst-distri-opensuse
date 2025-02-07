@@ -1035,4 +1035,14 @@ subtest '[wait_for_cluster]' => sub {
     ok((any { qr/online/ } @node_state_matches), 'Pacemaker older than 2.1.7 match with online');
 };
 
+subtest '[saphanasr_showAttr_version]' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'hello-world-1.2.3.4-12345.6.78.9.end'; });
+    my $self = sles4sap_publiccloud->new();
+
+    my $ret = $self->saphanasr_showAttr_version();
+    ok $ret eq '1.2.3.4';
+};
+
 done_testing;
