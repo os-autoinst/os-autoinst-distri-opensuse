@@ -210,18 +210,21 @@ sub upload_boot_diagnostics {
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
-    assert_script_run("aws ec2 get-console-output --latest --color=on --no-paginate --output text --instance-id $instance_id &> console-$time.txt");
-    if (script_output("du console-$time.txt | cut -f1") < 8) {
+    $time =~ s/:/-/g;
+    my $asset_path = "/tmp/console-$time.txt";
+    assert_script_run("aws ec2 get-console-output --latest --color=on --no-paginate --output text --instance-id $instance_id &> $asset_path");
+    if (script_output("du $asset_path | cut -f1") < 8) {
         record_soft_failure('poo#155116 - The console log is empty.');
     } else {
-        upload_logs("console-$time.txt", failok => 1);
+        upload_logs("$asset_path", failok => 1);
     }
 
-    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > console-$time.jpg");
-    if (script_output("du console-$time.jpg | cut -f1") < 8) {
+    $asset_path = "/tmp/console-$time.jpg";
+    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path");
+    if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('empty screenshot', 'The console screenshot is empty.');
     } else {
-        upload_logs("console-$time.jpg", failok => 1);
+        upload_logs("$asset_path", failok => 1);
     }
 }
 

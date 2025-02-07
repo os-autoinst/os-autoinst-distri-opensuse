@@ -539,17 +539,18 @@ sub upload_boot_diagnostics {
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
-    my $bootlog_name = "/tmp/bootlog-$time.txt";
+    $time =~ s/:/-/g;
+    my $asset_path = "/tmp/console-$time.txt";
 
     my $cmd_enable = "az vm boot-diagnostics enable --ids $instance_id";
     my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
     record_info('INFO', $cmd_enable . $/ . $out);
 
-    script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > $bootlog_name", timeout => 120);
-    if (script_output("du $bootlog_name | cut -f1") < 8) {
+    script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > $asset_path", timeout => 120);
+    if (script_output("du $asset_path | cut -f1") < 8) {
         record_soft_failure("poo#155116 - The console log is empty.");
     } else {
-        upload_logs($bootlog_name, failok => 1);
+        upload_logs($asset_path, failok => 1);
     }
 }
 
