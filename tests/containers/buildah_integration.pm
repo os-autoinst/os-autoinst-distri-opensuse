@@ -24,20 +24,28 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap";
-
-    my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
-
     my $tmp_dir = "/var/tmp";
     script_run "rm -rf $tmp_dir/buildah_tests.*";
 
+    my %_env = (
+        BUILDAH_BINARY => "/usr/bin/buildah",
+        STORAGE_DRIVER => "overlay",
+        BATS_TMPDIR => $tmp_dir,
+        TMPDIR => $tmp_dir,
+    );
+    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
+
+    my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap";
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 7000;
+    my $ret = script_run "env $env bats --tap tests | tee -a $log_file", 7000;
+
+    my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
     script_run "rm -rf $tmp_dir/buildah_tests.*";
     assert_script_run "buildah prune -a -f";
+
     return ($ret);
 }
 

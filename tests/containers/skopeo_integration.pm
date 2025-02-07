@@ -27,8 +27,6 @@ sub run_tests {
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
 
-    my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
-
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
     assert_script_run "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
@@ -36,10 +34,20 @@ sub run_tests {
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
+    my %_env = (
+        BATS_TMPDIR => "/var/tmp",
+        SKOPEO_BINARY => "/usr/bin/skopeo",
+        SKOPEO_TEST_REGISTRY_FQIN => $registry,
+    );
+    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
+
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env BATS_TMPDIR=/var/tmp SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
+    my $ret = script_run "env $env bats --tap systemtest | tee -a $log_file", 1200;
+
+    my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+
     return ($ret);
 }
 
