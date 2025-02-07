@@ -112,6 +112,12 @@ exit 0
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
       </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>
     <install_updates t="boolean">true</install_updates>

@@ -90,7 +90,7 @@ exit 0
     </products>
   </software>
   <suse_register t="map">
-      <addons t="list">
+    <addons t="list">
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>
@@ -105,6 +105,12 @@ exit 0
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>
