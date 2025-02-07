@@ -14,6 +14,7 @@ use version_utils qw(package_version_cmp);
 use Utils::Systemd qw(systemctl);
 use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
+use Utils::Logging;
 
 my $has_build;    # tracking if podman version has support for .build files
 
@@ -180,6 +181,8 @@ sub post_run_hook {
 sub post_fail_hook {
     my $podman = shift->containers_factory('podman');
     $podman->cleanup_system_host();
+
+    save_and_upload_log('journalctl --no-pager','jctl.txt');
     cleanup();
 }
 
