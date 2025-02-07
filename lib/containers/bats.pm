@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Common functions for BATS test suites
@@ -18,11 +18,12 @@ use strict;
 use warnings;
 use version_utils qw(is_transactional is_sle is_sle_micro is_tumbleweed);
 use transactional qw(trup_call check_reboot_changes);
-use serial_terminal qw(select_user_serial_terminal);
+use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use Utils::Architectures 'is_aarch64';
+use Utils::Logging 'save_and_upload_log';
 
-our @EXPORT = qw(install_bats install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile);
+our @EXPORT = qw(install_bats install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile bats_post_hook);
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -149,4 +150,10 @@ sub patch_logfile {
         }
     }
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
+}
+
+sub bats_post_hook {
+    select_serial_terminal;
+    save_and_upload_log('journalctl', 'journalctl.txt');
+    upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }
