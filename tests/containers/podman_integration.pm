@@ -31,17 +31,24 @@ sub run_tests {
     $args .= " --remote" if ($remote);
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
-
-    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+    my %_env = (
+        BATS_TMPDIR => "/var/tmp",
+        PODMAN => "/usr/bin/podman",
+        QUADLET => $quadlet,
+    );
+    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    my $ret = script_run "env BATS_TMPDIR=/var/tmp PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 8000;
-    patch_logfile($log_file, @skip_tests);
-    parse_extra_log(TAP => $log_file);
+    my $ret = script_run "env $env hack/bats $args | tee -a $log_file", 8000;
     script_run 'kill %1' if ($remote);
 
+    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+    patch_logfile($log_file, @skip_tests);
+    parse_extra_log(TAP => $log_file);
+
     assert_script_run "podman system reset -f";
+
     return ($ret);
 }
 

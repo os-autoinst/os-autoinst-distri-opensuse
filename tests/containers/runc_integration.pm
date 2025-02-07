@@ -26,12 +26,20 @@ sub run_tests {
 
     my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
 
-    my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
+    my %_env = (
+        BATS_TMPDIR => "/var/tmp",
+        RUNC_USE_SYSTEMD => "1",
+        RUNC => "/usr/bin/runc",
+    );
+    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env BATS_TMPDIR=/var/tmp RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 2000;
+    my $ret = script_run "env $env bats --tap tests/integration | tee -a $log_file", 2000;
+
+    my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+
     return ($ret);
 }
 
