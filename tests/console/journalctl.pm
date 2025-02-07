@@ -152,11 +152,10 @@ sub run {
         # SLES12 on Publiccloud has ntp enabled by default.
         if (!is_public_cloud) {
             # SLE 12 has no chrony by default but uses ntp
+            assert_script_run('echo "server 0.suse.pool.ntp.org" >> /etc/ntp.conf');
             assert_script_run("ntpdate -b 0.suse.pool.ntp.org", fail_message => "forced time sync failed");
             assert_script_run("systemctl enable --now ntpd");
-            # We're not enabling ntp-wait until bsc#1207042 is resolved
-            record_soft_failure("bsc#1207042 - Won't enable ntp-wait due to cron issues");
-            #assert_script_run("systemctl enable ntp-wait.service");
+            assert_script_run("systemctl enable ntp-wait.service");
         }
     } else {
         assert_script_run("systemctl start chronyd");
