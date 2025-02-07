@@ -18,13 +18,14 @@ use warnings;
 use testapi;
 use lockapi;
 use version_utils;
-
+use utils "zypper_call";
 
 sub run {
     barrier_create('rsync_setup', 2);
     barrier_create('rsync_finished', 2);
     mutex_create 'barrier_setup_done';
     select_console 'root-console';
+    zypper_call('in rsync') if (script_run('rpm -qi rsync') == 1);
 
     #preparation of rsync config files
     assert_script_run('curl -v -o /etc/rsyncd.conf ' . data_url('console/rsyncd.conf'));

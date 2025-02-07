@@ -17,8 +17,11 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
+use utils "zypper_call";
 
 sub run {
+    select_console 'root-console';
+    zypper_call('in rsync') if (script_run('rpm -qi rsync') == 1);
     select_console 'user-console';
 
     #waiting for configuration of rsync server
