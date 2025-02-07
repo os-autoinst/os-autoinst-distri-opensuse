@@ -76,7 +76,7 @@ sub run {
     # check for bsc#1215649
     # https://progress.opensuse.org/issues/136004
     if (script_output("systemctl --no-pager status nfs-server") =~ m/status=1\/FAILURE/) {
-        record_soft_failure 'bsc#1215649';
+        record_info("bsc#1215649", "NFS server service is not able to bind port");
         systemctl 'stop nfs-server';
         systemctl 'start nfs-server';
     }
