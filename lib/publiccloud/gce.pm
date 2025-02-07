@@ -112,8 +112,15 @@ sub upload_boot_diagnostics {
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
-    assert_script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial-$time.txt", timeout => 180);
-    upload_logs("instance_serial-$time.txt", failok => 1);
+    $time =~ s/:/-/g;
+    my $asset_path = "/tmp/console-$time.txt";
+
+    script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > $asset_path", timeout => 180);
+    if (script_output("du $asset_path | cut -f1") < 8) {
+        record_info('empty screenshot', 'The console screenshot is empty.');
+    } else {
+        upload_logs("$asset_path", failok => 1);
+    }
 }
 
 # In GCE we need to account for project name, if given
