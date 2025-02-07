@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: runc
@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules bats_post_hook);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -29,9 +29,10 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env BATS_TMPDIR=/var/tmp RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 2000;
+    my $ret = script_run "env BATS_TMPDIR=/var/tmp RUNC=/usr/bin/runc RUNC_USE_SYSTEMD=1 bats --tap tests/integration | tee -a $log_file", 2000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+    return ($ret);
 }
 
 sub run {
@@ -67,17 +68,20 @@ sub run {
     my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
     script_run "make $cmds";
 
-    run_tests(rootless => 1, skip_tests => get_var('RUNC_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('RUNC_BATS_SKIP_USER', ''));
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/runc-$runc_version/");
 
-    run_tests(rootless => 0, skip_tests => get_var('RUNC_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('RUNC_BATS_SKIP_ROOT', ''));
+
+    die "Tests failed" if ($errors);
 }
 
 sub cleanup() {
     assert_script_run "cd ~";
     script_run("rm -rf $test_dir/runc-$runc_version/");
+    bats_post_hook;
 }
 
 sub post_fail_hook {

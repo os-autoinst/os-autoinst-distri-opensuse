@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman integration
@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_tumbleweed);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules);
+use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules bats_post_hook);
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -36,12 +36,13 @@ sub run_tests {
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    script_run "env BATS_TMPDIR=/var/tmp PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 8000;
+    my $ret = script_run "env BATS_TMPDIR=/var/tmp PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats $args | tee -a $log_file", 8000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
     script_run 'kill %1' if ($remote);
 
     assert_script_run "podman system reset -f";
+    return ($ret);
 }
 
 sub run {
@@ -94,24 +95,27 @@ sub run {
     script_run "make podman-testing", timeout => 600;
 
     # user / local
-    run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
+    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
 
     # user / remote
-    run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
+    $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/podman-$podman_version/");
 
     # root / local
-    run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
+    $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
 
     # root / remote
-    run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
+    $errors += run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
+
+    die "Tests failed" if ($errors);
 }
 
 sub cleanup() {
     assert_script_run "cd ~";
     script_run("rm -rf $test_dir/podman-$podman_version/");
+    bats_post_hook;
 }
 
 sub post_fail_hook {

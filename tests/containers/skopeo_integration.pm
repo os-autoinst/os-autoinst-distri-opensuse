@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: skopeo
@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user enable_modules);
+use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user enable_modules bats_post_hook);
 use version_utils qw(is_sle is_sle_micro);
 
 my $test_dir = "/var/tmp";
@@ -37,9 +37,10 @@ sub run_tests {
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env BATS_TMPDIR=/var/tmp SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
+    my $ret = script_run "env BATS_TMPDIR=/var/tmp SKOPEO_BINARY=/usr/bin/skopeo SKOPEO_TEST_REGISTRY_FQIN=$registry bats --tap systemtest | tee -a $log_file", 1200;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+    return ($ret);
 }
 
 sub run {
@@ -67,17 +68,20 @@ sub run {
     script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
 
-    run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/skopeo-$skopeo_version/");
 
-    run_tests(rootless => 0, skip_tests => get_var('SKOPEO_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('SKOPEO_BATS_SKIP_ROOT', ''));
+
+    die "Tests failed" if ($errors);
 }
 
 sub cleanup() {
     assert_script_run "cd ~";
     script_run("rm -rf $test_dir/skopeo-$skopeo_version/");
+    bats_post_hook;
 }
 
 sub post_fail_hook {

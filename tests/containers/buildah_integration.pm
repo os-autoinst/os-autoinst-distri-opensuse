@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: buildah
@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf);
+use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf bats_post_hook);
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -32,12 +32,13 @@ sub run_tests {
     script_run "rm -rf $tmp_dir/buildah_tests.*";
 
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 7000;
+    my $ret = script_run "env BATS_TMPDIR=$tmp_dir TMPDIR=$tmp_dir BUILDAH_BINARY=/usr/bin/buildah STORAGE_DRIVER=overlay bats --tap tests | tee -a $log_file", 7000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
     script_run "rm -rf $tmp_dir/buildah_tests.*";
     assert_script_run "buildah prune -a -f";
+    return ($ret);
 }
 
 sub run {
@@ -75,17 +76,20 @@ sub run {
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
     assert_script_run "make $helpers", timeout => 600;
 
-    run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
 
     select_serial_terminal;
     assert_script_run("cd $test_dir/buildah-$buildah_version/");
 
-    run_tests(rootless => 0, skip_tests => get_var('BUILDAH_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('BUILDAH_BATS_SKIP_ROOT', ''));
+
+    die "Tests failed" if ($errors);
 }
 
 sub cleanup() {
     assert_script_run "cd ~";
     script_run("rm -rf $test_dir/buildah-$buildah_version/");
+    bats_post_hook;
 }
 
 sub post_fail_hook {
