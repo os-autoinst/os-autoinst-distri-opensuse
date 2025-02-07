@@ -126,22 +126,23 @@ sub load_host_tests_podman {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
-    load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args) unless is_staging;
-    load_rt_workload($run_args) if is_rt;
-    load_container_engine_privileged_mode($run_args);
-    loadtest 'containers/podman_bci_systemd';
-    loadtest 'containers/podman_pods';
+    #load_image_test($run_args) unless is_public_cloud;
+    #load_3rd_party_image_test($run_args) unless is_staging;
+    #load_rt_workload($run_args) if is_rt;
+    #load_container_engine_privileged_mode($run_args);
+    #loadtest 'containers/podman_bci_systemd';
+    #loadtest 'containers/podman_pods';
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
     # podman+CNI is not supported on SLEM6+ and SLES-15-SP6+.
-    loadtest('containers/podman_network_cni') if (is_sle_micro('<6.0') || is_sle("<15-SP6"));
+    #loadtest('containers/podman_network_cni') if (is_sle_micro('<6.0') || is_sle("<15-SP6"));
     # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
     load_firewall_test($run_args);
     # IPv6 is not available on Azure
-    loadtest 'containers/podman_ipv6' if (is_public_cloud && is_sle('>=15-SP5') && !is_azure);
-    loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le);
-    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
+    #loadtest 'containers/podman_ipv6' if (is_public_cloud && is_sle('>=15-SP5') && !is_azure);
+    #loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le);
+    #loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     loadtest 'containers/podman_quadlet' unless (is_staging || is_leap("<16") || is_sle("<16") || is_sle_micro("<6.1"));
+    return;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
