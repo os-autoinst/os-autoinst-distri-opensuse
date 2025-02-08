@@ -75,6 +75,7 @@ our @EXPORT = qw(
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
+  OPENQA_HTTP_URL
   IN_ZYPPER_CALL
   arrays_differ
   arrays_subset
@@ -152,6 +153,9 @@ use constant VERY_SLOW_TYPING_SPEED => 4;
 
 # openQA internal ftp server url
 our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
+
+# openQA internal http server url
+our $OPENQA_HTTP_URL = "http://openqa.suse.de/assets/repo";
 
 # set flag IN_ZYPPER_CALL in zypper_call and unset when leaving
 our $IN_ZYPPER_CALL = 0;
