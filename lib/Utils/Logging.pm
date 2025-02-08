@@ -206,7 +206,8 @@ sub export_logs {
         upload_solvertestcase_logs();
     }
 
-    my $audit_log = "/var/log/audit/audit.txt";
+    my $audit_log = "/var/log/audit/audit_log.txt";
+    script_run("cp /var/log/audit/audit.log $audit_log");
     upload_logs("$audit_log", failok => 1);
 }
 
