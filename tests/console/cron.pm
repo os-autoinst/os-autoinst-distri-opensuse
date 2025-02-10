@@ -14,10 +14,15 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_sle is_public_cloud);
 
 sub run {
     select_serial_terminal;
 
+    # Ensuring ntp-wait is done syncing to avoid cron starting issue bsc#1207042
+    if ((is_sle("<15")) && (!is_public_cloud)) {
+        script_retry("systemctl is-active ntp-wait.service | grep -vq 'activating'", retry => 10, delay => 30, fail_message => "ntp-wait did not finish syncing");
+    }
     # check if cronie is installed, enabled and running
     assert_script_run 'rpm -q cronie';
     systemctl 'is-enabled cron';
