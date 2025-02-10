@@ -102,9 +102,22 @@
         body: |||
           #!/usr/bin/env bash
           ssh_config_file="/etc/ssh/ssh_config.d/01-virt-test.conf"
-          echo -e "\StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > $ssh_config_file
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > $ssh_config_file
         |||
-      }
+     },
+     {
+        name: "Setup_root_ssh_keys",
+        chroot: true,
+        body: |||
+          #!/usr/bin/env bash
+          mkdir -p -m 700 /root/.ssh
+          echo '{{_SECRET_RSA_PRIV_KEY}}' > /root/.ssh/id_rsa
+          sed -i 's/CR/\n/g' /root/.ssh/id_rsa
+          chmod 600 /root/.ssh/id_rsa
+          echo '{{_SECRET_RSA_PUB_KEY}}' > /root/.ssh/id_rsa.pub
+          echo '{{_SECRET_RSA_PUB_KEY}}' >> /root/.ssh/authorized_keys
+        |||
+     }
     ]
   }
 }
