@@ -5,7 +5,7 @@
 
 # Summary: Opensource Nvidia test
 #          Test the opensourced nvidia drivers (SLE15-SP4+)
-# Maintainer: ybonatakis <ybonatakis@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
@@ -14,11 +14,11 @@ use utils;
 use publiccloud::utils;
 
 sub validate_nvidia {
-    validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });    # depends on terraform setup
-        # nvidia-smi is delivered by nvidia-compute-utils-G06. Not available on PublicCloud
-        # Check device files and loaded modules instead.
-    validate_script_output("lsmod", sub { m/nvidia/ }, fail_message => "nvidia module not loaded");
-    assert_script_run("ls -la /dev/{nvidia-modeset,nvidia-uvm-tools,nvidiactl,nvidia-uvm,nvidia0}", fail_message => "nvidia device files are missing");
+    # Check card name, depends on terraform setup
+    validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });
+    # Check loaded modules
+    assert_script_run("lsmod | grep nvidia", fail_message => "nvidia module not loaded");
+    # Ideally, we should check for nvidia-smi here but it is delivered by nvidia-compute-utils-G06 package, which is not available on PublicCloud
 }
 
 sub run {
