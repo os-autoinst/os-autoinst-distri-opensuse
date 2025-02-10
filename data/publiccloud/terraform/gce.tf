@@ -200,3 +200,12 @@ output "vm_name" {
 output "confidential_instance_config" {
   value = google_compute_instance.openqa.*.confidential_instance_config
 }
+
+output "project" {
+  value = "${var.project}"
+}
+
+output "region" {
+  value = "${var.region}"
+}
+

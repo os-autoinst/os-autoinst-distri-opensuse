@@ -194,19 +194,18 @@ sub upload_img {
 sub terraform_apply {
     my ($self, %args) = @_;
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
-    my @instances = $self->SUPER::terraform_apply(%args);
-    my $instance_id = $self->get_terraform_output('.vm_name.value[]');
+    return $self->SUPER::terraform_apply(%args);
+}
 
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        $self->upload_boot_diagnostics(instance_id => $instance_id);
-    }
-    return @instances;
+sub on_terraform_apply_timeout {
+    my ($self) = @_;
+    $self->upload_boot_diagnostics();
 }
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
-    return if !defined($args{instance_id});
-    my $instance_id = $args{instance_id};
+    my $instance_id = $self->get_terraform_output('.vm_name.value[]');
+    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
@@ -215,6 +214,9 @@ sub upload_boot_diagnostics {
     script_run("aws ec2 get-console-output --latest --color=off --no-paginate --output text --instance-id $instance_id &> $asset_path", proceed_on_failure => 1);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_soft_failure('poo#155116 - The console log is empty.');
+        record_info($asset_path, script_output("cat $asset_path"));
+    } elsif (check_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'i3.large')) {
+        record_info('UNSUPPORTED_INSTANCE', "The 'i3.large' instance doesn't support serial terminal.");
     } else {
         upload_logs("$asset_path", failok => 1);
     }
@@ -223,6 +225,7 @@ sub upload_boot_diagnostics {
     script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path");
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('empty screenshot', 'The console screenshot is empty.');
+        record_info($asset_path, script_output("cat $asset_path"));
     } else {
         upload_logs("$asset_path", failok => 1);
     }
@@ -243,15 +246,7 @@ sub img_proof {
 sub cleanup {
     my ($self, $args) = @_;
 
-    select_host_console(force => 1);
-
-    script_run('cd ' . get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '~/terraform'));
-    my $instance_id = $self->get_terraform_output('.vm_name.value[]');
-    script_run('cd');
-
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        $self->upload_boot_diagnostics(instance_id => $instance_id);
-    }
+    $self->upload_boot_diagnostics();
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
 }

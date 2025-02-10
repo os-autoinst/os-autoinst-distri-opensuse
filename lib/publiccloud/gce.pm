@@ -88,14 +88,10 @@ sub terraform_apply {
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
     my @instances = $self->SUPER::terraform_apply(%args);
 
-    my $region = $self->{provider_client}->{region};
-    my $project = $self->{provider_client}->{project_id};
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     # gce provides full serial log, so extended timeout
     if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        if ($instance_id =~ /$self->{resource_name}/) {
-            $self->upload_boot_diagnostics(project => $project, region => $region, instance_id => $instance_id);
-        } else {
+        if ($instance_id !~ /$self->{resource_name}/) {
             record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
         }
     }
@@ -103,21 +99,27 @@ sub terraform_apply {
     return @instances;
 }
 
+sub on_terraform_apply_timeout {
+    my ($self) = @_;
+    $self->upload_boot_diagnostics();
+}
+
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
-    return if !defined($args{instance_id});
-    my $project = $args{project};
-    my $region = $args{region};
-    my $instance_id = $args{instance_id};
+    my $region = $self->get_terraform_output('.region.value');
+    my $project = $self->get_terraform_output('.project.value');
+    my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
+    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
     $time =~ s/:/-/g;
     my $asset_path = "/tmp/console-$time.txt";
-
+    # gce provides full serial log, so extended timeout
     script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
-        record_info('empty screenshot', 'The console screenshot is empty.');
+        record_info('Invalid screenshot', 'The console screenshot is invalid.');
+        record_info($asset_path, script_output("cat $asset_path"));
     } else {
         upload_logs("$asset_path", failok => 1);
     }
@@ -200,19 +202,7 @@ sub start_instance
 
 sub cleanup {
     my ($self, $args) = @_;
-    select_host_console(force => 1);
-
-    my $region = $self->{provider_client}->{region};
-    my $project = $self->{provider_client}->{project_id};
-    my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
-    # gce provides full serial log, so extended timeout
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        if ($instance_id =~ /$self->{resource_name}/) {
-            $self->upload_boot_diagnostics(project => $project, region => $region, instance_id => $instance_id);
-        } else {
-            record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
-        }
-    }
+    $self->upload_boot_diagnostics();
     $self->SUPER::cleanup();
 }
 
