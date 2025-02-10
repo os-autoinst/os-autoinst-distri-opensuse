@@ -16,6 +16,7 @@ schedule:
     - security/ntpd
     - console/ntp_client
     - console/cups
+    - network/samba/samba_adcli
     - console/syslog
     - x11/evolution/evolution_prepare_servers
     - console/mutt
