@@ -19,6 +19,7 @@ use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_co
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
+my $oci_runtime = "";
 
 sub run_tests {
     my %params = @_;
@@ -30,7 +31,6 @@ sub run_tests {
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
 
-    my $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
@@ -76,7 +76,11 @@ sub run {
     install_packages(@pkgs);
     install_ncat;
 
-    record_info("podman version", script_output("podman version"));
+    $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
+    install_packages($oci_runtime);
+    script_run "mkdir /etc/containers/containers.conf.d";
+    assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
+    record_info("OCI runtime", $oci_runtime);
 
     delegate_controllers;
 
@@ -87,6 +91,7 @@ sub run {
 
     switch_cgroup_version($self, 2);
 
+    record_info("podman version", script_output("podman version"));
     record_info("podman info", script_output("podman info"));
     record_info("podman package version", script_output("rpm -q podman"));
 
