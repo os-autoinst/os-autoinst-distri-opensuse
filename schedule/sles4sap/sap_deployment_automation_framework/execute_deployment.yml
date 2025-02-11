@@ -1,7 +1,7 @@
 ---
 name: sap_deployment_automation_framework
 description: |
-  Deploy SAP Hana SR scenario using 'SAP deployment automation framework'
+  Executes SDAF deployment process
 schedule:
   - boot/boot_to_desktop
   - sles4sap/sap_deployment_automation_framework/create_deployer_vm
@@ -9,4 +9,4 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/configure_deployer
   - sles4sap/sap_deployment_automation_framework/deploy_workload_zone
   - sles4sap/sap_deployment_automation_framework/deploy_sap_systems
-  - sles4sap/sap_deployment_automation_framework/deploy_hanasr
+  - sles4sap/sap_deployment_automation_framework/execute_ansible_playbooks
