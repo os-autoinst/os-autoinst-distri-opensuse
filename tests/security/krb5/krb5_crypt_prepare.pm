@@ -29,7 +29,6 @@ sub krb5_network_config {
     # Append to /etc/hosts
     assert_script_run("sed -i \"s/\\($ip.*\$\\)/\\1 $hostname/g\" /etc/hosts");
     assert_script_run("cat /etc/hosts");
-
     configure_static_network("$ip/24");
 }
 
@@ -79,11 +78,15 @@ EOF
 
         mutex_create "KRB5_CLIENT_NETWORK_READY";
     }
-    else {    # Avoid misconfigration in lib/main_comman.pm
+    else {    # Avoid misconfiguration in lib/main_common.pm
         die "Unrecognized value of SECURITY_TEST";
     }
 
-    (is_sle('<15')) ? systemctl('stop SuSEfirewall2') : systemctl('stop firewalld');
+    if (is_sle '<15') {
+        systemctl('stop SuSEfirewall2');
+    } elsif (is_sle '<16') {
+        systemctl('stop firewalld');
+    }    # on SLE16 firewalld is not installed by default
 
     # Prepare krb5 application and config files
     zypper_call('ref');
@@ -102,7 +105,7 @@ EOF
     dns_canonicalize_hostname = false
     rdns = false
     default_realm = EXAMPLE.COM
-    allow_week_crypto = false
+    allow_weak_crypto = false
     default_tgs_enctypes = $algo
     default_tkt_enctypes = $algo
     permitted_enctypes = $algo
