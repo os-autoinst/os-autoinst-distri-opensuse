@@ -47,6 +47,7 @@ sub run {
         logname => 'qesap_exec_ansible.log.txt',
         verbose => 1,
         timeout => 3600);
+    record_info('ANSIBLE RESULT', "ret0:$ret[0] ret1:$ret[1]");
     my $find_cmd = join(' ',
         'find',
         '/tmp/results/',
@@ -57,7 +58,7 @@ sub run {
         #enter_cmd("rm $log");
     }
     if ($ret[0]) {
-        # Retry to deploy terraform + ansible
+        record_info("Retry to deploy terraform + ansible");
         if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1], provider => $provider)) {
             die "Retry failed, original ansible return: $ret[0]";
         }
@@ -70,6 +71,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    record_info('POST FAIL HOOK');
     qesap_cluster_logs();
     qesap_upload_logs();
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
