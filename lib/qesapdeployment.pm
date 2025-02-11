@@ -93,8 +93,8 @@ our @EXPORT = qw(
   qesap_import_instances
   qesap_file_find_string
   qesap_is_job_finished
+  qesap_calculate_address_range
   qesap_az_get_resource_group
-  qesap_az_calculate_address_range
   qesap_az_vnet_peering
   qesap_az_simple_peering_delete
   qesap_az_vnet_peering_delete
@@ -1929,12 +1929,12 @@ sub qesap_az_get_resource_group {
     return $result;
 }
 
-=head3 qesap_az_calculate_address_range
+=head3 qesap_calculate_address_range
 
-Calculate the vnet and subnet address
-ranges. The format is 10.ip2.ip3.0/21 and
- /24 respectively. ip2 and ip3 are calculated
- using the slot number as seed.
+Calculate a main range that can be used in Azure for vnet or in AWS for vpc.
+Also calculate a secondary range within the main one for Azure subnet address ranges.
+The format is 10.ip2.ip3.0/21 and /24 respectively.
+ip2 and ip3 are calculated using the slot number as seed.
 
 =over
 
@@ -1944,7 +1944,7 @@ ranges. The format is 10.ip2.ip3.0/21 and
 
 =cut
 
-sub qesap_az_calculate_address_range {
+sub qesap_calculate_address_range {
     my %args = @_;
     croak 'Missing mandatory slot argument' unless $args{slot};
     die "Invalid 'slot' argument - valid values are 1-8192" if ($args{slot} > 8192 || $args{slot} < 1);
@@ -1957,7 +1957,7 @@ sub qesap_az_calculate_address_range {
     my $ip3 = $offset % 256;
 
     return (
-        vnet_address_range => sprintf("10.%d.%d.0/21", $ip2, $ip3),
+        main_address_range => sprintf("10.%d.%d.0/21", $ip2, $ip3),
         subnet_address_range => sprintf("10.%d.%d.0/24", $ip2, $ip3),
     );
 }

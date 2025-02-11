@@ -943,12 +943,12 @@ subtest '[ipaddr2_refresh_repo]' => sub {
 
 subtest '[get_private_ip_range]' => sub {
     my %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    my %expected_value = (vnet_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24', priv_ip_range => '192.168.0');
+    my %expected_value = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24', priv_ip_range => '192.168.0');
     is_deeply \%ip_range, \%expected_value, "No worker_id, return 192.168.0.0 ip range";
 
     set_var('WORKER_ID', '123');
     %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    $expected_value{vnet_address_range} = '10.3.208.0/21';
+    $expected_value{main_address_range} = '10.3.208.0/21';
     $expected_value{subnet_address_range} = '10.3.208.0/24';
     $expected_value{priv_ip_range} = '10.3.208';
     is_deeply \%ip_range, \%expected_value, "IP range is count according by worker_id";

@@ -11,7 +11,7 @@ apiver: 3
 terraform:
   variables:
     # GENERAL VARIABLES
-    vnet_address_range: '%VNET_ADDRESS_RANGE%'
+    vnet_address_range: '%MAIN_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
     az_region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'

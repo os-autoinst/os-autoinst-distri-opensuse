@@ -89,9 +89,11 @@ sub run {
         $variables{HANA_LOG_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
     }
 
+    # *_ADDRESS_RANGE variables are not necessary needed by all the conf.yaml templates
+    # but calculate them every time is "cheap"
+    my %peering_settings = qesap_calculate_address_range(slot => get_required_var('WORKER_ID'));
+    $variables{MAIN_ADDRESS_RANGE} = $peering_settings{main_address_range};
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        my %peering_settings = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
-        $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
         if ($variables{FENCING} eq 'native') {
             $variables{AZURE_NATIVE_FENCING_AIM} = get_var('QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION', 'msi');

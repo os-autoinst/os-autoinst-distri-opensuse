@@ -62,11 +62,11 @@ sub run {
     my ($self, $run_args) = @_;
     my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if (is_azure()) {
-        my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
-        set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
-        set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
-    }
+    # *_ADDRESS_RANGE variables are not necessary needed by all the conf.yaml templates
+    # but calculate them every time is "cheap"
+    my %maintenance_vars = qesap_calculate_address_range(slot => get_required_var('WORKER_ID'));
+    set_var("MAIN_ADDRESS_RANGE", $maintenance_vars{main_address_range});
+    set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed
