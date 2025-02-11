@@ -16,8 +16,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_transactional is_sle is_sle_micro is_tumbleweed);
-use transactional qw(trup_call check_reboot_changes);
+use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use Utils::Architectures 'is_aarch64';
@@ -39,15 +38,7 @@ sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
 
     my $version = "SLE_15";
-    if (is_sle_micro('<6.0')) {
-        if (is_sle_micro('=5.5')) {
-            $version = "SLE_15_SP5";
-        } elsif (is_sle_micro('>5.2')) {
-            $version = "SLE_15_SP4";
-        } else {
-            $version = "SLE_15_SP3";
-        }
-    } elsif (is_sle('<15-SP6')) {
+    if (is_sle('<15-SP6')) {
         $version = get_required_var("VERSION");
         $version =~ s/-/_/g;
         $version = "SLE_" . $version;
@@ -64,11 +55,7 @@ sub install_ncat {
         "ln -sf /usr/bin/ncat /usr/bin/nc"
     );
     foreach my $cmd (@cmds) {
-        if (is_transactional) {
-            trup_call "--continue run $cmd";
-        } else {
-            assert_script_run "$cmd";
-        }
+        assert_script_run "$cmd";
     }
 }
 
@@ -86,17 +73,6 @@ sub install_bats {
 
     assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
-}
-
-sub remove_mounts_conf {
-    if (script_run("test -f /etc/containers/mounts.conf -o -f /usr/share/containers/mounts.conf") == 0) {
-        if (is_transactional) {
-            trup_call "run rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
-            check_reboot_changes;
-        } else {
-            script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
-        }
-    }
 }
 
 sub get_user_subuid {
@@ -125,11 +101,7 @@ sub switch_to_user {
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
 
-    if (is_transactional) {
-        select_console "user-console";
-    } else {
-        select_user_serial_terminal();
-    }
+    select_user_serial_terminal();
 }
 
 sub delegate_controllers {
@@ -166,7 +138,8 @@ sub bats_setup {
     my $self = shift;
 
     delegate_controllers;
-    remove_mounts_conf;
+    # Remove mounts.conf
+    script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
     # Disable tmpfs from next boot
     assert_script_run "systemctl mask tmp.mount";
     # Switch to cgroup v2 if not already active
