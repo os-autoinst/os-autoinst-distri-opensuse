@@ -32,6 +32,10 @@ sub is_dvd {
     return get_required_var('FLAVOR') =~ /dvd/i;
 }
 
+sub is_qec_test_run {
+    return check_var('QEC_SLEM_TESTS_FILTER', '1');
+}
+
 sub is_regproxy_required {
     # For now only the Kubic kubeadm test needs a registry proxy.
     # docker_image and podman_image pull with the full path themselves.
@@ -205,7 +209,7 @@ sub load_common_tests {
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
-    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
+    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER') || is_qec_test_run;
     loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
@@ -224,10 +228,10 @@ sub load_transactional_tests {
     loadtest 'transactional/disable_timers';
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/trup_smoke';
-    loadtest 'microos/patterns' if is_sle_micro;
-    loadtest 'transactional/transactional_update';
-    loadtest 'transactional/rebootmgr';
-    loadtest 'transactional/health_check' if is_bootloader_grub2;    # health-checker needs GRUB2 (poo#129748)
+    loadtest 'microos/patterns' if is_sle_micro && !is_qec_test_run;
+    loadtest 'transactional/transactional_update' unless is_qec_test_run;
+    loadtest 'transactional/rebootmgr' unless is_qec_test_run;
+    loadtest 'transactional/health_check' if is_bootloader_grub2 && !is_qec_test_run;    # health-checker needs GRUB2 (poo#129748)
 }
 
 
