@@ -134,6 +134,12 @@ sub run {
         record_info("Not available", "this test run is not available for SLES version older than 12-SP3.");
         return;
     }
+    # when run in FIPS mode, bail out on < 15-SP6 due to lack of proper support for crypto-policies
+    # https://jira.suse.com/browse/PED-12018
+    if (get_var('FIPS_ENABLED') && is_sle('<15-SP6')) {
+        record_info('TEST SKIPPED', 'missing crypto-policies support for legacy AD auth');
+        return;
+    }
     select_serial_terminal;
 
     # Ensure the required variables are set
