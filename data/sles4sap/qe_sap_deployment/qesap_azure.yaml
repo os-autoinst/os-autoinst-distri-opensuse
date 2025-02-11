@@ -14,7 +14,7 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
-    vnet_address_range: '%VNET_ADDRESS_RANGE%'
+    vnet_address_range: '%MAIN_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
 ansible:
   roles_path: '%ANSIBLE_ROLES%'

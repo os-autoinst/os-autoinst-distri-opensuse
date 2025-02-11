@@ -6,7 +6,6 @@
 # Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
-
 provider: 'azure'
 apiver: 3
 terraform:

@@ -9,7 +9,7 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use qesapdeployment qw (qesap_az_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings);
+use qesapdeployment qw (qesap_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings);
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
@@ -84,12 +84,12 @@ count the private ip range and return
 =cut
 
 sub get_private_ip_range {
-    my %range = (vnet_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
+    my %range = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
     if (my $worker_id = get_var("WORKER_ID")) {
-        %range = qesap_az_calculate_address_range(slot => $worker_id);
+        %range = qesap_calculate_address_range(slot => $worker_id);
     }
 
-    $range{priv_ip_range} = ($range{vnet_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
+    $range{priv_ip_range} = ($range{main_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
 
     return %range;
 }
@@ -247,7 +247,7 @@ sub ipaddr2_infra_deploy {
         resource_group => $rg,
         region => $args{region},
         vnet => $vnet,
-        address_prefixes => $priv_net_address_range{vnet_address_range},
+        address_prefixes => $priv_net_address_range{main_address_range},
         snet => $subnet,
         subnet_prefixes => $priv_net_address_range{subnet_address_range});
 
