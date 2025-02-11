@@ -71,7 +71,7 @@
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
           <li><a href="#qesap_is_job_finished">qesap_is_job_finished</a></li>
           <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
-          <li><a href="#qesap_az_calculate_address_range">qesap_az_calculate_address_range</a></li>
+          <li><a href="#qesap_calculate_address_range">qesap_calculate_address_range</a></li>
           <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
           <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
           <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
@@ -939,9 +939,9 @@ In cases of ambiguous responses, they are considered to be in `running` state.</
 </dd>
 </dl>
 
-<h3 id="qesap_az_calculate_address_range">qesap_az_calculate_address_range</h3>
+<h3 id="qesap_calculate_address_range">qesap_calculate_address_range</h3>
 
-<p>Calculate the vnet and subnet address ranges. The format is 10.ip2.ip3.0/21 and /24 respectively. ip2 and ip3 are calculated using the slot number as seed.</p>
+<p>Calculate a main range that can be used in Azure for vnet or in AWS for vpc. Also calculate a secondary range within the main one for Azure subnet address ranges. The format is 10.ip2.ip3.0/21 and /24 respectively. ip2 and ip3 are calculated using the slot number as seed.</p>
 
 <dl>
 
