@@ -13,7 +13,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
 use testapi qw(is_serial_terminal :DEFAULT);
 use mmapi 'get_current_job_id';
-use utils qw(script_output_retry);
+use utils qw(script_retry script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
@@ -505,50 +505,39 @@ sub terraform_apply {
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
 
-    my @instances = $self->SUPER::terraform_apply(%args);
-
-    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
-    $instance_id =~ s/.*\/(.*)/$1/;
-    record_info('INSTANCE_ID', $instance_id);
-    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
-    record_info('RESOURCE_GROUP', $resource_group);
-
-    $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
-    return @instances;
+    return $self->SUPER::terraform_apply(%args);
 }
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
-
-    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
-    $instance_id =~ s/.*\/(.*)/$1/;
-    record_info('INSTANCE_ID', $instance_id);
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
-    record_info('RESOURCE_GROUP', $resource_group);
 
-    $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
+    $self->upload_boot_diagnostics();
     assert_script_run("az group delete --yes --no-wait --name $resource_group") unless get_var('PUBLIC_CLOUD_NO_CLEANUP');
 }
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
-    return if !defined($args{instance_id});
-    return if !defined($args{resource_group});
-    my $instance_id = $args{instance_id};
-    my $resource_group = $args{resource_group};
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
+
+    my $cmd_enable = "az vm boot-diagnostics enable --name $instance_id --resource-group $resource_group";
+    my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
+    record_info('INFO', $cmd_enable . $/ . $out);
+
+    # Wait until the bootlog blob is created
+    script_retry("az vm boot-diagnostics get-boot-log-uris --name $instance_id --resource-group $resource_group", delay => 15, retry => 12, die => 1);
 
     my $dt = DateTime->now;
     my $time = $dt->hms;
     $time =~ s/:/-/g;
     my $asset_path = "/tmp/console-$time.txt";
-
-    my $cmd_enable = "az vm boot-diagnostics enable --ids $instance_id";
-    my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
-    record_info('INFO', $cmd_enable . $/ . $out);
-
     script_run("timeout 110 az vm boot-diagnostics get-boot-log --name $instance_id --resource-group $resource_group | jq -r '.' > $asset_path", timeout => 120);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_soft_failure("poo#155116 - The console log is empty.");
+        record_info($asset_path, script_output("cat $asset_path"));
     } else {
         upload_logs($asset_path, failok => 1);
     }
@@ -638,21 +627,8 @@ This method is called called after each test on failure or success to revoke the
 sub cleanup {
     my ($self, $args) = @_;
 
-    script_run('cd ' . get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '~/terraform'));
-    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
-    $instance_id =~ s/.*\/(.*)/$1/;
-    record_info('INSTANCE_ID', $instance_id);
-    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
-    record_info('RESOURCE_GROUP', $resource_group);
-    script_run('cd');
-
-    select_host_console(force => 1);
-
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
-
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id) && defined($resource_group)) {
-        $self->upload_boot_diagnostics('instance_id' => $instance_id, 'resource_group' => $resource_group);
-    }
+    $self->upload_boot_diagnostics();
     $self->SUPER::cleanup();
 }
 

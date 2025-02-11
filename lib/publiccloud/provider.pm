@@ -369,6 +369,7 @@ sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
     $args{check_guestregister} //= 1;
+    $args{upload_boot_diagnostics} //= 1;
     my @vms = $self->terraform_apply(%args);
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://larry.qe.suse.de:8086');
 
@@ -380,6 +381,7 @@ sub create_instances {
         }
         # check guestregister conditional, default yes:
         $instance->wait_for_guestregister() if ($args{check_guestregister});
+        $self->upload_boot_diagnostics() if ($args{upload_boot_diagnostics});
 
         # Performance data: boottime
         next if is_openstack;
