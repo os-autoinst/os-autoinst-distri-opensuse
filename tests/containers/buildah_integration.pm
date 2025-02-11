@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats patch_logfile switch_to_user delegate_controllers enable_modules remove_mounts_conf bats_post_hook);
+use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp";
@@ -61,11 +61,7 @@ sub run {
     push @pkgs, qw(crun) if is_tumbleweed;
     install_packages(@pkgs);
 
-    delegate_controllers;
-
-    remove_mounts_conf;
-
-    switch_cgroup_version($self, 2);
+    $self->bats_setup;
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));

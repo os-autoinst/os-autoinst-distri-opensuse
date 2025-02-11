@@ -15,7 +15,7 @@ use utils qw(script_retry);
 use version_utils qw(is_sle is_tumbleweed);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use containers::bats qw(install_bats install_ncat patch_logfile remove_mounts_conf switch_to_user delegate_controllers enable_modules bats_post_hook);
+use containers::bats;
 
 my $test_dir = "/var/tmp";
 my $podman_version = "";
@@ -82,14 +82,10 @@ sub run {
     assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
     record_info("OCI runtime", $oci_runtime);
 
-    delegate_controllers;
+    $self->bats_setup;
 
     assert_script_run "podman system reset -f";
     assert_script_run "modprobe ip6_tables";
-
-    remove_mounts_conf;
-
-    switch_cgroup_version($self, 2);
 
     record_info("podman version", script_output("podman version"));
     record_info("podman info", script_output("podman info"));
