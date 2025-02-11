@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
-use containers::bats qw(install_bats patch_logfile remove_mounts_conf switch_to_user enable_modules bats_post_hook);
+use containers::bats;
 use version_utils qw(is_sle is_sle_micro);
 
 my $test_dir = "/var/tmp";
@@ -62,12 +62,10 @@ sub run {
     my @pkgs = qw(apache2-utils jq openssl podman skopeo);
     install_packages(@pkgs);
 
+    $self->bats_setup;
+
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));
-
-    remove_mounts_conf;
-
-    switch_to_user;
 
     assert_script_run "cd $test_dir";
 

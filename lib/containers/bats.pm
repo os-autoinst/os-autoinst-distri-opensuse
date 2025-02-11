@@ -22,8 +22,18 @@ use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use Utils::Architectures 'is_aarch64';
 use Utils::Logging 'save_and_upload_log';
+use bootloader_setup 'add_grub_cmdline_settings';
+use power_action_utils 'power_action';
 
-our @EXPORT = qw(install_bats install_ncat remove_mounts_conf switch_to_user delegate_controllers enable_modules patch_logfile bats_post_hook);
+our @EXPORT = qw(
+  bats_post_hook
+  bats_setup
+  enable_modules
+  install_bats
+  install_ncat
+  patch_logfile
+  switch_to_user
+);
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -150,6 +160,23 @@ sub patch_logfile {
         }
     }
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
+}
+
+sub bats_setup {
+    my $self = shift;
+
+    delegate_controllers;
+    remove_mounts_conf;
+    # Disable tmpfs from next boot
+    assert_script_run "systemctl mask tmp.mount";
+    # Switch to cgroup v2 if not already active
+    if (script_run("ls /sys/fs/cgroup/cgroup.controllers") != 0) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+    }
+    power_action('reboot', textmode => 1);
+    $self->wait_boot();
+
+    select_serial_terminal;
 }
 
 sub bats_post_hook {
