@@ -156,6 +156,6 @@ sub bats_post_hook {
     select_serial_terminal;
     save_and_upload_log('dmesg', 'dmesg.txt');
     save_and_upload_log('rpm -qa | sort', 'rpm-qa.txt');
-    save_and_upload_log('journalctl', 'journalctl.txt');
+    save_and_upload_log('journalctl -b', 'journalctl-b.txt', {timeout => 120});
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }
