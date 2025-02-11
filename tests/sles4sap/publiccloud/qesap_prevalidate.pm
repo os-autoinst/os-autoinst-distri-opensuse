@@ -38,6 +38,9 @@ sub run {
         # Skip instances without HANA db or setup without cluster
         next if ($instance_id !~ m/vmhana/) or !$ha_enabled;
 
+        # Output the version of tool 'SAPHanaSR-showAttr'
+        record_info('SAPHanaSR version number', $self->saphanasr_showAttr_version());
+
         $self->wait_for_sync();
 
         # Define initial state for both sites

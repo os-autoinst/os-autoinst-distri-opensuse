@@ -1240,9 +1240,10 @@ sub pacemaker_version {
 
 sub saphanasr_showAttr_version {
     my ($self) = @_;
-    my $version_cmd = 'SAPHanaSR-showAttr --version';
 
-    my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1);
+    my $which_output = $self->run_cmd(cmd => 'which SAPHanaSR-showAttr', quiet => 1);
+    my $version_output = $self->run_cmd(cmd => "rpm -qf $which_output", quiet => 1);
+    record_info('SAPHanaSR INFO', "path=$which_output; version=$version_output");
 
     if ($version_output =~ /(\d+\.\d+(?:\.\d+)*)/) {
         return $1;
