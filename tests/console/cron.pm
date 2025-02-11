@@ -21,7 +21,7 @@ sub run {
 
     # Ensuring ntp-wait is done syncing to avoid cron starting issue bsc#1207042
     if ((is_sle("<15")) && (!is_public_cloud)) {
-        script_retry("systemctl is-active ntp-wait.service | grep -vq 'activating'", retry => 10, delay => 30, fail_message => "ntp-wait did not finish syncing");
+        script_retry("systemctl is-active ntp-wait.service | grep -vq 'activating'", retry => 10, delay => 60, fail_message => "ntp-wait did not finish syncing");
     }
     # check if cronie is installed, enabled and running
     assert_script_run 'rpm -q cronie';
