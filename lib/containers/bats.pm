@@ -154,6 +154,8 @@ sub patch_logfile {
 
 sub bats_post_hook {
     select_serial_terminal;
+    save_and_upload_log('dmesg', 'dmesg.txt');
+    save_and_upload_log('rpm -qa | sort', 'rpm-qa.txt');
     save_and_upload_log('journalctl', 'journalctl.txt');
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }
