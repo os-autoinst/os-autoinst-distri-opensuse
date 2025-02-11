@@ -147,6 +147,8 @@ subtest 'has_selinux_by_default' => sub {
     set_var('DISTRI', 'opensuse');
     set_var('VERSION', 'Tumbleweed');
     ok has_selinux_by_default, "check has_selinux_by_default for Tumbleweed";
+    set_var('ZDUP', '1');
+    ok !has_selinux_by_default, "check has_selinux_by_default for older Tumbleweed images";
 };
 
 subtest 'has_selinux' => sub {
@@ -164,6 +166,7 @@ subtest 'has_selinux' => sub {
     # Test Tumbleweed (default enabled)
     set_var('DISTRI', 'opensuse');
     set_var('VERSION', 'Tumbleweed');
+    set_var('ZDUP', '0');
     ok has_selinux, "check has_selinux for Tumbleweed without SELINUX=1 environment";
     set_var('SELINUX', '1');
     ok has_selinux, "check has_selinux for Tumbleweed with SELINUX=1";
