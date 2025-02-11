@@ -28,6 +28,9 @@ sub run {
         die "Missing boolean ${prefix}*" unless $booleans =~ m/^${prefix}.*\(off.*,.*off\)/m;
     }
 
+    # Save boolean state
+    assert_script_run("semanage boolean -E > ~/oldbooleans");
+
     # test option "-m": to set boolean value "off/on"
     assert_script_run("semanage boolean -m --off $test_boolean");
     validate_script_output("semanage boolean -l | grep $test_boolean", sub { m/${test_boolean}.*(off.*,.*off).*Allow.*to.*/ });
@@ -67,8 +70,8 @@ m/(?=.*SELinux\s+boolean\s+State\s+Default\s+Description)(?=.*${test_boolean}\s+
         $self->result('fail');
     }
 
-    # clean up: restore the value for "selinuxuser_execmod"
-    assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
+    # clean up: restore previous boolean values
+    assert_script_run("semanage import -f ~/oldbooleans && rm ~/oldbooleans");
 }
 
 1;
