@@ -20,4 +20,4 @@ SERVER_PID=$!
 sleep 3
 # stop the server and the background client
 kill $SERVER_PID
-killall tstclnt
+kill $(pidof tstclnt)
