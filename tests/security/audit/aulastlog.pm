@@ -1,8 +1,9 @@
-# Copyright 2022 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
-# Summary: Verify the "aulastlog" can print the last login for all users of a machine similar to the way lastlog does
-#          The login name, port and last login time will be printed
+# Summary: Verify the "aulastlog" can print the last login for all users of a
+#          machine similar to the way lastlog does.
+#          The login name, port and last login time will be printed.
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768580
 
@@ -16,8 +17,8 @@ use version_utils qw(is_tumbleweed);
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
     my $user = 'suse';
-    my $pwd = 'testpassw0rd';
-    my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
+    my $pwd = 'Hello-World';
+    my $audit_service = 'auditd';
 
     select_console 'root-console';
 
