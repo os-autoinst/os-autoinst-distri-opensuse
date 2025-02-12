@@ -34,8 +34,10 @@ sub run_tests {
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
+    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+
     my %_env = (
-        BATS_TMPDIR => "/var/tmp",
+        BATS_TMPDIR => $tmp_dir,
         SKOPEO_BINARY => "/usr/bin/skopeo",
         SKOPEO_TEST_REGISTRY_FQIN => $registry,
     );
@@ -47,6 +49,8 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+
+    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }

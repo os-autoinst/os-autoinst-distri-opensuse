@@ -26,8 +26,10 @@ sub run_tests {
 
     my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
 
+    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+
     my %_env = (
-        BATS_TMPDIR => "/var/tmp",
+        BATS_TMPDIR => $tmp_dir,
         RUNC_USE_SYSTEMD => "1",
         RUNC => "/usr/bin/runc",
     );
@@ -39,6 +41,8 @@ sub run_tests {
     my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+
+    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }

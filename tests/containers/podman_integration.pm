@@ -31,11 +31,13 @@ sub run_tests {
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
 
-    assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
-
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
+
+    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+    selinux_hack $tmp_dir;
+
     my %_env = (
-        BATS_TMPDIR => "/var/tmp",
+        BATS_TMPDIR => $tmp_dir,
         PODMAN => "/usr/bin/podman",
         QUADLET => $quadlet,
     );
@@ -50,7 +52,9 @@ sub run_tests {
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
+    script_run 'podman rm -vf $(podman ps -aq --external)';
     assert_script_run "podman system reset -f";
+    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }
@@ -100,6 +104,7 @@ sub run {
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run("cd $test_dir/podman-$podman_version/");
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
+    assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
 
     # Compile helpers used by the tests

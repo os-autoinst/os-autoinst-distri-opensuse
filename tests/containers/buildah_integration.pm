@@ -24,8 +24,7 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $tmp_dir = "/var/tmp";
-    script_run "rm -rf $tmp_dir/buildah_tests.*";
+    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
@@ -43,8 +42,10 @@ sub run_tests {
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
-    script_run "rm -rf $tmp_dir/buildah_tests.*";
+    script_run 'podman rm -vf $(podman ps -aq --external)';
+    assert_script_run "podman system reset -f";
     assert_script_run "buildah prune -a -f";
+    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }
@@ -62,6 +63,7 @@ sub run {
     install_packages(@pkgs);
 
     $self->bats_setup;
+    selinux_hack $test_dir;
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));
@@ -75,6 +77,9 @@ sub run {
     $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/buildah-$buildah_version/";
+
+    # Patch mkdir function to always use -p
+    assert_script_run "sed -i 's/run_unshared mkdir/& -p/' tests/helpers.bash";
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
