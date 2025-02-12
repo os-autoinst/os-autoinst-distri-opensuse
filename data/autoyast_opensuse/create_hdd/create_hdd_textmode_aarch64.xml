@@ -8,7 +8,7 @@
   </general>
   <bootloader>
     <global t="map">
-      <append>splash=silent video=1024x768 plymouth.ignore-serial-consoles console=ttyS0 console=tty kernel.softlockup_panic=1 security=apparmor mitigations=auto</append>
+      <append>splash=silent video=1024x768 plymouth.ignore-serial-consoles console=ttyS0 console=tty kernel.softlockup_panic=1
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
@@ -132,10 +132,10 @@
       <package>NetworkManager</package>
     </packages>
     <patterns t="list">
-      <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
+      <pattern>selinux</pattern>
       <pattern>sw_management</pattern>
       <pattern>yast2_basis</pattern>
       <pattern>yast2_server</pattern>

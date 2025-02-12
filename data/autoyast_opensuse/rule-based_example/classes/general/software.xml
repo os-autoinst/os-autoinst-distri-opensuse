@@ -6,9 +6,9 @@
       <product>openSUSE</product>
     </products>
     <patterns config:type="list">
-      <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>gnome</pattern>
+      <pattern>selinux</pattern>
     </patterns>
     <packages config:type="list">
       <package>apache2</package>
