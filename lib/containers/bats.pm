@@ -134,28 +134,61 @@ sub patch_logfile {
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
 }
 
+sub fix_tmp {
+    my $override_conf = << 'EOF';
+[Unit]
+ConditionPathExists=/var/tmp
+
+[Mount]
+What=/var/tmp
+Where=/tmp
+Type=none
+Options=bind
+EOF
+
+    assert_script_run "mkdir /etc/systemd/system/tmp.mount.d/";
+    assert_script_run "echo '$override_conf' > /etc/systemd/system/tmp.mount.d/override.conf";
+}
+
 sub bats_setup {
     my $self = shift;
+    my $reboot_needed = 0;
 
     delegate_controllers;
     # Remove mounts.conf
     script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
     # Disable tmpfs from next boot
-    assert_script_run "systemctl mask tmp.mount";
-    # Switch to cgroup v2 if not already active
-    if (script_run("ls /sys/fs/cgroup/cgroup.controllers") != 0) {
-        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+    if (script_output("findmnt -no FSTYPE /tmp") =~ /tmpfs/) {
+        # Bind mount /tmp to /var/tmp
+        fix_tmp;
+        $reboot_needed = 1;
     }
-    power_action('reboot', textmode => 1);
-    $self->wait_boot();
-
+    # Switch to cgroup v2 if not already active
+    if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+        $reboot_needed = 1;
+    }
+    if ($reboot_needed) {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot();
+    }
     select_serial_terminal;
 }
 
 sub bats_post_hook {
     select_serial_terminal;
-    save_and_upload_log('dmesg', 'dmesg.txt');
-    save_and_upload_log('rpm -qa | sort', 'rpm-qa.txt');
-    save_and_upload_log('journalctl -b', 'journalctl-b.txt', {timeout => 120});
+
+    script_run('df -h > /tmp/df-h.txt');
+    upload_logs('/tmp/df-h.txt');
+
+    script_run('dmesg > /tmp/dmesg.txt');
+    upload_logs('/tmp/dmesg.txt');
+
+    script_run('rpm -qa | sort > /tmp/rpm-qa.txt');
+    upload_logs('/tmp/rpm-qa.txt');
+
+    script_run('journalctl -b > /tmp/journalctl-b.txt', timeout => 120);
+    upload_logs('/tmp/journalctl-b.txt');
+
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }
