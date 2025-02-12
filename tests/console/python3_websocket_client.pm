@@ -37,7 +37,7 @@ sub test_setup {
 
 sub run_test ($python_package) {
     return unless script_run("zypper search $python_package-websocket-client") == 0;
-    record_info("Testing for $python_package");
+    record_info("Testing for", "$python_package is tested now");
     zypper_call("install $python_package $python_package-websocket-client");
     my $python_interpreter = get_python3_binary($python_package);
     record_info("running python version", script_output("$python_interpreter --version"));
