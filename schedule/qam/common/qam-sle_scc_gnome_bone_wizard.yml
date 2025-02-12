@@ -1,4 +1,4 @@
-name:           qam-sle_sles4sap_scc_gnome_bone_wizard
+name:           qam-sle_scc_gnome_bone_wizard
 description:    >
   Deploy a Business One instance on top of gnome image using wizard.
   Further info about the test suite
