@@ -51,6 +51,7 @@ CONTAINERS_NO_SUSE_OS | boolean | false | Used by main_containers to see if the 
 CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
 CONTAINERS_CRICTL_VERSION | string | v1.23.0 | The version of CriCtl tool.
 CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
+CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dependecy_issues will be scheduled or not before certain modules which need it.
