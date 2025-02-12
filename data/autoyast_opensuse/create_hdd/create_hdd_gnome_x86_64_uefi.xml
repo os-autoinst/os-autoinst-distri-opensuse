@@ -116,7 +116,6 @@
       <package>NetworkManager</package>
     </packages>
     <patterns t="list">
-      <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
       <pattern>enhanced_base</pattern>
@@ -138,6 +137,7 @@
       <pattern>minimal_base</pattern>
       <pattern>multimedia</pattern>
       <pattern>office</pattern>
+      <pattern>selinux</pattern>
       <pattern>sw_management</pattern>
       <pattern>sw_management_gnome</pattern>
       <pattern>x11</pattern>
