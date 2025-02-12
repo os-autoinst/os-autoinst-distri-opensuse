@@ -23,9 +23,10 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
-use version_utils qw(is_sle package_version_cmp);
+use version_utils qw(is_sle is_tumbleweed package_version_cmp);
 use utils;
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
+use serial_terminal qw(select_serial_terminal set_serial_prompt);
 
 # set global timeout, increased for aarch64
 my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
@@ -38,47 +39,67 @@ my @options = ({pw => "readonly_pw", change => 0}, {pw => "readwrite_pw", change
 # A wrong password to check if the access is denied
 my $wrong_password = "password123";
 
-sub type_and_wait {
-    type_string shift;
-    wait_screen_change {
-        send_key 'ret';
-    };
-}
+my $test_xauth;
+my $tigervnc_vers;
+my $curr_vers;
 
-sub start_vnc_server {
-    select_console "root-console";
+sub setup_vnc_server {
     # Disable remote administration from previous tests
     script_run 'systemctl stop vncmanager';
+    assert_script_run('mkdir /etc/tigervnc') if $curr_vers < 0;
 
-    select_console "user-console";
+    # Config done following this guide:
+    # https://github.com/TigerVNC/tigervnc/blob/master/unix/vncserver/HOWTO.md
+    #   1. Add a user mapping
+    assert_script_run("echo -e \"$display=testuser\\n\" >> /etc/tigervnc/vncserver.users");
+    #   2. Configure Xvnc options
+    assert_script_run('echo -e "geometry=1024x768\ndepth=16" >> /etc/tigervnc/vncserver-config-defaults');
 
-    # Create password file
-    enter_cmd "tput civis";
-    type_and_wait "vncpasswd /tmp/file.passwd";
+    enter_cmd 'su - testuser';
+    sleep 2;
+    set_serial_prompt '> ';
 
-    # Set read write password
-    type_and_wait $options[1]->{pw};
-    type_and_wait $options[1]->{pw};
-    type_and_wait "y";
-
-    # Set read only password
-    type_and_wait $options[0]->{pw};
-    type_and_wait $options[0]->{pw};
-    enter_cmd "tput cnorm";
-
-    # Also set the password via `vncpasswd -f` for vncserver and to test for https://bugzilla.opensuse.org/show_bug.cgi?id=1171519
-    assert_script_run('umask 0077');
-    script_run('mkdir -Z $HOME/.vnc');
-    assert_script_run('chmod go-rwx "$HOME/.vnc"');
-    if (script_run("echo \"$options[1]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[0]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
-        record_soft_failure('vncpasswd crashes - bsc#1171519');
-        assert_script_run('cp /tmp/file.passwd $HOME/.vnc/passwd');
+    if ($curr_vers < 0) {
+        assert_script_run('umask 0077');
+        assert_script_run('mkdir -Z $HOME/.vnc');
+        assert_script_run('chmod go-rwx "$HOME/.vnc"');
+        script_output(qq(expect -c 'spawn vncpasswd /tmp/file.passwd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
+        if (script_run("echo \"$options[1]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[0]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
+            record_soft_failure('vncpasswd crashes - bsc#1171519');
+            assert_script_run('cp /tmp/file.passwd $HOME/.vnc/passwd');
+        }
+        wait_still_screen 2;
+        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is lesser than 1.12.0");
+        assert_script_run("vncserver $display -geometry 1024x768 -depth 16", fail_message => "vncserver is not starting");
+        script_run("vncserver -list > /var/tmp/vncserver-list");
+        assert_script_run("grep '$display' /var/tmp/vncserver-list", fail_message => "vncserver is not running");
+        set_serial_prompt '# ';
+        enter_cmd 'exit';
+        sleep 2;
     }
-
-    # Start server
-    enter_cmd "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd";
-    wait_still_screen 2;
+    else {
+        script_output(qq(expect -c 'spawn vncpasswd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
+        script_output("echo \"$options[1]->{pw}\" | vncpasswd -f");    # bsc#1171519
+        script_output(qq(expect -c 'spawn vncpasswd -f /home/testuser/.config/tigervnc/passwd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
+        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is greater than of equal to 1.12.0");
+        set_serial_prompt '# ';
+        enter_cmd 'exit';
+        sleep 2;
+        assert_script_run("systemctl start vncserver\@$display", fail_message => "New version of vncserver is not starting");
+        assert_script_run("systemctl status vncserver\@$display", fail_message => "New version of vncserver is not running");
+        sleep 3;
+    }
+    # get xauth of testuser so bernhard can access testuser display :37 with xev
+    $test_xauth = script_output("sudo -u testuser xauth list|awk '{print\$3}'|head -n1");
     select_console 'x11';
+}
+
+sub prepare_vnc {
+    # maximize vnc window and press esc to close the gnome activity
+    wait_still_screen 2;
+    send_key 'super-up';
+    wait_still_screen 2;
+    send_key_until_needlematch 'tigervnc-desktop-loggedin', 'esc', 5, 5;
 }
 
 sub generate_vnc_events {
@@ -88,7 +109,7 @@ sub generate_vnc_events {
     x11_start_program 'xterm';
     send_key 'super-left';
     enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
-    wait_still_screen 8;
+    wait_still_screen 4;
     assert_screen [qw(vnc_password_dialog vnc_password_dialog_incomplete)];
     if (match_has_tag 'vnc_password_dialog_incomplete') {
         # https://progress.opensuse.org/issues/158622
@@ -97,7 +118,7 @@ sub generate_vnc_events {
         assert_screen 'vnc_password_dialog';
     }
     enter_cmd "$password";
-    assert_screen 'vncviewer-xev';
+    prepare_vnc;
     send_key 'super-left';
     wait_still_screen 2;
 
@@ -113,29 +134,41 @@ sub generate_vnc_events {
     wait_still_screen 2;
 }
 
-sub configure_vnc_server {
-    # Config done following this guide:
-    # https://github.com/TigerVNC/tigervnc/blob/master/unix/vncserver/HOWTO.md
-    #   1. Add a user mapping
-    assert_script_run("echo -e \"$display=${testapi::username}\\n\" >> /etc/tigervnc/vncserver.users");
-    #   2. Configure Xvnc options
-    assert_script_run('echo -e "session=gnome\ngeometry=1024x768\ndepth=16" >> /etc/tigervnc/vncserver-config-defaults');
-    #   3. Set VNC password
-    #     Already created in start_vnc_server()
-    #   4. Start the TigerVNC server
-    assert_script_run("systemctl start vncserver\@$display", fail_message => "New version of vncserver is not starting");
+sub clean {
+    select_serial_terminal;
+    # Terminate server
+    if ($curr_vers < 0) {
+        assert_script_run("sudo -u testuser vncserver -kill $display");
+    }
+    else {
+        assert_script_run("systemctl stop vncserver\@$display");
+    }
+    # wait until all testuser processes are terminated after vnc session is clonsed
+    assert_script_run('while pgrep -U testuser; do sleep 1; done', 200);
+    script_run('userdel -r testuser');
+    select_console('x11');
 }
 
 sub run {
-    record_info 'Setup VNC';
-    select_console('root-console');
-    zypper_call('in tigervnc xorg-x11-Xvnc xev');
-    start_vnc_server;
+    select_serial_terminal;
+    my $xsession = is_tumbleweed ? 'gnome-session-xsession' : '';
+    zypper_call("in tigervnc xorg-x11-Xvnc xev expect $xsession");
+
+    # Check tigervnc version. Test will differ for versions under 1.12
+    $tigervnc_vers = script_output("rpm -q tigervnc --qf '\%{version}'");
+    $curr_vers = package_version_cmp($tigervnc_vers, '1.12.0');
+
+    # add testuser and use testuser to setup vncserver
+    assert_script_run("useradd -m -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) testuser");
+    assert_script_run(qq(expect -c 'spawn passwd testuser; expect "New password:"; send $options[1]->{pw}\\r; expect "Retype new password:"; send $options[1]->{pw}\\r; interact'));
+    setup_vnc_server;
 
     # open xterm for xev
     x11_start_program('xterm');
     send_key "super-right";
+    wait_still_screen 2;
     assert_screen 'vncviewer-console-right';
+    assert_script_run("xauth add $display . $test_xauth");
 
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {
@@ -171,30 +204,8 @@ sub run {
         }
         assert_script_run 'rm /tmp/xev_log';
     }
+    send_key "alt-f4";    # close xev xterm
 
-    # Stop Xvnc
-    send_key "alt-f4";
-    select_console 'user-console', await_console => 0;
-    send_key "ctrl-c";
-    wait_still_screen 2;
-
-    # Check tigervnc version. Test will differ for versions under 1.12
-    my $tigervnc_vers = script_output("rpm -q tigervnc --qf '\%{version}'");
-    my $curr_vers = package_version_cmp($tigervnc_vers, '1.12.0');
-    # Start vncserver and check if it is running
-    if ($curr_vers < 0) {
-        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is lesser than 1.12.0");
-        assert_script_run("vncserver $display -geometry 1024x768 -depth 16", fail_message => "vncserver is not starting");
-        script_run("vncserver -list > /var/tmp/vncserver-list");
-        assert_script_run("grep '$display' /var/tmp/vncserver-list", fail_message => "vncserver is not running");
-    }
-    else {
-        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is greater than of equal to 1.12.0");
-        select_console 'root-console';
-        configure_vnc_server;
-    }
-
-    # The needles for the tigervnc test are gnome specific
     if (check_var('DESKTOP', 'gnome')) {
         # Switch to desktop and run vncviewer
         select_console('x11');
@@ -235,37 +246,25 @@ sub run {
         else {
             type_string("$options[1]->{pw}");
             send_key("ret");
+            prepare_vnc;
         }
-        save_screenshot();
         send_key("alt-f4");
-        x11_start_program('vncviewer');
-        send_key("ret");
-        assert_screen('tigervnc-desktop-login', $timeout);
-        type_string("$options[0]->{pw}");
-        send_key("ret");
-        assert_screen('tigervnc-desktop-loggedin', $timeout);
         save_screenshot();
-        send_key("alt-f4");
     } else {
         record_info("skipping graphical vnc tests (non-gnome desktop)");
     }
-    # Terminate server
-    if ($curr_vers < 0) {
-        select_console('user-console');
-        assert_script_run("vncserver -kill $display");
-    }
-    else {
-        select_console('root-console');
-        assert_script_run("systemctl stop vncserver\@$display");
-    }
     # Done
-    select_console('x11');
+    clean;
 }
 
 sub post_fail_hook {
+    select_console 'log-console';
     # xev seems to hang, send control-c to ensure that we can actually type
     send_key "ctrl-c";
     upload_logs('/tmp/xev_log', failok => 1);
+    upload_logs("/home/testuser/.local/state/tigervnc/susetest$display.log", failok => 1) unless $curr_vers < 0;
+    upload_logs("/home/testuser/.vnc/susetest$display.log", failok => 1) if $curr_vers < 0;
+    clean;
 }
 
 1;
