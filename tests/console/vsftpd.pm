@@ -27,11 +27,15 @@ use strict;
 use warnings;
 use utils 'zypper_call';
 use Utils::Architectures;
+use version_utils 'has_selinux';
 
 sub run {
     select_serial_terminal;
 
     zypper_call 'in vsftpd expect';
+
+    # Allow full FTP access when enable selinux
+    assert_script_run 'setsebool -P ftpd_full_access on' if has_selinux;
     # export slenkins variables
     assert_script_run 'export SERVER=127.0.0.1';
     assert_script_run 'export CLIENT=127.0.0.1';
