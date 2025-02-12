@@ -6,6 +6,7 @@
 # Summary: Deployment of the SAP systems zone using SDAF automation
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'publiccloud::basetest';
 
 use strict;
 use warnings;
@@ -58,6 +59,8 @@ sub test_flags {
 }
 
 sub run {
+    my ($self) = @_;
+
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : start');
     select_serial_terminal();
     my $env_code = get_required_var('SDAF_ENV_CODE');
@@ -75,6 +78,11 @@ sub run {
     load_os_env_variables();
 
     my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
+    # This section is only needed by Azure tests using images uploaded
+    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        my $provider = $self->provider_factory();
+        set_var('SDAF_SOURCE_IMAGE_ID', $self->{provider}->get_image_id());
+    }
     prepare_tfvars_file(deployment_type => 'sap_system', components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
