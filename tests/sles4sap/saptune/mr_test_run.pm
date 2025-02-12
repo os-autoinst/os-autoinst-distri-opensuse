@@ -51,6 +51,9 @@ sub get_notes {
     # Note: We ignore these as we're not testing on cloud:
     # 1656250 - SAP on AWS: Support prerequisites - only Linux Operating System IO  recommendations
     # 2993054 - Recommended settings for SAP systems on Linux running in Azure virtual machines
+    if (is_sle('>=16')) {
+        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 3024346 900929 941735 SAP_BOBJ);
+    }
     if (is_sle('>=15')) {
         return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 3024346 900929 941735 SAP_BOBJ);
     }
@@ -72,7 +75,7 @@ sub tune_baseline {
 sub test_bsc1152598 {
     my ($self) = @_;
 
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
+    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     $result = "ok";
     $self->result("$result");
     record_info "bsc1152598";
@@ -272,7 +275,7 @@ sub test_rename {
 sub test_note {
     my ($self, $note) = @_;
 
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
+    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     my $extra = ($note eq "1771258") ? "-1" : "";
 
     $result = "ok";
@@ -297,8 +300,7 @@ sub test_note {
 sub test_override {
     my ($self, $note) = @_;
 
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
-
+    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     # With notes 1557506 & 1771258 we have to test 2 override files
     my @overrides = ($note =~ m/^(1557506|1771258)$/) ? ("${note}-1", "${note}-2") : (${note});
 
@@ -335,8 +337,7 @@ sub test_override {
 sub test_solution {
     my ($self, $solution) = @_;
 
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
-
+    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     $result = "ok";
     $self->result("$result");
     record_info "solution $solution";
@@ -389,8 +390,7 @@ sub test_ppc64le {
     my ($self) = @_;
 
     die "This test cannot be run on QEMU" if (is_qemu);
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
-
+    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     record_info "ppc64le";
     $result = "ok";
     $self->result("$result");
