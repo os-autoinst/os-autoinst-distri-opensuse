@@ -3,7 +3,7 @@
     <global t="map">
       <timeout t="integer">-1</timeout>
     </global>
-    <loader_type>grub2</loader_type>
+    <loader_type>grub2-efi</loader_type>
   </bootloader>
   <firewall t="map">
     <enable_firewall t="boolean">true</enable_firewall>
@@ -32,7 +32,6 @@
       <interface t="map">
         <bootproto>dhcp</bootproto>
         <device>eth0</device>
-        <dhclient_set_default_route>yes</dhclient_set_default_route>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
@@ -96,13 +95,14 @@ exit 0
     </post-scripts>
   </scripts>
   <services-manager t="map">
-    <default_target>multi-user</default_target>
+    <default_target>graphical</default_target>
     <services t="map">
       <disable t="list"/>
       <enable t="list">
         <service>firewalld</service>
         <service>wicked</service>
-        <service>sshd</service>
+	<service>sshd</service>
+        <service>systemd-remount-fs</service>
       </enable>
     </services>
   </services-manager>
@@ -110,10 +110,12 @@ exit 0
     <packages t="list">
       <package>sle-module-server-applications-release</package>
       <package>sle-module-python3-release</package>
+      <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
+      <package>shim</package>
       <package>openssh</package>
       <package>kexec-tools</package>
-      <package>grub2</package>
+      <package>grub2-arm64-efi</package>
       <package>glibc</package>
       <package>firewalld</package>
       <package>e2fsprogs</package>
@@ -123,12 +125,19 @@ exit 0
     <patterns t="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
+      <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
       <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
       <pattern>x11_yast</pattern>
       <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
     </patterns>
     <products t="list">
       <product>SLES</product>
@@ -138,8 +147,13 @@ exit 0
     <addons t="list">
       <addon t="map">
         <arch>{{ARCH}}</arch>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>
-	<version>{{VERSION}}</version>
+        <version>{{VERSION}}</version>
       </addon>
       <addon t="map">
         <arch>{{ARCH}}</arch>
@@ -150,12 +164,6 @@ exit 0
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>SLES-LTSS</name>
-        <version>{{VERSION}}</version>
-        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>

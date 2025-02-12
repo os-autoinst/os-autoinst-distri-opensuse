@@ -6,8 +6,30 @@
     <loader_type>grub2</loader_type>
   </bootloader>
   <firewall t="map">
+    <default_zone>public</default_zone>
     <enable_firewall t="boolean">true</enable_firewall>
+    <log_denied_packets>off</log_denied_packets>
     <start_firewall t="boolean">true</start_firewall>
+    <zones t="list">
+      <zone t="map">
+        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+        <interfaces t="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <masquerade t="boolean">false</masquerade>
+        <name>public</name>
+        <ports t="list"/>
+        <protocols t="list"/>
+        <services t="list">
+          <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
   </firewall>
   <general t="map">
     <mode t="map">
@@ -96,23 +118,34 @@ exit 0
     </post-scripts>
   </scripts>
   <services-manager t="map">
-    <default_target>multi-user</default_target>
+    <default_target>graphical</default_target>
     <services t="map">
       <disable t="list"/>
       <enable t="list">
         <service>firewalld</service>
-        <service>wicked</service>
+	<service>wicked</service>
+        <service>kdump</service>
+	<service>kdump-early</service>
+        <service>systemd-remount-fs</service>
         <service>sshd</service>
       </enable>
     </services>
   </services-manager>
   <software t="map">
     <packages t="list">
+      <package>yast2-x11</package>
+      <package>xorg-x11-server</package>
+      <package>xorg-x11-fonts</package>
+      <package>xorg-x11-Xvnc</package>
+      <package>xfsprogs</package>
       <package>sle-module-server-applications-release</package>
       <package>sle-module-python3-release</package>
+      <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
       <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>icewm</package>
       <package>grub2</package>
       <package>glibc</package>
       <package>firewalld</package>
@@ -123,12 +156,19 @@ exit 0
     <patterns t="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
+      <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
       <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
       <pattern>x11_yast</pattern>
       <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
     </patterns>
     <products t="list">
       <product>SLES</product>
@@ -138,8 +178,13 @@ exit 0
     <addons t="list">
       <addon t="map">
         <arch>{{ARCH}}</arch>
-        <name>sle-module-python3</name>
+        <name>sle-module-desktop-applications</name>
 	<version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
       </addon>
       <addon t="map">
         <arch>{{ARCH}}</arch>
@@ -150,12 +195,6 @@ exit 0
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>SLES-LTSS</name>
-        <version>{{VERSION}}</version>
-        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>
