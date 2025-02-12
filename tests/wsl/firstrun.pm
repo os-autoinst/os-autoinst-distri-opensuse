@@ -182,6 +182,9 @@ sub run {
     # https://github.com/microsoft/WSL/issues/4322
     if (get_var('WSL2')) {
         enter_cmd_slow "exit\n";
+        # Check for welcome_to_wsl pop-up and close it
+        check_screen("welcome_to_wsl", timeout => 60);
+        send_key "alt-f4" if match_has_tag "welcome_to_wsl";
         return;
     }
 
