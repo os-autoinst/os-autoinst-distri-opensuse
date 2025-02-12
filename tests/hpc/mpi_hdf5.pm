@@ -56,7 +56,7 @@ sub run ($self) {
     record_info('HDF5 version', $version);
     $version = (split(/: /, $version))[2];
     assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/hdf5/$version/include -Iexports_path{'hpc'}/gnu7/hdf5/$version/lib64 -lhdf5");
-    record_info('LD', "echo $LD_LIBRARY_PATH");
+    record_info('LD', script_output("echo $LD_LIBRARY_PATH"));
     assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
     assert_script_run("test -s /home/bernhard/$mpi_bin");
     script_run("rm  /home/bernhard/$mpi_bin");
