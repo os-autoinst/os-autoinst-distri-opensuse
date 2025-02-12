@@ -34,7 +34,7 @@ sub run ($self) {
     my $user_virtio_fixed = isotovideo::get_version() >= 35;
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
-    zypper_call("in hdf5-gnu-hpc hdf5-gnu-hpc-devel");
+    zypper_call("in hdf5 hdf5-gnu-hpc hdf5-gnu-hpc-devel");
 
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
@@ -56,7 +56,7 @@ sub run ($self) {
     record_info('HDF5 version', $version);
     $version = (split(/: /, $version))[2];
     assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/hdf5/$version/include -Iexports_path{'hpc'}/gnu7/hdf5/$version/lib64 -lhdf5");
-    record_info('LD', script_output("echo $LD_LIBRARY_PATH"));
+    #record_info('LD', script_output("echo $LD_LIBRARY_PATH"));
     assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
     assert_script_run("test -s /home/bernhard/$mpi_bin");
     script_run("rm  /home/bernhard/$mpi_bin");
