@@ -1490,7 +1490,7 @@ sub load_extra_tests_y2uitest_ncurses {
         loadtest "console/yast2_nis" if is_sle;
         loadtest "console/yast2_http";
         loadtest "console/yast2_ftp";
-        loadtest "console/yast2_apparmor";
+        loadtest "console/yast2_apparmor" unless has_selinux;
         loadtest "console/yast2_lan";
         loadtest "console/yast2_lan_device_settings";
     }
