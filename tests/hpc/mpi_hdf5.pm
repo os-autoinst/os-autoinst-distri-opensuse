@@ -34,7 +34,7 @@ sub run ($self) {
     my $user_virtio_fixed = isotovideo::get_version() >= 35;
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
-    zypper_call("in hdf5 hdf5-gnu-hpc hdf5-gnu-hpc-devel");
+    zypper_call("in hdf5* hdf5-gnu-hpc hdf5-gnu-hpc-devel");
 
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
