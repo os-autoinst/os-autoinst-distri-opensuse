@@ -13,7 +13,7 @@ use base "y2_module_consoletest";
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap has_selinux);
 use yast2_widget_utils 'change_service_configuration';
 
 my %sub_menu_needles = (
@@ -66,6 +66,14 @@ sub run {
 
     # set up visible_hostname or squid spends 30s trying to determine public hostname
     script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
+
+    # workaround for SELinux since yast2_proxy is mostly not maintained anymore
+    # and the test case contains custom configuration that needs SELinux adjustments
+    if (has_selinux) {
+        assert_script_run 'semanage fcontext -a -e /var/cache/squid /var/cache/squid1';
+        assert_script_run 'semanage boolean -m --on squid_use_tproxy';
+        assert_script_run 'semanage port -a -t squid_port_t -p tcp 234';
+    }
 
     # start yast2 squid configuration
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'squid');
@@ -288,6 +296,13 @@ sub run {
 
     # yast might take a while on sle12 due to suseconfig
     wait_serial("$module_name-0", 360) || die "'yast2 squid' didn't finish";
+
+    # workaround for SELinux since yast2_proxy is mostly not maintained anymore
+    # and the custom path /var/cache/squid1 needs to be relabeled
+    if (has_selinux) {
+        assert_script_run 'restorecon -Rv /var/cache/squid1';
+        systemctl 'restart squid.service';
+    }
 
     # check squid proxy server status
     script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active';
