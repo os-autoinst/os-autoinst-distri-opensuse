@@ -35,11 +35,6 @@ sub run {
 
 sub cleanup {
     my ($self) = @_;
-    my @logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
-    $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . join(' ', @logs));
-    for my $file (@logs) {
-        $self->{run_args}->{my_instance}->upload_log($file, log_name => $autotest::current_test->{name} . '-' . basename($file) . '.txt');
-    }
     if (is_azure()) {
         record_info('azuremetadata', $self->{run_args}->{my_instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }
