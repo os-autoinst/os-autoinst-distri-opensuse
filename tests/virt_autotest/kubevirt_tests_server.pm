@@ -575,7 +575,7 @@ EOF
             if ($section eq 'migration_test') {
                 assert_script_run("kubectl delete net-attach-def migration-cni -n kubevirt") if (!script_run("kubectl get net-attach-def -A | grep migration-cni"));
                 $server_ip = script_output("nslookup " . get_required_var('SUT_IP') . "|sed -n '5,1p'|awk -F' ' '{print \$2}'");
-                $nic_name = script_output("ip addr | grep $server_ip | awk -F' ' '{print \$NF}'");
+                $nic_name = script_output("ip addr | grep $server_ip/ | awk -F' ' '{print \$NF}'");
                 $extra_opt = "-migration-network-nic=$nic_name";
             }
 
