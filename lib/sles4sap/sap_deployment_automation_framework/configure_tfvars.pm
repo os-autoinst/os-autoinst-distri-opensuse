@@ -14,6 +14,8 @@ use Carp qw(croak);
 use utils qw(file_content_replace);
 use sles4sap::sap_deployment_automation_framework::deployment qw(get_os_variable);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
+use Mojo::Base qw(publiccloud::basetest publiccloud::azure);
+use publiccloud::utils 'is_azure';
 
 =head1 SYNOPSIS
 
@@ -144,12 +146,18 @@ sub set_image_parameters {
     my @variable_names = qw(SDAF_IMAGE_PUBLISHER SDAF_IMAGE_OFFER SDAF_IMAGE_SKU SDAF_IMAGE_VERSION);
     # This maps a variable name from array @variable names to value from delimited 'PUBLIC_CLOUD_IMAGE_ID' parameter
     # Order is important here
-    @params{@variable_names} = split(':', get_required_var('PUBLIC_CLOUD_IMAGE_ID'));
 
     # Add all remaining parameters with static values
     $params{SDAF_IMAGE_OS_TYPE} = 'LINUX';    # this can be modified in case of non linux images
-    $params{SDAF_SOURCE_IMAGE_ID} = '';    # for supplying uploaded image - not implemented yet
-    $params{SDAF_IMAGE_TYPE} = 'marketplace';
+    if (is_azure() && get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        my $provider = publiccloud::basetest::provider_factory();
+        $params{SDAF_SOURCE_IMAGE_ID} = $provider->get_image_id();;    # for supplying uploaded image
+        $params{SDAF_IMAGE_TYPE} = 'custom';
+    }
+    else {
+        @params{@variable_names} = split(':', get_required_var('PUBLIC_CLOUD_IMAGE_ID'));
+        $params{SDAF_IMAGE_TYPE} = 'marketplace';
+    }
 
     foreach (keys(%params)) {
         set_var($_, $params{$_});
