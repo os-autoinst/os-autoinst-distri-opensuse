@@ -6,12 +6,12 @@ schedule:
     - security/boot_disk
     - security/cc/cc_audit_test_setup
     - '{{trustedprograms}}'
-    - '{{disable_root_ssh}}'
+    - security/selinux/selinux_setup
     - security/cc/filter
     - security/cc/syscalls
     - security/cc/polkit_tests
     - security/cc/audit_trail_protection
-    - security/selinux/selinux_setup
+    - '{{disable_root_ssh}}'
     - security/cc/libpam
 conditional_schedule:
     bootloader_zkvm:
