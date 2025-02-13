@@ -20,12 +20,15 @@ conditional_schedule:
     VERSION:
       15-SP6:
         - texlive/latexdiff
+        - console/libaom
       15-SP5:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
       15-SP4:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
       15-SP3:
         - texlive/latexdiff
         - texlive/latex2html
