@@ -50,7 +50,8 @@ sub run {
         trup_call 'run pbl --install';
         if (get_var('FLAVOR') =~ m/-encrypted/i) {
             # workaround bsc#1228126 poo#164021 poo#164156
-            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl');
+            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl') unless is_leap_micro('>6.0');
+            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/opensuse/') if is_leap_micro('>6.0');
         }
         check_reboot_changes;
         trup_call 'run pbl --config';
