@@ -162,7 +162,7 @@ sub bats_setup {
     script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
 
     # Disable tmpfs from next boot
-    if (script_output("findmnt -no FSTYPE /tmp") =~ /tmpfs/) {
+    if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
         fix_tmp;
         $reboot_needed = 1;
