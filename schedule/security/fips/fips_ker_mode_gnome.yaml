@@ -22,7 +22,7 @@ conditional_schedule:
             x86_64:
                 - fips/xca
     we_tests:
-        WE_REQUIRED:
+        RUN_WE_MODULE_TESTS:
             1:
                 - x11/seahorse_sshkey
                 - x11/hexchat_ssl
