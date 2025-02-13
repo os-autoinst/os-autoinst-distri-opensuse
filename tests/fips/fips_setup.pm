@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup fips mode for further testing:
@@ -71,7 +71,8 @@ sub install_fips {
     } elsif (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE")) {
         # No crypto-policies in older SLE
         zypper_call("in -t pattern fips");
-        # When using FIPS in env mode on >= 15-SP6, we need the command update-crypto-policies, otherwise some tests will fail.
+        # When using FIPS in env mode on >= 15-SP6, we need the command
+        # update-crypto-policies, otherwise some tests will fail.
         zypper_call("in crypto-policies-scripts") if is_sle('>=15-SP6');
     }
 }
@@ -92,9 +93,28 @@ sub run {
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
         install_fips;
-        foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE') {
-            assert_script_run "echo 'export $env=1' >> /etc/bash.bashrc";
+
+        my $content = '';
+        my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
+
+        if (is_sle('>=15-SP6')) {
+            # create a systemd config file for env vars
+            my $cfg_file = '/etc/systemd/system.conf.d/enable-fips-mode.conf';
+            $content = "[Manager]\n";
+            $content .= "DefaultEnvironment=";
+            foreach my $var (@vars) {
+                $content .= "\"$var=1\" ";
+            }
+            $content .= "\n";
+            assert_script_run qq(echo "$content" > $cfg_file);
+        } else {
+            # add env vars to bashrc
+            foreach my $var (@vars) {
+                $content .= "export $var=1\n";
+            }
+            assert_script_run qq(echo "$content" >> /etc/bash.bashrc);
         }
+
         assert_script_run "update-crypto-policies --set FIPS" if is_sle('>=15-SP6');
         $self->reboot_and_select_serial_term;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
