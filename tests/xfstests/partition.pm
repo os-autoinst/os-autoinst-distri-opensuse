@@ -27,7 +27,7 @@ use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
 use registration;
-use version_utils qw(is_transactional is_sle_micro);
+use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
 use List::Util 'sum';
@@ -444,7 +444,10 @@ sub run {
         script_run("echo export UNIONMOUNT_TESTSUITE=/opt/unionmount-testsuite >> $CONFIG_FILE");
     }
     if (check_var('XFSTESTS', 'nfs')) {
-        disable_and_stop_service('firewalld');
+        # No firewalld on SLE-16
+        if (!is_sle('16+')) {
+            disable_and_stop_service('firewalld');
+        }
         set_var('XFSTESTS_TEST_DEV', mountpoint_to_partition('/'));
         post_env_info(join(' ', get_partition_size('/')));
         if (get_var('XFSTESTS_NFS_SERVER')) {
