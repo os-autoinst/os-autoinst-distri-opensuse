@@ -92,7 +92,6 @@ sub install_podman_when_needed {
 
 sub install_docker_multiplatform {
     my ($running_version, $sp, $host_os) = get_os_release;
-    my $ltss_needed = 0;
     if ($host_os eq 'centos') {
         assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
         # if podman installed use flag "--allowerasing" to solve conflicts
@@ -111,28 +110,30 @@ sub install_docker_multiplatform {
         select_console 'root-console';
         trup_call("pkg install $pkg_name");
         check_reboot_changes;
-    } else {
-        if ($host_os =~ 'sle') {
-            # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-            activate_containers_module if ($running_version =~ "15");
-
-            # Temporarly enable LTSS product on LTSS systems where it is not present
-            if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
-                add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
-                $ltss_needed = 1;
-            }
-        }
-
-        # docker package can be installed
-        zypper_call("in $pkg_name", timeout => 300);
-
-        # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
-        if (script_run('systemctl is-active firewalld') == 0) {
-            systemctl 'try-restart firewalld';
-        }
-
-        remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
+        return;
     }
+
+    my $ltss_needed = 0;
+    if ($host_os =~ 'sle') {
+        # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
+        activate_containers_module if ($running_version =~ "15");
+
+        # Temporarly enable LTSS product on LTSS systems where it is not present
+        if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
+            add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
+            $ltss_needed = 1;
+        }
+    }
+
+    # docker package can be installed
+    zypper_call("in $pkg_name", timeout => 300);
+
+    # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
+    if (script_run('systemctl is-active firewalld') == 0) {
+        systemctl 'try-restart firewalld';
+    }
+
+    remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
 }
 
 sub install_docker_when_needed {
