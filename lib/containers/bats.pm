@@ -181,7 +181,7 @@ sub bats_setup {
 
     select_serial_terminal;
 
-    assert_script_run "mount --make-rshared /tmp";
+    assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
 }
 
 sub selinux_hack {
