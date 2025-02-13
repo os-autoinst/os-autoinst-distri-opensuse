@@ -1,6 +1,7 @@
 {
   product: {
-    id: 'SLES'
+    id: 'SLES',
+    registrationCode: '{{SCC_REGCODE}}'
   },
   user: {
     userName: 'bernhard',
@@ -12,53 +13,25 @@
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
   },
-  legacyAutoyastStorage: [
+  storage: {
+    drives: [
       {
-         "device": "/dev/sda",
-         "disklabel": "gpt",
-         "enable_snapshots": false,
-         "initialize": true,
-         "partitions": [
-            {
-               "create": true,
-               "filesystem": "vfat",
-               "format": true,
-               "mount": "/boot/efi",
-               "mountby": "uuid",
-               "partition_id": 259,
-               "size": "512M"
-            },
-            {
-               "create": true,
-               "create_subvolumes": true,
-               "filesystem": "btrfs",
-               "format": true,
-               "mount": "/",
-               "mountby": "uuid",
-               "partition_id": 131,
-               "size": "120G"
-            },
-            {
-               "create": true,
-               "filesystem": "xfs",
-               "format": true,
-               "mount": "/var/lib/libvirt/images/",
-               "mountby": "uuid",
-               "partition_id": 131,
-               "resize": false
-            },
-            {
-               "create": true,
-               "filesystem": "swap",
-               "format": true,
-               "mountby": "uuid",
-               "size": "4G"
-            }
-         ],
-         type: "CT_DISK",
-         use: "all"
+        partitions: [
+          {
+            filesystem: { path: '/' },
+            size: '120 GiB'
+          },
+          {
+            filesystem: { path: '/var/lib/libvirt/images/', type: 'xfs' }
+          },
+          {
+            filesystem: { path: 'swap' },
+            size: '4 GiB'
+          }
+        ]
       }
-  ],
+    ]
+  },
   software: {
       patterns: [
          'base',
@@ -94,7 +67,7 @@
         name: "enable_persistent_journal_logging",
         body: |||
           #!/usr/bin/env bash
-          echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+          echo -e "[Journal]\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
         |||
       },
       {
