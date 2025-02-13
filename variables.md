@@ -210,6 +210,7 @@ SYSCTL_IPV6_DISABLED | boolean | undef | Set automatically in samba_adcli tests 
 SYSTEMD_NSPAWN | boolean | 1 | Run systemd upstream tests in nspawn container rather than qemu
 SYSTEMD_TESTSUITE | boolean | undef | Enable schedule of systemd upstream tests
 SYSTEMD_UNIFIED_CGROUP | string | "yes", "no", "hybrid", "default" | systemd currently supports 3 (unified,legacy,hybrid) cgroups configurations
+SCC_REGCODE_LTSS_SEC | string | | Defines SLES-LTSS-Extended-Security registration code.
 TEST | string | | Name of the test suite.
 TEST_CONTEXT | string | | Defines the class name to be used as the context instance of the test. This is used in the scheduler to pass the `run_args` into the loadtest function. If it is not given it will be undef.
 TEST_TIME | integer | | Set time parameter for `iperf -t N` option. Used in Azure Public Cloud testing of Accelerated NICs
