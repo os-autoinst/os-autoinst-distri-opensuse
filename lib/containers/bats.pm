@@ -31,6 +31,7 @@ our @EXPORT = qw(
   install_bats
   install_ncat
   patch_logfile
+  selinux_hack
   switch_to_user
 );
 
@@ -70,6 +71,7 @@ sub install_bats {
 
     script_run "mkdir -m 0750 /etc/sudoers.d/";
     assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
+    assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
     assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
@@ -155,28 +157,47 @@ sub bats_setup {
     my $reboot_needed = 0;
 
     delegate_controllers;
+
     # Remove mounts.conf
     script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+
     # Disable tmpfs from next boot
     if (script_output("findmnt -no FSTYPE /tmp") =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
         fix_tmp;
         $reboot_needed = 1;
     }
+
     # Switch to cgroup v2 if not already active
     if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
         $reboot_needed = 1;
     }
+
     if ($reboot_needed) {
         power_action('reboot', textmode => 1);
         $self->wait_boot();
     }
+
     select_serial_terminal;
+
+    assert_script_run "mount --make-rshared /tmp";
+}
+
+sub selinux_hack {
+    my $dir = shift;
+
+    # Use the same labeling in /var/lib/containers for $dir
+    # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
+    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir";
+    script_run "sudo restorecon -R -v $dir";
 }
 
 sub bats_post_hook {
     select_serial_terminal;
+
+    script_run('findmnt > /tmp/findmnt.txt');
+    upload_logs('/tmp/findmnt.txt');
 
     script_run('df -h > /tmp/df-h.txt');
     upload_logs('/tmp/df-h.txt');
