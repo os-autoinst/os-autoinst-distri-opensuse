@@ -32,7 +32,7 @@ sub test_setup {
 sub run_test ($python_package) {
     # we don't run the test if beautifulsoup4 is not packaged for this python version
     return unless script_run("zypper search $python_package-beautifulsoup4") == 0;
-    record_info("Testing for $python_package");
+    record_info("Testing for", "$python_package is tested now");
     zypper_call("install $python_package $python_package-beautifulsoup4 $python_package-lxml");
     my $python_interpreter = get_python3_binary($python_package);
     record_info("running python version", script_output("$python_interpreter --version"));
