@@ -92,12 +92,15 @@ sub run {
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     add_bridge("$server_vpn");
-    assert_script_run("mkdir -p $dir && cd $dir");
+    assert_script_run("mkdir -pZ $dir && cd $dir");
 
     # Setup IPsec tunnel using self-signed certificate
     # Generate self-signed certificate
     assert_script_run("ovs-pki req -u host_1");
     assert_script_run("ovs-pki self-sign host_1");
+    # Since the test uses a non-default private key location /etc/keys/host_1-privkey.pem
+    # the file needs to be labelled correctly for SELinux-enabled systems
+    assert_script_run("restorecon -v host_1-privkey.pem") if has_selinux;
     barrier_wait 'certificate_signed';
 
     # Copy the certificate to client host
@@ -108,8 +111,8 @@ sub run {
     barrier_wait 'cert_done';
 
     # Configure IPsec tunnel to use self-signed certificates
-    assert_script_run("cp host_1-cert.pem $dir_certs");
-    assert_script_run("cp host_1-privkey.pem $dir_private");
+    assert_script_run("cp -Z host_1-cert.pem $dir_certs");
+    assert_script_run("cp -Z host_1-privkey.pem $dir_private");
     assert_script_run("ovs-vsctl set Open_vSwitch . other_config:certificate=/etc/keys/host_1-cert.pem other_config:private_key=/etc/keys/host_1-privkey.pem");
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$client_ip options:remote_cert=/etc/keys/host_2-cert.pem");
     systemctl 'restart openvswitch-ipsec';
@@ -138,6 +141,9 @@ sub run {
     # Generate and sign the certificate request with the CA key
     assert_script_run("ovs-pki req -u host_1");
     assert_script_run("ovs-pki -b sign host_1 switch");
+    # Since the test uses a non-default private key location /etc/keys/host_1-privkey.pem
+    # the file needs to be labelled correctly for SELinux-enabled systems
+    assert_script_run("restorecon -v host_1-privkey.pem") if has_selinux;
 
     # Wait for the client to send the certificate request and sign it with the CA key
 
@@ -149,10 +155,10 @@ sub run {
     barrier_wait 'cacert_done';
 
     # Configure IPsec tunnel to use CA-signed certificate
-    assert_script_run("cp /var/lib/openvswitch/pki/switchca/cacert.pem $dir");
-    assert_script_run("cp /var/lib/openvswitch/pki/switchca/cacert.pem $dir_cacerts");
-    assert_script_run("cp host_1-cert.pem $dir_certs");
-    assert_script_run("cp host_1-privkey.pem $dir_private");
+    assert_script_run("cp -Z /var/lib/openvswitch/pki/switchca/cacert.pem $dir");
+    assert_script_run("cp -Z /var/lib/openvswitch/pki/switchca/cacert.pem $dir_cacerts");
+    assert_script_run("cp -Z host_1-cert.pem $dir_certs");
+    assert_script_run("cp -Z host_1-privkey.pem $dir_private");
 
     assert_script_run("ovs-vsctl set Open_vSwitch . other_config:certificate=/etc/keys/host_1-cert.pem other_config:private_key=/etc/keys/host_1-privkey.pem other_config:ca_cert=/etc/keys/cacert.pem");
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$client_ip options:remote_name=host_2");
