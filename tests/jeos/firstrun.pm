@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_bootloader_sdboot is_bootloader_bls has_selinux_by_default);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_bls has_selinux_by_default);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -300,7 +300,7 @@ sub run {
         assert_screen 're-encrypt-finished', 600;
     }
 
-    if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_sle('>=16')) {
+    if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
         assert_screen 'jeos-ssh-enroll-or-not', 120;
 
         if (get_var('SSH_ENROLL_PAIR')) {
@@ -322,7 +322,7 @@ sub run {
     }
 
     # Only Default flavors come with pre-installed cockpit
-    if (is_sle_micro('>6.0') && get_var('FLAVOR', '') =~ /default/i) {
+    if ((is_sle_micro('>6.0') || is_leap_micro('>6.0')) && get_var('FLAVOR', '') =~ /default/i) {
         assert_screen 'jeos-totp-for-cockpit';
         # serial console is too small for generated QR to show up with additional textbox
         # another button is present in the UI in order to display the QR in a separated view
