@@ -53,9 +53,7 @@ sub install_testsuite {
         $rel = "-b $rel" if ($rel);
 
         install_dependencies_pynfs;
-        assert_script_run("git clone $url $rel && cd ./pynfs");
-        #workaround poo#176907, don't use xdrlib3
-        assert_script_run('git checkout dfb0b07eb5c0579d34f321d27a9d3434f75be38a~');
+        assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
         assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
     }
     elsif (get_var("CTHON04")) {
