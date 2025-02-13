@@ -120,7 +120,7 @@ sub _cleanup {
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
     if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
-        upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+        _upload_logs();
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
@@ -144,11 +144,21 @@ sub _cleanup {
         diag('Public Cloud _cleanup: Not ready for provider cleanup.');
     }
 
-    upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+    _upload_logs();
+}
+
+sub _upload_logs {
+    my ($self) = @_;
+    my @logs = ('/var/tmp/ssh_sut.log', '/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
+    for my $logfile (@logs) {
+        script_run("sudo chmod a+r $logfile");
+        upload_logs($logfile, failok => 1, log_name => $logfile . ".txt");
+    }
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # This is called explicitly to avoid cyclical imports
         sles4sap_publiccloud::sles4sap_cleanup(
