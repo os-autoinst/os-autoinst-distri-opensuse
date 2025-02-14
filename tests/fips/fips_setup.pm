@@ -21,6 +21,8 @@ use utils qw(zypper_call reconnect_mgmt_console);
 use Utils::Backends 'is_pvm';
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional);
 
+my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
+
 sub reboot_and_select_serial_term {
     my $self = shift;
 
@@ -28,6 +30,7 @@ sub reboot_and_select_serial_term {
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot if !is_transactional;
     select_serial_terminal;
+    return;
 }
 
 sub enable_fips {
@@ -46,6 +49,7 @@ sub enable_fips {
         }
         $self->reboot_and_select_serial_term;
     }
+    return;
 }
 
 sub ensure_fips_enabled {
@@ -56,6 +60,7 @@ sub ensure_fips_enabled {
         assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
         assert_script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub");
     }
+    return;
 }
 
 sub install_fips {
@@ -75,6 +80,7 @@ sub install_fips {
         # update-crypto-policies, otherwise some tests will fail.
         zypper_call("in crypto-policies-scripts") if is_sle('>=15-SP6');
     }
+    return;
 }
 
 sub run {
@@ -94,28 +100,13 @@ sub run {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
         install_fips;
 
-        my $content = '';
-        my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
+        env_bashrc();
 
         if (is_sle('>=15-SP6')) {
-            # create a systemd config file for env vars
-            my $cfg_file = '/etc/systemd/system.conf.d/enable-fips-mode.conf';
-            $content = "[Manager]\n";
-            $content .= "DefaultEnvironment=";
-            foreach my $var (@vars) {
-                $content .= "\"$var=1\" ";
-            }
-            $content .= "\n";
-            assert_script_run qq(echo "$content" > $cfg_file);
-        } else {
-            # add env vars to bashrc
-            foreach my $var (@vars) {
-                $content .= "export $var=1\n";
-            }
-            assert_script_run qq(echo "$content" >> /etc/bash.bashrc);
+            env_systemd();
+            assert_script_run "update-crypto-policies --set FIPS";
         }
 
-        assert_script_run "update-crypto-policies --set FIPS" if is_sle('>=15-SP6');
         $self->reboot_and_select_serial_term;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     } else {
@@ -123,10 +114,34 @@ sub run {
         $self->enable_fips;
         ensure_fips_enabled;
     }
+    return;
 }
 
 sub test_flags {
     return {milestone => 1, fatal => 1};
+}
+
+# create a systemd config file for env vars
+sub env_systemd {
+    my $cfg_file = '/etc/systemd/system.conf.d/enable-fips-mode.conf';
+    my $content = "[Manager]\n";
+    $content .= "DefaultEnvironment=";
+    foreach my $var (@vars) {
+        $content .= "\"$var=1\" ";
+    }
+    $content .= "\n";
+    assert_script_run qq(echo "$content" > $cfg_file);
+    return;
+}
+
+# add env vars to bashrc
+sub env_bashrc {
+    my $content = '';
+    foreach my $var (@vars) {
+        $content .= "export $var=1\n";
+    }
+    assert_script_run qq(echo "$content" >> /etc/bash.bashrc);
+    return;
 }
 
 1;
