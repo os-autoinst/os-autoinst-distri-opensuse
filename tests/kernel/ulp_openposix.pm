@@ -124,7 +124,8 @@ sub run {
     schedule_tests('openposix', "_glibc-$libver");
     loadtest_kernel('ulp_threads', name => "ulp_threads_glibc-$libver",
         run_args => $tinfo);
-    zypper_call("in " . $tinfo->{packname});
+    zypper_call("in " . $tinfo->{packname} . " >& /tmp/zypper_openposix-livepatches.log", timeout => 1000);
+    upload_logs("/tmp/zypper_openposix-livepatches.log");
 
     # Run tests again with the next untested glibc version
     if ($tinfo->{run_id} < $#{$tinfo->{glibc_versions}}) {
@@ -137,6 +138,11 @@ sub run {
     else {
         shutdown_ltp;
     }
+}
+
+sub post_fail_hook {
+    select_console 'log-console';
+    upload_logs("/tmp/zypper_openposix-livepatches.log");
 }
 
 sub test_flags {

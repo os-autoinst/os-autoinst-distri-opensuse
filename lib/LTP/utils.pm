@@ -109,21 +109,15 @@ sub log_versions {
     }
 
     if ($kernel_config) {
-        my $cmd = "echo '# $kernel_config'; echo; ";
-
         upload_logs($kernel_config, failok => 1);
 
         if ($kernel_config eq '/proc/config.gz') {
             record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz' if $report_missing_config;
-            $cmd .= "zcat $kernel_config";
         } else {
             if ($report_missing_config && $kernel_config !~ /^\/boot\/config-/) {
                 record_soft_failure 'boo#1189879 missing symlink to /boot, use config in /usr/lib/modules/';
             }
-            $cmd .= "cat $kernel_config";
         }
-
-        record_info('KERNEL CONFIG', script_output("$cmd"));
     } elsif ($report_missing_config) {
         record_soft_failure 'boo#1189879 missing kernel config';
     }
