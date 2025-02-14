@@ -344,6 +344,9 @@ sub wait_hana_node_up {
         record_info("WAIT_FOR_SYSTEM", "System state: $out");
         sleep 10;
     }
+    $instance->run_ssh_command(
+        cmd => 'sudo systemctl --failed',
+        proceed_on_failure => 1);
     die "Timeout reached. is_system_running returns \"$out\"";
 }
 
