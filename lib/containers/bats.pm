@@ -23,6 +23,7 @@ use Utils::Architectures 'is_aarch64';
 use Utils::Logging 'save_and_upload_log';
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
+use List::MoreUtils qw(uniq);
 
 our @EXPORT = qw(
   bats_post_hook
@@ -126,6 +127,8 @@ sub enable_modules {
 
 sub patch_logfile {
     my ($log_file, @skip_tests) = @_;
+
+    @skip_tests = uniq sort @skip_tests;
 
     foreach my $test (@skip_tests) {
         next if ($test eq "none");

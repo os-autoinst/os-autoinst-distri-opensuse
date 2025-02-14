@@ -49,6 +49,16 @@ sub run_tests {
     script_run 'kill %1' if ($remote);
 
     my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+
+    # Unconditionally ignore these flaky subtests
+    my @must_skip = (
+        # this test depends on the openQA worker's scheduler
+        "180-blkio",
+        # this test will fail if there's not "enough" free space
+        "320-system-df",
+    );
+    push @skip_tests, @must_skip;
+
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
 
