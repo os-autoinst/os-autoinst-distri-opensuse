@@ -78,8 +78,8 @@ sub run {
     script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd $test_dir/buildah-$buildah_version/";
 
-    # Patch mkdir function to always use -p
-    assert_script_run "sed -i 's/run_unshared mkdir/& -p/' tests/helpers.bash";
+    # Patch mkdir to always use -p
+    assert_script_run "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
