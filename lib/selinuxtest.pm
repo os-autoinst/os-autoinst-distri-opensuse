@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2024 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Base module for SELinux test cases
@@ -18,6 +18,7 @@ use version_utils qw(has_selinux);
 use Utils::Backends 'is_pvm';
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
+use Utils::Architectures 'is_s390x';
 
 use base "opensusebasetest";
 
@@ -121,7 +122,9 @@ sub reboot_and_reconnect {
 sub set_sestatus {
     my ($self, $mode, $type) = @_;
     my $selinux_config_file = '/etc/selinux/config';
-    select_serial_terminal;
+
+    # In CC testing, the root login will be disabled, so we need to use select_console
+    is_s390x() ? select_console 'root-console' : select_serial_terminal;
 
     # workaround for 'selinux-auto-relabel' in case: auto relabel then trigger reboot
     my $results = script_run("zypper --non-interactive se selinux-autorelabel");
@@ -145,7 +148,7 @@ sub set_sestatus {
 
     # reboot the vm and reconnect the console
     $self->reboot_and_reconnect(textmode => 1);
-    select_serial_terminal;
+    is_s390x() ? select_console 'root-console' : select_serial_terminal;
 
     validate_script_output(
         'sestatus',
