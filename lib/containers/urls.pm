@@ -50,9 +50,9 @@ sub get_opensuse_registry_prefix {
 
 my %sles_containers = (
     '12-SP5' => {
-        released => sub { 'registry.suse.com/suse/sles12sp5' },
+        released => sub { 'registry.suse.com/suse/ltss/sle12.5/sles12sp5' },
         totest => sub {
-            'registry.suse.de/suse/sle-12-sp5/docker/update/cr/totest/images/suse/sles12sp5';
+            'registry.suse.de/suse/containers/sle-server/12-sp5/containers/suse/ltss/sle12.5/sles12sp5';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
