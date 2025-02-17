@@ -13,10 +13,11 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp";
 my $buildah_version = "";
+my $oci_runtime = "";
 
 sub run_tests {
     my %params = @_;
@@ -28,6 +29,8 @@ sub run_tests {
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
+        BUILDAH_RUNTIME => $oci_runtime,
+        CI_DESIRED_RUNTIME => $oci_runtime,
         STORAGE_DRIVER => "overlay",
         BATS_TMPDIR => $tmp_dir,
         TMPDIR => $tmp_dir,
@@ -58,9 +61,11 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman runc selinux-tools);
-    push @pkgs, qw(crun) if is_tumbleweed;
+    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
     install_packages(@pkgs);
+
+    $oci_runtime = install_oci_runtime;
+    $oci_runtime = script_output "command -v $oci_runtime";
 
     $self->bats_setup;
     selinux_hack $test_dir;
