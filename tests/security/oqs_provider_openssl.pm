@@ -21,10 +21,11 @@ sub run {
     } else {
         zypper_call("in gcc wget cmake oqs-provider liboqs-devel libopenssl-3-devel");
 
-        assert_script_run("wget --quiet " . data_url("security/oqs-provider-0.5.0.tar.gz"));
-        assert_script_run("tar xf oqs-provider-0.5.0.tar.gz && cd oqs-provider-0.5.0");
+        my $oqs_version = "0.7.0";
+        assert_script_run("wget --quiet " . data_url("security/oqs-provider-$oqs_version.tar.gz"));
+        assert_script_run("tar xf oqs-provider-$oqs_version.tar.gz && cd oqs-provider-$oqs_version");
         assert_script_run("cmake -S . -B _build && cmake --build _build");
-        assert_script_run("cd _build && ctest --parallel 5 --rerun-failed --output-on-failure -V");
+        assert_script_run("cd _build && export OPENSSL_CONF=/dev/null ; ctest --parallel 5 --rerun-failed --output-on-failure -V");
     }
 }
 
