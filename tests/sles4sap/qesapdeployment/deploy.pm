@@ -71,7 +71,6 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    record_info('POST FAIL HOOK');
     qesap_cluster_logs();
     qesap_upload_logs();
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
