@@ -90,45 +90,57 @@ sub install_podman_when_needed {
     systemctl("stop firewalld") if ($host_os =~ 'tumbleweed');
 }
 
+sub install_docker_multiplatform {
+    my ($running_version, $sp, $host_os) = get_os_release;
+    if ($host_os eq 'centos') {
+        assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
+        # if podman installed use flag "--allowerasing" to solve conflicts
+        assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
+        return;
+    }
+    if ($host_os eq 'ubuntu') {
+        # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+        assert_script_run "apt-cache policy docker-ce";
+        script_retry("apt-get -y install docker-ce", timeout => 300);
+        return;
+    }
+
+    my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
+    if (is_transactional) {
+        select_console 'root-console';
+        trup_call("pkg install $pkg_name");
+        check_reboot_changes;
+        return;
+    }
+
+    my $ltss_needed = 0;
+    if ($host_os =~ 'sle') {
+        # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
+        activate_containers_module if ($running_version =~ "15");
+
+        # Temporarly enable LTSS product on LTSS systems where it is not present
+        if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
+            add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
+            $ltss_needed = 1;
+        }
+    }
+
+    # docker package can be installed
+    zypper_call("in $pkg_name", timeout => 300);
+
+    # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
+    if (script_run('systemctl is-active firewalld') == 0) {
+        systemctl 'try-restart firewalld';
+    }
+
+    remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
+}
+
 sub install_docker_when_needed {
     my ($running_version, $sp, $host_os) = get_os_release;
     record_info("get_os_release", "'$running_version', '$sp', '$host_os'");
     if (script_run("which docker") != 0) {
-        my $ltss_needed = 0;
-        if (is_transactional) {
-            select_console 'root-console';
-            trup_call("pkg install docker");
-            check_reboot_changes;
-        } elsif ($host_os eq 'centos') {
-            assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
-            # if podman installed use flag "--allowerasing" to solve conflicts
-            assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
-        } elsif ($host_os eq 'ubuntu') {
-            # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
-            assert_script_run "apt-cache policy docker-ce";
-            script_retry("apt-get -y install docker-ce", timeout => 300);
-        } else {
-            if ($host_os =~ 'sle') {
-                # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module if ($running_version =~ "15");
-
-                # Temporarly enable LTSS product on LTSS systems where it is not present
-                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
-                    add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
-                    $ltss_needed = 1;
-                }
-            }
-
-            # docker package can be installed
-            zypper_call('in docker', timeout => 300);
-
-            # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
-            if (script_run('systemctl is-active firewalld') == 0) {
-                systemctl 'try-restart firewalld';
-            }
-
-            remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
-        }
+        install_docker_multiplatform;
     }
 
     # Disable docker's own rate-limit in the service file (3 restarts in 60s)
