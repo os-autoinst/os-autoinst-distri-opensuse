@@ -52,6 +52,7 @@ use constant {
           is_tunneled
           is_bootloader_grub2
           is_bootloader_sdboot
+          is_bootloader_bls
           is_plasma6
           requires_role_selection
           check_version
@@ -840,6 +841,15 @@ Returns true if the SUT uses systemd-boot as bootloader
 
 sub is_bootloader_sdboot {
     return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
+}
+
+=head2 is_bootloader_bls
+
+Returns true if the SUT uses GRUB2-BLS as bootloader
+=cut
+
+sub is_bootloader_bls {
+    return get_var('BOOTLOADER', 'grub2') eq 'bls';
 }
 
 =head2 is_plasma6

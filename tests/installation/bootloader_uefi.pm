@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_bootloader_sdboot);
+use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_bootloader_sdboot is_bootloader_bls);
 use Utils::Backends qw(is_ipmi);
 
 # hint: press shift-f10 trice for highest debug level
@@ -125,6 +125,11 @@ sub run {
     if (match_has_tag("bootloader-sdboot")) {
         return if is_bootloader_sdboot;
     }
+
+    if (match_has_tag('bootloader-grub2') && is_bootloader_bls) {
+        return;
+    }
+
     if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
         $self->tianocore_disable_secureboot;
     }
