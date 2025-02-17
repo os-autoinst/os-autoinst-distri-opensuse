@@ -42,9 +42,18 @@ sub add_custom_ports_to_selinux {
         return @ports;
     };
 
+    # Function to check if port already exists in SELinux
+    my $port_exists_in_semanage = sub {
+        my ($port) = @_;
+        my $command = qq{semanage port -l | grep ^http_port_t | awk '{for (i=3; i<=NF; i++) print \$i}' | sed 's/,//'};
+        my $output = script_output($command, proceed_on_failure => 1);
+        return grep { $_ == $port } split /\s+/, $output;
+    };
+
     # Add port to SELinux
     my $add_semanage_port = sub {
         my ($port, $context) = @_;
+        return if $port_exists_in_semanage->($port);
         my $cmd = "semanage port -a -t $context -p tcp $port";
         my $output = script_output($cmd);
         record_info("Port $port", $output =~ /already added/ ? "Already added." : "Added.");

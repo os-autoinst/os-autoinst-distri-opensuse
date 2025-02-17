@@ -86,4 +86,9 @@ sub run {
     }
 }
 
+sub test_flags {
+# on SLE16 cryptsetup is older than SLE15 and thus is failing. Marking as non-fatal until it is resolved (last update 12-Feb-2025, https://bugzilla.suse.com/show_bug.cgi?id=1236375)
+    return {fatal => is_sle('>=16') ? 0 : 1};
+}
+
 1;

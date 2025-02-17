@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log 'upload_supportconfig_log';
+use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
@@ -37,7 +38,14 @@ sub run {
     # Check few file whether expected content is there.
     # we just compare the first line after /proc/cmdline in boot.txt
     # with the content in /proc/cmdline.
-    assert_script_run(q(diff <(awk '/^# \/proc\/cmdline/{getline; print; exit}' boot.txt) /proc/cmdline));
+    if (is_sle('>=16')) {
+        # in SLE 16 we need to compare only the first part because the rest is stripped by supportconfig due to live.password being present
+        assert_script_run(q(awk '/^# \/proc\/cmdline/{getline; print $1 " " $2 " " $3; exit}' boot.txt > cmdline_cleaned_output.txt));
+        assert_script_run(q(awk '{print $1 " " $2 " " $3}' /proc/cmdline > cmdline_system.txt));
+        assert_script_run(q(diff cmdline_cleaned_output.txt cmdline_system.txt));
+    } else {
+        assert_script_run(q(diff <(awk '/^# \/proc\/cmdline/{getline; print; exit}' boot.txt) /proc/cmdline));
+    }
     assert_script_run "grep -q -f /etc/os-release basic-environment.txt";
 
     assert_script_run "cd ..";
