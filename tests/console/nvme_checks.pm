@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use utils;
 use scheduler 'get_test_suite_data';
+use version_utils 'is_sle';
 
 sub _check_basic_installation {
     my $nvm_test_data = shift;
@@ -77,6 +78,7 @@ sub _check_nvme_tools_installed {
         record_soft_failure "bsc#1172866 - nvme-cli is not installed";
         zypper_call("in nvme-cli");
     }
+    zypper_call("in pciutils") if (is_sle('16+'));
     record_info "nvme_cli found", "No installation is needed for nvme_cli" if ($ret == 0);
 }
 

@@ -1,0 +1,27 @@
+---
+os_release_name: SLES
+nvm_disk: nvme0n1
+nvm_char_device: nvme0
+nvme_sys_path: /sys/class/nvme
+nvm_disk_size: 22.55
+sn: hd0
+model: QEMU NVMe Ctrl
+namespace_count: 1
+nvm_block_size: 512
+nvm_ns: 0x1
+disks:
+  - name: nvme0n1
+    table_type: gpt
+    partitions:
+      - name: nvme0n1p1
+        fstype: fat
+        mountpoints: [/boot/efi]
+        type: part
+      - name: nvme0n1p2
+        fstype: btrfs
+        mountpoints: ["/var", "/usr/local", "/srv", "/boot/grub2/x86_64-efi", "/home", "/root", "/opt", "/boot/grub2/i386-pc", "/.snapshots", "/"]
+        type: part
+      - name: nvme0n1p3
+        role: swap
+        fstype: swap
+        mountpoints: [SWAP]
