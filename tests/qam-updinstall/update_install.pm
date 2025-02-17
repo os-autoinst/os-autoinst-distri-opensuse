@@ -81,7 +81,7 @@ my @conflicting_packages = (
     'nfsidmap-devel',
     'libglfw3',
     'openvpn-dco',
-    'libica-openssl1_1-tools',
+    'libica-openssl1_1-tools', 'libica-devel', 'libica-devel-static',
     'cyrus-sasl-bdb-ntlm', 'cyrus-sasl-bdb-otp', 'cyrus-sasl-saslauthd-bdb', 'cyrus-sasl-otp',
     'cyrus-sasl-ntlm', 'cyrus-sasl-bdb-devel', 'cyrus-sasl-sqlauxprop',
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
