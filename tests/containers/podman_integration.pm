@@ -90,11 +90,7 @@ sub run {
     install_packages(@pkgs);
     install_ncat;
 
-    $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
-    install_packages($oci_runtime);
-    script_run "mkdir /etc/containers/containers.conf.d";
-    assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
-    record_info("OCI runtime", $oci_runtime);
+    $oci_runtime = install_oci_runtime;
 
     $self->bats_setup;
 

@@ -24,6 +24,7 @@ use Utils::Logging 'save_and_upload_log';
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
+use containers::common qw(install_packages);
 
 our @EXPORT = qw(
   bats_post_hook
@@ -31,6 +32,7 @@ our @EXPORT = qw(
   enable_modules
   install_bats
   install_ncat
+  install_oci_runtime
   patch_logfile
   selinux_hack
   switch_to_user
@@ -76,6 +78,15 @@ sub install_bats {
 
     assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
+}
+
+sub install_oci_runtime {
+    my $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
+    install_packages($oci_runtime);
+    script_run "mkdir /etc/containers/containers.conf.d";
+    assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
+    record_info("OCI runtime", $oci_runtime);
+    return $oci_runtime;
 }
 
 sub get_user_subuid {
