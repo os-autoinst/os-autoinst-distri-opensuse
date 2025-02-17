@@ -1176,12 +1176,16 @@ subscription_id - valid azure subscription</code></pre>
 
 <h2 id="qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</h2>
 
-<pre><code>qesap_terrafom_ansible_deploy_retry( error_log=&gt;$error_log )
-    error_log - ansible error log file name
+<pre><code>    qesap_terrafom_ansible_deploy_retry( error_log=&gt;$error_log )
+        error_log - ansible error log file name
 
-Retry to deploy terraform + ansible
-Return 0: we manage the failure properly
-Return 1: something went wrong or we do not know what to do with the failure</code></pre>
+    Retry to deploy terraform + ansible. This function is only expected to be called if a previous `qesap.py`
+    execution returns a non zero exit code. If this function is called after a successful execution,
+    the qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
+    an unknown error is in the log and skipping the retry and this function will return 1.
+.
+    Return 0: this function manage the failure properly, perform a retry and retry was a successful deployment
+    Return 1: something went wrong or this function does not know what to do with the failure</code></pre>
 
 <dl>
 
@@ -1202,8 +1206,8 @@ Return 1: something went wrong or we do not know what to do with the failure</co
 Inspect the provided Ansible log and search for known issue in the log
 Also provide a nice record_info to summarize the error
 Return:
- - 0: no errors
- - 1: unknown generic error
+ - 0: unable to detect errors
+ - 1: generic fatal error
  - 2: reboot timeout
  - 3: no sudo password</code></pre>
 
@@ -1220,7 +1224,7 @@ Return:
 <pre><code>qesap_test_postfail()
 
 Post fail tasks suitable for post_fail_hook of the test modules.
-This API is mainly designed for qesap regresstion test modules.</code></pre>
+This API is mainly designed for qesap regression test modules.</code></pre>
 
 <dl>
 
