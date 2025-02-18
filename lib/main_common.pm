@@ -1709,7 +1709,7 @@ sub load_extra_tests_console {
             loadtest "console/wavpack";
         }
     }
-    loadtest "console/libvorbis";
+    loadtest "console/libvorbis" unless (is_sle("16+"));
     loadtest "console/command_not_found";
     if (is_sle('12-sp2+')) {
         loadtest 'console/openssl_alpn';
