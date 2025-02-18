@@ -134,70 +134,65 @@ sub get_image_id {
     return $image;
 }
 
-sub describe_instance
-{
-    my ($self, $instance) = @_;
-    my $name = $instance->instance_id();
+sub describe_instance {
+    my ($self, $instance_id) = @_;
     my $attempts = 10;
 
     my $out = [];
     while (@{$out} == 0 && $attempts-- > 0) {
-        $out = decode_json(script_output("gcloud compute instances list --filter=\"name=( 'NAME' '$name')\" --format json", quiet => 1));
+        $out = decode_json(script_output("gcloud compute instances list --filter=\"name=( 'NAME' '$instance_id')\" --format json", quiet => 1));
         sleep 3;
     }
 
-    die("Unable to retrive description of instance $name") unless ($attempts > 0);
+    die("Unable to retrive description of instance $instance_id") unless ($attempts > 0);
     return $out->[0];
 }
 
 sub get_state_from_instance
 {
     my ($self, $instance) = @_;
-    my $name = $instance->instance_id();
+    my $instance_id = $instance->instance_id();
 
-    my $desc = $self->describe_instance($instance);
+    my $desc = $self->describe_instance($instance_id);
     die("Unable to get status") unless exists($desc->{status});
     return $desc->{status};
 }
 
-sub get_ip_from_instance
-{
-    my ($self, $instance) = @_;
-    my $name = $instance->instance_id();
+sub get_public_ip {
+    my ($self) = @_;
+    my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
 
-    my $desc = $self->describe_instance($instance);
+    my $desc = $self->describe_instance($instance_id);
     die("Unable to get public_ip") unless exists($desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP});
     return $desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP};
 }
 
-sub stop_instance
-{
+sub stop_instance {
     my ($self, $instance) = @_;
-    my $name = $instance->instance_id();
+    my $instance_id = $instance->instance_id();
     my $attempts = 60;
 
-    die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
+    die('Outdated instance object') if ($self->get_public_ip() ne $instance->public_ip);
 
-    assert_script_run("gcloud compute instances stop $name --async", quiet => 1);
+    assert_script_run("gcloud compute instances stop $instance_id --async", quiet => 1);
     while ($self->get_state_from_instance($instance) ne 'TERMINATED' && $attempts-- > 0) {
         sleep 5;
     }
-    die("Failed to stop instance $name") unless ($attempts > 0);
+    die("Failed to stop instance $instance_id") unless ($attempts > 0);
 }
 
-sub start_instance
-{
+sub start_instance {
     my ($self, $instance, %args) = @_;
-    my $name = $instance->instance_id();
+    my $instance_id = $instance->instance_id();
     my $attempts = 60;
 
     die("Try to start a running instance") if ($self->get_state_from_instance($instance) ne 'TERMINATED');
 
-    assert_script_run("gcloud compute instances start $name --async", quiet => 1);
+    assert_script_run("gcloud compute instances start $instance_id --async", quiet => 1);
     while ($self->get_state_from_instance($instance) eq 'TERMINATED' && $attempts-- > 0) {
         sleep 1;
     }
-    $instance->public_ip($self->get_ip_from_instance($instance));
+    $instance->public_ip($self->get_public_ip());
 }
 
 sub cleanup {
