@@ -16,6 +16,8 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+
+    # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 
