@@ -33,7 +33,8 @@ sub run {
 
     my $docker = containers::docker->new();
 
-    install_packages('docker-rootless-extras');
+    my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
+    install_packages("$pkg_name-rootless-extras");
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
