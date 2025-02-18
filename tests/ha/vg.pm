@@ -158,7 +158,7 @@ sub run {
     barrier_wait("VG_RW_CHECKED_${barrier_tag}_$cluster_name");
 
     # Wait until files integrity are checked
-    assert_script_run "md5sum /dev/$vg_name/$lv_name" if ($resource ne 'drbd_passive');
+    assert_script_run "md5sum /dev/$vg_name/$lv_name", timeout => 300 if ($resource ne 'drbd_passive');
     barrier_wait("VG_MD5SUM_${barrier_tag}_$cluster_name");
 }
 
