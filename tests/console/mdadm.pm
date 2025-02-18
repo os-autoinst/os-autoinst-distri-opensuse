@@ -41,11 +41,6 @@ sub run {
     upload_logs 'mdadm.log';
 }
 
-sub test_flags {
-# on SLE16 mdadm is older than SLE15 and thus is failing. Marking as non-fatal until it is resolved (last update 12-Feb-2025, https://bugzilla.suse.com/show_bug.cgi?id=1237075)
-    return {fatal => is_sle('>=16') ? 0 : 1};
-}
-
 sub post_fail_hook {
     select_serial_terminal;
     upload_logs 'mdadm.log';

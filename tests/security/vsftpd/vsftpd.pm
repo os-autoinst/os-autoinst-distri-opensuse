@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'has_selinux_by_default';
+use version_utils 'has_selinux';
 
 sub run {
     my $ftp_users_path = '/srv/ftp/users';
@@ -20,7 +20,7 @@ sub run {
     my $pwd = 'susetesting';
 
     select_console 'root-console';
-    if (has_selinux_by_default) {
+    if (has_selinux) {
         assert_script_run('setsebool -P ftpd_full_access 1');
         assert_script_run("restorecon -R $ftp_users_path");
     }
