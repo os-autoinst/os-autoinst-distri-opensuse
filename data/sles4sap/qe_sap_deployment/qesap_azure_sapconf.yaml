@@ -24,7 +24,8 @@ ansible:
     - '%HANA_CLIENT_SAR%'
     - '%HANA_SAPCAR%'
   hana_vars:
-    sap_hana_install_software_directory: /hana/shared/install
+    sap_hana_install_install_execution_mode: '%HANA_INSTALL_MODE%'
+    sap_hana_install_software_directory: '/hana/shared/install'
     sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
     sap_hana_install_sid: 'HQ0'
     sap_hana_install_instance_number: '00'

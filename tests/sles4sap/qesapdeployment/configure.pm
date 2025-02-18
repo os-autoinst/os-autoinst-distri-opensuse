@@ -105,6 +105,7 @@ sub run {
     }
 
     $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
+    $variables{HANA_INSTALL_MODE} = get_var('QESAPDEPLOY_HANA_INSTALL_MODE', 'standard');
 
     qesap_prepare_env(
         openqa_variables => \%variables,
