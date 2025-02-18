@@ -49,6 +49,8 @@ spec:
             memory: 128Mi
       restartPolicy: Never
   backoffLimit: 4
+  ttlSecondsAfterFinished: 30
+  activeDeadlineSeconds: 1700
 EOT
 
     record_info('Manifest', "Applying manifest:\n$manifest");
