@@ -18,6 +18,8 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+
+    # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 
@@ -30,6 +32,7 @@ terraform:
     netweaver_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     hana_data_disk_type: 'pd-standard'
     hana_log_disk_type: 'pd-standard'
+
 ansible:
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'

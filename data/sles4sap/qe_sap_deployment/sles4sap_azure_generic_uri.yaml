@@ -17,6 +17,10 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image_uri: '%SLES4SAP_OS_IMAGE_NAME%'
 
+    # REMOTE PYTHON
+    hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+
     # HANA
     hana_count: '%NODE_COUNT%'
     hana_ha_enabled: '%HA_CLUSTER%'

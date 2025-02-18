@@ -20,6 +20,10 @@ terraform:
     os_owner: '%SLES4SAP_OS_OWNER%'
     vpc_address_range: '%MAIN_ADDRESS_RANGE%'
 
+    # REMOTE PYTHON
+    hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+
     # HANA
     hana_count: '%NODE_COUNT%'
     hana_ha_enabled: '%HA_CLUSTER%'
