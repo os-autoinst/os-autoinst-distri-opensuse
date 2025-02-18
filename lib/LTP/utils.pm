@@ -496,6 +496,10 @@ sub install_from_repo {
     # Lock kernel-default to don't pull it as LTP dependency
     zypper_call 'al kernel-default' if get_kernel_flavor eq 'kernel-64kb';
 
+    # Remove packages if they are installed - useful for testing to resolve
+    # conflicts when 'ltp-stable' is installed and 'ltp' to be installed.
+    zypper_call('rm ltp ltp-32bit ltp-stable ltp-stable-32bit qa_test_ltp', exitcode => [0, 104]);
+
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {
