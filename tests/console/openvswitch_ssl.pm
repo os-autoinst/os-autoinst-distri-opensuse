@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     # Install runtime dependencies
-    zypper_call("in wget");
+    zypper_call("in wget bzip2");
 
     my $ovs_pkg = is_sle('=15-sp5') ? 'openvswitch3' : 'openvswitch';
     if (is_sle("<=12-SP5")) {
