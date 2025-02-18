@@ -24,7 +24,9 @@ sub run {
     select_serial_terminal;
 
     install_docker_when_needed();
-    install_packages('docker-buildx');
+
+    my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
+    install_packages("$pkg_name-buildx");
 
     my $docker_info = script_output("docker info");
     record_info('Docker info post-install', $docker_info);
