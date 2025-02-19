@@ -59,6 +59,10 @@ sub prepare_tfvars_file {
         workload_zone => data_url('sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars'),
         library => data_url('sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars')
     );
+
+    # fencing parameters are set up for both sap_system and workload_zone
+    set_fencing_parameters();
+
     # Only SAP systems deployment need those parametrs to be defined
     if ($args{deployment_type} eq 'sap_system') {
         validate_components(components => $args{components});
@@ -174,6 +178,36 @@ sub set_hana_db_parameters {
     my (%args) = @_;
     # Enable HA cluster
     set_var('SDAF_HANA_HA_SETUP', grep(/ha/, @{$args{components}}) ? 'true' : 'false');
+}
+
+=head2 set_fencing_parameters
+
+    set_fencing_parameters();
+
+Sets tfvars Database HA parameters according to scenario defined by B<$args{components}>.
+
+=cut
+
+sub set_fencing_parameters {
+    # Fencing mechanism AFA (Azure fencing agent - MSI), ASD (Azure shared disk - SBD), ISCSI (iSCSI based SBD fencing)
+    # Set default value to AFA - Azure fencing agent (MSI)
+    my $fencing_type = get_required_var('SDAF_FENCING_MECHANISM');
+
+    # Trying to keep values consistent with other tests:
+    my %supported_fencing_values = ('msi' => 'AFA', 'sbd' => 'ISCSI', 'asd' => 'ASD');
+    die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
+
+    # This is dumb and will be improved in TEAM-10145
+    set_var('SDAF_FENCING_TYPE', $supported_fencing_values{get_var('SDAF_FENCING_MECHANISM')});
+    # Setup ISCSI deployment
+    if (get_var('SDAF_FENCING_MECHANISM') =~ /ISCSI/) {
+        # Set default value for iSCSI device count
+        set_var('SDAF_SCSI_DEVICE_COUNT', get_var('SDAF_SCSI_DEVICE_COUNT', '1'));
+    }
+    else {
+        # Disable iSCSI deployment if not needed
+        set_var('SDAF_SCSI_DEVICE_COUNT', '0')
+    }
 }
 
 =head2 set_netweaver_parameters
