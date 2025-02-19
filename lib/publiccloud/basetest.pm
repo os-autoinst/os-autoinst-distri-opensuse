@@ -106,6 +106,8 @@ sub _cleanup {
     die("Cleanup called twice!") if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
+    $self->_upload_logs();
+
     eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 
     my $flags = $self->test_flags();
@@ -120,7 +122,6 @@ sub _cleanup {
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
     if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
-        _upload_logs();
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
@@ -143,16 +144,20 @@ sub _cleanup {
     } else {
         diag('Public Cloud _cleanup: Not ready for provider cleanup.');
     }
-
-    _upload_logs();
 }
 
 sub _upload_logs {
     my ($self) = @_;
-    my @logs = ('/var/tmp/ssh_sut.log', '/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
-    for my $logfile (@logs) {
-        script_run("sudo chmod a+r $logfile");
-        upload_logs($logfile, failok => 1, log_name => $logfile . ".txt");
+
+    my $ssh_sut_log = '/var/tmp/ssh_sut.log';
+    script_run("sudo chmod a+r " . $ssh_sut_log);
+    upload_logs($ssh_sut_log, failok => 1, log_name => $ssh_sut_log . ".txt");
+    return unless $self->{run_args} && $self->{run_args}->{my_instance};
+
+    my @instance_logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
+    for my $instance_log (@instance_logs) {
+        $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . $instance_log);
+        $self->{run_args}->{my_instance}->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
     }
 }
 
