@@ -868,4 +868,11 @@ sub do_systemd_analyze_time {
     return @ret;
 }
 
+sub upload_supportconfig_log {
+    my ($self, %args) = @_;
+    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 7200);
+    $self->ssh_script_run(cmd => 'sudo chmod 755 /var/tmp/scc_supportconfig.txz', timeout => 3600);
+    $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1);
+}
+
 1;

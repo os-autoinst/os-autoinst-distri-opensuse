@@ -117,6 +117,10 @@ sub _cleanup {
     diag('Public Cloud _cleanup: $self->{run_args}->{my_provider}=' . $self->{run_args}->{my_provider}) if ($self->{run_args} && $self->{run_args}->{my_provider});
     diag('Public Cloud _cleanup: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args} && $self->{run_args}->{my_instance});
 
+    if ($self->{run_args} && $self->{run_args}->{my_instance} && $self->{result} && $self->{result} eq 'fail') {
+        $self->{run_args}->{my_instance}->upload_supportconfig_log();
+    }
+
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
     if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
