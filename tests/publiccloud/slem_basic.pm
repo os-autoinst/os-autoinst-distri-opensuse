@@ -37,6 +37,9 @@ sub check_avc {
 
     ## Gain better formatted logs and upload them for further investigation
     $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => '-t -o ControlPath=none'); # ausearch fails if there are no matches
+    #debug seliux
+    $instance->ssh_script_run(cmd => 'sudo sestatus', ssh_opts => '-t -o ControlPath=none');
+    $instance->ssh_script_run(cmd => 'sudo audit2allow -w -a', ssh_opts => '-t -o ControlPath=none');
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
