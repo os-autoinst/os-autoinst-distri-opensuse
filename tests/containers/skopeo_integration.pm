@@ -17,7 +17,6 @@ use containers::bats;
 use version_utils qw(is_sle is_sle_micro);
 
 my $test_dir = "/var/tmp";
-my $skopeo_version = "";
 
 sub run_tests {
     my %params = @_;
@@ -74,9 +73,14 @@ sub run {
     assert_script_run "cd $test_dir";
 
     # Download skopeo sources
-    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
-    script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
+    my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
+    if (is_sle) {
+        script_retry("curl -sL https://github.com/SUSE/skopeo/archive/refs/heads/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run "cd $test_dir/skopeo-suse-v$skopeo_version/";
+    } else {
+        script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
+    }
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
 
@@ -90,7 +94,7 @@ sub run {
 
 sub cleanup() {
     assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/skopeo-$skopeo_version/");
+    script_run("rm -rf $test_dir/skopeo-*");
     bats_post_hook;
 }
 

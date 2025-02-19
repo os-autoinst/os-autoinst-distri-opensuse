@@ -16,7 +16,6 @@ use containers::bats;
 use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp";
-my $buildah_version = "";
 my $oci_runtime = "";
 
 sub run_tests {
@@ -79,9 +78,14 @@ sub run {
     assert_script_run "cd $test_dir";
 
     # Download buildah sources
-    $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd $test_dir/buildah-$buildah_version/";
+    my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
+    if (is_sle) {
+        script_retry("curl -sL https://github.com/SUSE/buildah/archive/refs/heads/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run "cd $test_dir/buildah-suse-v$buildah_version/";
+    } else {
+        script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run "cd $test_dir/buildah-$buildah_version/";
+    }
 
     # Patch mkdir to always use -p
     assert_script_run "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
@@ -102,7 +106,7 @@ sub run {
 
 sub cleanup() {
     assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/buildah-$buildah_version/");
+    script_run("rm -rf $test_dir/buildah-*");
     bats_post_hook;
 }
 
