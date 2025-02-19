@@ -498,6 +498,8 @@ sub uefi_bootmenu_params {
         my $gfx = 2;
         if (is_leap_micro || is_microos || is_sle_micro) {
             $gfx += 5;
+        } elsif (is_sle('=12-SP5')) {
+            ;
         } else {
             $gfx++;
         }
