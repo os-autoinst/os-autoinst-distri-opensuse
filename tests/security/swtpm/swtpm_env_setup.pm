@@ -41,7 +41,7 @@ sub run {
 
     # Download the pre-installed guest image with retries
     my $attempts = 10;
-    while ($attempts-- > 0) {
+    while ($attempts--) {
         last unless script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$hdd_swtpm"), 900);
         sleep 60;
     }
