@@ -589,7 +589,7 @@ sub test_run_without_heartbeat {
     if ($@) {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
-        script_run('rm -rf /tmp/*');    # Get some space and inode for no-space-left-on-device error to get reboot signal
+        script_run('rm -rf /tmp/*', timeout => 90);    # Get some space and inode for no-space-left-on-device error to get reboot signal
         sleep 2;
         copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
 
