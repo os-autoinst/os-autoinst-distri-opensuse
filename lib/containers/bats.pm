@@ -208,7 +208,12 @@ sub selinux_hack {
 }
 
 sub bats_post_hook {
+    my $test_dir = shift;
+
     select_serial_terminal;
+
+    assert_script_run "cd /";
+    script_run "rm -rf $test_dir";
 
     script_run('findmnt > /tmp/findmnt.txt');
     upload_logs('/tmp/findmnt.txt');

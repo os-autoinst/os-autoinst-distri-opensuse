@@ -16,8 +16,7 @@ use Utils::Architectures qw(is_x86_64);
 use containers::bats;
 use version_utils qw(is_sle is_sle_micro);
 
-my $test_dir = "/var/tmp";
-my $skopeo_version = "";
+my $test_dir = "/var/tmp/skopeo-tests";
 
 sub run_tests {
     my %params = @_;
@@ -34,7 +33,7 @@ sub run_tests {
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
-    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
 
     my %_env = (
         BATS_TMPDIR => $tmp_dir,
@@ -71,38 +70,32 @@ sub run {
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));
 
-    assert_script_run "cd $test_dir";
-
     # Download skopeo sources
-    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
-    script_retry("curl -sL https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd $test_dir/skopeo-$skopeo_version/";
+    my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
+    my $url = get_var("SKOPEO_BATS_URL", "https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz");
+    assert_script_run "mkdir -p $test_dir";
+    assert_script_run "cd $test_dir";
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir/skopeo-$skopeo_version/");
+    assert_script_run "cd $test_dir";
 
     $errors += run_tests(rootless => 0, skip_tests => get_var('SKOPEO_BATS_SKIP_ROOT', ''));
 
     die "Tests failed" if ($errors);
 }
 
-sub cleanup() {
-    assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/skopeo-$skopeo_version/");
-    bats_post_hook;
-}
-
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_run_hook;
 }
 
