@@ -1846,17 +1846,17 @@ sub load_extra_tests_filesystem {
         loadtest 'console/snapper_create';
         # Needs zsh, not available in staging
         loadtest "console/snapper_jeos_cli" if is_jeos && !is_staging;
+        loadtest "console/btrfsmaintenance";
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups";
-            if (check_var('DISTRI', 'opensuse') || is_sle('12-sp2+')) {
-                loadtest 'console/snapper_cleanup';
-            }
             if (is_sle '12-sp2+') {
                 loadtest "console/btrfs_send_receive";
             }
+            if (check_var('DISTRI', 'opensuse') || is_sle('12-sp2+')) {
+                loadtest 'console/snapper_cleanup';
+            }
         }
-        loadtest "console/btrfsmaintenance";
     }
     if (get_var('NUMDISKS', 0) > 1 && (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed)) {
         # On JeOS we use kernel-defaul-base and it does not have 'dm-thin-pool'

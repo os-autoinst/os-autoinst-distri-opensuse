@@ -11,11 +11,11 @@ schedule:
 - console/lsof
 - console/autofs
 - console/lvm
+- console/btrfsmaintenance
 - console/btrfs_autocompletion
 - console/btrfs_qgroups
-- console/btrfsmaintenance
-- console/snapper_cleanup
 - console/btrfs_send_receive
+- console/snapper_cleanup
 - console/snapper_undochange
 - console/snapper_create
 - console/snapper_thin_lvm
