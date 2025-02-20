@@ -18,7 +18,6 @@ use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
 
 my $test_dir = "/var/tmp";
-my $podman_version = "";
 my $oci_runtime = "";
 
 sub run_tests {
@@ -106,9 +105,14 @@ sub run {
     assert_script_run "cd $test_dir";
 
     # Download podman sources
-    $podman_version = get_podman_version();
-    script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run("cd $test_dir/podman-$podman_version/");
+    my $podman_version = get_podman_version();
+    if (is_sle) {
+        script_retry("curl -sL https://github.com/SUSE/podman/archive/refs/heads/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run "cd $test_dir/podman-suse-v$podman_version/";
+    } else {
+        script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+        assert_script_run("cd $test_dir/podman-$podman_version/");
+    }
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
@@ -136,7 +140,7 @@ sub run {
 
 sub cleanup() {
     assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/podman-$podman_version/");
+    script_run("rm -rf $test_dir/podman-*");
     bats_post_hook;
 }
 
