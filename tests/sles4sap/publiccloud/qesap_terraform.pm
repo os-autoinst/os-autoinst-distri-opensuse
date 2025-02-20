@@ -194,12 +194,12 @@ sub run {
     }
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
 
-    my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
-
     # Prepare QESAP deployment
     qesap_prepare_env(provider => $provider_setting);
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
-    qesap_create_ansible_section(ansible_section => 'hana_vars', section_content => $ansible_hana_vars) if %$ansible_hana_vars;
+    qesap_create_ansible_section(
+        ansible_section => 'hana_vars',
+        section_content => create_hana_vars_section()) if $ha_enabled;
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1);

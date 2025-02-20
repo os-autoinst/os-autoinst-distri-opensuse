@@ -102,7 +102,8 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
                 return (1, 0);
             } else {
                 return (0, 0);
-    } });
+            }
+    });
     my $self = sles4sap_publiccloud->new();
 
     my $ret = $self->sles4sap_cleanup(ansible_present => 1);
@@ -1043,6 +1044,22 @@ subtest '[saphanasr_showAttr_version]' => sub {
 
     my $ret = $self->saphanasr_showAttr_version();
     ok $ret eq '1.2.3.4';
+};
+
+subtest '[create_hana_vars_section]' => sub {
+    set_var('HANA_MEDIA', '>>>HANA_MEDIA---VALUE<<<');
+    set_var('_HANA_MASTER_PW', '>>>_HANA_MASTER_PW---VALUE<<<');
+    set_var('INSTANCE_SID', '>>>INSTANCE_SID---VALUE<<<');
+    set_var('INSTANCE_ID', '>>>INSTANCE_ID---VALUE<<<');
+
+    my $ret = create_hana_vars_section();
+
+    set_var('HANA_MEDIA', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    set_var('INSTANCE_SID', undef);
+    set_var('INSTANCE_ID', undef);
+
+    ok %$ret{sap_hana_install_sid} eq '>>>INSTANCE_SID---VALUE<<<';
 };
 
 done_testing;

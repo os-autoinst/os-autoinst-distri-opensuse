@@ -1043,26 +1043,25 @@ sub get_hana_site_names {
 
 =head2 create_hana_vars_section
 
-    Detects HANA/HA scenario from openQA variables and creates "terraform: variables:" section in config.yaml file.
+    Detects HANA/HA scenario from openQA variables and creates
+    data later used for "ansible: hana_vars:" section in config.yaml file.
 
 =cut
 
 sub create_hana_vars_section {
-    my ($ha_enabled) = @_;
     # Cluster related setup
     my %hana_vars;
-    if ($ha_enabled == 1) {
-        my @hana_sites = get_hana_site_names();
-        $hana_vars{sap_hana_install_software_directory} = get_required_var('HANA_MEDIA');
-        $hana_vars{sap_hana_install_master_password} = get_required_var('_HANA_MASTER_PW');
-        $hana_vars{sap_hana_install_sid} = get_required_var('INSTANCE_SID');
-        $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
-        $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
-        $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
-        $hana_vars{primary_site} = $hana_sites[0];
-        $hana_vars{secondary_site} = $hana_sites[1];
-        set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
-    }
+    $hana_vars{sap_hana_install_install_execution_mode} = get_var('HANA_INSTALL_MODE') if get_var('HANA_INSTALL_MODE');
+    $hana_vars{sap_hana_install_software_directory} = get_required_var('HANA_MEDIA');
+    $hana_vars{sap_hana_install_master_password} = get_required_var('_HANA_MASTER_PW');
+    $hana_vars{sap_hana_install_sid} = get_required_var('INSTANCE_SID');
+    $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
+    $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
+    $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
+    my @hana_sites = get_hana_site_names();
+    $hana_vars{primary_site} = $hana_sites[0];
+    $hana_vars{secondary_site} = $hana_sites[1];
+    set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
     return (\%hana_vars);
 }
 
