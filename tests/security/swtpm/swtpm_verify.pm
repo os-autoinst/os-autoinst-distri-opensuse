@@ -18,7 +18,7 @@ use Utils::Architectures;
 sub run {
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
     my $vm_type = 'legacy';
-    $vm_type = 'uefi' if get_var('HDD_SWTPM_UEFI');
+    $vm_type = 'uefi' if get_var('UEFI');
     # aarch64 does not support tpm1.2
     my @swtpm_versions = qw(swtpm_2);
     push @swtpm_versions, qw(swtpm_1) if !is_aarch64;
