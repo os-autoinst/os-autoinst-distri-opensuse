@@ -15,8 +15,7 @@ use containers::common;
 use containers::bats;
 use version_utils qw(is_sle);
 
-my $test_dir = "/var/tmp";
-my $buildah_version = "";
+my $test_dir = "/var/tmp/buildah-tests";
 my $oci_runtime = "";
 
 sub run_tests {
@@ -25,7 +24,7 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
@@ -76,12 +75,12 @@ sub run {
 
     switch_to_user;
 
-    assert_script_run "cd $test_dir";
-
     # Download buildah sources
-    $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    script_retry("curl -sL https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd $test_dir/buildah-$buildah_version/";
+    my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
+    my $url = get_var("BUILDAH_BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
+    assert_script_run "mkdir -p $test_dir";
+    assert_script_run "cd $test_dir";
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
     # Patch mkdir to always use -p
     assert_script_run "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
@@ -93,28 +92,22 @@ sub run {
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir/buildah-$buildah_version/");
+    assert_script_run("cd $test_dir");
 
     $errors += run_tests(rootless => 0, skip_tests => get_var('BUILDAH_BATS_SKIP_ROOT', ''));
 
     die "Tests failed" if ($errors);
 }
 
-sub cleanup() {
-    assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/buildah-$buildah_version/");
-    bats_post_hook;
-}
-
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_run_hook;
 }
 

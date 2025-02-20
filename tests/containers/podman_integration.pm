@@ -17,8 +17,7 @@ use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
 
-my $test_dir = "/var/tmp";
-my $podman_version = "";
+my $test_dir = "/var/tmp/podman-tests";
 my $oci_runtime = "";
 
 sub run_tests {
@@ -33,7 +32,7 @@ sub run_tests {
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
-    my $tmp_dir = script_output "mktemp -d -p $test_dir test.XXXXXX";
+    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
     selinux_hack $tmp_dir;
 
     my %_env = (
@@ -103,12 +102,14 @@ sub run {
 
     switch_to_user;
 
-    assert_script_run "cd $test_dir";
-
     # Download podman sources
-    $podman_version = get_podman_version();
-    script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run("cd $test_dir/podman-$podman_version/");
+    my $podman_version = get_podman_version();
+    my $url = get_var("PODMAN_BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
+    assert_script_run "mkdir -p $test_dir";
+    assert_script_run("cd $test_dir");
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+
+    # Patch tests
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
@@ -123,7 +124,7 @@ sub run {
     $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir/podman-$podman_version/");
+    assert_script_run("cd $test_dir");
 
     # root / local
     $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
@@ -134,21 +135,15 @@ sub run {
     die "Tests failed" if ($errors);
 }
 
-sub cleanup() {
-    assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/podman-$podman_version/");
-    bats_post_hook;
-}
-
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_run_hook;
 }
 
