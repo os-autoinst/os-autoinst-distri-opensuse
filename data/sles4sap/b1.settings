@@ -13,11 +13,11 @@ AUTHENTICATION_SERVICE_MANAGEMENT_HTTP_PORT=40021
 # Set AutoStart for SAMBA service?
 B1S_SAMBA_AUTOSTART=true
 # Overwrite the existing B1 Shared folder?
-B1S_SHARED_FOLDER_OVERWRITE=true
+B1S_SHARED_FOLDER_OVERWRITE=false
 # Password for B1 tech user.
 B1S_TECHUSER_PASSWORD=
 # Compress backups
-BCKP_BACKUP_COMPRESS=true
+BCKP_BACKUP_COMPRESS=false
 # N/A
 BCKP_HANA_SERVERS=<servers><server><system address="%SERVER%"/><database instance="%INSTANCE%" port="30013" tenant-db="%TENANT_DB%" user="" password=""/></server></servers>
 # Log files location
@@ -40,6 +40,8 @@ CENTRAL_LOG_PASSWORD=
 CENTRAL_LOG_PATH=/usr/sap/SAPBusinessOne/ServerTools/SLD/CentralLogFolder
 # Central log repository username under which is shared.
 CENTRAL_LOG_USER=b1LogUser
+# Certificate verification when connecting to applications and websites
+CONNECTION_SSL_CERTIFICATE_VERIFICATION=false
 # Delete Shared Folder during uninstall
 DELETE_B1_SHR=false
 # Port used by Electronic Document Service dashboard
@@ -105,7 +107,7 @@ SLD_WINDOWS_DOMAIN_ACTION=skip
 # Service Layer load balancer member(s)
 SL_LB_MEMBERS=127.0.0.1:50001,127.0.0.1:50002,127.0.0.1:50003,127.0.0.1:50004
 # Install Service Layer load balancer member(s) only
-SL_LB_MEMBER_ONLY=false
+SL_LB_MEMBER_ONLY=true
 # Service Layer load balancer port number
 SL_LB_PORT=50000
 # Maximum threads per Service Layer load balancer member
