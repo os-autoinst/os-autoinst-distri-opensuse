@@ -12,7 +12,7 @@ use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
-#use Regexp::Common qw(net);
+use Regexp::Common qw(net);
 use NetAddr::IP;
 use utils qw(write_sut_file);
 
@@ -510,8 +510,7 @@ sub az_network_lb_create {
     $args{sku} //= 'Basic';
     my $fip_cmd = '';
     if ($args{fip}) {
-        croak "Invalid IP address fip:$args{fip}"
-          unless ($args{fip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
+        croak "Not a valid ip addr: $args{fip}" unless grep /^$RE{net}{IPv4}$/, $args{fip};
         $fip_cmd = "--private-ip-address $args{fip}";
     }
 
@@ -1065,8 +1064,7 @@ sub az_ipconfig_update {
     foreach (qw(resource_group ipconfig_name nic_name ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    croak "Invalid IP address ip:$args{ip}"
-      unless ($args{ip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
+    croak "Not a valid ip addr: $args{ip}" unless grep /^$RE{net}{IPv4}$/, $args{ip};
 
     my $az_cmd = join(' ', 'az network nic ip-config update',
         '--resource-group', $args{resource_group},

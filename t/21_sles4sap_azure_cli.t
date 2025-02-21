@@ -220,16 +220,19 @@ subtest '[az_network_lb_create] with a fixed IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    az_network_lb_create(
-        resource_group => 'Arlecchino',
-        name => 'Truffaldino',
-        vnet => 'Pantalone',
-        snet => 'Colombina',
-        backend => 'Smeraldina',
-        frontend_ip_name => 'Momolo',
-        fip => '1.2.3.4');
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az network lb create/ } @calls), 'Correct composition of the main command');
+    foreach my $test_ip (qw(1.2.3.4 10.12.208.50)) {
+        az_network_lb_create(
+            resource_group => 'Arlecchino',
+            name => 'Truffaldino',
+            vnet => 'Pantalone',
+            snet => 'Colombina',
+            backend => 'Smeraldina',
+            frontend_ip_name => 'Momolo',
+            fip => $test_ip);
+        note("\n  -->  " . join("\n  -->  ", @calls));
+        ok((any { /az network lb create/ } @calls), 'Correct composition of the main command for the IP:' . $test_ip);
+        @calls = ();
+    }
 };
 
 subtest '[az_network_lb_create] with an invalid fixed IP' => sub {
@@ -244,7 +247,7 @@ subtest '[az_network_lb_create] with an invalid fixed IP' => sub {
             snet => 'Colombina',
             backend => 'Smeraldina',
             frontend_ip_name => 'Momolo',
-            fip => '1.2.3.') } "Die for invalid IP as fip argument";
+            fip => '1.2.3.') } "Die for invalid IP as fip argument '1.2.3.'";
     ok scalar @calls == 0, "No call to assert_script_run if IP is invalid";
 };
 
@@ -502,14 +505,17 @@ subtest '[az_ipconfig_update]' => sub {
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    az_ipconfig_update(
-        resource_group => 'Arlecchino',
-        ipconfig_name => 'Truffaldino',
-        nic_name => 'Mirandolina',
-        ip => '192.168.0.42');
+    foreach my $test_ip (qw(192.168.0.42 10.12.208.41)) {
+        az_ipconfig_update(
+            resource_group => 'Arlecchino',
+            ipconfig_name => 'Truffaldino',
+            nic_name => 'Mirandolina',
+            ip => $test_ip);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az network nic ip-config update/ } @calls), 'Correct composition of the main command');
+        note("\n  -->  " . join("\n  -->  ", @calls));
+        ok((any { /az network nic ip-config update/ } @calls), 'Correct composition of the main command');
+        @calls = ();
+    }
 };
 
 subtest '[az_ipconfig_delete]' => sub {
