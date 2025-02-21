@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Check the sles4sap "from scratch" settings (without saptune/sapconf) using the robot framework.
 #          This test is configured to be used with a 2 GB RAM system.
 #          Some values depend of the hardware configuration.
-#          External robotfw testkit is supplied in the SYS_PARAM_CHECK_TEST setting. Defaults to
-#          qa-css-hq.qa.suse.de/robot.tar.gz.
-# Maintainer: QE-SAP <qe-sap@suse.de>
+#          Test repo can be set via the SYS_PARAM_CHECK_REPO, defaults is https://github.com/openSUSE/sys-param-check
+#          Branch via SYS_PARAM_CHECK_BRANCH, default is main
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "sles4sap";
 use testapi;
@@ -48,7 +48,8 @@ sub run {
     my $robot_fw_version = '3.2.2';
     my $distro_ver = is_sle ? "sles-" . get_var('VERSION') : 'Tumbleweed';
     my $test_repo = "/robot/tests/$distro_ver";
-    my $testkit = get_var('SYS_PARAM_CHECK_TEST', 'https://github.com/openSUSE/sys-param-check');
+    my $testkit = get_var('SYS_PARAM_CHECK_REPO', 'https://github.com/openSUSE/sys-param-check');
+    my $branch = get_var('SYS_PARAM_CHECK_BRANCH', 'main');
     my $python_bin = is_sle('<15') ? 'python' : 'python3';
     select_serial_terminal;
 
@@ -57,7 +58,7 @@ sub run {
 
     # Download and prepare the test environment
     zypper_call 'in git-core';
-    script_retry "git clone $testkit /robot";
+    script_retry "git clone -b $branch $testkit /robot";
 
     # Install the robot framework
     assert_script_run "unzip /robot/bin/robotframework-$robot_fw_version.zip";
