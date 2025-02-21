@@ -218,7 +218,7 @@ sub run {
     foreach my $instance (@$instances) {
         record_info 'Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
         $self->{my_instance} = $instance;
-        $self->set_cli_ssh_opts unless (get_var('MR_TEST', 0));    # Set CLI SSH opts in HanaSR test, not in saptune/mr_test tests
+        $self->set_cli_ssh_opts;
         my $expected_hostname = $instance->{instance_id};
         $instance->wait_for_ssh();
 
