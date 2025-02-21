@@ -15,11 +15,13 @@ use utils;
 use Utils::Architectures;
 use lockapi;
 use mmapi 'wait_for_children';
-use audit_test qw(run_testcase compare_run_log prepare_for_test);
+use audit_test qw(upload_audit_test_logs compare_run_log prepare_for_test);
+use serial_terminal qw(select_serial_terminal);
+use Utils::Architectures qw(is_s390x);
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    is_s390x ? select_console 'root-console' : select_serial_terminal;
     zypper_call('in audit-audispd-plugins libcap-progs');
 
     my $server_ip = get_var('SERVER_IP', '10.0.2.101');
@@ -55,14 +57,25 @@ sub run {
 
         mutex_wait('AUDIT_REMOTE_SERVER_READY');
 
-        # Run test cases
-        run_testcase('audit-remote', (timeout => 4500, skip_prepare => 1));
+        # Run test cases individually
+        my $test_name = 'audit-remote';
+        assert_script_run("cd $test_name");
+        # count the test cases
+        my $ncases = script_output "grep -c '^+' run.conf";
+        # If there are N cases, we need to iterate from 0 to N-1
+        # unfortunately we can't parallellize because each sub-test wants to reset audit and rotate logs
+        # result comparison will be done against the baseline when all the tests have run
+        for (my $case = 0; $case < $ncases; $case++) {
+            record_info "Running $test_name #$case ...";
+            script_run("./run.bash $case", timeout => 600);
+        }
+        upload_audit_test_logs($test_name);
+        # The 4th and 5th may fail because the audit log is generated slowly in server, we need to rerun it again
+        assert_script_run('./run.bash 0', timeout => 600) if (script_run('grep -E "[0].*FAIL" rollup.log') == 0);
+        assert_script_run('./run.bash 4', timeout => 600) if (script_run('grep -E "[4].*FAIL" rollup.log') == 0);
+        assert_script_run('./run.bash 5', timeout => 600) if (script_run('grep -E "[5].*FAIL" rollup.log') == 0);
 
-        # The 4th and 5th may fail because the audit log is gerenated slowly in server, we need to rerun it again
-        assert_script_run('./run.bash 4', timeout => 300) if (script_run('grep -E "[4].*FAIL" rollup.log') == 0);
-        assert_script_run('./run.bash 5', timeout => 300) if (script_run('grep -E "[5].*FAIL" rollup.log') == 0);
-
-        my $result = compare_run_log('audit-remote');
+        my $result = compare_run_log($test_name);
         $self->result($result);
 
         # Delete the ip that we added if arch is s390x
