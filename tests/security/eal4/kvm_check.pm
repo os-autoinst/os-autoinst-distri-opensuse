@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'kvm check' test case of ATSec test suite
+# Summary: Run 'kvm check' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#101956
 
@@ -23,7 +23,7 @@ sub run {
 
     # Upload the network xml file
     my $file = 'kvm_check_network.xml';
-    assert_script_run 'wget --quiet ' . data_url("atsec/$file");
+    assert_script_run 'wget --quiet ' . data_url("eal4/$file");
 
     # Check if the 'default' already exists, if yes, then undefine it
     my $exists_default_info = script_output('virsh net-list --all | grep default', proceed_on_failure => 1);

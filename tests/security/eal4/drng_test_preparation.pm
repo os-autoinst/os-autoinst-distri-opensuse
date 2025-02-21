@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'DRNG test preparation' test case of ATSec test suite
+# Summary: Run 'DRNG test preparation' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108485
 
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 
 sub run {
     my ($self) = shift;
@@ -25,7 +25,7 @@ sub run {
     my $test_dir = '/root/eval/drng';
     # Complile gather_random_data
     my $exe_file = 'gather_random_data';
-    assert_script_run("cd $atsec_test::code_dir");
+    assert_script_run("cd $eal4_test::code_dir");
     assert_script_run("gcc -o $exe_file -lcrypto -lssl -lgcrypt gather_random_data.c");
 
     # Prepare the test directory

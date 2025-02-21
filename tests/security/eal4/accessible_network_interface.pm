@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'Accessible network interface' test case of ATSec test suite
+# Summary: Run 'Accessible network interface' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#111899
 
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 use Data::Dumper;
 
 sub run {

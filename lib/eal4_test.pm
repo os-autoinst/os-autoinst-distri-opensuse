@@ -3,10 +3,10 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Base module for ATSEC test cases
+# Summary: Base module for EAL4 test cases
 # Maintainer: QE Security <none@suse.de>
 
-package atsec_test;
+package eal4_test;
 
 use base Exporter;
 
@@ -22,7 +22,7 @@ our @EXPORT = qw(
   $client_ip
 );
 
-our $code_dir = '/usr/local/atsec';
+our $code_dir = '/usr/local/eal4';
 our @white_list_for_dbus = (
     'org.freedesktop.hostname1',
     'org.freedesktop.locale1',

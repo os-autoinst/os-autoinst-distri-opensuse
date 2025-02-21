@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'DBus services exposure' test case of ATSec test suite
+# Summary: Run 'DBus services exposure' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109542
 
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 use Data::Dumper;
 use version_utils 'is_sle';
 use Utils::Architectures 'is_s390x';
@@ -92,11 +92,11 @@ sub run {
     # https://bugzilla.suse.com/show_bug.cgi?id=1216538
     if (is_sle('>=15-SP6') && is_s390x) {
         $white_list_for_busctl{virtqemud} = 1;
-        push(@atsec_test::white_list_for_dbus, '1.28', '1.38');
+        push(@eal4_test::white_list_for_dbus, '1.28', '1.38');
     }
 
     # Analyse the results.
-    foreach my $wl (@atsec_test::white_list_for_dbus) {
+    foreach my $wl (@eal4_test::white_list_for_dbus) {
 
         # Remove the well known names which are in the white list.
         delete $dbus_send_results{$wl} if $dbus_send_results{$wl};

@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'DBus fuzzer' test case of ATSec test suite
+# Summary: Run 'DBus fuzzer' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109978
 
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 use Mojo::Util 'trim';
 use Data::Dumper;
 
@@ -25,7 +25,7 @@ sub run {
     zypper_call('in glib2-devel libffi-devel');
 
     # Compile
-    assert_script_run("cd $atsec_test::code_dir/pentest/dfuzzer-master/src");
+    assert_script_run("cd $eal4_test::code_dir/pentest/dfuzzer-master/src");
     assert_script_run('make');
 
     my $output = script_output('./dfuzzer -l 2>&1');
@@ -50,7 +50,7 @@ sub run {
     record_info('Result of dfuzzer -l', Dumper(\@bus_list));
 
     # Analyse the results
-    my %hash_white_list = map { $_ => 1 } @atsec_test::white_list_for_dbus;
+    my %hash_white_list = map { $_ => 1 } @eal4_test::white_list_for_dbus;
     my @unknown_bus_name = grep { !$hash_white_list{$_} } (@bus_list);
 
     # After filtering there should be no unknown name

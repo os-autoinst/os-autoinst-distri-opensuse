@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'Syscall_thrasher' test case of ATSec test suite
+# Summary: Run 'Syscall_thrasher' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109774
 
@@ -21,7 +21,7 @@ sub run {
     select_console 'root-console';
 
     my $exe_file = 'thrash';
-    assert_script_run('cd /usr/local/atsec');
+    assert_script_run('cd /usr/local/eal4');
     assert_script_run("gcc -o $exe_file thrash.c");
 
     assert_script_run("chmod 755 $exe_file");
@@ -32,7 +32,7 @@ sub run {
     my $test_dir = 'test_syscall_thrasher';
     assert_script_run("mkdir -p $test_dir");
 
-    assert_script_run("cp /usr/local/atsec/$exe_file $test_dir/");
+    assert_script_run("cp /usr/local/eal4/$exe_file $test_dir/");
 
     assert_script_run("cd $test_dir");
     assert_script_run("./$exe_file >> $log_file", timeout => 900);

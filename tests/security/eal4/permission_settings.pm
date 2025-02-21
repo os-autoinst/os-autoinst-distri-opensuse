@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'Permission settings of relevant configuration files' test case of ATSec test suite
+# Summary: Run 'Permission settings of relevant configuration files' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#111518
 
