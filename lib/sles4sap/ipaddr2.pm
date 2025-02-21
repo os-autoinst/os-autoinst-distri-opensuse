@@ -236,6 +236,16 @@ sub ipaddr2_infra_deploy {
         name => $rg,
         region => $args{region});
 
+    # If image provided is a blob storage link, create image out of it
+    if ($args{os} =~ /\.vhd$/) {
+        my $img_name = $rg . 'img';
+        az_img_from_vhd_create(
+            resource_group => $rg,
+            name => $img_name,
+            source => $args{os});
+        $args{os} = $img_name;
+    }
+
     # Create a VNET only needed later when creating the VM
     # Use $rg instead of DEPLOY_PREFIX to try to prevent
     # some deployment failures like:

@@ -39,6 +39,7 @@ our @EXPORT = qw(
   az_network_lb_probe_create
   az_network_lb_rule_create
   az_vm_as_create
+  az_img_from_vhd_create
   az_vm_create
   az_vm_list
   az_vm_openport
@@ -662,6 +663,35 @@ sub az_vm_as_create {
         '-l', $args{region},
         $fc_cmd);
     assert_script_run($az_cmd);
+}
+
+=head2 az_img_from_vhd_create
+
+    az_img_from_vhd_create(resource_group => $rg, name => $name, source => $uploaded_vhd_url);
+
+Create an image out of a .vhd disk in Azure storage.
+
+=over
+
+=item B<resource_group> - existing resource group
+
+=item B<name> - NAME of the created image
+
+=item B<source> - URI of the vhd disk from which the image will be created
+
+=back
+=cut
+
+sub az_img_from_vhd_create {
+    my (%args) = @_;
+    foreach (qw(resource_group name source)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ', 'az image create',
+        '--resource-group', $args{resource_group},
+        '-n', $args{name},
+        '--os-type', 'linux',
+        '--source', $args{source});
+    assert_script_run($az_cmd, timeout => 600);
 }
 
 =head2 az_vm_create

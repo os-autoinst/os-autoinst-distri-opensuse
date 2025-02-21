@@ -141,6 +141,32 @@ subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
     ok((any { /--security-type.*Standard/ } @calls), 'Disable trustedLaunch by setting --security-type Standard');
 };
 
+subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
+    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    ipaddr2_infra_deploy(region => 'Sithonia', os => 'Toroni.vhd');
+
+    # push the list of commands in another list, this one without the source
+    # In this way it is easier to inspect the content
+    my @cmds;
+    for my $call_idx (0 .. $#calls) {
+        note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+        push @cmds, $calls[$call_idx][1];
+    }
+
+    ok(($#calls > 0), "There are some command calls");
+    ok(any { /az image create/ } @calls, 'az image create is called');
+};
+
 subtest '[ipaddr2_infra_destroy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });

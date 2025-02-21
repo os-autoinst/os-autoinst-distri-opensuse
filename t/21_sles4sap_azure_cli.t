@@ -9,6 +9,26 @@ use List::Util qw(any none);
 
 use sles4sap::azure_cli;
 
+subtest '[az_img_from_vhd_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    az_img_from_vhd_create(resource_group => 'Mycenaeans', name => 'Agamemnon', source => 'TrojanHorse.vhd');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az image create/ } @calls), 'command creates image');
+    ok((any { /--resource-group Mycenaeans/ } @calls), 'RG is correctly used');
+    ok((any { /-n Agamemnon/ } @calls), 'name is correctly used');
+    ok((any { /--source TrojanHorse.vhd/ } @calls), 'source is correctly used');
+};
+
+subtest '[az_group_create] missing args' => sub {
+    dies_ok { az_img_from_vhd_create(name => 'Agamemnon', source => 'TrojanHorse.vhd'); } 'Die for missing argument resource_group';
+    dies_ok { az_img_from_vhd_create(recource_group => 'Mycenaeans', source => 'TrojanHorse.vhd') } 'Die for missing argument name';
+    dies_ok { az_img_from_vhd_create(recource_group => 'Mycenaeans', name => 'Agamemnon') } 'Die for missing argument source';
+};
+
 subtest '[az_group_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
