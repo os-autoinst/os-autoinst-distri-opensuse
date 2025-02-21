@@ -99,7 +99,7 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
             ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
             @calls = ();
         }
-        foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16)) {
+        foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16 10.4.104.0/21)) {
             az_network_vnet_create(
                 resource_group => 'Arlecchino',
                 region => 'Pulcinella',

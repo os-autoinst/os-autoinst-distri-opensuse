@@ -189,8 +189,20 @@ sub az_network_vnet_create {
     }
     foreach (qw(address_prefixes subnet_prefixes)) {
         if ($args{$_}) {
+            # Check if both address_prefixes and subnet_prefixes are
+            # valid ipv4 address ranges for the az network vnet command
+            #
+            # Regexp has 5 block:
+            #  1. [1-9]{1}[0-9]{0,2} 1 to 3 digit number, not starting by 0. Separated from next block by a dot.
+            #  2. ([0-9]|[1-9][0-9]|[1-2][0-9]{2}) could be 1 to 3 digits:
+            #     if 1 digit it could be from 0 to 9,
+            #     if 2 digits it could be from 10 to 99,
+            #     if 3 digit it could be from 100 to 299 (yes nothing above 256 is valid but regexp ignore it)
+            #     Separation dot
+            #  3. and 4. are like 2
+            #  5. net mask \/[0-9]+ at the end
             croak "Invalid IP range $args{$_} in $_"
-              unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+              unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.([0-9]|[1-9][0-9]|[1-2][0-9]{2})\.([0-9]|[1-9][0-9]|[1-2][0-9]{2})\.([0-9]|[1-9][0-9]|[1-2][0-9]{2})\/[0-9]+$/);
         }
     }
 
