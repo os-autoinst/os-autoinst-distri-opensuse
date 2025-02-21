@@ -89,7 +89,8 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     foreach my $arg (qw(address_prefixes subnet_prefixes)) {
-        foreach my $test_pattern (qw(192.168.0/16 192.168..0/16 192.068.0.0/16 192.168.0.0 192.168.000.000/16 1192.168.0.0/16)) {
+        note('---------------------------- Invalid patterns that NetAddr::IP->new cannot fix');
+        foreach my $test_pattern (qw(192.168..0/16 192.068.0.0/16 1192.168.0.0/16)) {
             dies_ok { az_network_vnet_create(
                     resource_group => 'Arlecchino',
                     region => 'Pulcinella',
@@ -99,7 +100,20 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
             ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
             @calls = ();
         }
-        foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16)) {
+        note('---------------------------- Invalid patterns that NetAddr::IP->new can fix');
+        foreach my $test_pattern (qw(192.168.0/16 192.168.000.000/16 192.168.0.0)) {
+            az_network_vnet_create(
+                resource_group => 'Arlecchino',
+                region => 'Pulcinella',
+                vnet => 'Pantalone',
+                snet => 'Colombina',
+                $arg => $test_pattern);
+            #ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
+            note("\n NetAddr transforms $test_pattern in -->  " . join("\n  -->  ", @calls));
+            @calls = ();
+        }
+        note('---------------------------- Valid patterns');
+        foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16 10.4.104.0/21)) {
             az_network_vnet_create(
                 resource_group => 'Arlecchino',
                 region => 'Pulcinella',

@@ -12,6 +12,8 @@ use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
+#use Regexp::Common qw(net);
+use NetAddr::IP;
 use utils qw(write_sut_file);
 
 
@@ -183,14 +185,18 @@ sub az_network_vnet_create {
     my (%args) = @_;
     foreach (qw(resource_group region vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    # Only set default value for ranges if the caller
+    # require to also create the subnet
     if ($args{snet}) {
         $args{address_prefixes} //= '192.168.0.0/32';
         $args{subnet_prefixes} //= '192.168.0.0/32';
     }
+
+    # Validate and eventually fix the ranges
+    my %ranges;
     foreach (qw(address_prefixes subnet_prefixes)) {
         if ($args{$_}) {
-            croak "Invalid IP range $args{$_} in $_"
-              unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+            $ranges{$_} = NetAddr::IP->new($args{$_}) or croak "Invalid IP range $args{$_} in $_";
         }
     }
 
@@ -199,11 +205,11 @@ sub az_network_vnet_create {
     push @az_cmd_list, '--location', $args{region};
     push @az_cmd_list, '--name', $args{vnet};
     if ($args{address_prefixes}) {
-        push @az_cmd_list, '--address-prefixes', $args{address_prefixes};
+        push @az_cmd_list, '--address-prefixes', $ranges{address_prefixes};
     }
     if ($args{snet}) {
         push @az_cmd_list, '--subnet-name', $args{snet};
-        push @az_cmd_list, '--subnet-prefixes', $args{subnet_prefixes};
+        push @az_cmd_list, '--subnet-prefixes', $ranges{subnet_prefixes};
     }
     assert_script_run(join(' ', @az_cmd_list));
 }
