@@ -319,6 +319,11 @@ exit 0
       <pattern>base</pattern>
       % }
     </patterns>
+    % if ($check_var->('VERSION', '12-SP5')) {
+    <packages config:type="list">
+      <package>openssh</package>
+    </packages>
+    % }
   </software>
   <ssh_import>
     <copy_config config:type="boolean">false</copy_config>
