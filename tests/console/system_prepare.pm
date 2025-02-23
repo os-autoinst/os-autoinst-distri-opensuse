@@ -123,30 +123,6 @@ sub run {
 
     # stop and disable PackageKit
     quit_packagekit;
-    ########
-    # Workaround to install sle16 in beta1
-    # Don't register the system during the installation and use daily build as install url
-    # Register the system once installation done
-    if (is_agama && is_sle) {
-        zypper_call('in suseconnect-ng');
-        record_info "agama pscc register";
-        my $regcode = (get_var('AGAMA_PRODUCT_ID') =~ /SAP/) ? get_var('SCC_REGCODE_SLES4SAP') : get_var('SCC_REGCODE');
-        my $regurl = get_var('SCC_URL');
-        assert_script_run("suseconnect -r $regcode --url $regurl");
-
-        # Register HA extension and output some debug info for reference
-        if (get_var('SCC_ADDONS', '') eq 'ha') {
-            record_info('Register HA extension');
-            command_register(get_required_var('VERSION'), 'ha', get_required_var('SCC_REGCODE_HA'));
-            # Just for debug purpose
-            zypper_call('up', timeout => 600);
-            record_info('REPOS', script_output('zypper lr -u'));
-            record_info('PKGs', script_output('zypper se ha | grep -i high'));
-            record_info('PATTERNS', script_output('zypper patterns'));
-        }
-    }
-    ########
-
 }
 
 sub test_flags {
