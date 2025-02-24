@@ -41,7 +41,7 @@ like other base class or test API. Avoid using get_var/set_var at this level.
     calculate_hana_topology(input_format=>[script|json], input => $saphanasr_showAttr_format_input_format_output);
 
     Expect `SAPHanaSR-showAttr --format=$input_format` as input.
-    Returns pasrsed perl value decoded from json remap output from like :
+    Returns parsed perl value decoded from json remap output from like :
             Hosts/vmhana01/remoteHost="vmhana02"
             Hosts/vmhana01/sync_state="PRIM"
             Hosts/vmhana01/vhost="vmhana01"
@@ -99,6 +99,8 @@ sub calculate_hana_topology {
     my (%args) = @_;
     croak("calculate_hana_topology [ERROR] Argument <input> missing") unless $args{input};
     my $input_format = $args{input_format} || 'script';
+    croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
+
     my %topology;
     my $topology_json;
     my %script_topology;
