@@ -1015,10 +1015,10 @@ sub oscap_security_guide_setup {
     }
     # compliance-as-code-compiled or ComplianceAsCode repository master branch
     if (($use_content_type == 2) or ($use_content_type == 3)) {
-        my $ds_file_name = is_sle ? $ssg_sle_ds : $ssg_tw_ds;
+        my $ds_file_name = is_sle() ? $ssg_sle_ds : $ssg_tw_ds;
         replace_ds_file(1, $ds_file_name);
 
-        my $xccdf_file_name = is_sle ? $ssg_sle_xccdf : $ssg_tw_xccdf;
+        my $xccdf_file_name = is_sle() ? $ssg_sle_xccdf : $ssg_tw_xccdf;
         replace_xccdf_file(1, $xccdf_file_name);
 
         if ($ansible_remediation == 1) {
