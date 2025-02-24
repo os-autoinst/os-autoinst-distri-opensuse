@@ -227,6 +227,15 @@ sub bats_post_hook {
     script_run('rpm -qa | sort > /tmp/rpm-qa.txt');
     upload_logs('/tmp/rpm-qa.txt');
 
+    script_run('systemctl > /tmp/systemctl.txt');
+    upload_logs('/tmp/systemctl.txt');
+
+    script_run('systemctl status > /tmp/systemctl-status.txt');
+    upload_logs('/tmp/systemctl-status.txt');
+
+    script_run('systemctl list-unit-files > /tmp/systemctl_units.txt');
+    upload_logs('/tmp/systemctl_units.txt');
+
     script_run('journalctl -b > /tmp/journalctl-b.txt', timeout => 120);
     upload_logs('/tmp/journalctl-b.txt');
 
