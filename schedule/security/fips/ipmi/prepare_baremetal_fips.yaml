@@ -1,6 +1,11 @@
 name: prepare_baremetal_fips_ipmi
 description: >
   Install the OS on baremetal and enable FIPS (env/ker).
+vars:
+  BACKEND: 'ipmi'
+  DESKTOP: 'textmode'
+  SYSTEM_ROLE: 'textmode'
+  FIPS_ENABLED: '1'
 schedule:
   - installation/ipxe_install
   - installation/welcome
