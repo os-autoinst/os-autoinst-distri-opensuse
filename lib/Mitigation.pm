@@ -780,7 +780,7 @@ sub init_xml {
         file_name => '/tmp/junit.xml'
     );
     %args = @_;
-    my $xml_content = << "EOF";
+    my $xml_content = <<"EOF";
 <testsuites error='0' failures='0' name=\\"$args{testsuites_name}\\" skipped='0' tests='0' time=''>
 </testsuites>
 EOF
@@ -794,7 +794,7 @@ sub append_ts2_xml {
         file_name => '/tmp/junit.xml'
     );
     %args = @_;
-    my $cmd_append_ts2_xml = << "EOF";
+    my $cmd_append_ts2_xml = <<"EOF";
 xmlstarlet ed  -P -L -s /testsuites -t elem -n testsuite -v '' \\
 -i "/testsuites/testsuite[last()]" -t attr -n error -v 0 \\
 -i "/testsuites/testsuite[last()]" -t attr -n failures -v 0 \\
@@ -818,7 +818,7 @@ sub update_tss_attr {
         value => 0
     );
     %args = @_;
-    my $cmd_update_tss_attr = << "EOF";
+    my $cmd_update_tss_attr = <<"EOF";
 xmlstarlet ed -L -u /testsuites/\@$args{attr} -v $args{value}  $args{file_name} \\
 EOF
     assert_script_run($cmd_update_tss_attr, 200);
@@ -833,7 +833,7 @@ sub update_ts_attr {
         value => 0
     );
     %args = @_;
-    my $cmd_update_ts_attr = << "EOF";
+    my $cmd_update_ts_attr = <<"EOF";
 xmlstarlet ed -L -u "/testsuites/testsuite[last()]/\@$args{attr}" -v $args{value}  $args{file_name} \\
 EOF
     assert_script_run($cmd_update_ts_attr, 200);
@@ -849,7 +849,7 @@ sub insert_tc2_xml {
         sys_err => ''
     );
     %args = @_;
-    my $cmd_insert_tc2_xml = << "EOF";
+    my $cmd_insert_tc2_xml = <<"EOF";
 xmlstarlet ed  -L -s "/testsuites/testsuite[last()]" -t elem -n testcase -v "" \\
 -s "/testsuites/testsuite[last()]/testcase[last()]" -t elem -n system-err -v "$args{sys_err}" \\
 -s "/testsuites/testsuite[last()]/testcase[last()]" -t elem -n system-out -v "$args{sys_output}" \\

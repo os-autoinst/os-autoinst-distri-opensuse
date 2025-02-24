@@ -151,7 +151,7 @@ sub patch_logfile {
 }
 
 sub fix_tmp {
-    my $override_conf = << 'EOF';
+    my $override_conf = <<'EOF';
 [Unit]
 ConditionPathExists=/var/tmp
 

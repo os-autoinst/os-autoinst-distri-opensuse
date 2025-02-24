@@ -44,7 +44,7 @@ sub run ($self) {
     systemctl("is-active $mariadb_service");
 
     # allow hostnames other than localhost
-    my $config = << "EOF";
+    my $config = <<"EOF";
 sed -i "/^bind-address.*/c\\#bind-address" /etc/my.cnf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);

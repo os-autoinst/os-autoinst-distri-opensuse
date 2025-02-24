@@ -247,7 +247,7 @@ Prepare slurmdbd.conf based on test requirements and settings
 sub prepare_slurmdb_conf ($self) {
     my @cluster_compute_nodes = $self->slave_node_names();
 
-    my $config = << "EOF";
+    my $config = <<"EOF";
 sed -i "/^DbdAddr.*/c\\#DbdAddr" /etc/slurm/slurmdbd.conf
 sed -i "/^DbdHost.*/c\\DbdHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
 sed -i "/^#StorageHost.*/c\\StorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf

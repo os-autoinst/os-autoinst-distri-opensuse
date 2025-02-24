@@ -264,7 +264,7 @@ sub init_ltp_tests {
         # Disabling IPv4 is needed for iptables tests (net.tcp_cmds).
         # Disabling IPv6 is needed for ICMPv6 tests (net.ipv6).
         # This must be done after stopping network service.
-        my $disable_iptables_script = << 'EOF';
+        my $disable_iptables_script = <<'EOF';
 iptables -P INPUT ACCEPT;
 iptables -P OUTPUT ACCEPT;
 iptables -P FORWARD ACCEPT;

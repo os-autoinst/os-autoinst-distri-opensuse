@@ -16,7 +16,7 @@ our @EXPORT = qw(
 );
 
 sub provision_cluster ($self) {
-    my $config = << "EOF";
+    my $config = <<"EOF";
 sed -i '/^DHCLIENT_SET_HOSTNAME.*/c\\DHCLIENT_SET_HOSTNAME="no"' /etc/sysconfig/network/dhcp
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
