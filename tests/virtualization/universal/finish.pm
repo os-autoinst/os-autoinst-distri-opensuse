@@ -22,6 +22,7 @@ sub run {
     # See https://progress.opensuse.org/issues/93204
     select_console('root-console');
     select_serial_terminal;
+    reconnect_console_if_not_good('root-serial-ssh');
 
     # Show all guests
     assert_script_run 'virsh list --all';
