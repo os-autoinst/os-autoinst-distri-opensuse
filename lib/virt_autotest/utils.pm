@@ -95,6 +95,7 @@ our @EXPORT = qw(
   get_guest_regcode
   execute_over_ssh
   reboot_virtual_machine
+  reconnect_console_if_not_good
 );
 
 my %log_cursors;
@@ -1433,6 +1434,21 @@ sub reboot_virtual_machine {
         script_run("virsh start $args{domain}");
         script_retry($test_ssh_open, delay => 1, retry => 30, die => 1);
     }
+}
+
+# Test console connection bi-directionally and reconnect if not good.
+# This is useful for long time no use consoles.
+sub reconnect_console_if_not_good {
+    my $_console = shift;
+    $_console //= 'root-ssh';
+
+    # Test console connection and reconnect if not good
+    enter_cmd "echo GOOD > /dev/$serialdev";
+    unless (defined(wait_serial 'GOOD', timeout => 30)) {
+        reset_consoles;
+        select_console($_console, await_console => 0);
+    }
+    record_info("Console is good");
 }
 
 1;
