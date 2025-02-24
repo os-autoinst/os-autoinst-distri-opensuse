@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);
-use version_utils qw(is_bootloader_sdboot is_sle_micro is_bootloader_bls);
+use version_utils qw(is_bootloader_sdboot is_sle_micro is_bootloader_grub2_bls);
 use serial_terminal;
 
 sub action {
@@ -21,7 +21,7 @@ sub action {
     $reboot //= 1;
     record_info('TEST', $text);
     trup_call($target);
-    if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_bls)) {
+    if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
         # With sdbootutil, the snapshot is not changed. Verify that and test rebooting.
         check_reboot_changes(0);
         process_reboot(trigger => 1);
@@ -44,7 +44,7 @@ sub run {
     }
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
-    if (is_bootloader_sdboot || is_bootloader_bls) {
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         record_soft_failure("boo#1226676: kdump not yet implemented with sdbootutil");
     }
     else {

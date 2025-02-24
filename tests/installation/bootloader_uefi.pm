@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_leap_micro is_bootloader_sdboot is_bootloader_bls);
+use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_leap_micro is_bootloader_sdboot is_bootloader_grub2_bls);
 use Utils::Backends qw(is_ipmi);
 
 # hint: press shift-f10 trice for highest debug level
@@ -126,7 +126,7 @@ sub run {
         return if is_bootloader_sdboot;
     }
 
-    if (match_has_tag('bootloader-grub2') && is_bootloader_bls) {
+    if (match_has_tag('bootloader-grub2') && is_bootloader_grub2_bls) {
         return;
     }
 

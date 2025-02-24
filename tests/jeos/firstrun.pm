@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_bls has_selinux_by_default);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -262,7 +262,7 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
-    if (is_bootloader_sdboot || is_bootloader_bls) {
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
         send_key 'ret';
 
@@ -341,7 +341,7 @@ sub run {
     }
 
 
-    if (is_bootloader_sdboot || is_bootloader_bls) {
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         # Verify that /etc/issue shows the recovery key
         wait_serial(qr/^Recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
