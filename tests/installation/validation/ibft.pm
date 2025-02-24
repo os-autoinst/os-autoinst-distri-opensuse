@@ -74,14 +74,19 @@ sub ibft_validation {
     assert_script_run 'dmesg | grep -E ' . $kb_ibft_messsages;
     # Verify grub entries
     foreach my $entry (keys %{$ibft_grub}) {
-        assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/';
+        assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/*';
     }
     # Enabling iBFT autoconfiguration for the interfaces should be done in initrd
     if (is_sle('<15-sp4')) {
         assert_script_run 'grep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/mkinitrd.log';
-    } else {
+    }
+    elsif (is_sle('>=15-sp4') && is_sle('<16')) {
         # In recent products yast2-bootloader calls dracut instead of mkinitrd, so the logs differ
         assert_script_run 'zgrep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/y2log*';
+    }
+    else {
+        # SLE16 uses agama, so search the general logs of agama
+        assert_script_run 'zgrep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/agama-installation/*';
     }
 
     # Scan for ibft interface
