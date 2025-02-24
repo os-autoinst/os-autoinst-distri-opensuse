@@ -97,7 +97,7 @@ like other base class or test API. Avoid using get_var/set_var at this level.
 
 sub calculate_hana_topology {
     my (%args) = @_;
-    croak("calculate_hana_topology [ERROR] Argument <input> missing") unless $args{input};
+    croak('calculate_hana_topology [ERROR] Argument <input> missing') unless $args{input};
     my $input_format = $args{input_format} || 'script';
     croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
 
@@ -197,7 +197,7 @@ sub calculate_hana_topology {
 
 sub check_hana_topology {
     my (%args) = @_;
-    croak("check_hana_topology [ERROR] Argument <input> missing") unless $args{input};
+    croak('check_hana_topology [ERROR] Argument <input> missing') unless $args{input};
     my $topology = $args{input};
     my $node_state_match = ($args{node_state_match} eq 'online' or $args{node_state_match} =~ /[1-9]+/) ? '4' : '1';
 
@@ -209,25 +209,22 @@ sub check_hana_topology {
         # If something is missing the topology is considered invalid.
         foreach (qw(lss srPoll)) {
             unless (defined($topology->{Site}->{$site}->{$_})) {
-                print('check_hana_topology', ' [ERROR] ', "Missing '$_' field in topology output for site $site");
+                record_info('check_hana_topology', ' [ERROR] ', "Missing '$_' field in topology output for site $site");
                 return 0;
             }
         }
 
         # Check node_state
         if ($topology->{'Site'}->{$site}->{'lss'} ne $node_state_match) {
-            print('check_hana_topology', ' [ERROR] ', "node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
-            print('check_hana_topology', ' [DEBUG] ', "topology->{Site}->{$site}->{lss}: $topology->{'Site'}->{$site}->{'lss'} , node_state_match: $node_state_match \n");
+            record_info('check_hana_topology', ' [ERROR] ', "node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
             $all_online = 0;
             last;
         }
 
         # Check sync_state
         if ($topology->{'Site'}->{$site}->{'srPoll'} eq 'PRIM') {
-            print('check_hana_topology', ' [DEBUG] ', "PRIM topology->{'Site'}->{$site}->{'srPoll'}: $topology->{Site}->{$site}->{srPoll} \n");
             $prim_count++;
         } elsif ($topology->{'Site'}->{$site}->{'srPoll'} eq 'SOK') {
-            print('check_hana_topology', ' [DEBUG] ', "SOK topology->{'Site'}->{$site}->{'srPoll'}: $topology->{Site}->{$site}->{srPoll} \n");
             $sok_count++;
         }
     }
@@ -256,7 +253,7 @@ sub check_hana_topology {
 
 sub check_crm_output {
     my (%args) = @_;
-    croak("Argument <input> missing") unless $args{input};
+    croak('check_crm_output [ERROR] Argument <input> missing') unless $args{input};
     my $resource_starting = ($args{input} =~ /:\s*Starting/) ? 1 : 0;
     my $failed_actions = ($args{input} =~ /Failed Resource Actions:/) ? 1 : 0;
 
@@ -278,7 +275,7 @@ sub check_crm_output {
 
 sub get_primary_node {
     my (%args) = @_;
-    croak("get_primary_node [ERROR] Argument <topology_data> missing") unless $args{topology_data};
+    croak('get_primary_node [ERROR] Argument <topology_data> missing') unless $args{topology_data};
     my $topology = $args{topology_data};
     for my $site (keys %{$topology->{Site}}) {
         for my $host (keys %{$topology->{Host}}) {
@@ -302,7 +299,7 @@ sub get_primary_node {
 
 sub get_failover_node {
     my (%args) = @_;
-    croak("get_failover_node [ERROR] Argument <topology_data> missing") unless $args{topology_data};
+    croak('get_failover_node [ERROR] Argument <topology_data> missing') unless $args{topology_data};
     my $topology = $args{topology_data};
     for my $site (keys %{$topology->{'Site'}}) {
         for my $host (keys %{$topology->{'Host'}}) {

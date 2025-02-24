@@ -512,7 +512,7 @@ sub check_takeover {
                 last TAKEOVER_LOOP;
             }
         }
-        die("check_takeover [ERROR] Test failed: takeover failed to complete.") if ($retry_count > 40);
+        die('check_takeover [ERROR] Test failed: takeover failed to complete.') if ($retry_count > 40);
         sleep 30;
     }
 
@@ -533,7 +533,7 @@ sub check_takeover {
 
 sub enable_replication {
     my ($self, %args) = @_;
-    croak("enable_replication [ERROR] Argument <site_name> missing") unless $args{site_name};
+    croak('enable_replication [ERROR] Argument <site_name> missing') unless $args{site_name};
     my $hostname = $self->{my_instance}->{instance_id};
     my $remote_host;
     my $sr_mode;
@@ -559,7 +559,7 @@ sub enable_replication {
     for my $resource (keys %{$topology->{'Resource'}}) {
         $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
     }
-    die("enable_replication [ERROR] Instance number couldn't be determined from the list of resources") unless (defined($instance_id) && $instance_id ne '');
+    die('enable_replication [ERROR] Instance number could not be determined from the list of resources') unless (defined($instance_id) && $instance_id ne '');
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
         '--name=' . $args{site_name},
@@ -571,8 +571,6 @@ sub enable_replication {
     record_info('CMD Run', $cmd);
     $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"));
 }
-
-
 
 =head2 get_replication_info
     get_replication_info();
@@ -688,7 +686,7 @@ sub wait_for_pacemaker {
         $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
         if (time - $start_time > $timeout) {
             record_info("Pacemaker status", $self->run_cmd(cmd => "systemctl --no-pager status pacemaker"));
-            die("wait_for_pacemaker [ERROR] Pacemaker did not start within defined timeout");
+            die('wait_for_pacemaker [ERROR] Pacemaker did not start within defined timeout');
         }
     }
     return 1;
@@ -709,7 +707,7 @@ sub wait_for_pacemaker {
 
 sub change_sbd_service_timeout() {
     my ($self, %args) = @_;
-    croak("change_sbd_service_timeout [ERROR] Argument <service_timeout> missing") unless $args{service_timeout};
+    croak('change_sbd_service_timeout [ERROR] Argument <service_timeout> missing') unless $args{service_timeout};
 
     my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
     my $service_override_filename = "sbd_delay_start.conf";
