@@ -1,4 +1,5 @@
 ---
+name: migration_autoyast
 schedule:
   - boot/boot_to_desktop
   - migration/record_disk_info
