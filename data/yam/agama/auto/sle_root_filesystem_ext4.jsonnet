@@ -1,6 +1,7 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}',
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
@@ -16,7 +17,7 @@
     drives: [
       {
         partitions: [
-          { search: "*", delete: true },
+          { search: '*', delete: true },
           { generate: 'default' },
           { filesystem: { path: '/', type: 'ext4' } },
         ],
