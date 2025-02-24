@@ -1,6 +1,7 @@
 {
   product: {
-    id: '{{AGAMA_PRODUCT_ID}}'
+    id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}'
   },
   bootloader: {
     stopOnBootMenu: true

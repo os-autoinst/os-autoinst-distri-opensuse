@@ -1,6 +1,7 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE_SLES4SAP}}'
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
