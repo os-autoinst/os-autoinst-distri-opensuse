@@ -17,6 +17,7 @@ use warnings;
 use Socket;
 use testapi;
 use Test::Assert 'assert_equals';
+use utils 'zypper_call';
 use version_utils qw(is_sle);
 
 my $ibft_expected = {
@@ -117,6 +118,7 @@ sub run {
     $ibft_expected->{target}->{ip_addr} = inet_ntoa(inet_aton($fqdn));
 
     select_console 'root-console';
+    zypper_call 'in lsscsi hdparm' if is_sle('>=16');
     # find iscsi drive
     my $iscsi_drive = script_output 'lsblk --scsi | grep -i iscsi | awk \'NR==1 {print $1}\'';
     die "No iSCSI drive found!\n" unless ($iscsi_drive);
