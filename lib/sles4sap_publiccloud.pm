@@ -545,8 +545,10 @@ sub enable_replication {
     my $topology = $self->get_hana_topology();
     for my $site (keys %{$topology->{'Site'}}) {
         foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
-        $sr_mode = $topology->{'Site'}->{$site}->{'srMode'} if ($site eq $args{site_name});
-        $op_mode = $topology->{'Site'}->{$site}->{'opMode'} if ($site eq $args{site_name});
+        if ($site eq $args{site_name}) {
+            $sr_mode = $topology->{'Site'}->{$site}->{'srMode'};
+            $op_mode = $topology->{'Site'}->{$site}->{'opMode'};
+        }
     }
 
     for my $host (keys %{$topology->{'Host'}}) {
