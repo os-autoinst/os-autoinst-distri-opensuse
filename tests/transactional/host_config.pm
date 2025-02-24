@@ -16,7 +16,7 @@ use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
 use utils qw(ensure_ca_certificates_suse_installed zypper_call ensure_serialdev_permissions);
-use version_utils qw(is_bootloader_grub2 is_bootloader_sdboot is_bootloader_bls);
+use version_utils qw(is_bootloader_grub2 is_bootloader_sdboot is_bootloader_grub2_bls);
 use serial_terminal qw(select_serial_terminal prepare_serial_console);
 use Utils::Architectures 'is_ppc64le';
 
@@ -41,7 +41,7 @@ sub run {
             ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
             process_reboot(trigger => 1);
         }
-    } elsif (is_bootloader_sdboot || is_bootloader_bls) {
+    } elsif (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         die 'EXTRABOOTPARAMS not implemented for this bootloader' if $extrabootparams;
         assert_script_run('bootctl set-timeout menu-force') unless $keep_grub_timeout;
     } else {

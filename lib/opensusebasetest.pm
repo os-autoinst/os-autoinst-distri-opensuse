@@ -914,7 +914,7 @@ sub wait_boot {
         assert_screen 'systemd-boot', 300;
         save_screenshot;    # Show what's selected for booting
         send_key('ret');
-    } elsif (is_bootloader_bls) {
+    } elsif (is_bootloader_grub2_bls) {
         save_screenshot;
     } else {
         die 'Unknown bootloader';
