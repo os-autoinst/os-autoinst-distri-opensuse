@@ -109,9 +109,9 @@ sub calculate_hana_topology {
         $topology_json = $args{input};
     } else {
         my @all_lines = split("\n", $args{input});
-        my @hosts_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } } @all_lines;
-        my @globals_parameters = map { if (/^Global/) { s,Global/,,; s,",,g; $_ } } @all_lines;
-        my @resources_parameters = map { if (/^Resource/) { s,Resource/,,; s,",,g; $_ } } @all_lines;
+        my @hosts_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } @all_lines;
+        my @globals_parameters = map { if (/^Global/) { s,Global/,,; s,",,g; $_ } else { () } } @all_lines;
+        my @resources_parameters = map { if (/^Resource/) { s,Resource/,,; s,",,g; $_ } else { () } } @all_lines;
 
         my @all_hosts = uniq map { (split("/", $_))[0] } @hosts_parameters;
         my @all_globals = uniq map { (split("/", $_))[0] } @globals_parameters;

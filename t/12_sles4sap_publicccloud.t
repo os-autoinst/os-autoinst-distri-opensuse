@@ -739,6 +739,16 @@ subtest '[enable_replication]' => sub {
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %test_topology = (
+        'Resource' => {
+            'msl_SAPHana_HA1_HDB00' => {
+                'is-managed' => '',
+                'maintenance' => 'true'
+            },
+            'rsc_ip_HA1' => {
+                'maintenance' => 'true',
+                'is-managed' => ''
+            }
+        },
         'Host' => {
             'vmhana02' => {
                 'vhost' => 'vmhana02',
