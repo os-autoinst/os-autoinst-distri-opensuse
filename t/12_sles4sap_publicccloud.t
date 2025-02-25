@@ -437,12 +437,12 @@ subtest '[get_hana_topology]' => sub {
     my %test_topology = (
         'Host' => {
             'vmhanaBBBBB' => {
-                'vhost' => 'vmhana02',
+                'vhost' => 'vmhanaBBBBB',
                 'site' => 'site_b'
             },
             'vmhanaAAAAA' => {
                 'site' => 'site_a',
-                'vhost' => 'vmhana01',
+                'vhost' => 'vmhanaAAAAA',
             }
         },
         'Site' => {
