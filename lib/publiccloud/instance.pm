@@ -263,8 +263,7 @@ If the file doesn't exists on the instance, B<no> error is thrown.
 
 sub upload_log {
     my ($self, $remote_file, %args) = @_;
-
-    my $tmpdir = script_output('mktemp -d');
+    my $tmpdir = script_output_retry('mktemp -d');
     my $dest = $tmpdir . '/' . basename($remote_file);
     my $ret = $self->scp('remote:' . $remote_file, $dest);
     upload_logs($dest, %args) if (defined($ret) && $ret == 0);
