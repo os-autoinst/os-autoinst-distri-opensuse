@@ -29,8 +29,8 @@ sub run_test {
     my $vnet_routed_clone_cfg_name = "vnet_routed_clone.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_routed_clone_cfg_name);
 
-    #Stop named.service ,refer to poo#175287
-    systemctl("stop named.service") if (is_sle('15+'));
+    #Stop named.service, refer to poo#175287
+    systemctl("stop named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
     #Create ROUTED NETWORK
     assert_script_run("virsh net-create vnet_routed.xml");
     assert_script_run("virsh net-create vnet_routed_clone.xml");
@@ -38,8 +38,8 @@ sub run_test {
     upload_logs "vnet_routed.xml";
     upload_logs "vnet_routed_clone.xml";
     assert_script_run("rm -rf vnet_routed.xml vnet_routed_clone.xml");
-    #Resume named.service ,refer to poo#175287
-    systemctl("start named.service") if (is_sle('15+'));
+    #Resume named.service, refer to poo#175287
+    systemctl("start named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
 
     my ($mac1, $mac2, $model1, $model2, $affecter, $exclusive);
     my $target1 = '192.168.130.1';
