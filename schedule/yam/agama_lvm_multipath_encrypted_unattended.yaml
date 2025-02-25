@@ -1,0 +1,12 @@
+---
+name: Agama unattended lvm with encryption
+description: >
+  Perform Agama unattended installation with encryption on LVM.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+  - console/validate_multipath
