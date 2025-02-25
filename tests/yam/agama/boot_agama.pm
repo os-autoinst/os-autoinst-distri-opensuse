@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
-use autoyast qw(expand_agama_profile);
+use autoyast qw(expand_agama_profile generate_json_profile);
 use Utils::Architectures;
 use Utils::Backends;
 
@@ -52,12 +52,19 @@ sub run {
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
     my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
+    my $profile_url;
 
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
-        my $path = expand_agama_profile($agama_auto);
-        set_var('AGAMA_AUTO', $path);
-        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$path\"");
+        # Currently jsonnet is only available to install on x86_64, remove this after include in the rest of architectures.
+        if (is_x86_64()) {
+            $profile_url = generate_json_profile();
+            set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$profile_url\"");
+        } else {
+            $profile_url = expand_agama_profile($agama_auto);
+            set_var('AGAMA_AUTO', $profile_url);
+            set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$profile_url\"");
+        }
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 
