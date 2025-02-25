@@ -435,10 +435,28 @@ subtest '[get_hana_topology]' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %test_topology = (
-        vmhanaAAAAA => {
-            vhost => 'vmhanaAAAAA'},
-        vmhanaBBBBB => {
-            vhost => 'vmhanaBBBBB'}
+        'Host' => {
+            'vmhanaBBBBB' => {
+                'vhost' => 'vmhana02',
+                'site' => 'site_b'
+            },
+            'vmhanaAAAAA' => {
+                'site' => 'site_a',
+                'vhost' => 'vmhana01',
+            }
+        },
+        'Site' => {
+            'site_b' => {
+                'lss' => '4',
+                'mns' => 'vmhanaAAAAA',
+                'srPoll' => 'SOK',
+            },
+            'site_a' => {
+                'lss' => '4',
+                'mns' => 'vmhanaBBBBB',
+                'srPoll' => 'PRIM',
+            }
+        }
     );
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
@@ -487,13 +505,27 @@ subtest '[check_takeover]' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     my @calls;
     my %test_topology = (
-        vmhana01 => {
-            sync_state => 'PRIM',
-            vhost => 'vmhana01',
+        'Host' => {
+            'vmhana02' => {
+                'vhost' => 'vmhana02',
+                'site' => 'site_b'
+            },
+            'vmhana01' => {
+                'site' => 'site_a',
+                'vhost' => 'vmhana01',
+            }
         },
-        vmhana02 => {
-            sync_state => 'SOK',
-            vhost => 'vmhana02',
+        'Site' => {
+            'site_b' => {
+                'lss' => '4',
+                'mns' => 'vmhana02',
+                'srPoll' => 'SOK',
+            },
+            'site_a' => {
+                'lss' => '4',
+                'mns' => 'vmhana01',
+                'srPoll' => 'PRIM',
+            }
         }
     );
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
@@ -707,17 +739,31 @@ subtest '[enable_replication]' => sub {
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %test_topology = (
-        vmhana01 => {
-            vhost => 'vmhana01',
-            remoteHost => 'vmhana02',
-            srmode => 'LeeAdama',
-            op_mode => 'ZakAdama',
+        'Host' => {
+            'vmhana02' => {
+                'vhost' => 'vmhana02',
+                'site' => 'site_b'
+            },
+            'vmhana01' => {
+                'site' => 'site_a',
+                'vhost' => 'vmhana01',
+            }
         },
-        vmhana02 => {
-            vhost => 'vmhana02',
-            remoteHost => 'vmhana01',
-            srmode => 'LeeAdama',
-            op_mode => 'ZakAdama',
+        'Site' => {
+            'site_b' => {
+                'lss' => '4',
+                srMode => 'LeeAdama',
+                opMode => 'ZakAdama',
+                'mns' => 'vmhana02',
+                'srPoll' => 'SOK',
+            },
+            'site_a' => {
+                'lss' => '4',
+                srMode => 'LeeAdama',
+                opMode => 'ZakAdama',
+                'mns' => 'vmhana01',
+                'srPoll' => 'PRIM',
+            }
         }
     );
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
