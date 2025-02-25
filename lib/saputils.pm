@@ -136,9 +136,11 @@ sub calculate_hana_topology {
             $script_topology{$global} = \%global_parameter;
         }
 
-        # Remapping to JSON decode likeness
+        # Remapping from old structure of the 'SAPHana-showAttr --format=script', which is
+        # filled to the `$script_topology` from which it's mapped to the new decode_json() like
+        # structure to the `$topology`
 
-        # Resources could be mapped directly
+        # Key `Resource` is dynamic and could be mapped directly
         for my $resource (@all_resources) {
             # Takes parameter and value per line in resource
             my %resource_parameter = map {
@@ -148,26 +150,34 @@ sub calculate_hana_topology {
             $topology{'Resource'}{$resource} = \%resource_parameter;
         }
 
-
         for my $host (@all_hosts) {
-            # Site
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'mns'} = $host;
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'opMode'} = $script_topology{$host}->{'op_mode'};
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srMode'} = $script_topology{$host}->{'srmode'};
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srPoll'} = $script_topology{$host}->{'sync_state'};
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
-            # Host
-            $topology{'Host'}{$host}{'vhost'} = $script_topology{$host}->{'vhost'};
-            $topology{'Host'}{$host}{'site'} = $script_topology{$host}->{'site'};
-            $topology{'Host'}{$host}{'srah'} = $script_topology{$host}->{'srah'};
-            $topology{'Host'}{$host}{'clone_state'} = $script_topology{$host}->{'clone_state'};
-            $topology{'Host'}{$host}{'score'} = $script_topology{$host}->{'score'};
-            $topology{'Host'}{$host}{'version'} = $script_topology{$host}->{'version'};
-        }
-        # Global
-        $topology{'Global'}{'global'}{'cib-last-written'} = $script_topology{'global'}->{'cib-time'};
-        $topology{'Global'}{'global'}{'maintenance-mode'} = $script_topology{'global'}->{'maintenance'};
 
+            # New structure introduces key 'Site' to which some values are moved and have keys renamed
+            # or left defined but empty if it's not defined originally
+            $topology{'Site'}{$script_topology{$host}->{'site'}}{'mns'} = defined $host ? $host : '';
+            $topology{'Site'}{$script_topology{$host}->{'site'}}{'opMode'} = defined $script_topology{$host}->{'op_mode'} ? $script_topology{$host}->{'op_mode'} : '';
+            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srMode'} = defined $script_topology{$host}->{'srmode'} ? $script_topology{$host}->{'srmode'} : '';
+            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srPoll'} = defined $script_topology{$host}->{'sync_state'} ? $script_topology{$host}->{'sync_state'} : '';
+
+            # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
+            # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
+            $topology{'Site'}{$script_topology{$host}->{'site'}}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+
+            # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
+            # or left defined but empty if it's not defined originally
+            $topology{'Host'}{$host}{'vhost'} = defined $script_topology{$host}->{'vhost'} ? $script_topology{$host}->{'vhost'} : '';
+            $topology{'Host'}{$host}{'site'} = defined $script_topology{$host}->{'site'} ? $script_topology{$host}->{'site'} : '';
+            $topology{'Host'}{$host}{'srah'} = defined $script_topology{$host}->{'srah'} ? $script_topology{$host}->{'srah'} : '';
+            $topology{'Host'}{$host}{'clone_state'} = defined $script_topology{$host}->{'clone_state'} ? $script_topology{$host}->{'clone_state'} : '';
+            $topology{'Host'}{$host}{'score'} = defined $script_topology{$host}->{'score'} ? $script_topology{$host}->{'score'} : '';
+            $topology{'Host'}{$host}{'version'} = defined $script_topology{$host}->{'version'} ? $script_topology{$host}->{'version'} : '';
+        }
+
+        # New structure of key 'Global' with renamed keys
+        $topology{'Global'}{'global'}{'cib-last-written'} = defined $script_topology{'global'}->{'cib-time'} ? $script_topology{'global'}->{'cib-time'} : '';
+        $topology{'Global'}{'global'}{'maintenance-mode'} = defined $script_topology{'global'}->{'maintenance'} ? $script_topology{'global'}->{'maintenance'} : '';
+
+        # We encode to the JSON to be sure that output is always same
         $topology_json = encode_json(\%topology);
     }
     my $hana_topology = decode_json($topology_json);

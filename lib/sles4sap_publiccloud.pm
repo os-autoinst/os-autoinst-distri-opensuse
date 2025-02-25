@@ -542,6 +542,7 @@ sub enable_replication {
     die("enable_replication [ERROR] Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("enable_replication [ERROR] System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
+    # Getting 'sr_mode' and 'op_mode' from the SAPHanaSR topology
     my $topology = $self->get_hana_topology();
     for my $site (keys %{$topology->{'Site'}}) {
         foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
@@ -551,15 +552,24 @@ sub enable_replication {
         }
     }
 
+    # Getting remote host from the SAPHanaSR topology as 'remote_host' key is now omitted from the 'SAPHanaSR-showAttr' output
     for my $host (keys %{$topology->{'Host'}}) {
         die("enable_replication [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{'Host'}->{$host}->{'vhost'});
-        $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($topology->{'Host'}->{$host}->{'site'} ne $args{site_name});
+        $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($hostname ne $topology->{'Host'}->{$host}->{'vhost'});
+        last if defined($remote_host);
     }
 
-    for my $resource (keys %{$topology->{'Resource'}}) {
-        $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+    # The instance number couldn't be hard-coded, so if not set in SETTINGS we could determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
+    # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
+    unless ($instance_id) {
+        for my $resource (keys %{$topology->{'Resource'}}) {
+            $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+            last if defined($instance_id);
+        }
     }
-    die('enable_replication [ERROR] Instance number could not be determined from the list of resources') unless (defined($instance_id) && $instance_id ne '');
+
+    die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($instance_id);
+    die('enable_replication [ERROR] Remote host could not be determined') unless defined($remote_host);
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
         '--name=' . $args{site_name},
