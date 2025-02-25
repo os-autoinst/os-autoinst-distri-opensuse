@@ -410,27 +410,6 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
     undef_variables();
 };
 
-subtest '[ansible_hanasr_show_status]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my %calls;
-    $ms_sdaf->redefine(record_info => sub { return });
-    $ms_sdaf->redefine(script_output => sub {
-            $calls{crm_status} = $_[0] if grep /crm status/, @_;
-            $calls{saphanasr_showattr} = $_[0] if grep /SAPHanaSR-showAttr/, @_;
-            return; });
-
-    ansible_hanasr_show_status(sap_sid => 'CAT', sdaf_config_root_dir => '/cat/house');
-    note("crm status command:\n\t $calls{crm_status}");
-    ok(grep(/ansible QES_DB/, $calls{crm_status}), 'Execute main command');
-    ok(grep(/--private-key=\/cat\/house\/sshkey/, $calls{crm_status}), 'Check for "--private-key" argument');
-    ok(grep(/--inventory=CAT_hosts.yaml/, $calls{crm_status}), 'Check for "--inventory" argument');
-    ok(grep(/--module-name=shell/, $calls{crm_status}), 'Check for "--module-name" argument');
-    ok(grep(/--args="sudo crm status full"/, $calls{crm_status}), 'Check for executed "crm status" command');
-
-    note("SAPHanaSR-showAttr command:\n\t $calls{saphanasr_showattr}");
-    ok(grep(/--args="sudo SAPHanaSR-showAttr"/, $calls{saphanasr_showattr}), 'Check for executed "SAPHanaSR-showAttr" command');
-};
-
 subtest '[sdaf_ssh_key_from_keyvault] Test exceptions' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(homedir => sub { return '/home/Amuro'; });
@@ -478,7 +457,7 @@ subtest '[sdaf_ssh_key_from_keyvault] Verify executed commands' => sub {
 };
 
 subtest '[playbook_settings] Verify playbook order' => sub {
-    my @components = ('db_install', 'db_ha', 'nw_pas', 'nw_aas', 'db_ensa');
+    my @components = ('db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa');
     my @playbook_list = map { $_->{playbook_filename} } @{playbook_settings(components => \@components)};
 
     is $playbook_list[0], 'pb_get-sshkey.yaml', 'Playbook #1 must be: pb_get-sshkey.yaml';
@@ -492,6 +471,30 @@ subtest '[playbook_settings] Verify playbook order' => sub {
     is $playbook_list[8], 'playbook_04_00_01_db_ha.yaml', 'Playbook #9 must be: playbook_04_00_01_db_ha.yaml';
     is $playbook_list[9], 'playbook_05_02_sap_pas_install.yaml', 'Playbook #10 must be: playbook_05_02_sap_pas_install.yaml';
     is $playbook_list[10], 'playbook_05_03_sap_app_install.yaml', 'Playbook #11 must be: playbook_05_03_sap_app_install.yaml';
+};
+
+subtest '[ansible_show_status] HanaSR status commands' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my @commands;
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+    $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
+    ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha']);
+
+    ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');
+    ok(grep(/crm status full/, @commands), 'Show full cluster status');
+    ok(grep(/sudo SAPHanaSR-showAttr/, @commands), 'Show HanaSR status');
+};
+
+subtest '[ansible_show_status] ENSA2 status commands' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my @commands;
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+    $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
+    ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa']);
+
+    ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');
+    ok(grep(/crm status full/, @commands), 'Show full cluster status');
+    ok(grep(/ps -ef | grep sap/, @commands), 'Netweaver processes');
 };
 
 done_testing;

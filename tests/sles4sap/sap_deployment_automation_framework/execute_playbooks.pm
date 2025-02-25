@@ -13,10 +13,7 @@ use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
-use sles4sap::console_redirection
-  qw(connect_target_to_serial
-  disconnect_target_from_serial
-  );
+use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(validate_components);
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -96,8 +93,7 @@ sub run {
     }
 
     # Display deployment information
-    ansible_hanasr_show_status(sdaf_config_root_dir => $sdaf_config_root_dir);
-    ansible_ensa2_show_status(sdaf_config_root_dir => $sdaf_config_root_dir);
+    ansible_show_status(sdaf_config_root_dir => $sdaf_config_root_dir, scenarios => \@setup);
 
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');
