@@ -722,7 +722,8 @@ sub az_vm_create {
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
     push @vm_create, '--image', $args{image};
-    push @vm_create, '--public-ip-address ""';
+    push @vm_create, '--public-ip-address';
+    push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
 
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
@@ -734,7 +735,6 @@ sub az_vm_create {
     push @vm_create, '--nsg', $args{nsg} if $args{nsg};
     push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
     push @vm_create, '--nics', $args{nic} if $args{nic};
-    push @vm_create, '--public-ip-address', $args{public_ip} if $args{public_ip};
     push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
     push @vm_create, '--subnet', $args{snet} if $args{snet};
     push @vm_create, '--security-type', $args{security_type} if $args{security_type};

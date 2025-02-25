@@ -286,9 +286,30 @@ subtest '[az_vm_create] with public IP' => sub {
         public_ip => 'Fulgenzio');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--public-ip-address Fulgenzio/ } @calls), 'custom Public IP address');
+    ok((none { /--public-ip-address ""/ } @calls), 'not force empty Public IP address');
 };
 
 subtest '[az_vm_create] with no public IP' => sub {
+    # Here function call is same of the previous test '[az_vm_create]'
+    # What is different is that this test has a dedicated
+    # expectation check about --public-ip-address
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_vm_create(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino',
+        image => 'Mirandolina');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--public-ip-address ""/ } @calls), 'empty Public IP address');
+};
+
+
+subtest '[az_vm_create] with empty public IP' => sub {
+    # The user can in theory provide a public_ip
+    # with an empty string. It doesn't make much sense
+    # as the user can obtain the same result without using
+    # the public_ip argument at all (like covered by the previous test).
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
