@@ -472,8 +472,8 @@ subtest '[get_hana_topology]' => sub {
 
     ok((keys %$topology eq 2), "Two nodes returned by calculate_hana_topology");
     # how to access one inner value in one shot
-    ok((%$topology{vmhanaAAAAA}->{vhost} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
-    ok((any { qr/SAPHanaSR-showAttr --format=script/ } @calls), 'function calls SAPHanaSR-showAttr');
+    ok((%{$topology->{'Host'}->{'vmhanaAAAAA'}->{'vhost'}} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
+    ok((any { qr/SAPHanaSR-showAttr --format=/ } @calls), 'function calls SAPHanaSR-showAttr');
 };
 
 

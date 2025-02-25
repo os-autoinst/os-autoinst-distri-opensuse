@@ -25,7 +25,7 @@ Global/global/maintenance="false"
 Sites/site_b/b="SOK"
 Hosts/vmhana01/vhost="AAAAAAA"
 Hosts/vmhana02/vhost="BBBBBBB"');
-    ok keys %{$topology->{'Host'} == 2, 'Output is about exactly 2 hosts';
+    ok keys %{$topology->{'Host'}} == 2, 'Output is about exactly 2 hosts';
     ok((any { qr/vmhana01/ } keys %{$topology->{'Host'}}), 'External hash has key vmhana01');
     ok((any { qr/vmhana02/ } keys %{$topology->{'Host'}}), 'External hash has key vmhana02');
 };
@@ -254,18 +254,58 @@ subtest '[check_crm_output] starting and failed' => sub {
 
 subtest '[get_primary_node] starting and failed' => sub {
     my $mock_input = {
-        hana_node_01 => {sync_state => 'PRIM'},
-        hana_node_02 => {sync_state => 'SOK'}
+        'Host' => {
+            'vmhana02' => {
+                'vhost' => 'vmhana02',
+                'site' => 'site_b'
+            },
+            'vmhana01' => {
+                'site' => 'site_a',
+                'vhost' => 'vmhana01',
+            }
+        },
+        'Site' => {
+            'site_b' => {
+                'lss' => '4',
+                'mns' => 'vmhana02',
+                'srPoll' => 'SOK',
+            },
+            'site_a' => {
+                'lss' => '4',
+                'mns' => 'vmhana01',
+                'srPoll' => 'PRIM',
+            }
+        }
     };
-    is get_primary_node(topology_data => $mock_input), 'hana_node_01', 'Return correct primary node name';
+    is get_primary_node(topology_data => $mock_input), 'vmhana01', 'Return correct primary node name';
 };
 
 subtest '[get_failover_node] starting and failed' => sub {
     my $mock_input = {
-        hana_node_01 => {sync_state => 'PRIM'},
-        hana_node_02 => {sync_state => 'SOK'}
+        'Host' => {
+            'vmhana02' => {
+                'vhost' => 'vmhana02',
+                'site' => 'site_b'
+            },
+            'vmhana01' => {
+                'site' => 'site_a',
+                'vhost' => 'vmhana01',
+            }
+        },
+        'Site' => {
+            'site_b' => {
+                'lss' => '4',
+                'mns' => 'vmhana02',
+                'srPoll' => 'SOK',
+            },
+            'site_a' => {
+                'lss' => '4',
+                'mns' => 'vmhana01',
+                'srPoll' => 'PRIM',
+            }
+        }
     };
-    is get_failover_node(topology_data => $mock_input), 'hana_node_02', 'Return correct primary node name';
+    is get_failover_node(topology_data => $mock_input), 'vmhana02', 'Return correct primary node name';
 };
 
 done_testing;
