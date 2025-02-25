@@ -20,6 +20,8 @@ use utils;
 use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
 
+our $run_count = 0;
+
 my $path = is_sle('=15-SP2') ? '/usr/sbin/' : '';    # 15-SP2 is the oldest version that needs fullpaths
 my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
@@ -27,6 +29,8 @@ sub run {
     my ($self, $args) = @_;
     my ($provider, $instance);
     select_host_console();
+
+    $run_count++;
 
     if (get_var('PUBLIC_CLOUD_QAM', 0)) {
         $instance = $self->{my_instance} = $args->{my_instance};
@@ -221,6 +225,7 @@ sub post_fail_hook {
 }
 
 sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 0} if $run_count > 1;
     return {fatal => 0, publiccloud_multi_module => 1};
 }
 
