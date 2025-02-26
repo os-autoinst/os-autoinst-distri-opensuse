@@ -21,6 +21,11 @@ sub action {
     $reboot //= 1;
     record_info('TEST', $text);
     trup_call($target);
+
+    if ($target =~ /bootloader/ && get_var('FLAVOR') =~ m/-encrypted/i) {
+        record_soft_failure("Workaround for bsc#1228126");
+        script_run("fdectl tpm-authorize");
+    }
     if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
         # With sdbootutil, the snapshot is not changed. Verify that and test rebooting.
         check_reboot_changes(0);
@@ -36,12 +41,7 @@ sub run {
 
     select_serial_terminal;
 
-    if (get_var('FLAVOR') =~ m/-encrypted/i) {
-        record_soft_failure("bsc#1228126: Encrypted image fails to boot after reinstalling bootloader");
-    }
-    else {
-        action('bootloader', 'Reinstall bootloader');
-    }
+    action('bootloader', 'Reinstall bootloader');
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
     if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
