@@ -57,7 +57,7 @@ sub run {
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         # Currently jsonnet is only available to install on x86_64, remove this after include in the rest of architectures.
-        if (is_x86_64()) {
+        if (is_x86_64() || is_aarch64()) {
             $profile_url = generate_json_profile();
             set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$profile_url\"");
         } else {
