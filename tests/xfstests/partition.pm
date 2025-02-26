@@ -444,10 +444,7 @@ sub run {
         script_run("echo export UNIONMOUNT_TESTSUITE=/opt/unionmount-testsuite >> $CONFIG_FILE");
     }
     if (check_var('XFSTESTS', 'nfs')) {
-        # No firewalld on SLE-16
-        if (!is_sle('16+')) {
-            disable_and_stop_service('firewalld');
-        }
+        disable_and_stop_service(opensusebasetest::firewall, ignore_failure => 1);
         set_var('XFSTESTS_TEST_DEV', mountpoint_to_partition('/'));
         post_env_info(join(' ', get_partition_size('/')));
         if (get_var('XFSTESTS_NFS_SERVER')) {
