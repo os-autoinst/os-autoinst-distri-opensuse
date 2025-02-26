@@ -131,6 +131,7 @@ our @EXPORT = qw(
   is_ipxe_with_disk_image
   is_reboot_needed
   install_extra_packages
+  render_autoinst_url
 );
 
 our @EXPORT_OK = qw(
@@ -3279,6 +3280,38 @@ sub install_extra_packages {
     $cmd = $cmd . " $_" foreach (@repos_names);
     zypper_call($cmd);
     save_screenshot;
+}
+
+=head2 render_autoinst_url
+
+ render_autoinst_url(url => 'openQA url');
+
+In order to avoid downloading resources directly from openQA instance, rendering
+autoinst url from given openQA url is necessary. Argument url accetps legal HTTP
+url addresses, but it will be returned directly without rendering if it is not an
+openQA url.
+=cut
+
+sub render_autoinst_url {
+    my %args = @_;
+    $args{url} //= '';
+
+    croak("Can not render autoinst url from empty url") if (!$args{url});
+    if ($args{url} =~ /^(http|https)\:\/\/openqa\./im) {
+        my $openqa_instance = get_required_var('OPENQA_HOSTNAME');
+        $openqa_instance =~ s/\./\\\./g;
+        if ($args{url} !~ /(http|https)\:\/\/$openqa_instance\//im) {
+            record_info("Not url on running openQA $openqa_instance", "Can not render running openQA autoinst url from $args{url}", result => 'fail');
+            return $args{url};
+        }
+        my $autoinst_url = autoinst_url('/' . join('/', (split('/', $args{url}))[3 .. (scalar split('/', $args{url})) - 1]));
+        record_info("Rendered autoinst url from running openQA instance", "Rendered url $autoinst_url from $args{url}");
+        return $autoinst_url;
+    }
+    else {
+        record_info("Can not render autoinst url from non-openQA url", "Return original url $args{url}", result => 'fail');
+        return $args{url};
+    }
 }
 
 1;

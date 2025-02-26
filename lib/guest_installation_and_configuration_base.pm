@@ -1882,17 +1882,17 @@ sub config_guest_installation_media {
         }
     }
     elsif ($self->{guest_installation_media} =~ /^.*\.(raw|raw\.xz|qcow2)$/i) {
-        if (script_output("curl --silent -I $self->{guest_installation_media} | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
+        if (script_output("curl --silent -I " . render_autoinst_url(url => $self->{guest_installation_media}) . " | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
             if ($self->{guest_installation_media} =~ /^.*\.raw\.xz$/i) {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz $self->{guest_installation_media}", timeout => 1200);
+                assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 1200);
                 assert_script_run("xz -d $self->{guest_storage_backing_path}.xz", timeout => 120);
             }
             else {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path} $self->{guest_installation_media}", timeout => 3600);
+                assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
             }
         }
         else {
-            record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I $self->{guest_installation_media}", proceed_on_failure => 1), result => 'fail');
+            record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I " . render_autoinst_url(url => $self->{guest_installation_media}), proceed_on_failure => 1), result => 'fail');
             $self->record_guest_installation_result('FAILED');
         }
     }
