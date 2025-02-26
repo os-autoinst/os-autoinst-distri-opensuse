@@ -32,7 +32,7 @@ SAP Applications.
 
 This package is a stateless library.
 To keep this library as generic as possible avoid as much as possible any other dependency usage,
-like other base class or test API. Avoid using get_var/set_var at this level.
+like other base class or testapi module  Avoid using get_var/set_var at this level.
 
 =cut
 
@@ -100,7 +100,6 @@ sub calculate_hana_topology {
     croak('calculate_hana_topology [ERROR] Argument <input> missing') unless $args{input};
     my $input_format = $args{input_format} || 'script';
     croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
-
     my %topology;
     my $topology_json;
     my %script_topology;
@@ -109,9 +108,9 @@ sub calculate_hana_topology {
         $topology_json = $args{input};
     } else {
         my @all_lines = split("\n", $args{input});
-        my @hosts_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } @all_lines;
-        my @globals_parameters = map { if (/^Global/) { s,Global/,,; s,",,g; $_ } else { () } } @all_lines;
-        my @resources_parameters = map { if (/^Resource/) { s,Resource/,,; s,",,g; $_ } else { () } } @all_lines;
+        my @hosts_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } } @all_lines;
+        my @globals_parameters = map { if (/^Global/) { s,Global/,,; s,",,g; $_ } } @all_lines;
+        my @resources_parameters = map { if (/^Resource/) { s,Resource/,,; s,",,g; $_ } } @all_lines;
 
         my @all_hosts = uniq map { (split("/", $_))[0] } @hosts_parameters;
         my @all_globals = uniq map { (split("/", $_))[0] } @globals_parameters;
@@ -154,28 +153,31 @@ sub calculate_hana_topology {
 
             # New structure introduces key 'Site' to which some values are moved and have keys renamed
             # or left defined but empty if it's not defined originally
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'mns'} = defined $host ? $host : '';
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'opMode'} = defined $script_topology{$host}->{'op_mode'} ? $script_topology{$host}->{'op_mode'} : '';
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srMode'} = defined $script_topology{$host}->{'srmode'} ? $script_topology{$host}->{'srmode'} : '';
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'srPoll'} = defined $script_topology{$host}->{'sync_state'} ? $script_topology{$host}->{'sync_state'} : '';
+            my $sth_site = $script_topology{$host}->{'site'};
+            $topology{'Site'}{$sth_site}{'mns'} = $host;
+            if (defined $script_topology{$host}->{'op_mode'}) { $topology{'Site'}{$sth_site}{'opMode'} = $script_topology{$host}->{'op_mode'} }
+            if (defined $script_topology{$host}->{'srmode'}) { $topology{'Site'}{$sth_site}{'srMode'} = $script_topology{$host}->{'srmode'} }
+            if (defined $script_topology{$host}->{'sync_state'}) { $topology{'Site'}{$sth_site}{'srPoll'} = $script_topology{$host}->{'sync_state'} }
 
             # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
             # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
-            $topology{'Site'}{$script_topology{$host}->{'site'}}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+            if (defined $script_topology{$host}->{'node_state'}) {
+                $topology{'Site'}{$sth_site}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+            }
 
             # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
             # or left defined but empty if it's not defined originally
-            $topology{'Host'}{$host}{'vhost'} = defined $script_topology{$host}->{'vhost'} ? $script_topology{$host}->{'vhost'} : '';
-            $topology{'Host'}{$host}{'site'} = defined $script_topology{$host}->{'site'} ? $script_topology{$host}->{'site'} : '';
-            $topology{'Host'}{$host}{'srah'} = defined $script_topology{$host}->{'srah'} ? $script_topology{$host}->{'srah'} : '';
-            $topology{'Host'}{$host}{'clone_state'} = defined $script_topology{$host}->{'clone_state'} ? $script_topology{$host}->{'clone_state'} : '';
-            $topology{'Host'}{$host}{'score'} = defined $script_topology{$host}->{'score'} ? $script_topology{$host}->{'score'} : '';
-            $topology{'Host'}{$host}{'version'} = defined $script_topology{$host}->{'version'} ? $script_topology{$host}->{'version'} : '';
+            if (defined $script_topology{$host}->{'vhost'}) { $topology{'Host'}{$host}{'vhost'} = $script_topology{$host}->{'vhost'} }
+            if (defined $sth_site) { $topology{'Host'}{$host}{'site'} = $sth_site }
+            if (defined $script_topology{$host}->{'srah'}) { $topology{'Host'}{$host}{'srah'} = $script_topology{$host}->{'srah'} }
+            if (defined $script_topology{$host}->{'clone_state'}) { $topology{'Host'}{$host}{'clone_state'} = $script_topology{$host}->{'clone_state'} }
+            if (defined $script_topology{$host}->{'score'}) { $topology{'Host'}{$host}{'score'} = $script_topology{$host}->{'score'} }
+            if (defined $script_topology{$host}->{'version'}) { $topology{'Host'}{$host}{'version'} = $script_topology{$host}->{'version'} }
         }
 
         # New structure of key 'Global' with renamed keys
-        $topology{'Global'}{'global'}{'cib-last-written'} = defined $script_topology{'global'}->{'cib-time'} ? $script_topology{'global'}->{'cib-time'} : '';
-        $topology{'Global'}{'global'}{'maintenance-mode'} = defined $script_topology{'global'}->{'maintenance'} ? $script_topology{'global'}->{'maintenance'} : '';
+        if (defined $script_topology{'global'}->{'cib-time'}) { $topology{'Global'}{'global'}{'cib-last-written'} = $script_topology{'global'}->{'cib-time'} }
+        if (defined $script_topology{'global'}->{'maintenance'}) { $topology{'Global'}{'global'}{'maintenance-mode'} = $script_topology{'global'}->{'maintenance'} }
 
         # We encode to the JSON to be sure that output is always same
         $topology_json = encode_json(\%topology);

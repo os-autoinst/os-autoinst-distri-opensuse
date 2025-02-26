@@ -520,13 +520,16 @@ sub check_takeover {
 }
 
 =head2 enable_replication
-    enable_replication([site_name => 'site_a']);
+    enable_replication([site_name => 'site_a', instance_id => '10' ]);
 
-    Re-enables replication on the previously fenced database node. Database must be offline.
+    Re-enaobles replication on the previously fenced database node. Database must be offline.
+    Dies if the the given <site name> doesn't corespond with the SAPHanaSR topology local site name
 
 =over
 
-=item B<site_name> - site name of the site to register
+=item B<site_name> - local site name of the site to register
+
+=item B<instance_id> - optional HANA instance ID to be register
 
 =back
 =cut
@@ -536,32 +539,30 @@ sub enable_replication {
     croak('enable_replication [ERROR] Argument <site_name> missing') unless $args{site_name};
     my $hostname = $self->{my_instance}->{instance_id};
     my $remote_host;
+    my $site = $args{site_name};
     my $sr_mode;
     my $op_mode;
-    my $instance_id;
+    my $instance_id = defined $args{instance_id} ? $args{instance_id} : '';
     die("enable_replication [ERROR] Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("enable_replication [ERROR] System replication '$hostname' is not offline") if ($self->is_primary_node_online);
+    my $topology = $self->get_hana_topology();
 
     # Getting 'sr_mode' and 'op_mode' from the SAPHanaSR topology
-    my $topology = $self->get_hana_topology();
-    for my $site (keys %{$topology->{'Site'}}) {
-        foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
-        if ($site eq $args{site_name}) {
-            $sr_mode = $topology->{'Site'}->{$site}->{'srMode'};
-            $op_mode = $topology->{'Site'}->{$site}->{'opMode'};
-        }
-    }
+    foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
+    $sr_mode = $topology->{'Site'}->{$site}->{'srMode'};
+    $op_mode = $topology->{'Site'}->{$site}->{'opMode'};
 
     # Getting remote host from the SAPHanaSR topology as 'remote_host' key is now omitted from the 'SAPHanaSR-showAttr' output
     for my $host (keys %{$topology->{'Host'}}) {
         die("enable_replication [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{'Host'}->{$host}->{'vhost'});
-        $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($hostname ne $topology->{'Host'}->{$host}->{'vhost'});
+        $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($hostname ne $topology->{'Host'}->{$host}->{'vhost'} && $site ne $topology->{'Host'}->{$host}->{'site'});
         last if defined($remote_host);
     }
 
     # The instance number couldn't be hard-coded, so if not set in SETTINGS we could determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($instance_id) {
+        record_info('Instance number was not provided and will be determined from the name of resource', $resouce);
         for my $resource (keys %{$topology->{'Resource'}}) {
             $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
             last if defined($instance_id);
@@ -569,10 +570,11 @@ sub enable_replication {
     }
 
     die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($instance_id);
-    die('enable_replication [ERROR] Remote host could not be determined') unless defined($remote_host);
+    # Dies if the given <site name> doesn't correspond with the SAPHanaSR topology like if given site name is not a local one.
+    die('enable_replication [ERROR] Remote host could not be determined. Is <site_name> arg. really local site?') unless defined($remote_host);
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
-        '--name=' . $args{site_name},
+        '--name=' . $site,
         '--remoteHost=' . $remote_host,
         '--remoteInstance=' . $instance_id,
         '--replicationMode=' . $sr_mode,
@@ -979,7 +981,7 @@ sub create_playbook_section_list {
         push @playbook_list, 'fully-patch-system.yaml';
     }
 
-    # Add play book to download and install PTFs, if any
+    # Add playbook to download and install PTFs, if any
     if ($args{ptf_files} && $args{ptf_token} && $args{ptf_container} && $args{ptf_account}) {
         push @playbook_list, join(' ',
             'ptf_installation.yaml',
@@ -992,7 +994,7 @@ sub create_playbook_section_list {
 
     my $hana_cluster_playbook = 'sap-hana-cluster.yaml';
     if ($args{fencing} eq 'native' and is_azure) {
-        # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' play book
+        # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
         my $azure_native_fencing_args = azure_fencing_agents_playbook_args(
             fence_type => $args{fence_type},
             spn_application_id => $args{spn_application_id},
@@ -1001,7 +1003,7 @@ sub create_playbook_section_list {
         $hana_cluster_playbook = join(' ', $hana_cluster_playbook, $azure_native_fencing_args);
     }
 
-    # SLES4SAP/HA related play books
+    # SLES4SAP/HA related playbooks
     if ($args{ha_enabled}) {
         push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_var('USE_SAPCONF', 'false');
         push @playbook_list, 'cluster_sbd_prep.yaml' if ($args{fencing} eq 'sbd');
