@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'Netlink message validation' test case of ATSec test suite
+# Summary: Run 'Netlink message validation' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110218
 
@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
 
     # Complile
-    assert_script_run('cd /usr/local/atsec/pentest/netlink');
+    assert_script_run('cd /usr/local/eal4/pentest/netlink');
     assert_script_run("make");
 
     my @cases = (

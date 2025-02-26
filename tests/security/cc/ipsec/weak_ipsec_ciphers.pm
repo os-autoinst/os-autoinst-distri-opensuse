@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run ATSec 'Weak IPsec ciphers' case
+# Summary: Run EAL4 'Weak IPsec ciphers' case
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#101226
 
@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    assert_script_run('cd /usr/local/atsec/ipsec/IPSEC_basic_eval');
+    assert_script_run('cd /usr/local/eal4/ipsec/IPSEC_basic_eval');
     my $timeout = is_s390x() ? 180 : 90;
     my $output = script_output('bash test_basic_ipsec_eval_weak.bash', $timeout);
 

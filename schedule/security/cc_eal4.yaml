@@ -1,0 +1,30 @@
+name: eal4_tests
+description: >
+    This is for EAL4 tests
+schedule:
+    - installation/bootloader_start
+    - security/boot_disk
+    - security/eal4/setup_eal4_env
+    - '{{disable_root_ssh}}'
+    - security/eal4/accessible_network_interface
+    - security/eal4/kvm_check
+    - security/eal4/drng_test_preparation
+    - security/eal4/dbus_services_exposure
+    - security/eal4/check_undocumented_security_programs
+    - security/eal4/dbus_fuzzer
+    - security/eal4/syscall_thrasher
+    - security/eal4/netlink_message
+    - security/eal4/chrony_pid_file
+    - security/eal4/permission_settings
+    - '{{check_processor_vulnerability_mitigations}}'
+conditional_schedule:
+    check_processor_vulnerability_mitigations:
+        ARCH:
+            x86_64:
+                - security/eal4/check_processor_vulnerability_mitigations
+            aarch64:
+                - security/eal4/check_processor_vulnerability_mitigations
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

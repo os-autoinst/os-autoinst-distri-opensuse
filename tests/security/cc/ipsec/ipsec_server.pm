@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use audit_test;
-use atsec_test;
+use eal4_test;
 use Utils::Architectures;
 use lockapi;
 use mmapi 'get_children';
@@ -26,12 +26,12 @@ sub run {
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV.
     my $netdev = iface;
-    assert_script_run("ip addr add $atsec_test::server_ip/24 dev $netdev") if (is_s390x);
+    assert_script_run("ip addr add $eal4_test::server_ip/24 dev $netdev") if (is_s390x);
 
     assert_script_run("cd $audit_test::test_dir/ipsec_configuration/server");
 
     # Create ipip tunnel to the TOE system
-    assert_script_run("./ipsec_setup_tunnel_server.sh start $atsec_test::server_ip $atsec_test::client_ip");
+    assert_script_run("./ipsec_setup_tunnel_server.sh start $eal4_test::server_ip $eal4_test::client_ip");
 
     # Install IPSec configuration
     assert_script_run('make install');

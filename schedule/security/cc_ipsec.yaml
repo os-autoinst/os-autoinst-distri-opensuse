@@ -7,7 +7,7 @@ schedule:
     - '{{remove_bridge_network}}'
     - '{{setup_multimachine}}'
     - security/cc/cc_audit_test_setup
-    - security/atsec/setup_atsec_env
+    - security/eal4/setup_eal4_env
     - '{{disable_root_ssh}}'
     - '{{cc_ipsec}}'
 conditional_schedule:

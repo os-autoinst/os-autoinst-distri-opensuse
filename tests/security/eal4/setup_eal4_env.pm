@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Download the test scripts which Atsec tests need
+# Summary: Download the test scripts which EAL4 tests need
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108485
 
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 
 sub run {
     my ($self) = shift;
@@ -27,7 +27,7 @@ sub run {
     my $file_tar = $file_name . '.tar';
     assert_script_run("wget --no-check-certificate $code_path -O /tmp/$file_tar");
     assert_script_run("tar -xvf /tmp/$file_tar -C /tmp/");
-    assert_script_run("mv /tmp/$file_name $atsec_test::code_dir");
+    assert_script_run("mv /tmp/$file_name $eal4_test::code_dir");
 }
 
 sub test_flags {

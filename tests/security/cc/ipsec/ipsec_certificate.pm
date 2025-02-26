@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use atsec_test;
+use eal4_test;
 use Utils::Architectures;
 use lockapi;
 use version_utils 'is_sle';
@@ -35,7 +35,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    assert_script_run('cd /usr/local/atsec/ipsec/certificates');
+    assert_script_run('cd /usr/local/eal4/ipsec/certificates');
 
     my $role = get_var('HOSTNAME');
     my $children = get_children();
@@ -47,12 +47,12 @@ sub run {
         $case_name =~ s/_/-/g;
 
         if ($role eq 'server') {
-            assert_script_run("sh prepare-ipsec-test.sh $case_name $atsec_test::server_ip $atsec_test::client_ip server");
+            assert_script_run("sh prepare-ipsec-test.sh $case_name $eal4_test::server_ip $eal4_test::client_ip server");
             mutex_create("server_ready_$tmp_case_name");
             mutex_wait("client_done_$tmp_case_name", $child);
             next;
         }
-        assert_script_run("sh prepare-ipsec-test.sh $case_name $atsec_test::client_ip $atsec_test::server_ip client");
+        assert_script_run("sh prepare-ipsec-test.sh $case_name $eal4_test::client_ip $eal4_test::server_ip client");
         mutex_wait("server_ready_$tmp_case_name");
         my $output = script_output("ipsec up $case_name", 120);
 
@@ -74,11 +74,11 @@ sub run {
             else {
                 if ($case_name eq 'rsa768') {
                     $result = 'softfail';
-                    $record_message = "$case_name pass, as ATSec document says, it needs more analysis";
+                    $record_message = "$case_name pass, as EAL4 document says, it needs more analysis";
 
                 }
                 # When the ipsec up succeed, we need to check if the connection is created
-                my $ping_ret = script_run("ping -c 1 -W 2 $atsec_test::server_ip");
+                my $ping_ret = script_run("ping -c 1 -W 2 $eal4_test::server_ip");
                 if ($ping_ret != 0) {
                     $result = 'fail';
                     $record_message = "The $case_name test result is expected, but the connection does NOT work";
@@ -97,7 +97,7 @@ sub run {
     wait_for_children() if ($role eq 'server');
 
     my $netdev = 'eth0';
-    my $ip = $role eq 'server' ? $atsec_test::server_ip : $atsec_test::client_ip;
+    my $ip = $role eq 'server' ? $eal4_test::server_ip : $eal4_test::client_ip;
 
     # Delete the ip that we added if arch is s390x
     assert_script_run("ip addr del $ip/24 dev $netdev") if (is_s390x);
