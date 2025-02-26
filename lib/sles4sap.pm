@@ -144,7 +144,7 @@ server
 =cut
 
 sub download_hana_assets_from_server {
-    my %params = @_;
+    my ($self, %params) = @_;
     my $target = $params{target} // '/sapinst';
     my $nettout = $params{nettout} // 2700;
     # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
