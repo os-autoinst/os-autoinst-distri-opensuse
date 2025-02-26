@@ -562,7 +562,7 @@ sub enable_replication {
     # The instance number couldn't be hard-coded, so if not set in SETTINGS we could determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($instance_id) {
-        record_info('Instance number was not provided and will be determined from the name of resource', $resouce);
+        record_info('Instance number was not provided and will be determined from the name of resource', $resource);
         for my $resource (keys %{$topology->{'Resource'}}) {
             $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
             last if defined($instance_id);

@@ -53,10 +53,10 @@ Hosts/vmhana02/vhost="vmhana02"');
         ok((keys %$value eq 1), "Parsed input has 1 value for each host, so 1 inner key.");
 
         # how to access one value of an inner hash
-        like(%{$value->{'vhost'}}, qr/vmhana0/, 'vHost is like vmhana0');
+        like($value->{'vmhana01'}->{'vhost'}, qr/vmhana0/, 'vHost is like vmhana0');
     }
     # how to access one inner value in one shot
-    ok((%$topology->{'Site'}->{'vmhana02'}->{'srPoll'} eq 'SOK'), 'sync_state of vmhana02 is exactly SOK');
+    ok(($topology->{'Site'}->{'vmhana02'}->{'srPoll'} eq 'SOK'), 'sync_state of vmhana02 is maped to site and is  exactly SOK');
 };
 
 subtest '[check_hana_topology] healthy cluster' => sub {
