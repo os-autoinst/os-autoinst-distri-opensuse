@@ -102,14 +102,19 @@ sub run {
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
-    # Check for SAPHanaSR-angi package going to be used
-    if (get_var('USE_SAP_HANA_SR_ANGI')) {
-        script_run('[ $(rpm -q SAPHanaSR-doc) ] && rpm -e --nodeps SAPHanaSR-doc');
-        script_run('[ $(rpm -q SAPHanaSR) ] && rpm -e --nodeps SAPHanaSR');
-        zypper_call('install SAPHanaSR-angi supportutils-plugin-ha-sap ClusterTools2') if get_var('HA_CLUSTER');
-    }
-    else {
-        zypper_call('install SAPHanaSR SAPHanaSR-doc ClusterTools2') if get_var('HA_CLUSTER');
+    if (get_var('HA_CLUSTER')) {
+        my @zypper_in = ('install');
+        # Check for SAPHanaSR-angi package going to be used
+        if (get_var('USE_SAP_HANA_SR_ANGI')) {
+            script_run('[ $(rpm -q SAPHanaSR-doc) ] && rpm -e --nodeps SAPHanaSR-doc');
+            script_run('[ $(rpm -q SAPHanaSR) ] && rpm -e --nodeps SAPHanaSR');
+            push @zypper_in, 'SAPHanaSR-angi', 'supportutils-plugin-ha-sap';
+        }
+        else {
+            push @zypper_in, 'SAPHanaSR', 'SAPHanaSR-doc';
+        }
+        push @zypper_in, 'ClusterTools2';
+        zypper_call(join(' ', @zypper_in));
     }
 
     # Add host's IP to /etc/hosts
