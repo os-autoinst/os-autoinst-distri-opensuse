@@ -46,16 +46,8 @@ sub run {
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
         assert_screen 'installation-bootloader-options';
-        # Select Timeout dropdown box and disable
-        send_key 'alt-t';
-        # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
-        record_soft_failure "boo#1216366: Disabling the timeout is not possible";
-        type_string "42";
-
-        wait_still_screen(1);
-        save_screenshot;
-        # ncurses uses blocking modal dialog, so press return is needed
-        send_key 'ret' if check_var('VIDEOMODE', 'text');
+        # Uncheck the "automatically boot" checkbox
+        send_key 'alt-a', wait_screen_change => 1;
     }
 
     send_key $cmd{ok};
