@@ -124,7 +124,7 @@ sub _cleanup {
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
     if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
-        $self->_upload_logs();
+        eval { $self->_upload_logs() } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
@@ -139,7 +139,7 @@ sub _cleanup {
     }
     diag('Public Cloud _cleanup: 2nd check passed.');
 
-    $self->_upload_logs();
+    eval { $self->_upload_logs() } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
 
     # We need $self->{run_args} and $self->{run_args}->{my_provider}
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
