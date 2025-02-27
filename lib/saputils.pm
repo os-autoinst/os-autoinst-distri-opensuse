@@ -108,9 +108,9 @@ sub calculate_hana_topology {
         $topology_json = $args{input};
     } else {
         my @all_lines = split("\n", $args{input});
-        my @hosts_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } } @all_lines;
-        my @globals_parameters = map { if (/^Global/) { s,Global/,,; s,",,g; $_ } } @all_lines;
-        my @resources_parameters = map { if (/^Resource/) { s,Resource/,,; s,",,g; $_ } } @all_lines;
+        my @hosts_parameters = map { s,Hosts/,,; s,",,g; $_ } grep { /^Hosts/ } @all_lines;
+        my @globals_parameters = map { s,Global/,,; s,",,g; $_ } grep { /^Global/ } @all_lines;
+        my @resources_parameters = map { s,Resource/,,; s,",,g; $_ } grep { /^Resource/ } @all_lines;
 
         my @all_hosts = uniq map { (split("/", $_))[0] } @hosts_parameters;
         my @all_globals = uniq map { (split("/", $_))[0] } @globals_parameters;
@@ -124,7 +124,6 @@ sub calculate_hana_topology {
             } @hosts_parameters;
             $script_topology{$host} = \%host_parameter;
         }
-
 
         for my $global (@all_globals) {
             # Takes parameter and value per line in Global
