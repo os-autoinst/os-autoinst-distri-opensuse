@@ -353,6 +353,11 @@
           <Order>58</Order>
           <Path>powershell.exe Set-ItemProperty -Path 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.SkyDrive.Desktop\' -Name Enabled -Value 0</Path>
         </RunSynchronousCommand>
+				<!-- Enable WSL and Virtual Machine Platform -->
+        <RunSynchronousCommand wcm:action="add">
+            <Order>59</Order>
+            <Path>powershell.exe Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart; Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform /Y</Path>
+        </RunSynchronousCommand>
       </RunSynchronous>
     </component>
   </settings>
@@ -387,6 +392,16 @@
         <ProtectYourPC>1</ProtectYourPC>
         <UnattendEnableRetailDemo>false</UnattendEnableRetailDemo>
       </OOBE>
+			<FirstLogonCommands>
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <CommandLine>powershell.exe wsl --update</CommandLine>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <CommandLine>powershell.exe wsl --install --no-distribution</CommandLine>
+        </SynchronousCommand>
+      </FirstLogonCommands>
     </component>
   </settings>
 </unattend>
