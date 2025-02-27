@@ -56,7 +56,7 @@ Hosts/vmhana02/vhost="vmhana02"');
         like($value->{'vmhana01'}->{'vhost'}, qr/vmhana0/, 'vHost is like vmhana0');
     }
     # how to access one inner value in one shot
-    ok(($topology->{'Site'}->{'vmhana02'}->{'srPoll'} eq 'SOK'), 'sync_state of vmhana02 is maped to site and is  exactly SOK');
+    ok(($topology->{'Site'}->{'site_b'}->{'srPoll'} eq 'SOK'), 'sync_state of vmhana02 is maped to site and is  exactly SOK');
 };
 
 subtest '[check_hana_topology] healthy cluster' => sub {
@@ -65,6 +65,8 @@ subtest '[check_hana_topology] healthy cluster' => sub {
 
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Sites/site_b/b="SOK"
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="online"
@@ -88,6 +90,8 @@ subtest '[check_hana_topology] healthy cluster with pacemaker older then 2.1.7' 
 
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Sites/site_b/b="SOK"
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="online"
@@ -112,6 +116,8 @@ subtest '[check_hana_topology] healthy cluster with custom node_state_match with
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
 Sites/site_b/b="SOK"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="1234"
 Hosts/vmhana01/sync_state="PRIM"
@@ -135,6 +141,8 @@ subtest '[check_hana_topology] unhealthy cluster not online' => sub {
 
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Sites/site_b/b="SOK"
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="NOT ONLINE AT ALL"
@@ -159,6 +167,8 @@ subtest '[check_hana_topology] unhealthy cluster no PRIM' => sub {
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
 Sites/site_b/b="SOK"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="online"
 Hosts/vmhana01/sync_state="SOK"
@@ -182,6 +192,8 @@ subtest '[check_hana_topology] unhealthy cluster SFAIL' => sub {
 
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Sites/site_b/b="SOK"
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="online"
@@ -206,6 +218,8 @@ subtest '[check_hana_topology] unhealthy cluster missing field' => sub {
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
 Sites/site_b/b="SOK"
+Resource/msl_SAPHana_HA1_HDB10/is-managed="true"
+Resource/msl_SAPHana_HA1_HDB10/maintenance=""
 Hosts/vmhana01/remoteHost="vmhana02"
 Hosts/vmhana01/node_state="online"
 Hosts/vmhana01/sync_state="PRIM"

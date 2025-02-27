@@ -752,7 +752,7 @@ subtest '[enable_replication]' => sub {
         'Host' => {
             'vmhana02' => {
                 'vhost' => 'vmhana02',
-                'site' => 'site_b'
+                'site' => 'WilliamAdama'
             },
             'vmhana01' => {
                 'site' => 'site_a',
@@ -760,7 +760,7 @@ subtest '[enable_replication]' => sub {
             }
         },
         'Site' => {
-            'site_b' => {
+            'WilliamAdama' => {
                 'lss' => '4',
                 srMode => 'LeeAdama',
                 opMode => 'ZakAdama',
