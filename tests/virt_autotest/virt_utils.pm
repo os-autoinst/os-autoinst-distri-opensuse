@@ -306,17 +306,12 @@ sub clean_up_red_disks {
 
 sub lpar_cmd {
     my ($cmd, $args) = @_;
+    my $timeout = $args->{timeout} // 300;
     die 'Command not provided' unless $cmd;
-
     $args->{ignore_return_code} ||= 0;
-    my $ret = console('svirt')->run_cmd($cmd);
-    if ($ret == 0) {
-        record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS");
-    }
-    unless ($args->{ignore_return_code} || !$ret) {
-        record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
-        die 'Find new failure, please check manually';
-    }
+    my $ret = console('svirt')->run_cmd($cmd, timeout => $timeout);
+    record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS") if ($ret == 0);
+    die 'Find new failure, please check manually' unless ($args->{ignore_return_code} || !$ret);
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
