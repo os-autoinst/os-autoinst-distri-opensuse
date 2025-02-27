@@ -153,15 +153,17 @@ sub calculate_hana_topology {
             # New structure introduces key 'Site' to which some values are moved and have keys renamed
             # or left defined but empty if it's not defined originally
             my $sth_site = $script_topology{$host}->{'site'};
-            $topology{'Site'}{$sth_site}{'mns'} = $host;
-            if (defined $script_topology{$host}->{'op_mode'}) { $topology{'Site'}{$sth_site}{'opMode'} = $script_topology{$host}->{'op_mode'} }
-            if (defined $script_topology{$host}->{'srmode'}) { $topology{'Site'}{$sth_site}{'srMode'} = $script_topology{$host}->{'srmode'} }
-            if (defined $script_topology{$host}->{'sync_state'}) { $topology{'Site'}{$sth_site}{'srPoll'} = $script_topology{$host}->{'sync_state'} }
+            if (defined $sth_site) {
+                $topology{'Site'}{$sth_site}{'mns'} = $host;
+                if (defined $script_topology{$host}->{'op_mode'}) { $topology{'Site'}{$sth_site}{'opMode'} = $script_topology{$host}->{'op_mode'} }
+                if (defined $script_topology{$host}->{'srmode'}) { $topology{'Site'}{$sth_site}{'srMode'} = $script_topology{$host}->{'srmode'} }
+                if (defined $script_topology{$host}->{'sync_state'}) { $topology{'Site'}{$sth_site}{'srPoll'} = $script_topology{$host}->{'sync_state'} }
 
-            # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
-            # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
-            if (defined $script_topology{$host}->{'node_state'}) {
-                $topology{'Site'}{$sth_site}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+                # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
+                # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
+                if (defined $script_topology{$host}->{'node_state'}) {
+                    $topology{'Site'}{$sth_site}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+                }
             }
 
             # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
