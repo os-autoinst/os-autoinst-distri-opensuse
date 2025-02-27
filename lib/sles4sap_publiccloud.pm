@@ -564,7 +564,7 @@ sub enable_replication {
     unless ($instance_id) {
         for my $resource (keys %{$topology->{'Resource'}}) {
             $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
-            if defined($intstance_id) { record_info('Instance number was not provided and will be determined from the name of resource', $resource) }
+            if (defined $intstance_id) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
             last if defined($instance_id);
         }
     }
