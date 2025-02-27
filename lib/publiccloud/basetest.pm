@@ -106,7 +106,7 @@ sub _cleanup {
     die("Cleanup called twice!") if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
-    eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
+    eval { $self->cleanup(); } or record_info('FAILED', "\$self->cleanup() failed -- $@", result => 'fail');
 
     my $flags = $self->test_flags();
 
@@ -124,7 +124,7 @@ sub _cleanup {
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
     if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
-        $self->_upload_logs();
+        eval { $self->_upload_logs() } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
@@ -139,12 +139,12 @@ sub _cleanup {
     }
     diag('Public Cloud _cleanup: 2nd check passed.');
 
-    $self->_upload_logs();
+    eval { $self->_upload_logs() } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
 
     # We need $self->{run_args} and $self->{run_args}->{my_provider}
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         diag('Public Cloud _cleanup: Ready for provider cleanup.');
-        eval { $self->{run_args}->{my_provider}->cleanup(); } or bmwqemu::fctwarn("\$self->provider::cleanup() failed -- $@");
+        eval { $self->{run_args}->{my_provider}->cleanup() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
         diag('Public Cloud _cleanup: The provider cleanup finished.');
     } else {
         diag('Public Cloud _cleanup: Not ready for provider cleanup.');
