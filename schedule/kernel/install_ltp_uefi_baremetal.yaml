@@ -5,7 +5,6 @@ vars:
     DESKTOP: textmode
     IPXE: 1
     IPXE_CONSOLE: ttyS1,115200
-    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_UEFI: 1
     SCC_ADDONS: sdk
     LTP_BAREMETAL: 1

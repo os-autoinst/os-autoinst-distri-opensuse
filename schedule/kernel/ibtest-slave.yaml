@@ -9,7 +9,6 @@ vars:
     IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_SLAVE
     IPXE: 1
-    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_CONSOLE: ttyS1,115200
     MLX_PROTOCOL: 2
     PARALLEL_WITH: ibtest-master
