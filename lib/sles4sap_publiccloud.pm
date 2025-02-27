@@ -563,7 +563,7 @@ sub enable_replication {
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($instance_id) {
         for my $resource (keys %{$topology->{'Resource'}}) {
-            $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+            my $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
             if (defined $intstance_id) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
             last if defined($instance_id);
         }

@@ -210,7 +210,11 @@ sub check_hana_topology {
     my (%args) = @_;
     croak('check_hana_topology [ERROR] Argument <input> missing') unless $args{input};
     my $topology = $args{input};
-    my $node_state_match = ($args{node_state_match} eq 'online' or $args{node_state_match} =~ /[1-9]+/) ? '4' : '1';
+    if (defined $args{node_state_match}) {
+        my $node_state_match = ($args{node_state_match} eq 'online' or $args{node_state_match} =~ /[1-9]+/) ? '4' : '1';
+    } else {
+        my $node_state_match = '1';
+    }
 
     my $all_online = 1;
     my $prim_count = 0;
