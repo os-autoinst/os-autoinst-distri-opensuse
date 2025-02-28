@@ -157,11 +157,13 @@ sub install_build_dependencies {
       make
     );
 
-    if (is_rt) {
-        push @deps, 'kernel-rt-devel';
-    }
-    elsif (!get_var('KGRAFT')) {
-        push @deps, 'kernel-default-devel';
+    unless (get_var('KGRAFT')) {
+        if (is_rt) {
+            push @deps, 'kernel-rt-devel';
+        }
+        else {
+            push @deps, 'kernel-default-devel';
+        }
     }
 
     zypper_call('-t in ' . join(' ', @deps));
