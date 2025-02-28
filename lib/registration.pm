@@ -731,7 +731,7 @@ sub select_addons_in_textmode {
             record_info("Module preselected", "Module $addon is already selected and installed by default");
             # As we are not selecting this, scc will not bounce the focus,
             # hence we need to go up manually.
-            for (1 .. 16) {
+            for (1 .. 22) {
                 send_key 'up';
             }
         }
