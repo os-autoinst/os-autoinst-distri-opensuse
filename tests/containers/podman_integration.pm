@@ -36,6 +36,7 @@ sub run_tests {
     selinux_hack $tmp_dir;
 
     my %_env = (
+        PODMAN_ROOTLESS_USER => $testapi::username,
         BATS_TMPDIR => $tmp_dir,
         PODMAN => "/usr/bin/podman",
         QUADLET => $quadlet,
