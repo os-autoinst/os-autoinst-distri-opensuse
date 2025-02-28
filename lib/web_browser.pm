@@ -78,7 +78,7 @@ sub run_web_browser_text_based {
         enter_cmd "clear";
 
         if ($browser ne "links") {
-            validate_script_output("$browser $options $https_url{$p}", sub { m/.*200 OK.*Strict-Transport-Security.*/s });
+            validate_script_output("$browser $options $https_url{$p}", sub { m/.*200 OK.*(?i)Strict-Transport-Security.*/s });
         } else {
             my $output_file = "webpage.txt";
             assert_script_run "$browser $options $https_url{$p} > $output_file";
