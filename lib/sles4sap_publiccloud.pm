@@ -563,20 +563,20 @@ sub enable_replication {
         $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($hostname ne $topology->{'Host'}->{$host}->{'vhost'} && $site ne $topology->{'Host'}->{$host}->{'site'});
         last if defined($remote_host);
     }
+    # Dies if the given <site name> doesn't correspond with the SAPHanaSR topology like if given site name is not a local one.
+    die("enable_replication [ERROR] Remote host could not be determined. Is <site_name>: $site at <hostname>: $hostname really local?") unless defined($remote_host);
 
-    # The instance number couldn't be hard-coded, so if not set in SETTINGS we could determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
+   # The instance number couldn't be hard-coded, so if not set from SETTINGS we could try to determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($hana_inn) {
         for my $resource (keys %{$topology->{'Resource'}}) {
-            my $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+            $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
             if (defined $hana_inn) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
             last if defined($hana_inn);
         }
+        die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($hana_inn);
     }
-    die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($hana_inn);
 
-    # Dies if the given <site name> doesn't correspond with the SAPHanaSR topology like if given site name is not a local one.
-    die("enable_replication [ERROR] Remote host could not be determined. Is <site_name>: $site at <hostname>: $hostname really local?") unless defined($remote_host);
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
         '--name=' . $site,

@@ -742,21 +742,21 @@ subtest '[enable_replication]' => sub {
         'Resource' => {
             'msl_SAPHana_HA1_HDB00' => {
                 'is-managed' => '',
-                'maintenance' => 'true'
+                'maintenance' => 'false'
             },
             'rsc_ip_HA1' => {
-                'maintenance' => 'true',
+                'maintenance' => 'false',
                 'is-managed' => ''
             }
         },
         'Host' => {
-            'vmhana02' => {
-                'vhost' => 'vmhana02',
+            'vmhana01' => {
+                'vhost' => 'vmhana01',
                 'site' => 'WilliamAdama'
             },
-            'vmhana01' => {
-                'site' => 'site_a',
-                'vhost' => 'vmhana01',
+            'vmhana02' => {
+                'site' => 'site_b',
+                'vhost' => 'vmhana02',
             }
         },
         'Site' => {
@@ -764,14 +764,14 @@ subtest '[enable_replication]' => sub {
                 'lss' => '4',
                 srMode => 'LeeAdama',
                 opMode => 'ZakAdama',
-                'mns' => 'vmhana02',
+                'mns' => 'vmhana01',
                 'srPoll' => 'SOK',
             },
-            'site_a' => {
+            'site_b' => {
                 'lss' => '4',
                 srMode => 'LeeAdama',
                 opMode => 'ZakAdama',
-                'mns' => 'vmhana01',
+                'mns' => 'vmhana02',
                 'srPoll' => 'PRIM',
             }
         }
