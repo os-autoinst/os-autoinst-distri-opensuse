@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::utils qw(get_podman_version);
-use utils qw(script_retry);
+use utils qw(script_retry systemctl);
 use version_utils qw(is_sle is_tumbleweed);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
@@ -101,13 +101,23 @@ sub run {
     record_info("podman info", script_output("podman info"));
     record_info("podman package version", script_output("rpm -q podman"));
 
+    # Enable SSH for podman image scp test
+    my $key_type = "rsa";
+    assert_script_run 'mkdir -pm 700 ~/.ssh';
+    assert_script_run "ssh-keygen -t $key_type -N '' -f ~/.ssh/id_$key_type";
+    assert_script_run "cp ~/.ssh/id_$key_type ~/.ssh/authorized_keys";
+    assert_script_run "echo PermitRootLogin prohibit-password > /etc/ssh/sshd_config.d/root.conf";
+    assert_script_run "cp -rp /root/.ssh /home/$testapi::username/";
+    assert_script_run "chown -R $testapi::username /home/$testapi::username/.ssh";
+    systemctl "restart sshd";
+
     switch_to_user;
 
     # Download podman sources
     my $podman_version = get_podman_version();
     my $url = get_var("PODMAN_BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
-    assert_script_run("cd $test_dir");
+    assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
     # Patch tests
