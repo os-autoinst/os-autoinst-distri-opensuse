@@ -98,15 +98,16 @@ like other base class or testapi module  Avoid using get_var/set_var at this lev
 sub calculate_hana_topology {
     my (%args) = @_;
     croak('calculate_hana_topology [ERROR] Argument <input> missing') unless $args{input};
-    my $input_format = $args{input_format} || 'script';
+    my $input_format = $args{input_format} || 'script';    # output format of the SAPHanaSR-showAttr
     croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
-    my %topology;
-    my $topology_json;
-    my %script_topology;
+    my %topology;    # Final topology for return
+    my $topology_json;    # JSON encoded topology
+    my %script_topology;    # Raw topology read in 'script' format
 
     if ($input_format eq 'json') {
         $topology_json = $args{input};
     } else {
+        # Parsing raw script format output
         my @all_lines = split("\n", $args{input});
         my @hosts_parameters = map { s,Hosts/,,; s,",,g; $_ } grep { /^Hosts/ } @all_lines;
         my @globals_parameters = map { s,Global/,,; s,",,g; $_ } grep { /^Global/ } @all_lines;
@@ -134,9 +135,8 @@ sub calculate_hana_topology {
             $script_topology{$global} = \%global_parameter;
         }
 
-        # Remapping from old structure of the 'SAPHana-showAttr --format=script', which is
-        # filled to the `$script_topology` from which it's mapped to the new decode_json() like
-        # structure to the `$topology`
+        # Remapping from old raw structure output of the 'SAPHana-showAttr --format=script' which is
+        # filled to the `$script_topology` from which it's mapped to the new structure to the '$topology'
 
         # Key `Resource` is dynamic and could be mapped directly
         for my $resource (@all_resources) {
@@ -202,7 +202,7 @@ sub calculate_hana_topology {
 
 =item B<input> - return value of calculate_hana_topology
 
-=item B<node_state_match> - string used to match the online state in field node_state.
+=item B<node_state_match> - used to match the online state in field node_state. Default is '4' which means Online
 
 =back
 =cut
@@ -212,10 +212,14 @@ sub check_hana_topology {
     my (%args) = @_;
     croak('check_hana_topology [ERROR] Argument <input> missing') unless $args{input};
     my $topology = $args{input};
-    my $node_state_match = (defined $args{node_state_match}) ? ($args{node_state_match} eq 'online' or $args{node_state_match} =~ /[1-9]+/) ? '4' : '1' : 'online';
-    my $all_online = 1;
-    my $prim_count = 0;
-    my $sok_count = 0;
+    # Now node_state_match is 'lss' score: 4 OK, 3 INFO, 2 WARN, 1 DOWN, 0 FATAL
+    # For legacy purpose, if set to 'online' or on pacemaker >= 2.1.7 to timestamps like '1739798309'
+    # or if not provided at all we set it to default '4' as online
+    my $node_state_match = (defined $args{node_state_match}) ?
+      ($args{node_state_match} eq 'online' or ($args{node_state_match} =~ /[1-9][0-9]+/ xor $args{node_state_match} !~ /[0-3]/)) ? '4' : $args{node_state_match} : '4';
+    my $all_online = 1;    # Decrementing counter of online nodes
+    my $prim_count = 0;    # Incrementing counter of PRIM srPoll
+    my $sok_count = 0;    # Incrementing counter of SOK srPoll
     foreach my $site (keys %{$topology->{Site}}) {
         # first check presence of all fields needed in further tests.
         # If something is missing the topology is considered invalid.
@@ -226,9 +230,9 @@ sub check_hana_topology {
             }
         }
 
-        # Check node_state
-        if ($topology->{'Site'}->{$site}->{'lss'} ne $node_state_match) {
-            record_info('check_hana_topology', ' [ERROR] ', "node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
+        # Check node_state, now taken from 'lss'
+        if ($node_state_match ne $topology->{'Site'}->{$site}->{'lss'} or $node_state_match ne 'online') {
+            record_info('check_hana_topology', " [ERROR] node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
             $all_online = 0;
             last;
         }

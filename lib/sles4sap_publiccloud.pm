@@ -487,18 +487,19 @@ sub cleanup_resource {
 
 sub check_takeover {
     my ($self) = @_;
-    my $hostname = $self->{my_instance}->{instance_id};
+    my $hostname = $self->{my_instance}->{instance_id};    # local hostname
     die("check_takeover [ERROR] Database on the fenced node '$hostname' isn't offline") if ($self->is_hana_database_online);
     die("check_takeover [ERROR] System replication '$hostname' isn't offline") if ($self->is_primary_node_online);
-    my $retry_count = 0;
-    my $vhost;
-    my $sync_state;
+    my $retry_count = 0;    # counter of retries
+    my $vhost;    # hostname from 'vhost' value of 'Host' key of SAPHanaSR-showAttr topology
+    my $sync_state;    # status of the sync from 'srPoll' value of 'Site' key of SAPHanaSR-showAttr topology
 
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
         $retry_count++;
         for my $site (keys %{$topology->{'Site'}}) {
             die("check_takeover [ERROR] Missing 'srPoll' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{'srPoll'});
+            # As 'vhost' value is not part of the 'Site' key we need to pair it with corect 'Host' key
             for my $host (keys %{$topology->{'Host'}}) {
                 die("check_takeover [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{'Host'}->{$host}->{'vhost'});
                 $vhost = $topology->{'Host'}->{$host}->{'vhost'} if ($topology->{'Host'}->{$host}->{'site'} eq $site);
@@ -508,7 +509,7 @@ sub check_takeover {
                     "vhost: $vhost compared with $hostname",
                     "sync_state: $sync_state compared with PRIM"));
             if ($vhost ne $hostname && $sync_state eq "PRIM") {
-                record_info("Takeover status:", "Takeover complete to node '$vhost");
+                record_info('Takeover status:', "Takeover complete to node '$vhost'");
                 last TAKEOVER_LOOP;
             }
         }
@@ -520,16 +521,17 @@ sub check_takeover {
 }
 
 =head2 enable_replication
-    enable_replication([site_name => 'site_a', instance_id => '10' ]);
+    enable_replication([site_name => 'site_a', hana_inn => '10' ]);
 
     Re-enaobles replication on the previously fenced database node. Database must be offline.
     Dies if the the given <site name> doesn't corespond with the SAPHanaSR topology local site name
+    Optionaly the hana_innstance_id cpould be provided for better relianility
 
 =over
 
-=item B<site_name> - local site name of the site to register
+=item B<site_name> - local HANA site name of the site to be registered
 
-=item B<instance_id> - optional HANA instance ID to be register
+=item B<hana_inn> - optional HANA instance number to be registered
 
 =back
 =cut
@@ -538,14 +540,17 @@ sub enable_replication {
     my ($self, %args) = @_;
     croak('enable_replication [ERROR] Argument <site_name> missing') unless $args{site_name};
     my $hostname = $self->{my_instance}->{instance_id};
-    my $remote_host;
-    my $site = $args{site_name};
-    my $sr_mode;
-    my $op_mode;
-    my $instance_id = defined $args{instance_id} ? $args{instance_id} : '';
+    my $remote_host;    # HANA site remote host to register
+    my $site = $args{site_name};    # HANA node name
+    my $sr_mode;    # HANA replication mode from SAPHanaSR-showAttr
+    my $op_mode;    # HANA SR operations mode from SAPHanaSR-showAttr
+    my $hana_inn;    # HANA instance number
+
     die("enable_replication [ERROR] Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("enable_replication [ERROR] System replication '$hostname' is not offline") if ($self->is_primary_node_online);
+
     my $topology = $self->get_hana_topology();
+    $hana_inn = $args{hana_inn} if defined($args{hana_inn});
 
     # Getting 'sr_mode' and 'op_mode' from the SAPHanaSR topology
     foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
@@ -561,27 +566,27 @@ sub enable_replication {
 
     # The instance number couldn't be hard-coded, so if not set in SETTINGS we could determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
-    unless ($instance_id) {
+    unless ($hana_inn) {
         for my $resource (keys %{$topology->{'Resource'}}) {
-            my $instance_id = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
-            if (defined $instance_id) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
-            last if defined($instance_id);
+            my $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+            if (defined $hana_inn) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
+            last if defined($hana_inn);
         }
     }
+    die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($hana_inn);
 
-    die('enable_replication [ERROR] Instance number could not be determined from the names of listed resources') unless defined($instance_id);
     # Dies if the given <site name> doesn't correspond with the SAPHanaSR topology like if given site name is not a local one.
-    die('enable_replication [ERROR] Remote host could not be determined. Is <site_name> arg. really local site?') unless defined($remote_host);
+    die("enable_replication [ERROR] Remote host could not be determined. Is <site_name>: $site at <hostname>: $hostname really local?") unless defined($remote_host);
 
     my $cmd = join(' ', 'hdbnsutil -sr_register',
         '--name=' . $site,
         '--remoteHost=' . $remote_host,
-        '--remoteInstance=' . $instance_id,
+        '--remoteInstance=' . $hana_inn,
         '--replicationMode=' . $sr_mode,
         '--operationMode=' . $op_mode);
 
     record_info('CMD Run', $cmd);
-    $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"));
+    $self->run_cmd(cmd => $cmd, runas => get_required_var('SAP_SIDADM'));
 }
 
 =head2 get_replication_info
@@ -593,8 +598,8 @@ sub enable_replication {
 
 sub get_replication_info {
     my ($self) = @_;
-    my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => get_required_var("SAP_SIDADM"));
-    record_info("replication info", $output_cmd);
+    my $output_cmd = $self->run_cmd(cmd => 'hdbnsutil -sr_state| grep -E :[^\^]', runas => get_required_var('SAP_SIDADM'));
+    record_info('Replication info', $output_cmd);
     # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_ } %out;
@@ -623,7 +628,7 @@ sub get_promoted_instance {
         $promoted = $instance if ($instance_id eq $promoted_id);
     }
     if ($promoted eq "undef" || !defined($promoted)) {
-        die("get_promoted_instance [ERROR] Failed to identify Hana 'PROMOTED' node");
+        die('get_promoted_instance [ERROR] Failed to identify HANA "PROMOTED" node');
     }
     return $promoted;
 }
@@ -656,7 +661,7 @@ sub wait_for_sync {
     my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '4' : 'online';
     my $output_pass = 0;
 
-    record_info('Sync wait', "Waiting for data sync between nodes. online_str=$online_str timeout=$timeout");
+    record_info('Wait for sync', "Waiting for data sync between nodes. online_str=$online_str timeout=$timeout");
 
     # Check sync status periodically until OK for 5 times in a row or timeout
     my $start_time = time;
@@ -668,8 +673,8 @@ sub wait_for_sync {
         sleep 30;
     }
     if ($output_pass < 5) {
-        record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
-        record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
+        record_info('Sync FAIL', 'Host replication status: ' . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
+        record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
         die("wait_for_sync [ERROR] Replication SYNC did not finish within defined timeout. ($timeout sec).");
     }
 }
@@ -690,14 +695,14 @@ sub wait_for_pacemaker {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
-    my $systemd_cmd = "systemctl --no-pager is-active pacemaker";
+    my $systemd_cmd = 'systemctl --no-pager is-active pacemaker';
     my $pacemaker_state = "";
 
     while ($pacemaker_state ne "active") {
         sleep 15;
         $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
         if (time - $start_time > $timeout) {
-            record_info("Pacemaker status", $self->run_cmd(cmd => "systemctl --no-pager status pacemaker"));
+            record_info('Pacemaker status', $self->run_cmd(cmd => 'systemctl --no-pager status pacemaker'));
             die('wait_for_pacemaker [ERROR] Pacemaker did not start within defined timeout');
         }
     }
@@ -1201,8 +1206,8 @@ sub is_hana_database_online {
     while ($consecutive_passes < $args{total_consecutive_passes}) {
         $db_status = $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
         if (time - $start_time > $timeout) {
-            record_info("Hana database after timeout", $self->run_cmd(cmd => $hdb_cmd));
-            die("Hana database is still online");
+            record_info('HANA database after timeout', $self->run_cmd(cmd => $hdb_cmd));
+            die('HANA database is still online');
         }
         if ($db_status == 0) {
             last;
@@ -1277,7 +1282,7 @@ sub pacemaker_version {
 
 sub saphanasr_showAttr_version {
     my ($self) = @_;
-
+    # We check a version and also a type of the SAPHanaSR package
     my $which_output = $self->run_cmd(cmd => 'which SAPHanaSR-showAttr', quiet => 1);
     my $version_output = $self->run_cmd(cmd => "rpm -qf $which_output", quiet => 1);
     record_info('SAPHanaSR INFO', "path=$which_output; version=$version_output");
@@ -1307,7 +1312,7 @@ sub wait_for_cluster {
 
     $args{wait_time} //= 10;
     $args{max_retries} //= 7;
-    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '[1-9]+' : 'online';
+    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '4' : 'online';
 
     while ($args{max_retries} > 0) {
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
@@ -1316,20 +1321,20 @@ sub wait_for_cluster {
         my $crm_ok = check_crm_output(input => $crm_output);
 
         if ($hanasr_ready && $crm_ok) {
-            record_info("OK", "Cluster is healthy: All nodes are online with one node in 'PRIM' and the other in 'SOK' state.");
+            record_info('SYNC OK', 'Cluster is healthy: All nodes are online with one node in PRIM and the other in SOK state.');
             return;
         }
 
         $args{max_retries}--;
         if ($args{max_retries} <= 0) {
-            record_info('NOT OK', "Cluster or DB data synchronization issue detected after retrying.");
+            record_info('SYNC FAILED', 'Cluster or DB data synchronization issue detected after retrying.');
             $self->display_full_status();
             # soft fail because of bsc#1233026 - if fixed remove the 'if' condition AND the 'use version_utils' from this file
             if (is_sle('=12-SP5') && $crm_output =~ /TimeoutError/) {
-                record_soft_failure("bsc#1233026 - Error occurred, see previous output: Proceeding despite failure.");
+                record_soft_failure('bsc#1233026 - Error occurred, see previous output: Proceeding despite failure.');
                 return;
             }
-            die "Cluster is not ready after specified retries.";
+            die('Cluster is not ready after specified retries.');
         }
         sleep($args{wait_time});
     }
@@ -1357,11 +1362,11 @@ sub wait_for_cluster {
 
 sub wait_for_zypper {
     my ($self, %args) = @_;
-    croak("Argument <instance> missing") unless $args{instance};
+    croak('Argument <instance> missing') unless $args{instance};
     $args{max_retries} //= 10;
     $args{retry_delay} //= 20;
     $args{timeout} //= 600;
-    $args{runas} //= "cloudadmin";
+    $args{runas} //= 'cloudadmin';
     my $retry = 0;
 
     while ($retry < $args{max_retries}) {
@@ -1372,17 +1377,17 @@ sub wait_for_zypper {
             quiet => 1,
             timeout => $args{timeout});
         if ($ret == 7) {
-            record_info("ZYPPER LOCK", "Zypper is locked, waiting for the lock to be released. Retry $retry/$args{max_retries}");
+            record_info('ZYPPER LOCK', "Zypper is locked, waiting for the lock to be released. Retry $retry/$args{max_retries}");
             sleep $args{retry_delay};
             $retry++;
         } else {
-            record_info("ZYPPER TIMEOUT", "zypper command timed out after $args{timeout} - consider increasing the timeout.") if ($ret == 126);
-            record_info("ZYPPER PROBLEM", "Zypper is not locked, but it returned $ret") if ($ret != 0);
+            record_info('ZYPPER TIMEOUT', "zypper command timed out after $args{timeout} - consider increasing the timeout.") if ($ret == 126);
+            record_info('ZYPPER PROBLEM', "Zypper is not locked, but it returned $ret") if ($ret != 0);
             last;
         }
     }
 
-    die "Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)" if $retry >= $args{max_retries};
+    die("Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)") if $retry >= $args{max_retries};
 }
 
 =head2 wait_for_idle
@@ -1413,7 +1418,7 @@ sub wait_for_idle {
         die "Command 'cs_wait_for_idle --sleep 5' failed with return code $rc";
     }
     else {
-        record_info("cs_wait_for_idle", "cs_wait_for_idle completed successfully");
+        record_info('cs_wait_for_idle', 'cs_wait_for_idle completed successfully');
     }
 }
 
