@@ -12,7 +12,7 @@ use Utils::Architectures;
 use Utils::Backends qw(is_qemu);
 use serial_terminal 'select_serial_terminal';
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry script_output_retry wait_for_purge_kernels);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama);
 use transactional qw(trup_call process_reboot);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -750,7 +750,7 @@ sub registration_bootloader_cmdline {
     set_var('SCC_URL', 'https://scc.suse.com') unless get_var('SCC_URL');
     my $cmdline = '';
     if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
-        $cmdline .= " regurl=$url";
+        $cmdline .= is_agama ? " inst.register_url=$url" : " regurl=$url";
         $cmdline .= " regcert=$url" if get_var('SCC_CERT');
     }
     return $cmdline;
