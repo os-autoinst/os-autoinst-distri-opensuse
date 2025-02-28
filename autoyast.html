@@ -33,10 +33,10 @@
       <li><a href="#create_report">create_report</a></li>
       <li><a href="#detect_profile_directory">detect_profile_directory</a></li>
       <li><a href="#expand_version">expand_version</a></li>
-      <li><a href="#expand_agama_variables">expand_agama_variables</a></li>
       <li><a href="#adjust_network_conf">adjust_network_conf</a></li>
       <li><a href="#expand_variables">expand_variables</a></li>
       <li><a href="#adjust_user_password">adjust_user_password</a></li>
+      <li><a href="#expand_agama_secrets">expand_agama_secrets</a></li>
       <li><a href="#expand_agama_profile">expand_agama_profile</a></li>
       <li><a href="#upload_profile">upload_profile</a></li>
       <li><a href="#inject_registration">inject_registration</a></li>
@@ -243,14 +243,6 @@ Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
 
 $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
-<h2 id="expand_agama_variables">expand_agama_variables</h2>
-
-<pre><code>expand_agama_variables($profile);
-
-Expand variables from job settings which do not require further processing
-
-$profile is the agama profile.</code></pre>
-
 <h2 id="adjust_network_conf">adjust_network_conf</h2>
 
 <pre><code>adjust_network_conf($profile);
@@ -276,6 +268,14 @@ Password is defined at first, see lib/main_common.pm like below:
 $testapi::password = &quot;xxxxxx&quot;;
 $testapi::password = get_var(&quot;PASSWORD&quot;) if defined get_var(&quot;PASSWORD&quot;);
 ---
+
+$profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="expand_agama_secrets">expand_agama_secrets</h2>
+
+<pre><code>expand_agama_secrets($profile);
+
+Expand secret variables from job settings which do not require further processing
 
 $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
