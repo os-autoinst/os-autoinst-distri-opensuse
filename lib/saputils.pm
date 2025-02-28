@@ -231,7 +231,7 @@ sub check_hana_topology {
         }
 
         # Check node_state, now taken from 'lss'
-        if ($node_state_match ne $topology->{'Site'}->{$site}->{'lss'} or $node_state_match ne 'online') {
+        if ($node_state_match ne $topology->{'Site'}->{$site}->{'lss'}) {
             record_info('check_hana_topology', " [ERROR] node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
             $all_online = 0;
             last;
