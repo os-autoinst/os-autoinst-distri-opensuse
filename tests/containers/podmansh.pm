@@ -3,16 +3,9 @@
 # Copyright 2021-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Test rootless mode on podman.
-# - add a user on the /etc/subuid and /etc/subgid to allow automatically allocation subuid and subgid ranges.
-# - check uids allocated to user (inside the container are mapped on the host)
-# - give read access to the SUSE Customer Center credentials to call zypper from in the container.
-#   This grants the current user the required access rights
-# - Test rootless container:
-#   * container is launched with default root user
-#   * container is launched with existing user id
-#   * container is launched with keep-id of the user who run the container
-# - Restore /etc/zypp/credentials.d/ credentials
+# Summary: Test podman login shell.
+# - checks if podmansh runs and shell is indeed confined in the container
+# - validates login through sudo, su, ssh and tty prompt
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
@@ -22,7 +15,7 @@ use Utils::Systemd qw(systemctl);
 use utils;
 use containers::common;
 
-my $src_image = "registry.opensuse.org/opensuse/leap:15.6";
+my $src_image = "registry.opensuse.org/opensuse/leap";
 my $quadlet_container = <<_EOF_;
 [Unit]
 Description=Podman shell container
@@ -105,8 +98,15 @@ sub run {
 
 sub execute_tests {
     my $cmd = shift;
+
+    # verifies if running in a podman container
+    assert_script_run("$cmd 'test -e /run/.containerenv'");
+
+    # verifies if running as expected user with expected groups
     validate_script_output("$cmd id", sub { /^uid=1000\(bernhard\) gid=1000\(bernhard\) groups=1000\(bernhard\)$/ });
-    validate_script_output("$cmd 'cat /etc/os-release'", sub { /^VERSION=\"15\.6\"$/m && /^ID=\"opensuse-leap\"$/m });
+
+    # verifies if correct image variant
+    validate_script_output("$cmd 'cat /etc/os-release'", sub { /^ID=\"opensuse-leap\"$/m });
 }
 
 sub prepare_user_account {
@@ -156,10 +156,15 @@ sub pre_run_hook {
 }
 
 sub cleanup {
-    assert_script_run("loginctl disable-linger $uid");
+    # disable linger and wait until user session is losed (if not already)
+    script_run("loginctl disable-linger $uid");
+    script_retry("! loginctl list-users | grep $username", retry => 5, delay => 10, timeout => 10, die => 0);
 
-    script_run(qq(rm -f "$systemd_user_path/$unit_name"));
+    # reset user shell
     script_run(qq(usermod -s "$initial_user_shell" "$username"));
+
+    # remove leftover user configuration
+    script_run(qq(rm -f "$systemd_user_path/$unit_name"));
     script_run(qq(rm -f "/home/$username/.config/containers/containers.conf.d/podmansh.conf"));
 }
 
