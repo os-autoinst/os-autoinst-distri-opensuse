@@ -217,6 +217,65 @@ subtest "[stop_hana] crash" => sub {
     ok((any { qr/echo b.*sysrq-trigger/ } @calls), 'function calls HDB stop');
 };
 
+subtest "[stop_hana] crash wait_hana_node_up running" => sub {
+    # simulate system that, after the crash, immediately
+    # return 'running' in the polling loop within wait_hana_node_up
+    my @calls;
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
+    $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
+    $sles4sap_publiccloud->redefine(serial_term_prompt => sub { return '# '; });
+    $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
+    $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+
+    my $self = sles4sap_publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->mock('run_ssh_command', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'running' if ($args{cmd} =~ /is-system-running/);
+            return 'BABUUUUUUUUM' });
+    $mock_pc->mock('ssh_opts', sub { return '-i .ssh/id_rsa'; });
+    $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{public_ip} = '1.2.3.4';
+
+    $self->stop_hana(method => 'crash');
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    # Not very important test as we are checking the same within the run_ssh_command mock
+    ok((any { qr/systemctl is-system-running/ } @calls), 'function calls systemctl at least one');
+};
+
+subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
+    # simulate system that, after the crash,
+    # never return 'running' in the polling loop within wait_hana_node_up
+    my @calls;
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
+    $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
+    $sles4sap_publiccloud->redefine(serial_term_prompt => sub { return '# '; });
+    $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
+    $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+
+    my $self = sles4sap_publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->mock('run_ssh_command', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'degradated' if ($args{cmd} =~ /is-system-running/);
+            return 'BABUUUUUUUUM' });
+    $mock_pc->mock('ssh_opts', sub { return '-i .ssh/id_rsa'; });
+    $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{public_ip} = '1.2.3.4';
+
+    dies_ok { $self->stop_hana(method => 'crash') } 'Test expected to die within wait_hana_node_up';
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    ok((any { qr/systemctl --failed/ } @calls), 'function calls systemctl --failed to figure out which service is failed');
+};
+
 subtest "[setup_sbd_delay_publiccloud]" => sub {
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
