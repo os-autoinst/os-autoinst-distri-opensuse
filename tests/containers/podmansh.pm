@@ -55,11 +55,13 @@ my $systemd_user_path;
 
 my $initial_user_shell;
 
+my $podman;
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    $self->containers_factory('podman');
+    $podman = $self->containers_factory('podman');
     install_packages('podmansh');
 
     # prepare normal user for rootless containers
@@ -156,6 +158,8 @@ sub pre_run_hook {
 }
 
 sub cleanup {
+    $podman->cleanup_system_host();
+
     # disable linger and wait until user session is losed (if not already)
     script_run("loginctl disable-linger $uid");
     script_retry("! loginctl list-users | grep $username", retry => 5, delay => 10, timeout => 10, die => 0);
@@ -170,15 +174,11 @@ sub cleanup {
 
 sub post_run_hook {
     select_serial_terminal;
-    my $podman = shift->containers_factory('podman');
-    $podman->cleanup_system_host();
     cleanup();
 }
 
 sub post_fail_hook {
     select_serial_terminal;
-    my $podman = shift->containers_factory('podman');
-    $podman->cleanup_system_host();
     cleanup();
 }
 
