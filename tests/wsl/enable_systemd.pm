@@ -33,19 +33,13 @@ sub run {
         }
     );
     $self->run_in_powershell(
-        cmd => q(wsl),
+        cmd => q(wsl --user root),
         code => sub {
-            # become_root is now preferred and expected behavior:
-            # https://bugzilla.suse.com/show_bug.cgi?id=1225075
-            become_root;
             enter_cmd("zypper in -y -t pattern wsl_systemd");
             wait_still_screen stilltime => 3, timeout => 10, similarity_level => 43;
             save_screenshot;
             enter_cmd("exit");
             wait_still_screen stilltime => 3, timeout => 10, similarity_level => 43;
-            # There's need to exit twice, one from the root and another
-            # one from the WSL
-            enter_cmd("exit");
         }
     );
     # Hopefully temporary workaround for https://github.com/microsoft/WSL/issues/11857
