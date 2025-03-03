@@ -180,6 +180,7 @@ sub post_run_hook {
 
 sub post_fail_hook {
     select_serial_terminal;
+    record_info("Audit log", script_output("ausearch -ts boot -m avc"));
     cleanup();
 }
 
