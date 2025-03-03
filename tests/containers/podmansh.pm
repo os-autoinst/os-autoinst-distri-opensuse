@@ -70,7 +70,7 @@ sub run {
     # enable user linger - required for login using su or sudo
     # su/sudo does not create a systemd login session, which rootless podman depends on
     # https://github.com/containers/podman/issues/17202#issuecomment-1402604841
-    assert_script_run("loginctl enable-linger $uid && sleep 2");
+    assert_script_run("loginctl enable-linger $uid");
     script_retry("loginctl list-users | grep '$username.*lingering'", retry => 5, delay => 5, timeout => 10);
 
     # pre-pull the image
@@ -136,9 +136,10 @@ sub prepare_user_account {
 
     # change the dafault podmansh non-root shell to match user console serial terminal regexes
     # otherwise tty login fails
-    my $containers_conf_d = "~/.config/containers/containers.conf.d/";
-    assert_script_run(qq(sudo -su $username sh -c 'cd; mkdir -p $containers_conf_d'));
-    assert_script_run(qq(sudo -su $username sh -c 'cd; printf '\\''[podmansh]\\nshell = \"/bin/bash\"\\n'\\'' > $containers_conf_d/podmansh.conf'));
+    my $containers_conf_d = "/home/$username/.config/containers/containers.conf.d";
+    assert_script_run("mkdir -p $containers_conf_d");
+    assert_script_run("printf '[podmansh]\\nshell = \"/bin/bash\"\\n' > $containers_conf_d/podmansh.conf");
+    assert_script_run("chown -R $username:$username $containers_conf_d");
 }
 
 sub ensure_user_account {
