@@ -12,7 +12,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base 'publiccloud::basetest';
+use Mojo::Base 'containers::basetest';
 use File::Basename qw(dirname);
 use testapi;
 use utils;
