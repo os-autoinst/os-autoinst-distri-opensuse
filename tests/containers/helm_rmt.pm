@@ -27,35 +27,33 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
     # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
-    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le || check_var('CONTAINER_RUNTIMES', 'k8s'));
+    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le);
+    die "helm tests only work on k3s" unless (check_var('CONTAINER_RUNTIMES', 'k3s'));
 
-    systemctl 'stop firewalld';
-    ensure_ca_certificates_suse_installed();
-    install_k3s();
+    my $helm_chart = get_required_var('HELM_CHART');
+
     install_kubectl();
     install_helm();
 
-    my $curl_options = "-sSL --retry 3 --retry-delay 30";
-
-    my $helm_chart = get_var('HELM_CHART', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.tar.gz');
-    # pull in the testsuite
-    assert_script_run("curl $curl_options $helm_chart | tar -zxf -");
-    my $helm_values = get_var('HELM_CONFIG', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
-    assert_script_run("curl $curl_options -O $helm_values");
+    # Pull helm chart, if it is a http file
+    if ($helm_chart =~ m!^http(s?)://!) {
+        my ($url, $path) = split(/#/, $helm_chart, 2);    # split extracted folder path, if present
+        assert_script_run("curl -sSL --retry 3 --retry-delay 30 $url | tar -zxf -");
+        $helm_chart = $path ? "./$path" : ".";
+    }
+    my $helm_values = get_var('HELM_CONFIG');
+    assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
     my ($repository, $tag) = split(':', get_required_var('CONTAINER_IMAGE_TO_TEST'), 2);
     my $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
     my $helm_options = "--debug";
-    assert_script_run("helm install $set_options rmt ./helm-charts-main/rmt-helm -f myvalue.yaml $helm_options");
+    $helm_options = "-f myvalue.yaml $helm_options" if ($helm_values);
+    assert_script_run("helm install $set_options rmt $helm_chart $helm_options");
     assert_script_run("helm list");
-    sleep 20;    # Wait until images are downloaded
-    my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
-    my $counter = 0;
-    while ($counter++ < 50) {
-        sleep 20;
-        my $logs = script_output("kubectl logs $out[0]", proceed_on_failure => 1);
-        last if ($logs =~ /All repositories have already been enabled/);
-    }
-    assert_script_run("kubectl exec $out[0] -- rmt-cli repos list");
+    sleep 60;    # Wait until images are downloaded
+    my @rmts = split(' ', script_output("kubectl get pods | grep rmt-app"));
+    my $rmtapp = $rmts[0];
+    validate_script_output_retry("kubectl logs $rmtapp", sub { m/All repositories have already been enabled/ }, retry => 30, timeout => 60, delay => 60);
+    assert_script_run("kubectl exec $rmtapp -- rmt-cli repos list");
     assert_script_run('test $(kubectl get pods --field-selector=status.phase=Running | grep -c rmt) -eq 3');
 }
 
@@ -64,7 +62,6 @@ sub post_fail_hook {
     script_run('tar -capf /tmp/containers-logs.tar.xz /var/log/pods $(find /var/lib/rancher/k3s -name \*.log -name \*.toml)');
     upload_logs("/tmp/containers-logs.tar.xz");
     script_run("helm delete rmt");
-    uninstall_k3s() if $self->{is_k3s};
 }
 
 sub test_flags {
