@@ -309,7 +309,7 @@ sub lpar_cmd {
     die 'Command not provided' unless $cmd;
 
     $args->{ignore_return_code} ||= 0;
-    my $ret = console('svirt')->run_cmd($cmd);
+    my $ret = console('svirt')->run_cmd($cmd, wantarray => 1);
     if ($ret == 0) {
         record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS");
     }
