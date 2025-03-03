@@ -106,8 +106,8 @@ sub run {
         my @zypper_in = ('install');
         # Check for SAPHanaSR-angi package going to be used
         if (get_var('USE_SAP_HANA_SR_ANGI')) {
-            script_run('rpm -q SAPHanaSR-doc && rpm -e --nodeps SAPHanaSR-doc');
-            script_run('rpm -q SAPHanaSR && rpm -e --nodeps SAPHanaSR');
+            script_run('[ $(rpm -q SAPHanaSR-doc) ] && rpm -e --nodeps SAPHanaSR-doc');
+            script_run('[ $(rpm -q SAPHanaSR) ] && rpm -e --nodeps SAPHanaSR');
             push @zypper_in, 'SAPHanaSR-angi', 'supportutils-plugin-ha-sap';
         }
         else {
@@ -242,10 +242,7 @@ sub run {
     assert_script_run "df -h";
 
     # hdblcm is used for installation, verify if it exists
-    my $hdblcm = '/' . join('/',
-        $target,
-        get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')),
-            'hdblcm'));
+    my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
     die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
       if (script_run "ls $hdblcm");
 
@@ -268,7 +265,7 @@ sub run {
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
-    push @hdblcm_args, "--component_dirs=$target/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
+    push @hdblcm_args, "--component_dirs=/sapinst/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
 
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;
