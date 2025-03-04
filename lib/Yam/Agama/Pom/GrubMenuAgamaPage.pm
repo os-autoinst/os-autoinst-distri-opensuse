@@ -29,6 +29,11 @@ sub boot_from_hd {
     send_key 'ret';
 }
 
+sub check_installation_medium {
+    my ($self) = @_;
+    send_key_until_needlematch('grub-menu-agama-mediacheck-highlighted', 'down');
+}
+
 sub edit_current_entry { shift->{grub_menu_base}->edit_current_entry() }
 
 1;
