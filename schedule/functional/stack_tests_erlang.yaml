@@ -1,0 +1,34 @@
+---
+name: stack_tests_python
+schedule:
+  - '{{boot}}'
+  - '{{distri_version_specific}}'
+conditional_schedule:
+  boot:
+    DISTRI:
+      'microos':
+        - microos/disk_boot
+      'sle-micro':
+        - microos/disk_boot
+      'opensuse':
+        - boot/boot_to_desktop
+        - installation/bootloader_start
+      'sle':
+        - boot/boot_to_desktop
+        - installation/bootloader_start
+  distri_version_specific:
+    DISTRI:
+      sle:
+        - '{{version_specific}}'
+      microos:
+        - console/erlang_smoke_test      
+      opensuse:
+        - console/erlang_smoke_test
+  version_specific:
+    VERSION:
+      15-SP7:
+        - console/erlang_smoke_test
+      15-SP6:
+        - console/erlang_smoke_test
+      15-SP5:
+        - console/erlang_smoke_test
