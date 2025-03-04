@@ -13,6 +13,27 @@ use utils;
 use power_action_utils;
 use version_utils qw(check_os_release get_os_release is_sle);
 
+sub sanity_chk_install {
+    # checks and app-s integration for ongoing work in:
+    #   https://progress.opensuse.org/issues/175950
+    record_info("Sanity check");
+    # cleanup installation repo "dir" type
+    script_run("zypper lr -u | grep 'dir:/run/initramfs' && sudo zypper rr --medium-type dir");
+    # app => package
+    my %pkg = (
+        setfacl => 'acl',
+        firewalld => 'firewalld',
+        tar => 'tar',
+        helm => 'helm',
+    );
+    # check applications for container test
+    foreach my $app (keys %pkg) {
+        my $out = script_run("sudo which $app 2>/dev/null || sudo zypper -n -q in $pkg{$app}");
+        record_info("WARNING", "$app install error", result => 'fail') unless ($out == 0);
+    }
+    return;
+}
+
 sub run {
     my ($self) = @_;
     my $update_timeout = 2400;
@@ -20,7 +41,9 @@ sub run {
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
+    record_info("Release", "$host_distri, $version, $sp");
     if ($host_distri =~ /sles|opensuse/) {
+        sanity_chk_install if ($version eq '16');
         zypper_call("--quiet up", timeout => $update_timeout);
         ensure_ca_certificates_suse_installed() if is_sle();
     } elsif ($host_distri eq 'ubuntu') {
