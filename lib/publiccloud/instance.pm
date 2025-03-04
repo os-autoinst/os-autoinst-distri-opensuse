@@ -407,7 +407,8 @@ sub wait_for_ssh {
         last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
 
-        if ($duration >= $args{timeout} - 30) {
+        # skip SLES4SAP as incompatible with get_public_ip
+        if (($duration >= $args{timeout} - 30) and (!get_var('PUBLIC_CLOUD_SLES4SAP'))) {
             my $public_ip_from_provider = $self->provider->get_public_ip();
             if ($args{public_ip} eq $public_ip_from_provider) {
                 record_info('IP CHANGED', printf("The address we know is %s but provider returns %s", $args{public_ip}, $public_ip_from_provider));
