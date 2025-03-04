@@ -11,15 +11,20 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
+use bootloader_setup qw(ensure_shim_import select_bootmenu_more select_bootmenu_option);
 use Utils::Architectures 'is_aarch64';
+use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
     my $iterations = 0;
     my $timeout = (is_aarch64) ? 600 : 300;
     ensure_shim_import;
-    select_bootmenu_more('inst-onmediacheck', 1);
+    if (is_sle("<16.0")) {
+        select_bootmenu_more('inst-onmediacheck', 1);
+    } else {
+        select_bootmenu_option();
+    }
 
     while ($iterations++ < 3) {
         assert_screen [qw(mediacheck-select-device mediacheck-ok mediacheck-checksum-wrong)], $timeout;
