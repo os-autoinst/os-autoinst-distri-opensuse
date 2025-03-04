@@ -178,5 +178,9 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 }
 
+sub test_flags {
+    return {milestone => 1, fatal => 1};
+}
+
 1;
 
