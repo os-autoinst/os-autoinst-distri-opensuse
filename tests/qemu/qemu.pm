@@ -22,6 +22,10 @@ sub is_qemu_preinstalled {
         assert_script_run('rpm -q patterns-microos-kvm_host');
         return 1;
     }
+    elsif (is_sle_micro('>=6.2') || is_leap_micro('>=6.2')) {
+        assert_script_run('rpm -q patterns-micro-kvm_host');
+        return 1;
+    }
     elsif (is_sle_micro('>=6.0') || is_leap_micro('>=6.0')) {
         assert_script_run('rpm -q patterns-base-kvm_host');
         return 1;
