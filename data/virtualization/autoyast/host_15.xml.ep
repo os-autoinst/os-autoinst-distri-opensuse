@@ -321,7 +321,25 @@ lsblk
         <notification>Please wait while pre-script is running...</notification>
       </script>
     </pre-scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <!--  Keep ssh connection alive for long-time run test  -->
+        <chrooted t="boolean">true</chrooted>
+        <filename>configure_sshd.sh</filename>
+        <interpreter>/bin/bash -x</interpreter>
+        <source>
+          <![CDATA[ sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf" echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file ]]>
+        </source>
+      </script>
+    </chroot-scripts>
     <post-scripts config:type="list">
+      <script>
+        <filename>default_xen_boot.sh</filename>
+        <interpreter>/bin/bash -x</interpreter>
+        <source>
+          <![CDATA[ grub2-set-default 2 ]]>
+        </source>
+      </script>
       % if ($check_var->('SYSTEM_ROLE', 'xen') && $get_var->('VERSION') gt '15-SP5') {
       <script>
         <filename>configure_xen_modular_libvirt_log.sh</filename>
