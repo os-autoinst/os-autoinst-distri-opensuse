@@ -1,0 +1,11 @@
+{
+    "name": "openQA Single Instance",
+    "image": "registry.opensuse.org/devel/openqa/containers15.5/openqa-single-instance",
+    "runArgs": [ "--privileged", "--device", "/dev/kvm", "--entrypoint", "bash" ],
+    "postCreateCommand": "chown root:kvm /dev/kvm",
+    "containerEnv": {
+      "VNCPORT_OFFSET": "100"
+    },
+    "postAttachCommand": "(/usr/share/openqa/script/openqa-bootstrap >/var/log/openqa-bootstrap.log 2>&1 &) ; echo \"Welcome to openqa-single-instance! Check the openQA logs with 'tail -f /var/log/openqa-bootstrap.log'. Wait for the Web UI to become available. Then you can clone a job with 'openqa-clone-job url-to-job'.\""
+}
+
