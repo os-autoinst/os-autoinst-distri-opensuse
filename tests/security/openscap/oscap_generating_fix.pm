@@ -16,9 +16,9 @@ use openscaptest;
 sub run {
     my $fix_script = "fix-script.sh";
 
-    my $fix_script_match = 'm/
+    my $fix_script_match = qr/
         echo\s*>\s*\/etc\/securetty.*
-        echo\s+0\s*>\s*\/proc\/sys\/kernel\/sysrq/sxx';
+        echo\s+0\s*>\s*\/proc\/sys\/kernel\/sysrq/sxx;
 
     assert_script_run "oscap xccdf generate fix --template urn:xccdf:fix:script:sh --profile standard --output $fix_script xccdf.xml";
 
