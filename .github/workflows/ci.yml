@@ -12,6 +12,8 @@ jobs:
             perl-version: 5.32
           - test: unit
             perl-version: 5.32
+          - test: compile-changed
+            perl-version: 5.26
           - test: compile
             perl-version: 5.26
     container:
