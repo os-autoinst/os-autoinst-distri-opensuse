@@ -129,6 +129,8 @@ sub delegate_controllers {
 }
 
 sub enable_modules {
+    return if is_sle("16+");    # no modules on SLES16+
+
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
