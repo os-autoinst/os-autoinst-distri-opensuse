@@ -81,6 +81,7 @@ sub adopt_apparmor {
 
 sub reload_services {
     enter_cmd 'echo "# reload required services"';
+    systemctl 'stop wicked';
     systemctl 'restart NetworkManager';
     systemctl 'restart hostapd';
     systemctl 'is-active hostapd';
