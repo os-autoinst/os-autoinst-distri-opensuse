@@ -1,9 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
 # This bash source is for reporting
-# shellcheck disable=2046
 # shellcheck disable=1091
-. $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
+. "$(dirname "${BASH_SOURCE[0]}")"/azure_lib_fn.sh
 ############################################################################
 # File: azure_vmss.sh
 # Description: Tests a VM scaleset azure cli's.
