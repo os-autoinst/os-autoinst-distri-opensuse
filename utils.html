@@ -118,6 +118,7 @@
       <li><a href="#is_ipxe_with_disk_image">is_ipxe_with_disk_image</a></li>
       <li><a href="#is_reboot_needed">is_reboot_needed</a></li>
       <li><a href="#install_extra_packages">install_extra_packages</a></li>
+      <li><a href="#render_autoinst_url">render_autoinst_url</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -876,6 +877,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>install_extra_packages(repos =&gt; &#39;repositories&#39;, packages =&gt; &#39;packages&#39;);</code></pre>
 
 <p>Install extra packages that are only available in extra repositories. User may need to install some useful utilities from other repositories to facilitate test run. At the same time, it also needs to ensure such operations will not alter existing system. Althought user should not be prevented from installing legitimate tools and utilities, it is expected that use of additional packages should be limited to the minimum and their impact should be paid attention to. User can specify required repositories and pacakges via arguments, repos and packages or settings INSTALL_OTHER_REPOS and INSTALL_OTHER_PACKAGES.</p>
+
+<h2 id="render_autoinst_url">render_autoinst_url</h2>
+
+<pre><code>render_autoinst_url(url =&gt; &#39;openQA url&#39;);</code></pre>
+
+<p>In order to avoid downloading resources directly from openQA instance, rendering autoinst url from given openQA url is necessary. Argument url accetps legal HTTP url addresses, but it will be returned directly without rendering if it is not an openQA url.</p>
 
 
 </body>
