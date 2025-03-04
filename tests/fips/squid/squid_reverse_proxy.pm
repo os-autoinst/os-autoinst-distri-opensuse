@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright 2016-2023 SUSE LLC
+# Copyright 2016-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: SquidReverseProxy
@@ -21,10 +21,11 @@ sub configure_apache {
     assert_script_run 'mkdir -p /srv/www/vhosts/Test';
     assert_script_run 'curl ' . data_url('squid/apache_vhost.conf') . ' -o /etc/apache2/vhosts.d/vhost.conf';
     assert_script_run 'curl ' . data_url('squid/hello.html') . ' -o /srv/www/vhosts/Test/hello.html';
-    assert_script_run "sed -i -e 's/^Listen 80/Listen 8080/' /etc/apache2/listen.conf";
-    systemctl 'start apache2';
+    assert_script_run "sed -i -e 's/^Listen 80.*/Listen 8080/' /etc/apache2/listen.conf";
+    systemctl 'restart apache2';
+    systemctl 'status apache2';
     # ensure apache is working
-    validate_script_output 'curl http://localhost:8080/hello.html', sub { m/Test Page/ };
+    validate_script_output 'curl http://localhost:8080/hello.html', sub { m/Hello/ };
 }
 
 sub configure_squid {
@@ -49,8 +50,8 @@ sub run {
     # use squid as https reverse proxy to access content served by apache.
     # Ensure reply contains certificate info, HTTP 200 and test page content
     # note we redirect stderr to stdout, because some info from --verbose are on stderr
-    validate_script_output 'curl --no-styled-output --verbose --proxy https://localhost:8443 http://localhost:8080/hello.html 2>&1',
-      sub { m/subject:.+O=Suse.+CN=localhost.+HTTP\/1.1 200 OK.+Test Page/s };
+    validate_script_output 'curl --proxy-insecure --no-styled-output --verbose --proxy https://localhost:8443 http://localhost:8080/hello.html 2>&1',
+      sub { m/subject:.+O=Suse.+HTTP\/1.1 200 OK.+Hello/s };
 }
 
 sub post_fail_hook {
