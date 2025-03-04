@@ -20,17 +20,37 @@ conditional_schedule:
     VERSION:
       15-SP6:
         - texlive/latexdiff
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP5:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP4:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP3:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP2:
         - texlive/latexdiff
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP1:
         - texlive/latexdiff
       15:
