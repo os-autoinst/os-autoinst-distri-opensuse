@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2024 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: python3-ec2metadata iproute2 ca-certificates

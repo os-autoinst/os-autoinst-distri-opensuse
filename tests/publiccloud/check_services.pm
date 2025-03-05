@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Check public cloud specific services
@@ -22,7 +22,7 @@ sub run {
     select_host_console();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-    my $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
+    my $provider = $self->{my_provider} = $args->{my_provider};    # required for cleanup
 
     # Debug
     $instance->ssh_script_run('systemctl --no-pager list-units');

@@ -34,9 +34,9 @@ sub run {
 
     if (get_var('PUBLIC_CLOUD_QAM', 0)) {
         $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
+        $provider = $self->{my_provider} = $args->{my_provider};    # required for cleanup
     } else {
-        $provider = $self->provider_factory();
+        $provider = $self->{my_provider} = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
@@ -225,8 +225,9 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 0} if $run_count > 1;
-    return {fatal => 0, publiccloud_multi_module => 1};
+    # If we are in multi module scenario (e.g. PUBLIC_CLOUD_QAM=1) we wanna run basetest cleanup
+    return {fatal => 1, publiccloud_multi_module => 1} if (get_var('PUBLIC_CLOUD_QAM', 0));
+    return {fatal => 0, publiccloud_multi_module => 0};
 }
 
 1;

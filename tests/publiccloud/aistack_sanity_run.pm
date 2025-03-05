@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Basic aistack test
@@ -27,7 +27,7 @@ sub run {
     my ($self, $args) = @_;
 
     my $instance = $self->{my_instance};
-    my $provider = $self->{provider};
+    my $provider = $self->{my_provider};
 
     my $test_archive = get_required_var('OPENWEBUI_SANITY_TESTS_ARCHIVE');
     my $sanity_tests_url = data_url("aistack/" . $test_archive);
