@@ -1,9 +1,27 @@
 ---
-name: create_hdd_autoyast
+name: create_hdd_agama
 description:    >
     Maintainer: qa-c@suse.de.
     HDD creation for container tests in product QA
 conditional_schedule:
+    boot_64:
+        ARCH:
+            'x86_64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+            'aarch64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+    boot_ppc:
+        ARCH:
+            'ppc64le':
+                - installation/bootloader
+                - installation/agama_reboot
+    boot_390:
+        ARCH:
+            's390x':
+                - installation/bootloader_zkvm
+                - installation/agama_reboot
     grub_set_bootargs:
         ARCH:
             's390x':
@@ -22,8 +40,9 @@ conditional_schedule:
                 - containers/bci_prepare
 
 schedule:
-    - yam/agama/boot_agama
-    - yam/agama/agama_auto
+    - '{{boot_64}}'
+    - '{{boot_390}}'
+    - '{{boot_ppc}}'
     - installation/first_boot
     - autoyast/console.pm
     - '{{grub_set_bootargs}}'
