@@ -22,6 +22,8 @@ sub run {
     my $disks = get_test_suite_data()->{disks};
 
     my ($expected, $unit, $actual);
+    record_info 'workaround bsc#1238582', 'parted hasnt been installed by default which caused partition validation test failed ', result => 'softfail';
+    assert_script_run "zypper in -y parted";
     foreach my $disk (@{$disks}) {
         if ($expected = $disk->{allowed_unpartitioned}) {
             $expected =~ /(?<size>\d+\.\d+)(?<unit>.*)/;
