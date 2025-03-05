@@ -85,7 +85,8 @@ sub run {
     }
 
     unless (get_var('MULTIPATH')) {
-        record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
+        record_soft_failure('bsc#1182241 - yast2-vpn is not pre-installed on TW and Leap');
+        zypper_call("in -y parted");
         my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
         my $drives = extract_drives_from_json($lsblk_output_json);
         my $i;

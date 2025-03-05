@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use utils 'zypper_call';
 
 use scheduler 'get_test_suite_data';
 use filesystem_utils 'free_space';
@@ -22,6 +23,8 @@ sub run {
     my $disks = get_test_suite_data()->{disks};
 
     my ($expected, $unit, $actual);
+    record_soft_failure('bsc#1238582 - parted hasnt been installed by default which caused partition validation test failed');
+    zypper_call("in -y parted");
     foreach my $disk (@{$disks}) {
         if ($expected = $disk->{allowed_unpartitioned}) {
             $expected =~ /(?<size>\d+\.\d+)(?<unit>.*)/;
