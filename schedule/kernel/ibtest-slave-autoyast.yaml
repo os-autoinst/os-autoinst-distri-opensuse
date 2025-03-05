@@ -12,7 +12,6 @@ vars:
     IBTEST_ROLE: IBTEST_SLAVE
     IPXE: 1
     IPXE_CONSOLE: ttyS1,115200
-    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     PARALLEL_WITH: ibtest-master
     SCC_ADDONS: sdk
 schedule:
