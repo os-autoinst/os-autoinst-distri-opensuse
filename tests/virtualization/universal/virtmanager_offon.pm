@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use utils;
 use virtmanager;
+use virt_autotest::utils qw(reconnect_console_if_not_good);
 
 sub run_test {
     my ($self) = @_;
@@ -36,6 +37,11 @@ sub run_test {
     }
 
     wait_screen_change { send_key 'ctrl-q'; };
+
+    # Wait a while untill the ssh console fully reacts after closing the X window of virt-manager
+    sleep 5;
+    # Reconnect if the text console does not respond well after long time no use
+    reconnect_console_if_not_good;
 }
 
 sub test_flags {

@@ -130,7 +130,7 @@
   </networking>
   <partitioning config:type="list">
     <drive>
-  % my $wwn = {'lipa' => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d'};
+  % my $wwn = {'lipa' => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d', quinn => 'wwn-0x5000c50099db2117'};
   % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
   % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
       <device><%= $device_id %></device>

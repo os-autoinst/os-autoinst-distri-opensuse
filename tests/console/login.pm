@@ -14,10 +14,12 @@ use warnings;
 use testapi;
 use lib 'sle/tests/virt_autotest';
 use lib 'os-autoinst-distri-opensuse/tests/virt_autotest';
+use virt_autotest::utils qw(reconnect_console_if_not_good);
 
 sub run {
     my $self = shift;
     select_console 'root-ssh';
-    record_info("console logined");
+
+    reconnect_console_if_not_good;
 }
 1;
