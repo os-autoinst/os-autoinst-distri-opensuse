@@ -888,7 +888,8 @@ sub specific_bootmenu_params {
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         my $url = autoyast::expand_agama_profile($agama_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
-        push @params, "inst.auto=$url inst.finish=stop";
+        # Workaround for bsc#1238581, will remove it once the bug is fixed
+        push @params, "agama.auto=$url agama.finish=stop";
     }
 
     if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
