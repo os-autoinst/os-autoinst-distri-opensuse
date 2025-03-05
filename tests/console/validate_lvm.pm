@@ -86,6 +86,8 @@ sub run {
 
     unless (get_var('MULTIPATH')) {
         record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
+        record_info 'workaround bsc#1238582', 'parted hasnt been installed by default which caused partition validation test failed ', result => 'softfail';
+        assert_script_run "zypper in -y parted";
         my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
         my $drives = extract_drives_from_json($lsblk_output_json);
         my $i;
