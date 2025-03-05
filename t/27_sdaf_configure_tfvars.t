@@ -7,6 +7,7 @@ use Test::Warnings;
 use Test::MockModule;
 use testapi;
 use sles4sap::sap_deployment_automation_framework::configure_tfvars;
+use publiccloud::utils 'is_azure';
 
 sub undef_variables {
     # undefines OpenQA variables
@@ -67,7 +68,10 @@ subtest '[set_image_parameters]' => sub {
     $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
     $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
     $ms_sdaf->redefine(validate_components => sub { return 'mocha'; });
+    $ms_sdaf->redefine(is_azure => sub { return 0; });
 
+    set_var('PUBLIC_CLOUD_IMAGE_LOCATION', '');
+    set_var('SDAF_SOURCE_IMAGE_ID', '');
     set_var('PUBLIC_CLOUD_IMAGE_ID', 'suse:sles-sap-15-sp6:gen2:latest');
     prepare_tfvars_file(deployment_type => 'sap_system');
 
