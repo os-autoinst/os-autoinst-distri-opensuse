@@ -99,10 +99,8 @@ sub ensure_gnutls_is_working {
         "echo 'tls_www_server' >> $srv_template_file",
         "echo 'encryption_key' >> $srv_template_file",
         "echo 'signing_key' >> $srv_template_file",
-        "certtool --generate-certificate --load-privkey $srv_key_file \\
-        --load-ca-certificate $ca_cert_file --load-ca-privkey $ca_key_file \\
-        --template $srv_template_file --outfile $srv_cert_file"
     );
+    assert_script_run("certtool --generate-certificate --load-privkey $srv_key_file --load-ca-certificate $ca_cert_file --load-ca-privkey $ca_key_file --template $srv_template_file --outfile $srv_cert_file", timeout => 300);
     # spin up a server on localhost (5556 = default port) and wait for the server to be active
     my $pid = background_script_run "gnutls-serv -p 5556 --echo --x509cafile $ca_cert_file \\
       --x509keyfile $srv_key_file --x509certfile $srv_cert_file > $srv_log_file 2>&1";
