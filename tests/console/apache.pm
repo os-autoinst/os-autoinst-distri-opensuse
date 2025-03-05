@@ -32,7 +32,8 @@ sub run {
         zypper_call('rm apache2', exitcode => [0, 104]);
     }
 
-    # Even before the installation there should be htdocs so we can create the index
+    # Create index test file
+    assert_script_run 'mkdir -p /srv/www/htdocs';
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
     # Install and start apache
