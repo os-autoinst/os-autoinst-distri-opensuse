@@ -1,0 +1,6 @@
+---
+name: agama_mediacheck
+description: >
+  Test suite triggers installation medium check and verifies that check passes in linuxrc.
+schedule:
+  - installation/mediacheck

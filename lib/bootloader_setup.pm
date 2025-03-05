@@ -340,6 +340,11 @@ sub select_bootmenu_option {
         send_key_until_needlematch 'boot-agama-installation', 'up', 11, 5;
         return 0;
     }
+    if (get_var('MEDIACHECK')) {
+        send_key_until_needlematch 'boot-agama-mediacheck', 'down', 11, 5;
+        send_key "ret";
+        return 0;
+    }
     if (get_var('LIVECD')) {
         # live CDs might have a very short timeout of the initial bootmenu
         # (1-2s with recent kiwi versions) so better stop the timeout
