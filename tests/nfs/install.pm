@@ -53,7 +53,9 @@ sub install_testsuite {
         $rel = "-b $rel" if ($rel);
 
         install_dependencies_pynfs;
-        assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
+        assert_script_run("git clone $url $rel && cd ./pynfs");
+        # workaround poo#178288 all pynfs fails in DELEG2
+        assert_script_run('git checkout 81a4693305abb42ffd16e77a4808a1a607693476~');
         assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
     }
     elsif (get_var("CTHON04")) {
