@@ -118,13 +118,13 @@ use_private_endpoint = true
 #########################################################################################
 
 # scs_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
-scs_cluster_type = "AFA"
+scs_cluster_type = "%SDAF_FENCING_TYPE%"
 
 # database_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
-database_cluster_type = "AFA"
+database_cluster_type = "%SDAF_FENCING_TYPE%"
 
 # use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
-use_msi_for_clusters = true
+use_msi_for_clusters = "true"
 
 # fencing_role_name, If specified the role name to use for the fencing agent
 #fencing_role_name = ""
