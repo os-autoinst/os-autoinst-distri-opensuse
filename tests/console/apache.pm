@@ -32,7 +32,8 @@ sub run {
         zypper_call('rm apache2', exitcode => [0, 104]);
     }
 
-    # Even before the installation there should be htdocs so we can create the index
+    # Create index test file
+    assert_script_run 'mkdir -p /srv/www/htdocs';
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
     # Install and start apache
@@ -133,9 +134,9 @@ sub run {
             assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
 
             # Run and test this new environment
-            assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
-            assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd2-prefork pid; done';
-            assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
+            assert_script_run 'httpd-prefork -f /tmp/prefork/httpd.conf';
+            assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd-prefork pid; done';
+            assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd-prefork';
 
             # Run and test the old environment too
             script_run 'rm /var/run/httpd.pid';
@@ -148,7 +149,7 @@ sub run {
 
             # Stop both instances
             # binary killall is not present in JeOS
-            assert_script_run('kill -TERM $(ps aux| grep [h]ttpd2-prefork| awk \'{print $2}\')');
+            assert_script_run('kill -TERM $(ps aux| grep [h]ttpd-prefork| awk \'{print $2}\')');
             systemctl 'stop apache2';
 
             # Test everything is stopped properly
