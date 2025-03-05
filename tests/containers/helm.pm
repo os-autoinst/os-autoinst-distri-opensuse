@@ -51,7 +51,7 @@ sub run {
 
         # Configure the public cloud kubernetes
         if ($k8s_backend eq "EC2") {
-            add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
+            add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
             zypper_call("in jq aws-cli", timeout => 300);
 
             # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
@@ -66,10 +66,8 @@ sub run {
             $provider = publiccloud::eks->new();
         }
         elsif ($k8s_backend eq 'AZURE') {
-            add_suseconnect_product(get_addon_fullname('pcm'),
-                (is_sle('=12-sp5') ? '12' : undef));
-            add_suseconnect_product(get_addon_fullname('phub'))
-              if is_sle('=12-sp5');
+            add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) if is_sle("<16");
+            add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
             zypper_call('in jq azure-cli', timeout => 300);
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
@@ -84,7 +82,7 @@ sub run {
             $provider = publiccloud::aks->new();
         }
         elsif ($k8s_backend eq 'GCE') {
-            add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
+            add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
             gcloud_install();
 
             # package needed by init():

@@ -162,7 +162,7 @@ sub install_kubectl {
     }
 
     # kubectl is in the container module
-    add_suseconnect_product(get_addon_fullname('contm')) if (is_sle);
+    add_suseconnect_product(get_addon_fullname('contm')) if (is_sle("<16"));
     my $k8s_pkg = get_var('K8S_CLIENT', 'kubernetes-client-provider');
     if (!get_var('K8S_CLIENT') && (is_sle || is_sle_micro)) {
         die '"K8S_CLIENT" was not set in test suite definition';
