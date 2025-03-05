@@ -17,6 +17,7 @@ use XML::LibXML;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use File::Basename;
+use Data::Dumper;
 
 sub run {
     select_serial_terminal;
@@ -40,16 +41,37 @@ sub run {
         };
         if ($@) {
             record_info('Skip', "Skipping results for $file. $@");
-        } else {
-            record_info('Parse', $log_file);
-            my $dom = XML::LibXML->load_xml(location => "ulogs/$log_file");
-            for my $node ($dom->findnodes('//testsuite')) {
-                # Replace default attribute name "pytest" by its env name and engine
-                my $new_name = $env . '_' . $engine;
-                $node->{name} =~ s/pytest/$new_name/;
-                # Append test results to the resulting xml file
-                $root->appendChild($node);
+            next;
+        }
+        record_info('Parse', $log_file);
+        my $dom = XML::LibXML->load_xml(location => "ulogs/$log_file");
+        for my $ts ($dom->findnodes('//testsuite')) {
+            # Replace default attribute name "pytest" by its env name and engine
+            my $new_name = $env . '_' . $engine;
+            $ts->{name} =~ s/pytest/$new_name/;
+            record_info('TESTSUITE', $ts->{name});
+            my $softfailures = ($ts->{softfailures}) ? $ts->{softfailures} : 0;
+            my $skipped = ($ts->{skipped}) ? $ts->{skipped} : 0;
+            for my $tc ($ts->findnodes('./testcase')) {
+                record_info('TESTCASE', $tc->{name});
+                my $skippedNode = $tc->findnodes('./skipped[1]');
+                record_info('XXX', Dumper($skippedNode));
+                next unless (scalar $skippedNode);
+                my $node = $skippedNode->[0];
+                record_info('XXX', Dumper($node));
+                record_info('SKIP', $node->{message});
+                my $message = $node->{type} . ': ' . $node->{message};
+                my $softfailure = $dom->createElement('softfailure');
+                $softfailure->setAttribute('message', $message);
+                $tc->appendChild($softfailure);
+                $tc->removeChild($node);
+                $softfailures = $softfailures + 1;
+                $skipped = $skipped - 1;
             }
+            $ts->{softfailures} = $softfailures;
+            $ts->{skipped} = $skipped;
+            # Append test results to the resulting xml file
+            $root->appendChild($ts);
         }
     }
     $dom->toFile(hashed_string('result.xml'), 1);
