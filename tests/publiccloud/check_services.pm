@@ -35,7 +35,7 @@ sub run {
             $instance->ssh_assert_script_run('systemctl is-active waagent.service');
             $instance->ssh_assert_script_run('systemctl is-enabled waagent-network-setup.service');
         }
-        if (is_azure || is_ec2) {
+        if ((is_azure || is_ec2) && !is_container_host()) {
             # cloud-init
             record_info('cloud-init', $instance->ssh_script_output('systemctl --no-pager --full status cloud-init*', proceed_on_failure => 1));
             $instance->ssh_assert_script_run('systemctl is-active cloud-init.service');
@@ -61,7 +61,7 @@ sub run {
     }
     # cloud-netconfig
     # in GCE from 15-SP4 (see bsc#1227507, bsc#1227508)
-    unless (is_sle('<15-SP4') && is_gce) {
+    unless ((is_sle('<15-SP4') && is_gce) || is_container_host) {
         record_info('cloud-netconfig', $instance->ssh_script_output('systemctl --no-pager --full status cloud-netconfig*', proceed_on_failure => 1));
         $instance->ssh_assert_script_run('systemctl is-enabled cloud-netconfig.service');
         $instance->ssh_assert_script_run('systemctl is-active cloud-netconfig.timer');
