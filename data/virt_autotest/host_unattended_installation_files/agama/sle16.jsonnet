@@ -35,7 +35,8 @@
   software: {
       patterns: [
          'base',
-         'kvm_host'
+         'kvm_server',
+         'kvm_tools'
       ]
   },
   scripts: {
