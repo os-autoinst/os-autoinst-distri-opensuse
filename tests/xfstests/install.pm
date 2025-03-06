@@ -36,7 +36,7 @@ sub install_xfstests_from_repo {
         add_qa_head_repo(priority => 100);
         if (is_sle('16+')) {
             my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
-            zypper_ar($dep_url, name => 'dependency-repo');
+            zypper_ar($dep_url, name => 'dependency-repo', priority => 101);
         }
     }
     elsif (is_tumbleweed) {
@@ -48,7 +48,7 @@ sub install_xfstests_from_repo {
         my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/SUSE_ALP_Products_Marble_6.0_standard/');
         my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
         zypper_ar($repo_url, name => 'xfstests-repo');
-        zypper_ar($dep_url, name => 'dependency-repo');
+        zypper_ar($dep_url, name => 'dependency-repo', priority => 101);
     }
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
