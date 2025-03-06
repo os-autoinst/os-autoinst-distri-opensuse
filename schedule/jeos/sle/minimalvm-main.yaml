@@ -71,7 +71,6 @@ schedule:
     - console/postgresql_server
     - console/shibboleth
     - console/apache_ssl
-    - console/apache_nss
     - console/hostname
     - console/installation_snapshots
     - console/zypper_lr
