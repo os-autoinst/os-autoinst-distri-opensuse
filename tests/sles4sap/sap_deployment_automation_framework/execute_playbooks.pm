@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
+  qw(get_sdaf_config_path convert_region_to_short get_workload_vnet_code get_sut_sshkey_path);
 use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(validate_components);
 use serial_terminal qw(select_serial_terminal);
@@ -70,6 +70,8 @@ sub run {
         sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
         sap_sid => get_required_var('SAP_SID')
     );
+    my $sut_private_key_path = get_sut_sshkey_path(config_root_path => $sdaf_config_root_dir);
+
     # setup = combination of all components chosen for installation
     my @setup = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
     validate_components(components => \@setup);
@@ -90,6 +92,12 @@ sub run {
         $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 1;
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
         $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 0;
+
+        # check if 'pb_get-sshkey.yaml' downloads SSH key into correct place
+        if ($playbook_options->{playbook_filename} eq 'pb_get-sshkey.yaml') {
+            record_info('File check', "Check if SSH key '$sut_private_key_path' was created by SDAF");
+            assert_script_run("test -f $sut_private_key_path");
+        }
     }
 
     # Display deployment information
