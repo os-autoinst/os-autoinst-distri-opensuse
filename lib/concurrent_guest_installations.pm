@@ -72,6 +72,8 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_build} = $_store_of_guests{$_element}{INSTALL_BUILD} if ($_store_of_guests{$_element}{INSTALL_BUILD} ne '');
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
+        $_guest_profile->{guest_installation_fine_grained_media} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} ne '');
+        $_guest_profile->{guest_installation_fine_grained_repos} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} ne '');
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
@@ -105,7 +107,7 @@ sub install_guest_instances {
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
         save_screenshot;
-        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started guest-firstboot-provision-finished)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
+        if (!(check_screen([qw(agama-installer-live-root guest-installation-yast2-started guest-installation-anaconda-started guest-firstboot-provision-finished)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
             record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
         }
         else {

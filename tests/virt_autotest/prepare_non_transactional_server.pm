@@ -53,9 +53,13 @@ sub prepare_extensions {
 sub prepare_packages {
     my $self = shift;
 
-    # spice needs to be installed in advance if virtual machine uses it. spice is not installed by default.
-    my $zypper_install_package = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change libspice-server1 qemu-audio-spice qemu-chardev-spice qemu-spice qemu-ui-spice-core spice-vdagent";
-    zypper_call("$zypper_install_package");
+    # install additional packages from product repositories
+    zypper_call("--gpg-auto-import-keys refresh");
+    if (get_var('INSTALL_PRODUCT_PACKAGES', '')) {
+        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
+        $cmd = $cmd . " $_" foreach (split(/,/, get_var('INSTALL_PRODUCT_PACKAGES', '')));
+        zypper_call($cmd);
+    }
     # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
     install_extra_packages;
 }
@@ -73,9 +77,8 @@ sub prepare_bootloader {
 sub prepare_services {
     my $self = shift;
 
-    #Disable rebootmgr service to prevent scheduled maitenance reboot.
-    disable_and_stop_service('rebootmgr.service');
-    systemctl('status rebootmgr.service', ignore_failure => 1);
+    # prepare services to facilitate test run
+    # no services to be handled at the moment
 }
 
 sub prepare_reboot {

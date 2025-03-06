@@ -132,6 +132,7 @@ our @EXPORT = qw(
   is_reboot_needed
   install_extra_packages
   render_autoinst_url
+  is_agama_guest
 );
 
 our @EXPORT_OK = qw(
@@ -3298,13 +3299,17 @@ sub render_autoinst_url {
 
     croak("Can not render autoinst url from empty url") if (!$args{url});
     if ($args{url} =~ /^(http|https)\:\/\/openqa\./im) {
+        if ($args{url} =~ /^(http|https)\:\/\/openqa\.[^\s]+\/assets\/repo\//im) {
+            record_info("Can not render autoinst url for repo assets", "openQA only syncs iso/hdd assets.Return original $args{url}");
+            return $args{url};
+        }
         my $openqa_instance = get_required_var('OPENQA_HOSTNAME');
         $openqa_instance =~ s/\./\\\./g;
         if ($args{url} !~ /(http|https)\:\/\/$openqa_instance\//im) {
             record_info("Not url on running openQA $openqa_instance", "Can not render running openQA autoinst url from $args{url}", result => 'fail');
             return $args{url};
         }
-        my $autoinst_url = autoinst_url('/' . join('/', (split('/', $args{url}))[3 .. (scalar split('/', $args{url})) - 1]));
+        my $autoinst_url = autoinst_url('/' . join('/', (split('/', $args{url}, -1))[3 .. (scalar split('/', $args{url}, -1)) - 1]));
         record_info("Rendered autoinst url from running openQA instance", "Rendered url $autoinst_url from $args{url}");
         return $autoinst_url;
     }
@@ -3312,6 +3317,23 @@ sub render_autoinst_url {
         record_info("Can not render autoinst url from non-openQA url", "Return original url $args{url}", result => 'fail');
         return $args{url};
     }
+}
+
+=head2 is_agama_guest
+
+ is_agama_guest(guest => 'guest or domain name');
+
+Determine whether virtual machine under test uses Agama installer. Must provide
+virtual machine or domain name to argument guest to judge whether agama string
+is present.
+=cut
+
+sub is_agama_guest {
+    my %args = @_;
+    $args{guest} //= '';
+
+    croak("Guest or domain name must be given") if (!$args{guest});
+    return $args{guest} =~ /agama/img;
 }
 
 1;

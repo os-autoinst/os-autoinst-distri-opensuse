@@ -62,21 +62,26 @@ sub run {
     use_ssh_serial_console;
 
     $self->reveal_myself;
-    my @guest_names = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));
-    my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
+    my @guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @guest_profiles = split(/\|/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;
     my @guest_installation_media = my @guest_installation_builds = my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
-    @guest_installation_media = split(/,/, get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '') ne '');
-    @guest_installation_builds = split(/,/, get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '') ne '');
-    @guest_registration_codes = split(/,/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
-    @guest_registration_extensions_codes = split(/,/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
+    my @guest_installation_fine_grained_media = my @guest_installation_fine_grained_repos = ('') x scalar @guest_names;
+    @guest_installation_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '') ne '');
+    @guest_installation_builds = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '') ne '');
+    @guest_registration_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
+    @guest_registration_extensions_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
+    @guest_installation_fine_grained_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_MEDIA', '') ne '');
+    @guest_installation_fine_grained_repos = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS', '') ne '');
     while (my ($index, $element) = each @guest_names) {
         $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
         $store_of_guests{$element}{INSTALL_MEDIA} = $guest_installation_media[$index];
         $store_of_guests{$element}{INSTALL_BUILD} = $guest_installation_builds[$index];
         $store_of_guests{$element}{REG_CODE} = $guest_registration_codes[$index];
         $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];
+        $store_of_guests{$element}{INSTALL_FINE_GRAINED_MEDIA} = $guest_installation_fine_grained_media[$index];
+        $store_of_guests{$element}{INSTALL_FINE_GRAINED_REPOS} = $guest_installation_fine_grained_repos[$index];
     }
 
     $self->concurrent_guest_installations_run(\%store_of_guests);
