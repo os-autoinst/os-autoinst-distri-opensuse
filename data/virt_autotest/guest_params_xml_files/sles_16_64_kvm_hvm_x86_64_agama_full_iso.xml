@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
-    <guest_os_name>slm</guest_os_name>
-    <guest_version>6.2</guest_version>
-    <guest_version_major>6</guest_version_major>
-    <guest_version_minor>2</guest_version_minor>
+    <guest_os_name>sles</guest_os_name>
+    <guest_version>16.0</guest_version>
+    <guest_version_major>16</guest_version_major>
+    <guest_version_minor>0</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build/>
     <host_hypervisor_uri/>
@@ -13,22 +13,26 @@
     <guest_arch>x86_64</guest_arch>
     <guest_name/>
     <guest_domain_name/>
-    <guest_memory>2048,maxmemory=4096</guest_memory>
-    <guest_vcpus>2,maxvcpus=4</guest_vcpus>
+    <guest_memory>16384</guest_memory>
+    <guest_vcpus>2</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata/>
-    <guest_boot_settings>hd</guest_boot_settings>
+    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.bin,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
     <guest_xpath/>
-    <guest_installation_automation_method>ignition+combustion</guest_installation_automation_method>
-    <guest_installation_automation_platform>qemu</guest_installation_automation_platform>
-    <guest_installation_automation_file>ignition_config_non_encrypted_image.ign#combustion_script</guest_installation_automation_file>
-    <guest_installation_method>import</guest_installation_method>
-    <guest_installation_method_others/>
+    <guest_installation_automation_method>autoagama</guest_installation_automation_method>
+    <guest_installation_automation_platform></guest_installation_automation_platform>
+    <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
+    <guest_installation_method>directkernel</guest_installation_method>
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.2-Default-qcow-Build12345.qcow2</guest_installation_media>
-    <guest_os_variant>slem6.1</guest_os_variant>
+    <guest_installation_media>http://mirror.suse.asia/ibs/SUSE:/SLFO:/Products:/SLES:/16.0:/TEST/product/iso/SLES-16.0-x86_64-Build45.2.install.iso</guest_installation_media>
+    <guest_installation_fine_grained_media>http://10.200.140.9/assets/repo/SLES-16.0-x86_64-Build49.1.install</guest_installation_fine_grained_media>
+    <guest_installation_fine_grained_repos></guest_installation_fine_grained_repos>
+    <guest_installation_fine_grained_kernel_args>live.password=ROOTPASSWORD console=ttyS0,115200 linuxrc.log=/dev/ttyS0 linuxrc.core=/dev/ttyS0 linuxrc.debug=4,trace</guest_installation_fine_grained_kernel_args>
+    <guest_installation_fine_grained_kernel_args_overwrite/>
+    <guest_installation_fine_grained_others/>
+    <guest_os_variant>sle15sp7</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>
@@ -75,12 +79,12 @@
     <guest_memorybacking/>
     <guest_features/>
     <guest_clock/>
-    <guest_power_management/>
+    <guest_power_management>suspend_to_mem.enabled=yes,suspend_to_disk.enabled=yes</guest_power_management>
     <guest_events/>
     <guest_resource/>
     <guest_sysinfo/>
     <guest_qemu_command/>
-    <guest_launchsecurity/>
+    <guest_launchSecurity/>
     <guest_autostart/>
     <guest_transient/>
     <guest_destroy_on_exit/>
