@@ -164,7 +164,7 @@
     "bsc#1187613": {
         "description": "kernel: Grant table initialized",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "bug"
     },
@@ -317,7 +317,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
