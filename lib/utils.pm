@@ -132,6 +132,7 @@ our @EXPORT = qw(
   is_reboot_needed
   install_extra_packages
   render_autoinst_url
+  is_agama_guest
 );
 
 our @EXPORT_OK = qw(
@@ -3312,6 +3313,23 @@ sub render_autoinst_url {
         record_info("Can not render autoinst url from non-openQA url", "Return original url $args{url}", result => 'fail');
         return $args{url};
     }
+}
+
+=head2 is_agama_guest
+
+ is_agama_guest(guest => 'guest or domain name');
+
+Determine whether virtual machine under test uses Agama installer. Must provide
+virtual machine or domain name to argument guest to judge whether agama string
+is present.
+=cut
+
+sub is_agama_guest {
+    my %args = @_;
+    $args{guest} //= '';
+
+    croak("Guest or domain name must be given") if (!$args{guest});
+    return $args{guest} =~ /agama/img;
 }
 
 1;

@@ -26,7 +26,6 @@
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>OracleLinux-R7-U9-Server-x86_64-dvd.iso</guest_installation_media>
-    <guest_installation_fine_grained/>
     <guest_boot_settings/>
     <guest_secure_boot/>
     <guest_os_variant>ol7.9</guest_os_variant>
