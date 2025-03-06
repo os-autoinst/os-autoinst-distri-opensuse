@@ -77,7 +77,6 @@ schedule:
     - console/zypper_ref
     - console/ncurses
     - console/curl_https
-    - console/salt
     - console/glibc_sanity
     - update/zypper_up
     - console/console_reboot
