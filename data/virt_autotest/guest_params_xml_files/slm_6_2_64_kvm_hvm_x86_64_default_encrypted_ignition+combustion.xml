@@ -23,12 +23,10 @@
     <guest_installation_automation_platform>metal</guest_installation_automation_platform>
     <guest_installation_automation_file>ignition_config_encrypted_image.ign#combustion_script</guest_installation_automation_file>
     <guest_installation_method>import</guest_installation_method>
-    <guest_installation_method_others/>
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.2-Default-encrypted-Build12345.raw.xz</guest_installation_media>
-    <guest_installation_fine_grained/>
     <guest_os_variant>slem6.1</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>

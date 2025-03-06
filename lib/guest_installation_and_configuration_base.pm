@@ -293,6 +293,7 @@ sub prepare_ssh_key {
         assert_script_run("ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P \"\" <<<y");
         assert_script_run("cp /root/.ssh/id_rsa.pub /root/.ssh/id_rsa.pub.bak");
     }
+    assert_script_run("chmod 600 /root/.ssh/id_rsa /root/.ssh/id_rsa.pub");
     $guest_installation_and_configuration_metadata::host_params{ssh_public_key} = script_output("cat /root/.ssh/id_rsa.pub");
     $guest_installation_and_configuration_metadata::host_params{ssh_private_key} = script_output("cat /root/.ssh/id_rsa");
     $guest_installation_and_configuration_metadata::host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
@@ -325,10 +326,7 @@ sub prepare_non_transactional_environment {
         $_packages_to_check .= ' yast2-schema' if (is_sle('<16'));
         zypper_call("install -y $_packages_to_check");
         # There is already the highest version for kvm/xen packages on TW
-        if (is_sle) {
-            my $_patterns_to_check = is_sle('<16') ? "$self->{host_virt_type}_server $self->{host_virt_type}_tools" : "$self->{host_virt_type}_host";
-            zypper_call("install -y -t pattern $_patterns_to_check");
-        }
+        zypper_call("install -y -t pattern $self->{host_virt_type}_server $self->{host_virt_type}_tools") if (is_sle);
     }
     return $self;
 }
@@ -978,7 +976,7 @@ sub config_guest_storage {
     }
 
     if ($self->{guest_storage_type} eq 'disk') {
-        if ($self->{guest_installation_method} eq 'location') {
+        if ($self->{guest_installation_method} eq 'location' or $self->{guest_installation_method} eq 'directkernel') {
             $self->{guest_storage_options} = "--disk path=$self->{guest_storage_path},size=$self->{guest_storage_size},format=$self->{guest_storage_format}";
         }
         elsif ($self->{guest_installation_method} eq 'import') {
@@ -1805,7 +1803,9 @@ Configure [guest_installation_method_options]. User can still change [guest_inst
 [guest_installation_media], [guest_build], [guest_version], [guest_version_major],
 [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole]
 by passing non-empty arguments using hash.Call config_guest_installation_media to
-set correct installation media.
+set correct installation media. For directkernel installation method which uses
+virt-install --install, please also refer to following link for more information
+https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html
 
 =cut
 
@@ -1816,19 +1816,57 @@ sub config_guest_installation_method {
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
 
     $self->config_guest_installation_media;
-    if ($self->{guest_installation_method} eq 'import') {
-        $self->{guest_installation_method_options} = '--import ';
+    my $_guest_installation_media = render_autoinst_url(url => $self->{guest_installation_media});
+    if (script_output("curl --silent -I $_guest_installation_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+        record_info("Installation media $_guest_installation_media does not exist", script_output("curl -I $_guest_installation_media", proceed_on_failure => 1), result => 'fail');
+        $self->record_guest_installation_result('FAILED');
+    }
+    if ($self->{guest_installation_method} eq 'directkernel') {
+        $self->{guest_installation_method_options} = '--autoconsole ' . $self->{guest_autoconsole} if ($self->{guest_autoconsole} ne '');
+        $self->{guest_installation_method_options} = '--noautoconsole' if ($self->{guest_noautoconsole} eq 'true');
+        if ($self->{guest_build} ne 'gm') {
+            $self->{guest_installation_fine_grained_media} =~ s/12345/$self->{guest_build}/g;
+            $self->{guest_installation_fine_grained_repos} =~ s/12345/$self->{guest_build}/g;
+        }
+        my $_guest_arch = $self->{guest_arch} ? $self->{guest_arch} : get_required_var('ARCH');
+        my $_guest_installation_fine_grained_media = render_autoinst_url(url => $self->{guest_installation_fine_grained_media});
+        if (script_output("curl --silent -I $_guest_installation_fine_grained_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
+            assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/linux");
+            assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/initrd");
+        }
+        else {
+            record_info("Fine-grained installation media $self->{guest_installation_fine_grained_media} does not exist", script_output("curl -I $_guest_installation_fine_grained_media", proceed_on_failure => 1), result => 'fail');
+            $self->record_guest_installation_result('FAILED');
+        }
+        $self->{guest_installation_method_options} .= ' --install kernel=' . $self->{guest_image_folder} . '/linux,initrd=' . $self->{guest_image_folder} . '/initrd';
+        $self->{guest_installation_method_options} .= ',' . $self->{guest_installation_fine_grained_others} if ($self->{guest_installation_fine_grained_others} ne '');
+        $self->{guest_installation_fine_grained_kernel_args} .= ' root=live:' . $_guest_installation_media;
+        if ($self->{guest_installation_fine_grained_repos} ne '') {
+            my $_guest_installation_fine_grained_repos = '';
+            foreach (split(',', $self->{guest_installation_fine_grained_repos})) {
+                my $_guest_installation_fine_grained_repo = render_autoinst_url(url => $_);
+                if (script_output("curl --silent -I $_guest_installation_fine_grained_repo | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+                    record_info("Fine-grained repo $_guest_installation_fine_grained_repo does not exist", script_output("curl -I $_guest_installation_fine_grained_repo", proceed_on_failure => 1), result => 'fail');
+                    $self->record_guest_installation_result('FAILED');
+                }
+                $_guest_installation_fine_grained_repos .= $_guest_installation_fine_grained_repo . ',';
+            }
+            $_guest_installation_fine_grained_repos =~ s/,$//g;
+            $self->{guest_installation_fine_grained_kernel_args} .= ' agama.install_url=' . $_guest_installation_fine_grained_repos if (is_agama_guest(guest => $self->{guest_name}));
+        }
     }
     else {
-        if ($self->{guest_installation_method} eq 'location') {
-            $self->{guest_installation_method_options} = '--location ' . $self->{guest_installation_media};
+        if ($self->{guest_installation_method} eq 'import') {
+            $self->{guest_installation_method_options} = '--import ';
         }
-        $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . ($self->{guest_installation_method_others} ne '' ? ",$self->{guest_installation_method_others}" : '') if ($self->{guest_installation_method_others} ne '');
-        $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . ($self->{guest_installation_fine_grained} ne '' ? " --install $self->{guest_installation_fine_grained}" : '') if ($self->{guest_installation_fine_grained} ne '');
+        elsif ($self->{guest_installation_method} eq 'location') {
+            $self->{guest_installation_method_options} = '--location ' . $_guest_installation_media;
+        }
+        $self->{guest_installation_method_options} .= ($self->{guest_installation_method_others} ne '' ? ",$self->{guest_installation_method_others}" : '') if ($self->{guest_installation_method_others} ne '');
+        $self->{guest_installation_method_options} .= " --autoconsole $self->{guest_autoconsole}" if ($self->{guest_autoconsole} ne '');
+        $self->{guest_installation_method_options} .= " --noautoconsole" if ($self->{guest_noautoconsole} eq 'true');
     }
 
-    $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . " --autoconsole $self->{guest_autoconsole}" if ($self->{guest_autoconsole} ne '');
-    $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . " --noautoconsole" if ($self->{guest_noautoconsole} eq 'true');
     return $self;
 }
 
@@ -1844,7 +1882,11 @@ For guest using pre-built virtual disk image which will be downloaded and saved
 to [guest_storage_backing_path]. Although this subroutine can help correct 
 installation media major and minor version if necessary, it is just auxiliary 
 functionality and end user should always pay attendtion and use the meaningful
-and correct guest parameters and profile.
+and correct guest parameters and profile. If guest chooses to use iso installation
+media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and
+mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE. If guest_installation_media
+contains URL address to ISO media, it is supposed to be used directly instead of
+being mounted from INSTALLATION_MEDIA_NFS_SHARE.
 
 =cut
 
@@ -1854,8 +1896,8 @@ sub config_guest_installation_media {
     $self->reveal_myself;
     $self->{guest_installation_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
 
-# If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE.
     if ($self->{guest_installation_media} =~ /^.*\.iso$/im) {
+        return if ($self->{guest_installation_media} =~ /^(http|https)\:\/\//im);
         my $_installation_media_nfs_share = get_var('INSTALLATION_MEDIA_NFS_SHARE', '');
         my $_installation_media_local_share = get_var('INSTALLATION_MEDIA_LOCAL_SHARE', '');
         if (($_installation_media_nfs_share eq '') or (($_installation_media_local_share eq '') or ($_installation_media_local_share =~ /^$common_log_folder.*$/im))) {
@@ -1905,8 +1947,14 @@ sub config_guest_installation_media {
   config_guest_installation_extra_args($self[, key-value pairs of extra arguments])
 
 Configure [guest_installation_extra_args_options]. User can still change
-[guest_installation_extra_args], [guest_ipaddr] and [guest_ipaddr_static]
-by passing non-empty arguments using hash.
+[guest_installation_extra_args], [guest_ipaddr] and [guest_ipaddr_static] by
+passing non-empty arguments using hash. [guest_installation_fine_grained_kernel_args]
+and [guest_installation_fine_grained_kernel_args_overwrite] are also extra kernel
+arguments which can be appended to the arguments that virt-install will try to set
+by default for most --location installs. If you want to override the virt-install
+default, additionally specify kernel_args_overwrite=yes. Please also refer to
+https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html for
+information about [guest_installation_fine_grained_kernel_args].
 
 =cut
 
@@ -1919,6 +1967,20 @@ sub config_guest_installation_extra_args {
         my @_guest_installation_extra_args = split(/#/, $self->{guest_installation_extra_args});
         $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"$_\" " foreach (@_guest_installation_extra_args);
         $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"ip=$self->{guest_ipaddr}\"" if (($self->{guest_ipaddr_static} eq 'true') and ($self->{guest_ipaddr} ne ''));
+    }
+
+    if ($self->{guest_installation_fine_grained_kernel_args} ne '' or $self->{guest_installation_fine_grained_kernel_args_overwrite} ne '') {
+        $self->{guest_installation_method_options} = ($self->{guest_installation_method} ne 'directkernel') ? '--install ' : $self->{guest_installation_method_options} . ',';
+        if ($self->{guest_installation_fine_grained_kernel_args} ne '') {
+            $self->{guest_installation_method_options} .= 'kernel_args="' . $self->{guest_installation_fine_grained_kernel_args};
+            $self->{guest_installation_method_options} .= '"';
+            $self->{guest_installation_method_options} .= ',' if ($self->{guest_installation_fine_grained_kernel_args_overwrite} ne '');
+        }
+        if ($self->{guest_installation_fine_grained_kernel_args_overwrite} ne '') {
+            $self->{guest_installation_fine_grained_kernel_args_overwrite} =~ s/true/yes/g;
+            $self->{guest_installation_fine_grained_kernel_args_overwrite} =~ s/false/no/g;
+            $self->{guest_installation_method_options} .= 'kernel_args_overwrite=' . $self->{guest_installation_fine_grained_kernel_args_overwrite};
+        }
     }
 
     # From SLE Micro 6.0 onwards, only pre-built disk images are used for guest installation.
@@ -1948,9 +2010,16 @@ sub config_guest_installation_automation_registration {
     $self->{guest_do_registration} = 'false' if ($self->{guest_do_registration} eq '');
     record_info("Guest $self->{guest_name} registration status: $self->{guest_do_registration}", "Good luck !");
     if ($self->{guest_do_registration} eq 'false') {
-        assert_script_run("sed -ri \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}") if ($self->{guest_os_name} =~ /sles|slem/im);
+        if ($self->{guest_installation_automation_method} =~ /autoyast/im) {
+            assert_script_run("sed -i -r \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}");
+        }
+        elsif ($self->{guest_installation_automation_method} =~ /autoagama/im) {
+            assert_script_run("sed -i -r \'/registrationCode/d\' $self->{guest_installation_automation_file}");
+            assert_script_run("sed -i -r \'/registrationEmail/d\' $self->{guest_installation_automation_file}");
+        }
     }
     else {
+        $self->{guest_registration_server} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
         assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Server##/$self->{guest_registration_server}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-UserName##/$self->{guest_registration_username}/g;\' $self->{guest_installation_automation_file}");
@@ -1972,6 +2041,10 @@ sub config_guest_installation_automation_registration {
                   "      <\\\/addon>";
                 assert_script_run("sed -zri \'s/<\\\/addons>.*\\n.*<\\\/suse_register>/$_guest_registration_extension_clip\\n    <\\\/addons>\\n  <\\\/suse_register>/\' $self->{guest_installation_automation_file}");
             }
+        }
+        if ($self->{guest_installation_method} eq 'directkernel') {
+            my $_guest_registration_server = $self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com');
+            $self->{guest_installation_fine_grained_kernel_args} .= ' inst.register_url=' . $_guest_registration_server if (is_agama_guest(guest => $self->{guest_name}));
         }
     }
     return $self;
@@ -2234,7 +2307,7 @@ sub config_guest_installation_automation {
     if ($self->{guest_installation_automation_method} =~ /ignition|ignition+combustion/i) {
         $self->config_guest_firstboot_provision;
     }
-    elsif ($self->{guest_installation_automation_method} =~ /autoyast|kickstart/i) {
+    elsif ($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama/i) {
         $self->config_guest_unattended_installation;
     }
     return $self;
@@ -2277,13 +2350,13 @@ sub config_guest_unattended_installation {
     my $self = shift;
 
     $self->reveal_myself;
-    if (($self->{guest_installation_automation_method} =~ /autoyast|kickstart/i) and ($self->{guest_installation_automation_file} ne '')) {
+    if (($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama/i) and ($self->{guest_installation_automation_file} ne '')) {
         diag("Guest $self->{guest_name} is going to use unattended installation file $self->{guest_installation_automation_file}.");
         assert_script_run("curl -s -o $common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
         $self->{guest_installation_automation_file} = "$common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
         assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
 
-        if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/im)) {
+        if (($self->{guest_version_major} ge 15) and ($self->{guest_version_major} lt 16) and ($self->{guest_os_name} =~ /sles/im)) {
             my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Python3', 'Product-SLES');
             my $_guest_installation_media_extension_url = '';
             foreach (@_guest_installation_media_extensions) {
@@ -2343,6 +2416,9 @@ sub config_guest_unattended_installation {
             $self->{guest_installation_automation_options} = "--extra-args \"inst.ks=$self->{guest_installation_automation_file}\"";
             $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
         }
+        elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
+            $self->{guest_installation_fine_grained_kernel_args} .= ' agama.auto=' . $self->{guest_installation_automation_file} . ' agama.finish=stop' if ($self->{guest_installation_method} eq 'directkernel');
+        }
         if (script_retry("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
             record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}", result => 'fail');
             $self->record_guest_installation_result('FAILED');
@@ -2389,6 +2465,14 @@ sub validate_guest_installation_automation_file {
         }
         if ($self->{guest_installation_automation_method} eq 'ignition+combustion') {
             record_info("Combustion file for guest $self->{guest_name}", script_output("cat $self->{guest_log_folder}/script"));
+        }
+    }
+    elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
+        if (script_run("agama --insecure profile validate $self->{guest_installation_automation_file}") != 0) {
+            record_info("Autoagama file validation failed for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"), result => 'fail');
+        }
+        else {
+            record_info("Autoagama file validation succeeded for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"));
         }
     }
     return $self;
@@ -2693,7 +2777,7 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(agama-installer-live-root text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
@@ -2733,6 +2817,12 @@ sub monitor_guest_installation {
         record_info("Installation failed due to errors for guest $self->{guest_name}", "Bad luck ! Mark it as FAILED", result => 'fail');
         $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     }
+    elsif (match_has_tag('agama-installer-live-root')) {
+        save_screenshot;
+        $self->detach_guest_installation_screen;
+        $self->monitor_guest_agama_installation;
+        $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
+    }
     elsif (match_has_tag('linux-login') or match_has_tag('text-login') or match_has_tag('guest-console-text-login')) {
         save_screenshot;
         $self->detach_guest_installation_screen;
@@ -2761,6 +2851,187 @@ sub monitor_guest_installation {
         record_info("Guest $self->{guest_name} installation is still in progress", "Sit back and wait");
     }
     save_screenshot;
+    return $self;
+}
+
+=head2 monitor_guest_agama_installation
+
+  monitor_guest_agama_installation($self)
+
+Monitor guest installation progress using Agama installer. The process includes:
+setup_guest_agama_installation_shell
+verify_guest_agama_installation_done
+save_guest_agama_installation_logs
+=cut
+
+sub monitor_guest_agama_installation {
+    my $self = shift;
+
+    $self->setup_guest_agama_installation_shell;
+    $self->verify_guest_agama_installation_done;
+    $self->save_guest_agama_installation_logs;
+
+    return $self;
+}
+
+=head2 setup_guest_agama_installation_shell
+
+  setup_guest_agama_installation_shell($self)
+
+Password is required to access Agama installer shell using ssh. Passwordless ssh
+connection is more convenient for automation purpose, but password will still be
+used if passwordless ssh connection fails. Guest installation will be marked as
+'FAILED' if there is no way to establish ssh connection to Agama installer shell
+using publibc key, because Agama installe shell does support full ssh capability.
+=cut
+
+sub setup_guest_agama_installation_shell {
+    my $self = shift;
+
+    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i /root/.ssh/id_rsa";
+    $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
+    if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
+        $self->record_guest_installation_result('FAILED');
+        record_info("Guest $self->{guest_name} agama installer shell can not ssh login", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}", result => 'fail');
+    }
+    else {
+        enter_cmd("clear", wait_still_screen => 3);
+        enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+        assert_screen('password-prompt', timeout => 30);
+        enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        wait_still_screen(15);
+        if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
+            $self->record_guest_installation_result('FAILED');
+            record_info("Guest $self->{guest_name} agama installer shell ssh pubkey login failed", "Try login with password to guest $self->{guest_name} agama installer shell", result => 'fail');
+            enter_cmd("clear", wait_still_screen => 3);
+            enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
+            assert_screen('password-prompt', timeout => 30);
+            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            wait_still_screen(15);
+            enter_cmd("timeout --kill-after=1 --signal=9 120 ip addr show", wait_still_screen => 5, timeout => 150);
+        }
+        else {
+            record_info("Guest $self->{guest_name} agama installer shell ssh pubkey login succeeded");
+        }
+    }
+
+    return $self;
+}
+
+=head2 verify_guest_agama_installation_done
+
+  verify_guest_agama_installation_done($self)
+
+Verify progress of guest installation using Agama installer which is achieved by
+querying 'Install phase done' string in journal log. Ony for displaying purpose
+if ssh connection is established with password only. Guest installation has been
+already marked as 'FAILED' for this case in setup_guest_agama_installation_shell.
+=cut
+
+sub verify_guest_agama_installation_done {
+    my $self = shift;
+
+    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 300);
+    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+    if ($self->{guest_installation_result} eq 'FAILED') {
+        if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
+            record_info("Can not verify agama install for guest $self->{guest_name}", "Guest $self->{guest_name} has no ip address $self->{guest_ipaddr}", result => 'fail');
+            return $self;
+        }
+        while ($_wait_timeout > 0) {
+            enter_cmd("timeout --kill-after=1 --signal=9 120 journalctl -u agama | grep \'Install phase done\'", timeout => 150);
+            wait_still_screen(20);
+            $_wait_timeout -= 20;
+        }
+        enter_cmd("exit");
+        wait_still_screen(15);
+        if (!check_screen('text-logged-in-root', timeout => 30)) {
+            reset_consoles;
+            select_console('root-ssh');
+            $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
+            type_string("reset\n");
+            wait_still_screen;
+        }
+    }
+    else {
+        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i /root/.ssh/id_rsa";
+        while ($_wait_timeout > 0) {
+            if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"journalctl -u agama | grep \'Install phase done\'\"", timeout => 150) == 0) {
+                record_info("Guest $self->{guest_name} agama install phase done", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}");
+                return $self;
+            }
+            sleep 20;
+            $_wait_timeout -= 20;
+        }
+    }
+    $self->record_guest_installation_result('FAILED');
+    record_info("Guest $self->{guest_name} agama install phase not done", "Installation failed, verification timed out or failed passwordless ssh login", result => 'fail');
+
+    return $self;
+}
+
+=head2 save_guest_agama_installation_logs
+
+  save_guest_agama_installation_logs($self)
+
+Save guest agama installation logs regardless of whether a successful or failed
+installation. For 'FAILED' installation, transferring saved logs in guest system
+still requires password login.
+=cut
+
+sub save_guest_agama_installation_logs {
+    my $self = shift;
+
+    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i /root/.ssh/id_rsa";
+    if ($self->{guest_installation_result} eq 'FAILED' and script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
+        if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
+            record_info("Can not save agama install logs for guest $self->{guest_name}", "Guest $self->{guest_name} has no ip address $self->{guest_ipaddr}", result => 'fail');
+            return $self;
+        }
+        record_info("Save guest $self->{guest_name} agama install logs", "Use password ssh login");
+        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+        enter_cmd("clear", wait_still_screen => 3);
+        enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
+        assert_screen('password-prompt', timeout => 30);
+        enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        wait_still_screen(15);
+        enter_cmd("timeout --kill-after=1 --signal=9 120 mkdir /agama_installation_logs", timeout => 150);
+        enter_cmd("timeout --kill-after=1 --signal=9 180 agama logs store -d /agama_installation_logs", timeout => 210);
+        enter_cmd("timeout --kill-after=1 --signal=9 180 agama config show > /agama_installation_logs/agama_config.txt", timeout => 210);
+        enter_cmd("timeout --kill-after=1 --signal=9 120 sync", timeout => 150);
+        wait_still_screen;
+        enter_cmd("exit");
+        wait_still_screen(15);
+        if (!check_screen('text-logged-in-root', timeout => 30)) {
+            reset_consoles;
+            select_console('root-ssh');
+            $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
+            type_string("reset\n");
+            wait_still_screen;
+        }
+        my @_agama_installation_logs = ('/agama_installation_logs/agama-logs.tar.gz', '/agama_installation_logs/agama_config.txt');
+        foreach (@_agama_installation_logs) {
+            enter_cmd("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:$_ $self->{guest_log_folder}", timeout => 210);
+            assert_screen('password-prompt', timeout => 30);
+            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            wait_still_screen(15);
+        }
+    }
+    else {
+        record_info("Save guest $self->{guest_name} agama install logs", "Use passwordless ssh login");
+        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i /root/.ssh/id_rsa";
+        script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"mkdir /agama_installation_logs\"", timeout => 150);
+        script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama logs store -d /agama_installation_logs\"", timeout => 210);
+        script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama config show > /agama_installation_logs/agama_config.txt\"", timeout => 210);
+        script_run("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:/agama_installation_logs/{agama-logs.tar.gz,agama_config.txt} $self->{guest_log_folder}", timeout => 210);
+        script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"sync\"", timeout => 150);
+        if ($self->{guest_installation_result} ne 'FAILED') {
+            record_info("Reboot guest $self->{guest_name} to disk boot", "Saved guest $self->{guest_name} agama installation logs");
+            $self->power_cycle_guest('force') if (script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
+        }
+    }
+    $self->upload_guest_installation_logs;
+
     return $self;
 }
 
@@ -3308,7 +3579,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log /emergency_mode");
+    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log /emergency_mode /agama_installation_logs");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;

@@ -26,7 +26,6 @@
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>http://openqa.suse.de/assets/repo/fixed/SLE-15-SP5-Full-x86_64-GM-Media1/</guest_installation_media>
-    <guest_installation_fine_grained/>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-code.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,nvram.template=/usr/share/qemu/ovmf-x86_64-vars.bin</guest_boot_settings>
     <guest_secure_boot>false</guest_secure_boot>
     <guest_os_variant/>
