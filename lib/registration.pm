@@ -760,7 +760,9 @@ sub registration_bootloader_params {
     my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
     my @params;
-    push @params, split ' ', registration_bootloader_cmdline;
+    if (get_var('SCC_URL') ne 'none') {
+        push @params, split ' ', registration_bootloader_cmdline;
+    }
     type_string "@params", $max_interval;
     save_screenshot;
     return @params;
