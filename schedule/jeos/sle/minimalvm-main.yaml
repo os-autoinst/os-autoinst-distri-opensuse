@@ -1,6 +1,6 @@
 ---
-description: 'Main JeOS/MinimalVM test suite for SLES12/15. Maintainer: qa-c@suse.de.'
-name: 'jeos-main@64bit-virtio-vga ( qemu )'
+description: 'Main MinimalVM test suite for SLES 16. Maintainer: qa-c@suse.de.'
+name: 'minimalvm-main@64bit-virtio-vga ( qemu )'
 conditional_schedule:
     bootloader:
         MACHINE:
@@ -29,10 +29,6 @@ conditional_schedule:
         UEFI:
             '1':
                 - console/verify_efi_mok
-    udev_dep:
-        VERSION:
-            '15-SP4':
-                - console/systemd_wo_udev
     maintenance:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
@@ -67,7 +63,6 @@ schedule:
     - console/check_network
     - console/system_state
     - console/consoletest_setup
-    - '{{udev_dep}}'
     - locale/keymap_or_locale
     - console/ping
     - console/arping
@@ -82,15 +77,12 @@ schedule:
     - console/zypper_lr
     - console/zypper_ref
     - console/ncurses
-    - console/yast2_lan
     - console/curl_https
     - console/salt
     - console/glibc_sanity
     - update/zypper_up
     - console/console_reboot
     - console/zypper_in
-    - console/yast2_i
-    - console/yast2_bootloader
     - console/vim
     - console/firewall_enabled
     - console/kdump_disabled
