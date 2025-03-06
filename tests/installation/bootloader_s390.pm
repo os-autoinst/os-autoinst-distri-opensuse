@@ -103,7 +103,9 @@ sub prepare_parmfile {
 
     $params .= specific_bootmenu_params;
     unless (get_var("AGAMA")) {
-        $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+        if (get_var('SCC_URL') ne 'none') {
+            $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
+        }
     }
 
     # Pass autoyast parameter for s390x, shorten the url because of 72 columns limit in x3270 xedit
