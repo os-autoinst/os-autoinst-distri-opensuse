@@ -55,7 +55,6 @@ schedule:
     - console/ansible
     - x11/evolution/evolution_prepare_servers
     - console/unzip
-    - console/salt
     - console/gpg
     - console/rsync
     - console/shells
