@@ -16,9 +16,7 @@ use sles4sap::console_redirection;
 use sles4sap::azure_cli qw(az_keyvault_list);
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
 use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_ssh_key_from_keyvault);
-use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw( get_sdaf_inventory_path get_sdaf_config_path convert_region_to_short get_workload_vnet_code $sut_private_key_path
-  generate_resource_group_name);
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 sub run {
     my ($self, $run_args) = @_;
@@ -30,10 +28,10 @@ sub run {
 
     my $jump_host_user = get_required_var('REDIRECT_DESTINATION_USER');
     my $jump_host_ip = get_required_var('REDIRECT_DESTINATION_IP');
-    my $inventory_path = get_sdaf_inventory_path(env_code => $env_code, sdaf_region_code => $sdaf_region_code,
-        vnet_code => $workload_vnet_code, sap_sid => $sap_sid);
-    my $private_key_src_path = get_sdaf_config_path(deployment_type => 'sap_system', env_code => $env_code,
-        sdaf_region_code => $sdaf_region_code, sap_sid => $sap_sid, vnet_code => $workload_vnet_code) . '/sshkey';
+    my $config_root_path = get_sdaf_config_path(deployment_type => 'sap_system', env_code => $env_code,
+        sdaf_region_code => $sdaf_region_code, sap_sid => $sap_sid, vnet_code => $workload_vnet_code);
+    my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
+    my $private_key_src_path = get_sut_sshkey_path(config_root_path => $config_root_path);
 
     # Connect serial to Deployer VM to get inventory file
     connect_target_to_serial();

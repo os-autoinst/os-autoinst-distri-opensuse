@@ -340,7 +340,7 @@ dns_label="openqa.net"
 # Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones
 register_storage_accounts_keyvaults_with_dns = false
 
-# If defined provides the lsit of DNS servers to attach to the Virtual NEtwork
+# If defined provides the list of DNS servers to attach to the Virtual Network
 #dns_server_list = []
 
 #########################################################################################
