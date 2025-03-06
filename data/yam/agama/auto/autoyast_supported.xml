@@ -5,15 +5,6 @@
       <do_registration config:type="boolean">true</do_registration>
       <email/>
       <reg_code>{{SCC_REGCODE}}</reg_code>
-      <install_updates config:type="boolean">true</install_updates>
-      <reg_server>{{SCC_URL}}</reg_server>
-      <addons config:type="list">
-        <addon>
-          <name>sle-module-basesystem</name>
-          <version>{{VERSION}}</version>
-          <arch>{{ARCH}}</arch>
-        </addon>
-      </addons>
     </suse_register>
     <bootloader>
         <global>
@@ -21,19 +12,14 @@
         </global>
     </bootloader>
     <keyboard>
-      <keymap>it</keymap>
+      <keymap>us</keymap>
     </keyboard>
     <language>
-      <language>it_IT</language>
-      <languages>en_GB</languages>
+      <language>en_US.UTF-8</language>
     </language>
     <timezone>
-      <hwclock>UTC</hwclock>
-      <timezone>Europe/Rome</timezone>
+      <timezone>Europe/Berlin</timezone>
     </timezone>
-    <networking>
-        <keep_install_network config:type="boolean">true</keep_install_network>
-    </networking>
     <partitioning config:type="list">
       <drive>
         <type config:type="symbol">CT_DISK</type>
@@ -85,33 +71,10 @@
             <username>root</username>
         </user>
     </users>
-    <report>
-      <errors>
-        <log config:type="boolean">true</log>
-        <show config:type="boolean">true</show>
-        <timeout config:type="integer">0</timeout>
-      </errors>
-      <messages>
-        <log config:type="boolean">true</log>
-        <show config:type="boolean">true</show>
-        <timeout config:type="integer">0</timeout>
-      </messages>
-      <warnings>
-        <log config:type="boolean">true</log>
-        <show config:type="boolean">true</show>
-        <timeout config:type="integer">0</timeout>
-      </warnings>
-      <yesno_messages>
-        <log config:type="boolean">true</log>
-        <show config:type="boolean">true</show>
-        <timeout config:type="integer">0</timeout>
-      </yesno_messages>
-    </report>
     <scripts>
       <chroot-scripts config:type="list">
         <script>
           <file_name>post.sh</file_name>
-          <interpreter>shell</interpreter>
           <chrooted config:type="boolean">true</chrooted>
           <source><![CDATA[
 #!/usr/bin/env bash
