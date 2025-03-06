@@ -348,6 +348,7 @@ sub load_xfstests_tests {
     if (check_var('XFSTESTS', 'installation')) {
         load_boot_from_disk_tests;
         loadtest 'transactional/host_config';
+        loadtest 'console/suseconnect_scc';
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';
