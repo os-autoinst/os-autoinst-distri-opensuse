@@ -1,0 +1,33 @@
+---
+name: install_sles4sap_dvd_pvm
+description: >
+  Installation tests for SLES4SAP on PowerVM.
+schedule:
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/sles4sap_product_installation_mode
+  - installation/partitioning
+  - installation/partitioning_smalldisk_storageng
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - '{{test_sles4sap}}'
+conditional_schedule:
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - sles4sap/patterns
+        - sles4sap/sapconf
+        - sles4sap/saptune
