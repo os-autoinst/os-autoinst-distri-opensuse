@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024,2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: aardvark-dns
@@ -12,22 +12,33 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
-use containers::bats qw(install_bats patch_logfile enable_modules);
+use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
-my $test_dir = "/var/tmp";
+my $test_dir = "/var/tmp/aardvark-tests";
 my $aardvark = "";
-my $aardvark_version = "";
 
 sub run_tests {
+    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
+    my $netavark = script_output "rpm -ql netavark | grep podman/netavark";
+
+    my %_env = (
+        AARDVARK => $aardvark,
+        NETAVARK => $netavark,
+        BATS_TMPDIR => $tmp_dir,
+    );
+    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
+
     my $log_file = "aardvark.tap";
+    assert_script_run "echo $log_file .. > $log_file";
+    my $ret = script_run "env $env bats --tap test | tee -a $log_file", 2000;
 
     my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
-
-    assert_script_run "echo $log_file .. > $log_file";
-    script_run "env AARDVARK=$aardvark BATS_TMPDIR=/var/tmp bats --tap test | tee -a $log_file", 2000;
     patch_logfile($log_file, @skip_tests);
     parse_extra_log(TAP => $log_file);
+    script_run "rm -rf $tmp_dir";
+
+    return ($ret);
 }
 
 sub run {
@@ -46,36 +57,32 @@ sub run {
     }
     install_packages(@pkgs);
 
-    switch_cgroup_version($self, 2);
+    $self->bats_setup;
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
     record_info("aardvark-dns version", script_output("$aardvark --version"));
     record_info("aardvark-dns package version", script_output("rpm -q aardvark-dns"));
 
-    assert_script_run "cd $test_dir";
-
     # Download aardvark sources
-    $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
-    script_retry("curl -sL https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "cd $test_dir/aardvark-dns-$aardvark_version/";
+    my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
+    my $url = get_var("NETAVARK_BATS_URL", "https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz");
+    assert_script_run "mkdir -p $test_dir";
+    assert_script_run "cd $test_dir";
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
-    run_tests;
-}
-
-sub cleanup() {
-    assert_script_run "cd ~";
-    script_run("rm -rf $test_dir/aardvark-$aardvark_version/");
+    my $errors = run_tests;
+    die "ardvark-dns tests failed" if ($errors);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    cleanup();
+    bats_post_hook $test_dir;
     $self->SUPER::post_run_hook;
 }
 
