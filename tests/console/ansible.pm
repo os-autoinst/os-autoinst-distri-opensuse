@@ -35,7 +35,7 @@ sub run {
 
     # 1. System setup
 
-    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos))) {
+    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos)) || is_sle("16+")) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
