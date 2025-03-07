@@ -78,12 +78,15 @@ sub run {
     load_os_env_variables();
 
     my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
+    my $os;
     # This section is only needed by Azure tests using images uploaded
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
         my $provider = $self->provider_factory();
-        set_var('SDAF_SOURCE_IMAGE_ID', $self->{provider}->get_image_id());
+        $os = $self->{provider}->get_image_id();
+    } else {
+        $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
-    prepare_tfvars_file(deployment_type => 'sap_system', components => \@installed_components);
+    prepare_tfvars_file(deployment_type => 'sap_system', os_image => $os, components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file

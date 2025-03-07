@@ -39,12 +39,18 @@ Returns full path of the tfvars file.
 
 =item * B<components>: B<ARRAYREF> of components that should be installed. Check function B<validate_components> for available options.
 
+=item * B<os_image>: It support both Azure catalog image name (':' separated string) or
+                     image uri (as provided by PC get_image_id() and PUBLIC_CLOUD_IMAGE_LOCATION).
+                     it is only used and mandatory when deployment_type is sap_system.
+
 =back
 =cut
 
 sub prepare_tfvars_file {
     my (%args) = @_;
     croak 'Deployment type not specified' unless $args{deployment_type};
+    croak "'os_image' argument is mandatory when deployment_type is sap_system" if (($args{deployment_type} eq 'sap_system') && !$args{os_image});
+    croak "'components' argument is mandatory when deployment_type is sap_system" if (($args{deployment_type} eq 'sap_system') && !$args{components});
     my %tfvars_os_variable = (
         deployer => 'deployer_parameter_file',
         sap_system => 'sap_system_parameter_file',
@@ -59,11 +65,11 @@ sub prepare_tfvars_file {
         workload_zone => data_url('sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars'),
         library => data_url('sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars')
     );
-    # Only SAP systems deployment need those parametrs to be defined
+    # Only SAP systems deployment need those parameters to be defined
     if ($args{deployment_type} eq 'sap_system') {
         validate_components(components => $args{components});
         # Parameters required for defining DB VM image for SAP systems deployment
-        set_image_parameters();
+        set_image_parameters(os_image => $args{os_image});
         # Parameters required for Hana DB HA scenario
         set_hana_db_parameters(components => $args{components});
         # Netweaver related parameters
@@ -132,29 +138,42 @@ sub set_workload_vnet_name {
 
 =head2 set_image_parameters
 
-    set_image_parameters();
+    set_image_parameters(image_id => 'aaa:bbb:ccc:ddd');
 
 Sets OpenQA parameters required for replacing tfvars template variables for database VM image.
 
+=over
+
+=item * B<os_image>: It support both Azure catalog image name (':' separated string) or
+                     image uri (as provided by PC get_image_id() and PUBLIC_CLOUD_IMAGE_LOCATION).
+                     it is only used and mandatory when deployment_type is sap_system.
+
+=back
 =cut
 
 sub set_image_parameters {
-    my %params;
-    # Parse image ID supplied by OpenQA parameter 'PUBLIC_CLOUD_IMAGE_ID'
-    my @variable_names = qw(SDAF_IMAGE_PUBLISHER SDAF_IMAGE_OFFER SDAF_IMAGE_SKU SDAF_IMAGE_VERSION);
-    # This maps a variable name from array @variable names to value from delimited 'PUBLIC_CLOUD_IMAGE_ID' parameter
-    # Order is important here
+    my (%args) = @_;
 
-    # Add all remaining parameters with static values
-    $params{SDAF_IMAGE_OS_TYPE} = 'LINUX';    # this can be modified in case of non linux images
-    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        $params{SDAF_SOURCE_IMAGE_ID} = get_required_var('SDAF_SOURCE_IMAGE_ID');    # for supplying uploaded image
+    my %params;
+
+    # This regex targets the general Azure Gallery image naming patterns,
+    # excluding part of the name that are related to PC library.
+    if ($args{os_image} =~ /^\/subscriptions\/.*\/galleries\/.*/) {
+        $params{SDAF_SOURCE_IMAGE_ID} = $args{os_image};
         $params{SDAF_IMAGE_TYPE} = 'custom';
     }
     else {
-        @params{@variable_names} = split(':', get_required_var('PUBLIC_CLOUD_IMAGE_ID'));
+        # Parse image ID supplied by OpenQA parameter 'PUBLIC_CLOUD_IMAGE_ID'
+        my @variable_names = qw(SDAF_IMAGE_PUBLISHER SDAF_IMAGE_OFFER SDAF_IMAGE_SKU SDAF_IMAGE_VERSION);
+
+        # This maps a variable name from array @variable names to value from delimited 'PUBLIC_CLOUD_IMAGE_ID' parameter
+        # Order is important here
+        @params{@variable_names} = split(':', $args{os_image});
         $params{SDAF_IMAGE_TYPE} = 'marketplace';
     }
+
+    # Add all remaining parameters with static values
+    $params{SDAF_IMAGE_OS_TYPE} = 'LINUX';    # this can be modified in case of non linux images
 
     foreach (keys(%params)) {
         set_var($_, $params{$_});
