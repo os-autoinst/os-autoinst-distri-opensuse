@@ -37,7 +37,7 @@ sub run {
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
 
     # Mount openQA NFS share to drive N:
-    hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
+    my $mount_result = hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
         {msgs => ('Another instance of this command is already running')});
 
     # Copy assets from NFS to Hyper-V cache
@@ -45,14 +45,22 @@ sub run {
         # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
         $n = "_$n" if $n;
         if (my $iso = get_var("ISO$n")) {
+            my $basenameiso = basename($iso);
             for my $isopath ("iso", "iso\\fixed") {
-                # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
-                my $basenameiso = basename($iso);
                 # Using sha256sum to judge whether file is used by other job process.
                 hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
-                last
-                  unless hyperv_cmd("if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )",
-                    {ignore_return_code => 1});
+                # If the image exists, do nothing
+                last if hyperv_cmd("if exist $root\\cache\\$basenameiso ( exit 1 )", {ignore_return_code => 1});
+                if ($mount_result->{success}) {
+                    # If the N: drive exists, execute the batch command
+                    my $batch_cmd = "if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )";
+                    my $batch_ret = hyperv_cmd($batch_cmd, {ignore_return_code => 1});
+                } else {
+                    # If the N: drive does not exist, execute the PowerShell command to download the file
+                    my $isourl = autoinst_url("/assets/$isopath/$basenameiso");
+                    my $powershell_cmd = "powershell -Command \"curl.exe '$isourl' -o '$root\\cache\\$basenameiso'\"";
+                    my ($powershell_ret, $stdout, $stderr) = $svirt->run_cmd($powershell_cmd, wantarray => 1);
+                }
             }
         }
         if (my $hdd = get_var("HDD$n")) {
@@ -61,8 +69,16 @@ sub run {
                 my $basenamehdd_vhd = $basenamehdd =~ s/vhdx\.xz/vhdx/r;
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
-                # Copy HDD from NFS share to local cache on Hyper-V
-                hyperv_cmd_with_retry("copy /z $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
+                if ($mount_result->{success}) {
+                    # If the N: drive exists, execute the batch command to copy HDD from NFS share to local cache on Hyper-V.
+                    my $batch_cmd = "if not exist $root\\cache\\$basenamehdd ( copy /Z /Y $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\ )";
+                    my $batch_ret = hyperv_cmd($batch_cmd, {ignore_return_code => 1});
+                } else {
+                    # If the N: drive does not exist, execute the PowerShell command to download the HDD using HTTP to local cache on Hyper-V
+                    my $hddurl = autoinst_url("/assets/$hddpath/$basenamehdd");
+                    my $powershell_cmd = "powershell -Command \"curl.exe '$hddurl' -o '$root\\cache\\$basenamehdd'\"";
+                    my ($powershell_ret, $stdout, $stderr) = $svirt->run_cmd($powershell_cmd, wantarray => 1);
+                }
                 # Decompress the XZ compressed image
                 if ($hdd =~ m/vhdx\.xz/) {
                     record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
@@ -71,10 +87,9 @@ sub run {
                     last;
                 }
             }
-            # Make sure the disk file is present
-            hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
         }
     }
+
     # Verify checksums of the copied mediums
     my $errors = verify_checksum("$root\\cache\\");
     record_info("Checksum", $errors, result => 'fail') if $errors;
@@ -135,6 +150,8 @@ sub run {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "$root\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
+                # Keep vhdx file not sparse.
+                hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; \$isSparse = fsutil sparse queryflag $hdd 2>&1; if (\$isSparse -like 'This file is set as sparse') { fsutil sparse setflag $hdd 0 }"));
                 hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -ParentPath $hdd -Path $disk_path -Differencing"));
             }
             else {
