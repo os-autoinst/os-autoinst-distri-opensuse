@@ -19,7 +19,7 @@
   storage: {
     drives: [
       {
-        search: '/dev/disk/by-id/scsi-SATA_DELLBOSS_VD_b68e1f8449390010',
+        search: '/dev/disk/by-id/{{OSDISK}}',
         partitions: [
           { search: '*', delete: true },
           { generate: 'default' },
@@ -63,24 +63,13 @@
         chroot: true,
         body: |||
           #!/usr/bin/env bash
-          HOST_INFO_DB=(
-          "hana01","2c:ea:7f:ea:b0:24"
-          "hana02","2c:ea:7f:ea:ad:0c"
-          "hana03","2c:ea:7f:ea:bd:7c"
-          "hana04","5c:6f:69:14:14:12"
-          "hana05","5c:6f:69:13:f3:84"
-          )
-          for HOST_INFO in ${HOST_INFO_DB[@]}; do
-                IFS=',' read -r HOST_SHORT_NAME HOST_MAC <<< "${HOST_INFO}"
-                if ip link show | grep -qi "${HOST_MAC}";then
-                    break
-                fi
-          done
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
+          # Workaround for sshd service deactivated bsc#1238590
+          systemctl enable sshd
           # Workaround for NetworkManager to make sure the expected NIC up only
           rm -f /etc/NetworkManager/system-connections/default_connection.nmconnection
           echo -e "[main]\nno-auto-default=type:ethernet" > /etc/NetworkManager/conf.d/disable_auto.conf
-          echo -e "[connection]\nid=nic0\nuuid=$(uuidgen)\ntype=ethernet\n[ethernet]\nmac-address=${HOST_MAC}\n[ipv4]\nmethod=auto\n" > /etc/NetworkManager/system-connections/nic0.nmconnection
+          echo -e "[connection]\nid=nic0\nuuid=$(uuidgen)\ntype=ethernet\n[ethernet]\nmac-address={{SUT_NETDEVICE}}\n[ipv4]\nmethod=auto\n" > /etc/NetworkManager/system-connections/nic0.nmconnection
           chmod 0600 /etc/NetworkManager/system-connections/nic0.nmconnection
           # Workaround to set SELinux as permissive
           cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.orig
