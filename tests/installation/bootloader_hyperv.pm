@@ -36,44 +36,107 @@ sub run {
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
 
     # Mount openQA NFS share to drive N:
-    hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
-        {msgs => ('Another instance of this command is already running')});
+    my $mount_result = hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
+    {msgs => ('Access is denied.')});
 
-    # Copy assets from NFS to Hyper-V cache
-    for my $n ('', 1 .. 9) {
-        # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
-        $n = "_$n" if $n;
-        if (my $iso = get_var("ISO$n")) {
-            for my $isopath ("iso", "iso\\fixed") {
-                # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
-                my $basenameiso = basename($iso);
-                # Using sha256sum to judge whether file is used by other job process.
-                hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
-                last
-                  unless hyperv_cmd("if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )",
-                    {ignore_return_code => 1});
+    # Copy assets from openqa to Hyper-V cache
+    if ($mount_result->{success}) {
+        for my $n ('', 1 .. 9) {
+            # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
+            $n = "_$n" if $n;
+            if (my $iso = get_var("ISO$n")) {
+                for my $isopath ("iso", "iso\\fixed") {
+                    # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
+                    my $basenameiso = basename($iso);
+                    # Using sha256sum to check if the file is being used by another job process
+                    hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
+                    last
+                      unless hyperv_cmd("if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )",
+                        {ignore_return_code => 1});
+                }
+            }
+            if (my $hdd = get_var("HDD$n")) {
+                my $basenamehdd = basename($hdd);
+                for my $hddpath ("hdd", "hdd\\fixed") {
+                    my $basenamehdd_vhd = $basenamehdd =~ s/vhdx\.xz/vhdx/r;
+                    # If the image exists, do nothing
+                    last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
+                    # Copy HDD from NFS share to local cache on Hyper-V
+                    hyperv_cmd_with_retry("copy /z $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
+                    # Decompress the XZ compressed image
+                    if ($hdd =~ m/vhdx\.xz/) {
+                        record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
+                        my ($ret, $stdout, $stderr) = $svirt->run_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd", wantarray => 1);
+                        defined($stderr) && $stderr =~ /xz: $root\\cache\\$basenamehdd: File exists/ && sleep 60;
+                        last;
+                    }
+                }
+                # Ensure the disk file is present
+                hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
             }
         }
-        if (my $hdd = get_var("HDD$n")) {
-            my $basenamehdd = basename($hdd);
-            for my $hddpath ("hdd", "hdd\\fixed") {
-                my $basenamehdd_vhd = $basenamehdd =~ s/vhdx\.xz/vhdx/r;
-                # If the image exists, do nothing
-                last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
-                # Copy HDD from NFS share to local cache on Hyper-V
-                hyperv_cmd_with_retry("copy /z $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
-                # Decompress the XZ compressed image
+    } else {
+        # Define the base URLs for ISO and HDD files
+        my $iso_base_url = "http://openqa.suse.de/assets/iso/";
+        my $hdd_base_url = "http://openqa.suse.de/assets/hdd/";
+
+        # Download assets from HTTP to Hyper-V cache
+        for my $n ('', 1 .. 9) {
+            # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
+            $n = "_$n" if $n;
+            if (my $iso = get_var("ISO$n")) {
+                my $basenameiso = basename($iso);
+                my $iso_url = "$iso_base_url/$basenameiso";
+
+                # Use sha256sum to check if the file is being used by another job process
+                hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
+
+                # Download ISO from HTTP to local cache on Hyper-V
+                unless (-e "$root\\cache\\$basenameiso") {
+                    record_info 'Invoke-WebRequest', "Downloading from $iso_url to $root\\cache\\$basenameiso";
+                    my $powershell_cmd = "powershell -Command Invoke-WebRequest -Uri '$iso_url' -OutFile '$root\\cache\\$basenameiso'";
+                    my ($ret, $stdout, $stderr) = $svirt->run_cmd($powershell_cmd, wantarray => 1, timeout => 600);
+                    if ($ret != 0) {
+                        record_info 'Invoke-WebRequest', "Failed to download $iso_url: $stderr";
+                    }
+                }
+            }
+
+            if (my $hdd = get_var("HDD$n")) {
+                my $basenamehdd = basename($hdd);
+                my $hdd_url = "$hdd_base_url/$basenamehdd";
+
+                # If the image already exists, do nothing
+                if (-e "$root\\cache\\$basenamehdd") {
+                    next;
+                }
+
+                # Download HDD from HTTP to local cache on Hyper-V
+                record_info 'Invoke-WebRequest', "Downloading from $hdd_url to $root\\cache\\$basenamehdd";
+                my $powershell_cmd = "powershell -Command Invoke-WebRequest -Uri '$hdd_url' -OutFile '$root\\cache\\$basenamehdd'";
+                my ($ret, $stdout, $stderr) = $svirt->run_cmd($powershell_cmd, wantarray => 1);
+                if ($ret != 0) {
+                    record_info 'Invoke-WebRequest', "Failed to download $hdd_url: $stderr";
+                }
+
+                # If necessary, decompress the XZ compressed image
                 if ($hdd =~ m/vhdx\.xz/) {
                     record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
                     my ($ret, $stdout, $stderr) = $svirt->run_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd", wantarray => 1);
-                    defined($stderr) && $stderr =~ /xz: $root\\cache\\$basenamehdd: File exists/ && sleep 60;
-                    last;
+                    if (defined($stderr) && $stderr =~ /xz: $root\\cache\\$basenamehdd: File exists/) {
+                        sleep 60;
+                    }
+                }
+
+                # Ensure the disk file is present
+                my $basenamehdd_vhd = $basenamehdd =~ s/vhdx\.xz/vhdx/r;
+                unless (-e "$root\\cache\\$basenamehdd_vhd") {
+                    record_info 'error', "Failed to find decompressed HDD file: $root\\cache\\$basenamehdd_vhd";
                 }
             }
-            # Make sure the disk file is present
-            hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
         }
     }
+
     # Verify checksums of the copied mediums
     my $errors = verify_checksum("$root\\cache\\");
     record_info("Checksum", $errors, result => 'fail') if $errors;
