@@ -24,12 +24,12 @@ use testapi qw(
 );
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_svirt);
+use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
     my $test = get_required_var('AGAMA_TEST');
     my $test_options = get_required_var('AGAMA_TEST_OPTIONS');
-    my $reboot_page = $testapi::distri->get_reboot();
     my $spec = "spec.txt";
     my $tap = "tap.txt";
     my $reporters = "--test-reporter=spec --test-reporter=tap --test-reporter-destination=/tmp/$spec --test-reporter-destination=/tmp/$tap";
@@ -56,7 +56,7 @@ sub run {
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    $reboot_page->reboot();
+    power_action('reboot', keepconsole => 1, first_reboot => 1);
 }
 
 1;

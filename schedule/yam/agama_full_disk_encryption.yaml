@@ -4,8 +4,7 @@ description: >
   Perform full disk encryption installation with agama.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/import_agama_profile
-  - yam/agama/patch_agama_tests
+  - yam/agama/agama_arrange
   - yam/agama/agama
   - yam/agama/boot_full_disk_encryption
   - installation/first_boot
