@@ -46,7 +46,7 @@ sub install_ncat {
         $version = get_required_var("VERSION");
         $version =~ s/-/_/g;
         $version = "SLE_" . $version;
-    } elsif (is_tumbleweed) {
+    } elsif (is_tumbleweed || is_sle('>=16')) {
         $version = "openSUSE_Factory";
         $version .= "_ARM" if (is_aarch64);
     }
