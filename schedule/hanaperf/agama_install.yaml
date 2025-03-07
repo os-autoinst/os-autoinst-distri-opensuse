@@ -2,6 +2,14 @@ name: SLE16-HANA-PERF-BM-Installation
 description:
     SLE16 Agama Installation for HANA perf bare-metal x86_64 and ppc64le
 schedule:
-    - installation/ipxe_install
+    - '{{pxe_bootloader}}'
     - installation/agama_reboot
     - support_server/login
+    - kernel_performance/hanaperf_postinstall
+conditional_schedule:
+  pxe_bootloader:
+    ARCH:
+      x86_64:
+        - installation/ipxe_install
+      ppc64le:
+        - installation/bootloader
