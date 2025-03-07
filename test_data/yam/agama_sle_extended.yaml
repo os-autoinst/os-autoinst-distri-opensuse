@@ -1,0 +1,3 @@
+---
+os_release_name: SLES
+hostname_from_kernel_cmdline: suselinux
