@@ -17,7 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils qw(is_sle is_jeos);
+use version_utils qw(is_sle is_jeos has_selinux);
 
 sub run {
     select_serial_terminal;
@@ -84,6 +84,9 @@ sub run {
     assert_script_run 'sed -i "s/<VirtualHost \\*:80>/<VirtualHost \\*:85>/g" /etc/apache2/vhosts.d/myvhost.conf';
     assert_script_run 'mkdir -p /srv/www/vhosts/dummy-host.example.com';
     assert_script_run 'touch /srv/www/vhosts/dummy-host.example.com/listed_test_file';
+
+    # Change SELinux policy for port 85, poo#178240
+    assert_script_run 'semanage port -a -t http_port_t -p tcp 85' if has_selinux;
 
     # Create separate vhost for 'localhost'
     assert_script_run 'cp /etc/apache2/vhosts.d/vhost.template /etc/apache2/vhosts.d/localhost.conf';
