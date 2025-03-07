@@ -74,7 +74,7 @@ sub ibft_validation {
     assert_script_run 'dmesg | grep -E ' . $kb_ibft_messsages;
     # Verify grub entries
     foreach my $entry (keys %{$ibft_grub}) {
-        assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/';
+        assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/*';
     }
     # Enabling iBFT autoconfiguration for the interfaces should be done in initrd
     if (is_sle('<15-sp4')) {
