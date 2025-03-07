@@ -630,6 +630,13 @@ sub bootmenu_default_params {
         if (get_var('REPO_0')) {
             my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
             my $repo = get_var('REPO_0');
+
+            # Split repodata functionality in Leap 16.0
+            # https://code.opensuse.org/leap/features/issue/193
+            if (get_var('SPLIT_REPODATA')) {
+                $repo .= "/\$basearch";
+            }
+
             # inst.install_url supports comma separated list if more repos are needed ...
             push @params, "inst.install_url=$host/assets/repo/$repo";
         }
@@ -893,6 +900,9 @@ sub specific_bootmenu_params {
     }
 
     if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
+        if (get_var('SPLIT_REPODATA')) {
+            $agama_install_url .= "/\$basearch";
+        }
         push @params, "inst.install_url=$agama_install_url";
     }
 
