@@ -24,6 +24,7 @@ use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
 
 use Utils::Architectures;
+use Utils::Backends qw(is_qemu);
 
 sub get_grub_menu_agama {
     return Yam::Agama::Pom::GrubMenuAgamaPage->new({
@@ -54,7 +55,7 @@ sub get_agama_up_an_running {
 }
 
 sub get_reboot {
-    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || is_ppc64le();
+    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || (is_ppc64le() && !is_qemu);
     return Yam::Agama::Pom::RebootPage->new();
 }
 
