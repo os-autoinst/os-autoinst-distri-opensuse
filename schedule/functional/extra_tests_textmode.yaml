@@ -110,6 +110,8 @@ conditional_schedule:
                 - console/velociraptor_client_event_collect
             aarch64:
                 - console/velociraptor_client_event_collect
+            ppc64le:
+                - console/velociraptor_client_event_collect
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
