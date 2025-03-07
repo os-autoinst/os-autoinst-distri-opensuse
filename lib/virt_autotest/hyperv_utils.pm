@@ -50,7 +50,7 @@ sub hyperv_cmd_with_retry {
     for my $retry (1 .. $attempts) {
         my ($ret, $stdout, $stderr) = console('svirt')->run_cmd($cmd, wantarray => 1);
         # return when powershell returns 0 (SUCCESS)
-        return if $ret == 0;
+        return {success => 1} if $ret == 0;
 
         diag "Attempt $retry/$attempts: Command failed";
         my $msg_found = 0;
@@ -71,9 +71,9 @@ sub hyperv_cmd_with_retry {
             }
         }
         # Error we don't know if we should attempt to recover from
-        die 'Command failed with unhandled error' unless $msg_found;
+        return {success => 0, error => "Command failed with unhandled error"} unless $msg_found;
     }
-    die 'Run out of attempts';
+    return {success => 0, error => "Run out of attempts"};
 }
 
 1;
