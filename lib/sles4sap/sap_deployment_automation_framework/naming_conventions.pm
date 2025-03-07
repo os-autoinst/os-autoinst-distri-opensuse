@@ -43,6 +43,7 @@ our @EXPORT = qw(
   generate_deployer_name
   get_workload_vnet_code
   get_sdaf_inventory_path
+  get_sut_sshkey_path
 );
 
 =head2 %sdaf_region_matrix
@@ -378,17 +379,14 @@ sub get_workload_vnet_code {
 
 =head2 get_sdaf_inventory_path
 
-    get_sdaf_inventory_path();
+    get_sdaf_inventory_path(config_root_path=>'/config/path', sap_sid=>'QAS');
 
 Returns full Ansible inventory filepath respective to deployment type.
+B<config_root_path> can be obtained from function B<get_sdaf_config_path>.
 
 =over
 
-=item * B<env_code>:  SDAF parameter for environment code (for our purpose we can use 'LAB')
-
-=item * B<sdaf_region_code>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)
-
-=item * B<vnet_code>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env
+=item * B<config_root_path>: SDAF config root path
 
 =item * B<sap_sid>: SDAF parameter for sap system ID.
 
@@ -397,16 +395,32 @@ Returns full Ansible inventory filepath respective to deployment type.
 
 sub get_sdaf_inventory_path {
     my (%args) = @_;
-
-    # Argument (%args) validation is done by 'get_sdaf_config_path()'
-    my $config_root_path = get_sdaf_config_path(
-        deployment_type => 'sap_system',
-        sap_sid => $args{sap_sid},
-        env_code => $args{env_code},
-        vnet_code => $args{vnet_code},
-        sdaf_region_code => $args{sdaf_region_code}
-    );
+    for my $argument (qw(sap_sid config_root_path)) {
+        croak "Missing mandatory argument '$argument'" unless $args{$argument};
+    }
 
     # file name is hard coded in SDAF
-    return "$config_root_path/$args{sap_sid}_hosts.yaml";
+    return "$args{config_root_path}/$args{sap_sid}_hosts.yaml";
+}
+
+=head2 get_sut_sshkey_path
+
+    get_sut_sshkey_path(config_root_path=>'/config/path');
+
+Returns full SUT private sshkey filepath located on deployer VM after deployment.
+B<config_root_path> can be obtained from function B<get_sdaf_config_path>.
+
+=over
+
+=item * B<config_root_path>: SDAF config root path
+
+=back
+=cut
+
+sub get_sut_sshkey_path {
+    my (%args) = @_;
+    croak 'Missing mandatory argument $args{config_root_path}' unless $args{config_root_path};
+
+    # file name is hard coded in SDAF
+    return "$args{config_root_path}/sshkey";
 }

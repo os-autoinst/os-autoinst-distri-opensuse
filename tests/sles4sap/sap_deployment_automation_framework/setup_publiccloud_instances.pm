@@ -13,8 +13,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
 use sles4sap::sap_deployment_automation_framework::inventory_tools qw(read_inventory_file sdaf_create_instances);
-use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(get_sdaf_inventory_path convert_region_to_short get_sdaf_config_path get_workload_vnet_code);
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 sub run {
     my ($self, $run_args) = @_;
@@ -24,19 +23,15 @@ sub run {
     my $sdaf_region_short = convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     my $sdaf_env_code = get_required_var('SDAF_ENV_CODE');
 
-    my $inventory_path = get_sdaf_inventory_path(
-        env_code => $sdaf_env_code,
-        sdaf_region_code => $sdaf_region_short,
-        vnet_code => $workload_vnet_code,
-        sap_sid => $sap_sid
-    );
-
-    my $sut_ssh_private_key = get_sdaf_config_path(
+    my $config_root_path = get_sdaf_config_path(
         deployment_type => 'sap_system',
         env_code => $sdaf_env_code,
         sdaf_region_code => $sdaf_region_short,
         vnet_code => $workload_vnet_code,
-        sap_sid => $sap_sid) . '/sshkey';
+        sap_sid => $sap_sid);
+
+    my $inventory_path = get_sdaf_inventory_path(config_root_path => $config_root_path, sap_sid => $sap_sid);
+    my $sut_ssh_private_key = get_sut_sshkey_path(config_root_path => $config_root_path);
 
     # Redirect serial to deployer VM. Deployer VM takes same role as worker VM.
     # Normally PC test runs under root user
