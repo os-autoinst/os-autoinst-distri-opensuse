@@ -707,7 +707,7 @@ sub expand_variables {
     # Expand other variables
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC
       SCC_REGCODE_LTSS SCC_REGCODE_WE SCC_REGCODE_SLES4SAP SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
-      AGAMA_PRODUCT_ID
+      AGAMA_PRODUCT_ID OSDISK SUT_NETDEVICE
       REPO_SLE_MODULE_DEVELOPMENT_TOOLS SCC_REGCODE_LIVE);
     # Push more variables to expand from the job setting
     my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
