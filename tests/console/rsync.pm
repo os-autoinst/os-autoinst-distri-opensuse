@@ -28,6 +28,9 @@ sub run {
         zypper_call('-t in rsync', dumb_term => 1);
     }
 
+    # bsc#1238784 tar is not installed by default on BETA
+    zypper_call('in tar') if is_sle('>=16');
+
     # create the folders and files that will be synced
     assert_script_run('mkdir /tmp/rsync_test_folder_a');
     assert_script_run('mkdir /tmp/rsync_test_folder_b');
