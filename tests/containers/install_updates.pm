@@ -23,7 +23,7 @@ sub run {
     if ($host_distri =~ /sles|opensuse/) {
         zypper_call("--quiet up", timeout => $update_timeout);
         ensure_ca_certificates_suse_installed() if is_sle();
-        if (script_run('rpm -q tar') && $version =~ '16.0') {
+        if (script_run('rpm -q tar') && $version =~ '16') {
             record_soft_failure('bsc#1238784 - tar packet not installed by default');
             zypper_call('in tar');
         }
