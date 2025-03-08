@@ -199,7 +199,7 @@ sub run_test {
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
     if (is_s390x) {
-        virt_utils::lpar_cmd("$test_cmd");
+        virt_utils::lpar_cmd("$test_cmd", {timeout => $timeout});
         return;
     }
 
