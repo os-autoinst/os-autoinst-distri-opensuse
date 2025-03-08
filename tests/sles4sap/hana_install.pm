@@ -19,6 +19,7 @@ use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
 use POSIX 'ceil';
 use Utils::Logging 'save_and_upload_log';
+use repo_tools 'add_qa_head_repo';
 
 sub is_multipath {
     return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
@@ -115,6 +116,19 @@ sub run {
         }
         push @zypper_in, 'ClusterTools2';
         zypper_call(join(' ', @zypper_in));
+    }
+
+    # Workaround for SLE16 if variable WORKAROUND_BSC1234806 set
+    if (get_var("WORKAROUND_BSC1234806")) {
+        record_soft_failure("bsc#1234806: workaround by installing hana_insserv_compat package from QA:HEAD");
+        add_qa_head_repo;
+        zypper_call("in hana_insserv_compat");
+    }
+
+    # Modify SELinux mode
+    if (get_var("WORKAROUND_BSC1239148")) {
+        record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
+        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
     }
 
     # Add host's IP to /etc/hosts
