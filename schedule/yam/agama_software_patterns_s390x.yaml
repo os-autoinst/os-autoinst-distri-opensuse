@@ -1,0 +1,12 @@
+---
+name: agama
+description: >
+  Perform interactive installation with pattern selection for s390x.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns
