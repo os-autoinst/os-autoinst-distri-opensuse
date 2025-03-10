@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call permit_root_ssh);
+use version_utils 'is_sle';
 use power_action_utils 'power_action';
 
 sub run {
@@ -25,7 +26,8 @@ sub run {
     zypper_call("in wget gnutls");
 
     # Install tpm and tpm2 related packages, then we can verify the swtpm function
-    zypper_call("in tpm-tools tpm-quote-tools tpm2-0-tss tpm2-tss-engine tpm2.0-abrmd tpm2.0-tools trousers");
+    zypper_call("in tpm-tools tpm2-0-tss tpm2-tss-engine tpm2.0-abrmd tpm2.0-tools trousers");
+    zypper_call("in tpm-quote-tools") if is_sle('<16');
     assert_script_run("systemctl enable tcsd");
 
     # Modify the grub setting with "grub timeout=1"
