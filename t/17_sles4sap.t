@@ -286,6 +286,7 @@ subtest '[download_hana_assets_from_server]' => sub {
     $sles4sap->redefine(script_run => sub { push @calls, @_; return 1; });
     $sles4sap->redefine(assert_script_run => sub { push @calls, @_; return; });
     $sles4sap->redefine(data_url => sub { return 'MY_DOWNLOAD_URL'; });
+    $sles4sap->redefine(zypper_call => sub { push @calls, @_; return 1; });
 
     set_var('ASSET_0', 'Zanzibar');
     $mockObject->download_hana_assets_from_server();
