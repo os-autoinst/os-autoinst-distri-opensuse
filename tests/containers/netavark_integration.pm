@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry systemctl);
+use utils qw(script_retry);
 use containers::common;
 use containers::bats;
 use version_utils qw(is_sle is_tumbleweed is_microos);
@@ -54,7 +54,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns cargo dnsmasq firewalld iproute2 iptables jq make protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables jq make protobuf-devel netavark);
     if (is_tumbleweed || is_microos) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
@@ -62,8 +62,6 @@ sub run {
     }
     install_packages(@pkgs);
     install_ncat;
-
-    systemctl "enable --now dnsmasq";
 
     $self->bats_setup;
 
