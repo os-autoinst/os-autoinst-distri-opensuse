@@ -53,7 +53,9 @@ sub basic_container_tests {
     my %args = @_;
     my $runtime = $args{runtime};
     die "Undefined container runtime" unless $runtime;
-    my $image = "registry.opensuse.org/opensuse/tumbleweed";
+    # re-enable after https://bugzilla.opensuse.org/show_bug.cgi?id=1239168
+    #my $image = "registry.opensuse.org/opensuse/tumbleweed";
+    my $image = "registry.opensuse.org/devel/bci/tumbleweed/images/opensuse/tumbleweed:latest";
 
     ## Test search feature
     validate_script_output("$runtime search --no-trunc --format 'table {{.Name}} {{.Description}}' tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 300);
