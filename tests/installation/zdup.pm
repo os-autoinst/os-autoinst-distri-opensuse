@@ -106,7 +106,7 @@ sub run {
         # Split repodata functionality in Leap 16.0
         # https://code.opensuse.org/leap/features/issue/193
         if (get_var('SPLIT_REPODATA')) {
-            $r .= "/\$basearch";
+            $r .= "/\\\$basearch";
         }
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
         $nr++;
