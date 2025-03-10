@@ -29,15 +29,9 @@ sub run {
         # WSL2 platform must be enabled from the MSstore from now on
         $self->run_in_powershell(
             cmd => "wsl --install --no-distribution",
-            code => sub {
-                unless (is_aarch64) {
-                    assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 900);
-                    assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
-                    assert_and_click "windows-user-acount-ctl-yes";
-                }
-                assert_screen("windows-wsl-cli-install-finished", timeout => 900);
-            }
+            timeout => 300
         );
+        assert_screen("windows-wsl-cli-install-finished", timeout => 900);
         # Disable HyperV in WSL2
         # On aarch64 with WSL2 this gets stuck somehow or is too slow (>2h?).
         $self->run_in_powershell(
