@@ -40,6 +40,7 @@ sub restore_config {
     script_run('rm -f /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
     script_run('unlink /etc/resolv.conf');
     systemctl('restart NetworkManager');
+    script_retry('systemctl restart NetworkManager-wait-online.service', retry => 3, delay => 20);
 }
 
 # double check what DNS-Manager is currently used by NetworkManger
@@ -148,7 +149,6 @@ true'
     record_info('with dnsmasq');
     ($RcManager, $mode) = dns_mgr();
     die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
-    ping_check;
     # systemd-resolved
     unless (is_vmware) {
         assert_script_run('rm -f /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
@@ -158,10 +158,10 @@ true'
         # DNS-Manager check
         ($RcManager, $mode) = dns_mgr();
         die 'wrong DNS-Manager is currently used for systemd-resolved' if ($RcManager !~ /unmanaged/ || $mode !~ /systemd-resolved/);
-        ping_check;
-        # Restore the original system config
-        restore_config;
     }
+    ping_check;
+    # Restore the original system config
+    restore_config;
 }
 
 sub test_flags {
