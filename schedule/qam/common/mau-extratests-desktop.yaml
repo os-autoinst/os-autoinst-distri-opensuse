@@ -13,6 +13,7 @@ schedule:
   - x11/yast2_lan_restart
   - x11/remote_desktop/screensharing_available
   - console/yast2_lan_device_settings
+  - console/libaom
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
