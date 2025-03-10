@@ -60,6 +60,7 @@
       <li><a href="#get_instance_profile_path">get_instance_profile_path</a></li>
       <li><a href="#load_ase_env">load_ase_env</a></li>
       <li><a href="#upload_ase_logs">upload_ase_logs</a></li>
+      <li><a href="#modify_selinux_setenforce">modify_selinux_setenforce</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap.pm</h1>
@@ -421,6 +422,12 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <pre><code>$self-&gt;upload_ase_logs</code></pre>
 
 <p>Save and upload to openQA the SAP ASE installation logs. These are typically located in <code>/opt/sap/log</code> and <code>/opt/sap/$SYBASE_ASE/install</code> but depend on the response file used during installation.</p>
+
+<h2 id="modify_selinux_setenforce">modify_selinux_setenforce</h2>
+
+<pre><code>$self-&gt;modify_selinux_setenforce</code></pre>
+
+<p>Modify SELinux mode to Enforcing or Permissive.</p>
 
 
 </body>
