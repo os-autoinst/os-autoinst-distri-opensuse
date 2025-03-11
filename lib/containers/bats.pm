@@ -66,7 +66,7 @@ sub install_ncat {
 sub install_bats {
     return if (script_run("which bats") == 0);
 
-    my $bats_version = get_var("BATS_VERSION", "1.11.0");
+    my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "bash bats-core-$bats_version/install.sh /usr/local";
