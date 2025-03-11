@@ -42,14 +42,14 @@ sub check_k3s {
     assert_script_run('k3s kubectl config view --raw');
     validate_script_output_retry("k3s kubectl get nodes", qr/ Ready.*control-plane,master /, retry => 6, delay => 15, timeout => 90);
     validate_script_output_retry("k3s kubectl get namespaces", qr/default.*Active/, timeout => 120, delay => 60, retry => 3);
-    validate_script_output_retry('k3s kubectl get events -A', qr/Started container local-path-provisioner/, retry => 6, delay => 30, timeout => 90);
+    validate_script_output_retry('k3s kubectl get events -A', qr/Started container local-path-provisioner/, retry => 10, delay => 60, timeout => 300);
 
     # the default service account should be ready by now
-    assert_script_run("k3s kubectl get serviceaccount default -o name");
+    script_retry("k3s kubectl get serviceaccount default -o name", retry => 10, delay => 60, timeout => 300);
     # expect that k3s api to be ready and is accessible
     record_info("k3s api resources", script_output("k3s kubectl api-resources"));
-    assert_script_run("k3s kubectl auth can-i 'create' 'pods'");
-    assert_script_run("k3s kubectl auth can-i 'create' 'deployments'");
+    assert_script_run("k3s kubectl auth can-i 'create' 'pods'", timeout => 300);
+    assert_script_run("k3s kubectl auth can-i 'create' 'deployments'", timeout => 300);
 }
 
 sub ensure_k3s_start {

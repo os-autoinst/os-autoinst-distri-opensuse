@@ -43,13 +43,17 @@ sub run {
     }
     my $helm_values = get_var('HELM_CONFIG');
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
-    my ($repository, $tag) = split(':', get_required_var('CONTAINER_IMAGE_TO_TEST'), 2);
-    my $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
+    my $set_options = "";
+    if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
+        my ($repository, $tag) = split(':', $image, 2);
+        $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
+    }
     my $helm_options = "--debug";
     $helm_options = "-f myvalue.yaml $helm_options" if ($helm_values);
-    assert_script_run("helm install $set_options rmt $helm_chart $helm_options");
+    script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60) if ($helm_chart =~ m!^oci://!);
+    assert_script_run("helm install $set_options rmt $helm_chart $helm_options", timeout => 300);
     assert_script_run("helm list");
-    sleep 60;    # Wait until images are downloaded
+    validate_script_output_retry("kubectl get pods", qr/rmt-app/, retry => 10, delay => 30, timeout => 120, fail_message => "rmt-app didn't became ready");
     my @rmts = split(' ', script_output("kubectl get pods | grep rmt-app"));
     my $rmtapp = $rmts[0];
     validate_script_output_retry("kubectl logs $rmtapp", sub { m/All repositories have already been enabled/ }, retry => 30, timeout => 60, delay => 60);
