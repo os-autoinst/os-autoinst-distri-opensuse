@@ -94,7 +94,8 @@ sub run {
     assert_script_run("$quadlet -version");
     for my $file (@files) {
         my ($path, $content) = @$file;
-        assert_script_run("printf '$content' > $path");
+        $content =~ s/\n/\\n/g;
+        assert_script_run("echo -e '$content' > $path");
     }
     record_info('Unit', script_output("$quadlet -v -dryrun"));
 
