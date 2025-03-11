@@ -1277,6 +1277,7 @@ sub qesap_upload_crm_report {
     $log_filename =~ s/[\[\]"]//g;
 
     my $crm_log = "/var/log/$log_filename";
+    my $crm_log_postfix = is_sle('15+') ? 'tar.gz' : 'tar.bz2';
     my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
     qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
         provider => $args{provider},
@@ -1291,7 +1292,7 @@ sub qesap_upload_crm_report {
         root => 1,
         remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
-        file => "$log_filename.tar.gz",
+        file => "$log_filename" . '.' . "$crm_log_postfix",
         verbose => 1);
     upload_logs($local_path, failok => 1);
 }

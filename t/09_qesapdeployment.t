@@ -777,7 +777,7 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
     ok((any { /.*\/var\/log\/vmhana01\-crm_report/ } @calls), 'crm report file has the node name in it');
-    ok((any { /vmhana01\-crm_report\.tar\.gz/ } @fetch_filename), 'crm report fetch file is properly formatted');
+    ok((any { /vmhana01\-crm_report\.tar/ } @fetch_filename), 'crm report fetch file is properly formatted');
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {
