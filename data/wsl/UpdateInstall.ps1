@@ -85,7 +85,6 @@ foreach ($Update in $SearchResult.Updates) {
     }
 }
 
-# Completion message
 LogMessage "Windows Update process completed."
 $port.WriteLine('0')
 exit 0
