@@ -75,6 +75,8 @@ sub run {
 
     switch_to_user;
 
+    record_info("buildah rootless", script_output("buildah info"));
+
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     my $url = get_var("BUILDAH_BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
