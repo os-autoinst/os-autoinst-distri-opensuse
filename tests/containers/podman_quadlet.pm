@@ -115,7 +115,6 @@ sub run {
         script_retry("podman pull $src_image", retry => 3, delay => 60, timeout => 180);
         systemctl("start $unit_name-build.service", timeout => 180);
         record_info('Build output', script_output("journalctl --no-pager -u $unit_name-build"));
-        systemctl("is-active $unit_name-build.service");    # Service Type=oneshot stays up after finishing
         validate_script_output('podman images -n', qr/$build_imagetag/);
     }
 
