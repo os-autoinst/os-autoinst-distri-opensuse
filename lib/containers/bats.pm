@@ -66,7 +66,7 @@ sub install_ncat {
 sub install_bats {
     return if (script_run("which bats") == 0);
 
-    my $bats_version = get_var("BATS_VERSION", "1.11.0");
+    my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "bash bats-core-$bats_version/install.sh /usr/local";
@@ -205,7 +205,7 @@ sub selinux_hack {
 
     # Use the same labeling in /var/lib/containers for $dir
     # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir";
+    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir", timeout => 120;
     script_run "sudo restorecon -R -v $dir";
 }
 

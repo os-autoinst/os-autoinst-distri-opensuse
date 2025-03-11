@@ -102,6 +102,8 @@ sub run {
 
     switch_to_user;
 
+    record_info("podman rootless", script_output("podman info"));
+
     # Download podman sources
     my $podman_version = get_podman_version();
     my $url = get_var("PODMAN_BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
