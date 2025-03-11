@@ -28,6 +28,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils;
 use containers::common;
 use containers::utils;
 use containers::container_images;
@@ -155,8 +156,10 @@ sub run {
     check_containers_connectivity($engine);
 
     basic_container_tests(runtime => $self->{runtime});
+
     # Build an image from Dockerfile and run it
-    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => 'registry.opensuse.org/opensuse/bci/python:latest');
+    my $base = (is_opensuse ? 'registry.opensuse.org/opensuse/bci/python:latest' : 'registry.suse.com/bci/python:3.11');
+    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => $base);
 
     # Once more test the basic functionality
     runtime_smoke_tests(runtime => $engine);
