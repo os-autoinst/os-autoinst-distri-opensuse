@@ -205,7 +205,7 @@ sub selinux_hack {
 
     # Use the same labeling in /var/lib/containers for $dir
     # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir";
+    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir", timeout => 120;
     script_run "sudo restorecon -R -v $dir";
 }
 
