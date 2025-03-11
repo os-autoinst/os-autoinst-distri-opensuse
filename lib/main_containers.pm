@@ -285,9 +285,15 @@ sub load_container_tests {
         return;
     }
 
-    if (get_var('HELM_CHART')) {
+    ## Helm chart tests. Add your individual helm chart tests here.
+    if (my $chart = get_var('HELM_CHART')) {
         set_var('K3S_ENABLE_COREDNS', 1);
-        loadtest 'containers/helm_rmt';
+
+        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } else {
+            die "Unsupported HELM_CHART value";
+        }
         return;
     }
 
