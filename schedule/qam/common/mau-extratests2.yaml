@@ -6,6 +6,7 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/dnsmasq
   - console/curl_ipv6
   - console/wget_ipv6
   - console/ca_certificates_mozilla
