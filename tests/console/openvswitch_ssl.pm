@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     select_console 'root-console';
@@ -27,6 +27,7 @@ sub run {
         zypper_call("in python python-base $ovs_pkg");
     } else {
         zypper_call("in python3 python3-base $ovs_pkg");
+        zypper_call("in python311") if is_tumbleweed;
     }
 
     # Start openvswitch service
@@ -51,9 +52,12 @@ sub run {
     assert_script_run 'wget --quiet ' . data_url("$fname");
     assert_script_run "tar jvfx $fname";
 
+    my $python = "";    # use default python
+    $python = "python3.11 " if is_tumbleweed;    # On tumbleweed use python3.11 bsc#1239175
+
     # Setup a simulated open-flow controller with POX
     type_string
-"pox/./pox.py openflow.of_01 --port=6634 --private-key=/etc/openvswitch/server-key.pem --certificate=/etc/openvswitch/server-cert.pem --ca-cert=/etc/openvswitch/ca-cert.pem 2>&1 | tee /dev/$serialdev &\n";
+"${python}pox/pox.py openflow.of_01 --port=6634 --private-key=/etc/openvswitch/server-key.pem --certificate=/etc/openvswitch/server-cert.pem --ca-cert=/etc/openvswitch/ca-cert.pem 2>&1 | tee /dev/$serialdev &\n";
     die 'pox was not up correctly' unless (wait_serial qr/INFO:core:POX.*is up/ms);
     # Enter to show prompt
     for (1 .. 2) {
