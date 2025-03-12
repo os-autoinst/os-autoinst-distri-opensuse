@@ -46,7 +46,6 @@ schedule:
     - x11/sshxterm
     - x11/firefox
     - x11/firefox_audio
-    - x11/chromium
     - x11/ooffice
     - x11/oomath
     - x11/oocalc
@@ -58,7 +57,6 @@ schedule:
     - x11/desktop_mainmenu
     - x11/inkscape
     - x11/gimp
-    - x11/hexchat
     - x11/vlc
     - x11/kate
     - x11/amarok
