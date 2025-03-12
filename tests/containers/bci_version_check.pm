@@ -32,7 +32,7 @@ sub run {
     # If multiple engines are defined (e.g. CONTAINER_RUNTIMES=podman,docker), we use just one. podman is preferred.
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     my $engine;
-    if ($engines =~ /podman/) {
+    if ($engines =~ /podman|k3s/) {
         $engine = 'podman';
     } elsif ($engines =~ /docker/) {
         $engine = 'docker';
