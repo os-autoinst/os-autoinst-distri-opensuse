@@ -12,7 +12,19 @@
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true,
+    sshPublicKey: 'enable ssh',
   },
+  storage: {
+    drives: [
+      {
+        search: '/dev/sda',
+        partitions: [
+          { search: '*', delete: true },
+          { generate: 'default' },
+        ],
+      },
+    ],
+  },  
   scripts: {
     pre: [
       {

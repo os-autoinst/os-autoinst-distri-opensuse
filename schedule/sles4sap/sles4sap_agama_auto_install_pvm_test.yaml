@@ -1,0 +1,21 @@
+---
+name: sles4sap_agama_auto_install_pvm_test
+description: >
+  SLES4SAP Agama Auto Installation on pvm_hmc
+  Run HANA or NetWeaver installation and test by conditional
+schedule:
+  - yam/agama/boot_agama
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/patterns
+  - '{{single_node_testcase}}'
+conditional_schedule:
+  single_node_testcase:
+    SINGLE_NODE_TESTCASE:
+      single_node_hana_cli:
+        - sles4sap/hana_install
+        - sles4sap/hana_test
+      single_node_netweaver:
+        - sles4sap/netweaver_install
+        - sles4sap/netweaver_test_instance
