@@ -35,10 +35,8 @@ sub run {
     my $reporters = "--test-reporter=spec --test-reporter=tap --test-reporter-destination=/tmp/$spec --test-reporter-destination=/tmp/$tap";
     my $node_cmd = "node --enable-source-maps $reporters /usr/share/agama/system-tests/${test}.js $test_options";
 
-    script_run("dmesg --console-off");
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
-    script_run("dmesg --console-on");
 
     # see https://github.com/os-autoinst/openQA/blob/master/lib/OpenQA/Parser/Format/TAP.pm#L36
     assert_script_run("sed -i 's/TAP version 13/$tap ../' /tmp/$tap");
