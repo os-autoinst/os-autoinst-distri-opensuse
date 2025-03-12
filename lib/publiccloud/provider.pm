@@ -735,8 +735,10 @@ To get the complete output structure, the call is:
 
 sub get_terraform_output {
     my ($self, $jq_query) = @_;
+    script_run("cd " . TERRAFORM_DIR);
     my $res = script_output("terraform output -no-color -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
     # jq 'null' shall return empty
+    script_run('cd -');
     return $res unless ($res =~ /^null$/);
 }
 
