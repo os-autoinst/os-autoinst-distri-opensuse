@@ -13,6 +13,7 @@
 
 use Mojo::Base qw(consoletest);
 use utils qw(zypper_call script_retry);
+use version_utils;
 use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -34,6 +35,7 @@ sub run {
     my $engine;
     if ($engines =~ /podman|k3s/) {
         $engine = 'podman';
+        return if is_sle("=12-SP5", get_var("HOST_VERSION", get_required_var("VERSION")));    # podman is not available on 12-SP5.
     } elsif ($engines =~ /docker/) {
         $engine = 'docker';
     } else {

@@ -59,7 +59,7 @@ sub run {
 
     # Install engines in case they are not installed
     install_docker_when_needed() if ($engine =~ 'docker');
-    install_podman_when_needed() if ($engine =~ 'podman|k3s');
+    install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_required_var('HOST_VERSION')));
     install_k3s() if ($engine =~ 'k3s');
     reset_container_network_if_needed($engine);
 

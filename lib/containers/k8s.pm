@@ -118,7 +118,7 @@ sub install_k3s {
         script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
         assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
-        zypper_call('in apparmor-parser') if is_sle('<15-SP4');
+        zypper_call('in apparmor-parser') if is_sle('<15-SP4', get_var('HOST_VERSION', get_required_var('VERSION')));
         setup_and_check_k3s;
         return;
     }
