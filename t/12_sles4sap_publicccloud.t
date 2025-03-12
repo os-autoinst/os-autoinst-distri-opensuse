@@ -1056,7 +1056,7 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
             return 1; });
     my $self = sles4sap_publiccloud->new();
     $self->wait_for_sync();
-    ok($node_state_match eq '[1-9]+', "node_state_match : $node_state_match should be '[1-9]+'");
+    ok($node_state_match =~ /[1-9][0-9]+/, "node_state_match : $node_state_match is expected to be an integer");
 };
 
 subtest '[wait_for_cluster]' => sub {

@@ -46,14 +46,14 @@ Hosts/vmhana02/site="site_b"
 Hosts/vmhana02/sync_state="SOK"
 Hosts/vmhana02/vhost="vmhana02"');
 
-    note("Parsed input looks like " . Dumper($topology));
-    ok((keys %{$topology->{'Host'}} eq 2), "Parsed input has two hosts, so two outer keys.");
+    note('Parsed input looks like :\n' . Dumper($topology));
+    ok((keys %{$topology->{'Host'}} eq 2), 'Parsed input has two hosts, so two outer keys.');
 
     while (my ($key, $value) = each %{$topology->{'Host'}}) {
-        ok((keys %$value eq 1), "Parsed input has 1 value for each host, so 1 inner key.");
+        ok((keys %$value eq 3), 'Parsed input has 3 values for each host, so 3 inner keys.');
 
         # how to access one value of an inner hash
-        like($value->{'vmhana01'}->{'vhost'}, qr/vmhana0/, 'vHost is like vmhana0');
+        like($value->{'vhost'}, qr/vmhana0/, 'vHost is like vmhana0');
     }
     # how to access one inner value in one shot
     ok(($topology->{'Site'}->{'site_b'}->{'srPoll'} eq 'SOK'), 'sync_state of vmhana02 is maped to site and is  exactly SOK');
