@@ -13,9 +13,7 @@ use autoyast qw(expand_agama_profile);
 sub run {
     my $profile = expand_agama_profile(get_required_var('AGAMA_PROFILE'));
     select_console 'root-console';
-    script_run("dmesg --console-off");
     assert_script_run("agama profile import $profile", timeout => 300);
-    script_run("dmesg --console-on");
 }
 
 1;
