@@ -1,0 +1,23 @@
+---
+disks:
+  - name: vda
+    table_type: xfs
+    partitions:
+      - name: vda
+        fstype: xfs
+        mountpoints: [/home]
+        type: disk
+  - name: vdb
+    table_type: gpt
+    partitions:
+      - name: vdb1
+        fstype: btrfs
+        mountpoints: ["/var", "/usr/local", "/srv", "/root", "/opt", "/"]
+        type: part
+  - name: vdc
+    table_type: gpt
+    partitions:
+      - name: vdc1
+        fstype: vfat
+        mountpoints: ["/boot/efi"]
+        type: part
