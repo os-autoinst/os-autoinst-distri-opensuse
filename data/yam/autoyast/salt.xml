@@ -22,6 +22,16 @@
           <version>{{VERSION}}</version>
           <arch>{{ARCH}}</arch>
         </addon>
+        <addon>
+          <name>sle-module-systems-management</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-python3</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
       </addons>
     </suse_register>
     <bootloader>
