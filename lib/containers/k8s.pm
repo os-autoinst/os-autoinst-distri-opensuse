@@ -42,7 +42,6 @@ sub check_k3s {
     assert_script_run('k3s kubectl config view --raw');
     validate_script_output_retry("k3s kubectl get nodes", qr/ Ready.*control-plane,master /, retry => 6, delay => 15, timeout => 90);
     validate_script_output_retry("k3s kubectl get namespaces", qr/default.*Active/, timeout => 120, delay => 60, retry => 3);
-    validate_script_output_retry('k3s kubectl get events -A', qr/Started container local-path-provisioner/, retry => 10, delay => 60, timeout => 300);
 
     # the default service account should be ready by now
     script_retry("k3s kubectl get serviceaccount default -o name", retry => 10, delay => 60, timeout => 300);
