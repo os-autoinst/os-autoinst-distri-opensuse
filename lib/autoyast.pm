@@ -136,7 +136,7 @@ sub expand_patterns {
     return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/Minimal/r)];
 }
 
-my @unversioned_products = qw(asmm contm lgm tcm wsm);
+my @unversioned_products = qw(asmm contm lgm tcm wsm pcm);
 
 =head2 get_product_version
 
