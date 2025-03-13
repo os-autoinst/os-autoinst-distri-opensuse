@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
-use utils qw(script_retry systemctl);
+use utils;
 use version_utils qw(is_transactional);
 
 my $runtime;
@@ -67,7 +67,12 @@ sub run {
     }
     assert_script_run "$runtime network rm $network";
 
-    select_user_serial_terminal;
+    if (is_transactional) {
+        ensure_serialdev_permissions;
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal;
+    }
 
     # https://docs.docker.com/engine/security/rootless/
     if ($args->{runtime} eq "docker") {
@@ -92,7 +97,11 @@ sub run {
 sub cleanup() {
     # rootless docker is not available on SLEM
     if ($runtime->{runtime} eq "podman" || !is_transactional) {
-        select_user_serial_terminal;
+        if (is_transactional) {
+            select_console "user-console";
+        } else {
+            select_user_serial_terminal;
+        }
         script_run "$runtime network rm $network";
         $runtime->cleanup_system_host();
         script_run "dockerd-rootless-setuptool.sh uninstall";
