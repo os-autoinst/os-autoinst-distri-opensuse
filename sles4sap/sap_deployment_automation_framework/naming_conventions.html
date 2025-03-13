@@ -28,6 +28,7 @@
       <li><a href="#generate_deployer_name">generate_deployer_name</a></li>
       <li><a href="#get_workload_vnet_code">get_workload_vnet_code</a></li>
       <li><a href="#get_sdaf_inventory_path">get_sdaf_inventory_path</a></li>
+      <li><a href="#get_sut_sshkey_path">get_sut_sshkey_path</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/naming_conventions.pm</h1>
@@ -221,22 +222,29 @@
 
 <h2 id="get_sdaf_inventory_path">get_sdaf_inventory_path</h2>
 
-<pre><code>get_sdaf_inventory_path();</code></pre>
+<pre><code>get_sdaf_inventory_path(config_root_path=&gt;&#39;/config/path&#39;, sap_sid=&gt;&#39;QAS&#39;);</code></pre>
 
-<p>Returns full Ansible inventory filepath respective to deployment type.</p>
+<p>Returns full Ansible inventory filepath respective to deployment type. <b>config_root_path</b> can be obtained from function <b>get_sdaf_config_path</b>.</p>
 
 <ul>
 
-<li><p><b>env_code</b>: SDAF parameter for environment code (for our purpose we can use &#39;LAB&#39;)</p>
-
-</li>
-<li><p><b>sdaf_region_code</b>: SDAF parameter to choose PC region. Note SDAF is using internal abbreviations (SECE = swedencentral)</p>
-
-</li>
-<li><p><b>vnet_code</b>: SDAF parameter for virtual network code. Library and deployer use different vnet than SUT env</p>
+<li><p><b>config_root_path</b>: SDAF config root path</p>
 
 </li>
 <li><p><b>sap_sid</b>: SDAF parameter for sap system ID.</p>
+
+</li>
+</ul>
+
+<h2 id="get_sut_sshkey_path">get_sut_sshkey_path</h2>
+
+<pre><code>get_sut_sshkey_path(config_root_path=&gt;&#39;/config/path&#39;);</code></pre>
+
+<p>Returns full SUT private sshkey filepath located on deployer VM after deployment. <b>config_root_path</b> can be obtained from function <b>get_sdaf_config_path</b>.</p>
+
+<ul>
+
+<li><p><b>config_root_path</b>: SDAF config root path</p>
 
 </li>
 </ul>
