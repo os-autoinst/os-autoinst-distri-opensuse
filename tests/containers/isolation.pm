@@ -57,9 +57,7 @@ sub run {
         $ip_addr{$ip_version} = script_output "ip -$ip_version --json addr show $iface | jq -r '.[0].addr_info[0].local'";
     }
 
-    # For some reason, Docker v24 doesn't create a subnet by default
-    my $ipv6_opts = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "--subnet 2001:db8::/64" : "";
-
+    my $ipv6_opts = ($args->{runtime} eq "docker") ? "--subnet 2001:db8::/64" : "";
     assert_script_run "$runtime network create --ipv6 $ipv6_opts --internal $network";
     for my $ip_version (4, 6) {
         record_info("Test IPv$ip_version");
