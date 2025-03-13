@@ -49,6 +49,7 @@ our @EXPORT = qw(
   ansible_show_status
   playbook_settings
   $output_log_file
+  sdaf_register_byos
 );
 
 our $output_log_file = '';
@@ -974,6 +975,42 @@ sub playbook_settings {
     }
 
     return (\@playbooks);
+}
+
+=head2 sdaf_register_byos
+
+    sdaf_register_byos(sdaf_config_root_dir=>'/stairway/to_heaven', scc_reg_code=>'CODE-XYZ', sap_sid='PRD');
+
+Performs SCC registration on BYOS image using B<registercloudguest> method.
+
+=over
+
+=item * B<sdaf_config_root_dir>: SDAF root configuration directory
+
+=item * B<scc_reg_code>: SCC registration code
+
+=item * B<sap_sid>: SAP system ID
+
+=back
+=cut
+
+sub sdaf_register_byos {
+    my (%args) = @_;
+    my @mandatory_args = qw(sdaf_config_root_dir scc_reg_code sap_sid);
+
+    for my $arg (@mandatory_args) {
+        croak "Missing mandatory argument \$args($arg)", unless $args{$arg};
+    }
+
+    record_info('Register SUTs');
+    assert_script_run("cd $args{sdaf_config_root_dir}");
+    ansible_execute_command(
+        command => "sudo registercloudguest -r $args{scc_reg_code}",
+        host_group => "$args{sap_sid}_DB",
+        sdaf_config_root_dir => $args{sdaf_config_root_dir},
+        sap_sid => $args{sap_sid},
+        verbose => 1
+    );
 }
 
 1;

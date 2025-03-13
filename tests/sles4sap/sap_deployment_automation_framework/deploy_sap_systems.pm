@@ -13,8 +13,7 @@ use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
-use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(generate_resource_group_name get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -90,7 +89,7 @@ sub run {
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file
-    my $custom_sizes_target_path = get_sdaf_config_path(
+    my $config_root_path = get_sdaf_config_path(
         deployment_type => 'sap_system',
         vnet_code => $workload_vnet_code,
         sap_sid => $sap_sid,
@@ -99,12 +98,18 @@ sub run {
 
     my $retrieve_custom_sizing = join(' ', 'curl', '-v', '-fL',
         data_url('sles4sap/sap_deployment_automation_framework/custom_sizes.json'),
-        '-o', $custom_sizes_target_path . '/custom_sizes.json');
+        '-o', $config_root_path . '/custom_sizes.json');
 
     assert_script_run($retrieve_custom_sizing);
 
     az_login();
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
+
+    # Check if inventory file was created by SDAF
+    my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
+    record_info('File check', "Check if file '$inventory_path' was created by SDAF");
+    assert_script_run("test -f $inventory_path");
+
     # diconnect the console
     disconnect_target_from_serial();
 

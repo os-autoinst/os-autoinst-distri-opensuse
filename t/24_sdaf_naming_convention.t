@@ -136,13 +136,15 @@ subtest '[get_workload_vnet_code] ' => sub {
 };
 
 subtest '[get_tfvars_path] Test passing scenarios' => sub {
-    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
-
-    $mock_lib->redefine(get_sdaf_config_path => sub { return '/ProjectZeta'; });
-
-    is get_sdaf_inventory_path(sap_sid => 'ZETA', env_code => 'AnaheimElectronics', sdaf_region_code => 'AEUG'),
-      '/ProjectZeta/ZETA_hosts.yaml', 'Return correct inventory path.';
+    is get_sdaf_inventory_path(sap_sid => 'ZETA', config_root_path => '/Project/Zeta'),
+      '/Project/Zeta/ZETA_hosts.yaml', 'Return correct inventory path.';
+    dies_ok { get_sdaf_inventory_path(sap_sid => 'ZETA') } 'Fail with missing config root path argument';
+    dies_ok { get_sdaf_inventory_path(config_root_path => '/Project/Zeta') } 'Fail with missing SAP sid argument';
 };
 
+subtest '[get_sut_sshkey_path]' => sub {
+    is get_sut_sshkey_path(config_root_path => '/Project/Zeta'), '/Project/Zeta/sshkey', 'Return correct ssh key path.';
+    dies_ok { get_sut_sshkey_path() } 'Fail with missing config root path argument';
+};
 
 done_testing;

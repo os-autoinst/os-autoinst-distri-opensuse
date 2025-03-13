@@ -497,4 +497,36 @@ subtest '[ansible_show_status] ENSA2 status commands' => sub {
     ok(grep(/ps -ef | grep sap/, @commands), 'Netweaver processes');
 };
 
+subtest '[register_byos] Test exceptions' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->redefine(ansible_execute_command => sub { return; });
+    $ms_sdaf->redefine(assert_script_run => sub { return; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+
+    my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
+
+    for my $arg (keys %mandatory_args) {
+        my $orig_value = $mandatory_args{$arg};
+        $mandatory_args{$arg} = undef;
+        dies_ok { sdaf_register_byos(%mandatory_args) } "Croak with missing \$args{$arg}";
+        $mandatory_args{$arg} = $orig_value;
+    }
+};
+
+subtest '[register_byos] Command check' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my @commands;
+    $ms_sdaf->redefine(ansible_execute_command => sub { @commands = @_; return; });
+    $ms_sdaf->redefine(assert_script_run => sub { return; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
+    sdaf_register_byos(%mandatory_args);
+
+    note('CMD: ' . join(' ', @commands));
+    ok(grep(/sudo/, @commands), 'Execute command under "sudo"');
+    ok(grep(/registercloudguest/, @commands), 'Execute command "registercloudguest"');
+    ok(grep(/-r HAHA/, @commands), 'Include regcode');
+};
+
 done_testing;
