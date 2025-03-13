@@ -25,9 +25,10 @@ use serial_terminal 'select_serial_terminal';
 sub logout_and_verify_shell_availability {
     script_run 'logout', 0;
     # verify shell is ready with simple command
-    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-    # re-connect serial console on aarch64, see poo#157960
-    if (is_aarch64) {
+    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1) unless (is_aarch64);
+    # re-connect serial console on aarch64, see poo#157960,poo#178720
+    if (is_aarch64 && !wait_serial(serial_term_prompt(), 10)) {
+        record_info('poo#178720', 'Re-connect serial console');
         select_console 'root-console';
         systemctl 'restart serial-getty@hvc0.service';
         reset_consoles;
