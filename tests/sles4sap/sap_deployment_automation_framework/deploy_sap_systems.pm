@@ -105,10 +105,13 @@ sub run {
     az_login();
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
 
-    # Check if inventory file was created by SDAF
-    my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
-    record_info('File check', "Check if file '$inventory_path' was created by SDAF");
-    assert_script_run("test -f $inventory_path");
+    my @check_files = (
+        "$config_root_path/sap-parameters.yaml",
+        get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path));
+    for my $file (@check_files) {
+        record_info('File check', "Check if file '$file' was created by SDAF");
+        assert_script_run("test -f $file");
+    }
 
     # diconnect the console
     disconnect_target_from_serial();
