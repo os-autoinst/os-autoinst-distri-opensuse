@@ -1088,7 +1088,6 @@ sub get_hana_site_names {
 =cut
 
 sub create_hana_vars_section {
-    my ($ha_enabled) = @_;
     # Cluster related setup
     my %hana_vars;
     $hana_vars{sap_hana_install_install_execution_mode} = get_var('HANA_INSTALL_MODE') if get_var('HANA_INSTALL_MODE');
