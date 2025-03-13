@@ -55,7 +55,8 @@ sub run {
                 my $skippedNode = $tc->findnodes('./skipped[1]');
                 next unless (scalar $skippedNode);
                 my $node = $skippedNode->[0];
-                record_info('SKIP', $node->{message});
+                record_info('TYPE', $node->{type});
+                next unless ($node->{type} eq 'pytest.xfail');
                 my $message = $node->{type} . ': ' . $node->{message};
                 my $softfailure = $dom->createElement('softfailure');
                 $softfailure->setAttribute('message', $message);
