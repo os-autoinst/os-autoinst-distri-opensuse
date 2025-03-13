@@ -53,6 +53,10 @@ sub validatelr {
         $product = 'SLE-Module-Web-Scripting';
         $version = $major_version if $major_version eq '12';
     }
+    if ($product eq 'SLE-PCM') {
+        $product = 'SLE-Module-Public-Cloud';
+        $version = $major_version if $major_version eq '12';
+    }
     # LTSS version is included in its product name
     # leave it as empty to match the regex
     if ($product =~ /LTSS/) {
