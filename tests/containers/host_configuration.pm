@@ -60,8 +60,13 @@ sub run {
     # Install engines in case they are not installed
     install_docker_when_needed() if ($engine =~ 'docker');
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
-    install_k3s() if ($engine =~ 'k3s');
-    reset_container_network_if_needed($engine);
+
+    if ($engine =~ 'k3s') {
+        install_k3s();
+        script_run("systemctl disable --now firewalld");    # Disable firewall for k3s but don't fail if not installed
+    } else {
+        reset_container_network_if_needed($engine);
+    }
 
     # Record podman|docker version
     record_info("docker info", script_output("docker info")) if ($engine =~ 'docker');
