@@ -130,6 +130,7 @@ sub load_host_tests_podman {
     load_3rd_party_image_test($run_args) unless is_staging;
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
+    loadtest 'containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation";
     # podman artifact needs podman 5.4.0
     loadtest 'containers/podman_artifact' if is_tumbleweed;
     loadtest 'containers/podman_bci_systemd';
@@ -166,6 +167,7 @@ sub load_host_tests_docker {
     load_3rd_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
+    loadtest 'containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation";
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
     unless (is_sle("<=15") && is_aarch64) {
