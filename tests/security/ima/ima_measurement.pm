@@ -20,7 +20,7 @@ sub run {
 
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
     my $meas_tmpfile = "/tmp/ascii_runtime_measurements";
-    my $sample_file = "/tmp/sample.txt";
+    my $sample_file = "/etc/sample.txt";
 
     add_grub_cmdline_settings('ima_policy=tcb', update_grub => 1);
 
@@ -48,6 +48,7 @@ sub run {
     die('Too few sha256 items') unless $retries;
     # Test a sample file created in run time
     assert_script_run("echo 'This is a test!' > $sample_file");
+    assert_script_run("cat $sample_file");
     my $sample_sha = script_output("sha256sum $sample_file |cut -d' ' -f1");
     my $sample_meas_sha = script_output("grep '$sample_file' $meas_file |awk -F'[ :]' '{print \$5}'");
     die 'The SHA256 values does not match' if ($sample_sha ne $sample_meas_sha);
