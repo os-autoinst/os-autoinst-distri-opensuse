@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
-use utils qw(script_retry systemctl);
+use utils;
 use version_utils qw(is_transactional);
 
 my $runtime;
@@ -43,7 +43,13 @@ sub run {
     select_serial_terminal;
 
     $runtime = $self->containers_factory($args->{runtime});
-    install_packages('jq');
+    my @packages = qw(jq);
+    # rootless docker is not available on SLEM
+    if ($args->{runtime} eq "docker" && !is_transactional) {
+        my $docker_package = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable-rootless-extras" : "docker-rootless-extras";
+        push @packages, qw($docker_package);
+    }
+    install_packages(@packages);
 
     my %ip_addr;
     for my $ip_version (4, 6) {
@@ -51,24 +57,32 @@ sub run {
         $ip_addr{$ip_version} = script_output "ip -$ip_version --json addr show $iface | jq -r '.[0].addr_info[0].local'";
     }
 
-    assert_script_run "$runtime network create --ipv6 --internal $network";
+    # For some reason, Docker v24 doesn't create a subnet by default
+    my $ipv6_opts = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "--subnet 2001:db8::/64" : "";
+
+    assert_script_run "$runtime network create --ipv6 $ipv6_opts --internal $network";
     for my $ip_version (4, 6) {
         record_info("Test IPv$ip_version");
         test_ip_version $ip_version, $ip_addr{$ip_version};
     }
     assert_script_run "$runtime network rm $network";
 
-    select_user_serial_terminal;
+    if (is_transactional) {
+        ensure_serialdev_permissions;
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal;
+    }
 
     # https://docs.docker.com/engine/security/rootless/
     if ($args->{runtime} eq "docker") {
-        # rootless docker is not available on MicroOS & SLEM
+        # rootless docker is not available on SLEM
         return if is_transactional;
         assert_script_run "dockerd-rootless-setuptool.sh install";
         systemctl "--user enable --now docker";
     }
 
-    assert_script_run "$runtime network create --ipv6 --internal $network";
+    assert_script_run "$runtime network create --ipv6 $ipv6_opts --internal $network";
     for my $ip_version (4, 6) {
         record_info("Test IPv$ip_version rootless");
         test_ip_version $ip_version, $ip_addr{$ip_version};
@@ -81,9 +95,13 @@ sub run {
 1;
 
 sub cleanup() {
-    # rootless docker is not available on MicroOS & SLEM
+    # rootless docker is not available on SLEM
     if ($runtime->{runtime} eq "podman" || !is_transactional) {
-        select_user_serial_terminal;
+        if (is_transactional) {
+            select_console "user-console";
+        } else {
+            select_user_serial_terminal;
+        }
         script_run "$runtime network rm $network";
         $runtime->cleanup_system_host();
         script_run "dockerd-rootless-setuptool.sh uninstall";
