@@ -25,9 +25,9 @@ Global/global/maintenance="false"
 Sites/site_b/b="SOK"
 Hosts/vmhana01/vhost="AAAAAAA"
 Hosts/vmhana02/vhost="BBBBBBB"');
-    ok keys %{$topology->{'Host'}} == 2, 'Output is about exactly 2 hosts';
-    ok((any { qr/vmhana01/ } keys %{$topology->{'Host'}}), 'External hash has key vmhana01');
-    ok((any { qr/vmhana02/ } keys %{$topology->{'Host'}}), 'External hash has key vmhana02');
+    ok keys %{$topology->{Host}} == 2, 'Output is about exactly 2 hosts';
+    ok((any { qr/vmhana01/ } keys %{$topology->{Host}}), 'External hash has key vmhana01');
+    ok((any { qr/vmhana02/ } keys %{$topology->{Host}}), 'External hash has key vmhana02');
 };
 
 subtest '[calculate_hana_topology] internal keys' => sub {
@@ -48,27 +48,27 @@ Hosts/vmhana02/sync_state="SOK"
 Hosts/vmhana02/vhost="vmhana02"');
 
     note('Parsed input looks like :\n' . Dumper($topology) . '\n');
-    ok((keys %{$topology->{'Host'}} eq 2), 'Parsed Host key expected to have 2 hosts, so 2 outer keys and have ' . keys %{$topology->{'Host'}});
-    ok((keys %{$topology->{'Site'}} eq 2), 'Parsed Site key expected to have 2 hosts, so 2o outer keys and have ' . keys %{$topology->{'Site'}});
+    ok((keys %{$topology->{Host}} eq 2), 'Parsed Host key expected to have 2 hosts, so 2 outer keys and have ' . keys %{$topology->{Host}});
+    ok((keys %{$topology->{Site}} eq 2), 'Parsed Site key expected to have 2 hosts, so 2o outer keys and have ' . keys %{$topology->{Site}});
 
-    while (my ($key, $value) = each %{$topology->{'Host'}}) {
+    while (my ($key, $value) = each %{$topology->{Host}}) {
         ok((keys %$value eq 2), 'Parsed input expect to have two values for each host, so 2 inner keys and is ' . keys %$value);
 
         # how to access one value of an inner hash
-        like($value->{'vhost'}, qr/vmhana0/, 'Host->vmhana0?->vHost should be like vmhana0 and is ' . $value->{'vhost'});
+        like($value->{vhost}, qr/vmhana0/, 'Host->vmhana0?->vHost should be like vmhana0 and is ' . $value->{vhost});
     }
-    while (my ($key, $value) = each %{$topology->{'Site'}}) {
+    while (my ($key, $value) = each %{$topology->{Site}}) {
         ok((keys %$value eq 2), 'Parsed input expect to have two values for each Site, so 2 inner keys and is ' . keys %$value);
 
         # how to access one value of an inner hash
-        like($value->{'mns'}, qr/vmhana0/, 'Site->site_[a-b]->mns shoud be like vmhana0? and is ' . $value->{'mns'});
+        like($value->{mns}, qr/vmhana0/, 'Site->site_[a-b]->mns shoud be like vmhana0? and is ' . $value->{mns});
     }
     # how to access one inner value in one shot
-    ok(($topology->{'Host'}->{'vmhana02'}->{'site'} eq 'site_b'), 'Expected site of vmhana02 should be site_b and is ' . $topology->{'Host'}->{'vmhana02'}->{'site'});
-    ok(($topology->{'Site'}->{'site_b'}->{'srPoll'} eq 'SOK'), 'Expected maped sync_state of site_b should be SOK and is ' . $topology->{'Site'}->{'site_b'}->{'srPoll'});
+    ok(($topology->{Host}->{vmhana02}->{site} eq 'site_b'), 'Expected site of vmhana02 should be site_b and is ' . $topology->{Host}->{vmhana02}->{site});
+    ok(($topology->{Site}->{site_b}->{srPoll} eq 'SOK'), 'Expected maped sync_state of site_b should be SOK and is ' . $topology->{Site}->{site_b}->{srPoll});
 
     # Resources
-    ok(($topology->{'Resource'}->{'msl_SAPHana_HH1_HDB10'}->{'is-managed'} eq 'true'), 'Expected value of Resource->msl_SAPHana_HH1_HDB10->is-managed should be true and is ' . $topology->{'Resource'}->{'msl_SAPHana_HH1_HDB10'}->{'is-managed'});
+    ok(($topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'} eq 'true'), 'Expected value of Resource->msl_SAPHana_HH1_HDB10->is-managed should be true and is ' . $topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'});
 };
 
 subtest '[check_hana_topology] healthy cluster' => sub {
@@ -280,26 +280,26 @@ subtest '[check_crm_output] starting and failed' => sub {
 
 subtest '[get_primary_node] starting and failed' => sub {
     my $mock_input = {
-        'Host' => {
-            'vmhana02' => {
-                'vhost' => 'vmhana02',
-                'site' => 'site_b'
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
             },
-            'vmhana01' => {
-                'site' => 'site_a',
-                'vhost' => 'vmhana01',
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
             }
         },
-        'Site' => {
-            'site_b' => {
-                'lss' => '4',
-                'mns' => 'vmhana02',
-                'srPoll' => 'SOK',
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
             },
-            'site_a' => {
-                'lss' => '4',
-                'mns' => 'vmhana01',
-                'srPoll' => 'PRIM',
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
             }
         }
     };
@@ -308,26 +308,26 @@ subtest '[get_primary_node] starting and failed' => sub {
 
 subtest '[get_failover_node] starting and failed' => sub {
     my $mock_input = {
-        'Host' => {
-            'vmhana02' => {
-                'vhost' => 'vmhana02',
-                'site' => 'site_b'
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
             },
-            'vmhana01' => {
-                'site' => 'site_a',
-                'vhost' => 'vmhana01',
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
             }
         },
-        'Site' => {
-            'site_b' => {
-                'lss' => '4',
-                'mns' => 'vmhana02',
-                'srPoll' => 'SOK',
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
             },
-            'site_a' => {
-                'lss' => '4',
-                'mns' => 'vmhana01',
-                'srPoll' => 'PRIM',
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
             }
         }
     };

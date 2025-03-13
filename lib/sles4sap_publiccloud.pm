@@ -497,13 +497,13 @@ sub check_takeover {
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
         $retry_count++;
-        for my $site (keys %{$topology->{'Site'}}) {
-            die("check_takeover [ERROR] Missing 'srPoll' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{'srPoll'});
+        for my $site (keys %{$topology->{Site}}) {
+            die("check_takeover [ERROR] Missing 'srPoll' field in topology output of Site->$site") unless defined($topology->{Site}->{$site}->{srPoll});
             # As 'vhost' value is not part of the 'Site' key we need to pair it with corect 'Host' key
-            for my $host (keys %{$topology->{'Host'}}) {
-                die("check_takeover [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{'Host'}->{$host}->{'vhost'});
-                $vhost = $topology->{'Host'}->{$host}->{'vhost'} if ($topology->{'Host'}->{$host}->{'site'} eq $site);
-                $sync_state = $topology->{'Site'}->{$site}->{'srPoll'} if ($topology->{'Host'}->{$host}->{'site'} eq $site);
+            for my $host (keys %{$topology->{Host}}) {
+                die("check_takeover [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{Host}->{$host}->{vhost});
+                $vhost = $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site);
+                $sync_state = $topology->{Site}->{$site}->{srPoll} if ($topology->{Host}->{$host}->{site} eq $site);
             }
             record_info("Cluster Host", join("\n",
                     "vhost: $vhost compared with $hostname",
@@ -553,14 +553,14 @@ sub enable_replication {
     $hana_inn = $args{hana_inn} if defined($args{hana_inn});
 
     # Getting 'sr_mode' and 'op_mode' from the SAPHanaSR topology
-    foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{'Site'}->{$site}->{$_}); }
-    $sr_mode = $topology->{'Site'}->{$site}->{'srMode'};
-    $op_mode = $topology->{'Site'}->{$site}->{'opMode'};
+    foreach (qw(srMode opMode)) { die("enable_replication [ERROR] Missing '$_' field in topology output of Site->$site") unless defined($topology->{Site}->{$site}->{$_}); }
+    $sr_mode = $topology->{Site}->{$site}->{srMode};
+    $op_mode = $topology->{Site}->{$site}->{opMode};
 
     # Getting remote host from the SAPHanaSR topology as 'remote_host' key is now omitted from the 'SAPHanaSR-showAttr' output
-    for my $host (keys %{$topology->{'Host'}}) {
-        die("enable_replication [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{'Host'}->{$host}->{'vhost'});
-        $remote_host = $topology->{'Host'}->{$host}->{'vhost'} if ($hostname ne $topology->{'Host'}->{$host}->{'vhost'} && $site ne $topology->{'Host'}->{$host}->{'site'});
+    for my $host (keys %{$topology->{Host}}) {
+        die("enable_replication [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{Host}->{$host}->{vhost});
+        $remote_host = $topology->{Host}->{$host}->{vhost} if ($hostname ne $topology->{Host}->{$host}->{vhost} && $site ne $topology->{Host}->{$host}->{site});
         last if defined($remote_host);
     }
     # Dies if the given <site name> doesn't correspond with the SAPHanaSR topology like if given site name is not a local one.
@@ -569,7 +569,7 @@ sub enable_replication {
    # The instance number couldn't be hard-coded, so if not set from SETTINGS we could try to determine it from the cluster resource name of 'mst_.*' or 'msl_.*'
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($hana_inn) {
-        for my $resource (keys %{$topology->{'Resource'}}) {
+        for my $resource (keys %{$topology->{Resource}}) {
             $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
             if (defined $hana_inn) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
             last if defined($hana_inn);

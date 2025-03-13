@@ -145,40 +145,40 @@ sub calculate_hana_topology {
                 my ($node, $parameter, $value) = split(/[\/=]/, $_);
                 ($parameter, $value);
             } @resources_parameters;
-            $topology{'Resource'}{$resource} = \%resource_parameter;
+            $topology{Resource}{$resource} = \%resource_parameter;
         }
 
         for my $host (@all_hosts) {
 
             # New structure introduces key 'Site' to which some values are moved and have keys renamed
             # or left defined but empty if it's not defined originally
-            my $sth_site = $script_topology{$host}->{'site'};
+            my $sth_site = $script_topology{$host}->{site};
             if (defined $sth_site) {
-                $topology{'Site'}{$sth_site}{'mns'} = $host;
-                if (defined $script_topology{$host}->{'op_mode'}) { $topology{'Site'}{$sth_site}{'opMode'} = $script_topology{$host}->{'op_mode'} }
-                if (defined $script_topology{$host}->{'srmode'}) { $topology{'Site'}{$sth_site}{'srMode'} = $script_topology{$host}->{'srmode'} }
-                if (defined $script_topology{$host}->{'sync_state'}) { $topology{'Site'}{$sth_site}{'srPoll'} = $script_topology{$host}->{'sync_state'} }
+                $topology{Site}{$sth_site}{mns} = $host;
+                if (defined $script_topology{$host}->{op_mode}) { $topology{Site}{$sth_site}{opMode} = $script_topology{$host}->{op_mode} }
+                if (defined $script_topology{$host}->{srmode}) { $topology{Site}{$sth_site}{srMode} = $script_topology{$host}->{srmode} }
+                if (defined $script_topology{$host}->{sync_state}) { $topology{Site}{$sth_site}{srPoll} = $script_topology{$host}->{sync_state} }
 
                 # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
                 # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
-                if (defined $script_topology{$host}->{'node_state'}) {
-                    $topology{'Site'}{$sth_site}{'lss'} = ($script_topology{$host}->{'node_state'} eq 'online' or $script_topology{$host}->{'node_state'} =~ /[1-9]+/) ? '4' : '1';
+                if (defined $script_topology{$host}->{node_state}) {
+                    $topology{Site}{$sth_site}{lss} = ($script_topology{$host}->{node_state} eq 'online' or $script_topology{$host}->{node_state} =~ /[1-9]+/) ? '4' : '1';
                 }
             }
 
             # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
             # or left defined but empty if it's not defined originally
-            if (defined $script_topology{$host}->{'vhost'}) { $topology{'Host'}{$host}{'vhost'} = $script_topology{$host}->{'vhost'} }
-            if (defined $sth_site) { $topology{'Host'}{$host}{'site'} = $sth_site }
-            if (defined $script_topology{$host}->{'srah'}) { $topology{'Host'}{$host}{'srah'} = $script_topology{$host}->{'srah'} }
-            if (defined $script_topology{$host}->{'clone_state'}) { $topology{'Host'}{$host}{'clone_state'} = $script_topology{$host}->{'clone_state'} }
-            if (defined $script_topology{$host}->{'score'}) { $topology{'Host'}{$host}{'score'} = $script_topology{$host}->{'score'} }
-            if (defined $script_topology{$host}->{'version'}) { $topology{'Host'}{$host}{'version'} = $script_topology{$host}->{'version'} }
+            if (defined $script_topology{$host}->{vhost}) { $topology{Host}{$host}{vhost} = $script_topology{$host}->{vhost} }
+            if (defined $sth_site) { $topology{Host}{$host}{site} = $sth_site }
+            if (defined $script_topology{$host}->{srah}) { $topology{Host}{$host}{srah} = $script_topology{$host}->{srah} }
+            if (defined $script_topology{$host}->{clone_state}) { $topology{Host}{$host}{clone_state} = $script_topology{$host}->{clone_state} }
+            if (defined $script_topology{$host}->{score}) { $topology{Host}{$host}{score} = $script_topology{$host}->{score} }
+            if (defined $script_topology{$host}->{version}) { $topology{Host}{$host}{version} = $script_topology{$host}->{version} }
         }
 
         # New structure of key 'Global' with renamed keys
-        if (defined $script_topology{'global'}->{'cib-time'}) { $topology{'Global'}{'global'}{'cib-last-written'} = $script_topology{'global'}->{'cib-time'} }
-        if (defined $script_topology{'global'}->{'maintenance'}) { $topology{'Global'}{'global'}{'maintenance-mode'} = $script_topology{'global'}->{'maintenance'} }
+        if (defined $script_topology{global}->{'cib-time'}) { $topology{Global}{global}{'cib-last-written'} = $script_topology{global}->{'cib-time'} }
+        if (defined $script_topology{global}->{maintenance}) { $topology{Global}{global}{'maintenance-mode'} = $script_topology{global}->{maintenance} }
 
         # We encode to the JSON to be sure that output is always same
         $topology_json = encode_json(\%topology);
@@ -231,23 +231,23 @@ sub check_hana_topology {
         }
 
         # Check node_state, now taken from 'lss'
-        if ($node_state_match ne $topology->{'Site'}->{$site}->{'lss'}) {
-            record_info('check_hana_topology', " [ERROR] node_state: $topology->{'Site'}->{$site}->{'lss'} is not $node_state_match for host $topology->{'Site'}->{$site}->{'mns'} \n");
+        if ($node_state_match ne $topology->{Site}->{$site}->{lss}) {
+            record_info('check_hana_topology', " [ERROR] node_state: $topology->{Site}->{$site}->{lss} is not $node_state_match for host $topology->{Site}->{$site}->{mns} \n");
             $all_online = 0;
             last;
         }
 
         # Check sync_state
-        if ($topology->{'Site'}->{$site}->{'srPoll'} eq 'PRIM') {
+        if ($topology->{Site}->{$site}->{srPoll} eq 'PRIM') {
             $prim_count++;
-        } elsif ($topology->{'Site'}->{$site}->{'srPoll'} eq 'SOK') {
+        } elsif ($topology->{Site}->{$site}->{srPoll} eq 'SOK') {
             $sok_count++;
         }
     }
 
     # Final check for conditions
     record_info('check_hana_topology', "all_online: $all_online prim_count: $prim_count sok_count: $sok_count");
-    return ($all_online && $prim_count == 1 && $sok_count == (keys %{$topology->{'Site'}}) - 1);
+    return ($all_online && $prim_count == 1 && $sok_count == (keys %{$topology->{Site}}) - 1);
 }
 
 =head2 check_crm_output
@@ -295,7 +295,7 @@ sub get_primary_node {
     my $topology = $args{topology_data};
     for my $site (keys %{$topology->{Site}}) {
         for my $host (keys %{$topology->{Host}}) {
-            return $topology->{'Host'}->{$host}->{'vhost'} if ($topology->{'Host'}->{$host}->{'site'} eq $site && $topology->{'Site'}->{$site}->{'srPoll'} eq 'PRIM');
+            return $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site && $topology->{Site}->{$site}->{srPoll} eq 'PRIM');
         }
     }
 }
@@ -317,9 +317,9 @@ sub get_failover_node {
     my (%args) = @_;
     croak('get_failover_node [ERROR] Argument <topology_data> missing') unless $args{topology_data};
     my $topology = $args{topology_data};
-    for my $site (keys %{$topology->{'Site'}}) {
-        for my $host (keys %{$topology->{'Host'}}) {
-            return $topology->{'Host'}->{$host}->{'vhost'} if ($topology->{'Host'}->{$host}->{'site'} eq $site && grep /$topology->{'Site'}->{$site}->{'srPoll'}/, ('SOK', 'SFAIL'));
+    for my $site (keys %{$topology->{Site}}) {
+        for my $host (keys %{$topology->{Host}}) {
+            return $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site && grep /$topology->{Site}->{$site}->{srPoll}/, ('SOK', 'SFAIL'));
         }
     }
 }
