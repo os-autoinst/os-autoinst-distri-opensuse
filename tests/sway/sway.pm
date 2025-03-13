@@ -11,6 +11,7 @@ use Mojo::Base qw(opensusebasetest);
 use testapi;
 use serial_terminal;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -19,7 +20,8 @@ sub run {
 
     select_serial_terminal;
 
-    zypper_call('in --type pattern --recommends sway');
+    my $brand = is_sle ? 'upstream' : 'openSUSE';
+    zypper_call("in sway-branding-$brand");
 
     select_console('user-console');
 

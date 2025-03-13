@@ -71,6 +71,7 @@ our @EXPORT = qw(
   get_instance_profile_path
   load_ase_env
   upload_ase_logs
+  modify_selinux_setenforce
 );
 
 =head1 SYNOPSIS
@@ -144,7 +145,7 @@ server
 =cut
 
 sub download_hana_assets_from_server {
-    my %params = @_;
+    my ($self, %params) = @_;
     my $target = $params{target} // '/sapinst';
     my $nettout = $params{nettout} // 2700;
     # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
@@ -157,6 +158,10 @@ sub download_hana_assets_from_server {
     my $asset_lock = "/tmp/asset_0";
     my $asset_lock_found = script_run "test -e $asset_lock";    # 0 if asset is already downloaded
     if ($asset_lock_found) {
+        # Install wget package if its command not found
+        if (script_run "which wget") {
+            zypper_call "in wget";
+        }
         assert_script_run "wget -O - $hana_location | tar -xf -", timeout => $nettout;
         assert_script_run "touch $asset_lock";
         # Skip checksum check if DISABLE_CHECKSUM is set, or if checksum file is not
@@ -1426,6 +1431,24 @@ sub upload_ase_logs {
     return unless $self->ASE_RESPONSE_FILE;
     $self->load_ase_env;
     save_and_upload_log('tar -zcf ase_logs.tar.gz $SYBASE/log $SYBASE/$SYBASE_ASE/install/*.log', 'ase_logs.tar.gz');
+}
+
+=head2 modify_selinux_setenforce
+
+  $self->modify_selinux_setenforce
+
+Modify SELinux mode to Enforcing or Permissive.
+
+=cut
+
+sub modify_selinux_setenforce {
+    my ($self, %args) = @_;
+    my $selinux_mode = $args{selinux_mode} // get_var('SLES4SAP_SELINUX_SETENFORCE', 'Enforcing');
+    script_run("sestatus");
+    if (script_output("getenforce") !~ m/$selinux_mode/) {
+        assert_script_run("setenforce " . $selinux_mode);
+        validate_script_output("getenforce", sub { m/$selinux_mode/ });
+    }
 }
 
 sub post_run_hook {

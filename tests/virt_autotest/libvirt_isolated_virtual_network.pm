@@ -27,14 +27,14 @@ sub run_test {
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_isolated_cfg_name);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('15+'));
+    systemctl("stop named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
     #Create ISOLATED NETWORK
     assert_script_run("virsh net-create vnet_isolated.xml");
     save_screenshot;
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
     #Resume named.service, refer to poo#175287
-    systemctl("start named.service") if (is_sle('15+'));
+    systemctl("start named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
 
     my ($mac, $model, $affecter, $exclusive, $skip_type);
     my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK

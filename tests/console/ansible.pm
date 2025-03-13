@@ -25,17 +25,14 @@ use transactional qw(trup_call check_reboot_changes);
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
 # python3-yamllint needed by ansible-test
-my $pkgs = 'ansible git-core python3-yamllint';
-# https://bugzilla.suse.com/show_bug.cgi?id=1210876 Nothing provides 'python3-virtualenv'
-# https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
-$pkgs .= ' ansible-test';
+my $pkgs = 'ansible git-core python3-yamllint ansible-test';
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos))) {
+    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos)) || is_sle("16+")) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
@@ -53,6 +50,12 @@ sub run {
         assert_script_run "echo '$testapi::username:$testapi::password' | chpasswd";
     }
     ensure_serialdev_permissions;
+
+    # For sle 15-sp7, we test ansible-x ansible-core-x
+    if (is_sle('=15-SP7')) {
+        my @ansible_pkgs = split(/\n/, script_output("zypper se ansible | grep -oE 'ansible(-core)?-[0-9|.]+'"));
+        $pkgs = join(' ', @ansible_pkgs) . ' git-core';
+    }
 
     if (is_transactional) {
         trup_call("pkg install $pkgs sudo");
@@ -139,10 +142,11 @@ sub run {
     # Check the playbook
     assert_script_run "ansible-playbook -i hosts main.yaml --check", timeout => 300;
 
-    # Run the ansible sanity test
-    script_run 'ansible-test --help';
-    assert_script_run 'ansible-test sanity';
-
+    if (is_sle('<15-SP7')) {
+        # Run the ansible sanity test
+        script_run 'ansible-test --help';
+        assert_script_run 'ansible-test sanity';
+    }
     # 5. Ansible playbook execution
 
     # Print the inventory

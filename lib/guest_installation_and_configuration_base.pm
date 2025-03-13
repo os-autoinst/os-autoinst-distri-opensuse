@@ -320,13 +320,13 @@ sub prepare_non_transactional_environment {
 
     $self->reveal_myself;
     if (!is_transactional) {
-        virt_autotest::utils::setup_rsyslog_host($common_log_folder);
-        my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet yast2-schema python3 nmap';
+        virt_autotest::utils::setup_rsyslog_host($common_log_folder) if (is_sle('<16'));
+        my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet python3 nmap';
+        $_packages_to_check .= ' yast2-schema' if (is_sle('<16'));
         zypper_call("install -y $_packages_to_check");
         # There is already the highest version for kvm/xen packages on TW
         if (is_sle) {
-            my $_patterns_to_check = 'kvm_server kvm_tools';
-            $_patterns_to_check = 'xen_server xen_tools' if ($self->{host_virt_type} eq 'xen');
+            my $_patterns_to_check = is_sle('<16') ? "$self->{host_virt_type}_server $self->{host_virt_type}_tools" : "$self->{host_virt_type}_host";
             zypper_call("install -y -t pattern $_patterns_to_check");
         }
     }
@@ -1853,34 +1853,8 @@ sub config_guest_installation_media {
 
     $self->reveal_myself;
     $self->{guest_installation_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
-#This is just auxiliary functionality to help correct and set correct installation media major and minor version if it mismatches with guest_version.It is not mandatory
-  #necessary and can be skipped without causing any issue.The end user should always pay attention and use meaningful and correct guest parameters and profiles.
-    if ($self->{guest_os_name} =~ /sles|oraclelinux/im) {
-        if (!($self->{guest_installation_media} =~ /-$self->{guest_version}-/im)) {
-            record_info("Guest $self->{guest_name} installation media $self->{guest_installation_media} does not match with version $self->{guest_version}", "Going to correct it !");
-            my $_guest_version_major_indicator = ($self->{guest_os_name} =~ /sles/im ? '' : 'R');
-            my $_guest_version_minor_indicator = ($self->{guest_os_name} =~ /sles/im ? 'SP' : 'U');
-            $self->{guest_installation_media} =~ /-((r)?(\d*))-((sp|u)?(\d*))?/im;
-            if ($self->{guest_version_minor} ne 0) {
-                if ($4 ne '') {
-                    $self->{guest_installation_media} =~ s/-$1-$4/-${_guest_version_major_indicator}$self->{guest_version_major}-${_guest_version_minor_indicator}$self->{guest_version_minor}/im;
-                }
-                else {
-                    $self->{guest_installation_media} =~ s/-$1/-${_guest_version_major_indicator}$self->{guest_version_major}-${_guest_version_minor_indicator}$self->{guest_version_minor}/im;
-                }
-            }
-            else {
-                if ($4 ne '') {
-                    $self->{guest_installation_media} =~ s/-$1-$4/-${_guest_version_major_indicator}$self->{guest_version_major}/im;
-                }
-                else {
-                    $self->{guest_installation_media} =~ s/-$1/-${_guest_version_major_indicator}$self->{guest_version_major}/im;
-                }
-            }
-        }
-    }
 
-#If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE.
+# If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE.
     if ($self->{guest_installation_media} =~ /^.*\.iso$/im) {
         my $_installation_media_nfs_share = get_var('INSTALLATION_MEDIA_NFS_SHARE', '');
         my $_installation_media_local_share = get_var('INSTALLATION_MEDIA_LOCAL_SHARE', '');
@@ -1908,17 +1882,17 @@ sub config_guest_installation_media {
         }
     }
     elsif ($self->{guest_installation_media} =~ /^.*\.(raw|raw\.xz|qcow2)$/i) {
-        if (script_output("curl --silent -I $self->{guest_installation_media} | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
+        if (script_output("curl --silent -I " . render_autoinst_url(url => $self->{guest_installation_media}) . " | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
             if ($self->{guest_installation_media} =~ /^.*\.raw\.xz$/i) {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz $self->{guest_installation_media}", timeout => 1200);
+                assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 1200);
                 assert_script_run("xz -d $self->{guest_storage_backing_path}.xz", timeout => 120);
             }
             else {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path} $self->{guest_installation_media}", timeout => 3600);
+                assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
             }
         }
         else {
-            record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I $self->{guest_installation_media}", proceed_on_failure => 1), result => 'fail');
+            record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I " . render_autoinst_url(url => $self->{guest_installation_media}), proceed_on_failure => 1), result => 'fail');
             $self->record_guest_installation_result('FAILED');
         }
     }
@@ -2168,6 +2142,10 @@ sub config_guest_provision_combustion {
     }
     assert_script_run("curl -s -o $self->{guest_log_folder}/script " . data_url("virt_autotest/guest_unattended_installation_files/$_combustion_config"));
     $_combustion_config = "$self->{guest_log_folder}/script";
+    my $_ssh_public_key = $guest_installation_and_configuration_metadata::host_params{ssh_public_key};
+    $_ssh_public_key =~ s/\//PLACEHOLDER/img;
+    assert_script_run("sed -i \'s/##Authorized-Keys##/$_ssh_public_key/g\' $_combustion_config");
+    assert_script_run("sed -i \'s/##FQDN##/$self->{guest_name}\\.$self->{guest_domain_name}/g\' $_combustion_config");
     my $_scc_regcode = get_required_var('SCC_REGCODE');
     $_scc_regcode =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Registration-Code##/$_scc_regcode/g\' $_combustion_config");
@@ -2715,12 +2693,38 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
         my $_detect_installation_result = $self->check_guest_installation_result_via_ssh;
         record_info("Not able to determine guest $self->{guest_name} installation progress or result at the moment", "Installation is still in progress, guest reboot/shutoff, broken ssh connection or unknown") if ($_detect_installation_result eq '');
+    }
+    elsif (match_has_tag('emergency-mode')) {
+        wait_still_screen;
+        send_key('ret') for (0 .. 2);
+        wait_still_screen;
+        enter_cmd("echo -e \"\\n########## Beginning of journalctl ##########\\n\"");
+        enter_cmd("journalctl --dmesg --all --no-pager");
+        wait_still_screen;
+        enter_cmd("echo -e \"\\n########## End of journalctl ##########\\n\"");
+        enter_cmd("echo -e \"\\n########## Beginning of /run/initramfs/rdsosreport.txt ##########\\n\"");
+        enter_cmd("cat /run/initramfs/rdsosreport.txt");
+        wait_still_screen;
+        enter_cmd("echo -e \"\\n########## End of /run/initramfs/rdsosreport.txt ##########\\n\"");
+        enter_cmd("mkdir /sysroot/emergency_mode");
+        enter_cmd("journalctl --dmesg --all --no-pager > /sysroot/emergency_mode/journalctl");
+        enter_cmd("cp /run/initramfs/rdsosreport.txt /sysroot/emergency_mode/rdsosreport.txt");
+        enter_cmd("chroot /sysroot");
+        enter_cmd("sync");
+        wait_still_screen;
+        enter_cmd('exit');
+        enter_cmd('exit');
+        wait_still_screen;
+        $self->detach_guest_installation_screen;
+        $self->record_guest_installation_result('FAILED');
+        record_info("Installation failed for guest $self->{guest_name}", "Guest $self->{guest_name} in emergency/maintenance mode", result => 'fail');
+        $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     }
     elsif (match_has_tag('guest-installation-failures')) {
         save_screenshot;
@@ -3304,7 +3308,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log");
+    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log /emergency_mode");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;

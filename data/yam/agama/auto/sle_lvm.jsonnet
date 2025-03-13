@@ -1,6 +1,7 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}',
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
@@ -17,8 +18,8 @@
       {
         alias: 'pvs-disk',
         partitions: [
-          { search: "*", delete: true }
-        ]
+          { search: '*', delete: true },
+        ],
       },
     ],
     volumeGroups: [

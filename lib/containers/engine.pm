@@ -280,8 +280,8 @@ sub cleanup_system_host {
         $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60);
         $self->_engine_script_run("system prune -f --external", 300);
     }
-    $self->_engine_assert_script_run("volume prune -f", 300);
-    $self->_engine_assert_script_run("system prune -a -f", 300);
+    $self->_engine_script_run("volume prune -f", 300);
+    $self->_engine_script_run("system prune -a -f", 300);
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");

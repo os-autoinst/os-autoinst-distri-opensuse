@@ -4,6 +4,7 @@ use Test::More;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
+use List::Util qw(any none);
 use testapi;
 use sles4sap;
 
@@ -17,7 +18,8 @@ sub undef_vars {
       INSTANCE_SID
       _SECRET_SAP_MASTER_PASSWORD
       ASCS_PRODUCT_ID
-      INSTANCE_ID);
+      INSTANCE_ID
+      ASSET_0);
 }
 
 subtest '[prepare_swpm]' => sub {
@@ -181,6 +183,7 @@ subtest '[share_hosts_entry] All args defined' => sub {
     set_var('INSTANCE_TYPE', 'Astrid');
     $mockObject->share_hosts_entry(virtual_hostname => 'Olivia', virtual_ip => '192.168.1.1', shared_directory_root => '/Peter/Walter');
 
+    note("\n  -->  " . join("\n  -->  ", @calls));
     is $calls[1], 'mkdir -p /Peter/Walter/hosts', "Test 'mkdir' command";
     is $calls[2], "echo '192.168.1.1 Olivia' >> /Peter/Walter/hosts/Astrid", "Test 'hosts' file entry";
 
@@ -199,6 +202,7 @@ subtest '[share_hosts_entry] Test default values' => sub {
 
     $mockObject->share_hosts_entry();
 
+    note("\n  -->  " . join("\n  -->  ", @calls));
     is $calls[1], 'mkdir -p /sapmnt/hosts', "Test 'mkdir' command";
     is $calls[2], "echo '192.168.1.1 Olivia' >> /sapmnt/hosts/Astrid", "Test 'hosts' file entry";
     undef_vars();
@@ -257,5 +261,40 @@ subtest '[get_instance_profile_path]' => sub {
     is $mockObject->get_instance_profile_path(instance_id => '00', instance_type => 'ASCS'), '/sapmnt/EN2/profile/EN2_ASCS00_sapen2as', 'Return correct ASCS profile path.';
     undef_vars();
 };
+
+subtest '[fix_path] unsupported protocols' => sub {
+    my $mockObject = sles4sap->new();
+    foreach my $protocol (qw(something http ftp)) {
+        dies_ok { $mockObject->fix_path($protocol . '://somethingelse') } "Die for unsupported protocol $protocol";
+    }
+};
+
+subtest '[fix_path] supported protocols' => sub {
+    my $mockObject = sles4sap->new();
+    foreach my $protocol (qw(smb smbfs nfs)) {
+        my @ret = $mockObject->fix_path($protocol . '://somethingelse/else/other/somefile.someextension');
+        note("proto:$ret[0] path:$ret[1]");
+        ok($ret[0] eq 'cifs' or $ret[0] eq 'nfs');
+    }
+};
+
+subtest '[download_hana_assets_from_server]' => sub {
+    my $mockObject = sles4sap->new();
+    my $sles4sap = Test::MockModule->new('sles4sap', no_auto => 1);
+    my @calls;
+    # Return 1 to simulate no asset lock
+    $sles4sap->redefine(script_run => sub { push @calls, @_; return 1; });
+    $sles4sap->redefine(assert_script_run => sub { push @calls, @_; return; });
+    $sles4sap->redefine(data_url => sub { return 'MY_DOWNLOAD_URL'; });
+    $sles4sap->redefine(zypper_call => sub { push @calls, @_; return 1; });
+
+    set_var('ASSET_0', 'Zanzibar');
+    $mockObject->download_hana_assets_from_server();
+    undef_vars();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /wget.*MY_DOWNLOAD_URL/ } @calls), 'wget call');
+};
+
 
 done_testing;

@@ -1,0 +1,55 @@
+---
+name: create_hdd_agama
+description:    >
+    Maintainer: qa-c@suse.de.
+    HDD creation for container tests in product QA
+conditional_schedule:
+    boot_64:
+        ARCH:
+            'x86_64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+            'aarch64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+    boot_ppc:
+        ARCH:
+            'ppc64le':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+    boot_390:
+        ARCH:
+            's390x':
+                - installation/bootloader_zkvm
+                - installation/agama_reboot
+    grub_set_bootargs:
+        ARCH:
+            's390x':
+                - shutdown/grub_set_bootargs
+    svirt_upload_assets:
+        ARCH:
+            's390x':
+                - shutdown/svirt_upload_assets
+    fips:
+        FIPS:
+            '1':
+                - fips/fips_setup
+    bci_prepare:
+        BCI_PREPARE:
+            '1':
+                - containers/bci_prepare
+
+schedule:
+    - '{{boot_64}}'
+    - '{{boot_390}}'
+    - '{{boot_ppc}}'
+    - installation/first_boot
+    - autoyast/console.pm
+    - '{{grub_set_bootargs}}'
+    - containers/install_updates
+    - console/system_prepare
+    - '{{fips}}'
+    - '{{bci_prepare}}'
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - '{{svirt_upload_assets}}'

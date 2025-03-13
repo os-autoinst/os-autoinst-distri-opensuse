@@ -123,11 +123,10 @@ sub run {
     # import smt data
     record_info('Import smt data', 'Import the data saved from a smt server');
     my $datapath = "/rmtdata/";
-    my $datafile = get_var("SMT_DATA_FILE");
-    my $dataurl = get_var("SMT_DATA_URL");
+    my $datafile = get_var("ASSET_1");
     assert_script_run("mkdir -p $datapath");
     assert_script_run("cd $datapath");
-    assert_script_run("wget -q " . $dataurl . $datafile);
+    assert_script_run("wget -q " . data_url('ASSET_1'));
     assert_script_run("tar -xzvf $datafile -C $datapath");
     assert_script_run("chown -R _rmt:nginx $datapath");
     assert_script_run("sudo rmt-data-import -d /rmtdata/smt-data-export/");

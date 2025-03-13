@@ -52,9 +52,11 @@ sub run {
     }
 
     # Define test data
+    # For 15-SP7, salt related packages are moved to systems-management repo
+    my $repo = is_sle('=15-SP7') ? 'Systems-Management' : 'Basesystem';
 
     $software{'salt-minion'} = {
-        repo => 'Basesystem',
+        repo => $repo,
         installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
         condition => sub { is_sle('15+') },
     };

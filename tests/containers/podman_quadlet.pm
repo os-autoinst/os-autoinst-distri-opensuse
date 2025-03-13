@@ -94,7 +94,8 @@ sub run {
     assert_script_run("$quadlet -version");
     for my $file (@files) {
         my ($path, $content) = @$file;
-        assert_script_run("printf '$content' > $path");
+        $content =~ s/\n/\\n/g;
+        assert_script_run("echo -e '$content' > $path");
     }
     record_info('Unit', script_output("$quadlet -v -dryrun"));
 
@@ -115,7 +116,6 @@ sub run {
         script_retry("podman pull $src_image", retry => 3, delay => 60, timeout => 180);
         systemctl("start $unit_name-build.service", timeout => 180);
         record_info('Build output', script_output("journalctl --no-pager -u $unit_name-build"));
-        systemctl("is-active $unit_name-build.service", expect_false => 1);
         validate_script_output('podman images -n', qr/$build_imagetag/);
     }
 

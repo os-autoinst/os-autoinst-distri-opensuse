@@ -1,5 +1,5 @@
 ---
-description: 'Main JeOS test suite. Maintainer: qa-c@suse.de.'
+description: 'Main JeOS/MinimalVM test suite for SLES12/15. Maintainer: qa-c@suse.de.'
 name: 'jeos-main@64bit-virtio-vga ( qemu )'
 conditional_schedule:
     bootloader:

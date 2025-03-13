@@ -46,7 +46,7 @@ sub install_ncat {
         $version = get_required_var("VERSION");
         $version =~ s/-/_/g;
         $version = "SLE_" . $version;
-    } elsif (is_tumbleweed) {
+    } elsif (is_tumbleweed || is_sle('>=16')) {
         $version = "openSUSE_Factory";
         $version .= "_ARM" if (is_aarch64);
     }
@@ -66,7 +66,7 @@ sub install_ncat {
 sub install_bats {
     return if (script_run("which bats") == 0);
 
-    my $bats_version = get_var("BATS_VERSION", "1.11.0");
+    my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
     script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "bash bats-core-$bats_version/install.sh /usr/local";
@@ -129,6 +129,8 @@ sub delegate_controllers {
 }
 
 sub enable_modules {
+    return if is_sle("16+");    # no modules on SLES16+
+
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
@@ -151,7 +153,7 @@ sub patch_logfile {
 }
 
 sub fix_tmp {
-    my $override_conf = << 'EOF';
+    my $override_conf = <<'EOF';
 [Unit]
 ConditionPathExists=/var/tmp
 
@@ -203,7 +205,7 @@ sub selinux_hack {
 
     # Use the same labeling in /var/lib/containers for $dir
     # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir";
+    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir", timeout => 120;
     script_run "sudo restorecon -R -v $dir";
 }
 
@@ -212,23 +214,26 @@ sub bats_post_hook {
 
     select_serial_terminal;
 
-    assert_script_run "cd /";
+    my $log_dir = "/tmp/logs/";
+    assert_script_run "mkdir -p $log_dir";
+    assert_script_run "cd $log_dir";
+
     script_run "rm -rf $test_dir";
 
-    script_run('findmnt > /tmp/findmnt.txt');
-    upload_logs('/tmp/findmnt.txt');
+    script_run('df -h > df-h.txt');
+    script_run('dmesg > dmesg.txt');
+    script_run('findmnt > findmnt.txt');
+    script_run('rpm -qa | sort > rpm-qa.txt');
+    script_run('systemctl > systemctl.txt');
+    script_run('systemctl status > systemctl-status.txt');
+    script_run('systemctl list-unit-files > systemctl_units.txt');
+    script_run('journalctl -b > journalctl-b.txt', timeout => 120);
+    script_run('tar zcf containers-conf.tgz $(find /etc/containers /usr/share/containers -type f)');
 
-    script_run('df -h > /tmp/df-h.txt');
-    upload_logs('/tmp/df-h.txt');
-
-    script_run('dmesg > /tmp/dmesg.txt');
-    upload_logs('/tmp/dmesg.txt');
-
-    script_run('rpm -qa | sort > /tmp/rpm-qa.txt');
-    upload_logs('/tmp/rpm-qa.txt');
-
-    script_run('journalctl -b > /tmp/journalctl-b.txt', timeout => 120);
-    upload_logs('/tmp/journalctl-b.txt');
+    my @logs = split /\s+/, script_output "ls";
+    for my $log (@logs) {
+        upload_logs($log_dir . $log);
+    }
 
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }

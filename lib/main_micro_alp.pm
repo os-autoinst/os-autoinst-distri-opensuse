@@ -206,7 +206,7 @@ sub load_common_tests {
     loadtest 'microos/services_enabled';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
     loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
-    loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_bls);
+    loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
     loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
@@ -348,6 +348,7 @@ sub load_xfstests_tests {
     if (check_var('XFSTESTS', 'installation')) {
         load_boot_from_disk_tests;
         loadtest 'transactional/host_config';
+        loadtest 'console/suseconnect_scc';
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';

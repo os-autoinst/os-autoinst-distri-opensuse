@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run ATSec 'ipsec ciphers' case
+# Summary: Run EAL4 'ipsec ciphers' case
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110980
 
@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     assert_script_run('export SYSTEMD_PAGER=""');
-    assert_script_run('cd /usr/local/atsec/ipsec/IPSEC_basic_eval');
+    assert_script_run('cd /usr/local/eal4/ipsec/IPSEC_basic_eval');
 
     mutex_wait('READY_FOR_IPSEC_CIPHERS');
 

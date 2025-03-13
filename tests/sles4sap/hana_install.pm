@@ -19,6 +19,7 @@ use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
 use POSIX 'ceil';
 use Utils::Logging 'save_and_upload_log';
+use repo_tools 'add_qa_head_repo';
 
 sub is_multipath {
     return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
@@ -102,14 +103,33 @@ sub run {
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
-    # Check for SAPHanaSR-angi package going to be used
-    if (get_var('USE_SAP_HANA_SR_ANGI')) {
-        script_run('[ $(rpm -q SAPHanaSR-doc) ] && rpm -e --nodeps SAPHanaSR-doc');
-        script_run('[ $(rpm -q SAPHanaSR) ] && rpm -e --nodeps SAPHanaSR');
-        zypper_call('install SAPHanaSR-angi supportutils-plugin-ha-sap ClusterTools2') if get_var('HA_CLUSTER');
+    if (get_var('HA_CLUSTER')) {
+        my @zypper_in = ('install');
+        # Check for SAPHanaSR-angi package going to be used
+        if (get_var('USE_SAP_HANA_SR_ANGI')) {
+            foreach ('SAPHanaSR-doc', 'SAPHanaSR') {
+                assert_script_run("rpm -e --nodeps $_") if (script_run("rpm -q $_") == 0);
+            }
+            push @zypper_in, 'SAPHanaSR-angi', 'supportutils-plugin-ha-sap';
+        }
+        else {
+            push @zypper_in, 'SAPHanaSR', 'SAPHanaSR-doc';
+        }
+        push @zypper_in, 'ClusterTools2';
+        zypper_call(join(' ', @zypper_in));
     }
-    else {
-        zypper_call('install SAPHanaSR SAPHanaSR-doc ClusterTools2') if get_var('HA_CLUSTER');
+
+    # Workaround for SLE16 if variable WORKAROUND_BSC1234806 set
+    if (get_var("WORKAROUND_BSC1234806")) {
+        record_soft_failure("bsc#1234806: workaround by installing hana_insserv_compat package from QA:HEAD");
+        add_qa_head_repo;
+        zypper_call("in hana_insserv_compat");
+    }
+
+    # Modify SELinux mode
+    if (get_var("WORKAROUND_BSC1239148")) {
+        record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
+        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
     }
 
     # Add host's IP to /etc/hosts
@@ -236,8 +256,13 @@ sub run {
     }
     assert_script_run "df -h";
 
-    # hdblcm is used for installation, verify if it exists
-    my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
+    # hdblcm is used for installation, verify if it exists.
+    # hdblcm can be provided from the external with HANA_HDBLCM
+    # variable, that is a relative path to /sapinst
+    my $hdblcm = join('/', $target,
+        get_var(
+            'HANA_HDBLCM',
+            "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . '/hdblcm'));
     die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
       if (script_run "ls $hdblcm");
 
@@ -260,7 +285,7 @@ sub run {
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
-    push @hdblcm_args, "--component_dirs=/sapinst/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
+    push @hdblcm_args, "--component_dirs=$target/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
 
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;

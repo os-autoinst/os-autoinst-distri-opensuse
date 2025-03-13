@@ -42,7 +42,7 @@ sub setup_apache2 {
     push @packages, get_var('APACHE2_PKG', "apache2");
 
     # For gensslcert
-    push @packages, 'apache2-utils', 'openssl' if (is_tumbleweed || is_jeos);
+    push @packages, 'apache2-utils', 'openssl' if (is_tumbleweed || is_jeos || is_sle('>=16'));
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";

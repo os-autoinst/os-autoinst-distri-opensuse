@@ -77,7 +77,7 @@ sub setup_environment {
 
         # workaround to prevent network interface random order
         if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP')) {
-            my $service_file = << 'EOF';
+            my $service_file = <<'EOF';
 [Unit]
 Description=Load bnxt_en driver manually
 After=sshd.service

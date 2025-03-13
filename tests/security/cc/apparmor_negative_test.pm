@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'AppArmor negative test' test case of ATSec test suite
+# Summary: Run 'AppArmor negative test' test case of EAL4 test suite
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109307
 

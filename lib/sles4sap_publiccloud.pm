@@ -342,6 +342,13 @@ sub wait_hana_node_up {
             timeout => 5,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
+        if ($out =~ m/degraded/) {
+            my $failed_service = $instance->run_ssh_command(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
+            if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
+                record_soft_failure('bsc#1238152 - Restart guestregister service');
+                $instance->run_ssh_command(cmd => "sudo systemctl restart guestregister.service", timeout => 600, proceed_on_failure => 1);
+            }
+        }
         record_info("WAIT_FOR_SYSTEM", "System state: $out");
         sleep 10;
     }

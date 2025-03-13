@@ -22,18 +22,23 @@ use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
 
-# Unlike passwod_screen diag has just a single input box
-sub agama_set_root_password_diag {
+# A More complex screen for root auth
+sub agama_set_root_password_screen {
     wait_still_screen 5;
-    send_key 'tab';    # The little arrow on the top
+
+    # a new toggle to enable password auth for root
+    assert_and_click('agama-use-root-password');
     wait_still_screen 5;
-    send_key 'tab';    # Activate password input box
+
+    send_key 'tab';    # to switch from toggle to input box
+    type_password();
+    send_key 'tab';    # show password btn
+    send_key 'tab';
     wait_still_screen 5;
     type_password();
-    send_key 'tab';    # Show password button
-    wait_still_screen 2;
-    send_key 'tab';    # Accept button
-    wait_still_screen 2;
+    send_key 'tab';    # show password btn
+    send_key 'tab';    # optional enable public ssh key toggle
+    send_key 'tab';    # accept button
     send_key 'ret';
 }
 
@@ -42,7 +47,6 @@ sub agama_define_user_screen {
 
     # We need to click in the middle of the screen or similar
     # to make screen active so we can start typing.
-    # This is not the case in e.g. root password dialog which gets auto active
     mouse_set(600, 600);
     mouse_click;
 
@@ -59,25 +63,19 @@ sub agama_define_user_screen {
     # Password - we have to send two tabs as there is a button to show typed password
     send_key 'tab';
     type_password();
-    wait_still_screen 5;
     send_key 'tab';    # show password btn
     send_key 'tab';
-
-    wait_still_screen 5;
     type_password();
+
+    # Autologin - Please use NOAUTOLOGIN for now, regression on agama 12
+    # https://github.com/agama-project/agama/issues/2143
+    #if (!get_var("NOAUTOLOGIN")) {
+    #    send_key 'spc';    # checkbox
+    #    wait_still_screen 5;
+    #}
+
+    assert_and_click('agama-user-accept-button');
     wait_still_screen 5;
-    send_key 'tab';    # show password btn
-    send_key 'tab';
-
-    # Autologin
-    if (!get_var("NOAUTOLOGIN")) {
-        send_key 'spc';    # checkbox
-        wait_still_screen 5;
-    }
-
-    send_key 'tab';    # Cancel btn
-    send_key 'tab';    # Accept btn
-    send_key 'ret';
 }
 
 sub upload_agama_logs {
@@ -93,73 +91,86 @@ sub get_agama_install_console_tty {
     return 7;
 }
 
+
+sub select_product {
+    # Product selection dialog scrolls with 4+ products at 1024x768.
+    # As of now TW is the last item in the list, so we need to scroll a bit.
+    mouse_set(600, 600);
+    mouse_click;
+
+    if (is_leap('>=16.0')) {
+        send_key_until_needlematch('agama-product-leap16', 'down');
+        assert_and_click('agama-product-leap16');
+    } else {    # Default to TW
+        send_key_until_needlematch('agama-product-tumbleweed', 'down');
+        assert_and_click('agama-product-tumbleweed');
+    }
+    assert_and_click('agama-product-select');
+}
+
+sub select_software {
+    assert_and_click('agama-software-tab');
+    wait_still_screen(5);
+    assert_and_click('agama-change-software-selection');
+    wait_still_screen(5);
+
+    # pattern selection can be pretty long
+    # I suggest to scroll down until you match the needle and then click on it
+    # Go to the very top in case (ctrl+up) that you need to look for further patterns
+
+    # Default is just a minimal server style install
+    if (get_var('DESKTOP')) {
+        if (check_var('DESKTOP', 'gnome')) {
+            send_key_until_needlematch('agama-software-selection-gnome-desktop-wayland', 'down');
+            assert_and_click('agama-software-selection-gnome-desktop-wayland');
+        } elsif (check_var('DESKTOP', 'kde')) {
+            send_key_until_needlematch('agama-software-selection-kde-desktop-wayland', 'down');
+            assert_and_click('agama-software-selection-kde-desktop-wayland');
+        } elsif (check_var('DESKTOP', 'icewm')) {
+            send_key_until_needlematch('agama-software-selection-icewm-desktop-wayland', 'down');
+            assert_and_click('agama-software-selection-icewm-desktop-wayland');
+        }
+        # Go back to the top in case that any further patterns need to be installed
+        # and we have to scroll through the list again.
+        send_key "ctrl-up";
+    }
+
+    # Futher manually selected patterns should go here
+
+    assert_and_click('agama-software-selection-close');
+
+}
+
 sub run {
     my ($self) = @_;
     assert_screen('agama-inst-welcome-product-list');
-
-    if (is_leap('>=16.0')) {
-        assert_and_click('agama-product-leap16');
-    } else {    # Default to TW
-        assert_and_click('agama-product-tumbleweed');
-    }
-    send_key "ctrl-down";    # ensure we see the product select button
-    assert_and_click('agama-product-select');
-
-    # A newly introduced set root password dialog
-    assert_screen('agama-set-root-password-diag');
-    agama_set_root_password_diag();
+    select_product();
 
     # can take few minutes to get here
     assert_screen('agama-overview-screen');
 
-    # It seems that in lower resolutions agama hides list of tabs
-    # so we have to click on the top button to display them
-    # Good thing is that tabs get hidden automatically again
-    # after you click one of the tabs
-    assert_and_click('agama-show-tabs');
+    # clicking on agama-show-tab seems to be no longer needed
+    # on low-res screens
+    assert_and_click('agama-auth-tab');
+    assert_and_click('agama-set-root-password');
+    agama_set_root_password_screen();
 
-    assert_and_click('agama-users-tab');
 
     # Define user and set autologin on
     assert_and_click('agama-define-user-button');
     agama_define_user_screen();
 
-    # Show tabs again
-    assert_and_click('agama-show-tabs');
-
-    # default is just a minimal server style install
-    if (get_var('DESKTOP')) {
-        assert_and_click('agama-software-tab');
-
-        wait_still_screen(5);
-        assert_and_click('agama-change-software-selection');
-        wait_still_screen(5);
-
-        if (check_var('DESKTOP', 'gnome')) {
-            assert_and_click('agama-software-selection-gnome-desktop-wayland');
-        } elsif (check_var('DESKTOP', 'kde')) {
-            assert_and_click('agama-software-selection-kde-desktop-wayland');
-        }
-
-        assert_and_click('agama-software-selection-close');
-    }
 
     # TODO fetch agama logs before install (in case of dependency issues, or if further installation crashes)
 
-    # Show tabs again so we can click on overview
-    assert_and_click('agama-show-tabs');
     assert_and_click('agama-overview-tab');
+
+    # Install additional patterns
+    select_software();
+    wait_still_screen 5;
 
     # The ready to install button is at the bottom of the page on lowres screen
     # Normally it's on the side
-    wait_still_screen 5;
-
-    # Ctrl+down takes you to bottom of the page,
-    # however, you need to click on the page first
-    mouse_set(600, 600);
-    mouse_click;
-    send_key "ctrl-down";
-    wait_still_screen 5;
 
     assert_and_click('agama-install-button');
     wait_still_screen 5;

@@ -6,6 +6,7 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/dnsmasq
   - console/curl_ipv6
   - console/wget_ipv6
   - console/ca_certificates_mozilla
@@ -46,7 +47,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
-        - '{{arch_specific15_sp5+}}'
+        - '{{arch_specific15_sp5plus}}'
       15-SP5:
         - console/osinfo_db
         - console/ovn
@@ -57,7 +58,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
-        - '{{arch_specific15_sp5+}}'
+        - '{{arch_specific15_sp5plus}}'
       15-SP4:
         - console/osinfo_db
         - console/ovn
@@ -131,7 +132,7 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
-  arch_specific15_sp5+:
+  arch_specific15_sp5plus:
     ARCH:
       x86_64:
         - console/year_2038_detection

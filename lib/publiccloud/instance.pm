@@ -263,10 +263,9 @@ If the file doesn't exists on the instance, B<no> error is thrown.
 
 sub upload_log {
     my ($self, $remote_file, %args) = @_;
-
-    my $tmpdir = script_output('mktemp -d');
+    my $tmpdir = script_output_retry('mktemp -d');
     my $dest = $tmpdir . '/' . basename($remote_file);
-    my $ret = $self->scp('remote:' . $remote_file, $dest);
+    my $ret = $self->scp('remote:' . $remote_file, $dest, %args);
     upload_logs($dest, %args) if (defined($ret) && $ret == 0);
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
@@ -408,7 +407,8 @@ sub wait_for_ssh {
         last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
 
-        if ($duration >= $args{timeout} - 30) {
+        # skip SLES4SAP as incompatible with get_public_ip
+        if (($duration >= $args{timeout} - 30) and (!get_var('PUBLIC_CLOUD_SLES4SAP'))) {
             my $public_ip_from_provider = $self->provider->get_public_ip();
             if ($args{public_ip} eq $public_ip_from_provider) {
                 record_info('IP CHANGED', printf("The address we know is %s but provider returns %s", $args{public_ip}, $public_ip_from_provider));
@@ -872,7 +872,7 @@ sub upload_supportconfig_log {
     my ($self, %args) = @_;
     $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 7200);
     $self->ssh_script_run(cmd => 'sudo chmod 755 /var/tmp/scc_supportconfig.txz', timeout => 3600);
-    $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1);
+    $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
 }
 
 1;

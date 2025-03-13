@@ -6,14 +6,14 @@
 # Summary: Deployment of the SAP systems zone using SDAF automation
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'publiccloud::basetest';
 
 use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
-use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(generate_resource_group_name get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -58,6 +58,8 @@ sub test_flags {
 }
 
 sub run {
+    my ($self) = @_;
+
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : start');
     select_serial_terminal();
     my $env_code = get_required_var('SDAF_ENV_CODE');
@@ -75,11 +77,19 @@ sub run {
     load_os_env_variables();
 
     my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
-    prepare_tfvars_file(deployment_type => 'sap_system', components => \@installed_components);
+    my $os;
+    # This section is only needed by Azure tests using images uploaded
+    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        my $provider = $self->provider_factory();
+        $os = $self->{provider}->get_image_id();
+    } else {
+        $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
+    }
+    prepare_tfvars_file(deployment_type => 'sap_system', os_image => $os, components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file
-    my $custom_sizes_target_path = get_sdaf_config_path(
+    my $config_root_path = get_sdaf_config_path(
         deployment_type => 'sap_system',
         vnet_code => $workload_vnet_code,
         sap_sid => $sap_sid,
@@ -88,12 +98,21 @@ sub run {
 
     my $retrieve_custom_sizing = join(' ', 'curl', '-v', '-fL',
         data_url('sles4sap/sap_deployment_automation_framework/custom_sizes.json'),
-        '-o', $custom_sizes_target_path . '/custom_sizes.json');
+        '-o', $config_root_path . '/custom_sizes.json');
 
     assert_script_run($retrieve_custom_sizing);
 
     az_login();
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
+
+    my @check_files = (
+        "$config_root_path/sap-parameters.yaml",
+        get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path));
+    for my $file (@check_files) {
+        record_info('File check', "Check if file '$file' was created by SDAF");
+        assert_script_run("test -f $file");
+    }
+
     # diconnect the console
     disconnect_target_from_serial();
 

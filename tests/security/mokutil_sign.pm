@@ -21,7 +21,7 @@ sub run {
 
     select_console 'root-console';
 
-    if (is_sle('>=15')) {
+    if (is_sle('>=15') && is_sle('<16')) {
         add_suseconnect_product("sle-module-desktop-applications");
         add_suseconnect_product("sle-module-development-tools");
     }

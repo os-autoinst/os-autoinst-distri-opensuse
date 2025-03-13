@@ -7,3 +7,18 @@ spec:
         options:
         - name: ndots
           value: "1"
+      initContainers:
+      - name: helper
+        command:
+          - /bin/sh
+          - -euxc
+          - |
+            test -z "${IMAGE1}" || ${CTR} i pull -k --local ${IMAGE1} > /dev/null
+            test -z "${TAG1}" || ${CTR} i tag --force ${IMAGE1} ${TAG1}
+            while mountpoint /tmp/hostImages/mount_hp; do
+              umount /tmp/hostImages/mount_hp
+            done
+            rm -rf /tmp/hostImages/*
+            for i in ${PRE_PULL}; do
+              ${CTR} i pull -k --local ${i} > /dev/null
+            done

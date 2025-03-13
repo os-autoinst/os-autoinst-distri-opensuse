@@ -50,7 +50,6 @@ schedule:
     - x11/gedit
     - x11/firefox
     - x11/firefox_audio
-    - x11/chromium
     - x11/graphicsMagick
     - x11/ooffice
     - x11/oomath
@@ -62,7 +61,6 @@ schedule:
     - x11/desktop_mainmenu
     - x11/inkscape
     - x11/gimp
-    - x11/hexchat
     - x11/vlc
     - x11/reboot_gnome
     - console/zypper_log_packages

@@ -11,15 +11,12 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
-use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(get_sdaf_config_path convert_region_to_short get_workload_vnet_code);
-use sles4sap::console_redirection
-  qw(connect_target_to_serial
-  disconnect_target_from_serial
-  );
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(validate_components);
 use serial_terminal qw(select_serial_terminal);
 use testapi;
+use publiccloud::utils 'is_byos';
 
 =head1 SYNOPSIS
 
@@ -66,13 +63,14 @@ sub test_flags {
 
 sub run {
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : start');
+    my $sap_sid = get_required_var('SAP_SID');
     my $sdaf_config_root_dir = get_sdaf_config_path(
         deployment_type => 'sap_system',
         vnet_code => get_workload_vnet_code(),
         env_code => get_required_var('SDAF_ENV_CODE'),
         sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
-        sap_sid => get_required_var('SAP_SID')
-    );
+        sap_sid => $sap_sid);
+    my $sut_private_key_path = get_sut_sshkey_path(config_root_path => $sdaf_config_root_dir);
     # setup = combination of all components chosen for installation
     my @setup = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
     validate_components(components => \@setup);
@@ -93,11 +91,25 @@ sub run {
         $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 1;
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
         $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 0;
+
+        # tasks needed to be run after playbook 'pb_get-sshkey.yaml'
+        if ($playbook_options->{playbook_filename} =~ /pb_get-sshkey/) {
+            # Check if SSH key was created by playbook
+            record_info('File check', "Check if SSH key '$sut_private_key_path' was created by SDAF");
+            assert_script_run("test -f $sut_private_key_path");
+
+            # BYOS image registration must happen before executing any other playbooks
+            sdaf_register_byos(
+                sap_sid => $sap_sid,
+                sdaf_config_root_dir => $sdaf_config_root_dir,
+                scc_reg_code => get_required_var('SCC_REGCODE_SLES4SAP'))
+              if is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION');
+        }
+
     }
 
     # Display deployment information
-    ansible_hanasr_show_status(sdaf_config_root_dir => $sdaf_config_root_dir);
-    ansible_ensa2_show_status(sdaf_config_root_dir => $sdaf_config_root_dir);
+    ansible_show_status(sdaf_config_root_dir => $sdaf_config_root_dir, scenarios => \@setup);
 
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');

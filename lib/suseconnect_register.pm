@@ -67,7 +67,7 @@ sub command_register {
     my $zypper_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_continue = qr/^Continue\? \[y/m;
     my $zypper_done = qr/Run.*to list these programs|^ZYPPER-DONE/m;
-    my $registered = qr/Registered*/m;
+    my $registered = qr/Registered*/mi;
 
     if (!$addon) {
         my $reg_code = get_required_var("SCC_REGCODE");

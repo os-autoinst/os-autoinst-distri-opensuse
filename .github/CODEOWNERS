@@ -1,26 +1,26 @@
 # GitHub CODEOWNERS https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Public Cloud
-lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @mpagot @m-dati @alvarocarvajald @BillAnastasiadis @rbmarliere
-tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @m-dati @rbmarliere
-data/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @rbmarliere
-lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777 @rbmarliere
-lib/qesapdeploymnet.pm @mpagot @rbmarliere
+lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @mpagot @m-dati @alvarocarvajald @BillAnastasiadis
+tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @m-dati
+data/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
+lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777
+lib/qesapdeploymnet.pm @mpagot
 
 # Containers
-lib/containers/ @pdostal @grisu48 @mloviska @ricardobranco777 @rbmarliere
-tests/containers/ @pdostal @grisu48 @mloviska @ricardobranco777 @rbmarliere
-data/containers/ @pdostal @grisu48 @mloviska @ricardobranco777 @rbmarliere
-lib/main_containers.pm @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777 @rbmarliere
+lib/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
+tests/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
+data/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
+lib/main_containers.pm @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
 
 # Transactional systems
-products/microos/ @mloviska @ricardobranco777 @rbmarliere
-tests/microos/ @mloviska @ricardobranco777 @rbmarliere
-products/sle-micro/ @mloviska @ricardobranco777 @rbmarliere
-products/alp/ @mloviska @ricardobranco777 @rbmarliere
-tests/jeos/ @mloviska @ricardobranco777 @rbmarliere
-tests/transactional/ @mloviska @ricardobranco777 @rbmarliere
-lib/main_micro_alp.pm @mloviska @jlausuch @ricardobranco777 @rbmarliere
+products/microos/ @mloviska @ricardobranco777
+tests/microos/ @mloviska @ricardobranco777
+products/sle-micro/ @mloviska @ricardobranco777
+products/alp/ @mloviska @ricardobranco777
+tests/jeos/ @mloviska @ricardobranco777
+tests/transactional/ @mloviska @ricardobranco777
+lib/main_micro_alp.pm @mloviska @jlausuch @ricardobranco777
 
 # pdostal
 tests/console/sshd.pm @pdostal
@@ -60,7 +60,7 @@ tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura 
 data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
 lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
 lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-lib/atsec_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
 lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
 schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
 test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki

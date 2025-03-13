@@ -25,6 +25,7 @@ sub run_tests {
     return if ($skip_tests eq "all");
 
     my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
+    selinux_hack $tmp_dir;
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
@@ -67,7 +68,6 @@ sub run {
     $oci_runtime = script_output "command -v $oci_runtime";
 
     $self->bats_setup;
-    selinux_hack $test_dir;
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));
@@ -75,10 +75,14 @@ sub run {
 
     switch_to_user;
 
+    record_info("buildah rootless", script_output("buildah info"));
+
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     my $url = get_var("BUILDAH_BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
+    selinux_hack $test_dir;
+    selinux_hack "/tmp";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 

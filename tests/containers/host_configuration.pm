@@ -16,6 +16,7 @@ use utils;
 use version_utils qw(check_os_release get_os_release is_sle is_sle_micro);
 use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
+use containers::k8s qw(install_k3s);
 
 sub run {
     select_serial_terminal;
@@ -58,13 +59,18 @@ sub run {
 
     # Install engines in case they are not installed
     install_docker_when_needed() if ($engine =~ 'docker');
-    install_podman_when_needed() if ($engine =~ 'podman');
-    reset_container_network_if_needed($engine);
+    install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
+
+    if ($engine =~ 'k3s') {
+        install_k3s();
+        script_run("systemctl disable --now firewalld");    # Disable firewall for k3s but don't fail if not installed
+    } else {
+        reset_container_network_if_needed($engine);
+    }
 
     # Record podman|docker version
-    foreach my $eng (split(',\s*', $engine)) {
-        record_info($eng, script_output("$eng info"));
-    }
+    record_info("docker info", script_output("docker info")) if ($engine =~ 'docker');
+    record_info("podman info", script_output("podman info")) if ($engine =~ 'podman');
 }
 
 sub test_flags {

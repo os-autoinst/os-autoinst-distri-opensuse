@@ -80,6 +80,7 @@ sub install_runtime_dependencies {
       e2fsprogs
       evmctl
       exfat-utils
+      exfatprogs
       fuse-exfat
       ibmtss
       lvm2

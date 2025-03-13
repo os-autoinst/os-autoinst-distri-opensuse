@@ -12,6 +12,8 @@ use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
+use Regexp::Common qw(net);
+use NetAddr::IP;
 use utils qw(write_sut_file);
 
 
@@ -37,6 +39,7 @@ our @EXPORT = qw(
   az_network_lb_probe_create
   az_network_lb_rule_create
   az_vm_as_create
+  az_img_from_vhd_create
   az_vm_create
   az_vm_list
   az_vm_openport
@@ -183,14 +186,18 @@ sub az_network_vnet_create {
     my (%args) = @_;
     foreach (qw(resource_group region vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    # Only set default value for ranges if the caller
+    # require to also create the subnet
     if ($args{snet}) {
         $args{address_prefixes} //= '192.168.0.0/32';
         $args{subnet_prefixes} //= '192.168.0.0/32';
     }
+
+    # Validate and eventually fix the ranges
+    my %ranges;
     foreach (qw(address_prefixes subnet_prefixes)) {
         if ($args{$_}) {
-            croak "Invalid IP range $args{$_} in $_"
-              unless ($args{$_} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\/[0-9]+$/);
+            $ranges{$_} = NetAddr::IP->new($args{$_}) or croak "Invalid IP range $args{$_} in $_";
         }
     }
 
@@ -199,11 +206,11 @@ sub az_network_vnet_create {
     push @az_cmd_list, '--location', $args{region};
     push @az_cmd_list, '--name', $args{vnet};
     if ($args{address_prefixes}) {
-        push @az_cmd_list, '--address-prefixes', $args{address_prefixes};
+        push @az_cmd_list, '--address-prefixes', $ranges{address_prefixes};
     }
     if ($args{snet}) {
         push @az_cmd_list, '--subnet-name', $args{snet};
-        push @az_cmd_list, '--subnet-prefixes', $args{subnet_prefixes};
+        push @az_cmd_list, '--subnet-prefixes', $ranges{subnet_prefixes};
     }
     assert_script_run(join(' ', @az_cmd_list));
 }
@@ -504,8 +511,7 @@ sub az_network_lb_create {
     $args{sku} //= 'Basic';
     my $fip_cmd = '';
     if ($args{fip}) {
-        croak "Invalid IP address fip:$args{fip}"
-          unless ($args{fip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
+        croak "Not a valid ip addr: $args{fip}" unless grep /^$RE{net}{IPv4}$/, $args{fip};
         $fip_cmd = "--private-ip-address $args{fip}";
     }
 
@@ -659,6 +665,35 @@ sub az_vm_as_create {
     assert_script_run($az_cmd);
 }
 
+=head2 az_img_from_vhd_create
+
+    az_img_from_vhd_create(resource_group => $rg, name => $name, source => $uploaded_vhd_url);
+
+Create an image out of a .vhd disk in Azure storage.
+
+=over
+
+=item B<resource_group> - existing resource group
+
+=item B<name> - NAME of the created image
+
+=item B<source> - URI of the vhd disk from which the image will be created
+
+=back
+=cut
+
+sub az_img_from_vhd_create {
+    my (%args) = @_;
+    foreach (qw(resource_group name source)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ', 'az image create',
+        '--resource-group', $args{resource_group},
+        '-n', $args{name},
+        '--os-type', 'linux',
+        '--source', $args{source});
+    assert_script_run($az_cmd, timeout => 600);
+}
+
 =head2 az_vm_create
 
     az_vm_create(
@@ -717,7 +752,8 @@ sub az_vm_create {
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
     push @vm_create, '--image', $args{image};
-    push @vm_create, '--public-ip-address ""';
+    push @vm_create, '--public-ip-address';
+    push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
 
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
@@ -729,7 +765,6 @@ sub az_vm_create {
     push @vm_create, '--nsg', $args{nsg} if $args{nsg};
     push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
     push @vm_create, '--nics', $args{nic} if $args{nic};
-    push @vm_create, '--public-ip-address', $args{public_ip} if $args{public_ip};
     push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
     push @vm_create, '--subnet', $args{snet} if $args{snet};
     push @vm_create, '--security-type', $args{security_type} if $args{security_type};
@@ -1059,8 +1094,7 @@ sub az_ipconfig_update {
     foreach (qw(resource_group ipconfig_name nic_name ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    croak "Invalid IP address ip:$args{ip}"
-      unless ($args{ip} =~ /^[1-9]{1}[0-9]{0,2}\.(0|[1-9]{1,3})\.(0|[1-9]{1,3})\.[1-9]{1}[0-9]{0,2}$/);
+    croak "Not a valid ip addr: $args{ip}" unless grep /^$RE{net}{IPv4}$/, $args{ip};
 
     my $az_cmd = join(' ', 'az network nic ip-config update',
         '--resource-group', $args{resource_group},

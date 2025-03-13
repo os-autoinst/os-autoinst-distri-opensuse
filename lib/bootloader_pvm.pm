@@ -125,7 +125,7 @@ sub enter_netboot_parameters {
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     if (is_agama) {
         type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password";
-        # agama.auto and agama.install_url are defined in below function
+        # inst.auto and inst.install_url are defined in below function
         specific_bootmenu_params;
         type_string_slow " " . get_var('EXTRABOOTPARAMS') if (get_var('EXTRABOOTPARAMS'));
     }
@@ -137,10 +137,10 @@ sub enter_netboot_parameters {
         bootmenu_default_params;
         bootmenu_network_source;
         specific_bootmenu_params;
-        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
         type_string_slow remote_install_bootmenu_params;
     }
 
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
     type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
 

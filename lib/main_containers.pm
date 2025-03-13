@@ -130,6 +130,9 @@ sub load_host_tests_podman {
     load_3rd_party_image_test($run_args) unless is_staging;
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
+    loadtest 'containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation";
+    # podman artifact needs podman 5.4.0
+    loadtest 'containers/podman_artifact' if is_tumbleweed;
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
@@ -164,6 +167,7 @@ sub load_host_tests_docker {
     load_3rd_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
+    loadtest 'containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation";
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
     unless (is_sle("<=15") && is_aarch64) {
@@ -283,9 +287,15 @@ sub load_container_tests {
         return;
     }
 
-    if (get_var('HELM_CONFIG')) {
+    ## Helm chart tests. Add your individual helm chart tests here.
+    if (my $chart = get_var('HELM_CHART')) {
         set_var('K3S_ENABLE_COREDNS', 1);
-        loadtest 'containers/helm_rmt';
+
+        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } else {
+            die "Unsupported HELM_CHART value";
+        }
         return;
     }
 
@@ -299,12 +309,15 @@ sub load_container_tests {
         return;
     }
 
-    if (get_var('SKOPEO_BATS_SKIP') || get_var('RUNC_BATS_SKIP')) {
+    if (get_var('SKOPEO_BATS_SKIP') || get_var('RUNC_BATS_SKIP') || get_var('NETAVARK_BATS_SKIP')) {
         if (!check_var('SKOPEO_BATS_SKIP', 'all')) {
             loadtest 'containers/skopeo_integration' if (is_tumbleweed || is_microos || is_sle || is_leap || is_sle_micro('>=5.5'));
         }
         if (!check_var('RUNC_BATS_SKIP', 'all')) {
             loadtest 'containers/runc_integration' if (is_tumbleweed || is_sle || is_leap);
+        }
+        if (!check_var('NETAVARK_BATS_SKIP', 'all')) {
+            loadtest 'containers/netavark_integration' if (is_tumbleweed || is_sle('>15-SP4') || is_leap);
         }
         return;
     }

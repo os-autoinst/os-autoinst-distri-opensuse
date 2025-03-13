@@ -48,7 +48,7 @@ sub cmd_handle {
             }
             else {
                 all { $output =~ m/\Q$_\E/i; } values %args;
-    } });
+            } });
 }
 
 sub run {

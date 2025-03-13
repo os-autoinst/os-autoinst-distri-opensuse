@@ -45,10 +45,11 @@ our @EXPORT = qw(
   load_os_env_variables
   sdaf_cleanup
   sdaf_execute_playbook
-  ansible_hanasr_show_status
-  ansible_ensa2_show_status
+  ansible_execute_command
+  ansible_show_status
   playbook_settings
   $output_log_file
+  sdaf_register_byos
 );
 
 our $output_log_file = '';
@@ -824,9 +825,9 @@ sub sdaf_ansible_verbosity_level {
     return '-vvvv';    # Default set to "-vvvv"
 }
 
-=head2 ansible_hanasr_show_status
+=head2 ansible_show_status
 
-    ansible_hanasr_show_status(sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
+    ansible_show_status(scenarios=>['db_install', 'db_ha'] sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
 
 Display simple command outputs from all DB hosts using B<ansible> command.
 
@@ -836,30 +837,53 @@ Display simple command outputs from all DB hosts using B<ansible> command.
 
 =item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
 
+=item * B<scenarios>: ARRAYREF with list of installed components
+
 =back
 =cut
 
-sub ansible_hanasr_show_status {
+sub ansible_show_status {
     my (%args) = @_;
-    croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
+    foreach ('sdaf_config_root_dir', 'scenarios') {
+        croak "Missing mandatory argument '$_'." unless $args{$_};
+    }
+
     $args{sap_sid} //= get_required_var('SAP_SID');
+    my %common_args = (sdaf_config_root_dir => $args{sdaf_config_root_dir}, sap_sid => $args{sap_sid});
 
-    # Note: QES_DB is database host group in SDAF inventory file.
-    my @cmd = ('ansible', 'QES_DB',
-        "--private-key=$args{sdaf_config_root_dir}/sshkey",
-        "--inventory=$args{sap_sid}_hosts.yaml",
-        '--module-name=shell');
+    record_info('OS info', ansible_execute_command(command => 'cat /etc/os-release', host_group => 'all', %common_args));
 
-    record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
-    record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
-    record_info('HANA SR', script_output(join(' ', @cmd, '--args="sudo SAPHanaSR-showAttr"', '2> /dev/null')));
+    # Show Hana processes running
+    record_info('DB processes', ansible_execute_command(command => 'ps -ef | grep hdb',
+            host_group => "$args{sap_sid}_DB", %common_args)) if grep(/db_install/, @{$args{scenarios}});
+
+    # Show cluster related information
+    if (grep(/ha/, @{$args{scenarios}})) {
+        record_info('DB cluster', ansible_execute_command(command => 'sudo crm status full',
+                host_group => "$args{sap_sid}_DB", %common_args));
+        record_info('HanaSR status', ansible_execute_command(command => 'sudo SAPHanaSR-showAttr',
+                host_group => "$args{sap_sid}_DB", %common_args));
+    }
+    record_info('ENSA2 cluster', ansible_execute_command(command => 'sudo crm status full',
+            host_group => "$args{sap_sid}_SCS", %common_args)) if grep(/ensa/, @{$args{scenarios}});
+
+    # Show NW processes for each type of instance
+    foreach ('PAS', 'ERS', 'SCS') {
+        my $pattern = lc($_);
+        record_info("NW $_", ansible_execute_command(command => 'ps -ef | grep sap',
+                host_group => "$args{sap_sid}_$_", %common_args)) if grep(/$pattern/, @{$args{scenarios}});
+    }
+    # 'nw_aas' does not fit SID_APP pattern, so it can't be included in loop above
+    record_info("NW $_", ansible_execute_command(command => 'ps -ef | grep sap',
+            host_group => "$args{sap_sid}_APP", %common_args)) if grep(/app/, @{$args{scenarios}});
 }
 
-=head2 ansible_ensa2_show_status
+=head2 ansible_execute_command
 
-    ansible_ensa2_show_status(sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
+    ansible_execute_command(
+        command=>'rm -Rf /', host_group=>'QES_SCS', sdaf_config_root_dir=>'/some/path' , sap_sid=>'CAT');
 
-Display simple command outputs from all DB hosts using B<ansible> command.
+Execute command on host group using ansible. Returns execution output.
 
 =over
 
@@ -867,22 +891,26 @@ Display simple command outputs from all DB hosts using B<ansible> command.
 
 =item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
 
+=item * B<host_group>: Host group name from inventory file
+
+=item * B<command>: Command to be executed
+
+=item * B<verbose>: verbose ansible output
+
 =back
 =cut
 
-sub ansible_ensa2_show_status {
+sub ansible_execute_command {
     my (%args) = @_;
     croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
-    $args{sap_sid} //= get_required_var('SAP_SID');
 
-    # Note: QES_DB is database host group in SDAF inventory file.
-    my @cmd = ('ansible', 'QES_SCS',
+    my @cmd = ('ansible', $args{host_group},
         "--private-key=$args{sdaf_config_root_dir}/sshkey",
         "--inventory=$args{sap_sid}_hosts.yaml",
+        $args{verbose} ? '-vvv' : '',
         '--module-name=shell');
 
-    record_info('OS info', script_output(join(' ', @cmd, '--args="cat /etc/os-release"', '2> /dev/null')));
-    record_info('CRM status', script_output(join(' ', @cmd, '--args="sudo crm status full"', '2> /dev/null')));
+    return script_output(join(' ', @cmd, "--args=\"$args{command}\""));
 }
 
 =head2 playbook_settings
@@ -947,6 +975,42 @@ sub playbook_settings {
     }
 
     return (\@playbooks);
+}
+
+=head2 sdaf_register_byos
+
+    sdaf_register_byos(sdaf_config_root_dir=>'/stairway/to_heaven', scc_reg_code=>'CODE-XYZ', sap_sid='PRD');
+
+Performs SCC registration on BYOS image using B<registercloudguest> method.
+
+=over
+
+=item * B<sdaf_config_root_dir>: SDAF root configuration directory
+
+=item * B<scc_reg_code>: SCC registration code
+
+=item * B<sap_sid>: SAP system ID
+
+=back
+=cut
+
+sub sdaf_register_byos {
+    my (%args) = @_;
+    my @mandatory_args = qw(sdaf_config_root_dir scc_reg_code sap_sid);
+
+    for my $arg (@mandatory_args) {
+        croak "Missing mandatory argument \$args($arg)", unless $args{$arg};
+    }
+
+    record_info('Register SUTs');
+    assert_script_run("cd $args{sdaf_config_root_dir}");
+    ansible_execute_command(
+        command => "sudo registercloudguest -r $args{scc_reg_code}",
+        host_group => "$args{sap_sid}_DB",
+        sdaf_config_root_dir => $args{sdaf_config_root_dir},
+        sap_sid => $args{sap_sid},
+        verbose => 1
+    );
 }
 
 1;

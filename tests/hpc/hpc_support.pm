@@ -40,7 +40,7 @@ sub run {
     systemctl("is-active mariadb");
 
     # allow hostnames other than localhost
-    my $config = << "EOF";
+    my $config = <<"EOF";
 sed -i "/^bind-address.*/c\\#bind-address" /etc/my.cnf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);

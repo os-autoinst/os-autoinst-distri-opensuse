@@ -38,7 +38,11 @@ sub run {
     my $unexpected = 'wicked';
     my $reason = 'networking';
 
-    if (is_jeos && (is_sle || is_leap)) {
+    if (is_sle("16+") || is_leap("16+")) {
+        $expected = 'NetworkManager';
+        $unexpected = 'wicked';
+        $reason = 'networking';
+    } elsif (is_jeos && (is_sle || is_leap)) {
         $expected = 'wicked';
         $unexpected = 'NetworkManager';
         $reason = 'JeOS';

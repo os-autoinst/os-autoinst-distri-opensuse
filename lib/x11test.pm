@@ -193,7 +193,7 @@ sub open_libreoffice_options {
 # get email account information for Evolution test cases
 sub getconfig_emailaccount {
     my ($self) = @_;
-    my $local_config = << 'END_LOCAL_CONFIG';
+    my $local_config = <<'END_LOCAL_CONFIG';
 [internal_account_A]
 user = admin
 mailbox = admin@localhost

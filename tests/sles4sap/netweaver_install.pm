@@ -52,6 +52,24 @@ sub run {
     # Mount media
     $self->mount_media($proto, $path, '/sapinst');
 
+    # Workaround for SLE16 if variable WORKAROUND_BSC1234806 set
+    if (get_var("WORKAROUND_BSC1236235")) {
+        record_soft_failure("bsc#1236235: workaround by installing libnsl package from NFS");
+        assert_script_run "rpm -Uvh /mnt/libnsl1-2.38-160000.4.4." . get_var("ARCH") . ".rpm";
+    }
+
+    # Workaround for SLE16 for bsc#1236372
+    if (get_var("WORKAROUND_BSC1236372")) {
+        record_soft_failure("bsc#1236372: workaround by creating a soft link for /etc/services");
+        assert_script_run "ln -s /usr/etc/services /etc/services";
+    }
+
+    # Modify SELinux mode
+    if (get_var("WORKAROUND_BSC1239148")) {
+        record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
+        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+    }
+
     # Define a valid hostname/IP address in /etc/hosts, but not in HA
     $self->add_hostname_to_hosts if (!get_var('HA_CLUSTER'));
 
