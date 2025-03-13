@@ -102,8 +102,8 @@ our @EXPORT = qw(
 
 sub run_cmd {
     my ($self, %args) = @_;
-    croak("Argument <cmd> missing") unless $args{cmd};
-    croak("\$self->{my_instance} is not defined. Check module Description for details")
+    croak('Argument <cmd> missing') unless $args{cmd};
+    croak('$self->{my_instance} is not defined. Check module Description for details')
       unless $self->{my_instance};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
     my $title = $args{title} // $args{cmd};
@@ -129,24 +129,24 @@ sub run_cmd {
 
 sub get_promoted_hostname {
     my ($self) = @_;
-    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? "mst" : "msl";
-    my $hana_resource = join("_",
+    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? 'mst' : 'msl';
+    my $hana_resource = join('_',
         $master_resource_type,
-        "SAPHanaCtl",
-        get_required_var("INSTANCE_SID"),
-        "HDB" . get_required_var("INSTANCE_ID"));
+        'SAPHanaCtl',
+        get_required_var('INSTANCE_SID'),
+        'HDB' . get_required_var('INSTANCE_ID'));
 
-    my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
-    record_info("crm out", $resource_output);
+    my $resource_output = $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1);
+    record_info('crm out', $resource_output);
     my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
     if (scalar @master != 1) {
         diag("Master database not found or command returned abnormal output.\n
         Check 'crm resource status' command output below:\n");
         diag($resource_output);
-        die("Master database was not found, check autoinst.log");
+        die('Master database was not found, check autoinst.log');
     }
 
-    return join("", @master);
+    return join('', @master);
 }
 
 =head2 sles4sap_cleanup
@@ -300,19 +300,19 @@ sub is_hana_resource_running {
     my ($self, %args) = @_;
     $args{quiet} //= 0;
     my $hostname = $self->{my_instance}->{instance_id};
-    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? "mst" : "msl";
-    my $hana_resource = join("_",
+    my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? 'mst' : 'msl';
+    my $hana_resource = join('_',
         $master_resource_type,
-        "SAPHanaCtl",
-        get_required_var("INSTANCE_SID"),
-        "HDB" . get_required_var("INSTANCE_ID"));
+        'SAPHanaCtl',
+        get_required_var('INSTANCE_SID'),
+        'HDB' . get_required_var('INSTANCE_ID'));
 
-    my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
+    my $resource_output = $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1);
     if ($resource_output =~ /is running on: \Q$hostname\E/) {
-        record_info("Node status", "$hana_resource is running on $hostname") unless $args{quiet};
+        record_info('Node status', "$hana_resource is running on $hostname") unless $args{quiet};
         return 1;
     } else {
-        record_info("Node status", "$hana_resource is NOT running on $hostname") unless $args{quiet};
+        record_info('Node status', "$hana_resource is NOT running on $hostname") unless $args{quiet};
         return 0;
     }
 }
@@ -338,7 +338,7 @@ sub wait_hana_node_up {
     my $out;
     while ((time() - $start_time) < $args{timeout}) {
         $out = $instance->run_ssh_command(
-            cmd => "sudo systemctl is-system-running",
+            cmd => 'sudo systemctl is-system-running',
             timeout => 5,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
@@ -346,13 +346,13 @@ sub wait_hana_node_up {
             my $failed_service = $instance->run_ssh_command(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
-                $instance->run_ssh_command(cmd => "sudo systemctl restart guestregister.service", timeout => 600, proceed_on_failure => 1);
+                $instance->run_ssh_command(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, proceed_on_failure => 1);
             }
         }
-        record_info("WAIT_FOR_SYSTEM", "System state: $out");
+        record_info('WAIT_FOR_SYSTEM', "System state: $out");
         sleep 10;
     }
-    die "Timeout reached. is_system_running returns \"$out\"";
+    die('Timeout reached. is_system_running returns: ' . $out);
 }
 
 =head2 stop_hana
@@ -390,14 +390,14 @@ sub stop_hana {
     # Wait for data sync before stopping DB
     $self->wait_for_sync();
 
-    record_info("Stopping HANA", "CMD:$cmd");
-    if ($args{method} eq "crash") {
+    record_info('Stopping HANA', "CMD:$cmd");
+    if ($args{method} eq 'crash') {
         # Crash needs to be executed as root and wait for host reboot
 
         # Ensure the remote node is in a normal state before to trigger the crash
         $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
 
-        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => $timeout);
+        $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c sync', timeout => $timeout);
 
         # Create a local copy of ssh_opts and extend it for the crash command.
         # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
@@ -427,7 +427,7 @@ sub stop_hana {
             $exit_code = script_run('nc -vz -w 1 ' . $self->{my_instance}->{public_ip} . ' 22', quiet => 1);
             $nc_error_occurrence += 1 if (!defined($exit_code) or $exit_code ne 0);
         }
-        my $end_msg = join("\n",
+        my $end_msg = join('\n',
             'END',
             "started at $start_time",
             'elapsed:' . (time() - $start_time),
@@ -437,7 +437,7 @@ sub stop_hana {
 
         # wait for node to be ready
         wait_hana_node_up($self->{my_instance}, timeout => 900);
-        record_info("Wait ssh is back again");
+        record_info('Wait ssh is back again');
     }
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
@@ -454,7 +454,7 @@ sub stop_hana {
 
 sub start_hana {
     my ($self) = @_;
-    $self->run_cmd(cmd => "HDB start", runas => get_required_var("SAP_SIDADM"));
+    $self->run_cmd(cmd => 'HDB start', runas => get_required_var('SAP_SIDADM'));
 }
 
 =head2 cleanup_resource
@@ -473,13 +473,13 @@ sub cleanup_resource {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
 
-    $self->run_cmd(cmd => "crm resource cleanup");
+    $self->run_cmd(cmd => 'crm resource cleanup');
 
     # Wait for resource to start
     my $start_time = time;
     while ($self->is_hana_resource_running() == 0) {
         if (time - $start_time > $timeout) {
-            record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
+            record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
             die("cleanup_resource [ERROR] Resource did not start within defined timeout. ($timeout sec).");
         }
         sleep 30;
@@ -512,7 +512,7 @@ sub check_takeover {
                 $vhost = $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site);
                 $sync_state = $topology->{Site}->{$site}->{srPoll} if ($topology->{Host}->{$host}->{site} eq $site);
             }
-            record_info("Cluster Host", join("\n",
+            record_info('Cluster Host', join("\n",
                     "vhost: $vhost compared with $hostname",
                     "sync_state: $sync_state compared with PRIM"));
             if ($vhost ne $hostname && $sync_state eq "PRIM") {
@@ -577,7 +577,7 @@ sub enable_replication {
     # where it should be the last 2 characters for example it's '10' in 'msl_SAPHana_HA1_HDB10'
     unless ($hana_inn) {
         for my $resource (keys %{$topology->{Resource}}) {
-            $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq "mst" or substr($resource, 0, 3) eq "msl");
+            $hana_inn = substr($resource, -2) if (substr($resource, 0, 3) eq 'mst' or substr($resource, 0, 3) eq 'msl');
             if (defined $hana_inn) { record_info('Instance number was not provided and is determined from the name of th resource', $resource) }
             last if defined($hana_inn);
         }
@@ -634,7 +634,7 @@ sub get_promoted_instance {
         my $promoted_id = $self->get_promoted_hostname();
         $promoted = $instance if ($instance_id eq $promoted_id);
     }
-    if ($promoted eq "undef" || !defined($promoted)) {
+    if ($promoted eq 'undef' || !defined($promoted)) {
         die('get_promoted_instance [ERROR] Failed to identify HANA "PROMOTED" node');
     }
     return $promoted;
@@ -703,9 +703,9 @@ sub wait_for_pacemaker {
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
     my $systemd_cmd = 'systemctl --no-pager is-active pacemaker';
-    my $pacemaker_state = "";
+    my $pacemaker_state = '';
 
-    while ($pacemaker_state ne "active") {
+    while ($pacemaker_state ne 'active') {
         sleep 15;
         $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
         if (time - $start_time > $timeout) {
@@ -733,10 +733,10 @@ sub change_sbd_service_timeout() {
     my ($self, %args) = @_;
     croak('change_sbd_service_timeout [ERROR] Argument <service_timeout> missing') unless $args{service_timeout};
 
-    my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
-    my $service_override_filename = "sbd_delay_start.conf";
+    my $service_override_dir = '/etc/systemd/system/sbd.service.d/';
+    my $service_override_filename = 'sbd_delay_start.conf';
     my $service_override_path = $service_override_dir . $service_override_filename;
-    my $file_exists = $self->run_cmd(cmd => join(" ", "test", "-e", $service_override_path, ";echo", "\$?"),
+    my $file_exists = $self->run_cmd(cmd => join(' ', 'test', '-e', $service_override_path, ';echo', '\$?'),
         proceed_on_failure => 1,
         quiet => 1);
 
@@ -749,10 +749,10 @@ sub change_sbd_service_timeout() {
     else {
         my @content = ('[Service]', "TimeoutSec=$args{service_timeout}");
 
-        $self->run_cmd(cmd => join(" ", "mkdir", "-p", $service_override_dir), quiet => 1);
-        $self->run_cmd(cmd => join(" ", "bash", "-c", "\"echo", "'$_'", ">>", $service_override_path, "\""), quiet => 1) foreach @content;
+        $self->run_cmd(cmd => join(' ', 'mkdir', '-p', $service_override_dir), quiet => 1);
+        $self->run_cmd(cmd => join(' ', 'bash', '-c', '"echo', "'$_'", '>>', $service_override_path, '"'), quiet => 1) foreach @content;
     }
-    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$args{service_timeout}'");
+    record_info('Systemd SBD', "Systemd unit timeout for 'sbd.service' set to '$args{service_timeout}'");
 }
 
 =head2 setup_sbd_delay_publiccloud
@@ -856,7 +856,7 @@ sub cloud_file_content_replace() {
 
 sub create_instance_data {
     my (%args) = @_;
-    croak("Argument <provider> missing") unless $args{provider};
+    croak('Argument <provider> missing') unless $args{provider};
     my $class_type = ref($args{provider});
     croak("Unexpected class type [$class_type]") unless $class_type =~ /^publiccloud::(azure|ec2|gce)/;
     my @instances = ();
@@ -969,12 +969,12 @@ sub create_playbook_section_list {
     $args{scc_code} //= '';
 
     if ($args{fencing} eq 'native' and is_azure) {
-        croak "Argument <fence_type> missing" unless $args{fence_type};
+        croak 'Argument <fence_type> missing' unless $args{fence_type};
     }
 
     if ($args{fencing} eq 'native' and is_azure and $args{fence_type} eq 'spn') {
-        croak "Argument <spn_application_id> missing" unless $args{spn_application_id};
-        croak "Argument <spn_application_password> missing" unless $args{spn_application_password};
+        croak 'Argument <spn_application_id> missing' unless $args{spn_application_id};
+        croak 'Argument <spn_application_password> missing' unless $args{spn_application_password};
     }
 
     my @playbook_list;
@@ -1001,7 +1001,7 @@ sub create_playbook_section_list {
             "-e sas_token='$args{ptf_token}'",
             "-e container=$args{ptf_container}",
             "-e storage=$args{ptf_account}");
-        push @playbook_list, "additional_fence_agent_tasks.yaml";
+        push @playbook_list, 'additional_fence_agent_tasks.yaml';
     }
 
     my $hana_cluster_playbook = 'sap-hana-cluster.yaml';
@@ -1054,7 +1054,7 @@ sub create_playbook_section_list {
 
 sub azure_fencing_agents_playbook_args {
     my (%args) = @_;
-    croak "Argument <fence_type> missing" unless $args{fence_type};
+    croak 'Argument <fence_type> missing' unless $args{fence_type};
     croak "fence_type contains dubious value: '$args{fence_type}'" unless
       $args{fence_type} =~ /msi|spn/;
 
@@ -1122,11 +1122,11 @@ sub create_hana_vars_section {
 sub display_full_status {
     my ($self) = @_;
     my $vm_name = $self->{my_instance}{instance_id};
-    my $final_message = join("\n", "### CRM STATUS ###",
+    my $final_message = join('\n', '### CRM STATUS ###',
         $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1),
-        "### CRM MON ###",
+        '### CRM MON ###',
         $self->run_cmd(cmd => $crm_mon_cmd, proceed_on_failure => 1),
-        "### HANA REPLICATION INFO ###",
+        '### HANA REPLICATION INFO ###',
         $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1));
 
     record_info("STATUS $vm_name", $final_message);
@@ -1173,7 +1173,7 @@ sub get_hana_database_status {
     my ($self, %args) = @_;
     foreach (qw(password_db instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
     my $hdb_cmd = "hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} 'SELECT * FROM SYS.M_DATABASES;'";
-    my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var("SAP_SIDADM"), proceed_on_failure => 1);
+    my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var('SAP_SIDADM'), proceed_on_failure => 1);
 
     if ($output_cmd =~ /Connection failed/) {
         record_info('HANA DB OFFLINE', "Hana database in primary node is offline. Here the output \n$output_cmd");
@@ -1243,8 +1243,8 @@ sub is_primary_node_online {
     # Wait by default for 5 minutes
     my $time_to_wait = 300;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
-    my $cmd = "python exe/python_support/systemReplicationStatus.py";
-    my $output = "";
+    my $cmd = 'python exe/python_support/systemReplicationStatus.py';
+    my $output = '';
 
     # Loop until is not primary the vm01 or timeout is reached
     while ($time_to_wait > 0) {
@@ -1271,7 +1271,7 @@ sub pacemaker_version {
     my $version_cmd = 'pacemakerd --version';
 
     my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1);
-    record_info("PACEMAKER VERSION", $version_output);
+    record_info('PACEMAKER VERSION', $version_output);
 
     if ($version_output =~ /Pacemaker (\d+\.\d+\.\d+)/) {
         return $1;
@@ -1414,7 +1414,7 @@ sub wait_for_idle {
 
     my $rc = $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1, proceed_on_failure => 1);
     if ($rc == 124) {
-        record_info("WARN cs_wait_for_idle", "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
+        record_info('WARN cs_wait_for_idle', "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
         $self->run_cmd(cmd => 'cs_clusterstate', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'crm_mon -r -R -n -N -1', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1);
