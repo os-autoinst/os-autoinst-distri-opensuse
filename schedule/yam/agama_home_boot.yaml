@@ -1,0 +1,10 @@
+---
+name: agama_whole_disk
+description: >
+    Prepare auto-installation with home and boot on whole disks.
+schedule:
+    - yam/agama/boot_agama
+    - yam/agama/agama_auto
+    - installation/grub_test
+    - installation/first_boot
+    - yam/validate/validate_partition.pm

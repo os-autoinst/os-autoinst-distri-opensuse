@@ -2,7 +2,7 @@ local root_filesystem(filesystem) = {
   drives: [
     {
       partitions: [
-        { search: "*", delete: true },
+        { search: '*', delete: true },
         { generate: 'default' },
         { filesystem: { path: '/', type: filesystem } },
       ],
@@ -15,8 +15,8 @@ local lvm(encrypted=false) = {
     {
       alias: 'pvs-disk',
       partitions: [
-        { search: "*", delete: true }
-      ]
+        { search: '*', delete: true },
+      ],
     },
   ],
   volumeGroups: [
@@ -27,8 +27,8 @@ local lvm(encrypted=false) = {
           [if encrypted == true then 'generate']: {
             targetDevices: ['pvs-disk'],
             encryption: {
-              luks2: { password: "nots3cr3t" }
-            }
+              luks2: { password: 'nots3cr3t' },
+            },
           },
           [if encrypted == false then 'generate']: ['pvs-disk'],
         },
@@ -37,7 +37,36 @@ local lvm(encrypted=false) = {
         { generate: 'default' },
       ],
     },
-  ]
+  ],
+};
+
+local format_home_conf_boot() = {
+  drives: [
+    {
+      search: '/dev/vda',
+      filesystem: {
+        path: '/home',
+      },
+    },
+    {
+      search: '/dev/vdb',
+      partitions: [
+        {
+          filesystem: {
+            path: '/',
+          },
+        },
+      ],
+    },
+    {
+      search: '/dev/vdc',
+      alias: 'boot-disk',
+    },
+  ],
+  boot: {
+    configure: 'true',
+    device: 'boot-disk',
+  },
 };
 
 {
@@ -45,4 +74,5 @@ local lvm(encrypted=false) = {
   lvm_encrypted: lvm(true),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
+  format_home_conf_boot: format_home_conf_boot(),
 }
