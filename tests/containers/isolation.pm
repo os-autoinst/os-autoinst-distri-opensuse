@@ -43,7 +43,13 @@ sub run {
     select_serial_terminal;
 
     $runtime = $self->containers_factory($args->{runtime});
-    install_packages('jq');
+    my @packages = qw(jq);
+    # rootless docker is not available on SLEM
+    if ($args->{runtime} eq "docker" && !is_transactional) {
+        my $docker_package = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable-rootless-extras" : "docker-rootless-extras";
+        push @packages, qw($docker_package);
+    }
+    install_packages(@packages);
 
     my %ip_addr;
     for my $ip_version (4, 6) {
@@ -62,7 +68,7 @@ sub run {
 
     # https://docs.docker.com/engine/security/rootless/
     if ($args->{runtime} eq "docker") {
-        # rootless docker is not available on MicroOS & SLEM
+        # rootless docker is not available on SLEM
         return if is_transactional;
         assert_script_run "dockerd-rootless-setuptool.sh install";
         systemctl "--user enable --now docker";
@@ -81,7 +87,7 @@ sub run {
 1;
 
 sub cleanup() {
-    # rootless docker is not available on MicroOS & SLEM
+    # rootless docker is not available on SLEM
     if ($runtime->{runtime} eq "podman" || !is_transactional) {
         select_user_serial_terminal;
         script_run "$runtime network rm $network";
