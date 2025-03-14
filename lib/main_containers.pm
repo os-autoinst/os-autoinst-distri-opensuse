@@ -184,8 +184,10 @@ sub load_host_tests_docker {
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
-        # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
-        loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_transactional || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"));
+    }
+    # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
+    unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
+        loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
     }
     loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);

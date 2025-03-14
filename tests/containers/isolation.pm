@@ -12,7 +12,6 @@ use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
 use utils;
-use version_utils qw(is_transactional);
 
 my $runtime;
 my $network = "test_isolated_network";
@@ -43,7 +42,7 @@ sub run {
     $runtime = $self->containers_factory($args->{runtime});
     my @packages = qw(jq);
     # rootless docker is not available on SLEM
-    if ($args->{runtime} eq "docker" && !is_transactional) {
+    if ($args->{runtime} eq "docker") {
         my $base = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
         push @packages, "$base-rootless-extras";
     }
@@ -67,8 +66,6 @@ sub run {
 
     # https://docs.docker.com/engine/security/rootless/
     if ($args->{runtime} eq "docker") {
-        # rootless docker is not available on SLEM
-        return if is_transactional;
         assert_script_run "dockerd-rootless-setuptool.sh install";
         systemctl "--user enable --now docker";
     }
@@ -86,13 +83,10 @@ sub run {
 1;
 
 sub cleanup() {
-    # rootless docker is not available on SLEM
-    if ($runtime->{runtime} eq "podman" || !is_transactional) {
-        select_user_serial_terminal;
-        script_run "$runtime network rm $network";
-        $runtime->cleanup_system_host();
-        script_run "dockerd-rootless-setuptool.sh uninstall";
-    }
+    select_user_serial_terminal;
+    script_run "$runtime network rm $network";
+    $runtime->cleanup_system_host();
+    script_run "dockerd-rootless-setuptool.sh uninstall" if ($runtime->{runtime} eq "docker");
 
     select_serial_terminal;
     script_run "$runtime network rm $network";
