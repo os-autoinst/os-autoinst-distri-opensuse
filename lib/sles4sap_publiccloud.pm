@@ -307,7 +307,7 @@ sub is_hana_resource_running {
         get_required_var('INSTANCE_SID'),
         'HDB' . get_required_var('INSTANCE_ID'));
 
-    my $resource_output = $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1);
+    my $resource_output = $self->run_cmd(cmd => "crm resource status $hana_resource", quiet => 1);
     if ($resource_output =~ /is running on: \Q$hostname\E/) {
         record_info('Node status', "$hana_resource is running on $hostname") unless $args{quiet};
         return 1;
