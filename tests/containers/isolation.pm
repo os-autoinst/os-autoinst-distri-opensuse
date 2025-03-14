@@ -53,8 +53,8 @@ sub run {
 
     my %ip_addr;
     for my $ip_version (4, 6) {
-        my $iface = script_output "ip -$ip_version --json route list match default | jq -r '.[0].dev'";
-        $ip_addr{$ip_version} = script_output "ip -$ip_version --json addr show $iface | jq -r '.[0].addr_info[0].local'";
+        my $iface = script_output "ip -$ip_version --json route list match default | jq -Mr '.[0].dev'";
+        $ip_addr{$ip_version} = script_output "ip -$ip_version --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
     }
 
     my $ipv6_opts = ($args->{runtime} eq "docker") ? "--subnet 2001:db8::/64" : "";
