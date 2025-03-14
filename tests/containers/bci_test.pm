@@ -65,9 +65,12 @@ sub run_tox_cmd {
     $cmd .= "| tee $tox_out";
     my $env_info = (split(/[ _:-]/, $env))[0];    # first word on many separators,to shorten long $env
     record_info("tox " . $env_info, "Running command: $cmd");
+    assert_script_run("export TESTINFRA_LOGGING=1");
     script_run("set -o pipefail");    # required because we don't want to rely on consoletest_setup for BCI tests.
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 60));
     upload_logs("$tox_out", failok => 1);
+    script_run("tar zcf commands.tgz commands-*.txt");
+    upload_logs("commands.tgz", failok => 1);
     if ($ret == 124) {
         # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
         record_info('TIMEOUT', "The command <tox -e $env> timed out.", result => 'fail');
