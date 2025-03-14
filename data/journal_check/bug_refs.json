@@ -395,7 +395,7 @@
         "description": "hibernation: the secret key is invalid",
         "products": {
             "opensuse": ["Tumbleweed", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
