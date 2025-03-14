@@ -532,7 +532,7 @@ sub check_takeover {
 
     Re-enables replication on the previously fenced database node. Database must be offline.
     Dies if the the given <site name> doesn't correspond with the SAPHanaSR topology local site name
-    Optionaly the hana_innstance_id cpould be provided for better relianility
+    Optionally the hana_instance_id could be provided for better readability
 
 =over
 
