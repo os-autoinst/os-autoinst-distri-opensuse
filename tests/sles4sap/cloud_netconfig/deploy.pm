@@ -22,12 +22,21 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     my $rg = DEPLOY_PREFIX . get_current_job_id();
-    my $os_ver = get_required_var('CLUSTER_OS_VER');
 
     select_serial_terminal;
 
     # Init all the PC gears (ssh keys, CSP credentials)
     my $provider = $self->provider_factory();
+
+    my $os_ver;
+    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        # This section is only needed by Azure tests using images uploaded
+        # with publiccloud_upload_img.
+        $os_ver = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+    } else {
+        $os_ver = get_required_var('CLUSTER_OS_VER');
+    }
+
     # remove configuration file created by the PC factory
     # as it interfere with ssh behavior.
     # in particular it has setting about verbosity that
@@ -109,6 +118,16 @@ sub run {
         '--private-ip-address 10.1.0.6',
         '--private-ip-address-version IPv4');
     assert_script_run($az_cmd);
+
+    # If image provided is a blob storage link, create image out of it
+    if ($os_ver =~ /\.vhd$/) {
+        my $img_name = $rg . 'img';
+        az_img_from_vhd_create(
+            resource_group => $rg,
+            name => $img_name,
+            source => $os_ver);
+        $os_ver = $img_name;
+    }
 
     # Create one VM and add the NIC to it
     my $vm = DEPLOY_PREFIX . '-vm';
