@@ -130,8 +130,6 @@ sub load_host_tests_podman {
     load_3rd_party_image_test($run_args) unless is_staging;
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
-    # FIXME: Transactional doesn't like user serial console
-    loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless is_transactional;
     # podman artifact needs podman 5.4.0
     loadtest 'containers/podman_artifact' if is_tumbleweed;
     loadtest 'containers/podman_bci_systemd';
@@ -150,6 +148,7 @@ sub load_host_tests_podman {
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
+        loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless is_transactional;
         loadtest 'containers/podman_remote' if is_sle_micro('5.5+');
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
@@ -168,9 +167,6 @@ sub load_host_tests_docker {
     load_3rd_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
-    # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
-    # FIXME: Transactional doesn't like user serial console
-    loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_transactional || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"));
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
     unless (is_sle("<=15") && is_aarch64) {
@@ -188,6 +184,8 @@ sub load_host_tests_docker {
     if (is_tumbleweed || is_microos) {
         loadtest 'containers/buildx';
         loadtest 'containers/rootless_docker';
+        # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
+        loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_transactional || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"));
     }
     loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
