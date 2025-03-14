@@ -46,8 +46,8 @@ sub run {
     my @packages = qw(jq);
     # rootless docker is not available on SLEM
     if ($args->{runtime} eq "docker" && !is_transactional) {
-        my $docker_package = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable-rootless-extras" : "docker-rootless-extras";
-        push @packages, qw($docker_package);
+        my $base = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
+        push @packages, "$base-rootless-extras";
     }
     install_packages(@packages);
 
@@ -65,12 +65,7 @@ sub run {
     }
     assert_script_run "$runtime network rm $network";
 
-    if (is_transactional) {
-        ensure_serialdev_permissions;
-        select_console "user-console";
-    } else {
-        select_user_serial_terminal;
-    }
+    select_user_serial_terminal;
 
     # https://docs.docker.com/engine/security/rootless/
     if ($args->{runtime} eq "docker") {
@@ -95,11 +90,7 @@ sub run {
 sub cleanup() {
     # rootless docker is not available on SLEM
     if ($runtime->{runtime} eq "podman" || !is_transactional) {
-        if (is_transactional) {
-            select_console "user-console";
-        } else {
-            select_user_serial_terminal;
-        }
+        select_user_serial_terminal;
         script_run "$runtime network rm $network";
         $runtime->cleanup_system_host();
         script_run "dockerd-rootless-setuptool.sh uninstall";
