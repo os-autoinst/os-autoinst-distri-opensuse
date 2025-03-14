@@ -20,9 +20,7 @@ my $network = "test_isolated_network";
 sub test_ip_version {
     my ($ip_version, $ip_addr) = @_;
 
-    # We use alpine as registry.opensuse.org/opensuse/busybox has a buggy ping that needs setuid root
-    # https://bugzilla.suse.com/show_bug.cgi?id=1239176
-    my $image = "registry.opensuse.org/opensuse/toolbox";
+    my $image = "registry.opensuse.org/opensuse/busybox";
     script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Test that containers can't access the host
