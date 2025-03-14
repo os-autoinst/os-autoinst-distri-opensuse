@@ -12,6 +12,8 @@ jobs:
             perl-version: 5.32
           - test: unit
             perl-version: 5.32
+          - test: jsonnet
+            perl-version: '5.38-bookworm'
           - test: compile
             perl-version: 5.26
     container:
@@ -21,8 +23,13 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get -y update
-        apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip
-        pip3 install yamllint
+        if [[ "${{ matrix.test }}" == "jsonnet" ]]; then
+          apt-get -y install jsonnet
+        else
+          apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip
+          pip3 install yamllint
+        fi  
+      shell: bash -e {0}  
     - name: Setup perl
       env:
         INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
@@ -32,7 +39,10 @@ jobs:
         echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
         echo " requires 'Perl::Tidy', '== 20250214';" >> cpanfile
-        make prepare
+        if [[ "${{ matrix.test }}" != "jsonnet" ]]; then
+          make prepare 
+        fi  
+      shell: bash -e {0}  
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}

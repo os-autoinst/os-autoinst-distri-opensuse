@@ -108,11 +108,17 @@ test-spec:
 .PHONY: test-static
 test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
 
+.PHONY: test-jsonnet
+test-jsonnet:
+	tools/test_jsonnet_valid
+
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
 else ifeq ($(TESTS),static)
 test: test-static
+else ifeq ($(TESTS),jsonnet)
+test: test-jsonnet
 else ifeq ($(TESTS),unit)
 test: unit-test perlcritic
 else ifeq ($(TESTS),isotovideo)
