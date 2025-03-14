@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# fake code
+success=1
+[ $success = 1 ] && echo "check SUCCESS" && exit 0
+exit 1
