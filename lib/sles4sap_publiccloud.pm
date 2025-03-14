@@ -530,7 +530,7 @@ sub check_takeover {
 =head2 enable_replication
     enable_replication([site_name => 'site_a', hana_inn => '10' ]);
 
-    Re-enaobles replication on the previously fenced database node. Database must be offline.
+    Re-enables replication on the previously fenced database node. Database must be offline.
     Dies if the the given <site name> doesn't corespond with the SAPHanaSR topology local site name
     Optionaly the hana_innstance_id cpould be provided for better relianility
 
