@@ -94,7 +94,6 @@ sub cleanup() {
         script_run "$runtime network rm $network";
         $runtime->cleanup_system_host();
         script_run "dockerd-rootless-setuptool.sh uninstall";
-        script_run "rootlesskit rm -rf ~/.local/share/docker ~/.config/docker";
     }
 
     select_serial_terminal;
