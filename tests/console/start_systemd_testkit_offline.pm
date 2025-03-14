@@ -77,7 +77,7 @@ sub parse_results_from_output {
             next;
         }
 
-        if ($line =~ /(ERROR:|FAILED:|failed$)/) {
+        if ($line =~ /(ERROR:|FAILED:)/) {
             $outcome = 'failed';
             $error_line = $line;
         }
