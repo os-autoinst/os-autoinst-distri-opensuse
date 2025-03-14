@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Architectures;
+use version_utils;
 use Mojo::File 'path';
 use Mojo::Util 'trim';
 
@@ -32,6 +33,7 @@ our @EXPORT = qw(
   prepare_for_test
   upload_audit_test_logs
   rerun_fail_cases
+  check_failed_cases
   parse_kvm_svirt_apparmor_results
 );
 
@@ -214,6 +216,44 @@ sub rerun_fail_cases {
             script_run("./run.bash $case_id", timeout => $rerun_cases{$case_id} // 180);
         }
     }
+}
+
+
+sub check_failed_cases {
+    # s390x & x86_64 on >=15-SP6
+    my @known_failures = (
+        "mknod__dac_dir_add_name_success_user",
+        "mknod__dac_dir_add_name_fail_user",
+        "utime__dac_file_write_success_user",
+        "utime__dac_file_write_fail_user",
+        "utimes__dac_file_write_success_user",
+        "utimes__dac_file_write_fail_user"
+    );
+
+    my $flag = 'ok';
+    if (is_sle('>=15-SP6') && (is_s390x || is_x86_64)) {
+        my $log_content = script_output('cat rollup.log');
+
+        my %failures;
+        foreach my $line (split /\n/, $log_content) {
+            if ($line =~ /\[\d+\]\s+(\S+)\s+FAIL/) {
+                my $test_name = $1;
+                $failures{$test_name} = 1;
+            }
+        }
+        foreach my $failure (keys %failures) {
+            if (grep { $_ eq $failure } @known_failures) {
+                record_info("Known Failure", "Softfail: $failure");
+                $flag = 'softfail';
+            } else {
+                # if we get an unknown failure, we return immediately
+                record_info("Unknown Failure", "Test failed: $failure");
+                return 'fail';
+            }
+        }
+
+    }
+    return $flag;
 }
 
 # The test code kvm_svirt_arrarmor is used by two tests.
