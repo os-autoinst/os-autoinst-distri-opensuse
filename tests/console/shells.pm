@@ -24,11 +24,13 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';
-use version_utils 'is_leap';
+use version_utils qw(is_leap is_sle);
 
 sub run() {
     select_console 'root-console';
-    my @packages = qw(tcsh zsh);
+    my @packages = qw(tcsh);
+    # zsh not available on SLES16 (bsc#1238873)
+    push @packages, qw(zsh) unless (is_sle("16+"));
     # ksh does not build for Leap 15.x on aarch64, so, skip it
     push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
     zypper_call("in @packages");
@@ -36,7 +38,7 @@ sub run() {
     assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and is_aarch64);
     assert_script_run 'tcsh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'csh -c "printf \'hello\n\'" | grep hello';
-    assert_script_run 'zsh -c "echo hello" | grep hello';
+    assert_script_run 'zsh -c "echo hello" | grep hello' unless (is_sle("16+"));
     assert_script_run 'sh -c "echo hello" | grep hello';
     tcsh_extra_tests();
 }
