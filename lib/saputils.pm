@@ -137,7 +137,6 @@ sub calculate_hana_topology {
 
         # Remapping from old raw structure output of the 'SAPHana-showAttr --format=script' which is
         # filled to the `$script_topology` from which it's mapped to the new structure to the '$topology'
-
         # Key `Resource` is dynamic and could be mapped directly
         for my $resource (@all_resources) {
             # Takes parameter and value per line in resource
@@ -149,7 +148,6 @@ sub calculate_hana_topology {
         }
 
         for my $host (@all_hosts) {
-
             # New structure introduces key 'Site' to which some values are moved and have keys renamed
             # or left defined but empty if it's not defined originally
             my $sth_site = $script_topology{$host}->{site};
@@ -158,14 +156,12 @@ sub calculate_hana_topology {
                 if (defined $script_topology{$host}->{op_mode}) { $topology{Site}{$sth_site}{opMode} = $script_topology{$host}->{op_mode} }
                 if (defined $script_topology{$host}->{srmode}) { $topology{Site}{$sth_site}{srMode} = $script_topology{$host}->{srmode} }
                 if (defined $script_topology{$host}->{sync_state}) { $topology{Site}{$sth_site}{srPoll} = $script_topology{$host}->{sync_state} }
-
                 # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
                 # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
                 if (defined $script_topology{$host}->{node_state}) {
                     $topology{Site}{$sth_site}{lss} = ($script_topology{$host}->{node_state} eq 'online' or $script_topology{$host}->{node_state} =~ /[1-9]+/) ? '4' : '1';
                 }
             }
-
             # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
             # or left defined but empty if it's not defined originally
             if (defined $script_topology{$host}->{vhost}) { $topology{Host}{$host}{vhost} = $script_topology{$host}->{vhost} }
@@ -175,7 +171,6 @@ sub calculate_hana_topology {
             if (defined $script_topology{$host}->{score}) { $topology{Host}{$host}{score} = $script_topology{$host}->{score} }
             if (defined $script_topology{$host}->{version}) { $topology{Host}{$host}{version} = $script_topology{$host}->{version} }
         }
-
         # New structure of key 'Global' with renamed keys
         if (defined $script_topology{global}->{'cib-time'}) { $topology{Global}{global}{'cib-last-written'} = $script_topology{global}->{'cib-time'} }
         if (defined $script_topology{global}->{maintenance}) { $topology{Global}{global}{'maintenance-mode'} = $script_topology{global}->{maintenance} }

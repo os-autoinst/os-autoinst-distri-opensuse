@@ -505,10 +505,12 @@ sub check_takeover {
         my $topology = $self->get_hana_topology();
         $retry_count++;
         for my $site (keys %{$topology->{Site}}) {
-            die("check_takeover [ERROR] Missing 'srPoll' field in topology output of Site->$site") unless defined($topology->{Site}->{$site}->{srPoll});
+            die("check_takeover [ERROR] Missing 'srPoll' field in topology output of Site->$site")
+              unless defined($topology->{Site}->{$site}->{srPoll});
             # As 'vhost' value is not part of the 'Site' key we need to pair it with corect 'Host' key
             for my $host (keys %{$topology->{Host}}) {
-                die("check_takeover [ERROR] Missing 'vhost' field in topology output of $host") unless defined($topology->{Host}->{$host}->{vhost});
+                die("check_takeover [ERROR] Missing 'vhost' field in topology output of $host")
+                  unless defined($topology->{Host}->{$host}->{vhost});
                 $vhost = $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site);
                 $sync_state = $topology->{Site}->{$site}->{srPoll} if ($topology->{Host}->{$host}->{site} eq $site);
             }
@@ -531,8 +533,13 @@ sub check_takeover {
     enable_replication([site_name => 'site_a', hana_inn => '10' ]);
 
     Re-enables replication on the previously fenced database node. Database must be offline.
+<<<<<<< HEAD
     Dies if the the given <site name> doesn't correspond with the SAPHanaSR topology local site name
     Optionally the hana_instance_id could be provided for better readability
+=======
+    Dies if the the given <site name> doesn't corespond with the SAPHanaSR topology of local site.
+    Optionaly the 'hana_innstance_id' could be provided for better reliability
+>>>>>>> 222157187 (More comments)
 
 =over
 
@@ -665,6 +672,8 @@ sub get_promoted_instance {
 sub wait_for_sync {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
+    # If pacemaker >= 2.1.7 then 'online_str' is now based on 'lss' score where 4 means OK
+    # Otherwise it's set to the legacy 'online'
     my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '4' : 'online';
     my $output_pass = 0;
 
