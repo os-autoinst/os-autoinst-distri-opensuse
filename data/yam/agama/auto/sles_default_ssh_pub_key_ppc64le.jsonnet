@@ -1,7 +1,10 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE_SLES4SAP}}',
+    registrationCode: '{{SCC_REGCODE}}',
+  },
+  bootloader: {
+    stopOnBootMenu: true,
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
@@ -25,8 +28,8 @@
               sleep 1
               sync
           done
-        |||
-      }
+        |||,
+      },
     ],
     post: [
       {

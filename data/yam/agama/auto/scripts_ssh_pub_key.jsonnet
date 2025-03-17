@@ -1,6 +1,6 @@
 {
   root: {
-    sshPublicKey: 'fake public key',
+    sshPublicKey: 'fake public key to enable sshd and open firewall',
   },
   scripts: {
     pre: [
