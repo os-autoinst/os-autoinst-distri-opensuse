@@ -24,17 +24,18 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';
+use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use version_utils qw(is_leap is_sle);
 
 sub run() {
-    select_console 'root-console';
+    select_serial_terminal();
     my @packages = qw(tcsh);
     # zsh not available on SLES16 (bsc#1238873)
     push @packages, qw(zsh) unless (is_sle("16+"));
     # ksh does not build for Leap 15.x on aarch64, so, skip it
     push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
     zypper_call("in @packages");
-    select_console 'user-console';
+    select_user_serial_terminal();
     assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and is_aarch64);
     assert_script_run 'tcsh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'csh -c "printf \'hello\n\'" | grep hello';
