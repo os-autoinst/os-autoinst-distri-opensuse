@@ -12,10 +12,14 @@
       <timeout t="integer">-1</timeout>
       <trusted_grub>false</trusted_grub>
       <update_nvram>true</update_nvram>
-      <xen_kernel_append>vga=gfx-1024x768x16 crashkernel=460M\&lt;4G</xen_kernel_append>
+      <xen_kernel_append>crashkernel=147M\&lt;4G</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
+  <dasd t="map">
+    <devices t="list"/>
+    <format_unformatted t="boolean">false</format_unformatted>
+  </dasd>
   <firewall t="map">
     <default_zone>public</default_zone>
     <enable_firewall t="boolean">true</enable_firewall>
@@ -33,6 +37,9 @@
         <protocols t="list"/>
         <services t="list">
           <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
         </services>
         <short>Public</short>
         <target>default</target>
@@ -40,6 +47,7 @@
     </zones>
   </firewall>
   <general t="map">
+    <cio_ignore t="boolean">false</cio_ignore>
     <mode t="map">
       <confirm t="boolean">false</confirm>
     </mode>
@@ -99,8 +107,8 @@
   </host>
   <kdump t="map">
     <add_crash_kernel t="boolean">true</add_crash_kernel>
-    <crash_kernel>460M</crash_kernel>
-    <crash_xen_kernel>460M\&lt;4G</crash_xen_kernel>
+    <crash_kernel>147M</crash_kernel>
+    <crash_xen_kernel>147M\&lt;4G</crash_xen_kernel>
     <general t="map">
       <KDUMPTOOL_FLAGS/>
       <KDUMP_COMMANDLINE/>
@@ -137,7 +145,7 @@
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns t="map">
-      <dhcp_hostname t="boolean">true</dhcp_hostname>
+      <dhcp_hostname t="boolean">false</dhcp_hostname>
       <hostname>localhost</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
     </dns>
@@ -156,7 +164,7 @@
       <rule t="map">
         <name>eth0</name>
         <rule>KERNELS</rule>
-        <value>0000:00:02.0</value>
+        <value>0.0.0001</value>
       </rule>
     </net-udev>
     <routing t="map">
@@ -168,7 +176,7 @@
     <netconfig_policy>auto</netconfig_policy>
     <nis_broadcast t="boolean">false</nis_broadcast>
     <nis_broken_server t="boolean">false</nis_broken_server>
-    <nis_domain/>
+    <nis_domain>suse.de</nis_domain>
     <nis_local_only t="boolean">false</nis_local_only>
     <nis_options/>
     <nis_other_domains t="list"/>
@@ -184,17 +192,20 @@
   </ntp-client>
   <partitioning t="list">
     <drive t="map">
-      <device>/dev/vda</device>
+      <device>/dev/disk/by-path/ccw-0.0.0000</device>
       <disklabel>gpt</disklabel>
       <enable_snapshots t="boolean">true</enable_snapshots>
       <partitions t="list">
         <partition t="map">
           <create t="boolean">true</create>
-          <format t="boolean">false</format>
-          <partition_id t="integer">65</partition_id>
+          <filesystem t="symbol">ext2</filesystem>
+          <format t="boolean">true</format>
+          <mount>/boot/zipl</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">131</partition_id>
           <partition_nr t="integer">1</partition_nr>
           <resize t="boolean">false</resize>
-          <size>8388608</size>
+          <size>314572800</size>
         </partition>
         <partition t="map">
           <create t="boolean">true</create>
@@ -202,12 +213,16 @@
           <filesystem t="symbol">btrfs</filesystem>
           <format t="boolean">true</format>
           <mount>/</mount>
-          <mountby t="symbol">uuid</mountby>
+          <mountby t="symbol">path</mountby>
           <partition_id t="integer">131</partition_id>
           <partition_nr t="integer">2</partition_nr>
           <quotas t="boolean">true</quotas>
           <resize t="boolean">false</resize>
-          <size>max</size>
+	  % if ($get_var->('TEST') =~ /minimal_base\+sdk_autoyast|pcm_aws/) {
+	  <size>max</size>
+	  % } else {
+	  <size>29748101120</size>
+	  % }
           <subvolumes t="list">
             <subvolume t="map">
               <copy_on_write t="boolean">false</copy_on_write>
@@ -239,7 +254,7 @@
             </subvolume>
             <subvolume t="map">
               <copy_on_write t="boolean">true</copy_on_write>
-              <path>boot/grub2/powerpc-ieee1275</path>
+              <path>boot/grub2/s390x-emu</path>
             </subvolume>
           </subvolumes>
           <subvolumes_prefix>@</subvolumes_prefix>
@@ -249,7 +264,7 @@
           <filesystem t="symbol">swap</filesystem>
           <format t="boolean">true</format>
           <mount>swap</mount>
-          <mountby t="symbol">uuid</mountby>
+          <mountby t="symbol">path</mountby>
           <partition_id t="integer">130</partition_id>
           <partition_nr t="integer">3</partition_nr>
           <resize t="boolean">false</resize>
@@ -264,7 +279,7 @@
     <enabled t="boolean">false</enabled>
   </proxy>
   <security t="map">
-    <console_shutdown>reboot</console_shutdown>
+    <console_shutdown>halt</console_shutdown>
     <cracklib_dict_path>/usr/lib/cracklib_dict</cracklib_dict_path>
     <disable_restart_on_update>no</disable_restart_on_update>
     <disable_stop_on_removal>no</disable_stop_on_removal>
@@ -274,8 +289,12 @@
     <gid_min>1000</gid_min>
     <hibernate_system>active_console</hibernate_system>
     <kernel.sysrq>184</kernel.sysrq>
+    % if ($get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+    <mandatory_services>insecure</mandatory_services>
+    % } else {
     <lsm_select>apparmor</lsm_select>
     <mandatory_services>secure</mandatory_services>
+    % }
     <net.ipv4.ip_forward>0</net.ipv4.ip_forward>
     <net.ipv4.tcp_syncookies>0</net.ipv4.tcp_syncookies>
     <net.ipv6.conf.all.forwarding>0</net.ipv6.conf.all.forwarding>
@@ -301,17 +320,43 @@
     <userdel_precmd>/usr/sbin/userdel-pre.local</userdel_precmd>
   </security>
   <services-manager t="map">
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <default_target>graphical</default_target>
+    % } else {
     <default_target>multi-user</default_target>
+    % }
     <services t="map">
       <enable t="list">
-        <service>bluetooth</service>
+        % if ($get_var->('TEST') !~ /minimal_base\+sdk_autoyast|pcm_aws/) {
+	<service>bluetooth</service>
+	% }
+	% if ($get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+	<service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>auditd</service>
+        <service>klog</service>
+        <service>cron</service>
+	<service>irqbalance</service>
+        <service>issue-generator</service>
+        <service>kbdsettings</service>
+	<service>lvm2-monitor</service>
+	<service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
+	<service>smartd</service>
+	<service>systemd-pstore</service>
+	% }
         <service>firewalld</service>
         <service>wickedd-auto4</service>
         <service>wickedd-dhcp4</service>
         <service>wickedd-dhcp6</service>
-        <service>wickedd-nanny</service>
+	<service>wickedd-nanny</service>
+	% if ($get_var->('TEST') !~ /minimal_base\+sdk_autoyast/) {
         <service>kdump</service>
-        <service>kdump-early</service>
+	<service>kdump-early</service>
+	% }
         <service>wicked</service>
         <service>sshd</service>
         <service>systemd-remount-fs</service>
@@ -322,14 +367,30 @@
     <install_recommended t="boolean">true</install_recommended>
     <instsource/>
     <packages t="list">
+      % if ($check_var->('DESKTOP', 'gnome')) {
+      <package>xorg-x11-fonts</package>
+      % }
+      % if ($check_var->('DESKTOP', 'gnome') or $get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+      <package>sle-module-desktop-applications-release</package>
+      % }
+      % if ($get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+      <package>sle-module-development-tools-release</package>
+      %}
+      % if ($get_var->('TEST') =~ /pcm_aws/) {
+      <package>xfsprogs</package>
+      <package>sle-module-public-cloud-release</package>
+      % } 
+      % if ($get_var->('TEST') !~ /minimal_base\+sdk_autoyast|pcm_aws/) {
+      <package>xorg-x11-Xvnc</package>
+      <package>kdump</package>
+      <package>icewm</package>
+      % }
       <package>wicked</package>
       <package>snapper</package>
       <package>sle-module-server-applications-release</package>
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
       <package>kexec-tools</package>
-      <package>kdump</package>
-      <package>iprutils</package>
       <package>grub2</package>
       <package>glibc</package>
       <package>firewalld</package>
@@ -338,14 +399,30 @@
       <package>autoyast2</package>
     </packages>
     <patterns t="list">
-      <pattern>apparmor</pattern>
+      % if ($get_var->('TEST') =~ /pcm_aws/) {
+      <pattern>Amazon_Web_Services</pattern>
+      % }
+      %if ($get_var->('TEST') !~ /minimal_base\+sdk_autoyast|pcm_aws/) {
+      <pattern>basesystem</pattern>
+      % }
       <pattern>base</pattern>
-      <pattern>basic_desktop</pattern>
       <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
+      % if ($get_var->('TEST') !~ /minimal_base\+sdk_autoyast/) {
+      <pattern>apparmor</pattern>
+      <pattern>basic_desktop</pattern>
       <pattern>x11</pattern>
       <pattern>x11_yast</pattern>
       <pattern>yast2_basis</pattern>
+      % }
+      % if ($check_var->('DESKTOP', 'gnome')) {
+      <pattern>fonts</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+      % }
     </patterns>
     <products t="list">
       <product>SLES</product>
@@ -378,10 +455,46 @@
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
+      % if ($get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-development-tools</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      %}
+      % if ($check_var->('DESKTOP', 'gnome') or $get_var->('TEST') =~ /minimal_base\+sdk_autoyast/) {
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-desktop-applications</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      % }
+      % if ($get_var->('TEST') =~ /pcm_aws/) {
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-public-cloud</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon> 
+      % }
+      % if ($check_var->('VERSION', '15-SP7')) {
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-systems-management</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      % }
     </addons>
     <do_registration t="boolean">true</do_registration>
     <email/>
-    <install_updates t="boolean">false</install_updates>
+    <install_updates t="boolean">true</install_updates>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
     <slp_discovery t="boolean">false</slp_discovery>
@@ -418,7 +531,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>$6$8vQdjHw2U0WWJZUW$p/i1WE9tj7oYySp4w9xbBV5M/MS5DeADJ/Zmo05xiYvE3eL5/MpkFc038SmgjUcauy1LBdpnvA0rK48iG5X/r1</user_password>
+      <user_password>$6$6RgkTGJ05UVUJU88$Ua5zt.hGkbPlxmcZl4WPFL.42VW1llVEIFPuG61GRjq3asF9uld5WvyigHsuBk.UYoX0nzTwqKQt0gHZtxoyl.</user_password>
       <username>bernhard</username>
     </user>
     <user t="map">
@@ -438,8 +551,11 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$6$YmUopMIF118aTjOT$FAHsv.dpIs4q0BPRbHO3m.LMCm9Mbr5Cr/zg33F35zd1gFHnDrBUXjrny9OpucMUWASIoxWP8hcmUpgWdOAo//</user_password>
+      <user_password>$6$zZ1FLsISt3B04DXN$67ySUew7yGeC95sNgAXBlu1H4.V1p1A.iTZClUi2sxv3wcpfKz6S3K85gaseR..4hUhGxhlFGgh/W/U8JrOaz1</user_password>
       <username>root</username>
     </user>
   </users>
+  <zfcp t="map">
+    <devices t="list"/>
+  </zfcp>
 </profile>

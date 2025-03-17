@@ -2,7 +2,7 @@ name: autoyast_create_hdd_gnome_we
 description:    >
   Test performs autoyast installation to generate qcow images used by dependent functional tests.
 vars:
-  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_gnome_we_%ARCH%.xml
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_%ARCH%.xml.ep
   DESKTOP: gnome
 schedule:
   - autoyast/prepare_profile
