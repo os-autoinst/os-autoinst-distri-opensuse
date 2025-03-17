@@ -62,6 +62,7 @@ sub run {
     }
     assert_script_run "$runtime network rm $network";
 
+    return if check_var("VIRSH_VMM_FAMILY", "xen");
     select_user_serial_terminal;
 
     # https://docs.docker.com/engine/security/rootless/
@@ -83,10 +84,12 @@ sub run {
 1;
 
 sub cleanup() {
-    select_user_serial_terminal;
-    script_run "$runtime network rm $network";
-    $runtime->cleanup_system_host();
-    script_run "dockerd-rootless-setuptool.sh uninstall" if ($runtime->{runtime} eq "docker");
+    unless (check_var("VIRSH_VMM_FAMILY", "xen")) {
+        select_user_serial_terminal;
+        script_run "$runtime network rm $network";
+        $runtime->cleanup_system_host();
+        script_run "dockerd-rootless-setuptool.sh uninstall" if ($runtime->{runtime} eq "docker");
+    }
 
     select_serial_terminal;
     script_run "$runtime network rm $network";
