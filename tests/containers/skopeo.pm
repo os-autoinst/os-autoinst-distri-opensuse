@@ -128,7 +128,6 @@ sub run {
 }
 
 sub cleanup {
-    my $runtime = shift;
     record_info('Cleanup', 'Delete copied image directories');
     script_run "rm -rf $workdir";
 
@@ -138,13 +137,11 @@ sub cleanup {
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup($self->{runtime});
+    cleanup;
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup($self->{runtime});
+    cleanup;
 }
 
 1;
