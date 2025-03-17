@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2013-2024 SUSE LLC
+# Copyright 2013-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker/podman engine
@@ -128,7 +128,7 @@ sub basic_container_tests {
     validate_script_output("$runtime image ls", qr/tumbleweed/, fail_message => "Tumbleweed image removed, despite being in use");
     assert_script_run("$runtime system prune -f");
     validate_script_output("$runtime image ls", qr/tumbleweed/, fail_message => "Tumbleweed image removed, despite being in use");
-    assert_script_run("! $runtime rmi -a");    # should not be possible because image is in use
+    assert_script_run("! $runtime rmi $image");    # should not be possible because image is in use
 
     ## Removing containers
     assert_script_run("$runtime container stop basic_test_container");
