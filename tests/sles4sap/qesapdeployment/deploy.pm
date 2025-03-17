@@ -15,7 +15,6 @@ sub run {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my %qesap_exec_args_terraform = (
         cmd => 'terraform',
-        logname => 'qesap_exec_terraform.log.txt',
         verbose => 1,
         timeout => 1800);
     $qesap_exec_args_terraform{cmd_options} = '--parallel ' . get_var('QESAPDEPLOY_TERRAFORM_PARALLEL') if get_var('QESAPDEPLOY_TERRAFORM_PARALLEL');
@@ -35,6 +34,12 @@ sub run {
                     vm_name => $host_name,
                     resource_group => qesap_az_get_resource_group());
             }
+        }
+
+        if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
+            qesap_az_vnet_peering(
+                source_group => $rg,
+                target_group => get_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP'));
         }
     }
 
@@ -61,7 +66,7 @@ sub run {
     }
     if ($ret[0]) {
         record_info("Retry to deploy terraform + ansible");
-        if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1], provider => $provider)) {
+        if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1], provider => $provider_setting)) {
             die "Retry failed, original ansible return: $ret[0]";
         }
     }
