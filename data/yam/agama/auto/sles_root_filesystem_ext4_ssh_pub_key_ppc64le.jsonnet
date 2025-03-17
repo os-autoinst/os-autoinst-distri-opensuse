@@ -1,7 +1,7 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE_SLES4SAP}}',
+    registrationCode: '{{SCC_REGCODE}}',
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
@@ -14,6 +14,17 @@
     hashedPassword: true,
     sshPublicKey: 'fake public key to enable sshd and open firewall',
   },
+  storage: {
+    drives: [
+      {
+        partitions: [
+          { search: '*', delete: true },
+          { generate: 'default' },
+          { filesystem: { path: '/', type: 'ext4' } },
+        ],
+      },
+    ],
+  },
   scripts: {
     pre: [
       {
@@ -25,8 +36,8 @@
               sleep 1
               sync
           done
-        |||
-      }
+        |||,
+      },
     ],
     post: [
       {
