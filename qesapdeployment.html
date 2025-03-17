@@ -34,7 +34,7 @@
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_execute_conditional_retry">qesap_execute_conditional_retry</a></li>
-          <li><a href="#qesap_file_find_string">qesap_file_find_string</a></li>
+          <li><a href="#qesap_file_find_strings">qesap_file_find_strings</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
           <li><a href="#qesap_get_nodes_names">qesap_get_nodes_names</a></li>
@@ -262,13 +262,13 @@ This function is not expected to internally die, any failure has to be handled b
 
 <pre><code>qesap_execute_conditional_retry(
 cmd =&gt; $qesap_script_cmd,
-error_string =&gt; &#39;Fatal:&#39;,
+error_list =&gt; [&#39;Fatal:&#39;],
 logname =&gt; &#39;somefile.txt&#39;
 [, verbose =&gt; 1s] );
 
 Execute qesap glue script commands. Check project documentation for available options:
 https://github.com/SUSE/qe-sap-deployment
-Test only returns execution result, failure has to be handled by calling method.</code></pre>
+Test returns execution result, or dies in case of terraform apply/destroy failure</code></pre>
 
 <dl>
 
@@ -292,7 +292,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="ERROR_STRING---error-string-to-look-for"><b>ERROR_STRING</b> - error string to look for</dt>
+<dt id="ERROR_LIST---list-of-error-strings-to-search-for-in-the-log-file.-If-any-is-found-it-enables-terraform-retry"><b>ERROR_LIST</b> - list of error strings to search for in the log file. If any is found, it enables terraform retry</dt>
 <dd>
 
 </dd>
@@ -302,10 +302,10 @@ Test only returns execution result, failure has to be handled by calling method.
 </dd>
 </dl>
 
-<h3 id="qesap_file_find_string">qesap_file_find_string</h3>
+<h3 id="qesap_file_find_strings">qesap_file_find_strings</h3>
 
-<pre><code>Search for a string in the Ansible log file.
-Returns 1 if the string is found in the log file, 0 otherwise.</code></pre>
+<pre><code>Search for a list of strings in the Ansible log file.
+Returns 1 if any of the strings are found in the log file, 0 otherwise.</code></pre>
 
 <dl>
 
@@ -313,7 +313,7 @@ Returns 1 if the string is found in the log file, 0 otherwise.</code></pre>
 <dd>
 
 </dd>
-<dt id="SEARCH_STRING---String-to-search-for-in-the-log-file.-Required"><b>SEARCH_STRING</b> - String to search for in the log file. (Required)</dt>
+<dt id="SEARCH_STRINGS---Array-of-strings-to-search-for-in-the-log-file.-Required"><b>SEARCH_STRINGS</b> - Array of strings to search for in the log file. (Required)</dt>
 <dd>
 
 </dd>
