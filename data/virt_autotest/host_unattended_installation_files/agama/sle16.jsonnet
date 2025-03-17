@@ -11,7 +11,8 @@
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
+    sshPublicKey: '{{_SECRET_RSA_PUB_KEY}}'
   },
   storage: {
     drives: [
@@ -89,7 +90,6 @@
           sed -i 's/CR/\n/g' /root/.ssh/id_rsa
           chmod 600 /root/.ssh/id_rsa
           echo '{{_SECRET_RSA_PUB_KEY}}' > /root/.ssh/id_rsa.pub
-          echo '{{_SECRET_RSA_PUB_KEY}}' >> /root/.ssh/authorized_keys
         |||
      }
     ]
