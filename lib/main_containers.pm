@@ -181,8 +181,13 @@ sub load_host_tests_docker {
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
     }
-    if (is_tumbleweed || is_microos) {
+    # docker-buildx is not available on SLEM & SLE 16.0+ due to:
+    # - https://bugzilla.suse.com/show_bug.cgi?id=1239683
+    # - https://bugzilla.suse.com/show_bug.cgi?id=1233819
+    unless (is_sle_micro || is_public_cloud || is_sle('<15-SP5') || is_sle('>=16.0')) {
         loadtest 'containers/buildx';
+    }
+    if (is_tumbleweed || is_microos) {
         loadtest 'containers/rootless_docker';
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
