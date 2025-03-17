@@ -164,19 +164,26 @@ sub verify_userid_on_container {
 
 }
 
-sub check_bsc1200623() {
-    my ($cid) = shift;
+sub check_bsc1200623 {
     # When this bug appears, the output (cid) is composed of 2 lines, e.g.
     # cid = "
     # 2022-07-05T08:48:56.151176-04:00 susetest systemd[3438]: Failed to start podman-6734.scope.
     # 5b08b0dc136dd32bb30e69e4deb5df511dea0602d6b0c8d3623120370184506a"
-    # So, we need to remove the first one.
-    if ($cid =~ /Failed to start podman/) {
-        record_soft_failure('bsc#1200623 - systemd[3557]: Failed to start podman-3627.scope') unless ($bsc1200623);
-        $bsc1200623 = 1;    # to prevent printing the soft-failure more than once
-        ($cid) =~ s/.*\n//;
+    # So, we need to remove everything except the container ID.
+    my $input = shift;
+
+    if ($input =~ /([a-f0-9]{64})/) {
+        my $cid = $1;
+        if ($cid ne $input) {
+            record_soft_failure('bsc#1200623 - systemd[3557]: Failed to start podman-3627.scope')
+              unless $bsc1200623;
+            $bsc1200623 = 1;
+        }
+
+        return $cid;
     }
-    return $cid;
+
+    die "Unexpected error: No valid CID found!";
 }
 
 sub post_run_hook {
