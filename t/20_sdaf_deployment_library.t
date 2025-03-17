@@ -478,6 +478,7 @@ subtest '[ansible_show_status] HanaSR status commands' => sub {
     my @commands;
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
     $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
+    $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
     ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha']);
 
     ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');
@@ -490,6 +491,7 @@ subtest '[ansible_show_status] ENSA2 status commands' => sub {
     my @commands;
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
     $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
+    $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
     ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa']);
 
     ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');

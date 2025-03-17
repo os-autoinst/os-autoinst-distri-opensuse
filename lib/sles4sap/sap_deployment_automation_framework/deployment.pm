@@ -50,6 +50,7 @@ our @EXPORT = qw(
   playbook_settings
   $output_log_file
   sdaf_register_byos
+  get_sdaf_instance_id
 );
 
 our $output_log_file = '';
@@ -825,6 +826,30 @@ sub sdaf_ansible_verbosity_level {
     return '-vvvv';    # Default set to "-vvvv"
 }
 
+=head2 get_sdaf_instance_id
+
+    get_sdaf_instance_id(pattern=>['SCS', 'ERS', 'PAS']);
+
+Get instance id number from SAP_SYSTEM.tfvar.
+
+=over
+
+=item * B<pattern>: SDAF SAP Central Services pattern
+
+=back
+=cut
+
+sub get_sdaf_instance_id {
+    my (%args) = @_;
+    my $pattern = lc($args{pattern});
+    my $instance_id = '00';
+
+    my $tfvar_file = get_os_variable('sap_system_parameter_file');
+    $instance_id = script_output("grep ^${pattern}_instance_number $tfvar_file | cut -d '=' -f2 | grep -o '[0-9]\\+'");
+    record_info("$args{pattern} ID: $instance_id");
+    return $instance_id;
+}
+
 =head2 ansible_show_status
 
     ansible_show_status(scenarios=>['db_install', 'db_ha'] sdaf_config_root_dir=>'/some/path' [, sap_sid=>'CAT']);
@@ -850,32 +875,66 @@ sub ansible_show_status {
 
     $args{sap_sid} //= get_required_var('SAP_SID');
     my %common_args = (sdaf_config_root_dir => $args{sdaf_config_root_dir}, sap_sid => $args{sap_sid});
+    my $host_group = 'all';
+    my @reports;
 
-    record_info('OS info', ansible_execute_command(command => 'cat /etc/os-release', host_group => 'all', %common_args));
+    # Show OS info
+    push @reports, {title => 'OS info', text => ansible_execute_command(command => 'cat /etc/os-release', host_group => 'all', %common_args)};
 
-    # Show Hana processes running
-    record_info('DB processes', ansible_execute_command(command => 'ps -ef | grep hdb',
-            host_group => "$args{sap_sid}_DB", %common_args)) if grep(/db_install/, @{$args{scenarios}});
+    # Show Hana database related information
+    if (grep(/db_install/, @{$args{scenarios}})) {
+        $host_group = "$args{sap_sid}_DB";
+
+        push @reports, {title => 'DB processes', text => ansible_execute_command(command => 'ps -ef | grep hdb', host_group => $host_group, %common_args)};
+        push @reports, {title => 'HDB info', text => ansible_execute_command(command => 'sudo -u hdbadm /hana/shared/HDB/HDB00/HDB info', host_group => $host_group, %common_args)};
+    }
 
     # Show cluster related information
     if (grep(/ha/, @{$args{scenarios}})) {
-        record_info('DB cluster', ansible_execute_command(command => 'sudo crm status full',
-                host_group => "$args{sap_sid}_DB", %common_args));
-        record_info('HanaSR status', ansible_execute_command(command => 'sudo SAPHanaSR-showAttr',
-                host_group => "$args{sap_sid}_DB", %common_args));
+        $host_group = "$args{sap_sid}_DB";
+
+        push @reports, {title => 'DB cluster', text => ansible_execute_command(command => 'sudo crm status full', host_group => $host_group, %common_args)};
+        push @reports, {title => 'HanaSR status', text => ansible_execute_command(command => 'sudo SAPHanaSR-showAttr', host_group => $host_group, %common_args)};
     }
-    record_info('ENSA2 cluster', ansible_execute_command(command => 'sudo crm status full',
-            host_group => "$args{sap_sid}_SCS", %common_args)) if grep(/ensa/, @{$args{scenarios}});
+
+    # Show ENSA2 related information
+    my $sapcontrol_path = "/sapmnt/$args{sap_sid}/exe/uc/linuxx86_64";
+    my $sapcontrol_env = "sudo env LD_LIBRARY_PATH=$sapcontrol_path:\$LD_LIBRARY_PATH";
+    my $sapcontrol_cmd = "$sapcontrol_env $sapcontrol_path/sapcontrol";
+    my $instance_id = get_sdaf_instance_id(pattern => 'SCS');
+    my $function = '';
+    if (grep(/ensa/, @{$args{scenarios}})) {
+        # Get instance ID
+        $instance_id = get_sdaf_instance_id(pattern => 'SCS');
+        $host_group = "$args{sap_sid}_SCS";
+
+        push @reports, {title => 'ENSA2 cluster', text => ansible_execute_command(command => 'sudo crm status full', host_group => $host_group, %common_args)};
+        $function = 'HACheckConfig';
+        push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+        $function = 'HACheckFailoverConfig';
+        push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+    }
 
     # Show NW processes for each type of instance
-    foreach ('PAS', 'ERS', 'SCS') {
-        my $pattern = lc($_);
-        record_info("NW $_", ansible_execute_command(command => 'ps -ef | grep sap',
-                host_group => "$args{sap_sid}_$_", %common_args)) if grep(/$pattern/, @{$args{scenarios}});
+    if (grep(/nw/, @{$args{scenarios}})) {
+        foreach my $pattern (qw(PAS ERS SCS)) {
+            my $pattern_lc = lc($pattern);
+            # Get instance ID
+            $instance_id = get_sdaf_instance_id(pattern => $pattern);
+            $host_group = "$args{sap_sid}_$pattern";
+
+            push @reports, {title => "NW $pattern processes", text => ansible_execute_command(command => 'ps -ef | grep sap', host_group => $host_group, %common_args)};
+            # Add 'proceed_on_failure => 1' for 'GetProcessList' as it returns 'rc=3' (RC 3 = all processes GREEN)
+            $function = 'GetProcessList';
+            push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args, proceed_on_failure => 1)};
+            $function = 'GetSystemInstanceList';
+            push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+        }
     }
-    # 'nw_aas' does not fit SID_APP pattern, so it can't be included in loop above
-    record_info("NW $_", ansible_execute_command(command => 'ps -ef | grep sap',
-            host_group => "$args{sap_sid}_APP", %common_args)) if grep(/app/, @{$args{scenarios}});
+
+    foreach (@reports) {
+        record_info($_->{title}, $_->{text});
+    }
 }
 
 =head2 ansible_execute_command
@@ -897,6 +956,8 @@ Execute command on host group using ansible. Returns execution output.
 
 =item * B<verbose>: verbose ansible output
 
+=item * B<proceed_on_failure>: proceed on failure setting
+
 =back
 =cut
 
@@ -910,7 +971,7 @@ sub ansible_execute_command {
         $args{verbose} ? '-vvv' : '',
         '--module-name=shell');
 
-    return script_output(join(' ', @cmd, "--args=\"$args{command}\""));
+    return script_output(join(' ', @cmd, "--args=\"$args{command}\""), proceed_on_failure => $args{proceed_on_failure});
 }
 
 =head2 playbook_settings
@@ -955,7 +1016,7 @@ sub playbook_settings {
         push @playbooks, {playbook_filename => 'playbook_05_01_sap_dbload.yaml', timeout => 7200};
     }
 
-    ### Run HA related playbooks at the end as it can mix up node order ###
+    # Run HA related playbooks at the end as it can mix up node order ###
     if (grep /db_ha/, @{$args{components}}) {
         # SAP HANA high-availability configuration
         push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800};
