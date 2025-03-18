@@ -25,6 +25,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed is_leap is_opensuse);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
+use bootloader_setup qw(change_grub_config);
+use power_action_utils 'power_action';
 
 
 sub install_ovs_dpdk {
@@ -91,6 +93,14 @@ sub test_ovs_dpdk {
 sub run {
 
     my ($self) = @_;
+
+    select_serial_terminal;
+    # Enable IOMMU
+    change_grub_config('=\"[^\"]*', '& iommu=on ', 'GRUB_CMDLINE_LINUX_DEFAULT');
+    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
+    power_action('reboot', textmode => 1);
+    $self->wait_boot;
+
     select_serial_terminal;
     install_ovs_dpdk;
     setup_hugepages;
