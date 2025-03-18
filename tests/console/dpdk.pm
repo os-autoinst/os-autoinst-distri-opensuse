@@ -25,7 +25,9 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed is_leap is_opensuse);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-
+use bootloader_setup qw(change_grub_config);
+use power_action_utils 'power_action';
+use network_utils 'iface';
 
 sub install_ovs_dpdk {
     if (is_sle('=15-sp5') || (is_leap('=15.5') && !(check_var('FLAVOR', 'DVD-Updates')))) {
@@ -54,17 +56,14 @@ ip a | grep -i 'br0 state UP' | awk '{print \$2}' | sed -e 's/://'
 EOF
     script_run 'ip a > /tmp/network-device.log';    # need details of network device if something goes wrong
     script_run 'cnf dpdk-hugepages.py' if (is_leap('>=15.5'));    # check wether dpdk-hugegapes is available on Leap 15.5, see boo#1212113
-
     assert_script_run 'modprobe "vfio-pci"';    # load required vfio-pci at first
-    assert_script_run 'dpdk_nic_bind -u eth0' if (is_sle || is_leap);    # unbind the device 'eth0' at first
-    assert_script_run 'dpdk_nic_bind -u ens4' if (is_tumbleweed && is_x86_64);    # ens4 is the active network device name on Tumbleweed, x86_64
-    assert_script_run 'dpdk_nic_bind -u enp0s3' if (is_tumbleweed && is_aarch64);    # enp0s3 is the active network device name on Tumbleweed, aarch64
-    if (is_tumbleweed && is_aarch64) {
-        record_soft_failure 'bsc#1205702, cannot bind to network device: dpdk_nic_bind --bind=vfio-pci enp0s3' unless assert_script_run 'dpdk_nic_bind --bind="vfio-pci" 0000:00:03.0'; # bind vfio-pci
-    }
-    else {
-        record_soft_failure 'bsc#1205702, cannot bind to network device: dpdk_nic_bind --bind=vfio-pci eth0' unless assert_script_run 'dpdk_nic_bind --bind="vfio-pci" 0000:00:04.0';
-    }
+    my $iface = iface();
+    assert_script_run "dpdk_nic_bind -u $iface";
+
+    record_info('dpdk-hugepages.py -s', script_output('dpdk-hugepages.py -s', proceed_on_failure => 1));
+    record_info('dpdk-devbind.py -s', script_output('dpdk-devbind.py -s', proceed_on_failure => 1));
+    my $pci_bus = script_output(q(dpdk-devbind.py  --status-dev net | grep "unused=vfio-pci" | awk '{ print $1 }' | head -n1));
+    assert_script_run("dpdk-devbind.py -b vfio-pci $pci_bus");
 }
 
 sub test_ovs_dpdk {
@@ -91,9 +90,18 @@ sub test_ovs_dpdk {
 sub run {
 
     my ($self) = @_;
+
     select_serial_terminal;
+    # Enable IOMMU
+    if (is_x86_64) {
+        change_grub_config('=\"[^\"]*', '& iommu=pt intel_iommu=on)', 'GRUB_CMDLINE_LINUX_DEFAULT', '', 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+        select_serial_terminal;
+    }
     install_ovs_dpdk;
     setup_hugepages;
+    return if (is_aarch64);
     load_bind_kernel_module;
     test_ovs_dpdk;
 }
