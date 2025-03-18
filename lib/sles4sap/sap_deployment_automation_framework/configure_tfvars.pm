@@ -65,7 +65,11 @@ sub prepare_tfvars_file {
         workload_zone => data_url('sles4sap/sap_deployment_automation_framework/WORKLOAD_ZONE.tfvars'),
         library => data_url('sles4sap/sap_deployment_automation_framework/LIBRARY.tfvars')
     );
-    # Only SAP systems deployment need those parameters to be defined
+
+    # fencing parameters are set up for both sap_system and workload_zone
+    set_fencing_parameters();
+
+    # Only SAP systems deployment need those parametrs to be defined
     if ($args{deployment_type} eq 'sap_system') {
         validate_components(components => $args{components});
         # Parameters required for defining DB VM image for SAP systems deployment
@@ -200,6 +204,39 @@ sub set_hana_db_parameters {
     set_var('SDAF_HANA_HA_SETUP', grep(/ha/, @{$args{components}}) ? 'true' : 'false');
 }
 
+=head2 set_fencing_parameters
+
+    set_fencing_parameters();
+
+Sets tfvars HA fencing related parameters according to scenario defined OpenQA settings.
+
+=cut
+
+sub set_fencing_parameters {
+    # Fencing mechanism AFA (Azure fencing agent - MSI), ASD (Azure shared disk - SBD), ISCSI (iSCSI based SBD fencing)
+    # Default value: 'msi' - AFA - Azure fencing agent (MSI)
+    my $fencing_type = get_var('SDAF_FENCING_MECHANISM', 'msi');
+
+    # Ensures consistent OpenQA setting names across all types deployment solutions.
+    # msi = MSI based fencing
+    # sbd = iSCSI based SBD devices
+    # asd = Azure shared disk as SBD device
+    my %supported_fencing_values = (msi => 'AFA', sbd => 'ISCSI', asd => 'ASD');
+    die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
+
+    # This is dumb and will be improved in TEAM-10145
+    set_var('SDAF_FENCING_TYPE', $supported_fencing_values{get_var('SDAF_FENCING_MECHANISM')});
+    # Setup ISCSI deployment
+    if (get_var('SDAF_FENCING_TYPE') =~ /ISCSI/) {
+        # Set default value for iSCSI device count
+        set_var('SDAF_ISCSI_DEVICE_COUNT', get_var('SDAF_ISCSI_DEVICE_COUNT', '1'));
+    }
+    else {
+        # Disable iSCSI deployment if not needed
+        set_var('SDAF_ISCSI_DEVICE_COUNT', '0');
+    }
+}
+
 =head2 set_netweaver_parameters
 
     set_netweaver_parameters(components=>['db_install', 'db_ha']);
@@ -256,10 +293,10 @@ sub validate_components {
     croak '$args{components} must be an ARRAYREF' unless ref($args{components}) eq 'ARRAY';
 
     my %valid_components = ('db_install' => 'Basic DB installation.',
-        'db_ha' => 'db_ha : Database HA setup',
-        'nw_pas' => 'db_pas : Installs primary application server (PAS)',
-        'nw_aas' => 'nw_aas : Installs additional application server (AAS)',
-        'nw_ensa' => 'nw_ensa : Installs enqueue replication server (ERS)');
+        db_ha => 'db_ha : Database HA setup',
+        nw_pas => 'db_pas : Installs primary application server (PAS)',
+        nw_aas => 'nw_aas : Installs additional application server (AAS)',
+        nw_ensa => 'nw_ensa : Installs enqueue replication server (ERS)');
 
     for my $component (@{$args{components}}) {
         croak "Unsupported component: '$component'\nSupported values:\n" . join("\n", values(%valid_components))

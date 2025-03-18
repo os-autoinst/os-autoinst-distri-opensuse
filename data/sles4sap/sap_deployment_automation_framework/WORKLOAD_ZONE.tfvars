@@ -437,7 +437,7 @@ ANF_qos_type = "Manual"
 #iscsi_subnet_arm_id = ""
 
 # iscsi_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-#iscsi_subnet_address_prefix = ""
+iscsi_subnet_address_prefix = "%ISCSI_SUBNET_ADDRESS_PREFIX%"
 
 # iscsi_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
 #iscsi_subnet_nsg_arm_id = ""
@@ -453,7 +453,7 @@ ANF_qos_type = "Manual"
 ###########################################################################
 
 # Number of iSCSI devices to be created
-iscsi_count = 0
+iscsi_count = "%SDAF_ISCSI_DEVICE_COUNT%"
 
 # Size of iSCSI Virtual Machines to be created
 iscsi_size = "Standard_D2s_v3"
@@ -474,7 +474,7 @@ iscsi_authentication_username = "azureadm"
 #iscsi_nic_ips = []
 
 # Defines the Availability zones for the iSCSI devices
-#iscsi_vm_zones = []
+iscsi_vm_zones = ["1", "2", "3"]
 
 # user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
 #user_assigned_identity_id = ""
