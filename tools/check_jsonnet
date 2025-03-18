@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+success=1
+JSONNET_FILES=$(git ls-files data/ | grep -E '.jsonnet$|.json$|.libsonnet$' | grep -v 'bug_refs.json' | xargs echo)
+
+if test -n "$JSONNET_FILES"; then
+    for file in $JSONNET_FILES; do
+        if ! python3 -c "import _jsonnet; _jsonnet.evaluate_file('$file'); print('OK: $file')"; then
+            success=0
+        fi
+    done
+else
+    echo "No jsonnet/libsonnet files modified.";
+fi
+[ $success = 1 ] && echo "check_jsonnet SUCCESS" && exit 0
+exit 1

@@ -72,6 +72,10 @@ test-yaml-valid:
 test-modules-in-yaml-schedule:
 	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code origin/master | grep '^schedule/*'`
 
+.PHONY: test-jsonnet-valid
+test-jsonnet-valid:
+	tools/check_jsonnet
+
 .PHONY: test-metadata
 test-metadata:
 	tools/check_metadata $$(git ls-files "tests/**.pm")
@@ -106,7 +110,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
+test-static: tidy-check test-yaml-valid test-jsonnet-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
 
 .PHONY: test
 ifeq ($(TESTS),compile)
