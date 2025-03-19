@@ -445,6 +445,11 @@ sub load_feature_tests {
     loadtest "feature/feature_console/zypper_crit_sec_fix_only";
 }
 
+sub load_dms_qemu_tests {
+    boot_hdd_image;
+    loadtest "dms/dms_qemu_test";
+}
+
 sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "migration/online_migration/online_migration_setup";
@@ -680,6 +685,9 @@ elsif (is_systemd_test()) {
         boot_hdd_image;
     }
     load_upstream_systemd_tests();
+}
+elsif (get_var("DMS_QEMU")) {
+    load_dms_qemu_tests();
 }
 elsif (is_public_cloud) {
     load_publiccloud_tests();

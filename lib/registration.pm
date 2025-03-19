@@ -41,6 +41,7 @@ our @EXPORT = qw(
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
+  deregister_addons_cmd
   register_addons
   handle_scc_popups
   process_modules
@@ -299,6 +300,29 @@ sub register_addons_cmd {
             else {
                 add_suseconnect_product($name, undef, undef, undef, 300, $retry);
             }
+        }
+    }
+}
+
+sub deregister_addons_cmd {
+    my ($addonlist) = @_;
+    $addonlist //= get_var('SCC_ADDONS');
+    my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
+
+    foreach my $addon (@addons) {
+        my $name = get_addon_fullname($addon);
+        if (length $name) {
+            record_info($name, "Deregister $name");
+            my $version = scc_version();
+            my $arch = get_required_var('ARCH');
+
+            # Special handling for SLE12 modules: use major version
+            if (grep { $name eq $_ } @SLE12_MODULES and is_sle('<15')) {
+                my @ver = split(/\./, $version);
+                $version = $ver[0];
+            }
+
+            remove_suseconnect_product($name, $version, undef);
         }
     }
 }
