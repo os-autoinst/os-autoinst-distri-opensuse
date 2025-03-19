@@ -12,7 +12,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use audit_test qw(run_testcase compare_run_log rerun_fail_cases);
+use audit_test qw(run_testcase compare_run_log rerun_fail_cases check_failed_cases);
+
 
 sub run {
     my ($self) = shift;
@@ -31,6 +32,7 @@ sub run {
 
     # Compare current test results with baseline
     my $result = compare_run_log('syscalls');
+    $result = check_failed_cases();
     $self->result($result);
 }
 
