@@ -184,7 +184,7 @@ sub run {
     validate_script_output("gpgconf --show-versions", sub { m/.*$gpg_fips_string.*/ }) if (is_sle('15+') && !is_jeos && !is_public_cloud);
 
     # increase entropy for key generation for s390x on svirt backend
-    if (is_s390x && ((is_sle('15+') || is_transactional) && (is_svirt))) {
+    if (is_s390x && ((is_sle('15+') && is_sle('<16')) || is_transactional) && (is_svirt)) {
         if (is_transactional) {
             trup_call('pkg install haveged');
             process_reboot(trigger => 1);
