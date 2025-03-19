@@ -56,7 +56,7 @@ sub run {
     # prepare kernel parameters
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
-          generate_json_profile() :
+          generate_json_profile($agama_auto) :
           expand_agama_profile($agama_auto);
         set_var('AGAMA_AUTO', $profile_url);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$profile_url\"");
