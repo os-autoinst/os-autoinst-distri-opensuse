@@ -52,7 +52,7 @@ sub run {
 
     # Avoid this error as rootless:
     # "docker: Error response from daemon: SUSE:secrets :: failed to read through tar reader: unexpected EOF."
-    assert_script_run "echo 0 > /etc/docker/suse-secrets-enable";
+    script_run "echo 0 > /etc/docker/suse-secrets-enable";
 
     my %ip_addr;
     for my $ip_version (4, 6) {
