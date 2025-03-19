@@ -84,9 +84,9 @@ EOF
 
     if (is_sle '<15') {
         systemctl('stop SuSEfirewall2');
-    } elsif (is_sle '<16') {
+    } else {
         systemctl('stop firewalld');
-    }    # on SLE16 firewalld is not installed by default
+    }
 
     # Prepare krb5 application and config files
     zypper_call('ref');
