@@ -8,10 +8,12 @@ schedule:
   - console/consoletest_setup
   - sles4sap/patterns
   - fips/gnutls/gnutls_base_check
-  - fips/openjdk/openjdk_fips
+  - fips/mozilla_nss/nss_smoke.pm
   - fips/openssl/openssl_fips_alglist
   - fips/openssl/openssl_fips_hash
   - fips/openssl/openssl_fips_cipher
+  - console/gpg
+  - console/libgcrypt
   - console/curl_ipv6
   - console/wget_ipv6
   - console/ca_certificates_mozilla
@@ -36,7 +38,6 @@ schedule:
   - console/osinfo_db
   - console/ovn
   - console/firewalld
-  - console/libgcrypt
   - console/zziplib
   - console/nginx
   - console/sysctl
