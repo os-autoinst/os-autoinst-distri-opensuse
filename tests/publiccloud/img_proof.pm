@@ -16,6 +16,7 @@ use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
 use File::Basename 'basename';
+use upload_system_log 'upload_supportconfig_log';
 
 sub patch_json {
     my ($file) = @_;
@@ -172,10 +173,10 @@ sub run {
 
 sub cleanup {
     my ($self) = @_;
-
     # upload logs on unexpected failure
     my $ret = script_run('test -d img_proof_results');
     if (defined($ret) && $ret == 0) {
+        upload_supportconfig_log();
         assert_script_run('tar -zcvf img_proof_results.tar.gz img_proof_results');
         upload_logs('img_proof_results.tar.gz', failok => 1);
     }
