@@ -357,7 +357,7 @@ sub unlock_if_encrypted {
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
-            wait_serial("Please enter passphrase for disk.*", 100);
+            wait_serial("Please enter passphrase for disk.*", 300);
             type_line_svirt "$password";
         }
         wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
