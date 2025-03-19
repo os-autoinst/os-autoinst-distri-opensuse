@@ -69,6 +69,9 @@
             <encrypted config:type="boolean">true</encrypted>
             <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
             <username>root</username>
+	    <authorized_keys config:type="list">
+                <listentry>fake public key to enable sshd and open firewall</listentry>
+            </authorized_keys>
         </user>
     </users>
     <scripts>
