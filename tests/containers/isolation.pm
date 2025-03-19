@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
 use utils;
+use Utils::Architectures qw(is_s390x);
 
 my $runtime;
 my $network = "test_isolated_network";
@@ -19,19 +20,20 @@ my $network = "test_isolated_network";
 sub test_ip_version {
     my ($ip_version, $ip_addr) = @_;
 
-    my $image = "registry.opensuse.org/opensuse/busybox";
+    # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
+    my $image = is_s390x ? 'registry.opensuse.org/opensuse/toolbox' : 'registry.opensuse.org/opensuse/busybox';
     script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Test that containers can't access the host
-    assert_script_run "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $ip_addr";
+    validate_script_output "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $ip_addr", qr/Network is unreachable/;
 
     # Test that containers can't access the Internet
     # Google DNS servers
     my $external_ip = ($ip_version == 6) ? "2001:4860:4860::8888" : "8.8.8.8";
-    assert_script_run "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $external_ip";
+    validate_script_output "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $external_ip", qr/Network is unreachable/;
 
     # Test that containers can't modify IP routes
-    assert_script_run "! $runtime run --rm --privileged --cap-add=CAP_NET_ADMIN --network $network $image ip -$ip_version route add default via $ip_addr";
+    validate_script_output "! $runtime run --rm --privileged --cap-add=CAP_NET_ADMIN --network $network $image ip -$ip_version route add default via $ip_addr", qr/No route to host|Nexthop has invalid gateway|Network is unreachable/;
 }
 
 sub run {
@@ -47,6 +49,10 @@ sub run {
         push @packages, "$base-rootless-extras";
     }
     install_packages(@packages);
+
+    # Avoid this error as rootless:
+    # "docker: Error response from daemon: SUSE:secrets :: failed to read through tar reader: unexpected EOF."
+    assert_script_run "echo 0 > /etc/docker/suse-secrets-enable";
 
     my %ip_addr;
     for my $ip_version (4, 6) {
