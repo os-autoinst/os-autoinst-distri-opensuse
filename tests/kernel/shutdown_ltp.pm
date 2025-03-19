@@ -37,9 +37,7 @@ sub run {
     check_kernel_taint($self, has_published_assets() ? 1 : 0);
 
     if (get_var('LTP_COMMAND_FILE')) {
-        my $ver_linux_log = '/tmp/ver_linux_after.txt';
-        script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
-        upload_logs($ver_linux_log, failok => 1);
+        record_info('ver_linux', script_output("\$LTPROOT/ver_linux", proceed_on_failure => 1));
     }
 
     upload_system_logs();
