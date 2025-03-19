@@ -148,7 +148,6 @@ sub load_host_tests_podman {
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
-        loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless is_transactional;
         loadtest 'containers/podman_remote' if is_sle_micro('5.5+');
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
@@ -157,6 +156,7 @@ sub load_host_tests_podman {
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
+    loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
 }
 
 sub load_host_tests_docker {
