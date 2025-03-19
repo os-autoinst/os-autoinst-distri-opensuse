@@ -157,7 +157,8 @@ sub run {
         subnet => '10.64.0.0/16',
     };
     my $ctr2 = {
-        image => 'registry.opensuse.org/opensuse/busybox',
+        # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
+        image => is_s390x ? 'docker.io/library/alpine' : 'registry.opensuse.org/opensuse/busybox',
         name => 'busybox_ctr',
         ip => '10.64.0.8',
         mac => '92:aa:33:44:55:66',
