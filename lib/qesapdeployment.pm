@@ -76,6 +76,7 @@ our @EXPORT = qw(
   qesap_cluster_log_cmds
   qesap_cluster_logs
   qesap_upload_crm_report
+  qesap_upload_supportconfig_logs
   qesap_aws_get_region_subnets
   qesap_aws_get_vpc_id
   qesap_aws_create_transit_gateway_vpc_attachment
@@ -1306,6 +1307,59 @@ sub qesap_upload_crm_report {
     upload_logs($local_path, failok => 1);
 }
 
+=head3 qesap_upload_supportconfig_logs
+
+    Genarate supportconfig log on a host and upload the resulting tarball to openqa
+
+=over
+
+=item B<HOST> - host to get the report from
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<FAILOK> - if not set, Ansible failure result in die
+
+=back
+=cut
+
+sub qesap_upload_supportconfig_logs {
+    my (%args) = @_;
+    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{failok} //= 0;
+
+    my $log_filename = "$args{host}-supportconfig_log";
+
+    if ($log_filename =~ /hana\[(\d+)\]/) {
+        my $number = $1 + 1;
+        $log_filename = "vmhana0${number}-supportconfig_log";
+    }
+    $log_filename =~ s/[\[\]"]//g;
+
+    qesap_ansible_cmd(cmd => "sudo supportconfig -R /var/tmp -B $log_filename -x AUDIT",
+        provider => $args{provider},
+        filter => "\"$args{host}\"",
+        host_keys_check => 1,
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(7200),
+        failok => $args{failok});
+    qesap_ansible_cmd(cmd => "sudo chmod 755 /var/tmp/scc_$log_filename.txz",
+        provider => $args{provider},
+        filter => "\"$args{host}\"",
+        host_keys_check => 1,
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(7200),
+        failok => $args{failok});
+    my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
+        host => $args{host},
+        failok => $args{failok},
+        root => 1,
+        remote_path => '/var/tmp/',
+        out_path => '/tmp/ansible_script_output/',
+        file => "scc_$log_filename.txz",
+        verbose => 1);
+    upload_logs($local_path, failok => 1);
+}
+
 =head3 qesap_cluster_log_cmds
 
   List of commands to collect logs from a deployed cluster
@@ -1394,6 +1448,7 @@ sub qesap_cluster_logs {
             }
             # Upload crm report
             qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
+            qesap_upload_supportconfig_logs(host => $host, provider => $provider, failok => 1);
         }
     }
 
