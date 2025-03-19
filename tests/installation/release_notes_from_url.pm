@@ -10,8 +10,6 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-# use Utils::Backends;
-# use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
