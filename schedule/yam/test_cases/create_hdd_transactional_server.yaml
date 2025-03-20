@@ -4,10 +4,6 @@ description: >
   Installation of a Transactional Server which uses a read-only
   root filesystem to provide atomic, automatic updates of a
   system without interfering with the running system.
-vars:
-  SCC_ADDONS: tsm
-  HDDSIZEGB: 40
-  YUI_REST_API: 1
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_transactional
