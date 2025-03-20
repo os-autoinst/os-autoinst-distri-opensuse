@@ -33,6 +33,7 @@ sub run {
         export_to_json($tinfo->test_result_export);
     }
 
+    script_run('cat /proc/stat');
     script_run('df -h');
     check_kernel_taint($self, has_published_assets() ? 1 : 0);
 
@@ -45,6 +46,11 @@ sub run {
     upload_system_logs();
 
     power_action('poweroff');
+}
+
+sub post_fail_hook {
+    select_console('root-console');
+    script_run('cat /proc/stat');
 }
 
 sub test_flags {
