@@ -45,7 +45,7 @@ sub install_klp_product {
     }
 
     if ($livepatch_repo) {
-        zypper_ar("$utils::OPENQA_FTP_URL/$livepatch_repo", name => "repo-live-patching");
+        zypper_ar("$utils::OPENQA_HTTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
     elsif (is_sle) {
         zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");

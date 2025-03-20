@@ -473,7 +473,11 @@ sub wait_for_ssh {
         }
 
         # Finally make sure that SSH works
-        $self->ssh_script_retry(cmd => "true", username => $args{username}, timeout => 90, retry => 5, delay => 3);
+        while (($duration = time() - $start_time) < $args{timeout}) {
+            $exit_code = $self->ssh_script_run(cmd => "true", username => $args{username}, timeout => $args{timeout} - $duration);
+            last if isok($exit_code);
+            sleep $delay;
+        }
 
         # Log upload
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {

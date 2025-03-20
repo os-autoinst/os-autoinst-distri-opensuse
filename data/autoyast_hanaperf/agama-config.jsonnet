@@ -8,6 +8,7 @@
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true,
+    sshPublicKey: 'enable ssh',
   },
   software: {
     patterns: ['sles_sap_HADB', 'sles_sap_HAAPP', 'sles_sap_DB', 'sles_sap_APP'],
@@ -64,8 +65,6 @@
         body: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          # Workaround for sshd service deactivated bsc#1238590
-          systemctl enable sshd
           # Workaround for NetworkManager to make sure the expected NIC up only
           rm -f /etc/NetworkManager/system-connections/default_connection.nmconnection
           echo -e "[main]\nno-auto-default=type:ethernet" > /etc/NetworkManager/conf.d/disable_auto.conf

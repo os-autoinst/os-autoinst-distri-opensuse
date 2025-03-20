@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_microos is_sle_micro is_upgrade is_sle is_tumbleweed);
+use version_utils qw(is_microos is_sle_micro is_upgrade is_sle is_tumbleweed is_opensuse);
 use Utils::Backends qw(is_remote_backend is_hyperv);
 use Test::Assert ':all';
 
@@ -50,6 +50,13 @@ sub ensure_ssh_unblocked {
                 send_key 'alt-o';
             }
             else {
+                if (is_opensuse) {
+                    # for openSUSE the ssh service also needs to be enabled
+                    # this applies for remote backends only
+                    send_key_until_needlematch 'ssh-service-selected', 'tab', 26;
+                    send_key 'ret';
+                    send_key_until_needlematch 'ssh-service-open', 'tab';
+                }
                 send_key_until_needlematch 'ssh-blocked-selected', 'tab', 26;
                 send_key 'ret';
                 send_key_until_needlematch 'ssh-open', 'tab';

@@ -462,12 +462,12 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
             return @results; });
     # Simulate that qesap_execute has always 'AERIS'
     # in the log
-    $qesap->redefine(qesap_file_find_string => sub { return 1; });
+    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
     $qesap->redefine(get_required_var => sub { return ''; });
 
     my @res = qesap_execute_conditional_retry(
         cmd => 'TIFA',
-        error_string => 'AERIS',
+        error_list => ['AERIS'],
         logname => 'WALLABY_STREET',
         retries => 5);
 
@@ -479,7 +479,14 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
 subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    my @return_list = (0, 1, 1, 1, 1);
+    my @return_list = (0, 0, 1, 0, 1);
+    # Simulate sequence of return codes for qesap_execute (and because the pop function is used, they are retrieved in reverse order: from right to left).
+    # This sequence is simulating:
+    # 1. terraform apply fails with 1
+    # 2. terraform destroy, as part of the RETRY procedure, is passing
+    # 3. retry terraform apply fails with 1
+    # 4. re-retry terraform destroy fails with 1
+    # 5. re-retry terraform apply PASS
 
     $qesap->redefine(record_info => sub {
             note(join(' # ', 'RECORD_INFO -->', @_)); });
@@ -491,12 +498,12 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub 
             my @results = (pop @return_list, 0);
             return @results; });
 
-    $qesap->redefine(qesap_file_find_string => sub { return 1; });
+    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
     $qesap->redefine(get_required_var => sub { return ''; });
 
     my @res = qesap_execute_conditional_retry(
         cmd => 'test',
-        error_string => 'AERIS',
+        error_list => ['AERIS'],
         logname => 'FOO',
         retries => 2,
         destroy_terraform => 1);
@@ -504,6 +511,36 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
     ok scalar @terraform_destroy == 2, "Terraform destroy as expected 2 retry";
+};
+
+subtest '[qesap_execute_conditional_retry] retry with destroy terraform and fail during destruction' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @return_list = (1, 1);
+
+    $qesap->redefine(record_info => sub {
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
+            push @calls, $cmd;
+            my @results = (pop @return_list, 0);
+            return @results; });
+
+    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
+    $qesap->redefine(get_required_var => sub { return ''; });
+
+    dies_ok { qesap_execute_conditional_retry(
+            cmd => 'test',
+            error_list => ['AERIS'],
+            logname => 'FOO',
+            retries => 2,
+            destroy_terraform => 1) } 'Expected die if terraform destroy fails';
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
+    ok scalar @terraform_destroy == 1, "Terraform destroy as expected 1 retry";
 };
 
 subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
@@ -519,36 +556,41 @@ subtest '[qesap_execute_conditional_retry] dies if expected error message is not
     });
     # Simulate that 'AERIS' is never
     # in the log
-    $qesap->redefine(qesap_file_find_string => sub { return 0; });
+    $qesap->redefine(qesap_file_find_strings => sub { return 0; });
 
     dies_ok { qesap_execute_conditional_retry(
             cmd => 'TIFA',
             logname => 'WALLABY_STREET',
-            error_string => 'AERIS',
+            error_list => ['AERIS'],
             retries => 5) } 'Expected die if string is not found';
     # No retry if 'AERIS' is not in the log
     ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
 };
 
-subtest '[qesap_file_find_string] success' => sub {
+subtest '[qesap_file_find_strings] success' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    # internally the function is using grep to search for a specific
-    # error string. Here is an example of grep result.
+    # internally the function is using grep to search for a set of specific
+    # error strings. Here is an example of grep result.
     #      'ERROR    OUTPUT:              "msg": "Timed out waiting for last boot time check (timeout=600)",';
 
     # The mock will return, within the function under test,
     # the result of the grep. grep return 0 in case of string match
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
-    my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
+    my $res = qesap_file_find_strings(
+        file => 'JACQUES',
+        search_strings => [
+            'Health is like a crown',
+            'worn by the healthy',
+            'that only the sick can see']);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == 1, 'Return is 1 when string is detected';
     ok((any { /grep.*JACQUES/ } @calls), 'Function calling grep against the log file');
 };
 
-subtest '[qesap_file_find_string] fail' => sub {
+subtest '[qesap_file_find_strings] fail' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -559,7 +601,7 @@ subtest '[qesap_file_find_string] fail' => sub {
     # grep return 1 in case of string NOT matching
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
-    my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
+    my $res = qesap_file_find_strings(file => 'JACQUES', search_strings => ['Timed out waiting for last boot time check']);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == 0, 'Return is 0 when string is not detected';
@@ -672,6 +714,7 @@ subtest '[qesap_cluster_logs]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @ansible_calls;
     my @crm_report_calls;
+    my @supportconfig_log_calls;
     my @save_file_calls;
     my @logfile_calls;
     $qesap->redefine(qesap_ansible_script_output_file => sub {
@@ -686,6 +729,7 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
+    $qesap->redefine(qesap_upload_supportconfig_logs => sub { my (%args) = @_; push @supportconfig_log_calls, $args{host}; return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -694,13 +738,15 @@ subtest '[qesap_cluster_logs]' => sub {
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
     note("\n  CRM_REPORT-->  " . join("\n  CRM_REPORT-->  ", @crm_report_calls));
+    note("\n  SUPPORTCONFIG_LOG-->  " . join("\n  SUPPORTCONFIG_LOG-->  ", @supportconfig_log_calls));
     note("\n  SAVE_FILE-->  " . join("\n  SAVE_FILE-->  ", @save_file_calls));
     note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
     ok((any { /crm status/ } @ansible_calls), 'expected command executed remotely');
     ok((any { /.*hana0-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
     ok((any { /.*hana1-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
     ok((any { /.*BOUBLE.*/ } @save_file_calls), 'upload_logs is called with whatever filename returned by qesap_ansible_script_output_file');
-    ok((any { /hana\[[0-1]\]/ } @crm_report_calls), 'upload_logs properly call qesap_upload_crm_report with hostnames');
+    ok((any { /hana\[[0-1]\]/ } @crm_report_calls), 'upload_logs properly calls qesap_upload_crm_report with hostnames');
+    ok((any { /.*hana\[[0-1]\]/ } @supportconfig_log_calls), 'upload_logs properly calls qesap_upload_supportconfig_logs with hostnames');
 };
 
 subtest '[qesap_cluster_logs] multi log command' => sub {
@@ -719,6 +765,7 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+    $qesap->redefine(qesap_upload_supportconfig_logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -778,6 +825,55 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
     note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
     ok((any { /.*\/var\/log\/vmhana01\-crm_report/ } @calls), 'crm report file has the node name in it');
     ok((any { /vmhana01\-crm_report\.tar/ } @fetch_filename), 'crm report fetch file is properly formatted');
+};
+
+subtest '[qesap_upload_supportconfig_logs] die for missing mandatory arguments' => sub {
+    dies_ok { qesap_upload_supportconfig_logs(); } "Expected die if called without arguments";
+    dies_ok { qesap_upload_supportconfig_logs(provider => 'SAND'); } "Expected die if called without host";
+    dies_ok { qesap_upload_supportconfig_logs(host => 'SALT'); } "Expected die if called without provider";
+};
+
+subtest '[qesap_upload_supportconfig_logs]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(is_sle => sub { return 0; });
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
+    $qesap->redefine(upload_logs => sub { return 0; });
+
+    qesap_upload_supportconfig_logs(provider => 'SAND', host => 'SALT');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /.*supportconfig \-R.*/ } @calls), 'supportconfig is called');
+    ok((any { /.*\/var\/tmp.*SALT.*supportconfig/ } @calls), 'supportconfig log file has the node name in it');
+};
+
+subtest '[qesap_upload_supportconfig_logs] ansible host query' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @fetch_filename;
+
+    $qesap->redefine(is_sle => sub { return 0; });
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            push @fetch_filename, $args{file};
+            return 0; });
+    $qesap->redefine(upload_logs => sub { return 0; });
+
+    qesap_upload_supportconfig_logs(provider => 'SAND', host => 'hana[0]');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
+    ok((any { /.*\/var\/tmp.*vmhana01.*supportconfig/ } @calls), 'supportconfig log file has the node name in it');
+    ok((any { /.*vmhana01.*supportconfig/ } @fetch_filename), 'supportconfig log fetch file is properly formatted');
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {
@@ -1254,7 +1350,7 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, n
     my @calls;
 
     # Simulate we never find the string in the Ansible log file
-    # Simulate grep within qesap_file_find_string, within qesap_ansible_error_detection.
+    # Simulate grep within qesap_file_find_strings, within qesap_ansible_error_detection.
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
     $qesap->redefine(script_output => sub {

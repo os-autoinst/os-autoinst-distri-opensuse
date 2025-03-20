@@ -8,7 +8,7 @@ conditional_schedule:
         - shutdown/svirt_upload_assets
 vars:
   DESKTOP: textmode
-  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_pcm_aws_%ARCH%.xml
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_%ARCH%.xml.ep
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start

@@ -25,8 +25,6 @@ use version_utils qw(is_sle is_leap is_jeos is_transactional package_version_cmp
 use Utils::Architectures;
 use Utils::Logging 'save_and_upload_log';
 
-my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
-
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -114,7 +112,7 @@ sub run {
     build_and_run_image(base => $image, runtime => $podman);
     test_zypper_on_container($podman, $image);
     verify_userid_on_container($image, $subuid_start);
-    $podman->cleanup_system_host(!$bsc1200623);
+    $podman->cleanup_system_host();
 }
 
 sub get_user_subuid {
@@ -130,13 +128,11 @@ sub verify_userid_on_container {
     record_info "host uid", "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
     my $cid = script_output "podman run -d --rm --name test1 $image sleep infinity";
-    $cid = check_bsc1200623($cid);
     validate_script_output "podman top $cid user huser", sub { /root\s+1000/ };
     validate_script_output "podman top $cid capeff", sub { /setuid/i };
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
     $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity";
-    $cid = check_bsc1200623($cid);
     my $id = $start_id + $huser_id - 1;
 
     # podman >= v4.4.0 lists username instead of uid
@@ -149,7 +145,6 @@ sub verify_userid_on_container {
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
     $cid = script_output "podman run -d --rm --userns keep-id $image sleep infinity";
-    $cid = check_bsc1200623($cid);
     # Remove once the softfail removed. it is just checks the user's mapped uid
     validate_script_output "podman exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
     # Check for bsc#1182428
@@ -162,21 +157,6 @@ sub verify_userid_on_container {
     my $cmd = '(id | grep uid=0) && zypper -n -q in sudo shadow && useradd geeko -u 1000 && (sudo -u geeko id | grep geeko)';
     script_retry("podman run -ti --rm '$image' bash -c '$cmd'", timeout => 300, retry => 3, delay => 60);
 
-}
-
-sub check_bsc1200623() {
-    my ($cid) = shift;
-    # When this bug appears, the output (cid) is composed of 2 lines, e.g.
-    # cid = "
-    # 2022-07-05T08:48:56.151176-04:00 susetest systemd[3438]: Failed to start podman-6734.scope.
-    # 5b08b0dc136dd32bb30e69e4deb5df511dea0602d6b0c8d3623120370184506a"
-    # So, we need to remove the first one.
-    if ($cid =~ /Failed to start podman/) {
-        record_soft_failure('bsc#1200623 - systemd[3557]: Failed to start podman-3627.scope') unless ($bsc1200623);
-        $bsc1200623 = 1;    # to prevent printing the soft-failure more than once
-        ($cid) =~ s/.*\n//;
-    }
-    return $cid;
 }
 
 sub post_run_hook {

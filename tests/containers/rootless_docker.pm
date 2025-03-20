@@ -74,7 +74,7 @@ sub get_user_subuid {
 
 sub cleanup {
     script_run "docker system prune -f";
-    script_run "rootlesskit rm -rf ~/.local/share/docker";
+    script_run "dockerd-rootless-setuptool.sh uninstall";
 }
 
 sub post_run_hook {

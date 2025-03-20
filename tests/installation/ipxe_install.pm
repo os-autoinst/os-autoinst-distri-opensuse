@@ -204,6 +204,11 @@ sub set_bootscript_agama_cmdline_extra {
         my $sol_console = (split(/,/, $ipxe_console))[0];
         $cmdline_extra .= "console=$ipxe_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
     }
+
+    # Support passing EXTRA_PXE_CMDLINE and EXTRABOOTPARAMS to bootscripts (inherited from set_bootscript_cmdline_extra)
+    $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE', '');
+    $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
+
     return $cmdline_extra;
 }
 

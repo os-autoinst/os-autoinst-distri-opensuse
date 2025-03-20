@@ -41,6 +41,7 @@ subtest '[prepare_tfvars_file] Test curl commands' => sub {
     $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'vnet'; });
     $ms_sdaf->redefine(set_hana_db_parameters => sub { return 'lungo'; });
     $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
+    $ms_sdaf->redefine(set_fencing_parameters => sub { return 'cortado'; });
     $ms_sdaf->redefine(data_url => sub { return 'http://openqa.suse.de/data/' . join('', @_); });
 
     # '-o' is only for checking if correct parameter gets picked from %tfvars_os_variable
@@ -64,6 +65,9 @@ subtest '[prepare_tfvars_file] set_image_parameters image_id' => sub {
     $ms_sdaf->redefine(replace_tfvars_variables => sub { return 1; });
     $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
     $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
+    $ms_sdaf->redefine(set_hana_db_parameters => sub { return 'lungo'; });
+    $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
+    $ms_sdaf->redefine(set_fencing_parameters => sub { return 'cortado'; });
     $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
 
     prepare_tfvars_file(
@@ -95,6 +99,7 @@ subtest '[prepare_tfvars_file] set_image_parameters image_uri' => sub {
     $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
     $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
     $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
+    $ms_sdaf->redefine(set_fencing_parameters => sub { return 'cortado'; });
 
     my $uri = '/subscriptions/****/resourceGroups/*****/providers/Microsoft.Compute/galleries/test_image_gallery/images/SLE-15-SP0-AZURE-SAP-BYOS-X64-GEN2/versions/1.2.3';
     prepare_tfvars_file(
@@ -124,6 +129,7 @@ subtest '[set_hana_db_parameters]' => sub {
     $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
     $ms_sdaf->redefine(set_image_parameters => sub { return 'lungo'; });
     $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
+    $ms_sdaf->redefine(set_fencing_parameters => sub { return 'cortado'; });
     $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
 
     prepare_tfvars_file(
@@ -148,6 +154,7 @@ subtest '[set_netweaver_parameters] Scenario "nw_pas,nw_aas,nw_ensa"' => sub {
     $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
     $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
     $ms_sdaf->redefine(set_image_parameters => sub { return 'lungo'; });
+    $ms_sdaf->redefine(set_fencing_parameters => sub { return 'cortado'; });
     $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
 
     prepare_tfvars_file(
@@ -176,7 +183,55 @@ subtest '[validate_components] Exceptions' => sub {
     foreach (@incorrect_values) {
         dies_ok { validate_components(components => [$_]) } "Fail with unsupported value: '$_'";
     }
+};
 
+subtest '[set_fencing_parameters] Unsupported fencing types' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::configure_tfvars', no_auto => 1);
+    $ms_sdaf->redefine(assert_script_run => sub { return 1; });
+    $ms_sdaf->redefine(upload_logs => sub { return 1; });
+    $ms_sdaf->redefine(replace_tfvars_variables => sub { return 1; });
+    $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
+    $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
+    $ms_sdaf->redefine(set_hana_db_parameters => sub { return 'lungo'; });
+    $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
+    $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
+    $ms_sdaf->redefine(validate_components => sub { return 'mocha'; });
+
+    my %arguments = (deployment_type => 'sap_system', components => ['nw_pas', 'nw_aas', 'nw_ensa']);
+    my @expected_failures = ('ms', 'si', 'msii', 'sbb', 'sb', 'asdf', 'as', 'sf');
+
+    for my $value (@expected_failures) {
+        set_var('SDAF_FENCING_MECHANISM', $value);
+        dies_ok { prepare_tfvars_file(%arguments); } "Fail with incorrect 'SDAF_FENCING_MECHANISM' setting value: '$value'";
+    }
+    undef_variables;
+};
+
+subtest '[set_fencing_parameters] Check value translation' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::configure_tfvars', no_auto => 1);
+    $ms_sdaf->redefine(assert_script_run => sub { return 1; });
+    $ms_sdaf->redefine(upload_logs => sub { return 1; });
+    $ms_sdaf->redefine(replace_tfvars_variables => sub { return 1; });
+    $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
+    $ms_sdaf->redefine(set_workload_vnet_name => sub { return 'latte'; });
+    $ms_sdaf->redefine(set_hana_db_parameters => sub { return 'lungo'; });
+    $ms_sdaf->redefine(set_netweaver_parameters => sub { return 'americano'; });
+    $ms_sdaf->redefine(data_url => sub { return 'capuccino'; });
+    $ms_sdaf->redefine(validate_components => sub { return 'mocha'; });
+
+    my %arguments = (deployment_type => 'sap_system',
+        components => ['nw_pas', 'nw_aas', 'nw_ensa'],
+        os_image => 'capo:in:b');
+    my %expected = ('msi' => 'AFA', 'sbd' => 'ISCSI', 'asd' => 'ASD');
+
+    for my $openqa_setting (keys(%expected)) {
+        set_var('SDAF_FENCING_MECHANISM', $openqa_setting);
+        prepare_tfvars_file(%arguments);
+        ok check_var('SDAF_FENCING_TYPE', $expected{$openqa_setting}),
+          "Pass with 'FENCING_TYPE' set to: '$expected{$openqa_setting}'";
+    }
+
+    undef_variables;
 };
 
 done_testing;

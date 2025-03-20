@@ -34,8 +34,9 @@ sub run {
     # Run flatpak gimp and check if GUI is appearing
     select_console 'x11';
     ensure_unlocked_desktop;
-    x11_start_program('flatpak run org.gimp.GIMP', target_match => 'flatpak-gimp');
+    x11_start_program('flatpak run org.gimp.GIMP', target_match => [qw(flatpak-gimp welcome-gimp)]);
     wait_still_screen(10);
+    assert_and_click('welcome-gimp') if (check_screen('welcome-gimp'));
     assert_and_click('flatpak-gimp');
     wait_still_screen(10);
 }

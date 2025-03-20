@@ -203,13 +203,19 @@ sub run {
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1);
+
+    # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
+    my $retries = is_gce() ? 5 : 2;
     my @ret = qesap_execute_conditional_retry(
         cmd => 'terraform',
         logname => 'qesap_exec_terraform.log.txt',
         verbose => 1,
         timeout => 3600,
-        retries => 2,
-        error_string => 'An internal execution error occurred. Please retry later',
+        retries => $retries,
+        error_list => [
+            'An internal execution error occurred. Please retry later',
+            'There is a peering operation in progress'
+        ],
         destroy_terraform => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
 

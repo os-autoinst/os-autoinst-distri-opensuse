@@ -1,7 +1,7 @@
-StrictHostKeyChecking no
-PasswordAuthentication no
-UserKnownHostsFile /dev/null
-IdentityFile %SSH_KEY%
+BatchMode yes
 HostKeyAlgorithms +ssh-rsa
+IdentityFile %SSH_KEY%
 LogLevel DEBUG3
-
+PasswordAuthentication no
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null

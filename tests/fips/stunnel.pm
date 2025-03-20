@@ -53,7 +53,7 @@ EOF
 
 sub run {
     select_console 'root-console';
-    zypper_call("in stunnel netcat-openbsd");
+    zypper_call("in stunnel netcat-openbsd openssl");
     if ($hostname =~ /server|master/) {
         # Generate a self-signed certificate
         assert_script_run('mkdir stunnel_fips; cd stunnel_fips');

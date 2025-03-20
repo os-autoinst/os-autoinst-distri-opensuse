@@ -92,6 +92,7 @@ sub test_cryptographic_policies() {
     }
 
     record_info("Restart sshd", "Restart sshd.service");
+    upload_logs("/etc/ssh/sshd_config");
     systemctl("restart sshd");
 
     # Add all the ssh public key hashes as known hosts

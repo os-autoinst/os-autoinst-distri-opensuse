@@ -76,14 +76,20 @@ sub upload_supportconfig_log {
 
     my $file_name = $args{file_name};
     assert_script_run("supportconfig -B $file_name", $args{timeout});
-    my $scc_tarball = "/var/log/scc_$file_name.txz";
-    my $nts_tarball = "/var/log/nts_$file_name.txz";
+    my $scc_tarball_tbz = "/var/log/scc_$file_name.tbz";
+    my $scc_tarball_txz = "/var/log/scc_$file_name.txz";
+    my $nts_tarball_tbz = "/var/log/nts_$file_name.tbz";
+    my $nts_tarball_txz = "/var/log/nts_$file_name.txz";
 
     # bcc#1166774
-    if (script_run("test -e $scc_tarball") == 0) {
-        upload_logs($scc_tarball);
-    } elsif (script_run("test -e $nts_tarball") == 0) {
-        upload_logs("$nts_tarball");
+    if (script_run("test -e $scc_tarball_tbz") == 0) {
+        upload_logs($scc_tarball_tbz);
+    } elsif (script_run("test -e $scc_tarball_txz") == 0) {
+        upload_logs($scc_tarball_txz);
+    } elsif (script_run("test -e $nts_tarball_tbz") == 0) {
+        upload_logs("$nts_tarball_tbz");
+    } elsif (script_run("test -e $nts_tarball_txz") == 0) {
+        upload_logs("$nts_tarball_txz");
     } else {
         assert_script_run("ls /var/log");
         die("No supportconfig directory found!");

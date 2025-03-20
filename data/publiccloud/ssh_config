@@ -1,8 +1,8 @@
+BatchMode yes
 ControlMaster auto
 ControlPath /tmp/ssh_%r_%h_%p
+ControlPersist 86400
 HostKeyAlgorithms +ssh-rsa
 IdentityFile %SSH_KEY%
-ControlPersist 86400
-PasswordAuthentication no
 LogLevel VERBOSE
-
+PasswordAuthentication no

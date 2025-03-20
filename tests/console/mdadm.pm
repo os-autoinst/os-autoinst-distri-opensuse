@@ -22,7 +22,7 @@ use warnings;
 sub run {
     select_serial_terminal;
 
-    zypper_call('in mdadm');
+    zypper_call('in mdadm expect');
 
     record_info("mdadm build", script_output("rpm -q --qf '%{version}-%{release}' mdadm"));
 

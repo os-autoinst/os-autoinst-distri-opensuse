@@ -1,0 +1,10 @@
+---
+name: agama_iscsi_ibft_unattended
+description: >
+  Perform unattended installation with Agama using iscsi ibft disk.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - installation/validation/ibft

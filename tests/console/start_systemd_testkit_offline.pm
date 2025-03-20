@@ -77,7 +77,7 @@ sub parse_results_from_output {
             next;
         }
 
-        if ($line =~ /(ERROR:|FAILED:|failed$)/) {
+        if ($line =~ /(ERROR:|FAILED:)/) {
             $outcome = 'failed';
             $error_line = $line;
         }
@@ -92,22 +92,14 @@ sub parse_results_from_output {
                 #   $openQA_result = $self->record_testresult('softfail');
                 #   $softfail_result = 119565;
                 #} else {
-                #my $openQA_result = $self->record_testresult('fail');
+                my $openQA_result = $self->record_testresult('fail');
                 #$softfail_result = 0;
                 #}
-                my ($openQA_result, $softfail_result);
-                if ($error_line =~ m/invalid version \'254\', expected \'234\'/) {
-                    $openQA_result = $self->record_testresult('softfail');
-                    $softfail_result = 1231034;
-                } else {
-                    my $openQA_result = $self->record_testresult('fail');
-                    $softfail_result = 0;
-                }
                 my $openQA_filename = $self->next_resultname('txt');
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
-                ($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
-                  $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
+                #($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
+                $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
                 $self->{dents}++;
             }
 

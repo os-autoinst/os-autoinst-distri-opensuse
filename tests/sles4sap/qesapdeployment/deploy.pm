@@ -19,7 +19,7 @@ sub run {
         verbose => 1,
         timeout => 1800,
         retries => 1,
-        error_string => 'An internal execution error occurred. Please retry later');
+        error_list => ['An internal execution error occurred. Please retry later']);
 
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);

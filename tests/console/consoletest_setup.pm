@@ -34,7 +34,6 @@ sub run {
     my $user = $testapi::username;
     select_serial_terminal;
 
-    zypper_call('in openssh-server') if is_sle('>=16');
     systemctl('start sshd');
 
     # generate ssh key and use same key for root and bernhard

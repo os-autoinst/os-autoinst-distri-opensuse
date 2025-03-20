@@ -10,13 +10,18 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use Utils::Backends;
-use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
     assert_screen('release-notes-button');
     select_console 'install-shell';
+
+    my $arch = get_required_var('ARCH');
+    my $version = get_required_var('VERSION');
+    my $url = "https://www.suse.com/releasenotes/${arch}/SUSE-SLES/${version}/index.html";
+    my $curl_cmd = qq|curl -I -L --silent --output /dev/null --write-out "%{http_code}" $url|;
+    validate_script_output($curl_cmd, qr/200/, title => 'URL check', fail_message => "URL '$url' not found") if $self->is_sles_in_rc_or_gm_phase();
+
     enter_cmd "zgrep -oh \"Got release notes.*\" /var/log/YaST2/y2log*";
     assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
     unless (match_has_tag 'got-releasenotes-URL') {

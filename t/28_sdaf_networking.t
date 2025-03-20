@@ -15,19 +15,6 @@ sub unset_vars {
     );
 }
 
-subtest '[calculate_subnets] ' => sub {
-    my %network_data = %{calculate_subnets()};
-    note("-> Calculated network space:\n" . Dumper(%network_data));
-    foreach (
-        'admin_subnet_address_prefix',
-        'db_subnet_address_prefix',
-        'app_subnet_address_prefix',
-        'web_subnet_address_prefix',
-        'network_address_space') {
-        ok(defined($network_data{$_}), "Network data contains '$_'");
-    }
-};
-
 subtest '[assign_address_space] ' => sub {
     my $mocklib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::networking', no_auto => 1);
     $mocklib->redefine(az_network_vnet_get => sub { return ['optimus'] });
@@ -145,6 +132,35 @@ subtest '[list_expired_files] ' => sub {
     is assign_address_space(networks_older_than => '30'), 'old_network_file/26', 'Return only old network files';
 
     unset_vars();
+};
+
+subtest '[calculate_ip_count] ' => sub {
+    is calculate_ip_count(subnet_prefix => '/30'), 4, "IP count must be 4";
+};
+
+
+subtest '[calculate_subnets] Check for required subnets' => sub {
+    my %network_data = %{calculate_subnets(network_space => '192.168.1.0/26')};
+    note("-> Calculated network space:\n" . Dumper(%network_data));
+    foreach (
+        'admin_subnet_address_prefix',
+        'db_subnet_address_prefix',
+        'app_subnet_address_prefix',
+        'web_subnet_address_prefix',
+        'network_address_space',
+        'iscsi_subnet_address_prefix'
+    ) {
+        ok(defined($network_data{$_}), "Network data contains '$_'");
+    }
+};
+
+subtest '[calculate_subnets] Validate subnet definition' => sub {
+    my $mocklib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::networking', no_auto => 1);
+
+    # Simulate IP overflow
+    # this makes `calculate_ip_count` return lower number than the total amount of all subnet IP addr
+    $mocklib->redefine(calculate_ip_count => sub { return 10 if grep /\/26/, @_; return 100; });
+    dies_ok { calculate_subnets(network_space => '192.168.1.0/26') } 'Die in case of IP overflow into next addr space';
 };
 
 done_testing;

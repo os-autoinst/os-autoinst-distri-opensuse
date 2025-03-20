@@ -24,7 +24,7 @@ sub run {
     my %redirection_data = %{$run_args->{redirection_data}};
 
     for my $instance_type (keys(%redirection_data)) {
-
+        next() unless grep /$instance_type/, qw(ha_node db_hana nw_ascs nw_ers);
         for my $hostname (keys(%{$redirection_data{$instance_type}})) {
             my %host_data = %{$redirection_data{$instance_type}{$hostname}};
             connect_target_to_serial(

@@ -26,13 +26,14 @@ Library with common functions for Microsoft SDAF deployment automation related t
 our @EXPORT = qw(
   assign_address_space
   calculate_subnets
+  calculate_ip_count
 );
 
 =head2 calculate_net_addr_space
 
     calculate_net_addr_space();
 
-Calculate network IP space that will be reserved to contain all underlying subnets: 'admin', 'db', 'app', 'web'.
+Calculate network IP space that will be reserved to contain all underlying subnets used by the deployment.
 Each network space will reserve 64 IP addresses. This splits last IP octet into 4 network spaces.
 First 64 address spaces are used from third octet, making 256 network spaces available for all OpenQA tests at
 any point in time. (256 tests can run at the same time using one control plane.)
@@ -54,7 +55,7 @@ sub calculate_net_addr_space {
 
     calculate_subnets([network_space=>'192.168.0.0']);
 
-=over 1
+=over
 
 =item B<network_space>: Define network space to calculate subnets for. Will be generated if left undefined.
 
@@ -70,28 +71,74 @@ This leaves 16 IP addresses for each subnet. (only 14 are usable).
 sub calculate_subnets {
     my (%args) = @_;
     $args{network_space} //= calculate_net_addr_space();
-    my @subnet_names = qw(
-      admin_subnet_address_prefix
-      db_subnet_address_prefix
-      app_subnet_address_prefix
-      web_subnet_address_prefix
-    );
-    my @octets = (split(/[.\/]/, $args{network_space}))[0 .. 3];
-    my @addr_ranges = map { $_ * 64 } (0 .. 3);
-    my $subnet_ip_count = 256 / @addr_ranges / @subnet_names;
+    # extract subnet prefix from network addr space and calculate total IPs available for all subnets
+    my $network_space_ip_count = calculate_ip_count(subnet_prefix => (split(/\//, $args{network_space}))[1]);
 
-    my @subnet = map { join('.', @octets[0 .. 2], ($octets[3] + $subnet_ip_count * $_)) . '/28' } (0 .. 3);
-    my %network_data;
-    @network_data{@subnet_names} = @subnet;
-    $network_data{network_address_space} = $args{network_space};
+    # Definition of subnet name and subnet prefix
+    # Subnet assignment is defined here approximately how many IPs specific subnet might need
+    # total count of all subnet IPs must stay within network space boundaries
+    my %subnet_definition = (
+        admin_subnet_address_prefix => '/29',
+        web_subnet_address_prefix => '/29',
+        db_subnet_address_prefix => '/28',
+        app_subnet_address_prefix => '/28',
+        iscsi_subnet_address_prefix => '/28'
+    );
+
+    my %network_data = (network_address_space => $args{network_space});
+    my @octets = (split(/[.\/]/, $args{network_space}))[0 .. 3];
+    my $starting_octet = $octets[3];
+    # Sort subnets according to their size in descending order to avoid IP overlap
+    my @sorted_keys = sort {
+        my ($a_num) = $subnet_definition{$a} =~ m{/(\d+)};
+        my ($b_num) = $subnet_definition{$b} =~ m{/(\d+)};
+        $a_num <=> $b_num;
+    } keys(%subnet_definition);
+
+    my $total_ip_count = 0;
+
+    # This will sort subnets according to network size in descending order
+    for my $subnet_name (@sorted_keys) {
+        my $subnet_ip_count = calculate_ip_count(subnet_prefix => $subnet_definition{$subnet_name});
+        $total_ip_count += $subnet_ip_count;
+        my $subnet = join('.', @octets[0 .. 2], $starting_octet) . $subnet_definition{$subnet_name};
+        $network_data{$subnet_name} = $subnet;
+        $starting_octet = $starting_octet + $subnet_ip_count;
+    }
+    # Prevent IP leaking into next network space and let the test fail early.
+    die "Total number of calculated subnet IPs ($total_ip_count) is outside of address space ($network_space_ip_count)" if
+      $total_ip_count > $network_space_ip_count;
     return (\%network_data);
+}
+
+=head2 calculate_ip_count
+
+    calculate_ip_count(subnet_prefix=>'/24');
+
+=over
+
+=item B<subnet_prefix>: Subnet prefix to be translated into number of IP addresses
+
+=back
+
+Returns number of usable IPv4 addresses belonging to a subnet prefix
+
+=cut
+
+sub calculate_ip_count {
+    my (%args) = @_;
+    # IPv4 consists of 32 bits
+    # Subnet prefix describes how many bits from left separate network portion from host portion
+    # 32bits - $subnet prefix = number of bits for host IPs
+    # 2 to the power of $host_bits = number of IP addresses belonging to subnet
+    return 2**(32 - int($args{subnet_prefix} =~ s/\///r));
 }
 
 =head2 list_expired_files
 
     list_expired_files($check_older_than_sec);
 
-=over 1
+=over
 
 =item B<$check_older_than_sec>: Check only files with modification time older than parameter value in seconds
 
@@ -146,7 +193,7 @@ sub list_network_lease_files {
 
     acquire_network_file_lease(network_lease_file=>'192.168.1.0' [, storage_account=>'some account']);
 
-=over 2
+=over
 
 =item B<storage_account>: Storage account containing lease file. Default: 'SDAF_TFSTATE_STORAGE_ACCOUNT'
 
@@ -193,7 +240,7 @@ sub acquire_network_file_lease {
 
     deployer_peering_exists(addr_space=>'192.168.0.0', deployer_vnet_name=>'SHODAN-vnet');
 
-=over 2
+=over
 
 =item B<addr_space>: Address space to check for. Must include subnet prefix.
 
@@ -222,7 +269,7 @@ sub deployer_peering_exists {
 
     assign_defined_network(deployer_vnet_name=>'SHODAN-vnet' [, networks_older_than=>3600]);
 
-=over 2
+=over
 
 =item B<networks_older_than>: Check for networks older than parameter value in seconds.
 
@@ -285,7 +332,7 @@ sub assign_defined_network {
 
     create_lease_file(network_space=>'192.168.1.0' [, storage_account=>'SHODAN-storage']);
 
-=over 2
+=over
 
 =item B<storage_account>: Storage account containing lease file
 
@@ -318,7 +365,7 @@ sub create_lease_file {
 
     create_new_address_space(deployer_vnet_name=>'SHODAN-vnet' [, timeout=>9001]);
 
-=over 2
+=over
 
 =item B<deployer_vnet_name>: Deployer virtual network
 
@@ -366,7 +413,7 @@ sub create_new_address_space {
 
     assign_address_space([networks_older_than=>3600]);
 
-=over 1
+=over
 
 =item B<networks_older_than>: Check for networks older than parameter value in seconds.
 

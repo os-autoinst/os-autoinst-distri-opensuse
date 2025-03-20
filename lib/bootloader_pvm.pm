@@ -85,11 +85,18 @@ sub reset_lpar_netboot {
     # reset the LPAR manually, another issue is unable to load initrd or linux kernel,
     # so in both cases we need to reset LPAR netboot
     if (match_has_tag('novalink-failed-first-boot')) {
-        enter_cmd "set-default ibm,fw-nbr-reboots";
-        enter_cmd "reset-all";
-        assert_screen 'pvm-firmware-prompt';
-        send_key '1';
-        get_into_net_boot;
+        if (check_screen('novalink-first-boot-encrypted-passwd', 5)) {
+            type_string("$testapi::password");
+            send_key 'ret';
+            assert_screen 'pvm-grub';
+        }
+        else {
+            enter_cmd "set-default ibm,fw-nbr-reboots";
+            enter_cmd "reset-all";
+            assert_screen 'pvm-firmware-prompt';
+            send_key '1';
+            get_into_net_boot;
+        }
     }
 }
 

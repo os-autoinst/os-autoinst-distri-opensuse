@@ -2,16 +2,30 @@
 name: agama_install_sles_ha
 description: >
   Agama installation tests for plain SLES HA.
-  Can be used to generate a qcow2 image.
+  Can be used to generate a qcow2 image on qemu and svirt.
+  Requires the settings AGAMA_PRODUCT_ID, AGAMA_AUTO,
+  EXTRABOOTPARAMS (only in qemu), SCC_ADDONS set to `ha`,
+  and AGAMA_PROFILE (on s390x)
+
 schedule:
-  - yam/agama/boot_agama
-  - yam/agama/agama_auto
-  - installation/grub_test
+  - '{{agama_install}}'
   - installation/first_boot
   - console/system_prepare
   - ha/check_hae_active.py
   - '{{generate_image}}'
 conditional_schedule:
+  agama_install:
+    BACKEND:
+      qemu:
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - installation/grub_test
+      pvm_hmc:
+        - installation/bootloader
+        - installation/agama_reboot
+      svirt:
+        - installation/bootloader_zkvm
+        - installation/agama_reboot
   generate_image:
     GENERATE_IMAGE:
       1:
@@ -20,3 +34,8 @@ conditional_schedule:
         - shutdown/grub_set_bootargs
         - shutdown/cleanup_before_shutdown
         - shutdown/shutdown
+        - '{{svirt_upload_assets}}'
+  svirt_upload_assets:
+    BACKEND:
+      svirt:
+        - shutdown/svirt_upload_assets

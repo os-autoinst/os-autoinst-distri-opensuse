@@ -17,7 +17,7 @@ use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
 use publiccloud::utils qw(is_gce);
 
-my ($ipv6_gateway, $ipv6_interface);
+my ($ipv6_gateway, $ipv6_interface, $dev);
 
 sub store_ipv6_route {
     # TEST3 may remove the default ipv6 route, save it to restore later
@@ -53,6 +53,12 @@ sub remove_subtest_setup {
     assert_script_run("podman network prune -f");
     validate_script_output("podman network ls --noheading", sub { /^\w+\s+podman\s+bridge$/ });
     validate_script_output("podman ps -a --noheading", sub { /^\s*$/ });
+
+    if ($dev) {
+        script_run 'ip a s';
+        script_run("ip link set $dev down");
+        script_run("ip link del dev $dev");
+    }
 }
 
 sub is_container_running {
@@ -208,28 +214,32 @@ sub run {
     my $cur_version = script_output('rpm -q --qf "%{VERSION}\n" netavark');
     # only for netavark v1.6+
     # JeOS's kernel-default-base is missing *macvlan* kernel module
-    if (!(is_jeos || (is_updates_tests && is_gce)) && package_version_cmp($cur_version, '1.6.0') >= 0) {
+    if (!is_jeos && package_version_cmp($cur_version, '1.6.0') >= 0) {
         record_info('TEST4', 'smoke test for netavark dhcp proxy + macvlan');
         $net1->{name} = 'test_macvlan';
         systemctl('enable --now netavark-dhcp-proxy.socket');
         systemctl('status netavark-dhcp-proxy.socket');
 
-        my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
-        my $extra = '';
-        if (is_public_cloud || is_s390x || is_vmware) {
-            my $sn = script_output(qq(ip -o -f inet addr show $dev | awk '/scope global/ {print \$4}' | head -n 1)) =~ s/\.\d+\//\.0\//r;
-            $extra .= "--subnet $sn ";
-            my $gw = $sn =~ s/0\/\d+$/1/r;
-            $extra .= "--gateway $gw ";
-            my $range = $gw =~ s/\d+$/244\/30/r;
-            $extra .= "--ip-range $range";
-        }
+        my $d = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
+        my $id = 666;
+        $dev = "$d" . "\.$id";
+
+        assert_script_run("ip link add link $d name $dev type vlan id $id");
+        assert_script_run("ip link set $dev up");
+
+        my $extra = '--subnet=192.168.64.0/24  --ip-range=192.168.64.128/25 --gateway=192.168.64.254';
         assert_script_run("podman network create -d macvlan --interface-name $dev $extra $net1->{name}");
-        assert_script_run("podman run --network $net1->{name} -td --name $ctr2->{name} $ctr2->{image}");
+        assert_script_run("podman run --network $net1->{name} -td --name $ctr2->{name} --ip 192.168.64.128 $ctr2->{image}");
         if (is_container_running($ctr2->{name})) {
             assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
         }
+
+        # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
+        $ctr2->{image} = 'docker.io/library/alpine' if is_s390x;
+        assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
+        assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
+        assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
     }
 
     remove_subtest_setup;
@@ -245,7 +255,6 @@ sub post_run_hook {
 }
 
 sub post_fail_hook {
-    script_run("sysctl -a | grep --color=never net");
     load_ipv6_route;
     shift->_cleanup();
 }

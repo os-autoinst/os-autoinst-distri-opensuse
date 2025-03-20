@@ -46,11 +46,15 @@ B<Available options are:>
 =item * B<nw_ensa> - Installs ERS and sets up ENSA2 scenario
 
 =back
-B<Required OpenQA variables:>
-    SDAF_DEPLOYMENT_SCENARIO See above
-    SDAF_ENV_CODE  Code for SDAF deployment env.
-    PUBLIC_CLOUD_REGION SDAF internal code for azure region.
-    SAP_SID SAP system ID.
+B<Required OpenQA settings:>
+    SDAF_DEPLOYMENT_SCENARIO - See above
+    SDAF_ENV_CODE - Code for SDAF deployment env.
+    PUBLIC_CLOUD_REGION - SDAF internal code for azure region.
+    SAP_SID - SAP system ID.
+B<Optional OpenQA settings:>
+    SDAF_FENCING_MECHANISM - Fencing mechanism. Default: MSI
+        Accepted values: 'msi' - MSI fencing agent, 'sbd' - iscsi based SBD device, 'asd' - Azure shared disk as SBD device
+    SDAF_ISCSI_DEVICE_COUNT - Number of iSCSI devices to be used for SBD. Default: 1
 =cut
 
 sub test_flags {
