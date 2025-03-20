@@ -216,6 +216,7 @@ sub set_fencing_parameters {
     # Fencing mechanism AFA (Azure fencing agent - MSI), ASD (Azure shared disk - SBD), ISCSI (iSCSI based SBD fencing)
     # Default value: 'msi' - AFA - Azure fencing agent (MSI)
     my $fencing_type = get_var('SDAF_FENCING_MECHANISM', 'msi');
+    record_info("FENCING: $fencing_type", "Fencing mechanism set to '$fencing_type'");
 
     # Ensures consistent OpenQA setting names across all types deployment solutions.
     # msi = MSI based fencing
@@ -225,7 +226,7 @@ sub set_fencing_parameters {
     die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
 
     # This is dumb and will be improved in TEAM-10145
-    set_var('SDAF_FENCING_TYPE', $supported_fencing_values{get_var('SDAF_FENCING_MECHANISM')});
+    set_var('SDAF_FENCING_TYPE', $supported_fencing_values{$fencing_type});
     # Setup ISCSI deployment
     if (get_var('SDAF_FENCING_TYPE') =~ /ISCSI/) {
         # Set default value for iSCSI device count
