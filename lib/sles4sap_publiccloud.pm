@@ -427,7 +427,7 @@ sub stop_hana {
             $exit_code = script_run('nc -vz -w 1 ' . $self->{my_instance}->{public_ip} . ' 22', quiet => 1);
             $nc_error_occurrence += 1 if (!defined($exit_code) or $exit_code ne 0);
         }
-        my $end_msg = join('\n',
+        my $end_msg = join("\n",
             'END',
             "started at $start_time",
             'elapsed:' . (time() - $start_time),
@@ -533,13 +533,8 @@ sub check_takeover {
     enable_replication([site_name => 'site_a', hana_inn => '10' ]);
 
     Re-enables replication on the previously fenced database node. Database must be offline.
-<<<<<<< HEAD
     Dies if the the given <site name> doesn't correspond with the SAPHanaSR topology local site name
-    Optionally the hana_instance_id could be provided for better readability
-=======
-    Dies if the the given <site name> doesn't corespond with the SAPHanaSR topology of local site.
     Optionaly the 'hana_innstance_id' could be provided for better reliability
->>>>>>> 222157187 (More comments)
 
 =over
 
@@ -1131,7 +1126,7 @@ sub create_hana_vars_section {
 sub display_full_status {
     my ($self) = @_;
     my $vm_name = $self->{my_instance}{instance_id};
-    my $final_message = join('\n', '### CRM STATUS ###',
+    my $final_message = join("\n", '### CRM STATUS ###',
         $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1),
         '### CRM MON ###',
         $self->run_cmd(cmd => $crm_mon_cmd, proceed_on_failure => 1),

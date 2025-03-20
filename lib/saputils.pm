@@ -49,7 +49,7 @@ like other base class or testapi module  Avoid using get_var/set_var at this lev
             Hosts/vmhana02/sync_state="SOK"
             Hosts/vmhana02/vhost="vmhana02"
 
-    output look a like:
+    output looks like:
     {
           'Host' => {
                       'vmhana01' => {
@@ -211,7 +211,7 @@ sub check_hana_topology {
     # For legacy purpose, if set to 'online' or on pacemaker >= 2.1.7 to timestamps like '1739798309'
     # or if not provided at all we set it to default '4' as online
     my $node_state_match = (defined $args{node_state_match}) ?
-      ($args{node_state_match} eq 'online' or ($args{node_state_match} =~ /[1-9][0-9]+/ xor $args{node_state_match} !~ /[0-4]/)) ? '4' : $args{node_state_match} : '4';
+      ($args{node_state_match} eq 'online' or ($args{node_state_match} =~ /^[1-9]\d+$/ xor $args{node_state_match} !~ /^[0-4]$/)) ? '4' : $args{node_state_match} : '4';
     my $all_online = 1;    # Decrementing counter of online nodes
     my $prim_count = 0;    # Incrementing counter of PRIM srPoll
     my $sok_count = 0;    # Incrementing counter of SOK srPoll
