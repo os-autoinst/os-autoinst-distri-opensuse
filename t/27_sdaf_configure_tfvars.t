@@ -209,6 +209,7 @@ subtest '[set_fencing_parameters] Unsupported fencing types' => sub {
 
 subtest '[set_fencing_parameters] Check value translation' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::configure_tfvars', no_auto => 1);
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ms_sdaf->redefine(assert_script_run => sub { return 1; });
     $ms_sdaf->redefine(upload_logs => sub { return 1; });
     $ms_sdaf->redefine(replace_tfvars_variables => sub { return 1; });
