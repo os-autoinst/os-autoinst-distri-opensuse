@@ -38,6 +38,7 @@ sub config_service {
     exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@$remote_ip:/tmp/sssd.conf /tmp");
     exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@$remote_ip:$inst_ca_dir/ca.crt $tls_dir");
     assert_script_run("/usr/bin/openssl rehash $tls_dir");
+    assert_script_run("chmod o+r $tls_dir/ca.crt");    # From version 2.10 onwards sssd runs as user "sssd"
 
     # On newer environments, nsswitch.conf is located in /usr/etc
     # Copy it to /etc directory
