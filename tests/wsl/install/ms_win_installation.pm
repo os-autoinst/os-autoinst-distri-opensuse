@@ -30,7 +30,7 @@ sub run {
     my $self = shift;
 
     if (get_var('UEFI')) {
-        while (check_screen('windows-boot', timeout => 5)) {
+        while (check_screen('windows-boot', timeout => 1)) {
             send_key 'spc';
             record_info('SPC', 'Space key pressed');
         }    # boot from CD or DVD
