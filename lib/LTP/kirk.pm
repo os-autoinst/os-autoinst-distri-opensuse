@@ -22,7 +22,7 @@ use LTP::utils;
 sub _kirk_from_git
 {
     my ($cmd, $timeout) = @_;
-    my $repo = get_var('KIRK_REPO', 'https://github.com/acerv/kirk.git');
+    my $repo = get_var('KIRK_REPO', 'https://github.com/linux-test-project/kirk.git');
     my $branch = get_var('KIRK_BRANCH', 'master');
 
     zypper_call("ref");
