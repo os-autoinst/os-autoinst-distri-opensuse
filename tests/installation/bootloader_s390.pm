@@ -89,7 +89,9 @@ sub prepare_parmfile {
         $params .= " info=" . create_infofile("install: $instsrc");
     }
     else {
-        if (get_var('AGAMA')) {
+        if (get_var('AGAMA') && get_var('FLAVOR') == "Full") {
+            $params .= " root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img";
+        } elsif (get_var('AGAMA')) {
             $params .= " root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' . get_var('REPO_999');
         }
         else {
