@@ -29,11 +29,23 @@ fix_broken_log(){
 # first pass
 first=$(mktemp /tmp/tempXXXX)
 failures=0
+warnings=0
+success=0
+info=0
 sed -n '/^-\{80\}$/,/^-\{80\}$/ { /^-\{80\}$/!p }' "$1"  > $first
 echo "Validation results:"
 while IFS="" read -r line; do
-    if (echo $line | grep -qv SUCCESS); then
-        failures=$((failres+1))
+    if (echo $line | grep -q ERROR); then
+        failures=$((failures+1))
+    fi
+    if (echo $line | grep -q WARNING); then
+        warnings=$((warnings+1))
+    fi
+    if (echo $line | grep -q SUCCESS); then
+        success=$((success+1))
+    fi
+    if (echo $line | grep -q INFO); then
+        info=$((info+1))
     fi
     echo $line
 done < $first
@@ -51,8 +63,17 @@ fix_broken_log $second
 sed -i -e '/.*\[Sap Note.*/!d' $fixed
 echo "Sap Notes:"
 while IFS="" read -r line; do
-    if (echo $line | grep -E -v SUCCESS\|INFO); then
+    if (echo $line | grep -q ERROR); then
         failures=$((failures+1))
+    fi
+    if (echo $line | grep -q SUCCESS); then
+        success=$((success+1))
+    fi
+    if (echo $line | grep -q INFO); then
+        info=$((info+1))
+    fi
+    if (echo $line | grep -q WARNING); then
+        warnings=$((warnings+1))
     fi
     echo $line
 done < $fixed
@@ -66,6 +87,11 @@ if [ $failures -gt 0 ]; then
     echo "============= Some failures found ============="
     echo "=============== Check logs!!  ================="
     exit 1
+else
+    echo "SUCCESS: $success"
+    echo "INFO: $info"
+    echo "WARNING: $warnings"
+    echo "ERROR: $failures"
 fi
 
 # else, no failures found
