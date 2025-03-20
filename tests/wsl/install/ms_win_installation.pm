@@ -30,12 +30,7 @@ sub run {
     my $self = shift;
 
     # Press 'spacebar' continuously until installation appears
-    send_key_until_needlematch(
-        'windows-unattend-starting',
-        'spc',
-        counter => 60,
-        timeout => 1
-    );
+    send_key_until_needlematch('windows-unattend-starting', 'spc', 60, 1);
     
     if (check_var('WIN_UNATTENDED', '0')) {
         # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
