@@ -56,18 +56,15 @@ fcmd=0
 final_exit_status=0
  for ind in "${!TEST_STATUS[@]}"
  do
-    # shellcheck disable=2219
-    let "tcmd+=1"
+    (( tcmd++ ))
     if  (( ${TEST_STATUS[${ind}]} > 0 ))
     then
       echo "  Test ${ind} FAILED "
-      # shellcheck disable=2219
-      let "fcmd+=1"
+      (( fcmd++ ))
       final_exit_status=1
     else
       echo "  Test ${ind} Passed "
-      # shellcheck disable=2219
-      let "pcmd+=1"
+      (( pcmd++ ))
     fi
  done
 echo "${tcmd} tests run, ${pcmd} tests passed and ${fcmd} failed"
