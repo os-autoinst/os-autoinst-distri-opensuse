@@ -188,7 +188,7 @@ sub sles4sap_cleanup {
 
     qesap_cluster_logs();
     qesap_upload_logs();
-    upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut_log.txt');
+    upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
     if ($args{network_peering_present}) {
         delete_network_peering();
     }
