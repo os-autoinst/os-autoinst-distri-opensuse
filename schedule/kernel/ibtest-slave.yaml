@@ -11,7 +11,7 @@ vars:
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_CONSOLE: ttyS1,115200
-    MLX_PROTOCOL: 2
+    MLX_PROTOCOL: 1
     PARALLEL_WITH: ibtest-master
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
