@@ -12,11 +12,19 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures 'is_s390x';
 
 my $log_file = '/tmp/syscalls_output.log';
 
 sub run {
     my ($self) = shift;
+
+    # Skip on s390x with encrypted disk due to timeouts
+    # poo#176454
+    if (check_var('ENCRYPT', '1') && is_s390x) {
+        record_info('SKIPPING TEST', "Skipping on encrypted s390x, poo#176454");
+        return;
+    }
 
     select_console 'root-console';
 
