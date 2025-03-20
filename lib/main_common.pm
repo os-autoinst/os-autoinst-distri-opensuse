@@ -2454,6 +2454,7 @@ sub set_mu_virt_vars {
     # Set PXE resource
     unless (get_var('PXE_PRODUCT_NAME') || get_var('MIRROR_HTTP')) {
         unless (get_var('IPXE')) {
+            set_var('IPXE', 0);
             # PRG1 lab SUTs use pxe way
             my $pxe_product_name = "SLE-" . get_required_var('VERSION');
             if (is_sle('15+')) {
@@ -2497,6 +2498,7 @@ sub set_mu_virt_vars {
     if (is_sle('15+')) {
         $scc_addons .= ',' if ($scc_addons);
         $scc_addons .= 'base,sdk,serverapp,desktop';
+        $scc_addons .= ',contm' if (get_var('KUBEVIRT_TEST'));
     }
     set_var('SCC_ADDONS', "$scc_addons");
 
