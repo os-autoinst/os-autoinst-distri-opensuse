@@ -25,15 +25,15 @@ sub test_ip_version {
     script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Test that containers can't access the host
-    validate_script_output "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $ip_addr", qr/Network is unreachable/;
+    validate_script_output "! $runtime run --rm -t --network $network $image ping -$ip_version -c 1 $ip_addr", qr/Network is unreachable/;
 
     # Test that containers can't access the Internet
     # Google DNS servers
     my $external_ip = ($ip_version == 6) ? "2001:4860:4860::8888" : "8.8.8.8";
-    validate_script_output "! $runtime run --rm --network $network $image ping -$ip_version -c 1 $external_ip", qr/Network is unreachable/;
+    validate_script_output "! $runtime run --rm -t --network $network $image ping -$ip_version -c 1 $external_ip", qr/Network is unreachable/;
 
     # Test that containers can't modify IP routes
-    validate_script_output "! $runtime run --rm --privileged --cap-add=CAP_NET_ADMIN --network $network $image ip -$ip_version route add default via $ip_addr", qr/No route to host|Nexthop has invalid gateway|Network is unreachable/;
+    validate_script_output "! $runtime run --rm -t --privileged --cap-add=CAP_NET_ADMIN --network $network $image ip -$ip_version route add default via $ip_addr", qr/No route to host|Nexthop has invalid gateway|Network is unreachable/;
 }
 
 sub run {
