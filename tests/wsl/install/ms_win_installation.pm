@@ -29,13 +29,9 @@ sub run {
 
     my $self = shift;
 
-    if (get_var('UEFI')) {
-        while (check_screen('windows-boot', timeout => 5)) {
-            send_key 'spc';
-            record_info('SPC', 'Space key pressed');
-        }    # boot from CD or DVD
-    }
-
+    # Press 'spacebar' continuously until installation appears
+    send_key_until_needlematch('windows-unattend-starting', 'spc', 60, 1);
+    
     if (check_var('WIN_UNATTENDED', '0')) {
         # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
         assert_screen 'windows-setup', 300;
