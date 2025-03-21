@@ -7,6 +7,8 @@ use Test::More;
 use Test::Mock::Time;
 use testapi;
 use List::Util qw(any none sum);
+use Mojo::JSON qw(encode_json decode_json);
+use Data::Dumper;
 
 use publiccloud::instance;
 use sles4sap_publiccloud;
@@ -488,7 +490,7 @@ subtest '[is_primary_node_online]' => sub {
     is $res, 1, "System replication is online on primary node";
 };
 
-subtest '[get_hana_topology]' => sub {
+subtest '[get_hana_topology_script]' => sub {
     my @calls;
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
@@ -535,6 +537,50 @@ subtest '[get_hana_topology]' => sub {
     ok((any { qr/SAPHanaSR-showAttr --format=/ } @calls), 'function calls SAPHanaSR-showAttr');
 };
 
+subtest '[get_hana_topology_json]' => sub {
+    my @calls;
+    my $self = sles4sap_publiccloud->new();
+    set_var('USE_SAP_HANA_SR_ANGI', 'true');
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my %test_topology = (
+        Host => {
+            vmhanaBBBBB => {
+                vhost => 'vmhanaBBBBB',
+                site => 'site_b'
+            },
+            vmhanaAAAAA => {
+                site => 'site_a',
+                vhost => 'vmhanaAAAAA',
+            }
+        },
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhanaAAAAA',
+                srPoll => 'SOK',
+            },
+            site_a => {
+                lss => '4',
+                mns => 'vmhanaBBBBB',
+                srPoll => 'PRIM',
+            }
+        }
+    );
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return encode_json \%test_topology; });
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return "Output does no matter as calculate_hana_topology is redefined.";
+    });
+    $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
+    my $topology = decode_json $self->get_hana_topology();
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    ok((keys %{$topology->{Host}} eq 2 && %{$topology->{Site}} eq 2), 'Two hosts and two sites returned by calculate_hana_topology');
+    # how to access one inner value in one shot
+    ok(($topology->{Host}->{vmhanaAAAAA}->{vhost} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
+    ok((any { qr/SAPHanaSR-showAttr --format=/ } @calls), 'function calls SAPHanaSR-showAttr');
+};
 
 subtest '[get_hana_topology] bad output' => sub {
     my $self = sles4sap_publiccloud->new();

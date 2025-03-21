@@ -244,7 +244,7 @@ sub sles4sap_cleanup {
 
 sub get_hana_topology {
     my ($self) = @_;
-    my $output_format = 'script';
+    my $output_format = get_var('USE_SAP_HANA_SR_ANGI') ? 'json' : 'script';
     $self->wait_for_idle(timeout => 240);
     my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=$output_format", quiet => 1);
     return calculate_hana_topology(input_format => $output_format, input => $cmd_out);
