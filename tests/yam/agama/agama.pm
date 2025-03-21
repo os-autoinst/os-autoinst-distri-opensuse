@@ -11,6 +11,7 @@ use warnings;
 use Carp qw(croak);
 use testapi qw(
   diag
+  get_var
   get_required_var
   script_run
   script_output
@@ -47,6 +48,8 @@ sub run {
     croak("command \n'$node_cmd'\n failed") unless $ret == 0;
 
     $self->upload_agama_logs();
+
+    return if get_var('INST_ABORT');
 
     # make sure we will boot from hard disk next time
     if (is_s390x && is_svirt) {
