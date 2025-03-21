@@ -1,4 +1,5 @@
 local base_lib = import 'lib/base.libsonnet';
+local packages_lib = import 'lib/packages.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
@@ -19,4 +20,5 @@ function(bootloader=false, user=true, root=true, storage='', product='', registr
   [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
   [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
   [if user == true then 'user']: base_lib['user'],
+  [if packages ==true then 'software']: packages_lib['software'],
 }
