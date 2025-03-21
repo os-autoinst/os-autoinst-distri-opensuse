@@ -114,7 +114,7 @@ sub run {
         get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path));
     for my $file (@check_files) {
         record_info('File check', "Check if file '$file' was created by SDAF");
-        assert_script_run("test -f $file");
+        assert_script_run("cat $file");
     }
 
     # diconnect the console
