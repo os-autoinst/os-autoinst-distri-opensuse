@@ -8,6 +8,6 @@ schedule:
   - yam/agama/agama
   - boot/reconnect_mgmt_console
   - installation/first_boot
-  - yam/validate/validate_product
+  - yam/validate/validate_base_product
   - yam/validate/validate_first_user
   - console/verify_separate_home
