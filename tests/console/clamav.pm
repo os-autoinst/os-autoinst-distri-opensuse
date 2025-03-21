@@ -42,6 +42,12 @@ sub scan_and_parse {
 sub run {
     select_serial_terminal;
 
+    # only skip on maintenance if FIPS is enabled
+    if ((is_sle '>=15-SP6') && check_var('FIPS_ENABLED', '1') && (check_var('BETA', '0') || !get_var('BETA'))) {
+        record_info('SKIPPING TEST', "Skipping test due to bsc#1221954");
+        return;
+    }
+
     zypper_call('in clamav');
     zypper_call('info clamav');
     # Create a random file

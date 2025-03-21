@@ -16,6 +16,10 @@ use version_utils qw(is_sle);
 
 sub run {
     select_serial_terminal;
+    if (is_sle '=15-SP2') {
+        record_info('SKIPPING TEST', "Skipping unsupported test on 15-SP2");
+        return;
+    }
 
     # Install keylime packages
     zypper_call('in keylime-config keylime-firewalld keylime-agent keylime-tpm_cert_store keylime-registrar keylime-verifier', timeout => 240);
