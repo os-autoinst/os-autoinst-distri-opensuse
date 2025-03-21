@@ -72,6 +72,10 @@ test-yaml-valid:
 test-modules-in-yaml-schedule:
 	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code origin/master | grep '^schedule/*'`
 
+.PHONY: test-jsonnet-valid
+test-jsonnet-valid:
+	tools/check_jsonnet
+
 .PHONY: test-metadata
 test-metadata:
 	tools/check_metadata $$(git ls-files "tests/**.pm")
@@ -115,6 +119,8 @@ else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)
 test: unit-test perlcritic
+else ifeq ($(TESTS),jsonnet)
+test: test-jsonnet-valid
 else ifeq ($(TESTS),isotovideo)
 test: test-isotovideo
 else

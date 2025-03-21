@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+success=1
+JSONNET_FILES=$(git ls-files data/ | grep '.json\?net$' | xargs echo)
+
+if test -n "$JSONNET_FILES"; then
+    which jsonnet >/dev/null 2>&1 || (echo "Command 'jsonnet' not found, can not execute Jsonnet syntax checks" && exit 1) || success=0;
+    echo "jsonnet $JSONNET_FILES" || exit 1 || success=0;
+else
+    echo "No jsonnets modified.";
+fi
+[ $success = 1 ] && echo "check_jsonnet SUCCESS" && exit 0
+exit 1
