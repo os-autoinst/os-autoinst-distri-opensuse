@@ -1,0 +1,764 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>16.0</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>16.0</version>
+        <arch>x86_64</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-basesystem</product>
+        <product_dir>/Module-Basesystem</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-serverapplications</product>
+        <product_dir>/Module-Server-Applications</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <keyboard>
+    <keymap>us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US.UTF-8</language>
+  </language>
+  <timezone>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <partitioning config:type="list">
+    <drive>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <mount>swap</mount>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <mount>/</mount>
+          <size>75%</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <mount>/home</mount>
+          <size>20%</size>
+        </partition>
+      </partitions>
+    </drive>
+  </partitioning>
+  <software>
+    <packages t="list">
+      <package>openssh</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+      <authorized_keys config:type="list">
+        <listentry>fake public key to enable sshd and open firewall</listentry>
+      </authorized_keys>
+    </user>
+  </users>
+  <scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <file_name>post.sh</file_name>
+        <chrooted config:type="boolean">true</chrooted>
+        <source><![CDATA[
+#!/usr/bin/env bash
+echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
+]]></source>
+      </script>
+    </chroot-scripts>
+  </scripts>
+  <audit-laf>
+    <auditd>
+      <flush>INCREMENTAL</flush>
+      <freq>20</freq>
+      <log_file>/var/log/audit/audit.log</log_file>
+      <log_format>RAW</log_format>
+      <max_log_file>5</max_log_file>
+      <max_log_file_action>ROTATE</max_log_file_action>
+      <name_format>NONE</name_format>
+      <num_logs>4</num_logs>
+    </auditd>
+    <rules/>
+  </audit-laf>
+  <auth-client>
+    <nssldap config:type="boolean">false</nssldap>
+    <oes config:type="boolean">false</oes>
+    <sssd config:type="boolean">false</sssd>
+  </auth-client>
+  <configuration_management>
+    <type>salt</type>
+    <master>my-salt-server.example.net</master>
+    <auth_attempts config:type="integer">3</auth_attempts>
+    <auth_time_out config:type="integer">15</auth_time_out>
+  </configuration_management>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <dhcp-server>
+    <allowed_interfaces config:type="list"/>
+    <chroot>1</chroot>
+    <other_options/>
+    <settings config:type="list">
+      <settings_entry>
+        <children config:type="list"/>
+        <directives config:type="list"/>
+        <id/>
+        <options config:type="list"/>
+        <parent_id/>
+        <parent_type/>
+        <type/>
+      </settings_entry>
+    </settings>
+    <start_service>0</start_service>
+    <use_ldap>0</use_ldap>
+  </dhcp-server>
+  <dns-server>
+    <allowed_interfaces config:type="list"/>
+    <chroot>1</chroot>
+    <logging config:type="list"/>
+    <options config:type="list">
+      <option>
+        <key>forwarders</key>
+        <value/>
+      </option>
+    </options>
+    <start_service>0</start_service>
+    <use_ldap>0</use_ldap>
+    <zones config:type="list"/>
+  </dns-server>
+  <fcoe-client>
+    <fcoe_cfg>
+      <DEBUG>no</DEBUG>
+      <USE_SYSLOG>yes</USE_SYSLOG>
+    </fcoe_cfg>
+    <interfaces config:type="list">
+      <listentry>
+        <dev_name>eth3</dev_name>
+        <mac_addr>01:000:000:000:42:42</mac_addr>
+        <device>Gigabit 1313</device>
+        <vlan_interface>200</vlan_interface>
+        <fcoe_vlan>eth3.200</fcoe_vlan>
+        <fcoe_enable>yes</fcoe_enable>
+        <dcb_required>yes</dcb_required>
+        <auto_vlan>no</auto_vlan>
+        <dcb_capable>no</dcb_capable>
+        <cfg_device>eth3.200</cfg_device>
+      </listentry>
+    </interfaces>
+    <service_start>
+      <fcoe config:type="boolean">true</fcoe>
+      <lldpad config:type="boolean">true</lldpad>
+    </service_start>
+  </fcoe-client>
+  <firstboot>
+    <firstboot_enabled config:type="boolean">true</firstboot_enabled>
+  </firstboot>
+  <ftp-server>
+    <AnonAuthen>2</AnonAuthen>
+    <AnonCreatDirs>NO</AnonCreatDirs>
+    <AnonMaxRate>0</AnonMaxRate>
+    <AnonReadOnly>NO</AnonReadOnly>
+    <AntiWarez>YES</AntiWarez>
+    <Banner>Welcome message</Banner>
+    <CertFile/>
+    <ChrootEnable>NO</ChrootEnable>
+    <EnableUpload>YES</EnableUpload>
+    <FTPUser>ftp</FTPUser>
+    <FtpDirAnon>/srv/ftp</FtpDirAnon>
+    <FtpDirLocal/>
+    <GuestUser/>
+    <LocalMaxRate>0</LocalMaxRate>
+    <MaxClientsNumber>10</MaxClientsNumber>
+    <MaxClientsPerIP>3</MaxClientsPerIP>
+    <MaxIdleTime>15</MaxIdleTime>
+    <PasMaxPort>40500</PasMaxPort>
+    <PasMinPort>40000</PasMinPort>
+    <PassiveMode>YES</PassiveMode>
+    <SSL>0</SSL>
+    <SSLEnable>NO</SSLEnable>
+    <SSLv2>NO</SSLv2>
+    <SSLv3>NO</SSLv3>
+    <StartDaemon>2</StartDaemon>
+    <TLS>YES</TLS>
+    <Umask/>
+    <UmaskAnon/>
+    <UmaskLocal/>
+    <VerboseLogging>NO</VerboseLogging>
+    <VirtualUser>NO</VirtualUser>
+  </ftp-server>
+  <general>
+    <ask-list config:type="list"/>
+    <cio_ignore config:type="boolean">false</cio_ignore>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <groups config:type="list">
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>100</gid>
+      <group_password>x</group_password>
+      <groupname>users</groupname>
+      <userlist/>
+    </group>
+  </groups>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <http-server>
+    <Listen config:type="list"/>
+    <hosts config:type="list"/>
+    <modules config:type="list">
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>authz_host</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>actions</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>alias</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>authn_file</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>auth_basic</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>authz_user</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>autoindex</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>cgi</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>dir</name>
+      </module_entry>
+      <module_entry>
+        <change>disable</change>
+        <default>1</default>
+        <name>status</name>
+      </module_entry>
+    </modules>
+  </http-server>
+  <mail>
+    <listen_remote config:type="boolean">false</listen_remote>
+    <postfix_mda config:type="symbol">local</postfix_mda>
+  </mail>
+  <nfs>
+    <enable_nfs4 config:type="boolean">true</enable_nfs4>
+    <enable_nfs_gss config:type="boolean">false</enable_nfs_gss>
+    <idmapd_domain>localdomain</idmapd_domain>
+    <nfs_entries config:type="list"/>
+  </nfs>
+  <nfs_server>
+    <nfs_exports config:type="list"/>
+    <start_nfsserver config:type="boolean">false</start_nfsserver>
+  </nfs_server>
+  <nis>
+    <netconfig_policy>auto</netconfig_policy>
+    <nis_broadcast config:type="boolean">false</nis_broadcast>
+    <nis_broken_server config:type="boolean">false</nis_broken_server>
+    <nis_domain>suse.de</nis_domain>
+    <nis_local_only config:type="boolean">false</nis_local_only>
+    <nis_options/>
+    <nis_other_domains config:type="list"/>
+    <nis_servers config:type="list"/>
+    <slp_domain/>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
+  </nis>
+  <nis_server>
+    <domain>suse.de</domain>
+    <maps_to_serve config:type="list"/>
+    <merge_passwd config:type="boolean">false</merge_passwd>
+    <mingid config:type="integer">0</mingid>
+    <minuid config:type="integer">0</minuid>
+    <nopush config:type="boolean">false</nopush>
+    <pwd_chfn config:type="boolean">false</pwd_chfn>
+    <pwd_chsh config:type="boolean">false</pwd_chsh>
+    <pwd_srcdir>/etc</pwd_srcdir>
+    <securenets config:type="list">
+      <securenet>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+      </securenet>
+    </securenets>
+    <server_type>none</server_type>
+    <slaves config:type="list"/>
+    <start_ypbind config:type="boolean">false</start_ypbind>
+    <start_yppasswdd config:type="boolean">false</start_yppasswdd>
+    <start_ypxfrd config:type="boolean">false</start_ypxfrd>
+  </nis_server>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <peers config:type="list">
+      <peer>
+        <address>/var/lib/ntp/drift/ntp.drift </address>
+        <comment># Clients from this (example!) subnet have unlimited access, but only if# cryptographically authenticated.#restrict 192.168.123.0 mask 255.255.255.0 notrust#### Miscellaneous stuff##</comment>
+        <options/>
+        <type>driftfile</type>
+      </peer>
+      <peer>
+        <address>/var/log/ntp</address>
+        <comment># path for drift file</comment>
+        <options/>
+        <type>logfile</type>
+      </peer>
+      <peer>
+        <address>/etc/ntp.keys</address>
+        <comment># alternate log file# logconfig =syncstatus + sysevents# logconfig =all# statsdir /tmp/		# directory for statistics files# filegen peerstats  file peerstats  type day enable# filegen loopstats  file loopstats  type day enable# filegen clockstats file clockstats type day enable## Authentication stuff#</comment>
+        <options/>
+        <type>keys</type>
+      </peer>
+      <peer>
+        <address>1</address>
+        <comment># path for keys file</comment>
+        <options/>
+        <type>trustedkey</type>
+      </peer>
+      <peer>
+        <address>1</address>
+        <comment># define trusted keys</comment>
+        <options/>
+        <type>requestkey</type>
+      </peer>
+    </peers>
+    <start_at_boot config:type="boolean">false</start_at_boot>
+    <start_in_chroot config:type="boolean">true</start_in_chroot>
+    <sync_interval config:type="integer">5</sync_interval>
+    <synchronize_time config:type="boolean">false</synchronize_time>
+  </ntp-client>
+  <printer>
+    <client_conf_content>
+      <file_contents><![CDATA[
+... verbatim content of /etc/cups/client.conf ...
+]]></file_contents>
+    </client_conf_content>
+    <cupsd_conf_content>
+      <file_contents><![CDATA[
+... verbatim content of /etc/cups/cupsd.conf ...
+]]></file_contents>
+    </cupsd_conf_content>
+  </printer>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <samba-client>
+    <disable_dhcp_hostname config:type="boolean">true</disable_dhcp_hostname>
+    <global>
+      <security>domain</security>
+      <usershare_allow_guests>No</usershare_allow_guests>
+      <usershare_max_shares>100</usershare_max_shares>
+      <workgroup>WORKGROUP</workgroup>
+    </global>
+    <winbind config:type="boolean">false</winbind>
+  </samba-client>
+  <sound>
+    <autoinstall config:type="boolean">true</autoinstall>
+    <modules_conf config:type="list">
+      <module_conf>
+        <alias>snd-card-0</alias>
+        <model>M5451, ALI</model>
+        <module>snd-ali5451</module>
+        <options>
+          <snd_enable>1</snd_enable>
+          <snd_index>0</snd_index>
+          <snd_pcm_channels>32</snd_pcm_channels>
+        </options>
+      </module_conf>
+    </modules_conf>
+    <volume_settings config:type="list">
+      <listentry>
+        <Master config:type="integer">75</Master>
+      </listentry>
+    </volume_settings>
+  </sound>
+  <squid>
+    <acls config:type="list">
+      <listentry>
+        <name>QUERY</name>
+        <options config:type="list">
+          <option>cgi-bin \?</option>
+        </options>
+        <type>urlpath_regex</type>
+      </listentry>
+      <listentry>
+        <name>apache</name>
+        <options config:type="list">
+          <option>Server</option>
+          <option>^Apache</option>
+        </options>
+        <type>rep_header</type>
+      </listentry>
+      <listentry>
+        <name>all</name>
+        <options config:type="list">
+          <option>0.0.0.0/0.0.0.0</option>
+        </options>
+        <type>src</type>
+      </listentry>
+      <listentry>
+        <name>manager</name>
+        <options config:type="list">
+          <option>cache_object</option>
+        </options>
+        <type>proto</type>
+      </listentry>
+      <listentry>
+        <name>localhost</name>
+        <options config:type="list">
+          <option>127.0.0.1/255.255.255.255</option>
+        </options>
+        <type>src</type>
+      </listentry>
+      <listentry>
+        <name>to_localhost</name>
+        <options config:type="list">
+          <option>127.0.0.0/8</option>
+        </options>
+        <type>dst</type>
+      </listentry>
+      <listentry>
+        <name>SSL_ports</name>
+        <options config:type="list">
+          <option>443</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>80</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>21</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>443</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>70</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>210</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>1025-65535</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>280</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>488</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>591</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>Safe_ports</name>
+        <options config:type="list">
+          <option>777</option>
+        </options>
+        <type>port</type>
+      </listentry>
+      <listentry>
+        <name>CONNECT</name>
+        <options config:type="list">
+          <option>CONNECT</option>
+        </options>
+        <type>method</type>
+      </listentry>
+    </acls>
+    <http_accesses config:type="list">
+      <listentry>
+        <acl config:type="list">
+          <listentry>manager</listentry>
+          <listentry>localhost</listentry>
+        </acl>
+        <allow config:type="boolean">true</allow>
+      </listentry>
+      <listentry>
+        <acl config:type="list">
+          <listentry>manager</listentry>
+        </acl>
+        <allow config:type="boolean">false</allow>
+      </listentry>
+      <listentry>
+        <acl config:type="list">
+          <listentry>!Safe_ports</listentry>
+        </acl>
+        <allow config:type="boolean">false</allow>
+      </listentry>
+      <listentry>
+        <acl config:type="list">
+          <listentry>CONNECT</listentry>
+          <listentry>!SSL_ports</listentry>
+        </acl>
+        <allow config:type="boolean">false</allow>
+      </listentry>
+      <listentry>
+        <acl config:type="list">
+          <listentry>localhost</listentry>
+        </acl>
+        <allow config:type="boolean">true</allow>
+      </listentry>
+      <listentry>
+        <acl config:type="list">
+          <listentry>all</listentry>
+        </acl>
+        <allow config:type="boolean">false</allow>
+      </listentry>
+    </http_accesses>
+    <http_ports config:type="list">
+      <listentry>
+        <host/>
+        <port>3128</port>
+        <transparent config:type="boolean">false</transparent>
+      </listentry>
+    </http_ports>
+    <refresh_patterns config:type="list">
+      <listentry>
+        <case_sensitive config:type="boolean">true</case_sensitive>
+        <max>10080</max>
+        <min>1440</min>
+        <percent>20</percent>
+        <regexp>^ftp:</regexp>
+      </listentry>
+      <listentry>
+        <case_sensitive config:type="boolean">true</case_sensitive>
+        <max>1440</max>
+        <min>1440</min>
+        <percent>0</percent>
+        <regexp>^gopher:</regexp>
+      </listentry>
+      <listentry>
+        <case_sensitive config:type="boolean">true</case_sensitive>
+        <max>4320</max>
+        <min>0</min>
+        <percent>20</percent>
+        <regexp>.</regexp>
+      </listentry>
+    </refresh_patterns>
+    <service_enabled_on_startup config:type="boolean">true</service_enabled_on_startup>
+    <settings>
+      <access_log config:type="list">
+        <listentry>/var/log/squid/access.log</listentry>
+      </access_log>
+      <cache_dir config:type="list">
+        <listentry>ufs</listentry>
+        <listentry>/var/cache/squid</listentry>
+        <listentry>100</listentry>
+        <listentry>16</listentry>
+        <listentry>256</listentry>
+      </cache_dir>
+      <cache_log config:type="list">
+        <listentry>/var/log/squid/cache.log</listentry>
+      </cache_log>
+      <cache_mem config:type="list">
+        <listentry>8</listentry>
+        <listentry>MB</listentry>
+      </cache_mem>
+      <cache_mgr config:type="list">
+        <listentry>webmaster</listentry>
+      </cache_mgr>
+      <cache_replacement_policy config:type="list">
+        <listentry>lru</listentry>
+      </cache_replacement_policy>
+      <cache_store_log config:type="list">
+        <listentry>/var/log/squid/store.log</listentry>
+      </cache_store_log>
+      <cache_swap_high config:type="list">
+        <listentry>95</listentry>
+      </cache_swap_high>
+      <cache_swap_low config:type="list">
+        <listentry>90</listentry>
+      </cache_swap_low>
+      <client_lifetime config:type="list">
+        <listentry>1</listentry>
+        <listentry>days</listentry>
+      </client_lifetime>
+      <connect_timeout config:type="list">
+        <listentry>2</listentry>
+        <listentry>minutes</listentry>
+      </connect_timeout>
+      <emulate_httpd_log config:type="list">
+        <listentry>off</listentry>
+      </emulate_httpd_log>
+      <error_directory config:type="list">
+        <listentry/>
+      </error_directory>
+      <ftp_passive config:type="list">
+        <listentry>on</listentry>
+      </ftp_passive>
+      <maximum_object_size config:type="list">
+        <listentry>4096</listentry>
+        <listentry>KB</listentry>
+      </maximum_object_size>
+      <memory_replacement_policy config:type="list">
+        <listentry>lru</listentry>
+      </memory_replacement_policy>
+      <minimum_object_size config:type="list">
+        <listentry>0</listentry>
+        <listentry>KB</listentry>
+      </minimum_object_size>
+    </settings>
+  </squid>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <sysconfig config:type="list">
+    <sysconfig_entry>
+      <sysconfig_key>XNTPD_INITIAL_NTPDATE</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/xntp</sysconfig_path>
+      <sysconfig_value>ntp.host.com</sysconfig_value>
+    </sysconfig_entry>
+    <sysconfig_entry>
+      <sysconfig_key>HTTP_PROXY</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/proxy</sysconfig_path>
+      <sysconfig_value>proxy.host.com:3128</sysconfig_value>
+    </sysconfig_entry>
+    <sysconfig_entry>
+      <sysconfig_key>FTP_PROXY</sysconfig_key>
+      <sysconfig_path>/etc/sysconfig/proxy</sysconfig_path>
+      <sysconfig_value>proxy.host.com:3128</sysconfig_value>
+    </sysconfig_entry>
+  </sysconfig>
+  <tftp-server t="map">
+    <start_tftpd t="boolean">false</start_tftpd>
+  </tftp-server>
+  <upgrade>
+    <only_installed_packages config:type="boolean">false</only_installed_packages>
+    <stop_on_solver_conflict config:type="boolean">true</stop_on_solver_conflict>
+  </upgrade>
+</profile>

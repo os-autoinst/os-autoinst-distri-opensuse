@@ -1,0 +1,8 @@
+---
+name: agama_autoyast_unsupported
+description: >
+  Agama abort installation using unsupported AutoYaST elements.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
