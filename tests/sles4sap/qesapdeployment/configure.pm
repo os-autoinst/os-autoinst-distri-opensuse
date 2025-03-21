@@ -20,9 +20,10 @@ sub run {
 
     # Init all the PC gears (ssh keys)
     my $provider = $self->provider_factory();
+    my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
     # Needed to create the SAS URI token
-    if (!check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    if ($provider_setting ne 'AZURE') {
         my $azure_client = publiccloud::azure_client->new();
         $azure_client->init();
     }
@@ -33,7 +34,7 @@ sub run {
     if (get_var('QESAPDEPLOY_CLUSTER_OS_VER')) {
         $variables{OS_VER} = get_var('QESAPDEPLOY_CLUSTER_OS_VER');
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif ($provider_setting eq 'AZURE') {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
         $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     }
@@ -41,7 +42,7 @@ sub run {
     {
         $variables{OS_VER} = $provider->get_image_id();
     }
-    $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if ($provider_setting eq 'EC2');
 
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{USE_SR_ANGI} = get_var('QESAPDEPLOY_USE_SAP_HANA_SR_ANGI', 'false');
@@ -68,11 +69,18 @@ sub run {
     }
     $variables{REG_ARGS} = $reg_args;
 
+    if (($provider_setting eq 'AZURE') && get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
+        $variables{MIRROR_IP} = get_required_var("QESAPDEPLOY_IBSMIRROR_IP");
+        # INCIDENT_REPO is the "official" setting name as configured by the official bot
+        # QESAPDEPLOY_INCIDENT_REPO is to be able to run this test in other context
+        $variables{REPOS} = get_var("INCIDENT_REPO", get_required_var("QESAPDEPLOY_INCIDENT_REPO"));
+    }
+
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
     $variables{SCC_LTSS_REGCODE} = get_var('SCC_REGCODE_LTSS', '');
     $variables{SCC_LTSS_MODULE} = get_var('QESAPDEPLOY_SCC_LTSS_MODULE', '');
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    if ($provider_setting eq 'EC2') {
         $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
     }
 
@@ -84,7 +92,7 @@ sub run {
     $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
     $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', 'sbd');
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
+    if ($provider_setting eq 'GCE') {
         $variables{HANA_DATA_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
         $variables{HANA_LOG_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
     }
@@ -93,7 +101,7 @@ sub run {
     # but calculate them every time is "cheap"
     my %peering_settings = qesap_calculate_address_range(slot => get_required_var('WORKER_ID'));
     $variables{MAIN_ADDRESS_RANGE} = $peering_settings{main_address_range};
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    if ($provider_setting eq 'AZURE') {
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
         if ($variables{FENCING} eq 'native') {
             $variables{AZURE_NATIVE_FENCING_AIM} = get_var('QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
@@ -109,8 +117,7 @@ sub run {
 
     qesap_prepare_env(
         openqa_variables => \%variables,
-        provider => get_required_var('PUBLIC_CLOUD_PROVIDER')
-    );
+        provider => $provider_setting);
 }
 
 sub test_flags {
