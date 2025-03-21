@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: This test will leave the SSH interactive session, kill the SSH tunnel and destroy the public cloud instance

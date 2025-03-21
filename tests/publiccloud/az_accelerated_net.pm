@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2018 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: azure-cli
 # Summary: Network performance for Azure Accelerated NICs
 #
-# Maintainer: Jose Lausuch <jalausuch@suse.de>
+# Maintainer: qe-c team <qe-c@suse.de>
 
 use base "publiccloud::basetest";
 use strict;

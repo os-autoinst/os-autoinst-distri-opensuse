@@ -51,12 +51,10 @@ sub check_avc {
 
 sub run {
     my ($self, $args) = @_;
-    my $provider;
-    my $instance;
     select_serial_terminal();
 
-    $instance = $self->{my_instance} = $args->{my_instance};
-    $provider = $self->{provider} = $args->{my_provider};
+    my $instance = $self->{my_instance} = $args->{my_instance};
+    my $provider = $self->{my_provider} = $args->{my_provider};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run basic xen smoketest on a publiccloud test instance

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Basic aistack test
@@ -303,7 +303,7 @@ sub run {
     my $ai_ns = 'suse-private-ai';
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-    my $provider = $self->{provider} = $args->{my_provider};
+    my $provider = $self->{my_provider} = $args->{my_provider};
 
     # Install dependency package, config kubectl and depnedency components
     install_dependency_package($instance);

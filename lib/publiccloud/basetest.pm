@@ -23,6 +23,7 @@ use publiccloud::openstack;
 use publiccloud::noprovider;
 use strict;
 use warnings;
+use Try::Tiny;
 
 sub provider_factory {
     my ($self, %args) = @_;
