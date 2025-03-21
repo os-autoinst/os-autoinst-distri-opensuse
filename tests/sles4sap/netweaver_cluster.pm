@@ -61,7 +61,7 @@ sub run {
     if ($type eq 'ERS') {
         assert_script_run "rm -rf /usr/sap/$sid/${type}${instance_id}/profile";
         assert_script_run "ln -s /sapmnt/$sid/profile /usr/sap/$sid/${type}${instance_id}/profile";
-        assert_script_run "chown -h ha1adm:sapsys /usr/sap/$sid/${type}${instance_id}/profile";
+        assert_script_run "chown -h $sapadm:sapsys /usr/sap/$sid/${type}${instance_id}/profile";
     }
 
     # Create the resource configuration
