@@ -24,6 +24,9 @@ sub run {
     my ($self) = @_;
 
     $self->open_powershell_as_admin;
+    # WSL must be in the latest version, otherwise the `--no-distribution`
+    # option is not available.
+    $self->run_in_powershell(cmd => 'wsl --shutdown; wsl --update', timeout => 300);
 
     if (get_var('WSL2')) {
         # WSL2 platform must be enabled from the MSstore from now on
@@ -50,11 +53,6 @@ sub run {
             cmd => 'Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart',
             timeout => 300
         );
-        # Some versions immediately want to install updates on the first wsl.exe run, do that now
-        $self->run_in_powershell(
-            cmd => 'wsl.exe --update',
-            timeout => 300
-        ) if get_var('HDD_1') =~ /24H2/;
     }
 
     $self->reboot_or_shutdown(is_reboot => 1);
