@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
@@ -23,7 +24,7 @@ sub run {
     select_console 'x11';
 
     # return if NetworkManager is already configured as system network manager
-    return if ($nm_is_active);
+    return if ($nm_is_active || is_sle);
 
     $self->configure_system;
 }
