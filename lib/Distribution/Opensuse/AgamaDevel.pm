@@ -22,6 +22,7 @@ use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
+use Yam::Agama::Pom::CheckingDataIntegrityPage;
 
 use Utils::Architectures;
 
@@ -68,6 +69,10 @@ sub get_enter_passphrase_for_swap {
     return Yam::Agama::Pom::EnterPassphraseForSwapPage->new({
             enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
     });
+}
+
+sub get_checking_data_integrity {
+    return Yam::Agama::Pom::CheckingDataIntegrityPage->new();
 }
 
 1;
