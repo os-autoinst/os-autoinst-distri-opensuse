@@ -23,6 +23,12 @@ sub run {
     record_info('Windows firstboot', 'Starting Windows for the first time');
     wait_still_screen stilltime => 60, timeout => 300;
 
+    # Wait for login screen and type password
+    assert_screen 'windows-login-screen', 3600;
+    send_key_until_needlematch 'windows-login', 'esc';
+    type_password;
+    send_key 'ret';
+
     # When starting Windows for the first time, several screens or pop-ups may
     # appear in a different order. We'll try to handle them until the desktop is
     # shown
