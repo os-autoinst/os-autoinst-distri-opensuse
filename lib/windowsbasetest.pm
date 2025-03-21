@@ -126,23 +126,21 @@ sub reboot_or_shutdown {
     assert_shutdown unless ($is_reboot);
 }
 
-sub wait_boot_windows {
 
-    my $self = @_;
+sub wait_boot_windows {
+    my $self = shift;
 
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
     # Installation process has become slower since 24H2
-    assert_screen 'windows-screensaver', 3600;
-    send_key_until_needlematch 'windows-login', 'esc';
-    type_password;
-    send_key 'ret';
+    $self->windows_login;
     record_info("Win boot", "Windows started properly");
     assert_screen ['finish-setting', 'windows-desktop'], 240;
     if (match_has_tag 'finish-setting') {
         assert_and_click 'finish-setting';
     }
 }
+
 
 sub windows_server_login_Administrator {
     #Login windows Server as Administrator
@@ -159,10 +157,12 @@ sub test_flags {
     return {fatal => 1};
 }
 
+
 sub post_fail_hook {
     sleep 30;
     save_screenshot;
 }
+
 
 sub install_wsl2_kernel {
     my $self = shift;
@@ -186,6 +186,7 @@ sub install_wsl2_kernel {
     );
 }
 
+
 sub power_configuration {
     my $self = shift;
 
@@ -202,6 +203,16 @@ sub power_configuration {
     $self->run_in_powershell(cmd =>
           q{Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2}
     );
+}
+
+
+sub windows_login {
+    my $self = shift;
+
+    assert_screen 'windows-login-screen', 3600;
+    send_key_until_needlematch 'windows-login', 'esc';
+    type_password;
+    send_key 'ret';
 }
 
 1;
