@@ -829,12 +829,12 @@
         },
         "type": "ignore"
     },
-    "sshd-mm-reap": {
-        "description": "sshd-session[.*]: error: (mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe)",
+    "boo#1229935": {
+        "description": "sshd-session[.*]: error: (mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe|mm_request_receive: read: Connection reset by peer)",
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
         },
-        "type": "ignore"
+        "type": "bug"
     }
 }
