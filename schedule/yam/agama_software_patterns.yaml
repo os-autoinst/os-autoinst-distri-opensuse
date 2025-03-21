@@ -1,0 +1,12 @@
+---
+name: agama
+description: >
+  Perform interactive installation with software pattern selection.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns
