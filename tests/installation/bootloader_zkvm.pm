@@ -32,7 +32,9 @@ sub set_svirt_domain_elements {
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
         my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
-        if (is_agama) {
+        if (is_agama && get_var('FLAVOR') == "Full") {
+            $cmdline .= "root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img";
+        } elsif (is_agama) {
             $cmdline .= "root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_required_var('ISO') . " live.password=$testapi::password";
         } else {
             $cmdline .= "install=$repo";
