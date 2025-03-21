@@ -78,13 +78,15 @@ sub run {
         assert_screen 'windows-desktop', timeout => 15;
         $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
         assert_and_click 'wsl-suse-startup-search';
+        assert_and_click("welcome_to_wsl", timeout => 120);
+        send_key "alt-f4" if match_has_tag "welcome_to_wsl";
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store
         $self->run_in_powershell(
             cmd => "wsl --install --distribution $WSL_version",
             timeout => 300,
         );
-        check_screen("welcome_to_wsl", timeout => 60);
+        assert_and_click("welcome_to_wsl", timeout => 60);
         send_key "alt-f4" if match_has_tag "welcome_to_wsl";
 
         $self->run_in_powershell(
