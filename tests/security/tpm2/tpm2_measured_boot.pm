@@ -10,11 +10,16 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use version_utils 'is_sle';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
     return unless get_var('QEMUTPM');
     select_serial_terminal;
+    if (is_sle '=15-SP4') {
+        record_info('SKIPPING TEST', "Skipping tests due to bsc#1199864");
+        return;
+    }
 
     # Measured boot basic check, in current test logic, it depends on backend qemu and ovmf
     # packages version to check measured boot on VM side. But we have other test modules to
