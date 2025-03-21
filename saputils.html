@@ -14,7 +14,7 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
-      <li><a href="#calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology(input =&gt; $saphanasr_showAttr_format_script_output);</a></li>
+      <li><a href="#calculate_hana_topology-calculate_hana_topology-input_format-script-json-input-saphanasr_showAttr_format_input_format_output">calculate_hana_topology calculate_hana_topology(input_format=&gt;[script|json], input =&gt; $saphanasr_showAttr_format_input_format_output);</a></li>
       <li><a href="#check_hana_topology-check_hana_topology-input-calculate_hana_topology-saphanasr_showAttr_format_script_output-online_str-12345678">check_hana_topology check_hana_topology(input =&gt; calculate_hana_topology($saphanasr_showAttr_format_script_output) [, online_str =&gt; &#39;12345678&#39;]]);</a></li>
       <li><a href="#check_crm_output-check_crm_output-input-crm_mon_output">check_crm_output check_crm_output(input =&gt; $crm_mon_output);</a></li>
       <li><a href="#get_primary_node-get_primary_node-topology_data-topology_data">get_primary_node get_primary_node(topology_data=&gt;$topology_data);</a></li>
@@ -27,37 +27,60 @@
 
 <p>Package with utility functionality for tests on SLES for SAP Applications.</p>
 
-<p>This package is a stateless library. To keep this library as generic as possible avoid as much as possible any other dependency usage, like other baseclass or testapi. Avoid using get_var/set_var at this level.</p>
+<p>This package is a stateless library. To keep this library as generic as possible avoid as much as possible any other dependency usage, like other base class or testapi module Avoid using get_var/set_var at this level.</p>
 
-<h2 id="calculate_hana_topology-calculate_hana_topology-input-saphanasr_showAttr_format_script_output">calculate_hana_topology calculate_hana_topology(input =&gt; $saphanasr_showAttr_format_script_output);</h2>
+<h2 id="calculate_hana_topology-calculate_hana_topology-input_format-script-json-input-saphanasr_showAttr_format_input_format_output">calculate_hana_topology calculate_hana_topology(input_format=&gt;[script|json], input =&gt; $saphanasr_showAttr_format_input_format_output);</h2>
 
-<pre><code>Expect `SAPHanaSR-showAttr --format=script` as input.
-Parses this input, returns a hash of hashes containing values for each host.
-
-Output like:
+<pre><code>Expect `SAPHanaSR-showAttr --format=$input_format` as input.
+Returns parsed perl value decoded from json remap output from like :
         Hosts/vmhana01/remoteHost=&quot;vmhana02&quot;
         Hosts/vmhana01/sync_state=&quot;PRIM&quot;
         Hosts/vmhana01/vhost=&quot;vmhana01&quot;
         Hosts/vmhana02/remoteHost=&quot;vmhana01&quot;
         Hosts/vmhana02/sync_state=&quot;SOK&quot;
         Hosts/vmhana02/vhost=&quot;vmhana02&quot;
-result in
+
+output looks like:
 {
-    vmhana01 =&gt; {
-        remoteHost =&gt; &#39;vmhana02&#39;,
-        sync_state =&gt; &#39;PRIM&#39;,
-        vhost =&gt; &#39;vmhana01&#39;,
-    },
-    vmhana02 =&gt; {
-        remoteHost =&gt; &#39;vmhana01&#39;,
-        sync_state =&gt; &#39;SOK&#39;,
-        vhost =&gt; &#39;vmhana02&#39;,
-    },
-}</code></pre>
+      &#39;Host&#39; =&gt; {
+                  &#39;vmhana01&#39; =&gt; {
+                                       &#39;clone_state&#39; =&gt; &#39;DEMOTED&#39;,
+                                       &#39;score&#39; =&gt; &#39;100&#39;,
+                                       &#39;srah&#39; =&gt; &#39;-&#39;,
+                                       &#39;version&#39; =&gt; &#39;2.00.077.00.1710325774&#39;,
+                                       &#39;vhost&#39; =&gt; &#39;vmhana01&#39;,
+                                       &#39;site&#39; =&gt; &#39;site_a&#39;
+                                     },
+                  &#39;vmhana02&#39; =&gt; {
+                                       &#39;clone_state&#39; =&gt; &#39;PROMOTED&#39;,
+                                       &#39;score&#39; =&gt; &#39;150&#39;,
+                                       &#39;vhost&#39; =&gt; &#39;vmhana02&#39;,
+                                       &#39;srah&#39; =&gt; &#39;-&#39;,
+                                       &#39;version&#39; =&gt; &#39;2.00.077.00.1710325774&#39;,
+                                       &#39;site&#39; =&gt; &#39;site_b&#39;
+                                     }
+                },
+      &#39;Site&#39; =&gt; {
+                  &#39;site_a&#39; =&gt; {
+                                 &#39;srMode&#39; =&gt; &#39;sync&#39;,
+                                 &#39;srPoll&#39; =&gt; &#39;SOK&#39;,
+                                 &#39;mns&#39; =&gt; &#39;vmhana01&#39;
+                               },
+                  &#39;site_b&#39; =&gt; {
+                                 &#39;srPoll&#39; =&gt; &#39;PRIM&#39;,
+                                 &#39;mns&#39; =&gt; &#39;vmhana02&#39;,
+                                 &#39;srMode&#39; =&gt; &#39;sync&#39;
+                               }
+                }
+    };</code></pre>
 
 <dl>
 
-<dt id="input---stdout-of-SAPHanaSR-showAttr---format-script"><b>input</b> - stdout of &#39;SAPHanaSR-showAttr --format=script&#39;</dt>
+<dt id="input_format---format-of-the-SAPHanaSR-showAttr---format"><b>input_format</b> - format of the &#39;SAPHanaSR-showAttr --format=&#39;</dt>
+<dd>
+
+</dd>
+<dt id="input---stdout-of-SAPHanaSR-showAttr---format-input_format"><b>input</b> - stdout of &#39;SAPHanaSR-showAttr --format=&lt;input_format&gt;&#39;</dt>
 <dd>
 
 </dd>
@@ -79,7 +102,7 @@ The checks performed are:
 <dd>
 
 </dd>
-<dt id="node_state_match---string-used-to-match-the-online-state-in-field-node_state.-Default-online"><b>node_state_match</b> - string used to match the online state in field node_state. Default &#39;online&#39;</dt>
+<dt id="node_state_match---used-to-match-the-online-state-in-field-node_state.-Default-is-4-which-means-Online"><b>node_state_match</b> - used to match the online state in field node_state. Default is &#39;4&#39; which means Online</dt>
 <dd>
 
 </dd>

@@ -25,7 +25,7 @@
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
       <li><a href="#check_takeover-check_takeover">check_takeover check_takeover();</a></li>
-      <li><a href="#enable_replication-enable_replication-site_name-site_a">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;]);</a></li>
+      <li><a href="#enable_replication-enable_replication-site_name-site_a-hana_inn-10">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;, hana_inn =&gt; &#39;10&#39; ]);</a></li>
       <li><a href="#get_replication_info-get_replication_info">get_replication_info get_replication_info();</a></li>
       <li><a href="#get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</a></li>
       <li><a href="#wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</a></li>
@@ -202,13 +202,19 @@ Return 0 if no internal error.</code></pre>
 
 <pre><code>Checks takeover status and waits for finish until successful or reaches timeout.</code></pre>
 
-<h2 id="enable_replication-enable_replication-site_name-site_a">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;]);</h2>
+<h2 id="enable_replication-enable_replication-site_name-site_a-hana_inn-10">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;, hana_inn =&gt; &#39;10&#39; ]);</h2>
 
-<pre><code>Enables replication on fenced database. Database needs to be offline.</code></pre>
+<pre><code>Re-enables replication on the previously fenced database node. Database must be offline.
+Dies if the the given &lt;site name&gt; doesn&#39;t correspond with the SAPHanaSR topology local site name
+Optionaly the &#39;hana_innstance_id&#39; could be provided for better reliability</code></pre>
 
 <dl>
 
-<dt id="site_name---site-name-of-the-site-to-register"><b>site_name</b> - site name of the site to register</dt>
+<dt id="site_name---local-HANA-site-name-of-the-site-to-be-registered"><b>site_name</b> - local HANA site name of the site to be registered</dt>
+<dd>
+
+</dd>
+<dt id="hana_inn---optional-HANA-instance-number-to-be-registered"><b>hana_inn</b> - optional HANA instance number to be registered</dt>
 <dd>
 
 </dd>
@@ -425,7 +431,7 @@ it behind a function is to have coherent defaults.</code></pre>
 
 <h2 id="create_hana_vars_section">create_hana_vars_section</h2>
 
-<pre><code>Detects HANA/HA scenario from openQA variables and creates
+<pre><code>Detects HANA/HA scenario from openQA variables and create
 data later used for &quot;ansible: hana_vars:&quot; section in config.yaml file.</code></pre>
 
 <h2 id="display_full_status">display_full_status</h2>
