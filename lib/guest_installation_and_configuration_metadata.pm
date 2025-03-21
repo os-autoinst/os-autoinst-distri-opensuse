@@ -42,8 +42,8 @@ our %guest_params = (
     'guest_cpumodel' => '',    # virt-install --cpu [guest_cpumodel]
     'guest_metadata' => '',    # virt-install --metadata [guest_metadata]
     'guest_xpath' => '',    # virt-install --xml [guest_xpath].it can contain multiple items seperated by hash key
-    'guest_installation_automation_method' => '',    # This indicates whether guest uses autoyast, kickstart, ignition, combustion or
-                                                     # ignition+combustion for installation, not virt-install argument
+    'guest_installation_automation_method' => '',    # This indicates whether guest uses autoyast, kickstart, ignition, combustion,
+                                                     # ignition+combustion or autoagama for installation, not virt-install argument
     'guest_installation_automation_platform' => '',    # This indicates ignition/combustion platform, not virt-install argument. Please
                                                        # refer to https://coreos.github.io/ignition/supported-platforms
     'guest_installation_automation_file' => '',    # virt-install --extra-args "autoyast=[guest_installation_automation_file] or
@@ -59,7 +59,17 @@ our %guest_params = (
     'guest_installation_wait' => '',    # virt-install --wait [guest_installation_wait]
     'guest_installation_media' => '',    # virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
                                          # It can also specify the imported virtual disk image to be used for installation.
-    'guest_installation_fine_grained' => '',    # virt-install --install [guest_installation_fine_grained]
+    'guest_installation_fine_grained_media' => '',    # [guest_installation_media] will still be used as installation media. But matching
+                                                      # kernel/initrd files will be retrieved from [guest_installation_fine_grained_media].
+                                                      # virt-install --install kernel=x,initrd=y,root=live:[guest_installation_media]
+    'guest_installation_fine_grained_repos' => '',    # Additonal installation repositories can also be provided besides installation media.
+                                                      # Multiple repositories are separated by comma. Example command is as below:
+                                                      # virt-install --install agama.install_url=[guest_installation_fine_grained_repos]
+    'guest_installation_fine_grained_kernel_args' => '',    # virt-install --install kernel_args=[guest_installation_fine_grained_kernel_args]
+    'guest_installation_fine_grained_kernel_args_overwrite' => '',    # Set it to true, if provided kernel arguments will overwrite existing ones.
+                                                                      # virt-install --install kernel_args_overwrite=yes|no
+    'guest_installation_fine_grained_others' => '',    # virt-install --install [guest_installation_fine_grained_others], for example:
+                                                       # guest_installation_fine_grained_others can be os=x,bootdev=y,no_install=yes|no,zzzzz
     'guest_boot_settings' => '',    # virt-install --boot [guest_boot_settings]
     'guest_secure_boot' => '',    # This indicates whether uefi secure boot is enabled(true, false or empty) during
                                   # installation in unattended installation file, not virt-install argument
