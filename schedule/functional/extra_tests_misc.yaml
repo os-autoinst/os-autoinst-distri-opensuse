@@ -8,7 +8,6 @@ conditional_schedule:
         DISTRI:
             opensuse:
                 - console/ndctl
-                - console/openvswitch_ssl
                 - x11/ghostscript
 schedule:
     - installation/bootloader_start
