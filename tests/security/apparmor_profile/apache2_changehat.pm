@@ -51,6 +51,11 @@ use serial_terminal qw(select_serial_terminal);
 sub run {
     my ($self) = shift;
 
+    if (is_sle '>=15-SP6') {
+        record_info('SKIPPING TEST', "Skipping tests due to bsc#1191684");
+        return;
+    }
+
     my $audit_log = $apparmortest::audit_log;
     my $prof_dir = $apparmortest::prof_dir;
     my $adminer_file = $apparmortest::adminer_file;
