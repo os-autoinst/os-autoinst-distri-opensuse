@@ -17,6 +17,7 @@ use hacluster;
 use version_utils qw(is_sle package_version_cmp);
 
 sub run {
+    return record_info('Skip iscsi_client_setup', 'Module skipped on older versions of SLES. Use ha/iscsi_client instead') if (is_sle('<16'));
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
 
     # Perform a ping size check to several hosts which need to be accessible while
@@ -30,19 +31,18 @@ sub run {
     }
 
     record_info('iscsi_client version', script_output('rpm -q open-iscsi'));
-    assert_script_run("systemctl start iscsid");
-    my $iscsi_daemon_status = script_output("systemctl status iscsid");
-    record_info('iscsi_client version', $iscsi_daemon_status);
+    assert_script_run('systemctl enable --now iscsid');
+    record_info('iscsi_client status', script_output('systemctl status iscsid'));
 
-    my $iqn_node_name = script_output("iscsiadm -m discovery -t st -p 10.0.2.1|grep 'openqa'");
+    my $iqn_node_name = script_output("iscsiadm -m discovery -t st -p '$iscsi_server'|grep 'openqa'");
     record_info('iscsi_iqn_node_name', $iqn_node_name);
     my ($node_name) = $iqn_node_name =~ /(\S+)$/;
     record_info('node_name', $node_name);
     assert_script_run("iscsiadm -m node --targetname '$node_name' --op update -n node.startup -v automatic");
     my $persistence = script_output("iscsiadm -m node -T '$node_name' -o show | grep 'node.startup' || echo 'not found'");
-    die "iSCSI session persistence is not configured!" unless $persistence =~ /node.startup = automatic/;
+    die 'iSCSI session persistence is not configured!' unless $persistence =~ /node.startup = automatic/;
     assert_script_run("iscsiadm -m node --targetname '$node_name' --login");
-    assert_script_run("iscsiadm -m session");
+    assert_script_run('iscsiadm -m session');
 }
 
 1;
