@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024,2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: seccomp
@@ -29,7 +29,7 @@ sub run {
     # busybox ls doesn't handle readdir failure, so use something with coreutils inside.
     # Note that there can also be a kind of false negative: with runc, the seccomp policy
     # breaks runc even before it reaches ls.
-    my $image = "registry.opensuse.org/opensuse/tumbleweed";
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
     my $policy = "policy.json";
 
     assert_script_run('curl ' . data_url("containers/$runtime-seccomp.json") . " -o $policy");

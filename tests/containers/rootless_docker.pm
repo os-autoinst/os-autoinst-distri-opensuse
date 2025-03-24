@@ -36,7 +36,7 @@ sub run {
     my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
     install_packages("$pkg_name-rootless-extras");
 
-    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {

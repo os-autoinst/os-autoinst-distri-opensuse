@@ -25,10 +25,10 @@ use Utils::Backends qw(is_svirt);
 sub run_tests {
     my $runtime = shift;
 
-    my $image = "registry.opensuse.org/opensuse/tumbleweed:latest";
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
     record_info('Test', "Pull image $image");
     assert_script_run("buildah pull $image", timeout => 300);
-    validate_script_output('buildah images', sub { /registry.opensuse.org\/opensuse\/tumbleweed/ });
+    validate_script_output('buildah images', sub { /\/tumbleweed/ });
 
     record_info('Test', "Create container from $image");
     my $container = script_output("buildah from $image");

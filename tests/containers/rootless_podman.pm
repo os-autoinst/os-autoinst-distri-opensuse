@@ -66,11 +66,10 @@ sub run {
 
     # Check for bsc#1192051
     # Test needs to pass, if seccomp filtering is off
-    assert_script_run('podman run --security-opt=seccomp=unconfined --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"');
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
+    assert_script_run("podman run --security-opt=seccomp=unconfined --rm -it $image bash -c 'test -x /bin/sh'");
     # And this one is the actual check for bsc#1192051, with seccomp filtering on
-    assert_script_run('podman run --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"', fail_message => "bsc#1192051 - Permission denied for faccessat2");
-
-    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+    assert_script_run("podman run --rm -it $image bash -c 'test -x /bin/sh'", fail_message => "bsc#1192051 - Permission denied for faccessat2");
 
     # Some products don't have bernhard pre-defined (e.g. SLE Micro)
     if (script_run("grep $user /etc/passwd") != 0) {
