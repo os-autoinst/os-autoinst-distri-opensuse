@@ -490,7 +490,7 @@ subtest '[is_primary_node_online]' => sub {
     is $res, 1, "System replication is online on primary node";
 };
 
-subtest '[get_hana_topology_script]' => sub {
+subtest '[get_hana_topology]' => sub {
     my @calls;
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
@@ -534,10 +534,10 @@ subtest '[get_hana_topology_script]' => sub {
     ok((keys %{$topology->{Host}} eq 2 && %{$topology->{Site}} eq 2), 'Two hosts and two sites returned by calculate_hana_topology');
     # how to access one inner value in one shot
     ok(($topology->{Host}->{vmhanaAAAAA}->{vhost} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
-    ok((any { qr/SAPHanaSR-showAttr --format=/ } @calls), 'function calls SAPHanaSR-showAttr');
+    ok((any { qr/SAPHanaSR-showAttr --format=script/ } @calls), 'function calls SAPHanaSR-showAttr with --format=script');
 };
 
-subtest '[get_hana_topology_json]' => sub {
+subtest '[get_hana_topology_angi' => sub {
     my @calls;
     my $self = sles4sap_publiccloud->new();
     set_var('USE_SAP_HANA_SR_ANGI', 'true');
