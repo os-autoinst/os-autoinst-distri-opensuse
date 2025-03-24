@@ -26,7 +26,7 @@ sub run {
     $self->open_powershell_as_admin;
     # WSL must be in the latest version, otherwise the `--no-distribution`
     # option is not available.
-    $self->run_in_powershell(cmd => 'wsl --update --verbose', timeout => 300);
+    $self->run_in_powershell(cmd => 'wsl --update', timeout => 300);
 
     if (get_var('WSL2')) {
         # WSL2 platform must be enabled from the MSstore from now on
