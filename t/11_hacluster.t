@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::MockModule;
+use Test::Mock::Time;
 use hacluster;
 use testapi;
 use Scalar::Util qw(looks_like_number);
