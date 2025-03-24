@@ -10,10 +10,22 @@
 use strict;
 use warnings;
 use base "installbasetest";
-use utils 'reconnect_mgmt_console';
+use utils qw(reconnect_mgmt_console handle_emergency);
+use testapi;
 
 sub run {
     reconnect_mgmt_console;
+}
+
+sub test_flags {
+    return {fatal => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+    $self->SUPER::post_fail_hook;
 }
 
 1;
