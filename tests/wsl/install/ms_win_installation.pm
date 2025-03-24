@@ -11,7 +11,6 @@
 use base "windowsbasetest";
 use strict;
 use warnings;
-
 use testapi;
 
 sub run {
@@ -40,6 +39,26 @@ sub run {
         wait_still_screen stilltime => 15, timeout => 30;
         assert_screen(['windows-edge-welcome', 'windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers', 'windows-setup-browser', 'windows-user-acount-ctl-yes'], timeout => 30);
     }
+
+    # Verify that WSL has been properly installed during OS deployment
+    $self->open_powershell_as_admin;
+    $self->run_in_powershell(
+        cmd => '$port.WriteLine($(wsl --version))',
+        code => sub {
+            my $serial_output = wait_serial(
+                qr/WSL version: \d+\.\d+\.\d+\.\d+/,
+                expect_not_found => 1
+            );
+            if ($serial_output == undef) {
+                record_info("WSL installed", "WSL has been deployed properly!");
+            } elsif ($serial_output =~ qr/The Windows Subsystem for Linux is not installed./) {
+                die("WSL has not been installed during OS deployment...");
+            } else {
+                die("WSL unexpected error", "Unexpected error installing WSL:\n\n$serial_output");
+            }
+        }
+    );
+    $self->close_powershell;
 }
 
 1;

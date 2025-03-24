@@ -410,16 +410,16 @@
         <ProtectYourPC>3</ProtectYourPC>
         <UnattendEnableRetailDemo>false</UnattendEnableRetailDemo>
       </OOBE>
-<!--       <FirstLogonCommands>
+      <FirstLogonCommands>
         <SynchronousCommand wcm:action="add">
           <Order>1</Order>
-          <CommandLine>powershell.exe wsl \-\-update</CommandLine>
+          <CommandLine>powershell.exe wsl --update</CommandLine>
         </SynchronousCommand>
         <SynchronousCommand wcm:action="add">
           <Order>2</Order>
-          <CommandLine>powershell.exe wsl \-\-install \-\-no-distribution</CommandLine>
+          <CommandLine>powershell.exe wsl --install --no-distribution</CommandLine>
         </SynchronousCommand>
-      </FirstLogonCommands> -->
+      </FirstLogonCommands>
     </component>
   </settings>
 </unattend>
