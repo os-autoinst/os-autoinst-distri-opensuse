@@ -98,7 +98,7 @@ like other base class or testapi module  Avoid using get_var/set_var at this lev
 sub calculate_hana_topology {
     my (%args) = @_;
     croak('calculate_hana_topology [ERROR] Argument <input> missing') unless $args{input};
-    my $input_format = $args{input_format} || 'script';    # output format of the SAPHanaSR-showAttr
+    my $input_format = $args{input_format} // 'script';    # output format of the SAPHanaSR-showAttr
     croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
     my %topology;    # Final topology for return
     my $topology_json;    # JSON encoded topology

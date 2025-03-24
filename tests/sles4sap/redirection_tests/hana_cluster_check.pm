@@ -37,6 +37,7 @@ sub run {
             check_cluster_state();
 
             # saputils lib
+            # ( After move to 'lib/sles4sap_publiccloud.pm' this need to be changed to use 'get_hana_topology()' )
             my $topology = calculate_hana_topology(input => script_output('SAPHanaSR-showAttr --format=script'));
             record_info('Topology', Dumper($topology));
 

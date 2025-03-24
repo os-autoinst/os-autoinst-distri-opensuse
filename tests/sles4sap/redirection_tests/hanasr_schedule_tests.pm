@@ -47,6 +47,7 @@ sub run {
     connect_target_to_serial(
         destination_ip => $target_node_data{ip_address}, ssh_user => $target_node_data{ssh_user}, switch_root => '1');
 
+    # ( After move to 'lib/sles4sap_publiccloud.pm' this need to be changed to use 'get_hana_topology()' )
     my $topology = calculate_hana_topology(input => script_output('SAPHanaSR-showAttr --format=script'));
 
     # Set AUTOMATED_REGISTER value according to parameter HANA_AUTOMATED_REGISTER with 'false' being the default value
@@ -59,9 +60,9 @@ sub run {
     disconnect_target_from_serial();
 
     my $primary_db = get_primary_node(topology_data => $topology);
-    my $primary_site = $topology->{$primary_db}{site};
+    my $primary_site = $topology->{Host}{$primary_db}{site};
     my $failover_db = get_failover_node(topology_data => $topology);
-    my $failover_site = $topology->{$failover_db}{site};
+    my $failover_site = $topology->{Host}{$failover_db}{site};
     my %scenarios;
     my @failover_actions = split(",", get_var("HANASR_FAILOVER_SCENARIOS", 'stop,kill'));
     for my $method (@failover_actions) {
