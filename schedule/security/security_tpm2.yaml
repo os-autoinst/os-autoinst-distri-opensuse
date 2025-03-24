@@ -5,6 +5,7 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
+    - '{{fips_setup}}'
     - security/tpm2/tpm2_env_setup
     - security/tpm2/tpm2_engine/tpm2_engine_info
     - security/tpm2/tpm2_engine/tpm2_engine_random_data
@@ -22,3 +23,7 @@ conditional_schedule:
         DISTRI:
             sle:
                 - security/tpm2/keylime/keylime
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup

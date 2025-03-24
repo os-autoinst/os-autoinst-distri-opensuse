@@ -92,7 +92,7 @@ sub swtpm_verify {
 
     # Generate an SSH key and copy it into the VM
     my $ip_addr = script_output("ip n | awk '/192\\.168\\.122/ {print \$1}'");
-    assert_script_run('ssh-keygen -f sshkey -N ""');
+    assert_script_run('ssh-keygen -t rsa -b 4096 -f sshkey -N ""');
     enter_cmd("ssh-copy-id -i sshkey.pub -o 'StrictHostKeyChecking no' ${ip_addr}");
     wait_serial(qr/assword:/);
     enter_cmd($testapi::password);
