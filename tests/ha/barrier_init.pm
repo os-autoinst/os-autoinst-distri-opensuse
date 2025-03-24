@@ -33,7 +33,9 @@ sub run {
 
         # BARRIER_HA_ needs to also wait the support-server
         if (is_not_supportserver_scenario) {
-            mutex_create 'iscsi';    # Mutex is already created in supportserver, no need to create it before
+            # These 2 mutexes are usually created in the supportserver, but since some HA/SAP test
+            # modules use them, we create them here as well for the scenarios without supportserver
+            mutex_create($_) foreach ('iscsi', 'support_server_ready');
             barrier_create("BARRIER_HA_$cluster_name", $num_nodes);
             barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $num_nodes);
             barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name", $num_nodes);

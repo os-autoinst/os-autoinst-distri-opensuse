@@ -45,7 +45,8 @@ sub run {
         assert_script_run "mkdir -p $mountpoint && mount $mountpoint";
 
         # NFS mounts need to be cleared before the NW installation
-        assert_script_run "rm -rf $mountpoint/*";
+        # Do this only in node 1
+        assert_script_run "rm -rf $mountpoint/*" if (is_node(1));
     }
 }
 
