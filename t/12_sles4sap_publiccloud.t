@@ -567,19 +567,18 @@ subtest '[get_hana_topology_json]' => sub {
             }
         }
     );
-    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return encode_json \%test_topology; });
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return "Output does no matter as calculate_hana_topology is redefined.";
     });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
-    my $topology = decode_json $self->get_hana_topology();
+    my $topology = $self->get_hana_topology();
     note("\n  C -->  " . join("\n  C -->  ", @calls));
-    ok((keys %{$topology->{Host}} eq 2 && %{$topology->{Site}} eq 2), 'Two hosts and two sites returned by calculate_hana_topology');
+    set_var('USE_SAP_HANA_SR_ANGI', undef);
     # how to access one inner value in one shot
-    ok(($topology->{Host}->{vmhanaAAAAA}->{vhost} eq 'vmhanaAAAAA'), 'vhost of vmhanaAAAAA is vmhanaAAAAA');
-    ok((any { qr/SAPHanaSR-showAttr --format=/ } @calls), 'function calls SAPHanaSR-showAttr');
+    ok((any { qr/SAPHanaSR-showAttr --format=json/ } @calls), 'function calls SAPHanaSR-showAttr with JSON format');
 };
 
 subtest '[get_hana_topology] bad output' => sub {

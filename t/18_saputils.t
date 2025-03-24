@@ -5,7 +5,6 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use Data::Dumper;
-use Mojo::JSON qw(encode_json decode_json);
 use List::Util qw(any);
 use testapi;
 use saputils;
