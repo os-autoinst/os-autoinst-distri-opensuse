@@ -266,9 +266,9 @@ sub run {
     die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
       if (script_run "ls $hdblcm");
 
-    # Install hana
-    # Prepare hdblcm args.
-    # Note: set "--components=server,client" as other test moudle (monitoring_services.pm) installs shared pkgs from dir 'hdbclient'
+    # Install hana: Prepare hdblcm args.
+    # Note: set "--components=server,client" as other test moudle (monitoring_services.pm)
+    # installs shared pkgs from dir 'hdbclient'
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
       --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
@@ -286,6 +286,7 @@ sub run {
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
     push @hdblcm_args, "--component_dirs=$target/" . get_var('HDB_CLIENT_LINUX') if get_var('HDB_CLIENT_LINUX');
+    push @hdblcm_args, get_var('HDBLCM_EXTRA_ARGS') if get_var('HDBLCM_EXTRA_ARGS');
 
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;
