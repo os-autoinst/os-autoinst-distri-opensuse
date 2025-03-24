@@ -51,6 +51,12 @@ use serial_terminal qw(select_serial_terminal);
 sub run {
     my ($self) = shift;
 
+    # only skip on maintenace, not on dev
+    if (is_sle '>=15-SP6' && (check_var('BETA', '0') || !get_var('BETA'))) {
+        record_info('SKIPPING TEST', "Skipping test due to bsc#1191684");
+        return;
+    }
+
     my $audit_log = $apparmortest::audit_log;
     my $prof_dir = $apparmortest::prof_dir;
     my $adminer_file = $apparmortest::adminer_file;
