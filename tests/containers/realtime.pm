@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024,2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman, docker
@@ -49,7 +49,7 @@ sub run {
 
     my $runtime = $args->{runtime};
     my $container = 'rt-test';
-    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
     $self->{runtime} = $self->containers_factory($runtime);
     script_retry("$runtime pull $image", timeout => 300, delay => 120, retry => 3);

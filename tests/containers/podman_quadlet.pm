@@ -21,7 +21,7 @@ my $quadlet_dir = '/etc/containers/systemd';
 my $unit_name = 'quadlet-test';
 
 my $build_imagetag = "localhost/nginx";
-my $src_image = "registry.opensuse.org/opensuse/tumbleweed";
+my $src_image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 my @systemd_build = ("$quadlet_dir/$unit_name.build", <<_EOF_);
 [Build]
 ImageTag=$build_imagetag
