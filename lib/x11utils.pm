@@ -37,6 +37,7 @@ our @EXPORT = qw(
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   x11_start_program_xterm
+  x11_default_test_terminal
   handle_gnome_activities
 );
 
@@ -607,6 +608,19 @@ sub x11_start_program_xterm {
         click_lastmatch;
         assert_screen 'xterm';
     }
+}
+
+=head2 x11_default_test_terminal {
+
+    x11_default_test_terminal()
+
+Returns the default console to be used by test modules, defaults to xterm
+
+=cut
+
+sub x11_default_test_terminal {
+    return "gnome-terminal" if is_sle("<16") || is_leap("<16");
+    return "xterm";
 }
 
 =head2 handle_gnome_activities
