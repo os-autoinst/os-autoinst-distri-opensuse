@@ -10,8 +10,8 @@ local root_filesystem(filesystem) = {
   ],
 };
 
-{
-  lvm(encrypted=false): {
+function(storage='', encrypted=false) {
+  [if storage == 'lvm' then 'lvm']: {
     drives: [
       {
         alias: 'pvs-disk',
@@ -40,6 +40,6 @@ local root_filesystem(filesystem) = {
       },
     ]
   },
-  root_filesystem_ext4: root_filesystem('ext4'),
-  root_filesystem_xfs: root_filesystem('xfs'),
+  [if storage == 'root_filesystem_ext4' then 'root_filesystem_ext4']: root_filesystem('ext4'),
+  [if storage == 'root_filesystem_xfs' then 'root_filesystem_xfs']: root_filesystem('xfs'),
 }
