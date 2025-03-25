@@ -47,7 +47,6 @@ sub run {
     connect_target_to_serial(
         destination_ip => $target_node_data{ip_address}, ssh_user => $target_node_data{ssh_user}, switch_root => '1');
 
-    # ( After move to 'lib/sles4sap_publiccloud.pm' this need to be changed to use 'get_hana_topology()' )
     my $topology = calculate_hana_topology(input => script_output('SAPHanaSR-showAttr --format=script'));
 
     # Set AUTOMATED_REGISTER value according to parameter HANA_AUTOMATED_REGISTER with 'false' being the default value
