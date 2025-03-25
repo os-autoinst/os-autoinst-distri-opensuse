@@ -1346,8 +1346,11 @@ sub load_x11tests {
         loadtest "x11/gnome_control_center";
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "x11/gnome_tweak_tool" if is_opensuse;
-        loadtest "x11/gnome_console" unless (is_leap("<16") || is_sle("<16"));
-        loadtest "x11/gnome_terminal";
+        if (is_leap("<16") || is_sle("<16")) {
+            loadtest "x11/gnome_terminal";
+        } else {
+            loadtest "x11/gnome_console";
+        }
         loadtest "x11/gedit";
     }
     # Need remove firefox tests in our migration tests from old Leap releases, keep them only in 15.2 and newer.
