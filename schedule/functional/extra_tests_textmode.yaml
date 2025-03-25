@@ -189,6 +189,7 @@ schedule:
     - '{{tumbleweed_tests}}'
     - console/journalctl
     - console/tar
+    - console/ruby
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
