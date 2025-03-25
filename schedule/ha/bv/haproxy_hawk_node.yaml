@@ -48,6 +48,7 @@ schedule:
   - console/hostname
   - ha/firewall_disable
   - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - '{{cluster_setup}}'
   - ha/check_after_reboot

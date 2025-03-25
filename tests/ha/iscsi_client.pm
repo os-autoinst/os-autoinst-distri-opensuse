@@ -17,6 +17,7 @@ use hacluster;
 use version_utils qw(is_sle package_version_cmp);
 
 sub run {
+    return record_info('Skip iscsi on sles 16', 'Yast2 is not longer supported by sles 16') if (is_sle('>=16'));
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
 
     # Perform a ping size check to several hosts which need to be accessible while
