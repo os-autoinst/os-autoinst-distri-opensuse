@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_tumbleweed';
-use x11utils qw(x11_default_test_terminal handle_relogin);
+use x11utils qw(default_gui_terminal handle_relogin);
 
 sub install_ibus {
     x11_start_program("xterm");
@@ -30,7 +30,7 @@ sub install_ibus {
 }
 
 sub override_i18n {
-    x11_start_program(x11_default_test_terminal());
+    x11_start_program(default_gui_terminal());
     enter_cmd "echo 'export INPUT_METHOD=ibus' > .i18n ";
     enter_cmd "cat .i18n ";
     assert_screen 'ibus_i18n_overrided';
@@ -38,7 +38,7 @@ sub override_i18n {
 }
 
 sub ibus_daemon_started {
-    x11_start_program(x11_default_test_terminal());
+    x11_start_program(default_gui_terminal());
     wait_still_screen;
 
     enter_cmd_slow "env | grep ibus ";

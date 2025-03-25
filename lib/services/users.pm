@@ -120,7 +120,7 @@ sub switch_users {
 
 # restore password to original value
 sub restore_passwd {
-    x11_start_program(x11_default_test_terminal());
+    x11_start_program(default_gui_terminal());
     enter_cmd "su";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";
