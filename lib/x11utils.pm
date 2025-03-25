@@ -619,7 +619,7 @@ Returns the default console to be used by test modules, defaults to xterm
 =cut
 
 sub x11_default_test_terminal {
-    return "gnome-terminal" if is_sle("<16") || is_leap("<16");
+    return "gnome-terminal" if (check_var('DESKTOP', 'gnome') && (is_sle("<16") || is_leap("<16")));
     return "xterm";
 }
 
