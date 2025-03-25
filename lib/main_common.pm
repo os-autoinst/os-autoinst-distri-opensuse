@@ -1250,7 +1250,7 @@ sub load_consoletests {
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
     # SLES but not SLED. Don't run it on live media, not really useful there.
-    if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
+    if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && is_sle('<16.0') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (!is_staging && (is_x86_64
@@ -1737,7 +1737,7 @@ sub load_extra_tests_console {
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
-    loadtest "console/salt" if (is_jeos || is_opensuse);
+    loadtest "console/salt" if ((is_jeos && is_sle('<16.0')) || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/clamav" unless is_arm;

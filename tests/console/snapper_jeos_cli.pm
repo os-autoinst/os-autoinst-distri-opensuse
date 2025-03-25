@@ -13,6 +13,7 @@ use Utils::Architectures;
 use utils;
 use power_action_utils qw(power_action);
 use Utils::Systemd qw(systemctl);
+use version_utils qw(is_sle);
 
 sub check_package
 {
@@ -60,11 +61,15 @@ sub rollback_and_reboot {
 
 sub run {
     my ($self) = @_;
+    my %checks = (
+        zsh => '/usr/share/zsh/functions',
+        tcpdump => '/usr/sbin/tcpdump'
+    );
 
     select_console('root-console');
     my $file = '/etc/openQA_snapper_test';
-    my $pkgname = 'zsh';
-    my $check_path = '/usr/share/zsh/functions';
+    my $pkgname = is_sle('16.0+') ? 'tcpdump' : 'zsh';
+    my $check_path = $checks{$pkgname};
     my $openqainit = script_output("snapper create -p -d openqainit");
 
     assert_script_run("head -c 10000 < /dev/urandom > $file");
