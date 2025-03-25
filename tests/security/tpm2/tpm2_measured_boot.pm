@@ -16,7 +16,7 @@ use version_utils 'is_sle';
 sub run {
     return unless get_var('QEMUTPM');
     select_serial_terminal;
-    if (is_sle '=15-SP2') {
+    if (is_sle('=15-SP2')) {
         record_info('SKIPPING TEST', "Skipping unsupported test on 15-SP2");
         return;
     }
