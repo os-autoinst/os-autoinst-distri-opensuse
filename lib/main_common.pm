@@ -1252,6 +1252,7 @@ sub load_consoletests {
     # SLES but not SLED. Don't run it on live media, not really useful there.
     if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
+        loadtest "console/ansible" if (is_sle('=15-SP7'));
     }
     if (!is_staging && (is_x86_64
             || is_i686
