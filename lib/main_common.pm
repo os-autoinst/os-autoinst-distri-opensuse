@@ -1346,6 +1346,7 @@ sub load_x11tests {
         loadtest "x11/gnome_control_center";
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "x11/gnome_tweak_tool" if is_opensuse;
+        loadtest "x11/gnome_console" unless (is_leap("<16") || is_sle("<16"));
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
     }
