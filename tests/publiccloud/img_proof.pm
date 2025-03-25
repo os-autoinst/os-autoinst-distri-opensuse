@@ -125,6 +125,17 @@ sub run {
     );
 
     # Because the IP address of instance might change during img_proof due to the hard-reboot, we need to re-add the ssh public keys
+    my $ssh_dir = "~/.ssh";
+    if (script_run("test -d $ssh_dir") != 0) {
+        assert_script_run("mkdir -m 700 -p $ssh_dir");
+    }
+
+    my $known_hosts_file = "$ssh_dir/known_hosts";
+    if (script_run("test -f $known_hosts_file") != 0) {
+        assert_script_run("touch $known_hosts_file");
+        assert_script_run("chmod 600 $known_hosts_file");
+    }
+
     assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
 
     if (is_hardened) {
