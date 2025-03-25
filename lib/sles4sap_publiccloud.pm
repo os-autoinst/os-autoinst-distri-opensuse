@@ -607,7 +607,8 @@ sub enable_replication {
 
 sub get_replication_info {
     my ($self) = @_;
-    my $output_cmd = $self->run_cmd(cmd => 'hdbnsutil -sr_state| grep -E :[^\^]', runas => get_required_var('SAP_SIDADM'));
+    my $output_cmd = $self->run_cmd(cmd => 'hdbnsutil -sr_state 2>&1', runas => get_required_var('SAP_SIDADM'));
+    $output_cmd = join "\n", grep /:[^\^]/, split /\n/, $output_cmd;
     record_info('Replication info', $output_cmd);
     # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
