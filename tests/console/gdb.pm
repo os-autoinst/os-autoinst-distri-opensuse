@@ -47,7 +47,7 @@ sub run {
     # except of sle, where it is provided by *sysvinit-tools* rpm
     # since sle(15-SP3+) *sysvinit-tools* is not preinstalled on JeOS
     # as systemd's dependency with *sysvinit-tools* was dropped
-    $test_deps .= ' sysvinit-tools' if (is_sle('>15-sp2') || is_leap('>15.2'));
+    $test_deps .= ' sysvinit-tools' if ((is_sle('<16.0') && is_sle('>15-sp2')) || is_leap('>15.2'));
     zypper_call("in $test_deps");
     # disable debuginfod
     assert_script_run('unset DEBUGINFOD_URLS');
