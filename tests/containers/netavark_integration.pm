@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats;
-use version_utils qw(is_sle is_tumbleweed is_microos);
+use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp/netavark-tests";
 my $netavark;
@@ -55,7 +55,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables jq make protobuf-devel netavark);
-    if (is_tumbleweed || is_microos) {
+    if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
