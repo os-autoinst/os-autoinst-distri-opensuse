@@ -17,6 +17,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
 use utils qw(zypper_call upload_y2logs);
+use registration qw(add_suseconnect_product get_addon_fullname);
 use registration qw(add_suseconnect_product is_phub_ready);
 
 sub run {
@@ -24,6 +25,9 @@ sub run {
 
     # Package 'libjpeg-turbo' requires PackageHub is available
     return if (!is_phub_ready() && is_sle);
+
+    # Package ImageMagick requires Desktop-Applications is available
+    add_suseconnect_product(get_addon_fullname('desktop')) if is_sle('=15-SP7');
 
     # Install libjpeg-turbo package
     zypper_call("install libjpeg-turbo");
