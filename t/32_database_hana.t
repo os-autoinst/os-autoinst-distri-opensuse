@@ -45,15 +45,23 @@ subtest '[hdb_stop] Sapcontrol arguments' => sub {
 subtest '[register_replica] Command compilation' => sub {
     my $db_hana = Test::MockModule->new('sles4sap::database_hana', no_auto => 1);
     my $topology = {
-        Hogwarts => {
-            srmode => 'FunnyGuy',
-            site => 'Dumbledore',
-            op_mode => 'VeryOP'
+        Host => {
+            Hogwarts => {
+                site => 'Dumbledore'
+            },
+            Durmstrang => {
+                site => 'Karkaroff'
+            }
         },
-        Durmstrang => {
-            srmode => 'DeathEater',
-            site => 'Karkaroff',
-            op_mode => 'SeemsWeak'
+        Site => {
+            Dumbledore => {
+                srMode => 'FunnyGuy',
+                opMode => 'VeryOP'
+            },
+            Karkaroff => {
+                srMode => 'DeathEater',
+                opMode => 'SeemsWeak'
+            }
         }
     };
     my @calls;

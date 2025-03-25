@@ -141,20 +141,20 @@ sub register_replica {
     my $primary_hostname = get_primary_node(topology_data => $topology);
     croak("Primary node '$primary_hostname' not found in 'SAPHanaSR-showAttr' output") unless $primary_hostname;
     croak("Replica node '$args{target_hostname}' not found in 'SAPHanaSR-showAttr' output") unless
-      $topology->{$args{target_hostname}};
+      $topology->{Host}{$args{target_hostname}};
 
     my $cmd = join(' ',
         'hdbnsutil',
         '-sr_register',
         "--remoteHost=$primary_hostname",
         "--remoteInstance=$args{instance_id}",
-        "--replicationMode=$topology->{$args{target_hostname}}{srmode}",
-        "--operationMode=$topology->{$args{target_hostname}}{op_mode}",
-        "--name=$topology->{$args{target_hostname}}{site}",
+        "--replicationMode=$topology->{Site}{$topology->{Host}{$args{target_hostname}}{site}}{srMode}",
+        "--operationMode=$topology->{Site}{$topology->{Host}{$args{target_hostname}}{site}}{opMode}",
+        "--name=$topology->{Host}{$args{target_hostname}}{site}",
         '--online');
     $cmd = join(' ', 'sudo', 'su', '-', $args{switch_user}, '-c', '"', $cmd, '"') if $args{switch_user};
     assert_script_run($cmd);
-    record_info('HANA REG', "Site '$topology->{$args{target_hostname}}{site}' registered as replica");
+    record_info('HANA REG', "Site '$topology->{Host}{$args{target_hostname}}{site}' registered as replica");
 }
 
 =head2 get_node_roles
