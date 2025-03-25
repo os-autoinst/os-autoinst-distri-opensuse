@@ -8,11 +8,15 @@ conditional_schedule:
     WSL_SYSTEMD:
       '1':
         - wsl/enable_systemd
+  wsl_install:
+    ARCH:
+      'aarch64':
+        - wsl/wsl_install
 
 schedule:
   - wsl/boot_windows
-  - wsl/prepare_wsl
-  - wsl/install_wsl
+  - '{{wsl_install}}'
+  - wsl/distro_install
   - wsl/firstrun
   - '{{enable_systemd}}'
-  - wsl/wsl_cmd_check
+  - wsl/smoke_test
