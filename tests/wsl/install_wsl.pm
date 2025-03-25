@@ -71,11 +71,7 @@ sub run {
             cmd => "Add-AppxPackage -Path C:\\$wsl_appx_filename",
             timeout => 60
         );
-        record_info 'Port close', 'Closing serial port...';
-        $self->run_in_powershell(cmd => '$port.close()', code => sub { });
-        $self->run_in_powershell(cmd => 'exit', code => sub { });
-        # powershell window take a while to close. Check that the screen is showing the desktop before the next command.
-        assert_screen 'windows-desktop', timeout => 15;
+        $self->close_powershell;
         $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
         assert_and_click 'wsl-suse-startup-search';
     } elsif ($install_from eq 'msstore') {
