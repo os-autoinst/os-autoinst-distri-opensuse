@@ -1,12 +1,27 @@
 local base_lib = import 'lib/base.libsonnet';
+local addons_lib = import 'lib/addons.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 
-function(bootloader=false, user=true, root=true, storage='', product='', registration_code='', scripts_pre='',
-  scripts_post='') {
+function(addon_ha_reg_code='',
+         bootloader=false,
+         user=true,
+         root=true,
+         storage='',
+         patterns='',
+         product='',
+         registration_code='',
+         scripts_pre='',
+         scripts_post='') {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  [if patterns != '' then 'software']: {
+    patterns: [patterns]
+  },
   [if product != '' then 'product']: {
+    [if addon_ha_reg_code != '' then 'addons']: std.prune([
+      if addon_ha_reg_code != '' then addons_lib.addon_ha(addon_ha_reg_code),
+    ]),
     id: product,
     [if registration_code != '' then 'registrationCode']: registration_code,
   },
