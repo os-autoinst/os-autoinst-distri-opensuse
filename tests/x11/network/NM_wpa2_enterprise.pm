@@ -97,7 +97,11 @@ sub handle_polkit_root_auth {
     assert_screen 'Policykit-root';
     wait_still_screen 3;    # the input takes a couple of seconds to be ready
     type_password;
-    send_key 'ret';
+    wait_screen_change { send_key "ret" };
+    if (check_screen('Policykit-root', 20)) {
+        type_password;
+        send_key 'ret';
+    }
 }
 
 sub NM_disable_ip {
