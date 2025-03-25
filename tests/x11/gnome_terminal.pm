@@ -16,10 +16,12 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_sle is_leap);
 
 sub run {
     my ($self) = @_;
     mouse_hide(1);
+    ensure_installed('gnome-terminal') unless (is_leap("<16") || is_sle("<16"));
     x11_start_program('gnome-terminal');
     send_key "ctrl-shift-t";
     if (!check_screen "gnome-terminal-second-tab", 30) {
