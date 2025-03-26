@@ -795,7 +795,9 @@
         "description": "Activation request for 'org\\.freedesktop\\.nm_dispatcher' failed\\.",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.2"],
+            "sle":  ["16.0"]
         },
         "type": "bug"
     },
