@@ -24,15 +24,16 @@ use transactional qw(trup_call check_reboot_changes);
 
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
-# python3-yamllint needed by ansible-test
-my $pkgs = 'ansible git-core python3-yamllint ansible-test';
+# sudo has to be pop-out after installation otherwise
+# during the cleanup it will remove preinstalled salt packages
+my @pkgs = qw(sudo git-core);
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos)) || is_sle("16+") || is_sle('=15-SP7')) {
+    if (is_sle("<15.7")) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
@@ -40,8 +41,8 @@ sub run {
 
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
         add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
-        zypper_call '--gpg-auto-import-keys ref';
     }
+    zypper_call '--gpg-auto-import-keys ref';
 
     # Create user account, if image doesn't already contain user
     # (which is the case for SLE images that were already prepared by openQA)
@@ -51,17 +52,15 @@ sub run {
     }
     ensure_serialdev_permissions;
 
-    # For sle 15-sp7, we test ansible-x ansible-core-x
-    if (is_sle('=15-SP7')) {
-        my @ansible_pkgs = split(/\n/, script_output("zypper se ansible | grep -oE 'ansible(-core)?-[0-9|.]+'"));
-        $pkgs = join(' ', @ansible_pkgs) . ' git-core';
-    }
-
+    push @pkgs, is_sle('=15-SP7') ? 'ansible-9' : 'ansible';
+    # python3-yamllint needed by ansible-test
+    # ansible-test is not available in newer sles'
+    push @pkgs, qw(ansible-test python3-yamllint) if is_opensuse || is_sle('<15-SP7');
     if (is_transactional) {
-        trup_call("pkg install $pkgs sudo");
+        trup_call("pkg install @pkgs");
         check_reboot_changes;
     } else {
-        zypper_call "in $pkgs sudo";
+        zypper_call "in @pkgs";
     }
 
     # Start sshd
@@ -101,10 +100,6 @@ sub run {
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
 
-    if (is_sle('<15-SP5')) {
-        record_soft_failure 'bsc#1210875 Package ansible-test requires Python2.7';
-        script_run 'echo -e "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg';
-    }
 
     # 2. Ansible basics
 
@@ -140,20 +135,26 @@ sub run {
     assert_script_run('ansible-community --version') if (script_run('which ansible-community') == 0);
 
     # Check the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml --check", timeout => 300;
+    my $rc = script_run "ansible-playbook -vvv -i hosts main.yaml --check", timeout => 300;
+    if ($rc) {
+        record_soft_failure 'bsc#1210875 Package ansible-test requires Python2.7';
+        script_run 'echo -e "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg';
+        assert_script_run "ansible-playbook -vvv -i hosts main.yaml --check", timeout => 300;
+    }
 
-    if (is_sle('<15-SP7')) {
+    if (is_opensuse || is_sle('<15-SP7')) {
         # Run the ansible sanity test
         script_run 'ansible-test --help';
         assert_script_run 'ansible-test sanity';
     }
+
     # 5. Ansible playbook execution
 
     # Print the inventory
     assert_script_run 'ansible -i hosts all --list-hosts';
 
     # Run the playbook
-    assert_script_run "ansible-playbook -i hosts main.yaml", timeout => 600;
+    assert_script_run "ansible-playbook -vvv -i hosts main.yaml", timeout => 600;
 
     # Test that /tmp/ansible/uname.txt created by ansible has desired content
     my $uname = script_output 'uname -r';
@@ -205,14 +206,16 @@ sub cleanup {
     # Remove the johnd user created in the ansible playbook
     assert_script_run 'userdel -rf johnd';
 
+    # remove sudo otherwise it will uninstall salt packages
+    shift @pkgs;
     # Remove ansible, yamllint and git
-    $pkgs .= ' ed';
+    push @pkgs, qw(ed);
     if (is_transactional) {
-        trup_call("pkg remove $pkgs");
+        trup_call("pkg remove @pkgs");
         check_reboot_changes;
     } else {
         # ed has been installed in ansible-playbook
-        zypper_call "rm $pkgs";
+        zypper_call "rm @pkgs";
     }
 }
 
