@@ -32,12 +32,15 @@ sub run {
 
     $run_count++;
 
+    # $self->{my_instance} is used in this test module
+    # $args->{my_instance} is used in base module
+    # $args->{my_provider} is used in base module
     if (get_var('PUBLIC_CLOUD_QAM', 0)) {
+        $provider = $args->{my_provider};
         $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
-        $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
+        $provider = $args->{my_provider} = $self->provider_factory();
+        $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
@@ -225,8 +228,12 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 0} if $run_count > 1;
-    return {fatal => 0, publiccloud_multi_module => 1};
+    # If we are in multi module scenario and this is not the first run of this test module we wanna run basetest cleanup
+    return {fatal => 1, publiccloud_multi_module => 1} if ($run_count > 1 && check_var('PUBLIC_CLOUD_QAM', 1));
+    # If we are in multi module scenario and this is the first run of the test module we wanna not fail the whole run
+    return {fatal => 0, publiccloud_multi_module => 1} if ($run_count < 2 && check_var('PUBLIC_CLOUD_QAM', 1));
+    # If we are not in multi module scenario it is always the first run and we wanna run basetest cleanup
+    return {fatal => 1, publiccloud_multi_module => 0};
 }
 
 1;

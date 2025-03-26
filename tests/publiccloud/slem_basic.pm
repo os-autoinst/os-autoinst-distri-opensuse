@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021 - 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Basic test of SLE Micro in public cloud
@@ -51,12 +51,9 @@ sub check_avc {
 
 sub run {
     my ($self, $args) = @_;
-    my $provider;
-    my $instance;
     select_serial_terminal();
 
-    $instance = $self->{my_instance} = $args->{my_instance};
-    $provider = $self->{provider} = $args->{my_provider};
+    my $instance = $self->{my_instance} = $args->{my_instance};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));
