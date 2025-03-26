@@ -3,16 +3,9 @@
 # Copyright 2012-2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Configure windows 10 to host WSL image
-# Currently we have self signed images as sle12sp5 and leap
-# tumbleweed and sle15sp2 or higher contain a chain of certificates
-# In case of chain certificates, store only CA certificate
-# 1) Download the image and CA cert if any
-# 2) Enable developer mode Import certificates
-# 3) Import downloaded or embedded certificate
-# 4) Enable WSL feature
-# 5) Reboot
-# 6) Install WSL image
+# Summary: Configure windows to host WSL image
+# THIS WHOLE MODULE IS KEPT UNTIL THE INSTALLATION OF WINDOWS ARM64 CAN BE
+# AUTOMATED. IT WILL BE RAN ONLY IN AARCH64 MACHINES.
 # Maintainer: qa-c <qa-c@suse.de>
 
 use Mojo::Base qw(windowsbasetest);
@@ -30,20 +23,9 @@ sub run {
         $self->run_in_powershell(
             cmd => "wsl --install --no-distribution",
             code => sub {
-                unless (is_aarch64) {
-                    assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 900);
-                    assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
-                    assert_and_click "windows-user-acount-ctl-yes";
-                }
                 assert_screen("windows-wsl-cli-install-finished", timeout => 900);
             }
         );
-        # Disable HyperV in WSL2
-        # On aarch64 with WSL2 this gets stuck somehow or is too slow (>2h?).
-        $self->run_in_powershell(
-            cmd => 'Disable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Hypervisor -NoRestart',
-            timeout => 60
-        ) unless is_aarch64;
     } else {
         # WSL1 will still be enabled in the legacy mode
         $self->run_in_powershell(

@@ -6,5 +6,5 @@ description:  >
       Scheduled on bios boot and uefi workers.
 
 schedule:
-  - wsl/install/ms_win_installation
+  - wsl/install/win_installation
   - wsl/install/update_windows
