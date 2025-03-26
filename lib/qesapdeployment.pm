@@ -76,7 +76,7 @@ our @EXPORT = qw(
   qesap_cluster_log_cmds
   qesap_cluster_logs
   qesap_upload_crm_report
-  qesap_upload_supportconfig_logs
+  qesap_supportconfig_logs
   qesap_aws_get_region_subnets
   qesap_aws_get_vpc_id
   qesap_aws_create_transit_gateway_vpc_attachment
@@ -338,6 +338,7 @@ sub qesap_galaxy_install {
     qesap_upload_logs([failok=1])
 
     Collect and upload logs present in @log_files.
+    This is about logs generated locally on the jumphost.
 
 =over
 
@@ -1421,8 +1422,9 @@ sub qesap_cluster_log_cmds {
 
 =head3 qesap_cluster_logs
 
-  Collect logs from a deployed cluster
-
+  Collect logs from a deployed cluster.
+  This is about logs generated remotely on the two HANA nodes,
+  `crm report` collection is part of this function.
 =cut
 
 sub qesap_cluster_logs {
@@ -1448,7 +1450,6 @@ sub qesap_cluster_logs {
             }
             # Upload crm report
             qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
-            qesap_upload_supportconfig_logs(host => $host, provider => $provider, failok => 1);
         }
     }
 
@@ -1458,6 +1459,30 @@ sub qesap_cluster_logs {
             push(@log_files, $_);
         }
         qesap_upload_logs();
+    }
+}
+
+=head3 qesap_supportconfig_logs
+
+  Collect supportconfig logs from all HANA nodes of a deployed cluster
+
+=over
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=back
+=cut
+
+sub qesap_supportconfig_logs {
+    my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
+    my $inventory = qesap_get_inventory(provider => $args{provider});
+
+    if (script_run("test -e $inventory", 60) == 0)
+    {
+        foreach my $host ('hana[0]', 'hana[1]') {
+            qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
+        }
     }
 }
 
