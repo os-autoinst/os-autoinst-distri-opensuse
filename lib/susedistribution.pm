@@ -337,14 +337,22 @@ sub ensure_installed {
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
     $args{timeout} //= 90;
 
-    x11_start_program(default_gui_terminal());
+    # In this context we want to call the x11_start_program from the distribution directly
+    $self->x11_start_program(default_gui_terminal());
 
     $self->become_root;
     ensure_serialdev_permissions;
     quit_packagekit;
     zypper_call "in $pkglist";
     wait_still_screen 1;
-    send_key("alt-f4");    # close xterm
+    send_key("alt-f4");    # close terminal
+
+    if (check_screen 'terminal-close-window', timeout => 30) {
+        wait_screen_change {
+            testapi::assert_and_click('terminal-close-window');
+        };
+    }
+
     assert_screen 'generic-desktop' if is_opensuse;
 }
 
