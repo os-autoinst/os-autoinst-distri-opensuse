@@ -21,6 +21,11 @@ sub windows_run {
 
 
 sub _setup_serial_device {
+    # Prevent that openqa-agent blocks the serial port, if present
+    type_string "Stop-Service openqa-agent";
+    wait_screen_change(sub { send_key 'ret' }, 10);
+    sleep 60;
+
     if (is_aarch64) {
         type_string '$port = new-Object System.IO.Ports.SerialPort COM3,9600,None,8,one', max_interval => 125;
     } else {

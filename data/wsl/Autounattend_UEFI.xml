@@ -376,6 +376,23 @@
           <Order>63</Order>
           <Path>%windir%\System32\reg.exe ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" /v DesktopImageStatus /t REG_DWORD /d 1 /f</Path>
         </RunSynchronousCommand>
+        <!-- openqa-agent installation and config -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>64</Order>
+          <Path>powershell.exe -NoProfile -Command "Invoke-WebRequest -Uri https://github.com/grisu48/openqa-agent/releases/download/v1.1.2/agent-Windows-amd64 -OutFile 'C:\Program Files\openqa-agent.exe'"</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>65</Order>
+          <Path>powershell.exe -NoProfile -Command "Set-MpPreference -ExclusionPath 'C:\Program Files\openqa-agent.exe'"</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>66</Order>
+          <Path>powershell.exe -NoProfile -Command "New-NetFirewallRule -DisplayName 'Allow openqa-agent' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8421"</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>67</Order>
+          <Path>powershell.exe -NoProfile -Command "sc.exe create "openqa-agent" type= own start= auto binPath= 'C:\Program Files\openqa-agent.exe'"</Path>
+        </RunSynchronousCommand>
       </RunSynchronous>
     </component>
   </settings>
