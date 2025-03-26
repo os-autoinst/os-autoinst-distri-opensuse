@@ -623,7 +623,7 @@ sub default_gui_terminal {
     # Let SLE decide if they want to change to new behavior
     return "xterm" if check_var('DESKTOP', 'gnome') && (is_sle("<16"));
     return "kgx" if check_var('DESKTOP', 'gnome');
-    # return "konsole" if check_var('DESKTOP', 'kde');
+    return "konsole" if check_var('DESKTOP', 'kde');
     # return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
     return "xterm";
 }
