@@ -17,7 +17,7 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6 is_public_cloud);
-use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal);
 use Utils::Backends;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
@@ -337,7 +337,8 @@ sub ensure_installed {
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
     $args{timeout} //= 90;
 
-    x11_start_program_xterm;
+    x11_start_program(default_gui_terminal());
+
     $self->become_root;
     ensure_serialdev_permissions;
     quit_packagekit;
