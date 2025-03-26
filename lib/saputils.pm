@@ -220,7 +220,7 @@ sub check_hana_topology {
         # If something is missing the topology is considered invalid.
         foreach (qw(lss srPoll)) {
             unless (defined($topology->{Site}->{$site}->{$_})) {
-                record_info('check_hana_topology', ' [ERROR] ', "Missing '$_' field in topology output for site $site");
+                record_info('check_hana_topology', "[ERROR] Missing '$_' field in topology output for site $site");
                 return 0;
             }
         }
