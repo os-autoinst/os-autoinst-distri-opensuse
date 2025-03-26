@@ -66,6 +66,12 @@ sub test_run {
     script_run("./clean-tests.sh");
     my $ret = script_output("TEST=$num\\* ./$category-tests.sh | tee output.log", 1800, proceed_on_failure => 1);
 
+    # determine whether a log file exists
+    if (script_run("test -f $logfile") != 0) {
+        $status = 'FAILED';
+        return $status;
+    }
+
     if ($ret =~ /test\s+failed\s+for\s+case/i) {
         $status = 'FAILED';
     }
