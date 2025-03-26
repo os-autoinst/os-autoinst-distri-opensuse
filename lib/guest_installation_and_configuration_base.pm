@@ -2417,7 +2417,7 @@ sub config_guest_unattended_installation {
             $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
         }
         elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
-            $self->{guest_installation_fine_grained_kernel_args} .= ' agama.auto=' . $self->{guest_installation_automation_file} . ' agama.finish=stop' if ($self->{guest_installation_method} eq 'directkernel');
+            $self->{guest_installation_fine_grained_kernel_args} .= ' inst.auto=' . $self->{guest_installation_automation_file} . ' inst.finish=stop' if ($self->{guest_installation_method} eq 'directkernel');
         }
         if (script_retry("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
             record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}", result => 'fail');

@@ -59,7 +59,7 @@ sub run {
           generate_json_profile() :
           expand_agama_profile($agama_auto);
         set_var('AGAMA_AUTO', $profile_url);
-        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " agama.auto=\"$profile_url\"");
+        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " inst.auto=\"$profile_url\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 
