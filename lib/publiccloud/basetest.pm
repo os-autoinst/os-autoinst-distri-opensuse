@@ -106,6 +106,7 @@ sub _cleanup {
     die("Cleanup called twice!") if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
+    # Call cleanup() defined in test modules - not the provider cleanup()
     eval { $self->cleanup(); } or record_info('FAILED', "\$self->cleanup() failed -- $@", result => 'fail');
 
     my $flags = $self->test_flags();
@@ -151,6 +152,7 @@ sub _cleanup {
     # We need $self->{run_args} and $self->{run_args}->{my_provider}
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         diag('Public Cloud _cleanup: Ready for provider cleanup.');
+        # Call the provider cleanup
         eval { $self->{run_args}->{my_provider}->cleanup() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
         diag('Public Cloud _cleanup: The provider cleanup finished.');
     } else {
