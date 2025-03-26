@@ -183,7 +183,7 @@ sub run {
     my %installable;    #Binaries already released that can already be installed.
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
     my @new_binaries_conflicts;    #New binaries with conflict will be installed alone e.g. libwx_base-suse-nostl-devel conflicts with libwx_base-devel
-    my %bins;
+    my (%bins, $rollback_number);
 
     if (get_var('BUILD') =~ /tomcat/ && get_var('HDD_1') =~ /SLED/) {
         record_info('not shipped', 'tomcat is not shipped to Desktop https://suse.slack.com/archives/C02D16TCP99/p1706675337430879');
@@ -224,8 +224,8 @@ sub run {
     my $repos_count = add_test_repositories;
     record_info('Repos', script_output('zypper lr -u'));
 
-    record_info 'Snapshot created', 'Snapshot for rollback';
-    my $rollback_number = script_output('snapper create --description "Pre-patch" -p');
+    record_info 'Snapshot created', 'Snapshot for rollback' if is_sle('12-sp3+');
+    $rollback_number = script_output('snapper create --description "Pre-patch" -p') if is_sle('12-sp3+');
 
     my @patches = get_patch($incident_id, $repos);
     record_info "Patches", "@patches";
@@ -353,7 +353,7 @@ sub run {
                 $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new');
 
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
-                assert_script_run("snapper rollback $rollback_number");
+                assert_script_run("snapper rollback $rollback_number") if is_sle('12-sp3+');
                 reboot_and_login;
                 disable_test_repositories($repos_count);
             }
@@ -460,7 +460,7 @@ sub run {
         # no need to rollback last patch
         unless ($patch eq $patches[-1]) {
             record_info 'Rollback', "Rollback system before $patch";
-            assert_script_run("snapper rollback $rollback_number");
+            assert_script_run("snapper rollback $rollback_number") if is_sle('12-sp3+');
             reboot_and_login;
         }
     }
