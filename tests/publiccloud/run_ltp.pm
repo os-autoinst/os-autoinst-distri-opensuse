@@ -91,17 +91,14 @@ sub run {
     $self->{ltp_command} = $ltp_command;
     my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
-    my $provider;
-    my $instance;
-
     select_host_console();
 
     unless ($args->{my_provider} && $args->{my_instance}) {
         $args->{my_provider} = $self->provider_factory();
         $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
-    $instance = $args->{my_instance};
-    $provider = $args->{my_provider};
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -188,13 +185,13 @@ sub run {
 }
 
 sub cleanup {
-    my ($self, $args) = @_;
+    my ($self) = @_;
 
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
 
-    if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
+    if ($self->{run_args}->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance}));
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
