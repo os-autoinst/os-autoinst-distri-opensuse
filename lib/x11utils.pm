@@ -624,7 +624,7 @@ sub default_gui_terminal {
     return "xterm" if check_var('DESKTOP', 'gnome') && (is_sle("<16"));
     return "kgx" if check_var('DESKTOP', 'gnome');
     return "konsole" if check_var('DESKTOP', 'kde');
-    # return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
+    return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
     return "xterm";
 }
 
