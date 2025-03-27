@@ -163,7 +163,7 @@ sub run {
 
     # Ipmi backend sol console is not reliable enough to change bootmenu params,
     # so skip bootmenu_default_params which is not necessary now.
-    # However, serial console and AGAMA_AUTO settings are actually useful.
+    # However, serial console and INST_AUTO settings are actually useful.
     # If agama provides support for installation via ssh connection or others,
     # we will then consider adding them back.
     if (is_ipmi && is_uefi_boot && is_selfinstall) {

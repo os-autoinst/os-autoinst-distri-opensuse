@@ -340,7 +340,7 @@ sub run {
     }
 
     # format DASD before installation by default
-    format_dasd if (check_var('FORMAT_DASD', 'pre_install') && !get_var('AGAMA_AUTO'));
+    format_dasd if (check_var('FORMAT_DASD', 'pre_install') && !get_var('INST_AUTO'));
     create_encrypted_part_dasd if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
     select_console("installation", timeout => 180);

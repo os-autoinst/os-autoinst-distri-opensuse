@@ -3,7 +3,7 @@ name: agama_install_sles_ha
 description: >
   Agama installation tests for plain SLES HA.
   Can be used to generate a qcow2 image on qemu and svirt.
-  Requires the settings AGAMA_PRODUCT_ID, AGAMA_AUTO,
+  Requires the settings AGAMA_PRODUCT_ID, INST_AUTO,
   EXTRABOOTPARAMS (only in qemu), SCC_ADDONS set to `ha`,
   and AGAMA_PROFILE (on s390x)
 

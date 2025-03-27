@@ -54,11 +54,11 @@ sub run {
     my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
 
     # prepare kernel parameters
-    if (my $agama_auto = get_var('AGAMA_AUTO')) {
+    if (my $agama_auto = get_var('INST_AUTO')) {
         my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
           generate_json_profile() :
           expand_agama_profile($agama_auto);
-        set_var('AGAMA_AUTO', $profile_url);
+        set_var('INST_AUTO', $profile_url);
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " inst.auto=\"$profile_url\"");
     }
     my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
