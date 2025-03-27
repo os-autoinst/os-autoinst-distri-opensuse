@@ -52,7 +52,7 @@ sub set_svirt_domain_elements {
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         # inst.auto and inst.install_url are defined in 'specific_bootmenu_params'
         $cmdline .= specific_bootmenu_params;
-        if (get_var('SCC_URL') ne 'none') {
+        if (!(is_agama && get_var('FLAVOR', 'Full'))) {
             $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') && !get_var('NTLM_AUTH_INSTALL');
         }
 

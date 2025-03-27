@@ -22,7 +22,7 @@ use English;
 use bootloader_setup;
 use registration;
 use utils 'shorten_url';
-use version_utils qw(is_sle is_tumbleweed is_opensuse);
+use version_utils qw(is_agama is_sle is_tumbleweed is_opensuse);
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -106,7 +106,7 @@ sub prepare_parmfile {
 
     $params .= specific_bootmenu_params;
     unless (get_var("AGAMA")) {
-        if (get_var('SCC_URL') ne 'none') {
+        if (!(is_agama && get_var('FLAVOR', 'Full'))) {
             $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
         }
     }
