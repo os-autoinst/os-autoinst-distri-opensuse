@@ -1,6 +1,6 @@
 # SUSE's openSLP regression test
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openslp-server
@@ -21,7 +21,7 @@ use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
-use version_utils qw(is_tumbleweed);
+use version_utils qw(is_tumbleweed is_sle);
 
 sub run {
     my ($self) = @_;
@@ -41,7 +41,7 @@ sub run {
     assert_script_run 'slptool -v';
     assert_script_run 'slptool findsrvs service:service-agent | grep service-agent';
 
-    unless (is_tumbleweed) {
+    unless (is_tumbleweed || is_sle('16.0+')) {
         assert_script_run 'slptool findsrvs service:ssh | grep "ssh://\|:22,"';
 
         # List all available services
