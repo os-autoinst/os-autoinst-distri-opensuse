@@ -5,10 +5,10 @@ use Test::Exception;
 use Test::Warnings;
 use testapi qw(set_var);
 use version_utils qw(is_sle is_leap);
-
+use x11utils 'default_gui_terminal';
 
 subtest 'Expected_terminals' => sub {
-    use x11utils 'default_gui_terminal';
+
 
     set_var('DISTRI', 'microos');
     ok default_gui_terminal eq 'xterm', "Defaults to xterm in unknown distri";
