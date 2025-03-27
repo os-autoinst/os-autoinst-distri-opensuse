@@ -15,14 +15,6 @@ terraform {
   }
 }
 
-locals {
-  availability_zone = "${var.region}-b"
-}
-
-variable "cred_file" {
-  default = "/root/google_credentials.json"
-}
-
 provider "google" {
   credentials = var.cred_file
   project     = var.project
@@ -33,6 +25,14 @@ provider "google" {
 data "external" "gce_cred" {
   program = ["cat", var.cred_file]
   query   = {}
+}
+
+locals {
+  availability_zone = "${var.region}-b"
+}
+
+variable "cred_file" {
+  default = "/root/google_credentials.json"
 }
 
 variable "instance_count" {
