@@ -119,6 +119,7 @@
       <li><a href="#is_reboot_needed">is_reboot_needed</a></li>
       <li><a href="#install_extra_packages">install_extra_packages</a></li>
       <li><a href="#render_autoinst_url">render_autoinst_url</a></li>
+      <li><a href="#is_agama_guest">is_agama_guest</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -883,6 +884,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>render_autoinst_url(url =&gt; &#39;openQA url&#39;);</code></pre>
 
 <p>In order to avoid downloading resources directly from openQA instance, rendering autoinst url from given openQA url is necessary. Argument url accetps legal HTTP url addresses, but it will be returned directly without rendering if it is not an openQA url.</p>
+
+<h2 id="is_agama_guest">is_agama_guest</h2>
+
+<pre><code>is_agama_guest(guest =&gt; &#39;guest or domain name&#39;);</code></pre>
+
+<p>Determine whether virtual machine under test uses Agama installer. Must provide virtual machine or domain name to argument guest to judge whether agama string is present.</p>
 
 
 </body>

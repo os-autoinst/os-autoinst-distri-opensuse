@@ -84,6 +84,10 @@
       <li><a href="#terminate_guest_installation_session">terminate_guest_installation_session</a></li>
       <li><a href="#get_guest_ipaddr">get_guest_ipaddr</a></li>
       <li><a href="#monitor_guest_installation">monitor_guest_installation</a></li>
+      <li><a href="#monitor_guest_agama_installation">monitor_guest_agama_installation</a></li>
+      <li><a href="#setup_guest_agama_installation_shell">setup_guest_agama_installation_shell</a></li>
+      <li><a href="#verify_guest_agama_installation_done">verify_guest_agama_installation_done</a></li>
+      <li><a href="#save_guest_agama_installation_logs">save_guest_agama_installation_logs</a></li>
       <li><a href="#check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</a></li>
       <li><a href="#attach_guest_installation_screen">attach_guest_installation_screen</a></li>
       <li><a href="#do_attach_guest_installation_screen">do_attach_guest_installation_screen</a></li>
@@ -424,19 +428,19 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>config_guest_installation_method($self[, key-value pairs of guest installation arguments])</code></pre>
 
-<p>Configure [guest_installation_method_options]. User can still change [guest_installation_method], [guest_installation_media], [guest_build], [guest_version], [guest_version_major], [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct installation media.</p>
+<p>Configure [guest_installation_method_options]. User can still change [guest_installation_method], [guest_installation_media], [guest_build], [guest_version], [guest_version_major], [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct installation media. For directkernel installation method which uses virt-install --install, please also refer to following link for more information https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html</p>
 
 <h2 id="config_guest_installation_media">config_guest_installation_media</h2>
 
 <pre><code>config_guest_installation_media($self)</code></pre>
 
-<p>Set [guest_installation_media] to the current major and minor version if it does not match with [guest_version]. This subroutine also help mount nfs share if guest chooses to or has to use iso installation media, for example oracle linux guest uses iso installation media from https://yum.oracle.com/oracle-linux-isos.html. For guest using pre-built virtual disk image which will be downloaded and saved to [guest_storage_backing_path]. Although this subroutine can help correct installation media major and minor version if necessary, it is just auxiliary functionality and end user should always pay attendtion and use the meaningful and correct guest parameters and profile.</p>
+<p>Set [guest_installation_media] to the current major and minor version if it does not match with [guest_version]. This subroutine also help mount nfs share if guest chooses to or has to use iso installation media, for example oracle linux guest uses iso installation media from https://yum.oracle.com/oracle-linux-isos.html. For guest using pre-built virtual disk image which will be downloaded and saved to [guest_storage_backing_path]. Although this subroutine can help correct installation media major and minor version if necessary, it is just auxiliary functionality and end user should always pay attendtion and use the meaningful and correct guest parameters and profile. If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE. If guest_installation_media contains URL address to ISO media, it is supposed to be used directly instead of being mounted from INSTALLATION_MEDIA_NFS_SHARE.</p>
 
 <h2 id="config_guest_installation_extra_args">config_guest_installation_extra_args</h2>
 
 <pre><code>config_guest_installation_extra_args($self[, key-value pairs of extra arguments])</code></pre>
 
-<p>Configure [guest_installation_extra_args_options]. User can still change [guest_installation_extra_args], [guest_ipaddr] and [guest_ipaddr_static] by passing non-empty arguments using hash.</p>
+<p>Configure [guest_installation_extra_args_options]. User can still change [guest_installation_extra_args], [guest_ipaddr] and [guest_ipaddr_static] by passing non-empty arguments using hash. [guest_installation_fine_grained_kernel_args] and [guest_installation_fine_grained_kernel_args_overwrite] are also extra kernel arguments which can be appended to the arguments that virt-install will try to set by default for most --location installs. If you want to override the virt-install default, additionally specify kernel_args_overwrite=yes. Please also refer to https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html for information about [guest_installation_fine_grained_kernel_args].</p>
 
 <h2 id="config_guest_installation_automation_registration">config_guest_installation_automation_registration</h2>
 
@@ -545,6 +549,30 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>monitor_guest_installation($self)</code></pre>
 
 <p>Monitor guest installation progress: If needle &#39;guest_installation_failures&#39; is detected,mark it as FAILED. If needle &#39;text-login&#39; is detected,this means guest installations finishes. Mark it as PASSED if ssh connection is good,otherwise mark it as FAILED. If needle &#39;grub2&#39; is detected,this means guest is rebooting. Will check its result in the next round. If needle &#39;text-logged-in-root&#39; is detected,this means installation screen is disconnected, terminated or broken.Will try to re-attach and check its result in the next round. If needle &#39;guest_installation_in_progress&#39; is detected,this means installation is still in progress. Will check its result in the next round. If none of above needles is detected, makr it as PASSED if ssh connection to it is good, otherwise mark it as FAILED by calling check_guest_installation_result_via_ssh.</p>
+
+<h2 id="monitor_guest_agama_installation">monitor_guest_agama_installation</h2>
+
+<pre><code>monitor_guest_agama_installation($self)</code></pre>
+
+<p>Monitor guest installation progress using Agama installer. The process includes: setup_guest_agama_installation_shell verify_guest_agama_installation_done save_guest_agama_installation_logs</p>
+
+<h2 id="setup_guest_agama_installation_shell">setup_guest_agama_installation_shell</h2>
+
+<pre><code>setup_guest_agama_installation_shell($self)</code></pre>
+
+<p>Password is required to access Agama installer shell using ssh. Passwordless ssh connection is more convenient for automation purpose, but password will still be used if passwordless ssh connection fails. Guest installation will be marked as &#39;FAILED&#39; if there is no way to establish ssh connection to Agama installer shell using publibc key, because Agama installe shell does support full ssh capability.</p>
+
+<h2 id="verify_guest_agama_installation_done">verify_guest_agama_installation_done</h2>
+
+<pre><code>verify_guest_agama_installation_done($self)</code></pre>
+
+<p>Verify progress of guest installation using Agama installer which is achieved by querying &#39;Install phase done&#39; string in journal log. Ony for displaying purpose if ssh connection is established with password only. Guest installation has been already marked as &#39;FAILED&#39; for this case in setup_guest_agama_installation_shell.</p>
+
+<h2 id="save_guest_agama_installation_logs">save_guest_agama_installation_logs</h2>
+
+<pre><code>save_guest_agama_installation_logs($self)</code></pre>
+
+<p>Save guest agama installation logs regardless of whether a successful or failed installation. For &#39;FAILED&#39; installation, transferring saved logs in guest system still requires password login.</p>
 
 <h2 id="check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</h2>
 
