@@ -10,6 +10,7 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
+  - shutdown/shutdown
 test_data:
   crypttab:
     num_devices_encrypted: 1
