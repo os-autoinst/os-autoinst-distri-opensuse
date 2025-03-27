@@ -48,6 +48,7 @@ subtest "[sles4sap_cleanup] no args and all pass" => sub {
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -55,9 +56,11 @@ subtest "[sles4sap_cleanup] no args and all pass" => sub {
             push @calls, $args{cmd};
             return (0, 0); });
     my $self = sles4sap_publiccloud->new();
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
     my $ret = $self->sles4sap_cleanup();
 
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(any { /terraform/ } @calls, "Check if terraform is called");
     ok(any { /ansible/ } @calls, "Check that ansible is not called");
@@ -72,6 +75,7 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -79,9 +83,11 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
             push @calls, $args{cmd};
             return (0, 0); });
     my $self = sles4sap_publiccloud->new();
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
     my $ret = $self->sles4sap_cleanup(ansible_present => 1);
 
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(any { /terraform/ } @calls, "Check if terraform is called");
     ok(any { /ansible/ } @calls, "Check if ansible is called");
@@ -95,6 +101,7 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(qesap_execute => sub {
@@ -107,9 +114,11 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
             }
     });
     my $self = sles4sap_publiccloud->new();
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
     my $ret = $self->sles4sap_cleanup(ansible_present => 1);
 
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(any { /terraform/ } @calls, "Check if terraform is called");
     ok(any { /ansible/ } @calls, "Check if ansible is called");

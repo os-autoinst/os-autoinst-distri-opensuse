@@ -714,7 +714,6 @@ subtest '[qesap_cluster_logs]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @ansible_calls;
     my @crm_report_calls;
-    my @supportconfig_log_calls;
     my @save_file_calls;
     my @logfile_calls;
     $qesap->redefine(qesap_ansible_script_output_file => sub {
@@ -729,7 +728,6 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
-    $qesap->redefine(qesap_upload_supportconfig_logs => sub { my (%args) = @_; push @supportconfig_log_calls, $args{host}; return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -738,7 +736,6 @@ subtest '[qesap_cluster_logs]' => sub {
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
     note("\n  CRM_REPORT-->  " . join("\n  CRM_REPORT-->  ", @crm_report_calls));
-    note("\n  SUPPORTCONFIG_LOG-->  " . join("\n  SUPPORTCONFIG_LOG-->  ", @supportconfig_log_calls));
     note("\n  SAVE_FILE-->  " . join("\n  SAVE_FILE-->  ", @save_file_calls));
     note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
     ok((any { /crm status/ } @ansible_calls), 'expected command executed remotely');
@@ -746,7 +743,6 @@ subtest '[qesap_cluster_logs]' => sub {
     ok((any { /.*hana1-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
     ok((any { /.*BOUBLE.*/ } @save_file_calls), 'upload_logs is called with whatever filename returned by qesap_ansible_script_output_file');
     ok((any { /hana\[[0-1]\]/ } @crm_report_calls), 'upload_logs properly calls qesap_upload_crm_report with hostnames');
-    ok((any { /.*hana\[[0-1]\]/ } @supportconfig_log_calls), 'upload_logs properly calls qesap_upload_supportconfig_logs with hostnames');
 };
 
 subtest '[qesap_cluster_logs] multi log command' => sub {
@@ -765,7 +761,6 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
-    $qesap->redefine(qesap_upload_supportconfig_logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -827,53 +822,27 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
     ok((any { /vmhana01\-crm_report\.tar/ } @fetch_filename), 'crm report fetch file is properly formatted');
 };
 
-subtest '[qesap_upload_supportconfig_logs] die for missing mandatory arguments' => sub {
-    dies_ok { qesap_upload_supportconfig_logs(); } "Expected die if called without arguments";
-    dies_ok { qesap_upload_supportconfig_logs(provider => 'SAND'); } "Expected die if called without host";
-    dies_ok { qesap_upload_supportconfig_logs(host => 'SALT'); } "Expected die if called without provider";
-};
-
-subtest '[qesap_upload_supportconfig_logs]' => sub {
+subtest '[qesap_supportconfig_logs]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
+    my $upload_log_called = 0;
 
-    $qesap->redefine(is_sle => sub { return 0; });
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(qesap_ansible_cmd => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return 0; });
     $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
-    $qesap->redefine(upload_logs => sub { return 0; });
+    $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
 
-    qesap_upload_supportconfig_logs(provider => 'SAND', host => 'SALT');
+    qesap_supportconfig_logs(provider => 'SAND');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*supportconfig \-R.*/ } @calls), 'supportconfig is called');
-    ok((any { /.*\/var\/tmp.*SALT.*supportconfig/ } @calls), 'supportconfig log file has the node name in it');
-};
-
-subtest '[qesap_upload_supportconfig_logs] ansible host query' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    my @fetch_filename;
-
-    $qesap->redefine(is_sle => sub { return 0; });
-    $qesap->redefine(qesap_ansible_cmd => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd};
-            return 0; });
-    $qesap->redefine(qesap_ansible_fetch_file => sub {
-            my (%args) = @_;
-            push @fetch_filename, $args{file};
-            return 0; });
-    $qesap->redefine(upload_logs => sub { return 0; });
-
-    qesap_upload_supportconfig_logs(provider => 'SAND', host => 'hana[0]');
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
-    ok((any { /.*\/var\/tmp.*vmhana01.*supportconfig/ } @calls), 'supportconfig log file has the node name in it');
-    ok((any { /.*vmhana01.*supportconfig/ } @fetch_filename), 'supportconfig log fetch file is properly formatted');
+    ok((any { /.*\/var\/tmp.*vmhana01.*supportconfig/ } @calls), 'supportconfig log file has the vmhana01 node name in it');
+    ok((any { /.*\/var\/tmp.*vmhana02.*supportconfig/ } @calls), 'supportconfig log file has the vmhana02 node name in it');
+    ok($upload_log_called eq 1), 'upload_log called';
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {
