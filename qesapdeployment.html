@@ -55,6 +55,7 @@
           <li><a href="#qesap_upload_supportconfig_logs">qesap_upload_supportconfig_logs</a></li>
           <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
           <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
+          <li><a href="#qesap_supportconfig_logs">qesap_supportconfig_logs</a></li>
           <li><a href="#qesap_calculate_deployment_name">qesap_calculate_deployment_name</a></li>
           <li><a href="#qesap_aws_get_region_subnets">qesap_aws_get_region_subnets</a></li>
           <li><a href="#qesap_aws_get_vpc_id">qesap_aws_get_vpc_id</a></li>
@@ -185,7 +186,8 @@ if something internally fails.</code></pre>
 
 <pre><code>qesap_upload_logs([failok=1])
 
-Collect and upload logs present in @log_files.</code></pre>
+Collect and upload logs present in @log_files.
+This is about logs generated locally on the jumphost.</code></pre>
 
 <dl>
 
@@ -707,7 +709,21 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <h3 id="qesap_cluster_logs">qesap_cluster_logs</h3>
 
-<pre><code>Collect logs from a deployed cluster</code></pre>
+<pre><code>Collect logs from a deployed cluster.
+This is about logs generated remotely on the two HANA nodes,
+`crm report` collection is part of this function.</code></pre>
+
+<h3 id="qesap_supportconfig_logs">qesap_supportconfig_logs</h3>
+
+<pre><code>Collect supportconfig logs from all HANA nodes of a deployed cluster</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-using-same-format-of-PUBLIC_CLOUD_PROVIDER-setting4"><b>PROVIDER</b> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_calculate_deployment_name">qesap_calculate_deployment_name</h3>
 
