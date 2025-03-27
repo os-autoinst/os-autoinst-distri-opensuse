@@ -44,12 +44,12 @@
     <guest_ipaddr/>
     <guest_ipaddr_static>false</guest_ipaddr_static>
     <guest_macaddr/>
-    <guest_graphics>spice</guest_graphics>
+    <guest_graphics>vnc</guest_graphics>
     <guest_controller/>
     <guest_input/>
     <guest_serial>pty,target.type=isa-serial</guest_serial>
     <guest_parallel/>
-    <guest_channel>type=unix#spicevmc</guest_channel>
+    <guest_channel>type=unix</guest_channel>
     <guest_console>pty,target.type=serial</guest_console>
     <guest_hostdev/>
     <guest_filesystem/>
