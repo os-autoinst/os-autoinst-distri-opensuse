@@ -1222,4 +1222,27 @@ subtest '[create_hana_vars_section]' => sub {
     ok %$ret{sap_hana_install_sid} eq '>>>INSTANCE_SID---VALUE<<<';
 };
 
+subtest "[get_replication_info]" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+
+    my $cmd_output = <<'END';
+online: true
+
+site name: site_b
+dropline:^None
+END
+
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return $cmd_output; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $self = sles4sap_publiccloud->new();
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    my $result = $self->get_replication_info();
+    set_var('SAP_SIDADM', undef);
+
+    ok(ref($result) eq 'HASH', 'Result is a hash reference');
+    is($result->{online}, 'true', 'Online status is true');
+    is($result->{dropline}, undef, 'No filtered lines');
+};
+
 done_testing;
