@@ -1,0 +1,26 @@
+# SUSE's openQA tests
+#
+# Copyright 2025 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Validate installed patterns
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+
+use base "consoletest";
+use strict;
+use warnings;
+use utils 'zypper_call';
+use testapi;
+
+sub run {
+    select_console 'root-console';
+
+    my @pattern_list = split(/,/, get_var('PATTERNS'));
+
+    zypper_call("search -t pattern");
+
+    zypper_call("search -i -t pattern");
+    foreach (@pattern_list) { zypper_call("search -i -t pattern $_"); }
+}
+
+1;
