@@ -37,13 +37,13 @@ sub run ($self) {
     assert_script_run(qq{sed -ri 's/^DHCPD_INTERFACE.*\$/DHCPD_INTERFACE="eth1"/g' /etc/sysconfig/dhcpd});
     systemctl 'restart wicked';
     assert_script_run(qq{sed -ri 's/^ipaddr:.*\$/ipaddr: 192.168.10.100/g' /etc/warewulf/warewulf.conf});
+    assert_script_run(qq{sed -ri 's/^netmask:.*\$/netmask: 255.255.255.0/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^network:.*\$/network: 192.168.10.0/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range start:.*\$/  range start: 192.168.10.111/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range end:.*\$/  range end: 192.168.10.115/g' /etc/warewulf/warewulf.conf});
     $rt = (systemctl 'enable --now warewulfd') ? 1 : 0;
     test_case('systemd', 'ww4', $rt);
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
-    record_info "defaults.conf", script_output("cat /usr/share/warewulf/defaults.conf");
 
     # Authentication support
     my $warewulf_oci_username = get_var('HPC_WAREWULF_CONTAINER_USERNAME');
@@ -58,15 +58,15 @@ sub run ($self) {
     # See: progress.opensuse.org/issues/168028
     script_run(qq{sed -i 's/url/#url/g' /etc/SUSEConnect});
 
-    $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container --setdefault", timeout => 320) ? 1 : 0;
+    $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container", timeout => 320) ? 1 : 0;
     test_case('Container pull', 'ww4', $rt);
-    $rt = (assert_script_run "wwctl profile set -y -C warewulf-container") ? 1 : 0;
+    $rt = (assert_script_run "wwctl profile set -y --image warewulf-container") ? 1 : 0;
     test_case('Profile', 'ww4', $rt);
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
-    $rt = (assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true") ? 1 : 0;
+    $rt = (assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true --image warewulf-container") ? 1 : 0;
     test_case('Nodes', 'first node added successfully', $rt);
-    $rt = (assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true") ? 1 : 0;
+    $rt = (assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true --image warewulf-container") ? 1 : 0;
     test_case('Nodes', 'second node added successfully', $rt);
 
     my $compute_nodes = script_output "wwctl node list -a";
