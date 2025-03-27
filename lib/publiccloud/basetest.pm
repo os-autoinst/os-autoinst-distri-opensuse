@@ -163,6 +163,16 @@ sub _cleanup {
 sub _upload_logs {
     my ($self) = @_;
     my $ssh_sut_log = '/var/tmp/ssh_sut.log';
+
+    if ($self->{run_args}) {
+        diag('Public Cloud _upload_logs: $self->{run_args}=' . $self->{run_args});
+        return;
+    }
+    if ($self->{run_args}->{my_instance}) {
+        diag('Public Cloud _upload_logs: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance});
+        return;
+    }
+
     script_run("sudo chmod a+r " . $ssh_sut_log);
     upload_logs($ssh_sut_log, failok => 1, log_name => $ssh_sut_log . ".txt");
 
