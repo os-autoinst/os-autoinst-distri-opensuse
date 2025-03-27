@@ -44,6 +44,8 @@
     </crash_kernel>
     <crash_xen_kernel>201M\&lt;4G</crash_xen_kernel>
   </kdump>
+  <!--12sp3 TD shall not do any registration at all, see poo#170233-->
+  % unless ($check_var->('NO_REGISTER', '1')) {
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email><%= $get_var->('SCC_EMAIL') %></email>
@@ -81,13 +83,13 @@
     </addons>
     %}
   </suse_register>
+  % }
   <add-on>
     <add_on_products config:type="list">
       % if ($check_var->('VERSION', '12-SP3')) {
       <listentry>
-        <media_url>http://updates.nue.suse.com/download/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url>
-        <!--media_url>http://dist.suse.de/updates/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url-->
-        <alias>SLES12-SP3-LTSS-TERADATA</alias>
+        <media_url>http://updates.nue.suse.com/download/SUSE/Updates/SLE-SERVER/12-SP3-TERADATA/x86_64/update/</media_url>
+        <alias>SLES12-SP3-TERADATA</alias>
       </listentry>
       % }
     % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
