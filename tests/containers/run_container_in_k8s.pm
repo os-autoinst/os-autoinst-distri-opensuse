@@ -10,6 +10,7 @@
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
 use containers::k8s qw(apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+use version_utils qw(is_sle);
 
 sub run {
     my ($self, $run_args) = @_;
@@ -57,7 +58,7 @@ EOT
     apply_manifest($manifest);
     wait_for_k8s_job_complete($job_name);
     my $pod = find_pods("job-name=$job_name");
-    validate_pod_log($pod, "SUSE Linux Enterprise Server");
+    validate_pod_log($pod, is_sle('16.0+') ? "SUSE Linux" : "SUSE Linux Enterprise Server");
     record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
 
