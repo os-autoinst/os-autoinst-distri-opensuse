@@ -13,6 +13,7 @@ use Utils::Logging qw(save_and_upload_log);
 use publiccloud::ssh_interactive qw(select_host_console);
 use utils qw(ensure_serialdev_permissions);
 use version_utils qw(is_openstack is_public_cloud is_opensuse);
+use serial_terminal;
 
 my @errors = ();
 
@@ -29,7 +30,7 @@ sub run {
         }
     };
 
-    select_console('root-console');
+    select_serial_terminal;
     record_info('VERSION', script_output('cloud-init -v'));
     record_info('STATUS', script_output('cloud-init status --wait --long', proceed_on_failure => 1));
     record_info('ANALYZE', script_output('cloud-init analyze show'));

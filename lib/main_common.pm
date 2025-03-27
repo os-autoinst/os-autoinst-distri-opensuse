@@ -400,15 +400,15 @@ sub load_boot_tests {
     if (get_var("ISO_MAXSIZE") && (!is_remote_backend() || is_svirt_except_s390x())) {
         loadtest "installation/isosize";
     }
-    if ((get_var("UEFI") || is_jeos()) && !is_svirt) {
+    if ((get_var("UEFI") || is_jeos()) && !is_svirt && !get_var('NO_CLOUD')) {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader_uefi";
     }
-    elsif (is_svirt_except_s390x()) {
-        load_svirt_vm_setup_tests;
-    }
     elsif (is_s390x && is_jeos) {
         loadtest "installation/bootloader_start";
+    }
+    elsif (is_svirt_except_s390x()) {
+        load_svirt_vm_setup_tests;
     }
     elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         loadtest "boot/boot_from_pxe";
@@ -628,7 +628,7 @@ sub load_jeos_tests {
         loadtest "jeos/prepare_firstboot";
     }
 
-    load_boot_tests() unless get_var('NO_CLOUD');
+    load_boot_tests();
     if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
         loadtest 'microos/verify_setup';
         loadtest 'microos/image_checks';
