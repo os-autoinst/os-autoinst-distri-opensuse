@@ -15,6 +15,10 @@ terraform {
   }
 }
 
+locals {
+  availability_zone = "${var.region}-b"
+}
+
 variable "cred_file" {
   default = "/root/google_credentials.json"
 }
@@ -22,6 +26,8 @@ variable "cred_file" {
 provider "google" {
   credentials = var.cred_file
   project     = var.project
+  region      = var.region #sets global default region for all resources
+  zone        = local.availability_zone #sets the global default zone for all zonal resources
 }
 
 data "external" "gce_cred" {
@@ -42,7 +48,7 @@ variable "type" {
 }
 
 variable "region" {
-  default = "europe-west1-b"
+  default = "europe-west1"
 }
 
 variable "image_id" {
@@ -113,7 +119,6 @@ resource "google_compute_instance" "openqa" {
   count        = var.instance_count
   name         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
   machine_type = var.type
-  zone         = var.region
 
   guest_accelerator {
     type  = "nvidia-tesla-t4"
@@ -180,7 +185,6 @@ resource "google_compute_disk" "default" {
   name                      = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
   count                     = var.create-extra-disk ? var.instance_count : 0
   type                      = var.extra-disk-type
-  zone                      = var.region
   size                      = var.extra-disk-size
   physical_block_size_bytes = 4096
   labels = {
@@ -206,6 +210,9 @@ output "project" {
 }
 
 output "region" {
-  value = "${var.region}"
+  value = var.region
 }
 
+output "availability_zone" {
+  value = local.availability_zone
+}
