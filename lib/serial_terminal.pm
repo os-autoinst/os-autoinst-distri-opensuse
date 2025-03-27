@@ -173,7 +173,7 @@ sub login {
     die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
     enter_cmd("$user");
 
-    my $re = qr/$user/i;
+    my $re = qr/$user[\r\n]/i;
     if (!wait_serial($re, timeout => 3)) {
         record_info('RELOGIN', 'Need to retry login to workaround virtio console race', result => 'softfail');
         enter_cmd("$user");
