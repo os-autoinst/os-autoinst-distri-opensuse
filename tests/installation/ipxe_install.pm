@@ -185,8 +185,7 @@ sub set_bootscript_agama_cmdline_extra {
     my $cmdline_extra = " ";
     if (my $agama_auto = get_var('AGAMA_AUTO')) {
         my $agama_auto_url = autoyast::expand_agama_profile($agama_auto);
-        # Workaround for bsc#1238581, will remove it once the bug is fixed
-        $cmdline_extra .= "agama.auto=$agama_auto_url agama.finish=stop ";
+        $cmdline_extra .= "inst.auto=$agama_auto_url inst.finish=stop ";
     }
     # Agama Installation repository URL
     # By default Agama installs the packages from the repositories specified in the product configuration.
