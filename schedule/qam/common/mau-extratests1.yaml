@@ -37,6 +37,7 @@ schedule:
   - console/sysstat
   - console/cpio
   - console/tar
+  - console/ruby
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
