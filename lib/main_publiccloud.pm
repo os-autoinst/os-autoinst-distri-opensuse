@@ -25,12 +25,12 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/download_repos";
     loadtest "publiccloud/prepare_instance", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/check_registercloudguest", run_args => $args);
+        loadtest("publiccloud/check_registercloudguest");
     } else {
-        loadtest("publiccloud/registration", run_args => $args);
+        loadtest("publiccloud/registration");
     }
-    loadtest "publiccloud/transfer_repos", run_args => $args;
-    loadtest "publiccloud/patch_and_reboot", run_args => $args;
+    loadtest "publiccloud/transfer_repos";
+    loadtest "publiccloud/patch_and_reboot";
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest("publiccloud/img_proof", run_args => $args);
