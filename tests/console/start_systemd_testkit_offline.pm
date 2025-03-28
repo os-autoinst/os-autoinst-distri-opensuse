@@ -12,7 +12,14 @@
 # * Parse the saved result and return the status
 # Verify the output of the external testkits run.
 # Maintainer: QE Core <qe-core@suse.de>
-# Tags: poo#106284
+# Tags: poo#106284 https://confluence.suse.com/display/qasle/Common+Criteria+Compliance+of+systemd_sapstart_check
+
+####################################################################
+#                                                                  #
+#  In case of failure contact QE-SAP PO to make sure there was no  #
+#  update of the external testkit                                  #
+#                                                                  #
+####################################################################
 
 use base 'consoletest';
 use testapi;
