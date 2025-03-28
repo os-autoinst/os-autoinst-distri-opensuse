@@ -26,6 +26,7 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - '{{fips_setup}}'
   - security/mokutil_sign
   - console/system_prepare
   - '{{patch_reboot}}'
@@ -36,7 +37,7 @@ schedule:
   - shutdown/shutdown
 conditional_schedule:
   fips_setup:
-    FIPS_INSTALLATION:
+    FIPS_ENABLED:
       1:
         - fips/fips_setup
   update_repo:

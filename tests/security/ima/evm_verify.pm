@@ -11,6 +11,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use security::config;
 
 sub run {
     select_serial_terminal;
@@ -18,11 +19,10 @@ sub run {
     my $test_app = "/usr/bin/yes";
     my $mok_priv = "/root/certs/key.asc";
     my $cert_der = "/root/certs/ima_cert.der";
-    my $mok_pass = "suse";
 
     assert_script_run "$test_app --version";
 
-    assert_script_run "evmctl sign -p$mok_pass -k $mok_priv $test_app";
+    assert_script_run "evmctl sign -p$security::config::mok_pw -k $mok_priv $test_app";
     validate_script_output "getfattr -m security.evm -d $test_app", sub {
         # Base64 armored security.ima content (358 chars), we do not match the
         # last three ones here for simplicity

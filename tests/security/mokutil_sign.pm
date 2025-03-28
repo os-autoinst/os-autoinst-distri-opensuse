@@ -14,6 +14,7 @@ use utils;
 use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
 use power_action_utils "power_action";
+use security::config;
 
 
 sub run {
@@ -29,9 +30,6 @@ sub run {
     zypper_call('in pesign mozilla-nss-tools');
 
     my $work_dir = "/root/certs";
-    my $key_pw = "suse";    # Private key password
-    my $cdb_pw = "openSUSE";    # Certificate database password
-    my $mok_pw = "novell";    # Mokutil password
     my $cert_cfg = "$work_dir/self_signed.conf";
     my $pri_key = "$work_dir/key.asc";
     my $cert_pem = "$work_dir/cert.asc";
@@ -45,7 +43,7 @@ sub run {
 
     # Use default expiration days (1 month)
     assert_script_run("openssl req -new -x509 -newkey rsa -keyout $pri_key -out $cert_pem -nodes -config $cert_cfg");
-    assert_script_run("openssl pkcs12 -export -inkey $pri_key -in $cert_pem -name kernel_cert -out $cert_p12 -passout pass:$key_pw");
+    assert_script_run("openssl pkcs12 -export -inkey $pri_key -in $cert_pem -name kernel_cert -out $cert_p12 -passout pass:$security::config::key_pw");
     assert_script_run("openssl x509 -in $cert_pem -outform der -out $cert_der");
 
     # certutil -N does not support password in command argument, so the
@@ -55,16 +53,16 @@ sub run {
         [
             {
                 prompt => qr/Enter new password/m,
-                string => "$cdb_pw\n",
+                string => "$security::config::cdb_pw\n",
             },
             {
                 prompt => qr/Re-enter password/m,
-                string => "$cdb_pw\n",
+                string => "$security::config::cdb_pw\n",
             },
         ],
         20
     );
-    assert_script_run("pk12util -d $work_dir -i $cert_p12 -K $cdb_pw -W $key_pw");
+    assert_script_run("pk12util -d $work_dir -i $cert_p12 -K $security::config::cdb_pw -W $security::config::key_pw");
     assert_script_run("ls $work_dir | tee /dev/$serialdev");
 
     my $kern = script_output("ls /boot/vmlinuz-*-default");
@@ -82,7 +80,7 @@ sub run {
         [
             {
                 prompt => qr/Enter Password or Pin/m,
-                string => "$cdb_pw\n",
+                string => "$security::config::cdb_pw\n",
             },
         ],
         20
@@ -97,11 +95,11 @@ sub run {
         [
             {
                 prompt => qr/input password/m,
-                string => "$mok_pw\n",
+                string => "$security::config::mok_pw\n",
             },
             {
                 prompt => qr/input password again/m,
-                string => "$mok_pw\n",
+                string => "$security::config::mok_pw\n",
             },
         ],
         20
@@ -146,7 +144,7 @@ sub run {
     wait_serial "Password:", 10;
     save_screenshot;
 
-    type_password "$mok_pw\n";
+    type_password "$security::config::mok_pw\n";
 
     wait_serial "Reboot.*key.*hash", 10;
     save_screenshot;

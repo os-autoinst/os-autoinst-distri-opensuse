@@ -14,6 +14,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
+use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
@@ -21,7 +22,12 @@ sub run {
     $vm_type = 'uefi' if get_var('UEFI');
     # aarch64 does not support tpm1.2
     my @swtpm_versions = qw(swtpm_2);
-    push @swtpm_versions, qw(swtpm_1) if !is_aarch64;
+    # do not test TPM 1.2 on aarch64 or SLE >= 15-SP6 if FIPS is enabled
+    if (!is_aarch64) {
+        if (is_sle('<=15-SP5') || (is_sle('>=15-SP6') && (!get_var('FIPS_ENABLED') || check_var('FIPS_ENABLED', '0')))) {
+            push @swtpm_versions, qw(swtpm_1);
+        }
+    }
     foreach my $i (@swtpm_versions) {
         start_swtpm_vm($i, "$vm_type");
         swtpm_verify($i);

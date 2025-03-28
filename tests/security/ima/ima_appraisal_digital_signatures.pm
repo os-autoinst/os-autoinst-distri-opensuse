@@ -13,6 +13,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
 use power_action_utils 'power_action';
+use security::config;
 
 sub run {
     my ($self) = @_;
@@ -24,7 +25,6 @@ sub run {
 
     my $mok_priv = '/root/certs/key.asc';
     my $cert_der = '/root/certs/ima_cert.der';
-    my $mok_pass = 'suse';
 
     add_grub_cmdline_settings("ima_appraise=fix", update_grub => 1);
 
@@ -36,10 +36,10 @@ sub run {
     select_serial_terminal;
 
     my @sign_cmd = (
-        "/usr/bin/find / -fstype $fstype -type f -executable -uid 0 -exec evmctl -a sha256 ima_sign -p$mok_pass -k $mok_priv '{}' \\;",
-"for D in /lib /lib64 /usr/lib /usr/lib64; do /usr/bin/find \"\$D\" -fstype $fstype -\\! -executable -type f -name '*.so*' -uid 0 -exec evmctl -a sha256 ima_sign -p$mok_pass -k $mok_priv '{}' \\; ; done",
-        "/usr/bin/find /lib/modules -fstype $fstype -type f -name '*.ko' -uid 0 -exec evmctl -a sha256 ima_sign -p$mok_pass -k $mok_priv '{}' \\;",
-        "/usr/bin/find /lib/firmware -fstype $fstype -type f -uid 0 -exec evmctl -a sha256 ima_sign -p$mok_pass -k $mok_priv '{}' \\;"
+        "/usr/bin/find / -fstype $fstype -type f -executable -uid 0 -exec evmctl -a sha256 ima_sign -p$security::config::mok_pw -k $mok_priv '{}' \\;",
+"for D in /lib /lib64 /usr/lib /usr/lib64; do /usr/bin/find \"\$D\" -fstype $fstype -\\! -executable -type f -name '*.so*' -uid 0 -exec evmctl -a sha256 ima_sign -p$security::config::mok_pw -k $mok_priv '{}' \\; ; done",
+"/usr/bin/find /lib/modules -fstype $fstype -type f -name '*.ko' -uid 0 -exec evmctl -a sha256 ima_sign -p$security::config::mok_pw -k $mok_priv '{}' \\;",
+        "/usr/bin/find /lib/firmware -fstype $fstype -type f -uid 0 -exec evmctl -a sha256 ima_sign -p$security::config::mok_pw -k $mok_priv '{}' \\;"
     );
 
     for my $s (@sign_cmd) {
