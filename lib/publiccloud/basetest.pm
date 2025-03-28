@@ -96,6 +96,20 @@ sub provider_factory {
     return $provider;
 }
 
+# singletons
+my $_provider;
+sub provider {
+    my ($self, $provider) = @_;
+    $_provider = $provider if @_ > 1;
+    return $_provider;
+}
+my $_instance;
+sub instance {
+    my ($self, $instance) = @_;
+    $_instance = $instance if @_ > 1;
+    return $_instance;
+}
+
 sub cleanup {
     # to be overridden by tests
     return 1;

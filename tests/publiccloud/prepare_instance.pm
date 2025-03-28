@@ -37,10 +37,9 @@ sub run {
     my %instance_args;
     $instance_args{check_connectivity} = 1;
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
-    $args->{my_provider} = $self->provider_factory();
-    $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
-    my $provider = $args->{my_provider};
-    my $instance = $args->{my_instance};
+    $self->provider($self->provider_factory);
+    $self->instance($self->provider->create_instance(%instance_args));
+    my $instance = $self->instance;
 
     $instance->network_speed_test();
     $instance->check_cloudinit() if (is_cloudinit_supported);

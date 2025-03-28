@@ -26,18 +26,17 @@ my $path = is_sle('=15-SP2') ? '/usr/sbin/' : '';    # 15-SP2 is the oldest vers
 my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
 sub run {
-    my ($self, $args) = @_;
-    my ($provider, $instance);
+    my ($self) = @_;
+    my ($instance);
     select_host_console();
 
     $run_count++;
 
     if (get_var('PUBLIC_CLOUD_QAM', 0)) {
-        $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
+        $instance = $self->instance;
     } else {
-        $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
+        $self->provider($self->provider_factory);
+        $instance = $self->provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
@@ -213,15 +212,15 @@ sub force_new_registration {
 
 sub post_fail_hook {
     my ($self) = @_;
-    if (exists($self->{my_instance})) {
-        $self->{my_instance}->ssh_script_run("sudo chmod a+r /var/log/cloudregister", timeout => 0, quiet => 1);
-        $self->{my_instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log.txt');
+    if ($self->instance) {
+        $self->instance->ssh_script_run("sudo chmod a+r /var/log/cloudregister", timeout => 0, quiet => 1);
+        $self->instance->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log.txt');
     }
     if (is_azure()) {
-        record_info('azuremetadata', $self->{my_instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
+        record_info('azuremetadata', $self->instance->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }
     $self->SUPER::post_fail_hook();
-    registercloudguest($self->{my_instance});
+    registercloudguest($self->instance);
 }
 
 sub test_flags {
