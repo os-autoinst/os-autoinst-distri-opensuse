@@ -45,7 +45,13 @@ sub btrfs_service_unavailable {
 
 sub btrfs_await_scrub {
     if (is_sle("<15-SP4")) {
-        script_retry('btrfs scrub status / | grep -e "scrub started .* and finished after"', retry => 5, delay => 30);
+        if (script_run('btrfs scrub status / | grep -e "scrub started .* and finished after"') != 0) {
+            if (script_run('btrfs scrub status / | grep -e "started .* interrupted"') == 0) {
+                record_info('bsc#1233804');
+                assert_script_run('btrfs scrub resume /');
+            }
+            script_retry('btrfs scrub status / | grep -e "scrub resumed .* and finished after"', retry => 5, delay => 30);
+        }
     } else {
         if (script_run('btrfs scrub status / | grep -e "Status:.*finished"') != 0) {
             if (script_run('btrfs scrub status / | grep -e "Status:.*interrupted"') == 0) {
