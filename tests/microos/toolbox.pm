@@ -12,6 +12,8 @@ use warnings;
 use testapi;
 use containers::common;
 use version_utils qw(is_sle_micro is_leap_micro);
+use transactional;
+use Utils::Architectures qw(is_ppc64le);
 
 our $user = $testapi::username;
 our $password = $testapi::password;
@@ -75,7 +77,13 @@ sub run {
     }
 
     # Display help
-    assert_script_run 'toolbox -h';
+    my $rc = script_run 'toolbox -h';
+    if ($rc && is_sle_micro('=5.5') && is_ppc64le) {
+        record_soft_failure 'bsc#1240332 - missing toolbox package';
+        trup_call 'pkg in toolbox';
+        process_reboot(trigger => 1);
+        select_console 'root-console';
+    }
 
     record_info 'Test', "Run toolbox without flags";
     assert_script_run 'toolbox -r id', timeout => 300;

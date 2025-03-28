@@ -48,7 +48,7 @@ sub load_config_tests {
 }
 
 sub load_boot_from_disk_tests {
-    return if is_ppc64le && get_var('MACHINE') !~ /ppc64le-emu/i;
+    return if is_ppc64le && get_var('MACHINE') !~ /ppc64le-emu/i && !(is_sle_micro('=5.5') && check_var('FLAVOR', 'Container-Image-Updates'));
     # add additional image handling module for svirt workers
     if (is_s390x()) {
         loadtest 'installation/bootloader_start';
