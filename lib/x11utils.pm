@@ -619,7 +619,12 @@ Returns the default console to be used by test modules, defaults to xterm
 =cut
 
 sub default_gui_terminal {
-    return "gnome-terminal" if (check_var('DESKTOP', 'gnome') && (is_sle("<16") || is_leap("<16")));
+    return "gnome-terminal" if check_var('DESKTOP', 'gnome') && (is_leap("<16"));
+    # Let SLE decide if they want to change to new behavior
+    return "xterm" if check_var('DESKTOP', 'gnome') && (is_sle("<16"));
+    return "kgx" if check_var('DESKTOP', 'gnome');
+    return "konsole" if check_var('DESKTOP', 'kde');
+    return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
     return "xterm";
 }
 
