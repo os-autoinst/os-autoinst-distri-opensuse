@@ -55,7 +55,6 @@ conditional_schedule:
                 - console/ntp_client
                 - console/gdb
                 - console/perf
-                - console/salt
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd
@@ -72,7 +71,6 @@ conditional_schedule:
                 - console/libqca2
                 - console/vmstat
                 - console/kdump_and_crash
-                - console/ansible
                 - console/libgit2
     opensuse_repos:
         DISTRI:
@@ -187,6 +185,8 @@ schedule:
     - '{{opensuse_repos}}'
     - '{{leap_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/ansible
+    - console/salt
     - console/journalctl
     - console/tar
     - console/coredump_collect
