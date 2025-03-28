@@ -33,7 +33,7 @@ sub run {
 
     # 1. System setup
 
-    if (is_sle("<15.7")) {
+    if (is_sle('<15-SP7')) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
