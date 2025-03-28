@@ -1016,5 +1016,5 @@ Check if agama installation is being used
 =cut
 
 sub is_agama {
-    return (get_var('AGAMA') || get_var('AGAMA_AUTO'));
+    return (get_var('AGAMA') || get_var('INST_AUTO'));
 }

@@ -892,13 +892,13 @@ sub specific_bootmenu_params {
         push @params, "autoupgrade=1";
     }
 
-    if (my $agama_auto = get_var('AGAMA_AUTO')) {
+    if (my $agama_auto = get_var('INST_AUTO')) {
         my $url = autoyast::expand_agama_profile($agama_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
         push @params, "inst.auto=$url inst.finish=stop";
     }
 
-    if (my $agama_install_url = get_var('AGAMA_INSTALL_URL')) {
+    if (my $agama_install_url = get_var('INST_INSTALL_URL')) {
         if (get_var('SPLIT_REPODATA')) {
             $agama_install_url .= "/\\\$basearch";
         }

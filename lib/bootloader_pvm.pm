@@ -191,7 +191,7 @@ sub prepare_pvm_installation {
     }
 
     # For Agama unattended tests, disks will be formatted by default
-    if (!is_upgrade && !get_var('KEEP_DISKS') && !get_var('AGAMA_AUTO')) {
+    if (!is_upgrade && !get_var('KEEP_DISKS') && !get_var('INST_AUTO')) {
         prepare_disks;
     }
 
