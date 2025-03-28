@@ -36,7 +36,8 @@ sub set_svirt_domain_elements {
             $cmdline .= " root=live:http://" . get_var('OPENQA_HOSTNAME') .
               ((get_var('FLAVOR') eq "Full") ?
                   "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
-                  "/assets/iso/" . get_required_var('ISO') . " live.password=$testapi::password");
+                  "/assets/iso/" . get_required_var('ISO'));
+            $cmdline .= " live.password=$testapi::password";
         } else {
             $cmdline .= "install=$repo";
             $cmdline .= remote_install_bootmenu_params;
