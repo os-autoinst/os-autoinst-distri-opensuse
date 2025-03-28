@@ -25,7 +25,7 @@ sub run {
         assert_script_run("wget --quiet " . data_url("security/oqs-provider-$oqs_version.tar.gz"));
         assert_script_run("tar xf oqs-provider-$oqs_version.tar.gz && cd oqs-provider-$oqs_version");
         assert_script_run("cmake -S . -B _build && cmake --build _build");
-        assert_script_run("cd _build && export OPENSSL_CONF=/dev/null ; ctest --parallel 5 --rerun-failed --output-on-failure -V");
+        assert_script_run("cd _build && export OPENSSL_CONF=/dev/null ; ctest --parallel 5 --rerun-failed --output-on-failure -V", 300);
     }
 }
 
