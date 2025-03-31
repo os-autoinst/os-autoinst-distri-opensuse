@@ -1817,7 +1817,7 @@ sub config_guest_installation_method {
 
     $self->config_guest_installation_media;
     my $_guest_installation_media = render_autoinst_url(url => $self->{guest_installation_media});
-    if (script_output("curl --silent -I $_guest_installation_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+    if ($_guest_installation_media =~ /^http\:\/\//im and script_output("curl --silent -I $_guest_installation_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
         record_info("Installation media $_guest_installation_media does not exist", script_output("curl -I $_guest_installation_media", proceed_on_failure => 1), result => 'fail');
         $self->record_guest_installation_result('FAILED');
     }
