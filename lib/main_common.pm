@@ -440,7 +440,11 @@ sub load_reboot_tests {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             # exclude this scenario for autoyast test with switched keyboard layaout. also exclude on ipmi as installation/first_boot will call wait_grub
-            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
+            if (is_bootloader_grub2) {
+                loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
+            } else {
+                loadtest "installation/disk_boot";
+            }
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
