@@ -62,7 +62,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils jq openssl podman skopeo);
+    my @pkgs = qw(apache2-utils fakeroot jq openssl podman squashfs skopeo);
     install_packages(@pkgs);
 
     $self->bats_setup;
