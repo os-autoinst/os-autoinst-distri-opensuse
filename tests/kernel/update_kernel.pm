@@ -297,7 +297,7 @@ sub prepare_kgraft {
     install_lock_kernel($kernel_version, $src_version);
     zypper_call("mr -d kgraft-test-repo-0") if get_var('FLAVOR') =~ /-Updates-Staging/;
 
-    install_klp_product;
+    install_klp_product($kernel_version);
 
     if (check_var('REMOVE_KGRAFT', '1') && @all_pkgs) {
         my $pversion = join(' ', map { $$_{name} } @all_pkgs);
