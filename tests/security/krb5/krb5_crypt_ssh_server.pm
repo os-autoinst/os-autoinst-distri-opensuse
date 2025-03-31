@@ -1,4 +1,4 @@
-# Copyright 2019 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test ssh with krb5 authentication - server
@@ -20,9 +20,11 @@ sub run {
     assert_script_run "kadmin -p $adm -w $pass_a -q 'addprinc -pw $pass_t $tst'";
     assert_script_run "useradd -m $tst";
 
+    my $sshd_config_file = "/usr/etc/ssh/sshd_config";
+
     # Config sshd
     foreach my $i ('GSSAPIAuthentication', 'GSSAPICleanupCredentials') {
-        assert_script_run "sed -i 's/^#$i .*\$/$i yes/' /etc/ssh/sshd_config";
+        assert_script_run "sed -i 's/^#$i.*\$/$i yes/' $sshd_config_file";
     }
     systemctl("restart sshd");
 
