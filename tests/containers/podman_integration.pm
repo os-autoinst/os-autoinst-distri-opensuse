@@ -39,6 +39,7 @@ sub run_tests {
         BATS_TMPDIR => $tmp_dir,
         PODMAN => "/usr/bin/podman",
         QUADLET => $quadlet,
+        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
