@@ -21,7 +21,7 @@
       {
         name: 'enable root login',
         chroot: true,
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
         |||,

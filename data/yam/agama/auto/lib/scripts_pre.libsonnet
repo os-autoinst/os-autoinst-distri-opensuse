@@ -1,7 +1,7 @@
 {
   activate_multipath: {
     name: 'activate multipath',
-    body: |||
+    content: |||
       #!/bin/bash
       if ! systemctl status multpathd ; then
         echo 'Activating multipath'
@@ -12,7 +12,7 @@
   },
   wipe_filesystem: {
     name: 'wipefs',
-    body: |||
+    content: |||
       #!/usr/bin/env bash
       for i in `lsblk -n -l -o NAME -d -e 7,11,254`
           do wipefs -af /dev/$i
