@@ -25,8 +25,34 @@ use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
 
-sub post_fail_hook {
-    Yam::Agama::agama_base::upload_agama_logs();
+sub prepare_boot_params {
+    my @params = ();
+
+    # add mandatory boot params
+    push @params, 'console=tty' . (is_x86_64 ? 'S0' : 'AMA0'), 'console=tty';
+    push @params, 'kernel.softlockup_panic=1';
+    push @params, "live.password=$testapi::password";
+
+    # override default boot params
+    if (get_var('BOOTPARAMS')) {
+        push @params, split ' ', trim(get_var('BOOTPARAMS'));
+        return @params;
+    }
+
+    # add default boot params
+    if (my $agama_auto = get_var('INST_AUTO')) {
+        my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
+          generate_json_profile() :
+          expand_agama_profile($agama_auto);
+        set_var('INST_AUTO', $profile_url);
+        push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
+    }
+    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') eq 'Online';
+
+    # add extra boot params along with the default ones
+    push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
+
+    return @params;
 }
 
 sub run {
@@ -53,22 +79,19 @@ sub run {
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
     my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
 
-    # prepare kernel parameters
-    if (my $agama_auto = get_var('INST_AUTO')) {
-        my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
-          generate_json_profile() :
-          expand_agama_profile($agama_auto);
-        set_var('INST_AUTO', $profile_url);
-        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . " inst.auto=\"$profile_url\"");
-    }
-    my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
+    my @params = prepare_boot_params();
 
     $grub_menu->expect_is_shown();
+    $grub_menu->select_check_installation_medium_entry() if get_var('AGAMA_GRUB_CHECK_MEDIUM');
     $grub_menu->edit_current_entry();
     $grub_entry_edition->move_cursor_to_end_of_kernel_line();
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
     $agama_up_an_running->expect_is_shown();
+}
+
+sub post_fail_hook {
+    Yam::Agama::agama_base::upload_agama_logs();
 }
 
 1;
