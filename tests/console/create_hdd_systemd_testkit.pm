@@ -13,6 +13,7 @@ use File::Basename;
 use Mojo::JSON qw(encode_json);
 use base "consoletest";
 use testapi;
+use version_utils qw(is_sle);
 use serial_terminal 'select_serial_terminal';
 use utils;
 
@@ -24,6 +25,7 @@ sub run {
     assert_script_run("mkdir -p  $testdir");
     assert_script_run("wget --no-check-certificate $systemd_suse_url -O $testdir" . basename($systemd_suse_url));
     assert_script_run("ls -l $testdir");
+    zypper_call 'in polkit' if (is_sle('>=16'));
 }
 
 1;
