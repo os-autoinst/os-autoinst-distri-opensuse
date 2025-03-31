@@ -27,11 +27,14 @@ sub run_tests {
     my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
     selinux_hack $tmp_dir;
 
+    my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
+    record_info("storage driver", $storage_driver);
+
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
         BUILDAH_RUNTIME => $oci_runtime,
         CI_DESIRED_RUNTIME => $oci_runtime,
-        STORAGE_DRIVER => "overlay",
+        STORAGE_DRIVER => $storage_driver,
         BATS_TMPDIR => $tmp_dir,
         TMPDIR => $tmp_dir,
     );
