@@ -191,7 +191,11 @@ sub cleanup {
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
 
-    if ($self->{run_args}->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
+    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
+        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
+    }
+
+    if (script_run("test -f $root_dir/log_instance.sh") == 0) {
         script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance}));
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
