@@ -58,7 +58,8 @@
       <boot_root>true</boot_root>
       <generic_mbr>false</generic_mbr>
       % } elsif ($check_var->('ARCH', 'ppc64le')) {
-      <append>showopts plymouth.ignore-serial-consoles console=hvc0 console=tty mitigations=auto crashkernel=201M</append>
+      <!-- *disable_ddw=1 is a workaround for https://bugzilla.suse.com/show_bug.cgi?id=1239691#c34 -->
+      <append>showopts plymouth.ignore-serial-consoles console=hvc0 console=tty mitigations=auto crashkernel=201M disable_ddw=1</append>
       <boot_boot>false</boot_boot>
       % } else {
       <append>splash=verbose</append>
