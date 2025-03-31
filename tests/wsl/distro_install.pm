@@ -53,13 +53,11 @@ sub run {
     my $install_from = get_required_var('WSL_INSTALL_FROM');
     if ($install_from eq 'build') {
         my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
-        my $wsl_appx_uri = "\\\\10.0.2.4\\qemu\\$wsl_appx_filename";
+        my $wsl_appx_uri = data_url('ASSET_1');
         # Enable the 'developer mode' in Windows
         $self->run_in_powershell(
             cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
         );
-        # On Win 11 for Arm Build 25931, smb transfers don't work (poo#126083)
-        $wsl_appx_uri = data_url('ASSET_1') if is_aarch64;
         $self->run_in_powershell(
             cmd => "Start-BitsTransfer -Source $wsl_appx_uri -Destination C:\\\\$wsl_appx_filename",
             timeout => 60
