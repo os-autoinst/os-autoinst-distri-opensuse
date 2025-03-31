@@ -17,7 +17,7 @@
     pre: [
       {
         name: 'activate multipath',
-        body: |||
+        content: |||
           #!/bin/bash
           if ! systemctl status multpathd ; then
             echo 'Activating multipath'

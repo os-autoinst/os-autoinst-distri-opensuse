@@ -6,7 +6,7 @@
     pre: [
       {
         name: 'wipefs',
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           for i in `lsblk -n -l -o NAME -d -e 7,11,254`
               do wipefs -af /dev/$i
@@ -20,7 +20,7 @@
       {
         name: 'enable root login',
         chroot: true,
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
         |||
