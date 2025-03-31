@@ -28,7 +28,7 @@ sub run {
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in sudo nscd");
+    zypper_call("in sudo nscd") unless is_tumbleweed;
 
     my $docker = "podman";
     if (is_sle) {
@@ -106,7 +106,7 @@ sub run {
     assert_script_run("install --mode 0600 -D ./sssd.conf /etc/sssd/sssd.conf");
     assert_script_run("install --mode 0600 -D ./config ~/.ssh/config");
 
-    systemctl("disable --now nscd.service");
+    systemctl("disable --now nscd.service") unless is_tumbleweed;
     systemctl("enable --now sssd.service");
 
     #execute test cases
