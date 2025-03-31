@@ -141,7 +141,7 @@ sub run {
     systemctl("stop $unit_name-network.service");
     systemctl("stop $unit_name-build.service") if ($has_build);
     for my $unit (@units) {
-        systemctl("is-active $unit", expect_false => 1);
+        script_retry("! systemctl --no-pager is-active $unit", retry => 10, delay => 30, timeout => 300);
     }
 }
 
