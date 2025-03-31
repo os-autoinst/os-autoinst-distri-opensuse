@@ -22,6 +22,7 @@ our @EXPORT = qw(
 );
 
 sub install_klp_product {
+    my $kver = shift;
     my $arch = get_required_var('ARCH');
     my $version = get_required_var('VERSION');
     my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
@@ -60,6 +61,7 @@ sub install_klp_product {
             $livepatch_pack = 'kernel-rt-livepatch';
         }
 
+        $livepatch_pack .= "-$kver" if defined($kver);
         assert_script_run 'cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf.orig';
         assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
         assert_script_run 'sed -i "/^multiversion\.kernels =.*/c\\multiversion.kernels = latest" /etc/zypp/zypp.conf';
