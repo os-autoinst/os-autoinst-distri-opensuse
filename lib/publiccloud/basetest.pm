@@ -164,13 +164,10 @@ sub _upload_logs {
     my ($self) = @_;
     my $ssh_sut_log = '/var/tmp/ssh_sut.log';
 
-    if ($self->{run_args}) {
-        diag('Public Cloud _upload_logs: $self->{run_args}=' . $self->{run_args});
-        return;
-    }
-    if ($self->{run_args}->{my_instance}) {
-        diag('Public Cloud _upload_logs: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance});
-        return;
+    diag('Public Cloud _upload_logs: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
+    diag('Public Cloud _upload_logs: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args}->{my_instance});
+    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
+        die('Public Cloud _upload_logs: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
     }
 
     script_run("sudo chmod a+r " . $ssh_sut_log);
