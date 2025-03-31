@@ -31,6 +31,7 @@ sub run_tests {
         BATS_TMPDIR => $tmp_dir,
         RUNC_USE_SYSTEMD => "1",
         RUNC => "/usr/bin/runc",
+        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 

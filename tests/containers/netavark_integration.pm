@@ -25,12 +25,13 @@ sub run_tests {
     my %_env = (
         NETAVARK => $netavark,
         BATS_TMPDIR => $tmp_dir,
+        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "netavark.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env $env PATH=/usr/local/bin:\$PATH bats --tap test | tee -a $log_file", 1200;
+    my $ret = script_run "env $env bats --tap test | tee -a $log_file", 1200;
 
     my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
 
