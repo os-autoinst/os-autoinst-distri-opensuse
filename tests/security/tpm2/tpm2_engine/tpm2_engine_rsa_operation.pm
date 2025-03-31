@@ -13,6 +13,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
@@ -28,8 +29,9 @@ sub run {
     assert_script_run "echo tpm2test > $test_file";
     assert_script_run "tpm2tss-genkey -a rsa -s 2048 $rsa_key";
     assert_script_run "openssl rsa -engine tpm2tss -inform engine -in $rsa_key -pubout -outform pem -out $rsa_key.pub";
-    assert_script_run "openssl pkeyutl -pubin -inkey $rsa_key.pub -in $test_file -encrypt -out $enc_file";
-    assert_script_run "openssl pkeyutl -engine tpm2tss -keyform engine -inkey $rsa_key -decrypt -in $enc_file -out $test_file.decrypt";
+    my $oaep_option = is_sle('>=15-SP6') ? "-pkeyopt rsa_padding_mode:oaep" : "";
+    assert_script_run "openssl pkeyutl $oaep_option -pubin -inkey $rsa_key.pub -in $test_file -encrypt -out $enc_file";
+    assert_script_run "openssl pkeyutl $oaep_option -engine tpm2tss -keyform engine -inkey $rsa_key -decrypt -in $enc_file -out $test_file.decrypt";
     assert_script_run "diff $test_file $test_file.decrypt";
     assert_script_run "cd";
 

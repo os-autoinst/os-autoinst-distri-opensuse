@@ -18,6 +18,12 @@ use version_utils 'is_sle';
 sub run {
     select_serial_terminal;
 
+    # only skip if FIPS is enabled
+    if (check_var('FIPS_ENABLED', '1')) {
+        record_info('SKIPPING TEST', "ECDSA is not supported in FIPS mode.");
+        return;
+    }
+
     # ECDSA operations
     # There is an known issue bsc#1159508
     # Please use the command below to carry out the tests
