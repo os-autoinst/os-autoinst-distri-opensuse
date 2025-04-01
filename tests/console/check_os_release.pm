@@ -41,7 +41,7 @@ sub run {
         $checker{PRETTY_NAME} =~ s/Server/Desktop/ if is_desktop;
         $checker{PRETTY_NAME} =~ s/Server/Real Time/ if is_rt;
         $checker{PRETTY_NAME} =~ s/Server/High Performance Computing/ if is_hpc;
-        $checker{ID} = lc($checker{NAME});
+        $checker{ID} = is_sle('<16.0') ? lc($checker{NAME}) : 'sles';
         $checker{CPE_NAME} = is_sle('<16.0') ? "cpe:/o:suse:$product:$checker{VERSION}" : "cpe:/o:suse:$product:16:$checker{VERSION}";
 
         $checker{CPE_NAME} =~ s/\-SP/:sp/;
