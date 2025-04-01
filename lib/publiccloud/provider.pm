@@ -758,6 +758,7 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy();
     assert_script_run "cd";
+    return 1;
 }
 
 =head2 stop_instance
