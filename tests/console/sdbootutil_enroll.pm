@@ -16,6 +16,7 @@ sub run {
     select_console 'root-console';
     zypper_call('in expect');
     assert_script_run("expect -c 'spawn sdbootutil enroll --method tpm2; expect \"Password for /dev/.*:\";send $testapi::password\\n;interact'");
+    set_var("RUNTIME_TPM_ENROLLED", 1);
 }
 
 1;
