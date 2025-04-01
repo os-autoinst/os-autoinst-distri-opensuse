@@ -13,6 +13,8 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
 use utils;
 use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_hyperv);
+use version_utils qw(is_vmware);
 
 my $runtime;
 my $network = "test_isolated_network";
@@ -54,21 +56,25 @@ sub run {
     # "docker: Error response from daemon: SUSE:secrets :: failed to read through tar reader: unexpected EOF."
     script_run "echo 0 > /etc/docker/suse-secrets-enable";
 
+    my @ip_versions = (4);
+    push @ip_versions, 6 unless (is_hyperv || is_vmware);
+
     my %ip_addr;
-    for my $ip_version (4, 6) {
+    for my $ip_version (@ip_versions) {
         my $iface = script_output "ip -$ip_version --json route list match default | jq -Mr '.[0].dev'";
         $ip_addr{$ip_version} = script_output "ip -$ip_version --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
     }
 
     my $ipv6_opts = ($args->{runtime} eq "docker") ? "--subnet 2001:db8::/64" : "";
     assert_script_run "$runtime network create --ipv6 $ipv6_opts --internal $network";
-    for my $ip_version (4, 6) {
+    for my $ip_version (@ip_versions) {
         record_info("Test IPv$ip_version");
         test_ip_version $ip_version, $ip_addr{$ip_version};
     }
     assert_script_run "$runtime network rm $network";
 
-    return if check_var("VIRSH_VMM_FAMILY", "xen");
+    # The user terminal doesn't work on these virtualization engines
+    return if (check_var("VIRSH_VMM_FAMILY", "xen") || is_hyperv || is_vmware);
     select_user_serial_terminal;
 
     # https://docs.docker.com/engine/security/rootless/
@@ -78,7 +84,7 @@ sub run {
     }
 
     assert_script_run "$runtime network create --ipv6 $ipv6_opts --internal $network";
-    for my $ip_version (4, 6) {
+    for my $ip_version (@ip_versions) {
         record_info("Test IPv$ip_version rootless");
         test_ip_version $ip_version, $ip_addr{$ip_version};
     }
@@ -90,7 +96,7 @@ sub run {
 1;
 
 sub cleanup() {
-    unless (check_var("VIRSH_VMM_FAMILY", "xen")) {
+    unless (check_var("VIRSH_VMM_FAMILY", "xen") || is_hyperv || is_vmware) {
         select_user_serial_terminal;
         script_run "$runtime network rm $network";
         $runtime->cleanup_system_host();
