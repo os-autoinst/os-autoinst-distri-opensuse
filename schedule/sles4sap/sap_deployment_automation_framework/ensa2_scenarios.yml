@@ -1,0 +1,22 @@
+---
+name: sap_deployment_automation_framework
+description: |
+  ENSA2 Central Services with HANA DB - Use sapcontrol to move ASCS
+  test scenario executed on deployment created by 'SAP Deployment automation framework'.
+  Test variant connects to SUT directly through ssh proxy jump, which allows direct use of OpenQA API calls.
+  This should allow to use standard sles4sap/HA libraries.
+vars:
+  TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/sap_deployment_automation_framework/connect_to_deployer
+  - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
+  - sles4sap/redirection_tests/redirection_check
+  - '{{hana_cluster_check}}'
+  - sles4sap/redirection_tests/ensa2_hanadb_sapcontrol_move_ascs
+  - sles4sap/sap_deployment_automation_framework/cleanup
+conditional_schedule:
+  hana_cluster_check:
+    HANA_CLUSTER_CHECK:
+      1:
+        - sles4sap/redirection_tests/hana_cluster_check

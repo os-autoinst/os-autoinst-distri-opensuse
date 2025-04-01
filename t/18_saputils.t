@@ -4,10 +4,12 @@ use Test::More;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
+use Test::Mock::Time;
 use Data::Dumper;
 use List::Util qw(any);
 use testapi;
 use saputils;
+use hacluster;
 
 subtest '[calculate_hana_topology] invalid output' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
@@ -363,6 +365,27 @@ subtest '[get_failover_node] starting and failed' => sub {
         }
     };
     is get_failover_node(topology_data => $mock_input), 'vmhana02', 'Return correct primary node name';
+};
+
+subtest '[execute_failover] Execute sapcontrol failover' => sub {
+    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
+    my $ret = 0;
+    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $saputils->redefine(get_required_var => sub { return 'QES'; });
+    $saputils->redefine(sap_show_status_info => sub { return; });
+    $saputils->redefine(crm_check_resource_location => sub { return; });
+
+    $saputils->redefine(sapcontrol => sub { return 'SUCCESS'; });
+    $ret = execute_failover(instance_id => '01', instance_user => 'azureadm', instance_type => 'ASCS', wait_for_target => 'hostname');
+    ok(($ret == 0), 'failover passed');
+
+    $saputils->redefine(sapcontrol => sub { return 'ERROR'; });
+    $ret = execute_failover(instance_id => '01', instance_user => 'azureadm', instance_type => 'ASCS', wait_for_target => 'hostname');
+    ok(($ret != 0), 'failover ERROR');
+
+    $saputils->redefine(sapcontrol => sub { return 'FAIL'; });
+    $ret = execute_failover(instance_id => '01', instance_user => 'azureadm', instance_type => 'ASCS', wait_for_target => 'hostname');
+    ok(($ret != 0), 'failover FAIL');
 };
 
 done_testing;

@@ -16,13 +16,17 @@ use testapi;
 use List::MoreUtils qw(uniq);
 use Mojo::JSON qw(encode_json decode_json);
 use Carp qw(croak);
+use sles4sap::sapcontrol qw(sapcontrol sap_show_status_info);
+use hacluster qw (crm_check_resource_location);
 
 our @EXPORT = qw(
   calculate_hana_topology
   check_hana_topology
   check_crm_output
+  execute_failover
   get_primary_node
   get_failover_node
+  webmethod_checks
 );
 
 =head1 SYNOPSIS
@@ -317,6 +321,46 @@ sub get_failover_node {
             return $topology->{Host}->{$host}->{vhost} if ($topology->{Host}->{$host}->{site} eq $site && grep /$topology->{Site}->{$site}->{srPoll}/, ('SOK', 'SFAIL'));
         }
     }
+}
+
+sub webmethod_checks {
+    my ($instance_id, $sidadm) = @_;
+    my $outputs;
+    my $looptime = 300;
+
+    # General status will help with troubleshooting
+    sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
+    record_info('ENSA check', "Executing 'HACheckConfig' and 'HACheckFailoverConfig'");
+    while ($outputs = sapcontrol(webmethod => 'HACheckConfig', instance_id => $instance_id, sidadm => $sidadm, return_output => 1)) {
+        last unless ($outputs =~ /ERROR|FAIL/);
+        record_info("ERROR found in HACheckConfig: $outputs", "sleep 30s and try again");
+        sleep 30;
+        $looptime -= 30;
+        last if ($looptime <= 0);
+    }
+    sapcontrol(webmethod => 'HACheckFailoverConfig', instance_id => $instance_id, sidadm => $sidadm);
+    if ($looptime <= 0) {
+        return 1;
+    }
+    return 0;
+}
+
+sub execute_failover {
+    my (%args) = @_;
+    my $instance_id = $args{instance_id};
+    my $instance_type = $args{instance_type};
+    my $instance_user = $args{instance_user};
+    my $wait_for_target = $args{wait_for_target};
+
+    # Execute web method checks
+    my $ret = webmethod_checks($instance_id, $instance_user);
+    sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, additional_args => "\"\"");
+
+    # Wait for failover to finish and check resource locations
+    record_info('Fail wait', 'Waiting for failover to complete');
+    my $sid = get_required_var('SAP_SID');
+    crm_check_resource_location(resource => "g-${sid}_${instance_type}", wait_for_target => $wait_for_target, timeout => 360);
+    return $ret;
 }
 
 1;
