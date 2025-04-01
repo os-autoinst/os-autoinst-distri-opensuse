@@ -142,6 +142,14 @@ sub basic_container_tests {
     assert_script_run("$runtime container rm basic_test_container");
     validate_script_output("$runtime container ls --all", sub { $_ !~ m/basic_test_container/ });
 
+    # Check for https://bugzilla.suse.com/show_bug.cgi?id=1239088
+    if (!get_var("OCI_RUNTIME")) {
+        # Default OCI runtime should be runc on all products, SUSE & openSUSE
+        my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
+        my $runtime = script_output("$runtime info -f '$template'");
+        die "Invalid default OCI runtime: $runtime" if ($runtime ne "runc");
+    }
+
     ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
 }
 
