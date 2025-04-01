@@ -147,7 +147,11 @@ sub basic_container_tests {
         # Default OCI runtime should be runc on all products, SUSE & openSUSE
         my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
         my $runtime = script_output("$runtime info -f '$template'");
-        die "Invalid default OCI runtime: $runtime" if ($runtime ne "runc");
+        if (is_sle_micro('>=6.0')) {
+            record_soft_failure('bsc#1239088 - podman 5.2 uses crun instead of runc');
+        } else {
+            die "Invalid default OCI runtime: $runtime" if ($runtime ne "runc");
+        }
     }
 
     ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
