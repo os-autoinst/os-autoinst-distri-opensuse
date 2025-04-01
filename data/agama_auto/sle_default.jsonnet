@@ -18,7 +18,7 @@
       {
         name: 'enable sshd',
         chroot: true,
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           systemctl enable sshd
         |||
