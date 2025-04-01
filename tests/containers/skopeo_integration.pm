@@ -39,6 +39,7 @@ sub run_tests {
         BATS_TMPDIR => $tmp_dir,
         SKOPEO_BINARY => "/usr/bin/skopeo",
         SKOPEO_TEST_REGISTRY_FQIN => $registry,
+        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
@@ -62,7 +63,7 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils jq openssl podman skopeo);
+    my @pkgs = qw(apache2-utils fakeroot jq openssl podman squashfs skopeo);
     install_packages(@pkgs);
 
     $self->bats_setup;

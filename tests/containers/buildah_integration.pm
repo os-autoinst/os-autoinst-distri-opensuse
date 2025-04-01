@@ -37,6 +37,7 @@ sub run_tests {
         STORAGE_DRIVER => $storage_driver,
         BATS_TMPDIR => $tmp_dir,
         TMPDIR => $tmp_dir,
+        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
