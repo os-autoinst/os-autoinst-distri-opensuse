@@ -317,7 +317,8 @@ sub run {
     }
 
     if (get_var('QEMUTPM', '')) {
-        validate_script_output('cryptsetup status /dev/mapper/cr_root', qr/cr_root is active and is in use./);
+        my $device = (is_sle(">=16") || is_sle_micro(">=6.2")) ? "/dev/mapper/luks" : "/dev/mapper/cr_root";
+        validate_script_output("cryptsetup status $device", qr/is active and is in use./);
     }
 
     $self->result('failure') if $fail;
