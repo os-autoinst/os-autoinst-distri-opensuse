@@ -1174,6 +1174,11 @@ sub load_consoletests {
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
+
+    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && check_var("ENCRYPT", 1)) {
+        loadtest 'console/sdbootutil_enroll';
+    }
+
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 
     if (get_var('IBM_TESTS')) {
