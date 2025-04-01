@@ -57,7 +57,7 @@ sub run {
     assert_script_run 'dracut --force', 180;
 
     # Download and prepare the test environment
-    zypper_call 'in git-core';
+    zypper_call 'in git-core unzip';
     script_retry "git clone -b $branch $testkit /robot";
 
     # Install the robot framework
