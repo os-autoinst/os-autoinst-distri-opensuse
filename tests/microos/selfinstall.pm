@@ -50,7 +50,7 @@ sub run {
         eject_cd() unless $no_cd;
         microos_login;
     } elsif (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
-        wait_serial('The initial configuration takes', 180) or die "jeos-firstboot has not been reached";
+        wait_serial('The initial configuration', 180) or die "jeos-firstboot has not been reached";
         eject_cd() unless ($no_cd || is_usb_boot);
         return 1;
     } else {
