@@ -449,7 +449,8 @@ sub load_reboot_tests {
                 loadtest "installation/boot_into_snapshot";
             }
         }
-        if (get_var('ENCRYPT')) {
+        if (get_var('ENCRYPT') && is_bootloader_grub2) {
+            ## installation/disk_boot handles unlocking encrypted partitions
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
             if (is_s390x) {
