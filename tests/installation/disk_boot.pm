@@ -2,7 +2,6 @@
 #
 # Copyright 2016-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-
 # Summary: Boot from disk
 # Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
@@ -14,12 +13,6 @@ use Utils::Architectures qw(is_aarch64);
 use utils qw(is_uefi_boot);
 
 sub run {
-
-    # default timeout in grub2 is set to 10s
-    # Sometimes, machines tend to stall when trying to match grub2
-    # this leads to test failures because openQA does not assert grub2 properly
-    # KEEP_GRUB_TIMEOUT=0 will force the grub needle to match, useful when booting
-    # pre-configured images with disabled timeout. See opensusebasetest::handle_grub
     if (is_uefi_boot || is_aarch64) {
         shift->wait_boot(bootloader_time => 300);
     } else {
