@@ -31,13 +31,22 @@ sub run {
         {algo => "tgr192", len => 48},
     );
 
-    my %fips_approved = map { $_ => 1 } qw(sha256 sha512);
-    if (check_var('FIPS_ENABLED', '1')) {
-        @algo_list = grep { $fips_approved{$_->{algo}} } @algo_list;
-    }
-
     # Add kernel modules to enable some algorithms
-    my $algo_modlist = "sha256 sha512";
+    my $algo_modlist = "rmd160 wp512 tgr192";
+
+    # On newer kernel, tgr192 algorithms may be removed due to
+    # upsteam commit, then we need skip it, refer to bsc#1191521
+    my $results = script_run("zcat /proc/config.gz | grep CONFIG_CRYPTO_TGR192");
+    if ($results) {
+        for (my $i = 0; $i < scalar(@algo_list); $i++) {
+
+            splice @algo_list, $i, 1 if ($algo_list[$i]->{algo} eq 'tgr192');
+
+        }
+        $algo_modlist =~ s/ tgr192//;
+    }
+    $algo_modlist .= " sha512" if (!is_sle && !is_leap);
+
     assert_script_run "echo -e $algo_modlist | sed 's/ /\\n/g' > /etc/modules-load.d/hash.conf";
     assert_script_run "echo 'force_drivers+=\"$algo_modlist\"' >/etc/dracut.conf.d/10.hashs.conf";
     assert_script_run "dracut -f";
