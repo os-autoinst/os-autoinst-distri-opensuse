@@ -147,7 +147,7 @@ sub basic_container_tests {
         # Default OCI runtime should be runc on all products, SUSE & openSUSE
         my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
         my $runtime = script_output("$runtime info -f '$template'");
-        my $expected = is_sle_micro('>=6.1') ? "crun" : "runc";
+        my $expected = is_sle_micro('=6.1') ? "crun" : "runc";
         die "Unexpected OCI runtime: $runtime != $expected" if ($runtime ne $expected);
     }
 
