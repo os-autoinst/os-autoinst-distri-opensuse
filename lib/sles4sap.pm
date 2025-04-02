@@ -367,6 +367,7 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run 'saptune service takeover';
+        assert_script_run 'saptune revert all' if is_sle('16+');
         assert_script_run "saptune solution apply $profile";
     }
     elsif (is_sle('15+')) {
