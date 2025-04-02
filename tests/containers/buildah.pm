@@ -77,6 +77,11 @@ sub run_tests {
     assert_script_run("buildah rm $container");
     assert_script_run("buildah rmi newimage $image");
     assert_script_run("rm -f /tmp/script.sh");
+
+    if (!get_var("OCI_RUNTIME")) {
+        my $runtime = script_output("buildah info --format '{{ .host.OCIRuntime }}'");
+        die "Unexpected OCI runtime: $runtime" if ($runtime ne "runc");
+    }
 }
 
 sub run {
