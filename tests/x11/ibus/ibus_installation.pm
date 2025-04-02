@@ -18,15 +18,8 @@ use version_utils 'is_tumbleweed';
 use x11utils qw(default_gui_terminal handle_relogin);
 
 sub install_ibus {
-    x11_start_program("xterm");
-    become_root;
-    quit_packagekit;
-    wait_still_screen 1;
     my $ibus_pinyin = is_tumbleweed() ? "ibus-libpinyin" : "ibus-pinyin";
-    zypper_call("in ibus $ibus_pinyin ibus-kkc ibus-hangul");
-    assert_screen 'ibus_installed';
-    send_key 'ctrl-d';
-    send_key 'ctrl-d';
+    ensure_installed("ibus $ibus_pinyin ibus-kkc ibus-hangul");
 }
 
 sub override_i18n {
