@@ -12,7 +12,7 @@ use Utils::Architectures;
 use Utils::Backends qw(is_qemu);
 use serial_terminal 'select_serial_terminal';
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry script_output_retry wait_for_purge_kernels);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama is_vmware);
 use transactional qw(trup_call process_reboot);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -1079,7 +1079,8 @@ sub runtime_registration {
         trup_call('register' . $cmd);
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
         if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
-            process_reboot(trigger => 1);
+            my $expected_grub = !is_vmware;    # On VMware GRUB is not needed and often is missed by openQA
+            process_reboot(trigger => 1, expected_grub => $expected_grub);
             add_suseconnect_product('SL-Micro-Extras');
         }
         process_reboot(trigger => 1);
