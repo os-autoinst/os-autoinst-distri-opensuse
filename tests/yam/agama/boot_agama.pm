@@ -49,6 +49,9 @@ sub prepare_boot_params {
     }
     push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') eq 'Online';
 
+    # disk label with OEMDRV will automatically pick the profile from disk without setting inst.auto
+    push @params, 'inst.finish=stop' if (get_var('HDD_2') =~ /oemdrv/);
+
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 
