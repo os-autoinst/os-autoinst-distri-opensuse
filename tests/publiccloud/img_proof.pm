@@ -125,7 +125,11 @@ sub run {
     );
 
     # Because the IP address of instance might change during img_proof due to the hard-reboot, we need to re-add the ssh public keys
-    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+    my $ssh_dir = "~/.ssh";
+    assert_script_run("mkdir -m 700 -p $ssh_dir");
+    assert_script_run("touch $ssh_dir/known_hosts");
+
+    assert_script_run(sprintf('ssh-keyscan %s >> %s/known_hosts', $instance->public_ip, $ssh_dir));
 
     if (is_hardened) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
