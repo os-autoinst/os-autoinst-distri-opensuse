@@ -1,4 +1,4 @@
-# Copyright 2023-2024 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test Elemental container image
@@ -43,6 +43,9 @@ sub run {
     my $cnt_name = 'elemental_image';
     my $img_filename = "elemental-$build-$arch";
     my $shared = '/var/shared';
+
+    # Set SELinux in permissive mode, as there is an issue with Enforcing mode and Elemental doesn't support it
+    assert_script_run("setenforce Permissive");
 
     # Create shared directory
     assert_script_run("mkdir -p $shared");
