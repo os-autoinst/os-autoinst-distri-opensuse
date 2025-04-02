@@ -7,5 +7,5 @@ schedule:
     - yam/agama/agama_auto_without_log
     - installation/grub_test
     - installation/first_boot
-    - yam/validate/validate_product
+    - yam/validate/validate_base_product
     - yam/validate/validate_first_user
