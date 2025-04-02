@@ -23,6 +23,7 @@
       <li><a href="#get_guest_regcode">get_guest_regcode</a></li>
       <li><a href="#execute_over_ssh">execute_over_ssh</a></li>
       <li><a href="#reboot_virtual_machine">reboot_virtual_machine</a></li>
+      <li><a href="#get_guest_settings">get_guest_settings</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -81,6 +82,12 @@
 <pre><code>reboot_virtual_machine(username =&gt; $user, address =&gt; $address, domain =&gt; $domain)</code></pre>
 
 <p>Reboot virtual machine by issuing &#39;reboot&#39; over ssh and then &#39;virsh command&#39; if &#39;reboot&#39; does not succeed and virtual machine domain name is given as arguement domain which is default to argument address if it is also a domain name. Address can also takes the form of FQDN and IP as long as it is reachable over ssh. And another argument username has the default value of &#39;root&#39; if no passed in value.</p>
+
+<h2 id="get_guest_settings">get_guest_settings</h2>
+
+<pre><code>get_guest_settings(settings =&gt; &#39;list of settings&#39;, separator =&gt; &#39;string separator&#39;)</code></pre>
+
+<p>Settings for guests can be provided just only once and then it should be replicated to all guests specified by GUEST_PATTERN, GUEST_LIST or GUEST. This subroutine has two arguments, including list of names of settings and separator. Multiple settings are seperated by separator comma by default. Values of settings are retrieved from testapi get_var. Generated settings and their values are put in a hash object and returns its reference.</p>
 
 
 </body>
