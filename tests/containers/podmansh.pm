@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021-2025 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test podman login shell.
