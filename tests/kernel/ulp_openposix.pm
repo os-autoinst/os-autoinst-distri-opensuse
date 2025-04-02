@@ -16,6 +16,7 @@ use klp;
 use qam;
 use LTP::utils;
 use OpenQA::Test::RunArgs;
+use version_utils;
 
 sub parse_incident_repo {
     my $incident_id = get_required_var('INCIDENT_ID');
@@ -67,7 +68,7 @@ sub setup_ulp {
     my $packname = 'openposix-livepatches';
     my $repo_args = '';
 
-    install_klp_product;
+    install_klp_product unless is_sle('16+');
     zypper_call('in libpulp0 libpulp-tools libpulp-load-default');
 
     if (get_var('INCIDENT_REPO')) {
