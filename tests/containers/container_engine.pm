@@ -146,8 +146,8 @@ sub basic_container_tests {
     if (!get_var("OCI_RUNTIME")) {
         my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
         my $runtime = script_output("$runtime info -f '$template'");
-        # Only SLEM 6.0 & SLEM 6.1 use crun
-        my $expected = (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) ? "crun" : "runc";
+        # Only SLEM 6.0 & SLEM 6.1 use crun for podman
+        my $expected = ($runtime eq "podman" && is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) ? "crun" : "runc";
         die "Unexpected OCI runtime: $runtime != $expected" if ($runtime ne $expected);
     }
 
