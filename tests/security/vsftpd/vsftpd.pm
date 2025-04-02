@@ -45,4 +45,8 @@ sub run {
     enter_cmd('cd && clear');
 }
 
+sub test_flags {
+    return {milestone => 1, fatal => 0};
+}
+
 1;

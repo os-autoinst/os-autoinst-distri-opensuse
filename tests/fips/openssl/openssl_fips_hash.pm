@@ -73,7 +73,7 @@ sub test_flags {
     return {
         #poo160197 workaround since rollback seems not working with swTPM
         no_rollback => is_transactional ? 1 : 0,
-        fatal => 1
+        fatal => 0
     };
 }
 
