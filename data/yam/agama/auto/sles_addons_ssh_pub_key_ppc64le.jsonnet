@@ -54,4 +54,14 @@
       },
     ],
   },
+  "storage": {
+    "drives": [
+      {
+        "partitions": [
+          { "search": "*", "delete": true },
+          { "generate": "default" }
+        ]
+      }
+    ]
+  }
 }
