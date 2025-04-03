@@ -199,6 +199,7 @@ sub cleanup {
     my ($self, $args) = @_;
     $self->upload_boot_diagnostics();
     $self->SUPER::cleanup();
+    return 1;
 }
 
 sub query_metadata {

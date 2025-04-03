@@ -58,6 +58,7 @@ sub create_ssh_key {
 sub cleanup {
     my ($self) = @_;
     # Do nothing with existing instance.
+    return 1;
 }
 
 1;

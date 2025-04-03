@@ -92,6 +92,7 @@ sub init {
 
 sub cleanup {
     my ($self) = @_;
+    return 1;
 }
 
 1;

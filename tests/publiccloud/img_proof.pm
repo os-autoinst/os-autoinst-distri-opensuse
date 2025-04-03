@@ -184,6 +184,7 @@ sub cleanup {
         assert_script_run('tar -zcvf img_proof_results.tar.gz img_proof_results');
         upload_logs('img_proof_results.tar.gz', failok => 1);
     }
+    return 1;
 }
 
 1;
@@ -198,4 +199,3 @@ public cloud module.
 
 The variables DISTRI, VERSION and ARCH must correspond to the system where
 img-proof get installed in and not to the public cloud image.
-
