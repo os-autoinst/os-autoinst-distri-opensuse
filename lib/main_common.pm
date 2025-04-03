@@ -1994,7 +1994,7 @@ sub load_x11_installation {
     loadtest "console/system_prepare";
     loadtest "console/hostname" unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
-    loadtest "shutdown/grub_set_bootargs";
+    loadtest "shutdown/grub_set_bootargs" if is_bootloader_grub2;
     load_shutdown_tests;
 }
 
