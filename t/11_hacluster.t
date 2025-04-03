@@ -7,7 +7,7 @@ use Test::Mock::Time;
 use hacluster;
 use testapi;
 use Scalar::Util qw(looks_like_number);
-use List::Util qw(all any);
+use List::Util qw(all any none);
 
 my %sbd_delay_params = (
     'sbd_delay_start' => 'yes',
@@ -385,6 +385,7 @@ subtest '[check_cluster_state]' => sub {
     $hacluster->redefine(script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
+    $hacluster->redefine(script_output => sub { return '4.4.2'; });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -400,6 +401,7 @@ subtest '[check_cluster_state] assert calls normally' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
+    $hacluster->redefine(script_output => sub { return '4.4.2'; });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -413,6 +415,7 @@ subtest '[check_cluster_state] proceed_on_failure' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
+    $hacluster->redefine(script_output => sub { return '4.4.2'; });
 
     check_cluster_state(proceed_on_failure => 1);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -426,6 +429,7 @@ subtest '[check_cluster_state] migration scenario' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
+    $hacluster->redefine(script_output => sub { return '4.4.2'; });
     set_var('HDDVERSION', 'some version');
 
     check_cluster_state();
@@ -434,6 +438,21 @@ subtest '[check_cluster_state] migration scenario' => sub {
     ok((scalar(grep { /^script_run$/ } @calls)) == 1, 'One call with script_run');
     ok((scalar(grep { /assert_script_run/ } @calls) == (scalar(@calls) - 1)), 'Remaining calls with assert_script_run');
     set_var('HDDVERSION', undef);
+};
+
+subtest '[check_cluster_state] old crmsh' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_run => sub { push @calls, $_[0]; });
+    $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
+    $hacluster->redefine(script_output => sub { return '3.6.0'; });
+
+    check_cluster_state();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /crm_mon -s/ } @calls), 'crm_mon -s used');
+    ok((none { /check_online_nodes/ } @calls), 'check_online_nodes not called');
 };
 
 subtest '[wait_for_idle_cluster] with ClusterTools2' => sub {

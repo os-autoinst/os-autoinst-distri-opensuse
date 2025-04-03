@@ -11,7 +11,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle package_version_cmp);
 use Scalar::Util qw(looks_like_number);
 use utils;
 use testapi;
@@ -758,7 +758,15 @@ sub check_cluster_state {
     }
     $cmd->('crm_mon -1 | grep \'partition with quorum\'');
 
-    check_online_nodes(%args);
+    # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
+    # Fall back to the older method of checking Online vs. Configured nodes
+    my $cmp_result = package_version_cmp(script_output(q|rpm -q --qf '%{VERSION}\n' crmsh|), '4.4.2');
+    if ($cmp_result < 0) {
+        $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
+    }
+    else {
+        check_online_nodes(%args);
+    }
 
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
@@ -782,6 +790,8 @@ configured nodes is different than the number of online nodes, or if it fails to
 any of these numbers.
 
 This function is not exported and it's used only by C<check_cluster_state>.
+
+This function requires crmsh-4.4.2 or newer.
 
 =cut
 
@@ -901,7 +911,7 @@ sub wait_until_resources_started {
 
 Use C<cs_wait_for_idle> to wait until the cluster is idle before continuing the tests.
 Supply a timeout with the named argument B<timeout> (defaults to 120 seconds). This
-timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Croaks on
+timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Dies on
 timeout.
 
 =cut
@@ -909,12 +919,19 @@ timeout.
 sub wait_for_idle_cluster {
     my %args = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $interval = 5;
     my $outoftime = time() + $timeout;    # Current time plus timeout == time at which timeout will be reached
-    return if script_run 'rpm -q ClusterTools2';    # cs_wait_for_idle only present if ClusterTools2 is installed
+    my $chk_cmd = 'cs_wait_for_idle --sleep 5';
+    if (script_run 'rpm -q ClusterTools2') {
+        # cs_wait_for_idle only present if ClusterTools2 is installed.
+        # If not installed, check with crmadmin and wait longer between checks
+        $chk_cmd = q@crmadmin -q -S $(crmadmin -Dq | sed 's/designated controller is: //i')@;
+        $interval = 30;
+    }
     while (1) {
-        my $out = script_output 'cs_wait_for_idle --sleep 5', $timeout;
-        last if ($out =~ /Cluster state: S_IDLE/);
-        sleep 5;
+        my $out = script_output $chk_cmd, $timeout, proceed_on_failure => 1;
+        last if ($out =~ /S_IDLE/);
+        sleep $interval;
         die "Cluster was not idle for $timeout seconds" if (time() >= $outoftime);
     }
 }
