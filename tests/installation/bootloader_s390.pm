@@ -293,12 +293,15 @@ sub format_dasd {
         die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
     }
 
-    # bring DASD down again to test the activation during the installation
-    if (script_run("timeout --preserve-status 20 bash -x /sbin/dasd_configure $dasd_path 0") != 0) {
-        record_soft_failure('bsc#1151436');
-        script_run('dasd_reload');
-        assert_script_run('dmesg');
-        assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
+    # until Agama get better UI for DASD, activation will be done via parmfile (bsc#1238891#c9)
+    unless (is_agama) {
+        # bring DASD down again to test the activation during the installation
+        if (script_run("timeout --preserve-status 20 bash -x /sbin/dasd_configure $dasd_path 0") != 0) {
+            record_soft_failure('bsc#1151436');
+            script_run('dasd_reload');
+            assert_script_run('dmesg');
+            assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
+        }
     }
 }
 
