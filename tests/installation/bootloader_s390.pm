@@ -90,10 +90,16 @@ sub prepare_parmfile {
     }
     else {
         if (get_var('AGAMA')) {
-            $params .= " root=live:ftp://" . get_var('REPO_HOST', 'openqa') . '/' .
+            my $url = "ftp://" . get_var('REPO_HOST', 'openqa') . '/' .
               ((get_var('FLAVOR') eq "Full") ?
                   get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
                   get_var('REPO_999'));
+            my $root_line = " root=live:" . $url;
+
+            if (length($root_line) > 72) { # 72 is the max allowed chars per line in s390x-zVM
+                $root_line = " root=live:" . shorten_url($url);
+            }
+            $params .= $root_line;
         }
         else {
             $params .= " install=" . $instsrc . $repo . " ";
