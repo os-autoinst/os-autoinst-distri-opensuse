@@ -61,7 +61,7 @@ vars:
   # LVM locking daemon used since SLE 15
   USE_LVMLOCKD: '1'
   USE_SUPPORT_SERVER: '1'
-  VIRTIO_CONSOLE: '0'
+  VIRTIO_CONSOLE: '1'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-HA-BV.qcow2
 schedule:

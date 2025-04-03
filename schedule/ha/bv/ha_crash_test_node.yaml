@@ -23,7 +23,7 @@ vars:
   BOOT_HDD_IMAGE: '1'
   USE_SUPPORT_SERVER: '1'
   HDD_SCC_REGISTERED: '1'
-  VIRTIO_CONSOLE: '0'
+  VIRTIO_CONSOLE: '1'
   HA_CLUSTER: '1'
   QEMU_DISABLE_SNAPSHOTS: '1'
   # Below setting must be defined in the openQA UI because macros for %VERSION%,
