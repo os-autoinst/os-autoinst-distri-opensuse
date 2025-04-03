@@ -799,7 +799,7 @@
             "sle-micro": ["6.2"],
             "sle":  ["16.0"]
         },
-        "type": "bug"
+        "type": "ignore"
     },
     "vmware-RETBleed": {
         "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!",
@@ -829,13 +829,6 @@
         "description": "pam_lastlog2\\(sshd:session\\).*database is locked|fatal: mm_request_receive: read: Connection reset by peer",
         "products": {
             "sle-micro": ["6.0", "6.1", "6.2"]
-        },
-        "type": "ignore"
-    },
-    "dbus-broker-launch": {
-        "description": "broker-launch.*: Activation request for 'org.freedesktop.nm_dispatcher' failed",
-        "products": {
-            "sle-micro": ["6.2"]
         },
         "type": "ignore"
     },
