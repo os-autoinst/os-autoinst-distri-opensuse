@@ -22,6 +22,8 @@ sub handle_diskless_sbd_scenario_cluster_node {
     if (get_var('USE_DISKLESS_SBD') && !check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
         barrier_wait("DISKLESS_SBD_QDEVICE_$cluster_name");
         assert_script_run 'crm cluster restart';
+        wait_until_resources_started;
+        wait_for_idle_cluster;
     }
 }
 
@@ -69,6 +71,10 @@ sub qdevice_status {
 sub run {
     my $cluster_name = get_cluster_name;
     my $qdevice_check = "/etc/corosync/qdevice/check_master.sh";
+
+    # As this module causes a fence operation, we need to prepare the console for assert_screen
+    # on grub2 and bootmenu
+    prepare_console_for_fencing;
 
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
         zypper_call 'in corosync-qnetd';
