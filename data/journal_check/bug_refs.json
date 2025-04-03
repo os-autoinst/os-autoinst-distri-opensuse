@@ -832,6 +832,13 @@
         },
         "type": "ignore"
     },
+    "dbus-broker-launch": {
+        "description": "broker-launch.*: Activation request for 'org.freedesktop.nm_dispatcher' failed",
+        "products": {
+            "sle-micro": ["6.2"]
+        },
+        "type": "ignore"
+    },
     "boo#1229935": {
         "description": "sshd-session.*(error|fatal).*(mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe|mm_request_receive: read: Connection reset by peer)",
         "products": {
