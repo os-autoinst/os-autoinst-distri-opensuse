@@ -67,6 +67,7 @@ sub run {
     $instance_id = $instance_id_remote;
     # Wait for failover to finish and check resource locations
     record_info('Fail wait', 'Waiting for failover to complete');
+    wait_for_idle_cluster;
     crm_check_resource_location(resource => "grp_$sap_sid\_$instance_type$instance_id", wait_for_target => $physical_hostname);
     barrier_wait('ENSA_FAILOVER_DONE');    # sync nodes
 
