@@ -80,9 +80,7 @@ sub add_user {
         type_string $newUser;
     }
     assert_and_click "set-password-option";
-    if (!check_screen('adduser-password-window')) {
-        assert_and_click "adduser-next";
-    }
+    assert_screen 'adduser-password-window';
     assert_and_click "set-newuser-password";
     type_string $pwd4newUser;
     assert_and_click "confirm-newuser-password";
