@@ -862,7 +862,7 @@ sub wait_until_resources_started {
 
 Use C<cs_wait_for_idle> to wait until the cluster is idle before continuing the tests.
 Supply a timeout with the named argument B<timeout> (defaults to 120 seconds). This
-timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Croaks on
+timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Dies on
 timeout.
 
 =cut
@@ -870,12 +870,19 @@ timeout.
 sub wait_for_idle_cluster {
     my %args = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $interval = 5;
     my $outoftime = time() + $timeout;    # Current time plus timeout == time at which timeout will be reached
-    return if script_run 'rpm -q ClusterTools2';    # cs_wait_for_idle only present if ClusterTools2 is installed
+    my $chk_cmd = 'cs_wait_for_idle --sleep 5';
+    if (script_run 'rpm -q ClusterTools2') {
+        # cs_wait_for_idle only present if ClusterTools2 is installed.
+        # If not installed, check with crmadmin and wait longer between checks
+        $chk_cmd = 'crmadmin -q -S $(crmadmin -Dq)';
+        $interval = 30;
+    }
     while (1) {
-        my $out = script_output 'cs_wait_for_idle --sleep 5', $timeout;
-        last if ($out =~ /Cluster state: S_IDLE/);
-        sleep 5;
+        my $out = script_output $chk_cmd, $timeout;
+        last if ($out =~ /S_IDLE/);
+        sleep $interval;
         die "Cluster was not idle for $timeout seconds" if (time() >= $outoftime);
     }
 }
