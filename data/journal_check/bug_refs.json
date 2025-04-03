@@ -57,7 +57,7 @@
     "bsc#1126272": {
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4" , "5.5", "6.0"],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4" , "5.5", "6.0", "6.2"],
             "leap-micro": [ "5.2", "5.3", "5.4", "5.5" ],
             "microos":  ["Tumbleweed"]
         },
@@ -641,7 +641,7 @@
     "bsc#1230472": {
         "description": "Failed to start selfinstallbootloader.service",
         "products": {
-            "sle-micro": ["6.1"],
+            "sle-micro": ["6.1", "6.2"],
             "leap-micro": ["6.1"]
         },
         "type": "bug"
