@@ -45,6 +45,10 @@ sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;
 
+    # As this module causes a fence operation, we need to prepare the console for assert_screen
+    # on grub2 and bootmenu
+    prepare_console_for_fencing;
+
     # Configure a master resource on node1 for getting a heavier weight for the priority fencing feature
     if (is_node(1)) {
         assert_script_run "crm configure primitive stateful-1 ocf:pacemaker:Stateful meta priority=129";
