@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils qw(is_sle);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -21,7 +22,12 @@ sub run {
 
     # Force this module to run in the root-console. This is required, as when the test runs
     # in the serial terminal and it's followed by the boot/boot_to_desktop module, it fails
-    # to match the grub screen
+    # to match the grub screen.
+    # Sometimes console can be dirty with messages. Select it first with await_console => 0
+    # and clean it, and then select it again to assert the root prompt
+    select_console 'root-console', await_console => 0;
+    send_key 'ctrl-l';
+    send_key 'ret';
     select_console 'root-console';
 
     # Check cluster state *before* fencing
