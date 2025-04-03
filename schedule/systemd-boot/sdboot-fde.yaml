@@ -1,0 +1,9 @@
+---
+name: gnome-sdboot-fde
+description: >
+    Maintainer: Santiago Zarate <santiago.zarate@suse.com>
+    Tests related to FDE and sdbootutil on systemd-boot as bootloader
+schedule:
+    - boot/boot_to_desktop
+    - console/sdbootutil_enroll
+    - shutdown/shutdown
