@@ -3,7 +3,7 @@
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: ha-cluster-bootstrap
+# Package: crmsh ha-cluster-bootstrap
 # Summary: Remove a node both by its hostname and ip address
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
@@ -17,8 +17,8 @@ use version_utils 'is_sle';
 
 sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
-    my $remove_cmd = 'ha-cluster-remove -y -c';
-    my $join_cmd = 'ha-cluster-join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
+    my $remove_cmd = 'crm cluster remove -y -c';
+    my $join_cmd = 'crm cluster join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
     my $remove_timeout = bmwqemu::scale_timeout(60);
     my $timer = bmwqemu::scale_timeout(5);
 
