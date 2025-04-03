@@ -21,7 +21,6 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster qw(check_cluster_state
   get_cluster_name
@@ -30,6 +29,7 @@ use hacluster qw(check_cluster_state
   ha_export_logs
   setup_sbd_delay
   wait_until_resources_started
+  prepare_console_for_fencing
 );
 use utils qw(zypper_call);
 use Mojo::JSON qw(encode_json);
@@ -48,8 +48,11 @@ sub run {
     my $node_was_fenced = 0;
     my $cmd_fails = 0;
 
+    # As this module causes a fence operation, we need to prepare the console for assert_screen
+    # on grub2 and bootmenu
+    prepare_console_for_fencing;
+
     # Ensure that the cluster state is correct before executing the checks
-    select_serial_terminal;
     check_cluster_state;
 
     # We have to wait for previous nodes to finish the tests, as they can't be done in parallel without any damages!
@@ -83,7 +86,7 @@ sub run {
             if (check_screen('grub2', 0, no_wait => 1)) {
                 # Wait for boot and reconnect to root console
                 $self->wait_boot;
-                select_serial_terminal;
+                select_console 'root-console';
                 # Wait for fencing delay and resources to start. Test should wait a little longer than startup delay.
                 sleep $start_delay_after_fencing + 15;
                 wait_until_resources_started();

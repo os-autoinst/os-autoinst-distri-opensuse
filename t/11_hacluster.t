@@ -496,4 +496,19 @@ subtest '[wait_for_idle_cluster] timeout' => sub {
     like($@, qr/Cluster was not idle for 30 seconds/, $@);
 };
 
+subtest '[prepare_console_for_fencing]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(select_console => sub { push @calls, @_; });
+    $hacluster->redefine(send_key => sub { push @calls, $_[0]; });
+
+    prepare_console_for_fencing();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    ok((any { /^ctrl\-l$/ } @calls), 'Ctrl-L detected');
+    ok((any { /^ret$/ } @calls), 'Return detected');
+    ok((scalar(grep { /^root-console$/ } @calls) == 2), 'root-console selected twice');
+    ok((any { /await_console/ } @calls), 'await_console argument passed');
+};
+
 done_testing;

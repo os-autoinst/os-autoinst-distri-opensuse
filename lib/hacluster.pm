@@ -86,6 +86,7 @@ our @EXPORT = qw(
   generate_lun_list
   show_cluster_parameter
   set_cluster_parameter
+  prepare_console_for_fencing
 );
 
 =head1 SYNOPSIS
@@ -1615,6 +1616,26 @@ sub show_cluster_parameter {
     }
     my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'show', $args{parameter});
     return script_output($cmd);
+}
+
+=head2 prepare_console_for_fencing
+
+    prepare_console_for_fencing();
+
+Some HA tests modules will cause a node to fence. In these cases, the tests will need
+to assert a B<grub2> or B<bootmenu> screen, so the modules will need to select the
+C<root-console> before any calls to C<assert_screen>. On some systems, a simple call
+to C<select_console 'root-console'> will not work as the console could be "dirty" with
+messages obscuring the root prompt. This function will pre-select the console without
+asserting anything on the screen, clear it, and then select it normally.
+
+=cut
+
+sub prepare_console_for_fencing {
+    select_console 'root-console', await_console => 0;
+    send_key 'ctrl-l';
+    send_key 'ret';
+    select_console 'root-console';
 }
 
 1;
