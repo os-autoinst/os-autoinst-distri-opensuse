@@ -24,7 +24,7 @@ sub run {
     # KEEP_GRUB_TIMEOUT=0 will force the grub needle to match, useful when booting
     # pre-configured images with disabled timeout. See opensusebasetest::handle_grub
     if ((is_uefi_boot || is_aarch64 || is_sle_micro('>=6.0')) && get_var('KEEP_GRUB_TIMEOUT', '1') && !main_micro_alp::is_dvd()) {
-        shift->wait_boot_past_bootloader(textmode => 1);
+        shift->wait_boot_past_bootloader(textmode => 1, ready_time => 1200);
     } else {
         shift->wait_boot(bootloader_time => 300);
     }

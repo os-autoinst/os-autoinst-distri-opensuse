@@ -59,9 +59,9 @@
     <guest_video/>
     <guest_smartcard/>
     <guest_redirdev/>
-    <guest_memballoon/>
-    <guest_tpm/>
-    <guest_rng/>
+    <guest_memballoon>virtio</guest_memballoon>
+    <guest_tpm>model=tpm-tis,backend.type=emulator,backend.version=2.0</guest_tpm>
+    <guest_rng>virtio,backend.model=random</guest_rng>
     <guest_panic/>
     <guest_memdev/>
     <guest_vsock/>

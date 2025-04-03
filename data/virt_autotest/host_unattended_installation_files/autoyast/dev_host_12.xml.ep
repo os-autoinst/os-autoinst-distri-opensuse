@@ -61,7 +61,7 @@
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>vt.color=0x07 splash=silent console=hvc0 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
-      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console</xen_kernel_append>
+      <xen_kernel_append><%= defined $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} ? $bmwqemu::vars{"XEN_SERIAL_CONSOLE"} : "com2=115200,8n1 console=com2" %>,vga <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "loglvl=all guest_loglvl=all" : "loglvl=debug guest_loglvl=debug" %> sync_console <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_kernel_append>
       % } else {
       <append>gfxpayload=1024x768 <%= defined $bmwqemu::vars{"ENABLE_CONSOLE_KERNEL_LOG"} ? "ignore_loglevel" : "loglevel=5" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
       % }
