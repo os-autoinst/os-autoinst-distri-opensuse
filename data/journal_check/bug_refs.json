@@ -804,7 +804,8 @@
     "vmware-RETBleed": {
         "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"]
+            "sle": ["15-SP6", "15-SP7", "16.0"],
+            "sle-micro": ["6.2"]
         },
         "type": "ignore"
     },
