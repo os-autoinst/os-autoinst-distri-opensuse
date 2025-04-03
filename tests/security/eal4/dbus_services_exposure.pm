@@ -77,23 +77,34 @@ sub parse_results {
 
 sub run {
     my ($self) = shift;
+    my $test_log = "dbus_services_exposure_log.txt";
 
     select_console 'root-console';
 
     # Run the test
     my $output_dbus_send = script_output('/bin/dbus-send --system --print-reply --dest=org.freedesktop.DBus --type=method_call /org/freedesktop/DBUS org.freedesktop.DBus.ListNames');
+    # Write output to a file for evidence
+    assert_script_run('/bin/dbus-send --system --print-reply --dest=org.freedesktop.DBus --type=method_call /org/freedesktop/DBUS org.freedesktop.DBus.ListNames >> ' . $test_log . '');
+
     my %dbus_send_results = parse_results($output_dbus_send);
     record_info('Results of parsing dbus-send', Dumper(\%dbus_send_results));
+    script_run('printf "\n#Results of parsing dbus-send:\n' . Dumper(\%dbus_send_results) . '\n" >> ' . $test_log . '');
 
     my $output_busctl_list = script_output('busctl list');
+    script_run('printf "\n# busctl list:\n' . $output_busctl_list . '\n" >> ' . $test_log . '');
+
     my %busctl_list_result = parse_results($output_busctl_list);
     record_info('Results of parsing busctl list', Dumper(\%busctl_list_result));
+    script_run('printf "\n#Results of parsing busctl list:\n' . Dumper(\%busctl_list_result) . '\n" >> ' . $test_log . '');
 
     # https://bugzilla.suse.com/show_bug.cgi?id=1216538
     if (is_sle('>=15-SP6') && is_s390x) {
         $white_list_for_busctl{virtqemud} = 1;
         push(@eal4_test::white_list_for_dbus, '1.28', '1.38');
     }
+
+    # Write to file and upload white_list_for_dbus
+    script_run('printf "\n#white_list_for_dbus:\n' . Dumper(\@eal4_test::white_list_for_dbus) . '\n" >> ' . $test_log . '');
 
     # Analyse the results.
     foreach my $wl (@eal4_test::white_list_for_dbus) {
@@ -124,6 +135,7 @@ sub run {
         record_info('There are unknow names', Dumper(\@unknown_names), result => 'fail');
         $self->result('fail');
     }
+    upload_log_file($test_log);
 }
 
 sub test_flags {

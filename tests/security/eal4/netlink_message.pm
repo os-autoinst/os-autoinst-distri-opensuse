@@ -12,9 +12,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Data::Dumper;
+use eal4_test;
 
 sub run {
     my ($self) = shift;
+    my $test_log = "netlink_message_log.txt";
 
     select_console 'root-console';
 
@@ -33,6 +36,7 @@ sub run {
         {name => 'netlink_crypto message larger than specified (10000 byte payload)', result => 'no response', test_file => 'netlink_knocker2-largerMsgThanSpecified-10000', param => 'NETLINK_CRYPTO'},
         {name => 'netlink_audit message larger than specified (10000 byte payload)', result => 'response', test_file => 'netlink_knocker2-largerMsgThanSpecified-10000', param => 'NETLINK_AUDIT'},
     );
+    script_run('printf "#Test cases and expected results:\n' . Dumper(\@cases) . '\n" >> ' . $test_log . '');
 
     my $test_module_result = 'ok';
 
@@ -56,11 +60,14 @@ sub run {
             $test_module_result = 'fail' if ($test_module_result eq 'ok');
         }
         record_info("$test_name", "The test result is $test_result\nThe expected result is $expected_result", result => $result);
+        script_run('printf "Test name: ' . $test_name . '; The test result: ' . $test_result . '; Expected result: ' . $expected_result . '; Actual result: ' . $result . ';\n" >> ' . $test_log . '');
 
         # Kill the process because kernel doesn't response
         assert_script_run("kill -15 $pid") if ($test_result eq 'no response');
     }
     $self->result($test_module_result);
+    upload_log_file($test_log);
+
 }
 
 sub test_flags {

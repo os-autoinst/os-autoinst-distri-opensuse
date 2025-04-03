@@ -16,6 +16,7 @@ use eal4_test;
 
 sub run {
     my ($self) = shift;
+    my $test_log = "/tmp/drng_test_preparation_log.txt";
 
     select_console 'root-console';
 
@@ -24,9 +25,11 @@ sub run {
 
     my $test_dir = '/root/eval/drng';
     # Complile gather_random_data
+    script_run('printf "#Starting drng_test_preparation test \nCompliling gather_random_data\n" >> ' . $test_log . '');
     my $exe_file = 'gather_random_data';
     assert_script_run("cd $eal4_test::code_dir");
     assert_script_run("gcc -o $exe_file -lcrypto -lssl -lgcrypt gather_random_data.c");
+    script_run('printf "\ngcc -o ' . $exe_file . ' -lcrypto -lssl -lgcrypt gather_random_data.c" >> ' . $test_log . '');
 
     # Prepare the test directory
     assert_script_run("mkdir -p $test_dir");
@@ -41,7 +44,12 @@ sub run {
     # Check result
     # We need to filter 'total ' and gather_random_data from the results of 'ls -l',
     # then check if there are only 3 files are generated (As expected).
+    script_run('printf "\n# Check result" >> ' . $test_log . '');
+    script_run('printf "\n# We need to filter \'total \' and gather_random_data from the results of \'ls -l\'," >> ' . $test_log . '');
+    script_run('printf "\n# then check if there are only 3 files are generated (As expected)." >> ' . $test_log . '');
+
     my $result = script_output("ls -l | grep -v \"total\" | grep -v \"$exe_file\"");
+    script_run('printf "\n#Generated files:\n' . $result . '" >> ' . $test_log . '');
     my @lines = split(/\n/, $result);
     record_info('ERROR', "Others files are generated\n$result", result => 'fail') if (scalar(@lines) != 3);
 
@@ -52,13 +60,17 @@ sub run {
 
         # Skip gather_random_data
         next if ($file_name eq $exe_file);
+        upload_log_file($file_name);
 
         # The size of file should be 5M
         if (int($file_size) != 5242880) {
             record_info('ERROR', "The size of $file_name isn't 5M:\n $file_size $file_name", result => 'fail');
             $self->result('fail');
         }
+        else {
+        }
     }
+    upload_log_file($test_log);
 }
 
 sub test_flags {

@@ -13,8 +13,9 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Architectures 'is_s390x';
+use eal4_test;
 
-my $log_file = '/tmp/syscalls_output.log';
+my $log_file = 'syscalls_output_log.txt';
 
 sub run {
     my ($self) = shift;
@@ -44,7 +45,8 @@ sub run {
 
     assert_script_run("cd $test_dir");
     assert_script_run("./$exe_file >> $log_file", timeout => 900);
-    upload_logs("$log_file");
+    upload_log_file($log_file);
+
 }
 
 sub test_flags {

@@ -20,6 +20,7 @@ our @EXPORT = qw(
   @white_list_for_dbus
   $server_ip
   $client_ip
+  upload_log_file
 );
 
 our $code_dir = '/usr/local/eal4';
@@ -58,4 +59,16 @@ our @white_list_for_dbus = (
 our $server_ip = get_var('SERVER_IP', '10.0.2.101');
 our $client_ip = get_var('CLIENT_IP', '10.0.2.102');
 
+sub upload_log_file {
+    # Compress and upload single file for reference
+    my $file_name = $_[0];
+    if (script_run "! [[ -e $file_name ]]") {
+        $file_name =~ s/\s//g;    # remove whitespaces
+        script_run "p7zip -k $file_name";
+        if (script_run "! [[ -e $file_name.7z ]]") {
+            upload_logs($file_name . ".7z", timeout => 600);
+            script_run "rm $file_name.7z";
+        }
+    }
+}
 1;
