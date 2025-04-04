@@ -15,8 +15,17 @@ use power_action_utils 'power_action';
 
 sub run {
     select_console 'root-console';
-    zypper_call('in expect');
-    assert_script_run("expect -c 'spawn sdbootutil enroll --method tpm2; expect \"Password for /dev/.*:\";send $testapi::password\\n;interact'");
+    script_run_interactive(
+        "sdbootutil enroll --method tpm2;",
+        [
+            {
+                prompt => qr/Password for.*/m,
+                string => "$testapi::password\n",
+            },
+        ],
+        60
+    );
+
     set_var("RUNTIME_TPM_ENROLLED", 1);
     power_action('reboot', textmode => 1, keepconsole => 1);
     shift->wait_boot(bootloader_time => 300);
