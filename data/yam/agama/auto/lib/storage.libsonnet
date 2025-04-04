@@ -10,7 +10,7 @@ local root_filesystem(filesystem) = {
   ],
 };
 
-local lvm(encrypted=false) = {
+local lvm(encrypted=false, encryption='luks2') = {
   drives: [
     {
       alias: 'pvs-disk',
@@ -27,7 +27,7 @@ local lvm(encrypted=false) = {
           [if encrypted == true then 'generate']: {
             targetDevices: ['pvs-disk'],
             encryption: {
-              luks2: { password: "nots3cr3t" }
+              [encryption]: { password: "nots3cr3t" }
             }
           },
           [if encrypted == false then 'generate']: ['pvs-disk'],
@@ -43,6 +43,7 @@ local lvm(encrypted=false) = {
 {
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
+  lvm_tpm_fde: lvm(true, 'tpmFde'),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
 }
