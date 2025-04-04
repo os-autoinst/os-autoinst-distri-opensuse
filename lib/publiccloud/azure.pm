@@ -634,6 +634,7 @@ sub cleanup {
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
     $self->upload_boot_diagnostics();
     $self->SUPER::cleanup();
+    return 1;
 }
 
 sub query_metadata {

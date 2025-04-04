@@ -71,6 +71,7 @@ sub cleanup {
     my $machine_name = "openqa-cli-test-vm-$job_id";
 
     assert_script_run("az group delete --resource-group $resource_group --yes", 180);
+    return 1;
 }
 
 sub test_flags {

@@ -205,6 +205,7 @@ sub cleanup {
     $self->upload_boot_diagnostics();
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
+    return 1;
 }
 
 sub describe_instance {
