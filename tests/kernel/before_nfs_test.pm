@@ -33,6 +33,8 @@ sub prepare_bond {
     assert_script_run("wicked ifup all bond0");
 }
 
+
+
 sub run {
     my ($self) = @_;
     my $role = get_required_var('ROLE');

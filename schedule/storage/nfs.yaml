@@ -7,6 +7,7 @@ description:    >
 vars:
   DESKTOP: textmode
   BOOT_HDD_IMAGE: 1
+  NFSTEST_TESTCASES: "alloc cache delegation dio fcmp posix interop"
 
 conditional_schedule:
   nfstest:
@@ -20,3 +21,4 @@ schedule:
   - kernel/before_nfs_test
   - '{{nfstest}}'
   - kernel/nfs_stress_ng
+  - kernel/nfstest
