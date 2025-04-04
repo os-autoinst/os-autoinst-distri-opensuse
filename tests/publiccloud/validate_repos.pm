@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use qam;
 use publiccloud::ssh_interactive "select_host_console";
 use publiccloud::utils "validate_repo";
 
@@ -25,10 +26,7 @@ sub run {
         record_info('Skip validation', 'Skipping maintenance update validation (triggered by setting)');
         return;
     } else {
-        # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
-        # Those two variables contain list of repositories separated by comma
-        set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
-        my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        my @repos = get_test_repos();
         # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
         my $count = scalar @repos;
         my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
