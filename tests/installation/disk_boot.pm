@@ -9,15 +9,10 @@ use base "bootbasetest";
 use strict;
 use warnings;
 use testapi;
-use Utils::Architectures qw(is_aarch64);
-use utils qw(is_uefi_boot);
+
 
 sub run {
-    if (is_uefi_boot || is_aarch64) {
-        shift->wait_boot(bootloader_time => 300);
-    } else {
-        die "This test module is meant for uefi capable systems";
-    }
+    shift->wait_boot(bootloader_time => 300);
 }
 
 sub test_flags {
