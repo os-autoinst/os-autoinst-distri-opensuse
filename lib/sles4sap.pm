@@ -13,6 +13,7 @@ use Mojo::Base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use bmwqemu ();
 use serial_terminal qw(select_serial_terminal);
 use utils;
 use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started script_output_retry_check);
@@ -72,6 +73,7 @@ our @EXPORT = qw(
   load_ase_env
   upload_ase_logs
   modify_selinux_setenforce
+  get_test_repos
 );
 
 =head1 SYNOPSIS
@@ -1450,6 +1452,28 @@ sub modify_selinux_setenforce {
         assert_script_run("setenforce " . $selinux_mode);
         validate_script_output("getenforce", sub { m/$selinux_mode/ });
     }
+}
+
+=head2 get_test_repos
+
+    Constructs an array of repos to be added to SUTs.
+
+=cut
+
+sub get_test_repos {
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    # Add aggregate repos to @repos, if they are provided
+    # Test repos are expected to end in '_TEST_REPOS'
+    my @test_repos = grep { /_TEST_REPOS$/ } keys %bmwqemu::vars;
+    for my $repo (@test_repos) {
+        if (my $value = get_var($repo)) {
+            push @repos, split(/,/, $value);
+        }
+    }
+    return @repos;
 }
 
 sub post_run_hook {

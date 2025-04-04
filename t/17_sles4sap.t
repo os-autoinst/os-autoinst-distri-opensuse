@@ -19,7 +19,9 @@ sub undef_vars {
       _SECRET_SAP_MASTER_PASSWORD
       ASCS_PRODUCT_ID
       INSTANCE_ID
-      ASSET_0);
+      ASSET_0
+      BALAMB_TEST_REPOS
+      WINHILL_TEST_REPOS);
 }
 
 subtest '[prepare_swpm]' => sub {
@@ -294,6 +296,21 @@ subtest '[download_hana_assets_from_server]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
 
     ok((any { /wget.*MY_DOWNLOAD_URL/ } @calls), 'wget call');
+};
+
+subtest '[get_test_repos]' => sub {
+    my $mockObject = sles4sap->new();
+    my $sles4sap = Test::MockModule->new('sles4sap', no_auto => 1);
+
+    set_var('BALAMB_TEST_REPOS', 'Squall,Seifer');
+    set_var('WINHILL_TEST_REPOS', 'Quistis,Rinoa');
+    $sles4sap->redefine(set_var => sub { return; });
+
+    my @repos = $mockObject->get_test_repos();
+    undef_vars();
+
+    ok((any { /.*Squall.*/ } @repos), 'Returns the correct value from the first repo var');
+    ok((any { /.*Quistis.*/ } @repos), 'Returns the correct value from the second repo var');
 };
 
 
