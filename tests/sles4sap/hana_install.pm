@@ -115,7 +115,6 @@ sub run {
         else {
             push @zypper_in, 'SAPHanaSR', 'SAPHanaSR-doc';
         }
-        push @zypper_in, 'ClusterTools2';
         zypper_call(join(' ', @zypper_in));
     }
 
