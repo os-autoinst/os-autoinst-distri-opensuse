@@ -91,7 +91,7 @@ EOF
     # Prepare krb5 application and config files
     zypper_call('ref');
     zypper_call('lr -u');
-    zypper_call('in krb5 krb5-server krb5-client');
+    zypper_call('in krb5 krb5-server krb5-client nfs-client');
     assert_script_run("echo 'export KRB5CCNAME=/root/kcache' >> /etc/profile.d/krb5.sh");    # Make ticket permanent
     assert_script_run("source /etc/profile.d/krb5.sh");
 
