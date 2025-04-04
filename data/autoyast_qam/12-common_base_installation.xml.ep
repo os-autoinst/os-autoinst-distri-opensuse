@@ -414,6 +414,11 @@
   % }
   % unless ($check_var->('ARCH', 's390x')) {
   <networking>
+    % if ($check_var->('NETWORK_CONFIGURATION', '1')) {
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+    </dns>
+    % }
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
