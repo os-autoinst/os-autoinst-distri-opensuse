@@ -79,6 +79,7 @@ sub cleanup {
     assert_script_run "aws ec2 delete-key-pair --key-name $ssh_key";
     # The security group can be deleted only after the instance is terminated which takes a moment
     script_retry "aws ec2 delete-security-group --group-name $security_group_name", delay => 15, retry => 12;
+    return 1;
 }
 
 sub test_flags {
@@ -86,4 +87,3 @@ sub test_flags {
 }
 
 1;
-
