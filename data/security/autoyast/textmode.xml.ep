@@ -31,8 +31,16 @@
     </addons>
   </suse_register>
   <bootloader>
+      % if ($check_var->('ARCH', 'aarch64')) {
+      <loader_type>grub2-efi</loader_type>
+      % }
       <global>
           <timeout config:type="integer">-1</timeout>
+          % if ($check_var->('ARCH', 'aarch64')) {
+          <secure_boot>true</secure_boot>
+          <trusted_grub>false</trusted_grub>
+          <update_nvram>true</update_nvram>
+          % }
       </global>
   </bootloader>
   <general>
