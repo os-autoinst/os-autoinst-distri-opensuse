@@ -1109,7 +1109,7 @@ sub load_inst_tests {
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots on SLE <16 and Leap <16.0, so grub needs to timeout
         set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || (get_var('SELINUX') && (is_sle('<16') || is_leap('<16.0')));
-        loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT') || !is_bootloader_grub2;
+        loadtest "installation/disable_grub_timeout" if is_bootloader_grub2 && !get_var('KEEP_GRUB_TIMEOUT');
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
@@ -1175,7 +1175,7 @@ sub load_consoletests {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
 
-    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && check_var("ENCRYPT", 1)) {
+    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && (check_var("ENCRYPT", 1) && check_var('QEMUTPM', 1))) {
         loadtest 'console/sdbootutil_enroll';
     }
 
