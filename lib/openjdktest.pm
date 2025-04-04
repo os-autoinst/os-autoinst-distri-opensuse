@@ -57,7 +57,8 @@ sub run_crypto_test {
     my $crypto = script_output("java GetJCEProviderInfo");
     record_info("FAIL", "Cannot list all crypto providers", result => 'fail') if ($crypto !~ /Listing all JCA Security Providers/);
 
-    my $JDK_TCHECK = get_var("JDK_TCHECK", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.java");
+    #moved from https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.java
+    my $JDK_TCHECK = get_var("JDK_TCHECK", data_url('security/openjdk/Tcheck.java'));
     assert_script_run("cd ~; test -f Tcheck.java || wget --quiet --no-check-certificate $JDK_TCHECK");
     assert_script_run("javac Tcheck.java");
     # poo125654: we only need to check that '1. SunPKCS11-NSS-FIPS using library null' is present and at the first place
@@ -73,7 +74,7 @@ sub run_ssh_test {
     select_console 'user-console';
 
     my $java_src = "Shell.java";
-    my $url = get_var("TEST_JAVA", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/$java_src");
+    my $url = get_var("TEST_JAVA", data_url("security/openjdk/$java_src"));
     my $cp = script_output('rpm -ql jsch |grep jsch.jar') . ':.';
 
     script_run("test -f $java_src || wget --quiet --no-check-certificate $url");
