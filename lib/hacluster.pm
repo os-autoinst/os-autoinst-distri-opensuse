@@ -120,7 +120,7 @@ Extension (HA or HAE) tests.
 
 =cut
 
-our $crm_mon_cmd = 'crm_mon -R -r -n -N -1';
+our $crm_mon_cmd = 'crm_mon -R -r -n -1';
 our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
 our $join_timeout = bmwqemu::scale_timeout(60);
@@ -695,7 +695,7 @@ Checks the state of the cluster. Calls B<$crm_mon_cmd> and inspects its output c
 =back
 
 Checks that the reported number of nodes in the output of C<crm node list> and B<$crm_mon_cmd>
-is the same.
+is the same by calling C<check_online_nodes>.
 
 And runs C<crm_verify -LV>.
 
@@ -718,8 +718,9 @@ sub check_cluster_state {
         $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'");
     }
     $cmd->('crm_mon -1 | grep \'partition with quorum\'');
-    # In older versions, node names in crm node list output are followed by ": normal". In newer ones by ": member"
-    $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
+
+    check_online_nodes(%args);
+
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
         script_run 'crm_verify -LV';
@@ -727,6 +728,48 @@ sub check_cluster_state {
     else {
         $cmd->('crm_verify -LV');
     }
+}
+
+=head2 check_online_nodes
+
+ check_online_nodes( [ proceed_on_failure => 1 ] );
+
+Checks that the reported number of nodes in the output of C<crm node list> and B<$crm_mon_cmd>
+is the same.
+
+With the named argument B<proceed_on_failure> set to 1, the function will only report
+the number of nodes configured and online. Otherwise it will die when the number of
+configured nodes is different than the number of online nodes, or if it fails to get
+any of these numbers.
+
+This function is not exported and it's used only by C<check_cluster_state>.
+
+=cut
+
+sub check_online_nodes {
+    my %args = @_;
+    # In older versions, node names in output from commands 'crm node list' or 'crm node show',
+    # are followed by ": normal". In newer ones by ": member"
+    my $configured_nodes = script_output q@echo "|$(crm node show | grep -E -c ': member|: normal')|"@;
+    $configured_nodes =~ /\|(\d+)\|/;
+    $configured_nodes = $1 // 0;
+    record_info 'Configured nodes', "Configured nodes: $configured_nodes";
+    die 'Cluster has 0 nodes' if ($configured_nodes == 0 && !$args{proceed_on_failure});
+
+    # Get online nodes with: crm_mon --exclude=all --include=nodes -1
+    # Output will look like:
+    # Node List:
+    #   * Online: [ node01 node02 ]
+    my $online_nodes = script_output 'crm_mon --exclude=all --include=nodes --output-as=text -1', %args;
+    foreach (split(/\n/, $online_nodes)) {
+        next unless /Online: \[\s+([^\]]+)\]/;
+        # Assign array to scalar will give us number of elements in the list
+        $online_nodes = split(/\s+/, $1);
+    }
+    record_info 'Online nodes', "Online nodes: $online_nodes";
+
+    die "Could not calculate online nodes. Got: [$online_nodes]" if (($online_nodes !~ /^\d+$/) && !$args{proceed_on_failure});
+    die 'Not all configured nodes are online' if (($configured_nodes - $online_nodes) && !$args{proceed_on_failure});
 }
 
 =head2 wait_until_resources_stopped
@@ -819,7 +862,7 @@ sub wait_until_resources_started {
 
 Use C<cs_wait_for_idle> to wait until the cluster is idle before continuing the tests.
 Supply a timeout with the named argument B<timeout> (defaults to 120 seconds). This
-timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Croaks on
+timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Dies on
 timeout.
 
 =cut
@@ -827,12 +870,19 @@ timeout.
 sub wait_for_idle_cluster {
     my %args = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $interval = 5;
     my $outoftime = time() + $timeout;    # Current time plus timeout == time at which timeout will be reached
-    return if script_run 'rpm -q ClusterTools2';    # cs_wait_for_idle only present if ClusterTools2 is installed
+    my $chk_cmd = 'cs_wait_for_idle --sleep 5';
+    if (script_run 'rpm -q ClusterTools2') {
+        # cs_wait_for_idle only present if ClusterTools2 is installed.
+        # If not installed, check with crmadmin and wait longer between checks
+        $chk_cmd = 'crmadmin -q -S $(crmadmin -Dq)';
+        $interval = 30;
+    }
     while (1) {
-        my $out = script_output 'cs_wait_for_idle --sleep 5', $timeout;
-        last if ($out =~ /Cluster state: S_IDLE/);
-        sleep 5;
+        my $out = script_output $chk_cmd, $timeout;
+        last if ($out =~ /S_IDLE/);
+        sleep $interval;
         die "Cluster was not idle for $timeout seconds" if (time() >= $outoftime);
     }
 }
