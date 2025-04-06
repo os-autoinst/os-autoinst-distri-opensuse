@@ -36,10 +36,21 @@ sub run_tests {
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env $env bats --tap tests/integration | tee -a $log_file", 2000;
 
-    my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
-    patch_logfile($log_file, @skip_tests);
+    my @tests;
+    foreach my $test (split(/\s+/, get_var("RUNC_BATS_TESTS", ""))) {
+        $test .= ".bats" unless $test =~ /\.bats$/;
+        push @tests, "tests/integration/$test";
+    }
+    my $tests = @tests ? join(" ", @tests) : "tests/integration";
+
+    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 2000;
+
+    unless (@tests) {
+        my @skip_tests = split(/\s+/, get_var('RUNC_BATS_SKIP', '') . " " . $skip_tests);
+        patch_logfile($log_file, @skip_tests);
+    }
+
     parse_extra_log(TAP => $log_file);
 
     script_run "rm -rf $tmp_dir";

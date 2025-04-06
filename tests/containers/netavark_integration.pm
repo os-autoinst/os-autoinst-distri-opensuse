@@ -31,16 +31,25 @@ sub run_tests {
 
     my $log_file = "netavark.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env $env bats --tap test | tee -a $log_file", 1200;
 
-    my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
+    my @tests;
+    foreach my $test (split(/\s+/, get_var("NETAVARK_BATS_TESTS", ""))) {
+        $test .= ".bats" unless $test =~ /\.bats$/;
+        push @tests, "test/$test";
+    }
+    my $tests = @tests ? join(" ", @tests) : "test";
 
-    # Unconditionally ignore these flaky subtests
-    my @must_skip = ();
-    push @must_skip, "100-bridge-iptables" if ($firewalld_backend ne "iptables");
-    push @skip_tests, @must_skip;
+    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 1200;
 
-    patch_logfile($log_file, @skip_tests);
+    unless (@tests) {
+        my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
+        # Unconditionally ignore these flaky subtests
+        my @must_skip = ();
+        push @must_skip, "100-bridge-iptables" if ($firewalld_backend ne "iptables");
+        push @skip_tests, @must_skip;
+        patch_logfile($log_file, @skip_tests);
+    }
+
     parse_extra_log(TAP => $log_file);
     script_run "rm -rf $tmp_dir";
 
