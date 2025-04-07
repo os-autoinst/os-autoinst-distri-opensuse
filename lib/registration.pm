@@ -202,7 +202,7 @@ sub add_suseconnect_product {
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
         if (is_transactional) {
-            eval { trup_call("register -p $name/" . get_var('VERSION') . '/' . get_var('ARCH')) };
+            eval { trup_call("register -p $name/" . $version . '/' . get_var('ARCH')) };
         } else {
             eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
         }
@@ -1080,7 +1080,7 @@ sub runtime_registration {
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
         if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
             process_reboot(trigger => 1);
-            add_suseconnect_product('SL-Micro-Extras');
+            add_suseconnect_product('SL-Micro-Extras', get_var('HDDVERSION'), undef, undef, 90, 1);
         }
         process_reboot(trigger => 1);
     }
