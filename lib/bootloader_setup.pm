@@ -985,6 +985,9 @@ sub specific_bootmenu_params {
     # See bsc#1126782
     push @params, 'kernel.softlockup_panic=1' unless get_var('SOFTLOCKUP_PANIC_DISABLED', 0);
 
+    # qemu workaround on ppc64le https://bugzilla.suse.com/show_bug.cgi?id=1239691#c34
+    push @params, 'disable_ddw=1' if is_ppc64le && is_qemu && is_sle('15-SP6+');
+
     type_boot_parameters(" @params ") if (@params);
     save_screenshot;
     return @params;
