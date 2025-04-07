@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024,2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run simple toolbox tests
@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use containers::common;
-use version_utils qw(is_sle_micro is_leap_micro);
+use version_utils qw(is_sle_micro is_leap_micro is_microos);
 use transactional;
 use Utils::Architectures qw(is_ppc64le);
 
@@ -62,7 +62,8 @@ sub run {
     select_console 'root-console';
     $self->create_user;
 
-    my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
+    # Avoid conflict with other test modules also using CONTAINER_IMAGE_TO_TEST on MicroOS
+    my $toolbox_image_to_test = is_microos ? "registry.opensuse.org/opensuse/factory/totest/containers/opensuse/toolbox" : get_var('CONTAINER_IMAGE_TO_TEST');
 
     if ($toolbox_image_to_test) {
         # We need to extract the registry from the full image uri, e.g.
