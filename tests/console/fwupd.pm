@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: fwupd
 # Summary: fwupd smoke test
-# Maintainer: Kernel QE <kernel-qa@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'opensusebasetest';
 use strict;

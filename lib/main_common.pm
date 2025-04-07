@@ -2620,8 +2620,6 @@ sub load_extra_tests_syscontainer {
 }
 
 sub load_extra_tests_kernel {
-    loadtest "kernel/tuned";
-    loadtest "kernel/fwupd" if is_sle('15+');
     loadtest "hpc/rasdaemon" if ((is_sle('15+') && (!is_ppc64le)) || is_tumbleweed);
 
     # keep it on the latest place as it taints kernel

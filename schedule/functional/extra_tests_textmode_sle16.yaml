@@ -100,6 +100,8 @@ schedule:
     - console/sqlite3
     - console/sysctl
     - console/sysstat
+    - console/tuned
+    - console/fwupd
     - '{{snmp}}'
     - console/curl_ipv6
     - console/wget_ipv6
