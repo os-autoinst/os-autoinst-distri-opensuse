@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: tuned
 # Summary: Regression test for tuned daemon
-# Maintainer: Petr Cervinka <pcervinka@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: https://jira.suse.com/browse/SLE-6514
 
 use base 'consoletest';
