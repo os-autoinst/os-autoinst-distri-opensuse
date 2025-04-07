@@ -2391,10 +2391,10 @@ sub ensure_ca_certificates_suse_installed {
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
         my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
         my $distversion = 'SLE_' . get_required_var($host_version) =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
-        my $exit = script_run("curl -fkIL http://download.suse.de/ibs/SUSE:/CA/$distversion/SUSE:CA.repo >/dev/null 2>&1");
-        $distversion = 'SLE-Factory' if ($exit != 0);
+        my $exit = script_run("curl -fIL https://download.opensuse.org/repositories/SUSE:/CA/$distversion/SUSE:CA.repo >/dev/null 2>&1");
+        $distversion = 'openSUSE_Factory' if ($exit != 0);
         diag "CA folder: $distversion";
-        zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$distversion/SUSE:CA.repo");
+        zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/$distversion/SUSE:CA.repo");
         if (is_sle_micro) {
             transactional::trup_call('--continue pkg install ca-certificates-suse');
         } else {
