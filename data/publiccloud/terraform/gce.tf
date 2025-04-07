@@ -19,7 +19,7 @@ provider "google" {
   credentials = var.cred_file
   project     = var.project
   region      = var.region #sets global default region for all resources
-  zone        = local.availability_zone #sets the global default zone for all zonal resources
+  zone        = local.zone #sets the global default zone for all zonal resources
 }
 
 data "external" "gce_cred" {
@@ -28,7 +28,7 @@ data "external" "gce_cred" {
 }
 
 locals {
-  availability_zone = "${var.region}-b"
+  zone = "${var.region}-${var.availability_zone}"
 }
 
 variable "cred_file" {
@@ -47,8 +47,15 @@ variable "type" {
   default = "n1-standard-2"
 }
 
+# https://cloud.google.com/compute/docs/regions-zones
 variable "region" {
+  description = "The region where the objects will be deployed to."
   default = "europe-west1"
+}
+
+variable "availability_zone" {
+  description = "The availability zone of the specified region. Used by zone-specific resources like DBs and disks."
+  default = "b"
 }
 
 variable "image_id" {
@@ -214,5 +221,5 @@ output "region" {
 }
 
 output "availability_zone" {
-  value = local.availability_zone
+  value = local.zone
 }
