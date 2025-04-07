@@ -58,7 +58,7 @@ sub run {
         $remote = '10.0.2.101';
     }
 
-    if (is_sle()) {
+    if (is_sle('<16')) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_required_var('SCC_REGCODE_WE'), 300, 1);
         # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1181941
