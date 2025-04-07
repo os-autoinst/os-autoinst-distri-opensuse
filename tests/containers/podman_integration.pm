@@ -45,21 +45,30 @@ sub run_tests {
 
     assert_script_run "echo $log_file .. > $log_file";
     background_script_run "podman system service --timeout=0" if ($remote);
-    my $ret = script_run "env $env hack/bats $args | tee -a $log_file", 8000;
-    script_run 'kill %1' if ($remote);
 
-    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+    my @tests;
+    foreach my $test (split(/\s+/, get_var("PODMAN_BATS_TESTS", ""))) {
+        $test .= ".bats" unless $test =~ /\.bats$/;
+        push @tests, "test/system/$test";
+    }
+    my $tests = join(" ", @tests);
 
-    # Unconditionally ignore these flaky subtests
-    my @must_skip = (
-        # this test depends on the openQA worker's scheduler
-        "180-blkio",
-        # this test will fail if there's not "enough" free space
-        "320-system-df",
-    );
-    push @skip_tests, @must_skip;
+    my $ret = script_run "env $env hack/bats $args $tests | tee -a $log_file", 8000;
+    script_run 'kill %1; kill -9 %1' if ($remote);
 
-    patch_logfile($log_file, @skip_tests);
+    unless (@tests) {
+        my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+        # Unconditionally ignore these flaky subtests
+        my @must_skip = (
+            # this test depends on the openQA worker's scheduler
+            "180-blkio",
+            # this test will fail if there's not "enough" free space
+            "320-system-df",
+        );
+        push @skip_tests, @must_skip;
+        patch_logfile($log_file, @skip_tests);
+    }
+
     parse_extra_log(TAP => $log_file);
 
     script_run 'podman rm -vf $(podman ps -aq --external)';
