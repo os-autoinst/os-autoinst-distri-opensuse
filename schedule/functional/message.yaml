@@ -24,7 +24,8 @@ conditional_schedule:
                 - x11/thunderbird/thunderbird_install
                 - x11/thunderbird/thunderbird_imap
                 - x11/thunderbird/thunderbird_pop
-                - x11/groupwise/groupwise
+                # https://progress.opensuse.org/issues/112997
+                # - x11/groupwise/groupwise
                 - x11/pidgin/prep_pidgin
                 - x11/pidgin/pidgin_IRC
                 - x11/pidgin/clean_pidgin
