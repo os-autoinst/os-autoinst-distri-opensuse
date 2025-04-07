@@ -21,7 +21,8 @@ use utils qw(zypper_call script_retry validate_script_output_retry);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use version_utils qw(is_sle);
 
-my @redis_versions = ("redis");
+# https://jira.suse.com/browse/PED-11976
+my @redis_versions = is_sle('=15-SP7') ? ("valkey-compat-redis") : ("redis");
 push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6');
 my %ROLES = (
     MASTER => 'MASTER',
@@ -32,6 +33,7 @@ my %PORTS = map { $ROLES{$_} => $base_port++ } keys %ROLES;
 my %REDIS_CLI_CMD = map {
     $_ => "redis-cli -p " . $PORTS{$ROLES{$_}}
 } keys %ROLES;
+
 my %logfile_locations = map {
     my $version = $_;
     $version => {
@@ -131,6 +133,15 @@ sub test_redis {
 sub run {
     my $self = shift;
     select_serial_terminal;
+
+    # For redis is removed from 15-SP7, so the log directory doesn't exist, which will cause failure.
+    # So create this directory as a workaround.
+    my $log_dir = "/var/log/redis/";
+    if (script_run("test -d $log_dir") != 0) {
+        record_info("Workaround for poo#179867");
+        script_run("mkdir -p $log_dir");
+    }
+
     foreach my $redis_version (@redis_versions) {
         test_redis(redis_version => $redis_version);
     }
