@@ -22,6 +22,7 @@ use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
+use Yam::Agama::Pom::EnterPassphraseForHomePage;
 
 use Utils::Architectures;
 
@@ -66,6 +67,12 @@ sub get_enter_passphrase_for_root {
 
 sub get_enter_passphrase_for_swap {
     return Yam::Agama::Pom::EnterPassphraseForSwapPage->new({
+            enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
+    });
+}
+
+sub get_enter_passphrase_for_home {
+    return Yam::Agama::Pom::EnterPassphraseForHomePage->new({
             enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
     });
 }
