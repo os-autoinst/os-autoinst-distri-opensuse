@@ -202,7 +202,7 @@ sub setup_server {
 
     set_resolv(nameservers => \@scc_dns) if scalar(@scc_dns) > 0;
     runtime_registration() if $requires_scc_registration;
-    add_suseconnect_product("sle-module-containers") if is_sle;
+    add_suseconnect_product("sle-module-containers") if is_sle('<16');
 
     install_pkgs($self, "podman", "ethtool", "dnsmasq");
 
