@@ -443,7 +443,7 @@ sub load_reboot_tests {
             if (is_bootloader_grub2) {
                 loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
             } else {
-                loadtest "installation/disk_boot";
+                loadtest "installation/simple_boot";
             }
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
