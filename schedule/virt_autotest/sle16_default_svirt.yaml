@@ -1,0 +1,25 @@
+---
+description: 'Main hyperv and vmware test suite. Maintainer: qa-virt@suse.de.'
+name: 'svirt hyperv and vmware'
+schedule:
+    - '{{bootloader}}'
+    - yam/agama/boot_agama
+    - installation/agama_reboot.pm
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/integration_services
+    - '{{open_vm_tools}}'
+conditional_schedule:
+    bootloader:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - installation/bootloader_svirt
+            hyperv:
+                - installation/bootloader_hyperv
+    open_vm_tools:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - virt_autotest/esxi_open_vm_tools

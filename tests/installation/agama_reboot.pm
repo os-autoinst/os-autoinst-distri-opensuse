@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use base "installbasetest";
 use testapi;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_vmware is_hyperv);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
@@ -58,10 +58,22 @@ sub verify_agama_auto_install_done_cmdline {
     die "Install phase is not done, please check agama logs";
 }
 
+sub expect_is_shown {
+    my $timeout = 2400;
+    while ($timeout > 0) {
+        my $ret = check_screen('agama-install-finished', 30);
+        $timeout -= 30;
+        diag("left total await_install timeout: $timeout");
+        last if $ret;
+        die "timeout ($timeout) hit awaiting installation to be finished" if $timeout <= 0;
+    }
+}
+
 sub run {
     my ($self) = @_;
 
-    if ((is_ipmi || is_pvm || is_s390x) && get_var('INST_AUTO')) {
+    if ((is_ipmi || is_pvm || is_s390x || is_vmware || is_hyperv) && get_var('INST_AUTO')) {
+        expect_is_shown() if is_vmware;
         select_console('root-console');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
