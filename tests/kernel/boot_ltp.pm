@@ -18,6 +18,7 @@ use LTP::utils;
 use version_utils qw(is_jeos is_sle is_sle_micro);
 use utils 'assert_secureboot_status';
 use kdump_utils;
+use package_utils;
 
 sub run {
     my ($self) = @_;
@@ -44,6 +45,11 @@ sub run {
     if (check_var_array('LTP_DEBUG', 'crashdump')) {
         select_serial_terminal;
         configure_service(yast_interface => 'cli');
+    }
+
+    if (check_var_array('LTP_DEBUG', 'oprofile')) {
+        select_serial_terminal;
+        install_package('oprofile', trup_reboot => 1);
     }
 
     # Initialize VNC console now to avoid login attempts on frozen system
