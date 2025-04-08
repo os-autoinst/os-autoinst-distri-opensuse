@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
+use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_grub2_bls is_bootloader_sdboot);
 use Carp qw(croak);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
@@ -1109,7 +1109,7 @@ sub need_unlock_after_bootloader {
     my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0')) || $is_enc_cc_s390x;
     return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     # MicroOS with sdboot supports automatic TPM based unlocking.
-    return 0 if is_microos && is_bootloader_sdboot && get_var('QEMUTPM');
+    return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
     return 1;
 }
 
