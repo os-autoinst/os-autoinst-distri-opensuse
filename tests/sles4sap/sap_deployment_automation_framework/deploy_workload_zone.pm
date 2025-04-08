@@ -12,8 +12,8 @@ use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
-use sles4sap::sap_deployment_automation_framework::networking
-  qw(assign_address_space calculate_subnets);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::networking qw(assign_address_space calculate_subnets);
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -23,6 +23,9 @@ sub test_flags {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
+
     serial_console_diag_banner('Module sdaf_deploy_workload_zone.pm : start');
     select_serial_terminal();
 
@@ -60,6 +63,9 @@ sub run {
     for my $variable_name (keys(%network_data)) {
         set_var(uc($variable_name), $network_data{$variable_name});
     }
+
+    # Add no cleanup tag if the deployment should be kept after test finished
+    set_var('SDAF_NO_CLEANUP', '"' . no_cleanup_tag() . '" = "1"') if get_var('SDAF_RETAIN_DEPLOYMENT');
 
     prepare_tfvars_file(deployment_type => 'workload_zone');
     az_login();

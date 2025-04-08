@@ -18,8 +18,9 @@
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use strict;
 use warnings;
-use sles4sap::sap_deployment_automation_framework::deployment qw(serial_console_diag_banner az_login);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip);
+use sles4sap::sap_deployment_automation_framework::deployment
+  qw(serial_console_diag_banner az_login sdaf_deployment_reused);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip no_cleanup_tag);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(generate_deployer_name);
 use sles4sap::azure_cli qw(az_disk_create);
 use serial_terminal qw(select_serial_terminal);
@@ -31,6 +32,8 @@ sub test_flags {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
     select_serial_terminal();
     serial_console_diag_banner('Module sdaf_clone_deployer.pm : start');
 
@@ -44,7 +47,10 @@ sub run {
     # 'deployment_id' (equals test ID) tag identifies which test used the VM for deployment.
     # Check SYNOPSIS section of: sles4sap::sap_deployment_automation_framework::deployment_connector
     # for more details
-    my @deployment_tags = ("deployment_id=" . get_current_job_id());
+    my @deployment_tags = ('deployment_id=' . get_current_job_id());
+
+    # Add no cleanup tag if the deployment should be kept after test finished
+    push @deployment_tags, no_cleanup_tag() . "=1" if get_var('SDAF_RETAIN_DEPLOYMENT');
 
     az_login();
     record_info('VM create', "Creating deployer vm with parameters:\n

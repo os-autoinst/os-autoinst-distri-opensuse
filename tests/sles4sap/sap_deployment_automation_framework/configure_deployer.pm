@@ -41,6 +41,8 @@ sub check_required_vars {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
     serial_console_diag_banner('Module sdaf_deployer_setup.pm : start');
     select_serial_terminal();
 

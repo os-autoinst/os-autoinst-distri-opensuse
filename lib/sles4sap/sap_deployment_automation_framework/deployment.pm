@@ -34,6 +34,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
 );
 
 our @EXPORT = qw(
+  $output_log_file
   az_login
   sdaf_ssh_key_from_keyvault
   serial_console_diag_banner
@@ -48,9 +49,9 @@ our @EXPORT = qw(
   ansible_execute_command
   ansible_show_status
   playbook_settings
-  $output_log_file
   sdaf_register_byos
   get_sdaf_instance_id
+  sdaf_deployment_reused
 );
 
 our $output_log_file = '';
@@ -1072,6 +1073,33 @@ sub sdaf_register_byos {
         sap_sid => $args{sap_sid},
         verbose => 1
     );
+}
+
+=head2 sdaf_deployment_reused
+
+    sdaf_deployment_reused(quiet=>'BeQuiet!');
+
+If an existing deployment is being reused according to openQA setting `SDAF_DEPLOYMENT_ID`, function will display
+`record_info` message with details and returns deployment ID. Otherwise returns nothing/false.
+Argument B<quiet> can be used to disable `record_info` message.
+
+=over
+
+=item * B<quiet>: Hide 'record_info' message. Default: undef
+
+=back
+=cut
+
+sub sdaf_deployment_reused {
+    my (%args) = @_;
+    my $deployment_id = get_var('SDAF_DEPLOYMENT_ID');
+    return unless $deployment_id;
+
+    record_info(
+        'Deploy skip', "OpenQA setting 'SDAF_DEPLOYMENT_ID' defined.\nExisting deployment '$deployment_id' will be used.")
+      if !$args{quiet};
+
+    return $deployment_id;
 }
 
 1;

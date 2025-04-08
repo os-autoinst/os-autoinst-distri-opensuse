@@ -11,8 +11,9 @@ use Mojo::Base 'publiccloud::basetest';
 use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login);
+  qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login sdaf_deployment_reused);
 use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
@@ -63,7 +64,8 @@ sub test_flags {
 
 sub run {
     my ($self) = @_;
-
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : start');
     select_serial_terminal();
     my $env_code = get_required_var('SDAF_ENV_CODE');
@@ -89,6 +91,10 @@ sub run {
     } else {
         $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
+
+    # Add no cleanup tag if the deployment should be kept after test finished
+    set_var('SDAF_NO_CLEANUP', '"' . no_cleanup_tag() . '" = "1"') if get_var('SDAF_RETAIN_DEPLOYMENT');
+
     prepare_tfvars_file(deployment_type => 'sap_system', os_image => $os, components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing

@@ -43,6 +43,7 @@ our @EXPORT = qw(
   find_deployer_resources
   destroy_deployer_vm
   destroy_orphaned_resources
+  no_cleanup_tag
 );
 
 =head2 check_ssh_availability
@@ -360,10 +361,11 @@ permanent SDAF infrastructure.
 sub destroy_orphaned_resources {
     my (%args) = @_;
     $args{timeout} //= 1200;
-    # List all resources containing 'deployment_id' tag - this should filter out only resources created by an openQA test.
+    # List all resources containing 'deployment_id' tag with exception of ones containing 'no cleanup' tag
+    # Result will show only resources created by OpenQA tests and only those which are allowed to be cleaned up.
     my $all_resources = az_resource_list(
         resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'),
-        query => '[?tags.deployment_id].{resource_id:id, creation_time:createdTime}'
+        query => '[?tags.deployment_id && tags.' . no_cleanup_tag() . '].{resource_id:id, creation_time:createdTime}'
     );
     my @orphaned_resources;
 
@@ -386,4 +388,18 @@ sub destroy_orphaned_resources {
     return unless @orphaned_resources;
     record_info('az destroy', "Following orphaned resources will be destroyed:\n" . join("\n", @orphaned_resources));
     destroy_resources(timeout => $args{timeout}, resource_cleanup_list => \@orphaned_resources);
+}
+
+=head2 no_cleanup_tag
+
+    no_cleanup_tag();
+
+Returns tag name that marks resource to be omitted during cleanup routine. Tag name can be defined by OpenQA setting
+`SDAF_NO_CLEANUP_TAG` with default value being 'sdaf_cleanup_ignore'.
+This function ensures default value naming consistency across all modules, instead defining it with each 'get_var' call.
+
+=cut
+
+sub no_cleanup_tag {
+    return get_var('SDAF_NO_CLEANUP_TAG', 'sdaf_cleanup_ignore');
 }
