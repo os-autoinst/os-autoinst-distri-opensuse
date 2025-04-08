@@ -54,6 +54,8 @@ sub subtestcase_output ($out, $regex, $description) {
 }
 
 sub run {
+    select_serial_terminal();
+
     # load kernel module
     assert_script_run('modprobe mce-inject') if is_x86_64;
 
