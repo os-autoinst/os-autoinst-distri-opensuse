@@ -235,11 +235,12 @@ sub run {
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
         }
 
-        # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
-        $ctr2->{image} = 'docker.io/library/alpine' if is_s390x;
-        assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
-        assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
-        assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
+        # NOTE: Remove condition when https://bugzilla.suse.com/show_bug.cgi?id=1239176 is fixed
+        unless (is_s390x) {
+            assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
+            assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
+            assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
+        }
     }
 
     remove_subtest_setup;
