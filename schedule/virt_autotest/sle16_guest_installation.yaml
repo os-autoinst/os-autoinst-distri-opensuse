@@ -5,5 +5,5 @@ schedule:
     - installation/ipxe_install
     - installation/agama_reboot
     - virt_autotest/login_console
-    # - virt_autotest/prepare_non_transactional_server
-    # - virt_autotest/unified_guest_installation
+    - virt_autotest/prepare_non_transactional_server
+    - virt_autotest/unified_guest_installation

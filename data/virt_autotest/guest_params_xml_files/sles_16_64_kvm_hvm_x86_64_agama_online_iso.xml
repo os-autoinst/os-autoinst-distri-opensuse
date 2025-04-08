@@ -26,8 +26,8 @@
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/iso/SLES-Online-16.0-x86_64-Build12345.install.iso</guest_installation_media>
-    <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/SLES-Online-16.0-x86_64-Build12345.install/</guest_installation_fine_grained_media>
+    <guest_installation_media>http://openqa.suse.de/assets/iso/SLES-16.0-Online-x86_64-Build12345.install.iso</guest_installation_media>
+    <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/SLES-16.0-Online-x86_64-Build12345.install/</guest_installation_fine_grained_media>
     <guest_installation_fine_grained_repos/>
     <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyS0,115200 linuxrc.log=/dev/ttyS0 linuxrc.core=/dev/ttyS0 linuxrc.debug=4,trace</guest_installation_fine_grained_kernel_args>
     <guest_installation_fine_grained_kernel_args_overwrite/>
