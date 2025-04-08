@@ -147,4 +147,8 @@ sub test_flags {
     return {milestone => 1};
 }
 
+sub _cleanup {
+    # Skip baseclass _cleanup subroutine as it's not applicable in this test module.
+}
+
 1;
