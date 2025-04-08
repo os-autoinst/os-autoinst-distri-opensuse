@@ -16,7 +16,6 @@ use warnings;
 use File::Basename;
 use data_integrity_utils 'verify_checksum';
 use virt_autotest::hyperv_utils;
-use version_utils qw(is_sle);
 
 sub run {
     my $svirt = select_console('svirt');
@@ -160,7 +159,7 @@ sub run {
                 hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB"));
             }
         }
-        if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot && is_sle('<16')) {
+        if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
             # For Hyper-V 2016 and UEFI, create VM without attaching a network switch
             hyperv_cmd("powershell -Command New-VM -VMName $name -Generation $vm_generation -MemoryStartupBytes ${ramsize}MB");
             record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
