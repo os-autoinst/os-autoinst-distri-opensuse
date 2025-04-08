@@ -74,7 +74,8 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(apache2-utils fakeroot jq openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
+    push @pkgs, "fakeroot" unless is_sle('>=16.0');
     install_packages(@pkgs);
 
     $self->bats_setup;
