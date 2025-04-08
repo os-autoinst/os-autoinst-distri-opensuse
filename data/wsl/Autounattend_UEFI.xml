@@ -379,7 +379,7 @@
         <!-- openqa-agent installation and config -->
         <RunSynchronousCommand wcm:action="add">
           <Order>64</Order>
-          <Path>powershell.exe -NoProfile -Command "Invoke-WebRequest -Uri https://github.com/grisu48/openqa-agent/releases/download/v1.1.2/agent-Windows-amd64 -OutFile 'C:\Program Files\openqa-agent.exe'"</Path>
+          <Path>powershell.exe -NoProfile -Command "Invoke-WebRequest -Uri https://github.com/grisu48/openqa-agent/releases/download/v1.1.3/agent-Windows-amd64 -OutFile 'C:\Program Files\openqa-agent.exe'"</Path>
         </RunSynchronousCommand>
         <RunSynchronousCommand wcm:action="add">
           <Order>65</Order>
