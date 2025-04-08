@@ -51,6 +51,13 @@ sub install_pkgs {
 
 sub run {
     my ($self) = @_;
+    # On SLE16 selinux is preinstalled, skip selinux setup if
+
+    if (is_sle('>=16')) {
+        select_serial_terminal;
+        validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*enforcing/sx });
+        return 1;
+    }
 
     # on SLE Micro selinux is enabled and set to enforcing by default
     if (is_sle_micro('>=6.0')) {
