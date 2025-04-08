@@ -23,8 +23,9 @@ use testapi qw(
   select_console
   console
 );
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_svirt);
+use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
@@ -52,12 +53,16 @@ sub run {
     return if get_var('INST_ABORT');
 
     # make sure we will boot from hard disk next time
-    if (is_s390x && is_svirt) {
+    if (is_s390x() && is_svirt()) {
         select_console 'installation';
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    $reboot_page->reboot();
+    (is_s390x() || is_ppc64le()) ?
+      # reboot via console
+      power_action('reboot', keepconsole => 1, first_reboot => 1) :
+      # graphical reboot
+      $reboot_page->reboot();
 }
 
 1;

@@ -18,7 +18,6 @@ use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
 use Yam::Agama::Pom::RebootPage;
-use Yam::Agama::Pom::RebootTextmodePage;
 use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
@@ -54,7 +53,6 @@ sub get_agama_up_an_running {
 }
 
 sub get_reboot {
-    return Yam::Agama::Pom::RebootTextmodePage->new() if is_s390x() || is_ppc64le();
     return Yam::Agama::Pom::RebootPage->new();
 }
 
