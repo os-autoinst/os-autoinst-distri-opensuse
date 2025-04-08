@@ -71,7 +71,7 @@
     post: [
       {
         name: "persistent_hostname",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "##Host-Name##.##Domain-Name##" > /etc/hostname
         |||
@@ -79,21 +79,21 @@
       {
         name: "sshd_config",
         chroot: true,
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
         name: "ssh_config",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
         name: "persistent_journal_logging",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
         |||
