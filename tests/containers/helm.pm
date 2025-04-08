@@ -24,10 +24,6 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::k8s;
 use publiccloud::utils qw(gcloud_install);
 
-my $chart_repo_url = "https://helm.nginx.com/stable";
-my $chart_repo = "nginx-stable";
-my $chart_name = "nginx-ingress";
-
 sub run {
     my ($self, $run_args) = @_;
     my $job_id = get_current_job_id();
@@ -41,8 +37,9 @@ sub run {
     $self->{is_k3s} = $is_k3s;
 
     select_serial_terminal;
+    my $chart = "nginx-stable/nginx-ingress";
 
-    record_info("Chart name", "$chart_repo/$chart_name @ $chart_repo_url");
+    record_info("Chart name", $chart);
 
     if ($is_k3s) {
         install_k3s();
@@ -123,10 +120,10 @@ sub run {
 
     # Add repo, search and show values
     assert_script_run(
-        "helm repo add $chart_repo $chart_repo_url", 180);
+        "helm repo add nginx-stable https://helm.nginx.com/stable", 180);
     assert_script_run("helm repo update", 180);
-    assert_script_run("helm search repo $chart_name");
-    assert_script_run("helm show all $chart_repo/$chart_name");
+    assert_script_run("helm search repo nginx-ingress");
+    assert_script_run("helm show all $chart");
 
     uninstall_k3s() if $is_k3s;
 }
