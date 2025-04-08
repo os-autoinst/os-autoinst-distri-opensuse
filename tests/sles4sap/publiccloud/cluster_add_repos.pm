@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use sles4sap_publiccloud;
+use qam;
 use testapi;
 
 sub test_flags {
@@ -17,9 +18,7 @@ sub test_flags {
 sub run {
     my ($self, $run_args) = @_;
     $self->import_context($run_args);
-
-    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
-    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    my @repos = get_test_repos();
     my $count = 0;
     my @zypper_cmd;
 

@@ -20,7 +20,7 @@ use version_utils qw(is_sle is_transactional);
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
   add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present
-  has_published_assets);
+  has_published_assets get_test_repos);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -247,6 +247,25 @@ sub check_patch_variables {
 # Return count of PUBLISH_* job variables
 sub has_published_assets {
     return scalar grep { m/^PUBLISH_/ } keys %bmwqemu::vars;
+}
+
+# Return list of all available repos
+sub get_test_repos {
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # Add aggregate repos to @repos, if they are provided
+    # Test repos are expected to end in '_TEST_REPOS'
+    # These vars are set by qem-bot, e.g.
+    # https://github.com/openSUSE/qem-bot/blob/ecb7acc8badccce85969e05f368455390b1ab6eb/openqabot/types/aggregate.py#L104
+    my @test_repos = grep { /_TEST_REPOS$/ } keys %bmwqemu::vars;
+    for my $repo (@test_repos) {
+        if (my $value = get_var($repo)) {
+            push @repos, split(/,/, $value);
+        }
+    }
+    return @repos;
 }
 
 1;
