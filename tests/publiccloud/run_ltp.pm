@@ -158,7 +158,7 @@ sub run {
 
     assert_script_run("cd kirk");
     my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
-    set_var("LTR_RUN_NG_GIT_HASH", $ghash);
+    set_var("LTP_RUN_NG_GIT_HASH", $ghash);
     record_info("KIRK_GIT_HASH", "$ghash");
     assert_script_run("python3.11 -m venv env311");
     assert_script_run("source env311/bin/activate");
