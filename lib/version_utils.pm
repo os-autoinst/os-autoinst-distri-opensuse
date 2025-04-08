@@ -777,7 +777,8 @@ sub check_os_release {
 
 Returns 1 (true) if os release version matches the one passed as arguement.
 If no arguements are given, the function will compare the os release version
-in /etc/os-release file with "VERSION" var.
+in /etc/os-release file with "VERSION" or "VARIANT" var.
+VARIANT contains the version on SL Micro/Microos from 6.2.
 
 =cut
 
@@ -785,7 +786,7 @@ sub verify_os_version {
     my ($version, $os_release_file) = @_;
     $version //= get_var("VERSION");
     $os_release_file //= '/etc/os-release';
-    return script_output("grep VERSION= $os_release_file | grep $version");
+    return script_output("grep 'VERSION=\\|VARIANT=' $os_release_file | grep $version");
 }
 
 =head2 is_public_cloud
