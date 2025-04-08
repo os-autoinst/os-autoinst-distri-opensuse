@@ -19,7 +19,9 @@ sub run {
     barrier_create("NFS_SERVER_CHECK", $nodes);
     barrier_create("NFS_STRESS_NG_START", $nodes);
     barrier_create("NFS_STRESS_NG_END", $nodes);
-    record_info("barriers initialized");
+    barrier_create("NFS_NFSTEST_START", $nodes);
+    barrier_create("NFS_NFSTEST_END", $nodes);
+    record_info("barriers initializoped");
 }
 
 sub test_flags {
