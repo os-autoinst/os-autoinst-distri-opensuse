@@ -107,6 +107,17 @@ sub run {
     $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
     $variables{HANA_INSTALL_MODE} = get_var('QESAPDEPLOY_HANA_INSTALL_MODE', 'standard');
 
+    # Default to empty string is intentional:
+    # empty value is used in terraform not to create the deployment
+    $variables{IBSM_VNET} = get_var('QESAPDEPLOY_IBSM_VNET', '');
+    $variables{IBSM_RG} = get_var('QESAPDEPLOY_IBSM_RG', '');
+    if (get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) {
+        $variables{IBSM_IP} = get_required_var('QESAPDEPLOY_IBSM_IP');
+        $variables{DOWNLOAD_HOSTNAME} = get_required_var('QESAPDEPLOY_DOWNLOAD_HOSTNAME');
+        # To be replaced with get_test_repos
+        $variables{REPOS} = get_required_var('QESAPDEPLOY_REPOS');
+    }
+
     qesap_prepare_env(
         openqa_variables => \%variables,
         provider => get_required_var('PUBLIC_CLOUD_PROVIDER')

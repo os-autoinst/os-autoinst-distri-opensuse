@@ -1,0 +1,54 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
+# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+provider: 'azure'
+apiver: 3
+terraform:
+  variables:
+    az_region: '%REGION%'
+    deployment_name: '%DEPLOYMENTNAME%'
+    os_image: '%OS_VER%'
+    public_key: '%SLES4SAP_PUBSSHKEY%'
+    hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    vnet_address_range: '%MAIN_ADDRESS_RANGE%'
+    subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
+    ibsm_rg: '%IBSM_RG%'
+    ibsm_vnet_name: '%IBSM_VNET%'
+ansible:
+  roles_path: '%ANSIBLE_ROLES%'
+  az_storage_account_name: '%HANA_ACCOUNT%'
+  az_container_name:  '%HANA_CONTAINER%'
+  az_key_name: '%HANA_KEYNAME%'
+  hana_media:
+    - '%HANA_SAR%'
+    - '%HANA_CLIENT_SAR%'
+    - '%HANA_SAPCAR%'
+  hana_vars:
+    sap_hana_install_install_execution_mode: '%HANA_INSTALL_MODE%'
+    sap_hana_install_software_directory: '/hana/shared/install'
+    sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
+    sap_hana_install_sid: 'HQ0'
+    sap_hana_install_instance_number: '00'
+    sap_domain: 'qe-test.example.com'
+    primary_site: 'goofy'
+    secondary_site: 'miky'
+    use_sap_hana_sr_angi: '%USE_SR_ANGI%'
+  create:
+    - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
+    - ibsm.yaml -e ibsm_ip='%IBSM_IP%' -e download_hostname='%DOWNLOAD_HOSTNAME%' -e repos='%REPOS%'
+    - fully-patch-system.yaml
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_reboottimeout=900
+    - cluster_sbd_prep.yaml
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml
+  destroy:
+    - deregister.yaml
