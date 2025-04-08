@@ -11,7 +11,6 @@ use strict;
 use warnings;
 
 use testapi;
-use version_utils qw(is_vmware);
 
 sub new {
     my ($class, $args) = @_;
@@ -36,17 +35,8 @@ sub expect_is_shown {
 
 sub reboot {
     my ($self) = @_;
-    if (is_vmware) {
-        if (current_console() =~ /root/) {
-            enter_cmd 'reboot';
-        } else {
-            select_console('root-console');
-            enter_cmd 'reboot';
-        }
-    } else {
-        select_console('installation');
-        assert_and_click($self->{tag_reboot_button});
-    }
+    select_console('installation');
+    assert_and_click($self->{tag_reboot_button});
 }
 
 1;
