@@ -230,6 +230,20 @@ sub load_image_tests_in_openshift {
     loadtest 'containers/openshift_image';
 }
 
+sub load_kubectl_tests {
+    my @k8s_versions = split('\s+', get_var("KUBERNETES_VERSIONS", ""));
+    if (@k8s_versions) {
+        foreach my $k8s_version (@k8s_versions) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{k8s_version} = $k8s_version;
+            loadtest('containers/kubectl', run_args => $run_args, name => "kubectl_" . $k8s_version);
+        }
+    } else {
+        my $run_args = OpenQA::Test::RunArgs->new();
+        loadtest('containers/kubectl', run_args => $run_args) if (/kubectl/i);
+    }
+}
+
 sub update_host_and_publish_hdd {
     # Method used to update pre-installed host images, booting
     # the existing qcow2 and publish a new qcow2
@@ -350,7 +364,7 @@ sub load_container_tests {
             loadtest 'containers/multi_runtime' if (/multi_runtime/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
-            loadtest('containers/kubectl') if (/kubectl/i);
+            load_kubectl_tests() if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
             loadtest 'containers/apptainer' if (/apptainer/i);
         }
