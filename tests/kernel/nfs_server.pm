@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: NFS server
