@@ -795,11 +795,13 @@ sub check_instance_state {
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
+            my $checked_services = 0;
             for my $line (split(/\n/, $output)) {
                 next if ($line =~ /GetProcessList|OK|^name/);
+                $checked_services++;
                 $failing_services++ if ($line !~ /$uc_state/);
             }
-            last unless $failing_services;
+            last if ($checked_services && !$failing_services);
         }
 
         $time_to_wait -= 10;
