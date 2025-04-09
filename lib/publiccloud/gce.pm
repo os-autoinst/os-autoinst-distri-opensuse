@@ -107,6 +107,7 @@ sub on_terraform_apply_timeout {
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
     my $region = $self->get_terraform_output('.region.value');
+    my $availability_zone = $self->get_terraform_output('.availability_zone.value');
     my $project = $self->get_terraform_output('.project.value');
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
