@@ -78,13 +78,15 @@ sub run {
     # AITL Jobs run in parallel so it's possible to have Jobs in all kind of states.
     # The goal of the loop is to check there are no Jobs Queued or currently Running.
     my $status_data;
-    while (1) {
+    my $time_start = time();
+    my $time_end = $time_start;
+    while (time() - $time_start <= $timeout) {
         # Get the current job status
         my $status = script_output(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring"));
 
         if ($status =~ /no result returned/ig) {
             sleep(60);
-            record_info("WARN:", "no results:\n" . $status);
+            record_info("WARN", "no result: skipping\n" . $status);
             next;
         }
 
@@ -105,6 +107,9 @@ sub run {
         # Wait before checking again
         sleep(65);
     }
+    $time_end = time();
+    # No die: allows the eventual test executed to be considered:
+    record_info("TIMEOUT", "Tests incomplete after $timeout sec.", result => 'fail') if ($time_end - $time_start > $timeout);
 
     # Need to save results to a variable
     my $results = script_output("$aitl_job get $aitl_get_options -q 'properties.results[]'");
@@ -120,7 +125,7 @@ sub run {
     # Download file from host pool to the instance
     assert_script_run('curl -s ' . autoinst_url('/files/aitl_results.xml') . ' -o /tmp/aitl_results.xml');
     parse_extra_log('XUnit', '/tmp/aitl_results.xml');
-    die "AITL test(s) failed: " . $status_data->{FAILED} . "\n" if ($status_data->{FAILED} > 0);
+    die "AITL test(s) failed: " . $status_data->{FAILED} . "\n" if ($status_data->{FAILED} > 0 || $time_end - $time_start > $timeout);
 }
 
 sub json_to_xml {
@@ -149,6 +154,11 @@ sub json_to_xml {
         } elsif ($test->{status} =~ /SKIPPED/) {
             my $skipped = $dom->createElement('skipped');
             $skipped->setAttribute('message', $test->{message});
+            $testcase->appendChild($skipped);
+
+        } elsif ($test->{status} =~ /QUEUED/ || $test->{status} =~ /ASSIGNED/ || $test->{status} =~ /RUNNING/) {
+            my $skipped = $dom->createElement('skipped');
+            $skipped->setAttribute('message', "incomplete" . "\n" . $test->{message});
             $testcase->appendChild($skipped);
 
         } else {
