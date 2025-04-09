@@ -17,6 +17,7 @@ use mmapi 'get_current_job_id';
 use utils qw(zypper_call);
 use JSON;
 use XML::LibXML;
+use Data::Dumper;
 
 sub run {
     my ($self, $args) = @_;
@@ -44,6 +45,10 @@ sub run {
     my $created_by = "$openqa_url/t$job_id";
     my $tags = "openqa-aitl=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url";
 
+    my $timeout //= get_var('PUBLIC_CLOUD_AITL_TIMEOUT', 3600 * 1.5);
+    my $aitl_job = "python3.11 /tmp/aitl.py job";
+    my $monitoring = "{RUNNING:length([?@=='RUNNING']),QUEUED:length([?@=='QUEUED']),ASSIGNED:length([?@=='ASSIGNED']),FAILED:length([?@=='FAILED'])}";
+
     # Get the AITL script
     assert_script_run("curl https://raw.githubusercontent.com/microsoft/lisa/refs/tags/$aitl_client_version/microsoft/utils/aitl/aitl.py -o /tmp/aitl.py");
 
@@ -64,7 +69,7 @@ sub run {
     }
 
     # Create AITL Job based on a manifest
-    assert_script_run("python3.11 /tmp/aitl.py job create $aitl_get_options -b @/tmp/$aitl_manifest");
+    assert_script_run("$aitl_job create $aitl_get_options -b @/tmp/$aitl_manifest");
 
     # Wait a few seconds to give Azure time to create the jobs
     sleep(10);
@@ -75,16 +80,22 @@ sub run {
     my $status_data;
     while (1) {
         # Get the current job status
-        my $status = script_output(qq(python3.11 /tmp/aitl.py job get $aitl_get_options -q "properties.results[].status|{RUNNING:length([?@=='RUNNING']),QUEUED:length([?@=='QUEUED']),ASSIGNED:length([?@=='ASSIGNED']),FAILED:length([?@=='FAILED'])}"));
+        my $status = script_output(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring"));
 
-        # Remove the first two non-JSON lines from the status JSON
+        if ($status =~ /no result returned/ig) {
+            sleep(60);
+            record_info("WARN:", "no results:\n" . $status);
+            next;
+        }
+
+        # Remove the first two/3 non-JSON lines from the status JSON
         $status =~ s/^(?:.*\n){1,3}//;
 
         # Decode the status JSON
-        $status_data = decode_json($status);
+        eval { $status_data = decode_json($status); };
 
         # Check if there are still jobs in RUNNING, QUEUED, or ASSIGNED state
-        if ($status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
+        if ($@ || $status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
             last;    # Exit the loop if no jobs are in these states
         }
 
@@ -96,19 +107,20 @@ sub run {
     }
 
     # Need to save results to a variable
-    my $results = script_output("python3.11 /tmp/aitl.py job get $aitl_get_options -q 'properties.results[]'");
+    my $results = script_output("$aitl_job get $aitl_get_options -q 'properties.results[]'");
 
     # Remove the first two non-JSON lines from the results JSON.
     $results =~ s/^(?:.*\n){1,3}//;
 
     # Convert to JUnit XML and upload to host
-    my $extra_log = json_to_xml($results, $aitl_image_name);
+    my $extra_log;
+    eval { $extra_log = json_to_xml($results, $aitl_image_name); };
+    die "AITL tests: bad or missing results:\n" . Dumper($results) if ($@);
 
     # Download file from host pool to the instance
     assert_script_run('curl -s ' . autoinst_url('/files/aitl_results.xml') . ' -o /tmp/aitl_results.xml');
     parse_extra_log('XUnit', '/tmp/aitl_results.xml');
-    die "AITL test(s) failed!" if ($status_data->{FAILED} > 0);
-
+    die "AITL test(s) failed: " . $status_data->{FAILED} . "\n" if ($status_data->{FAILED} > 0);
 }
 
 sub json_to_xml {
@@ -148,7 +160,6 @@ sub json_to_xml {
 
     $dom->setDocumentElement($testsuite);
     $dom->toFile(hashed_string('aitl_results.xml'), 1);
-
 }
 
 1;
