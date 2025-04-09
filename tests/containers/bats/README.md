@@ -15,10 +15,11 @@ Notes:
   - Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
   - The scheduling is done in [lib/main_containers.pm](../../../lib/main_containers.pm)
 
-The tests rely on some variables.
+The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
 ## buildah
@@ -107,6 +108,10 @@ NOTES
 | SLE 15-SP4 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=bats_testsuite) |
 | | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=buildah_testsuite) |
 | SLE 15-SP3 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=bats_testsuite) |
+
+## Workflow
+
+- To debug possible SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
 
 ## Tools
 

@@ -174,6 +174,12 @@ sub bats_setup {
 
     delegate_controllers;
 
+    if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
+        record_info("Disabling SELinux");
+        assert_script_run "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
+        assert_script_run "setenforce 0";
+    }
+
     # Remove mounts.conf
     script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
 
