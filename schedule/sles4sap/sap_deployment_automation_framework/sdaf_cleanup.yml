@@ -9,7 +9,4 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/connect_to_deployer
   - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
   - sles4sap/redirection_tests/redirection_check
-  # Once we have a real test scenario, hana_cluster_check needs to be moved out of here
-  # since it is a cleanup and there is no need to check cluster.
-  - sles4sap/redirection_tests/hana_cluster_check
   - sles4sap/sap_deployment_automation_framework/cleanup
