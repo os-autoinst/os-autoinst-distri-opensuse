@@ -116,7 +116,7 @@ sub upload_boot_diagnostics {
     $time =~ s/:/-/g;
     my $asset_path = "/tmp/console-$time.txt";
     # gce provides full serial log, so extended timeout
-    script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > $asset_path", timeout => 180);
+    script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region-$availability_zone --port=1 > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('Invalid screenshot', 'The console screenshot is invalid.');
         record_info($asset_path, script_output("cat $asset_path"));
