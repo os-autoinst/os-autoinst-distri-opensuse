@@ -104,9 +104,11 @@ sub run {
         assert_script_run("md5sum testfile_oflag_direct > md5sum_testfile_oflag_direct.txt");
         record_info("NFS3 checksum", script_output("cat md5sum_testfile_oflag_direct.txt"));
 
-	#my $md5 = script_output("cat md5sum.txt");
-	#my $newmd5 = script_output("cat md5sum_testfile_oflag_direct.txt");
-        
+        my $md5 = script_output("cat md5sum.txt");
+        my $newMd5 = script_output("cat md5sum_testfile_oflag_direct.txt");
+
+        die {"checksums differ $md5 : $newMd5"} unless($md5 == $newMd5);
+
 
 	    #assert_script_run("md5sum testfile_oflag_direct -c md5sum.txt");
 	    #record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
