@@ -37,7 +37,7 @@ BCI_SKIP | boolean | false | Switch to disable BCI test runs. Necessary for fine
 BCI_PREPARE | boolean | false | Launch the bci_prepare step again. Useful to re-initialize the BCI-Test repo when using a different BCI_TESTS_REPO
 BCI_VIRTUALENV | boolean | false | Use a virtualenv for pip dependencies in BCI tests
 BCI_OS_VERSION | string | | Set the environment variable OS_VERSION to this value, if present
-BOOTLOADER | string | grub2 | Which bootloader is used by the image (and in the future also: will be selected during installation)
+BOOTLOADER | string | grub2 | Which bootloader is used by the image or will be selected during installation, e.g. `grub2`, `grub2-bls`, `systemd-boot`
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
 BUILDAH_STORAGE_DRIVER | string | | Storage driver used for buildah: vfs or overlay.
