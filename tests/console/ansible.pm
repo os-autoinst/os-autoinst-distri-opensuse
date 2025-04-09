@@ -18,7 +18,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_sle is_jeos);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -38,7 +38,6 @@ sub run {
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
         add_suseconnect_product(get_addon_fullname('sdk'));
-
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
         add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
     }
@@ -55,7 +54,7 @@ sub run {
     push @pkgs, is_sle('=15-SP7') ? 'ansible-9' : 'ansible';
     # python3-yamllint needed by ansible-test
     # ansible-test is not available in newer sles'
-    push @pkgs, qw(ansible-test python3-yamllint) if is_opensuse || is_sle('<15-SP7');
+    push @pkgs, qw(ansible-test python3-yamllint) unless is_sle;
     if (is_transactional) {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
@@ -142,8 +141,8 @@ sub run {
         assert_script_run "ansible-playbook -vvv -i hosts main.yaml --check", timeout => 300;
     }
 
-    if (is_opensuse || is_sle('<15-SP7')) {
-        # Run the ansible sanity test
+    # Run the ansible sanity test
+    unless (is_sle) {
         script_run 'ansible-test --help';
         assert_script_run 'ansible-test sanity';
     }
