@@ -96,18 +96,55 @@ sub run {
         assert_script_run("md5sum -c md5sum.txt");
         record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
 
+        assert_script_run("md5sum testfile_oflag_direct -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_dsync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_sync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
         assert_script_run("cd $nfs_mount_nfs3_async");
         assert_script_run("md5sum -c md5sum.txt");
         record_info("NFS3 async checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_direct -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_dsync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_sync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
     }
 
     if ($kernel_nfs4 == 1) {
         assert_script_run("cd $nfs_mount_nfs4");
         assert_script_run("md5sum -c md5sum.txt");
         record_info("NFS4 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_direct -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_dsync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_sync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
         assert_script_run("cd $nfs_mount_nfs4_async");
         assert_script_run("md5sum -c md5sum.txt");
         record_info("NFS4 async checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_direct -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_dsync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+
+        assert_script_run("md5sum testfile_oflag_sync -c md5sum.txt");
+        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
     }
 
     record_info("NFS stat for server", script_output("nfsstat -s"));
