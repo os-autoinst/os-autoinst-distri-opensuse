@@ -6,8 +6,8 @@
 # Summary: Test deploy a helm chart in a k3s
 # - install k3s, kubectl and helm
 # - test helm repo add, update, search and show all
-# - add bitnami repo
-# - test helm install with apache helm chart
+# - add nginx repo
+# - test helm install with nginx helm chart
 # - test helm list
 # - check the correct deployment of the helm chart
 # - cleanup system (helm and k3s)
@@ -37,7 +37,7 @@ sub run {
     $self->{is_k3s} = $is_k3s;
 
     select_serial_terminal;
-    my $chart = "bitnami/apache";
+    my $chart = "nginx-stable/nginx-ingress";
 
     record_info("Chart name", $chart);
 
@@ -120,9 +120,9 @@ sub run {
 
     # Add repo, search and show values
     assert_script_run(
-        "helm repo add bitnami https://charts.bitnami.com/bitnami", 180);
+        "helm repo add nginx-stable https://helm.nginx.com/stable", 180);
     assert_script_run("helm repo update", 180);
-    assert_script_run("helm search repo apache");
+    assert_script_run("helm search repo nginx-ingress");
     assert_script_run("helm show all $chart");
 
     uninstall_k3s() if $is_k3s;
@@ -142,6 +142,10 @@ sub post_fail_hook {
 
 sub test_flags {
     return {milestone => 1};
+}
+
+sub _cleanup {
+    # Skip baseclass _cleanup subroutine as it's not applicable in this test module.
 }
 
 1;
