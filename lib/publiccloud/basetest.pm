@@ -101,36 +101,36 @@ sub cleanup {
     return 1;
 }
 
-sub _cleanup {
+sub finalize {
     my ($self) = @_;
-    die("Cleanup called twice!") if ($self->{cleanup_called});
-    $self->{cleanup_called} = 1;
+    die("Cleanup called twice!") if ($self->{finalize_called});
+    $self->{finalize_called} = 1;
 
-    # Call cleanup() defined in test modules - not the provider cleanup()
+    # Call cleanup() defined in test modules
     eval { $self->cleanup(); } or record_info('FAILED', "\$self->cleanup() failed -- $@", result => 'fail');
 
     my $flags = $self->test_flags();
 
-    diag('Public Cloud _cleanup: $flags->{publiccloud_multi_module}=' . $flags->{publiccloud_multi_module}) if ($flags->{publiccloud_multi_module});
-    diag('Public Cloud _cleanup: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
-    diag('Public Cloud _cleanup: $self->{result}=' . $self->{result}) if ($self->{result});
-    diag('Public Cloud _cleanup: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
-    diag('Public Cloud _cleanup: $self->{run_args}->{my_provider}=' . $self->{run_args}->{my_provider}) if ($self->{run_args} && $self->{run_args}->{my_provider});
-    diag('Public Cloud _cleanup: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args} && $self->{run_args}->{my_instance});
+    diag('Public Cloud finalize: $flags->{publiccloud_multi_module}=' . $flags->{publiccloud_multi_module}) if ($flags->{publiccloud_multi_module});
+    diag('Public Cloud finalize: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
+    diag('Public Cloud finalize: $self->{result}=' . $self->{result}) if ($self->{result});
+    diag('Public Cloud finalize: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
+    diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . $self->{run_args}->{my_provider}) if ($self->{run_args} && $self->{run_args}->{my_provider});
+    diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args} && $self->{run_args}->{my_instance});
 
     if ($self->{run_args} && $self->{run_args}->{my_instance} && $self->{result} && $self->{result} eq 'fail') {
         $self->{run_args}->{my_instance}->upload_supportconfig_log();
     }
 
     # currently we have two cases when cleanup of image will be skipped:
-    # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable
-    if (get_var('PUBLIC_CLOUD_NO_CLEANUP')) {
-        diag('Public Cloud _cleanup: The test has PUBLIC_CLOUD_NO_CLEANUP variable.');
+    # 1. Job should have 'PUBLIC_CLOUD_NO_TEARDOWN' variable
+    if (get_var('PUBLIC_CLOUD_NO_TEARDOWN')) {
+        diag('Public Cloud finalize: The test has PUBLIC_CLOUD_NO_TEARDOWN variable.');
         eval { $self->_upload_logs() } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
         upload_asset(script_output('ls ~/.ssh/id* | grep -v pub | head -n1'));
         return;
     }
-    diag('Public Cloud _cleanup: 1st check passed.');
+    diag('Public Cloud finalize: 1st check passed.');
 
     # 2. Test module needs to have 'publiccloud_multi_module' flag and should not have 'fatal' flag and 'fail' result
     #   * In case the test does not have 'publiccloud_multi_module' flag we don't expect anything else running after it.
@@ -139,24 +139,24 @@ sub _cleanup {
         # * We continue with cleanup if the test is failed and fatal.
         # * We don't continue with cleaup if the test is not failed or not fatal
         #   This is because we expect other test modules requirening the machine running after.
-        diag('Public Cloud _cleanup: Test has `publiccloud_multi_module` flag.');
-        diag('Public Cloud _cleanup: We will end here unless this is `fatal` test finishing with `fail` result.');
+        diag('Public Cloud finalize: Test has `publiccloud_multi_module` flag.');
+        diag('Public Cloud finalize: We will end here unless this is `fatal` test finishing with `fail` result.');
         return unless ($flags->{fatal} && $self->{result} && $self->{result} eq 'fail');
     } else {
-        diag('Public Cloud _cleanup: Test does not have `publiccloud_multi_module` flag.');
+        diag('Public Cloud finalize: Test does not have `publiccloud_multi_module` flag.');
     }
-    diag('Public Cloud _cleanup: 2nd check passed.');
+    diag('Public Cloud finalize: 2nd check passed.');
 
     eval { $self->_upload_logs(); } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
 
     # We need $self->{run_args} and $self->{run_args}->{my_provider}
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
-        diag('Public Cloud _cleanup: Ready for provider cleanup.');
-        # Call the provider cleanup
-        eval { $self->{run_args}->{my_provider}->cleanup() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
-        diag('Public Cloud _cleanup: The provider cleanup finished.');
+        diag('Public Cloud finalize: Ready for provider teardown.');
+        # Call the provider teardown
+        eval { $self->{run_args}->{my_provider}->teardown() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
+        diag('Public Cloud finalize: The provider teardown finished.');
     } else {
-        diag('Public Cloud _cleanup: Not ready for provider cleanup.');
+        diag('Public Cloud finalize: Not ready for provider teardown.');
     }
 }
 
@@ -195,12 +195,12 @@ sub post_fail_hook {
         return;
     }
 
-    $self->_cleanup() unless $self->{cleanup_called};
+    $self->finalize() unless $self->{finalize_called};
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->_cleanup() unless $self->{cleanup_called};
+    $self->finalize() unless $self->{finalize_called};
 }
 
 1;

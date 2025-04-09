@@ -1041,11 +1041,7 @@ sub post_fail_hook {
 
         # Destroy the public cloud instance in case of fatal test failure
         my $flags = $self->test_flags();
-        $self->{run_args}->{my_provider}->cleanup() if ($flags->{fatal});
-
-        # When tunnel-console is used we upload the log
-        my $ssh_sut = '/var/tmp/ssh_sut.log';
-        upload_logs($ssh_sut) unless (script_run("test -f $ssh_sut") != 0);
+        $self->{run_args}->{my_provider}->finalize() if ($flags->{fatal});
     }
 }
 
