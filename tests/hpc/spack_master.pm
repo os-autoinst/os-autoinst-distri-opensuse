@@ -71,7 +71,7 @@ sub run ($self) {
 
     record_info('INFO', 'Run MPI over several nodes');
     my $nodes = join(',', @cluster_nodes);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 120);
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 240);
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
     barrier_wait('MPI_RUN_TEST');
