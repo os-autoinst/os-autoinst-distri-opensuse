@@ -11,6 +11,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
+use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls);
 
 sub run {
     my ($self) = shift;
@@ -35,7 +36,8 @@ sub run {
     # Select systemd-boot as bootloader
     send_key 'alt-b', wait_screen_change => 1;
     send_key 'spc', wait_screen_change => 1;
-    send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down';
+    send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
+    send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'down' if is_bootloader_grub2_bls;
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
