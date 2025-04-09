@@ -221,5 +221,5 @@ output "region" {
 }
 
 output "availability_zone" {
-  value = local.zone
+  value = var.availability_zone
 }
