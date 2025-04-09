@@ -27,8 +27,8 @@ sub test_zypper {
     zypper_call("in apache2");
     zypper_call("rm apache2");
 
-    # Register available extensions and modules for SLE, e.g., free addons
-    if (is_sle && !main_common::is_updates_tests()) {
+    # Register available extensions and modules for SLE, e.g., free addons, if SLE16 skip
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
