@@ -536,4 +536,5 @@ utility_vm_useDHCP = true
 # These tags will be applied to all resources
 tags = {
   "DeployedBy" = "OpenQA-SDAF-automation",
+  %SDAF_NO_CLEANUP%
 }

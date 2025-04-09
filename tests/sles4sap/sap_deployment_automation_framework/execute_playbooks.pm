@@ -62,6 +62,9 @@ sub test_flags {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
+
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : start');
     my $sap_sid = get_required_var('SAP_SID');
     my $sdaf_config_root_dir = get_sdaf_config_path(

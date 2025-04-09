@@ -868,4 +868,5 @@ bom_name = "%SDAF_BOM_NAME%"
 # These tags will be applied to all resources
 tags = {
   "DeployedBy" = "OpenQA-SDAF-automation",
+  %SDAF_NO_CLEANUP%
 }
