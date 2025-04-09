@@ -36,6 +36,7 @@
       <li><a href="#ansible_execute_command">ansible_execute_command</a></li>
       <li><a href="#playbook_settings">playbook_settings</a></li>
       <li><a href="#sdaf_register_byos">sdaf_register_byos</a></li>
+      <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment.pm</h1>
@@ -462,6 +463,19 @@ tee - writes output also into the log file</code></pre>
 
 </li>
 <li><p><b>sap_sid</b>: SAP system ID</p>
+
+</li>
+</ul>
+
+<h2 id="sdaf_deployment_reused">sdaf_deployment_reused</h2>
+
+<pre><code>sdaf_deployment_reused(quiet=&gt;&#39;BeQuiet!&#39;);</code></pre>
+
+<p>If an existing deployment is being reused according to openQA setting `SDAF_DEPLOYMENT_ID`, function will display `record_info` message with details and returns deployment ID. Otherwise returns nothing/false. Argument <b>quiet</b> can be used to disable `record_info` message.</p>
+
+<ul>
+
+<li><p><b>quiet</b>: Hide &#39;record_info&#39; message. Default: undef</p>
 
 </li>
 </ul>

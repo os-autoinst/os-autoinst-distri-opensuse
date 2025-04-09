@@ -23,6 +23,7 @@
       <li><a href="#destroy_resources">destroy_resources</a></li>
       <li><a href="#destroy_deployer_vm">destroy_deployer_vm</a></li>
       <li><a href="#destroy_orphaned_deployers">destroy_orphaned_deployers</a></li>
+      <li><a href="#no_cleanup_tag">no_cleanup_tag</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment_connector.pm</h1>
@@ -170,6 +171,12 @@
 
 </li>
 </ul>
+
+<h2 id="no_cleanup_tag">no_cleanup_tag</h2>
+
+<pre><code>no_cleanup_tag();</code></pre>
+
+<p>Returns tag name that marks resource to be omitted during cleanup routine. Tag name can be defined by OpenQA setting `SDAF_NO_CLEANUP_TAG` with default value being &#39;sdaf_cleanup_ignore&#39;. This function ensures default value naming consistency across all modules, instead defining it with each &#39;get_var&#39; call.</p>
 
 
 </body>
