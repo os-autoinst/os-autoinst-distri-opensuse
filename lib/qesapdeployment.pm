@@ -2171,6 +2171,10 @@ sub qesap_az_simple_peering_delete {
 
 sub qesap_az_vnet_peering_delete {
     my (%args) = @_;
+    if (get_var('IBSM_VNET')) {
+        record_info('PEERING MANAGED', 'Peering will be destroyed by terraform destroy');
+        return;
+    }
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
