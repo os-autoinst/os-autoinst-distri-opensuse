@@ -39,7 +39,7 @@ sub run {
     # Now we add the incident repositories and do a zypper patch
     add_test_repositories;
     record_info('Updates', script_output('zypper lu'));
-    trup_call('up', timeout => 300, proceed_on_failure => 1) unless get_var('DISABLE_UPDATE_WITH_PATCH');
+    trup_call('patch', timeout => 300, proceed_on_failure => 1) unless get_var('DISABLE_UPDATE_WITH_PATCH');
 
     # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
     # see poo#169090
