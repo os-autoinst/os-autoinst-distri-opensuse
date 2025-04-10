@@ -17,7 +17,7 @@ subtest '[saphostctrl_list_databases] Verify command compilation' => sub {
     saphostctrl_list_databases();
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((grep /saphostctrl/, @calls), 'Execute "saphostctrl" binary');
-    ok((grep /-function ListDatabases/, @calls), 'Execute "ListDatabases" fucntion');
+    ok((grep /-function ListDatabases/, @calls), 'Execute "ListDatabases" function');
     ok((grep /\| grep Instance/, @calls), 'Show only "Instances" entries');
 };
 

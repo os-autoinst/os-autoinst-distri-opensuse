@@ -511,4 +511,94 @@ subtest '[prepare_console_for_fencing]' => sub {
     ok((any { /await_console/ } @calls), 'await_console argument passed');
 };
 
+subtest '[crm_get_failcount] Mandatory args' => sub {
+    dies_ok { crm_get_failcount() } 'Fail with missing mandatory arg: resource';
+};
+
+subtest '[crm_get_failcount] Command composition' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_output =>
+          sub { @calls = @_; return 'scope=status  name=fail-count-rsc_sap_QES_ASCS01 value=0'; });
+
+    crm_get_failcount(crm_resource => 'rsc_sap_QES_ASCS01');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm_failcount/, @calls), 'Execute "crm_failcount" command.');
+    ok((grep /--query/, @calls), 'Query current value using "--query"');
+    ok((grep /--resource/, @calls), 'Query value for specific resource using "--resource"');
+};
+
+subtest '[crm_get_failcount] Verify result' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return 'scope=status  name=fail-count-rsc_sap_QES_ASCS01 value=0'; });
+    is crm_get_failcount(crm_resource => 'rsc_sap_QES_ASCS01'), '0', 'Return fail count: 0';
+    $hacluster->redefine(script_output => sub { return 'scope=status  name=fail-count-rsc_sap_QES_ASCS01 value=1000'; });
+    is crm_get_failcount(crm_resource => 'rsc_sap_QES_ASCS01'), '1000', 'Return fail count: 1000';
+};
+
+subtest '[crm_resources_by_class] Mandatory args' => sub {
+    dies_ok { crm_resources_by_class() } 'Fail with missing argument "primitive_class"';
+};
+
+subtest '[crm_resources_by_class] Command composition' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_output => sub { @calls = @_; return 'primitive rsc_sap_QES_ASCS01 SAPInstance'; });
+    $hacluster->redefine(assert_script_run => sub { return; });
+    crm_resources_by_class(primitive_class => 'SAPInstance');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /configure/, @calls), 'Execute "configure" subcommand.');
+    ok((grep /show/, @calls), 'Execute "show" option.');
+    ok((grep /related:SAPInstance/, @calls), 'Include class');
+    ok((grep /| grep primitive/, @calls), 'Show only "primitive" lines');
+};
+
+subtest '[crm_resources_by_class] Result verification' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return 'primitive rsc_sap_QES_ASCS01 SAPInstance
+primitive rsc_sap_QES_ERS02 SAPInstance'; });
+    $hacluster->redefine(assert_script_run => sub { return; });
+    my @resources_found = @{crm_resources_by_class(primitive_class => 'SAPInstance')};
+    ok((grep /SCS/, @resources_found), 'Result finds ASCS instance name');
+    ok((grep /ERS/, @resources_found), 'Result finds ERS instance name');
+};
+
+subtest '[crm_wait_failcount] Check exceptions' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(crm_get_failcount => sub { return 0; });
+
+    dies_ok { crm_wait_failcount() } "Fail with missing argument: crm_resource";
+    dies_ok { crm_wait_failcount(crm_resource => 'raspberry') } 'Fail with fail count not increasing';
+};
+
+subtest '[crm_wait_failcount]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(crm_get_failcount => sub { return 1; });
+
+    ok(crm_wait_failcount(crm_resource => 'raspberry'), 'PASS with fail count increasing');
+};
+
+subtest '[crm_resource_locate] Mandatory args' => sub {
+    dies_ok { crm_resource_locate }, 'Missing mandaroty $args{crm_resource}';
+};
+
+subtest '[crm_resource_locate] Verify cmd' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_output => sub { @calls = @_; return 'someting'; });
+    crm_resource_locate(crm_resource => 'rsc_sap_QES_ASCS01');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /resource/, @calls), 'Add "resource" subcommand.');
+    ok((grep /locate/, @calls), 'Include "locate" argument.');
+    ok((grep /rsc_sap_QES_ASCS01/, @calls), 'Specify resource name.');
+};
+
+subtest '[crm_resource_locate] Verify cmd' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return 'resource rsc_sap_QES_ASCS01 is running on: qesscs01lc14'; });
+    is crm_resource_locate(crm_resource => 'rsc_sap_QES_ASCS01'), 'qesscs01lc14', 'Return correct hostname';
+};
+
 done_testing;
