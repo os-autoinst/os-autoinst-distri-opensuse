@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use containers::common qw(install_packages);
 use utils;
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures qw(is_ppc64le is_s390x);
 use Utils::Backends qw(is_hyperv);
 use version_utils qw(is_vmware);
 
@@ -22,8 +22,8 @@ my $network = "test_isolated_network";
 sub test_ip_version {
     my ($ip_version, $ip_addr) = @_;
 
-    # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
-    my $image = is_s390x ? 'registry.opensuse.org/opensuse/toolbox' : 'registry.opensuse.org/opensuse/busybox';
+    # ppc64le & s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
+    my $image = (is_ppc64le || is_s390x) ? 'registry.opensuse.org/opensuse/toolbox' : 'registry.opensuse.org/opensuse/busybox';
     script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Test that containers can't access the host
