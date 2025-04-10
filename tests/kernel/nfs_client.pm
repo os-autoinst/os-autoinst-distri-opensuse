@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: NFS Client
@@ -72,10 +72,30 @@ sub run {
     if ($kernel_nfs3 == 1) {
         assert_script_run("cp testfile md5sum.txt $local_nfs3");
         assert_script_run("cp testfile md5sum.txt $local_nfs3_async");
+
+	#copy created file using oflag=direct,dsync,sync
+        assert_script_run("dd oflag=direct if=testfile of=$local_nfs3/testfile_oflag_direct bs=1024 count=10240");
+        assert_script_run("dd oflag=dsync if=testfile of=$local_nfs3/testfile_oflag_dsync bs=1024 count=10240");
+        assert_script_run("dd oflag=sync if=testfile of=$local_nfs3/testfile_oflag_sync bs=1024 count=10240");
+
+        #copy created file using oflag=direct,dsync,sync
+        assert_script_run("dd oflag=direct if=testfile of=$local_nfs3_async/testfile_oflag_direct bs=1024 count=10240");
+        assert_script_run("dd oflag=dsync if=testfile of=$local_nfs3_async/testfile_oflag_dsync bs=1024 count=10240");
+        assert_script_run("dd oflag=sync if=testfile of=$local_nfs3_async/testfile_oflag_sync bs=1024 count=10240");
     }
     if ($kernel_nfs4 == 1) {
         assert_script_run("cp testfile md5sum.txt $local_nfs4");
         assert_script_run("cp testfile md5sum.txt $local_nfs4_async");
+
+        #copy created file using oflag=direct,dsync,sync
+        assert_script_run("dd oflag=direct if=testfile of=$local_nfs4/testfile_oflag_direct bs=1024 count=10240");
+        assert_script_run("dd oflag=dsync if=testfile of=$local_nfs4/testfile_oflag_dsync bs=1024 count=10240");
+        assert_script_run("dd oflag=sync if=testfile of=$local_nfs4/testfile_oflag_sync bs=1024 count=10240");
+
+        #copy created file using oflag=direct,dsync,sync
+        assert_script_run("dd oflag=direct if=testfile of=$local_nfs4_async/testfile_oflag_direct bs=1024 count=10240");
+        assert_script_run("dd oflag=dsync if=testfile of=$local_nfs4_async/testfile_oflag_dsync bs=1024 count=10240");
+        assert_script_run("dd oflag=sync if=testfile of=$local_nfs4_async/testfile_oflag_sync bs=1024 count=10240");
     }
 
     barrier_wait("NFS_SERVER_CHECK");
