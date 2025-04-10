@@ -798,9 +798,10 @@ sub generate_json_profile {
     my $profile_name = "generated_profile.json";
     my $profile_path = get_required_var('CASEDIR') . "/data/" . get_required_var('INST_AUTO');
 
-    my @profile_options = map { " --tla-" . (/true|false/ ? "code" : "str") . " $_" }
+    my @profile_options = map { "--tla-" . (/true|false/ ? "code" : "str") . " $_ " }
       split(' ', trim(get_var('AGAMA_PROFILE_OPTIONS')));
     diag "jsonnet @profile_options $profile_path";
+    record_info("JSONNET Command", "jsonnet @profile_options $profile_path");
     my $profile_content = `jsonnet @profile_options $profile_path`;
     record_info("Profile", $profile_content);
 
