@@ -17,6 +17,14 @@ conditional_schedule:
                 - console/yast2_lan_device_settings
             x86_64:
                 - console/yast2_lan_device_settings
+    fwupd:
+        ARCH:
+            aarch64:
+                - console/fwupd
+            x86_64:
+                - console/fwupd
+            ppc64le:
+                - console/fwupd
     snmp:
         MACHINE:
             64bit:
@@ -155,7 +163,7 @@ schedule:
     - console/sysctl
     - console/sysstat
     - console/tuned
-    - console/fwupd
+    - '{{fwupd}}'
     - '{{snmp}}'
     - console/curl_ipv6
     - console/wget_ipv6
