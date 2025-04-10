@@ -777,13 +777,6 @@
         },
         "type": "bug"
     },
-    "bsc#1229228": {
-        "description": "agetty\\[\\d+\\]: failed to open credentials directory",
-        "products": {
-            "sle": ["15-SP7"]
-        },
-        "type": "bug"
-    },
     "wicked-warning": {
         "description": "wicked.*: Interface wait time \\(30s\\) reached",
         "products": {
