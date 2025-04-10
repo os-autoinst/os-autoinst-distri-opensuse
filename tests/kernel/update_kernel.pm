@@ -250,6 +250,33 @@ sub install_lock_kernel {
     exit_trup_shell if is_transactional;
 }
 
+sub prepare_increment_livepatch {
+    my ($repo, $kflavor, $kver) = @_;
+
+    #add repository with tested patch
+    my $klp_pkg;
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        my $cur_repo = "kgraft-test-repo-$i";
+        zypper_call("ar -G $val $cur_repo");
+        my $pkgs = zypper_search("-s -t package -r $cur_repo");
+        #disable kgraf-test-repo for while
+        zypper_call("mr -d $cur_repo");
+
+        foreach my $pkg (@$pkgs) {
+            my $cur_pkg = is_klp_pkg($pkg);
+            if ($cur_pkg && $$cur_pkg{kflavor} eq $kflavor && $$cur_pkg{kver} eq $kver && (!defined($klp_pkg) || $$cur_pkg{version} > $$klp_pkg{version})) {
+                $klp_pkg = $cur_pkg;
+            }
+        }
+    }
+
+    die "No kernel livepatch package found" unless $klp_pkg;
+    my $kver = find_version("kernel-$kflavor", $kver);
+    install_klp_product($kver);
+    return $klp_pkg;
+}
+
 sub prepare_kgraft {
     my ($repo, $incident_id) = @_;
 
@@ -423,6 +450,24 @@ sub install_kotd {
     install_package('kernel-devel', trup_continue => 1);
 }
 
+sub update_kgraft_under_load {
+    my ($incident_klp_pkg, $repo, $incident_id) = @_;
+
+    # dependencies for heavy load script
+    add_qa_head_repo;
+    install_package("ltp-stable", trup_reboot => 1);
+
+    # update kgraft patch under heavy load
+    update_kgraft($incident_klp_pkg, $repo, $incident_id);
+
+    enter_trup_shell if is_transactional;
+    zypper_call("rr qa-head");
+    zypper_call("rm ltp-stable");
+    exit_trup_shell if is_transactional;
+
+    verify_klp_pkg_patch_is_active($incident_klp_pkg);
+}
+
 sub boot_to_console {
     my ($self) = @_;
 
@@ -457,18 +502,33 @@ sub run {
         reboot_on_changes;
     }
 
+    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
+    my $incident_id = undef;
+
     add_extra_customer_repositories;
 
     if (get_var('KERNEL_VERSION')) {
-        downgrade_kernel(get_var('KERNEL_VERSION'));
+        my $kver = get_var('KERNEL_VERSION');
+
+        downgrade_kernel($kver);
         check_kernel_package($kernel_package);
         power_action('reboot', textmode => 1);
-        $self->wait_boot if get_var('LTP_BAREMETAL') || is_transactional;
+
+        if (get_var('KGRAFT')) {
+            my $kflavor = $kernel_package =~ s/^kernel-//r;
+
+            boot_to_console($self);
+            my $klp_pkg = prepare_increment_livepatch($repo, $kflavor, $kver);
+            update_kgraft_under_load($klp_pkg, $repo);
+            kgraft_state;
+            reboot_on_changes if is_transactional;
+        }
+        else {
+            $self->wait_boot if get_var('LTP_BAREMETAL') || is_transactional;
+        }
+
         return;
     }
-
-    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
-    my $incident_id = undef;
 
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');
@@ -480,19 +540,7 @@ sub run {
         boot_to_console($self);
 
         if (!check_var('REMOVE_KGRAFT', '1')) {
-            # dependencies for heavy load script
-            add_qa_head_repo;
-            install_package("ltp-stable", trup_reboot => 1);
-
-            # update kgraft patch under heavy load
-            update_kgraft($incident_klp_pkg, $repo, $incident_id);
-
-            enter_trup_shell if is_transactional;
-            zypper_call("rr qa-head");
-            zypper_call("rm ltp-stable");
-            exit_trup_shell if is_transactional;
-
-            verify_klp_pkg_patch_is_active($incident_klp_pkg);
+            update_kgraft_under_load($incident_klp_pkg, $repo, $incident_id);
         }
 
         kgraft_state;
