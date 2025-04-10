@@ -104,9 +104,6 @@ sub run {
         Primary site $failover_db will stay intact.");
     }
 
-    loadtest('sles4sap/sap_deployment_automation_framework/cleanup', name => "SDAF cleanup", run_args => $run_args, @_);
-    record_info('Load test', 'Scheduling SDAF cleanup');
-
     $run_args->{scenarios} = \%scenarios;
 }
 
