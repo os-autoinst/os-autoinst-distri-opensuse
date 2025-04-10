@@ -795,8 +795,9 @@ sub expand_agama_profile {
 =cut
 
 sub generate_json_profile {
+    my ($profile) = @_;
     my $profile_name = "generated_profile.json";
-    my $profile_path = get_required_var('CASEDIR') . "/data/" . get_required_var('INST_AUTO');
+    my $profile_path = get_required_var('CASEDIR') . "/data/" . $profile;
 
     my @profile_options = map { " --tla-" . (/true|false/ ? "code" : "str") . " $_" }
       split(' ', trim(get_var('AGAMA_PROFILE_OPTIONS')));
