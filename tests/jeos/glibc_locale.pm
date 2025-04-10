@@ -204,7 +204,7 @@ sub run {
     return if (is_sle('<15'));
 
     ## Revert locales to default and verify
-    my $rc_lc_reverted = change_locale($lang_booted_short, $rc_lc_changed);
+    my $rc_lc_reverted = change_locale($lc_data{$lang_booted_short}, $rc_lc_changed);
     my $reverted_glibc_string = test_users_locale($rc_lc_reverted, $test_data_lang{$lang_ref});
     power_action('reboot', textmode => 1);
     record_info('Rebooting', "Expected locale set=$rc_lc_reverted->{RC_LANG}");
