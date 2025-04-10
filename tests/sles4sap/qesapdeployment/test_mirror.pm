@@ -15,14 +15,13 @@ sub run {
     my ($self) = @_;
     my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if ($provider_setting eq 'AZURE') {
-        if (get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) {
-            my @remote_cmd = (
-                'ping -c3 ' . get_required_var('QESAPDEPLOY_DOWNLOAD_HOSTNAME'),
-                'zypper -n ref -s -f',
-                'zypper -n lr');
-            qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
-        }
+    if (($provider_setting eq 'AZURE' && get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) ||
+        ($provider_setting eq 'GCE' && get_var('QESAPDEPLOY_IBSM_VPC_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_REGION'))) {
+        my @remote_cmd = (
+            'ping -c3 ' . get_required_var('QESAPDEPLOY_DOWNLOAD_HOSTNAME'),
+            'zypper -n ref -s -f',
+            'zypper -n lr');
+        qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
     }
     elsif ($provider_setting eq 'EC2') {
         if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
