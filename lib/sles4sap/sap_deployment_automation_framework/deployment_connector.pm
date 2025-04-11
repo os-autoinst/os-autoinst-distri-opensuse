@@ -365,7 +365,7 @@ sub destroy_orphaned_resources {
     # Result will show only resources created by OpenQA tests and only those which are allowed to be cleaned up.
     my $all_resources = az_resource_list(
         resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'),
-        query => '[?tags.deployment_id && tags.' . no_cleanup_tag() . '].{resource_id:id, creation_time:createdTime}'
+        query => '[?tags.deployment_id && tags.' . no_cleanup_tag() . ' == null ].{resource_id:id, creation_time:createdTime}'
     );
     my @orphaned_resources;
 
