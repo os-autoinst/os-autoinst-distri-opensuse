@@ -15,13 +15,15 @@ use testapi;
 
 sub run {
     ensure_installed('inkscape', timeout => 300);
-    x11_start_program('inkscape', target_match => [qw(inkscape inkscape-welcome-save)]);
+    x11_start_program('inkscape', target_match => [qw(inkscape inkscape-welcome-save inkscape-welcome-boo1241066)]);
     if (match_has_tag('inkscape-welcome-save')) {
         # Inkscape 1.1+ welcome screen
         click_lastmatch;
         assert_and_click('inkscape-welcome-thanks');
         assert_and_click('inkscape-welcome-new_document');
         assert_screen('inkscape');
+    } elsif (match_has_tag('inkscape-welcome-boo1241066')) {
+        click_lastmatch;
     }
     send_key "alt-f4";    # Exit
 }
