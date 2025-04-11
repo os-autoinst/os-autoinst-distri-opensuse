@@ -129,7 +129,10 @@ sub run {
     # Modify SELinux mode
     if (get_var("WORKAROUND_BSC1239148")) {
         record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
-        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+        #$self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+        assert_script_run("semanage boolean -m --on selinuxuser_execmod");
+        assert_script_run("semanage boolean -m --on unconfined_service_transition_to_unconfined_user");
+        assert_script_run("semanage permissive -a snapper_grub_plugin_t");
     }
 
     # Add host's IP to /etc/hosts
