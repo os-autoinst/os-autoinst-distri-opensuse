@@ -92,7 +92,8 @@ sub test_cryptographic_policies() {
     }
 
     record_info("Restart sshd", "Restart sshd.service");
-    upload_logs("/etc/ssh/sshd_config");
+    # Bsc#1239976 Curl is not installed by default in minimal system role on aarch64
+    upload_logs("/etc/ssh/sshd_config") if (script_run("which curl") == 0);
     systemctl("restart sshd");
 
     # Add all the ssh public key hashes as known hosts
@@ -111,9 +112,12 @@ sub check_journal {
         my $journalctl = script_output("journalctl -b -u sshd.service | grep -E 'segfault|fatal'", proceed_on_failure => 1);
         if (is_sle('<15') && $journalctl =~ /diffie-hellman-group1-sha1/) {
             record_info("diffie-hellman-group1-sha1", "Expected message - bsc#1185584 diffie-hellman-group1-sha1 is not enabled on this product");
-        } elsif (is_ppc64le && $journalctl =~ /Timeout before authentication/) {
-            record_info("Timeout before authentication", "bsc#1223178 - [Build 80.1] openQA test fails in sshd: Segfault or fatal journal entry detected in journal");
-        } else {
+        }
+        elsif (is_ppc64le && $journalctl =~ /Timeout before authentication/) {
+            record_info("Timeout before authentication",
+                "bsc#1223178 - [Build 80.1] openQA test fails in sshd: Segfault or fatal journal entry detected in journal");
+        }
+        else {
             die("Please check the journalctl! Segfault or fatal journal entry detected.");
         }
     }
