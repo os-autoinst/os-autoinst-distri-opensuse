@@ -13,12 +13,12 @@ Notes:
   - The above directories contain tests in each `.bats` file.
   - Buried in [git history](https://github.com/os-autoinst/os-autoinst-distri-opensuse/commit/0aa21f2cee97a91f35a675199c5d1b125a6e88ff) is the test for [aardvark-dns](https://github.com/containers/aardvark-dns/tree/main/test), disabled due to incomplete network configuration of openQA workers.
   - Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
-  - The scheduling is done in [lib/main_containers.pm](../../../lib/main_containers.pm)
 
 The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 

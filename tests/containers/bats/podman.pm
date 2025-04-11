@@ -86,10 +86,9 @@ sub run {
     enable_modules if is_sle;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns catatonit git-core gpg2 iptables jq make netavark openssl podman python3-PyYAML sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah glibc-devel-static go libcriu2 libgpgme-devel libseccomp-devel podman-remote socat skopeo);
-    # passt requires podman 5.0
-    push @pkgs, qw(criu passt) if (is_tumbleweed);
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go gpg2 iptables jq libcriu2 libgpgme-devel
+      libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container);
+    push @pkgs, qw(criu) if is_tumbleweed;
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";

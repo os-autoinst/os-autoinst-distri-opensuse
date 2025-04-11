@@ -64,7 +64,7 @@ sub install_ncat {
 }
 
 sub install_bats {
-    return if (script_run("which bats") == 0);
+    return if (script_run("command -v bats") == 0);
 
     my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
