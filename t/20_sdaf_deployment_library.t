@@ -548,4 +548,47 @@ subtest '[sdaf_deployment_reused]' => sub {
     ok(!$record_info_flag, 'Do not show "record_info" message with "quiet=>1"');
 };
 
+subtest '[validate_components]' => sub {
+    ok validate_components(components => ['db_install']), "Pass with 'db_install' argument";
+    ok validate_components(components => ['db_ha']), "Pass with 'db_ha' argument";
+    ok validate_components(components => ['nw_pas']), "Pass with 'nw_pas' argument";
+    ok validate_components(components => ['nw_aas']), "Pass with 'nw_aas' argument";
+    ok validate_components(components => ['nw_ensa']), "Pass with 'nw_ensa' argument";
+};
+
+subtest '[validate_components] Exceptions' => sub {
+    my @incorrect_values = ('db', 'pas', 'nw', 'ensa', 'aas', 'ha');
+
+    foreach (@incorrect_values) {
+        dies_ok { validate_components(components => [$_]) } "Fail with unsupported value: '$_'";
+    }
+};
+
+subtest '[get_fencing_mechanism] Check value mapping' => sub {
+
+    # OpenQA settinf => SDAF name
+    my %value_mapping = (msi => 'AFA', sbd => 'ISCSI', asd => 'ASD');
+
+    for my $openqa_value (keys %value_mapping) {
+        set_var('SDAF_FENCING_MECHANISM', $openqa_value);
+        is get_fencing_mechanism(), $value_mapping{$openqa_value},
+          "OpenQA setting '$openqa_value' converts to '$value_mapping{$openqa_value}'.";
+        set_var('SDAF_FENCING_MECHANISM', undef);
+    }
+};
+
+subtest '[get_fencing_mechanism] Mandatory Settings' => sub {
+    set_var('SDAF_FENCING_MECHANISM', undef);
+    dies_ok { get_fencing_mechanism() } 'Croak with "SDAF_FENCING_MECHANISM" not being set';
+};
+
+
+subtest '[get_fencing_mechanism] Unsupported values' => sub {
+    for my $bad_value ('msii', 'amsi', 'iscsi', 'sbdf', '', ' ') {
+        set_var('SDAF_FENCING_MECHANISM', $bad_value);
+        dies_ok { get_fencing_mechanism() } "Croak with unsupported 'SDAF_FENCING_MECHANISM' value: '$bad_value'";
+        set_var('SDAF_FENCING_MECHANISM', undef);
+    }
+};
+
 done_testing;
