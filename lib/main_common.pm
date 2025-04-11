@@ -1104,7 +1104,7 @@ sub load_inst_tests {
     if (installyaststep_is_applicable()) {
         loadtest "installation/resolve_dependency_issues" unless (get_var("DEPENDENCY_RESOLVER_FLAG") || get_var('KERNEL_64KB_PAGE_SIZE'));
         loadtest "installation/installation_overview";
-        loadtest 'installation/configure_sdboot' if is_bootloader_sdboot;
+        loadtest 'installation/configure_bls' if (is_bootloader_sdboot || is_bootloader_grub2_bls);
 
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots on SLE <16 and Leap <16.0, so grub needs to timeout
