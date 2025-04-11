@@ -28,7 +28,6 @@ schedule:
   - console/suse_module_tools
   - console/aaa_base
   - console/gd
-  - console/systemtap
   - console/vsftpd
   - network/samba/samba_adcli
   - console/pciutils
@@ -112,6 +111,7 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - '{{arch_12sp5}}'
+        - '{{arch_systemtap}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
@@ -138,4 +138,10 @@ conditional_schedule:
         - console/year_2038_detection
       aarch64:
         - console/year_2038_detection
+  arch_systemtap:
+    ARCH:
+      x86_64:
+        - console/systemtap
+      s390x:
+        - console/systemtap
 ...
