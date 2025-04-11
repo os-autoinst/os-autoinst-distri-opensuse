@@ -36,7 +36,10 @@ sub install_xfstests_from_repo {
         add_qa_head_repo(priority => 100);
         if (is_sle('16+')) {
             my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
+            my $fio_url = "http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/SLES_" . get_var('VERSION');
             zypper_ar($dep_url, name => 'dependency-repo', priority => 101);
+            zypper_ar($fio_url, name => 'fio-repo', priority => 10);
+            zypper_call('in --repo fio-repo fio');
         }
     }
     elsif (is_tumbleweed) {
