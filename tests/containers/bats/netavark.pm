@@ -33,7 +33,7 @@ sub run_tests {
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("NETAVARK_BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "test/$test";
     }
@@ -42,7 +42,7 @@ sub run_tests {
     my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 1200;
 
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('NETAVARK_BATS_SKIP', ''));
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', ''));
         # Unconditionally ignore these flaky subtests
         my @must_skip = ();
         push @must_skip, "100-bridge-iptables" if ($firewalld_backend ne "iptables");
@@ -81,7 +81,7 @@ sub run {
 
     # Download netavark sources
     my $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
-    my $url = get_var("NETAVARK_BATS_URL", "https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
@@ -97,15 +97,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;

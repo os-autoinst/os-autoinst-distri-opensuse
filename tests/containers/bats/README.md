@@ -27,55 +27,69 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
-| `BUILDAH_BATS_URL` | URL to get the tests from |
-| `BUILDAH_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `BUILDAH_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `BUILDAH_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `BUILDAH_BATS_SKIP_USER` | Skip subtests for non-root user |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root user |
 
 ## netavark
 
 | variable | description |
 | --- | --- |
-| `NETAVARK_BATS_URL` | URL to get the tests from |
-| `NETAVARK_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `NETAVARK_BATS_SKIP` | Skip tests on ALL scenarios |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip tests on ALL scenarios |
 
 ## podman
 
 | variable | description |
 | --- | --- |
-| `PODMAN_BATS_URL` | URL to get the tests from |
-| `PODMAN_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `PODMAN_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `PODMAN_BATS_SKIP_ROOT_LOCAL` | Skip subtests for root / local |
-| `PODMAN_BATS_SKIP_ROOT_REMOTE` | Skip subtests root / remote |
-| `PODMAN_BATS_SKIP_USER_LOCAL` | Skip subtests for rootless / local |
-| `PODMAN_BATS_SKIP_USER_REMOTE` | Skip subtests for rootless / remote |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT_LOCAL` | Skip subtests for root / local |
+| `BATS_SKIP_ROOT_REMOTE` | Skip subtests root / remote |
+| `BATS_SKIP_USER_LOCAL` | Skip subtests for rootless / local |
+| `BATS_SKIP_USER_REMOTE` | Skip subtests for rootless / remote |
 
 ## runc
 
 | variable | description |
 | --- | --- |
-| `RUNC_BATS_URL` | URL to get the tests from |
-| `RUNC_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `RUNC_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `RUNC_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `RUNC_BATS_SKIP_USER` | Skip subtests for non-root user |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root user |
 
 ## skopeo
 
 | variable | description |
 | --- | --- |
-| `SKOPEO_BATS_URL` | URL to get the tests from |
-| `SKOPEO_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `SKOPEO_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `SKOPEO_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `SKOPEO_BATS_SKIP_USER` | Skip subtests for non-root |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root |
 
 NOTES
  - The special value `all` may be used to skip all tests.
  - The special value `none` should be used to avoid skipping any subtests.
+
+## Summary of variables
+
+| variable | buildah | netavark | podman | runc | skopeo |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `BATS_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_TESTS` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP_ROOT` | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_USER` | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_ROOT_LOCAL` | | | ✅ | | |
+| `BATS_SKIP_ROOT_REMOTE` | | | ✅ | | |
+| `BATS_SKIP_USER_LOCAL` | | | ✅ | | |
+| `BATS_SKIP_USER_REMOTE` | | | ✅ | | |
 
 ## openQA schedules
 
@@ -111,7 +125,8 @@ NOTES
 
 ## Workflow
 
-- To debug possible SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
+- To debug SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
+- To debug runtime issues you may clone a job with `OCI_RUNTIME=crun`.  The default OCI runtime is `runc` on all openSUSE & SUSE products except SLEM 6.0 & 6.1
 
 ## Tools
 

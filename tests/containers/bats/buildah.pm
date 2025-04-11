@@ -45,7 +45,7 @@ sub run_tests {
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("BUILDAH_BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "tests/$test";
     }
@@ -54,7 +54,7 @@ sub run_tests {
     my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 7000;
 
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -94,7 +94,7 @@ sub run {
 
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    my $url = get_var("BUILDAH_BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     selinux_hack $test_dir;
     selinux_hack "/tmp";
@@ -108,26 +108,22 @@ sub run {
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
     assert_script_run "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir");
+    assert_script_run "cd $test_dir";
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BUILDAH_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
 
-    die "Tests failed" if ($errors);
+    die "buildah tests failed" if ($errors);
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;

@@ -46,7 +46,7 @@ sub run_tests {
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("SKOPEO_BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "systemtest/$test";
     }
@@ -55,7 +55,7 @@ sub run_tests {
     my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 1200;
 
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('SKOPEO_BATS_SKIP', '') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -85,31 +85,27 @@ sub run {
 
     # Download skopeo sources
     my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
-    my $url = get_var("SKOPEO_BATS_URL", "https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/skopeo/archive/refs/tags/v$skopeo_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('SKOPEO_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
     select_serial_terminal;
     assert_script_run "cd $test_dir";
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('SKOPEO_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
 
-    die "Tests failed" if ($errors);
+    die "skopeo tests failed" if ($errors);
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;

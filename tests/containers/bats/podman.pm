@@ -47,7 +47,7 @@ sub run_tests {
     background_script_run "podman system service --timeout=0" if ($remote);
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("PODMAN_BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "test/system/$test";
     }
@@ -57,7 +57,7 @@ sub run_tests {
     script_run 'kill %1; kill -9 %1' if ($remote);
 
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_required_var('BATS_SKIP') . " " . $skip_tests);
         # Unconditionally ignore these flaky subtests
         my @must_skip = (
             # this test depends on the openQA worker's scheduler
@@ -115,9 +115,9 @@ sub run {
 
     # Download podman sources
     my $podman_version = get_podman_version();
-    my $url = get_var("PODMAN_BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
-    assert_script_run("cd $test_dir");
+    assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
     # Patch tests
@@ -129,33 +129,29 @@ sub run {
     script_run "make podman-testing", timeout => 600;
 
     # user / local
-    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
+    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => get_var('BATS_SKIP_USER_LOCAL', ''));
 
     # user / remote
-    $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
+    $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('BATS_SKIP_USER_REMOTE', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir");
+    assert_script_run "cd $test_dir";
 
     # root / local
-    $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
+    $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('BATS_SKIP_ROOT_LOCAL', ''));
 
     # root / remote
-    $errors += run_tests(rootless => 0, remote => 1, skip_tests => get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
+    $errors += run_tests(rootless => 0, remote => 1, skip_tests => get_var('BATS_SKIP_ROOT_REMOTE', ''));
 
-    die "Tests failed" if ($errors);
+    die "podman tests failed" if ($errors);
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;
