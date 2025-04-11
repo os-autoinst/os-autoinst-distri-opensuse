@@ -895,6 +895,7 @@ sub wait_for_idle_cluster {
         last if ($out =~ /S_IDLE/);
         sleep $interval;
         die "Cluster was not idle for $timeout seconds" if (time() >= $outoftime);
+        script_run 'crmadmin -Dq';
     }
 }
 

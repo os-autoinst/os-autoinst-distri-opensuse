@@ -2,6 +2,8 @@ name:           qam-ha_rolling_update_migration
 description:    >
   Test a rolling update in a two nodes cluster
   Further info about the test suite
+vars:
+  VIRTIO_CONSOLE: '1'
 schedule:
   - boot/boot_to_desktop
   - migration/online_migration/register_system
