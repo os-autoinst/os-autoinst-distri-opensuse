@@ -49,7 +49,7 @@ sub run_test ($python_package) {
 
 sub run {
     my $self = shift;
-    add_suseconnect_product(get_addon_fullname('python3')) if is_sle();
+    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('<16.0');
     my $server_pid = test_setup();
     my @python3_versions = get_available_python_versions();
     unshift @python3_versions, "python3";    # append the system default one

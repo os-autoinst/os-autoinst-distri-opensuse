@@ -57,9 +57,7 @@ sub run_tests ($python3_spec_release) {
 
 sub cleanup {
     if (is_sle() || is_leap('>15.5')) {
-        foreach my $python_version (get_available_python_versions()) {
-            zypper_call("rm $python_version-base", exitcode => [0, 104]);
-        }
+        remove_installed_pythons();
     }
     assert_script_run("cd ..");
     script_run("rm -r data");

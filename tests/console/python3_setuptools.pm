@@ -45,6 +45,12 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip python39", 'https://jira.suse.com/browse/PED-8196');
         return;
     }
+    if ($python3_spec_release eq 'python311' && is_sle('>=16.0')) {
+        # python311-setuptools is not available on sle16
+        record_info("Skip python311", 'Skip python311-setuptools test on SLE 16.0');
+        return;
+    }
+
     zypper_call("install $python3_spec_release $python3_spec_release-setuptools");
     record_info("pip3 version:", script_output("rpm -q $python3_spec_release-pip"));
     record_info("python3-setuptools:", script_output("rpm -q $python3_spec_release-setuptools"));

@@ -25,6 +25,12 @@ sub run_test {
     my ($python_package) = @_;
     my $pkg = "$python_package-PyNaCl";
 
+    if ($python_package eq 'python311' && is_sle('>=16.0')) {
+        # python311-setuptools is not available on sle16
+        record_info("Skip python311", 'Skip python311-PyNaCl test on SLE 16.0');
+        return;
+    }
+
     zypper_call("se $pkg");
 
     if (is_transactional) {

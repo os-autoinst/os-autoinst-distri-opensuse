@@ -80,9 +80,7 @@ sub uninstall_package ($version_number) {
 
 sub cleanup {
     if (is_sle()) {
-        foreach my $python_version (get_available_python_versions()) {
-            zypper_call("rm $python_version-base", exitcode => [0, 104]);
-        }
+        remove_installed_pythons();
     }
     assert_script_run("cd ..");
     script_run("rm -r data");

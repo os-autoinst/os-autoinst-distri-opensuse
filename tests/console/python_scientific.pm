@@ -41,7 +41,7 @@ sub run {
     # Package 'python3-scipy' requires PackageHub is available
     return unless is_phub_ready();
 
-    my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
+    my $scipy = is_sle('<15-sp1') || is_sle('>=16.0') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";
     # Run python scripts
     run_python_script('python3-numpy-test.py');
