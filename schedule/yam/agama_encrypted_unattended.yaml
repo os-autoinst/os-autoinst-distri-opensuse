@@ -1,0 +1,14 @@
+---
+name: Agama unattended with encryption
+description: >
+  Perform Agama unattended installation with encryption.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - yam/agama/boot_home_encryption
+  - installation/first_boot
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml
