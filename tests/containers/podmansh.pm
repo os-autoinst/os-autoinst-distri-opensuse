@@ -50,7 +50,6 @@ _EOF_
 
 my $unit_name = 'podmansh.container';
 my $quadlet_dir = '/etc/containers/systemd';
-my $uid;
 my $systemd_user_path;
 
 my $initial_user_shell;
@@ -61,16 +60,30 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
+    install_packages('podmansh policycoreutils-python-utils sudo');
     $podman = $self->containers_factory('podman');
-    install_packages('podmansh');
 
-    # prepare normal user for rootless containers
+    # make sure rootless user account exists
+    ensure_user_account();
+
+    # make sure rootless user is logged out
+    ensure_user_serial_logged_out();
+    select_serial_terminal;
+
+    # terminate all (other) open rootless user sessions
+    assert_script_run("loginctl terminate-user $username");
+    script_retry("! loginctl list-users | grep $username", retry => 5, delay => 10, timeout => 10);
+
+    # reset graphical user console after user termination
+    console("user-console")->reset;
+
+    # prepare normal user for testing
     prepare_user_account();
 
     # enable user linger - required for login using su or sudo
     # su/sudo does not create a systemd login session, which rootless podman depends on
     # https://github.com/containers/podman/issues/17202#issuecomment-1402604841
-    assert_script_run("loginctl enable-linger $uid");
+    assert_script_run("loginctl enable-linger $username");
     # wait for the user to start lingering
     script_retry("loginctl list-users | grep '$username.*lingering'", retry => 5, delay => 5, timeout => 10);
 
@@ -78,16 +91,20 @@ sub run {
     script_retry("sudo -su $username sh -c 'cd; podman pull $src_image'", retry => 3, delay => 60, timeout => 180);
 
     # execute podman shell tests for multiple login methods
+    record_info("Login by sudo");
     execute_tests("sudo -iu $username sh -c");
+    record_info("Login by su");
     execute_tests("su --login $username -c");
 
     # disable linger and wait until user session is closed
-    assert_script_run("loginctl disable-linger $uid");
+    assert_script_run("loginctl disable-linger $username");
     script_retry("! loginctl list-users | grep $username", retry => 5, delay => 10, timeout => 10);
 
+    record_info("Login by ssh");
     # execute podman shell tests through ssh
     execute_tests("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q $username\@localhost");
 
+    record_info("Login by console");
     # allow login podman from tty
     script_run('semanage boolean --modify --on local_login_containers');
 
@@ -116,9 +133,6 @@ sub execute_tests {
 }
 
 sub prepare_user_account {
-    # make sure normal user exists
-    ensure_user_account();
-
     # create user container
     my $quadlet = '/usr/libexec/podman/quadlet';
     assert_script_run("mkdir -p $systemd_user_path");
@@ -157,12 +171,26 @@ sub ensure_user_account {
     }
 }
 
+sub ensure_user_serial_logged_out {
+    # select user serial (logs in if not already)
+    select_user_serial_terminal;
+
+    # exit the session
+    enter_cmd("exit");
+
+    # reset console
+    console(current_console())->reset;
+}
+
 sub pre_run_hook {
-    $uid = script_output("id -u $username");
+    my $uid = script_output("id -u $username");
     $systemd_user_path = "$quadlet_dir/users/$uid";
 }
 
 sub cleanup {
+    ensure_user_serial_logged_out();
+    select_serial_terminal;
+
     # reset user shell
     script_run(qq(usermod -s "$initial_user_shell" "$username"));
 
@@ -170,7 +198,7 @@ sub cleanup {
     $podman->cleanup_system_host();
 
     # disable linger and wait until user session is closed (if not already)
-    script_run("loginctl disable-linger $uid");
+    script_run("loginctl disable-linger $username");
     script_retry("! loginctl list-users | grep $username", retry => 5, delay => 10, timeout => 10, die => 0);
 
     # remove leftover user configuration
@@ -179,13 +207,10 @@ sub cleanup {
 }
 
 sub post_run_hook {
-    select_serial_terminal;
     cleanup();
 }
 
 sub post_fail_hook {
-    select_serial_terminal;
-    record_info("Audit log", script_output("ausearch -ts boot -m avc"));
     cleanup();
 }
 
