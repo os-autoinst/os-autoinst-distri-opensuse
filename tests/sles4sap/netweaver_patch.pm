@@ -39,7 +39,8 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    select_serial_terminal;
+    #select_serial_terminal;
+    select_console 'root-console';
 
     # The SAP Admin was set in sles4sap/netweaver_install
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));

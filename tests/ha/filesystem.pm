@@ -10,13 +10,16 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use utils 'zypper_call', 'write_sut_file';
-use version_utils 'is_sle';
+use utils qw(zypper_call write_sut_file);
+use version_utils qw(is_sle);
 use testapi;
 use lockapi;
 use hacluster;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
+    select_serial_terminal;
+
     # Exit of this module if 'tag=drbd_passive' and if we are in a maintenance update not related to drbd
     my $tag = read_tag;
     return 1 if (($tag eq 'drbd_passive' and is_not_maintenance_update('drbd')) or $tag eq 'skip_fs_test');
@@ -187,7 +190,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                 # Restart of master/slave rsc after fs_rsc configuration
                 foreach my $action ('stop', 'start') {
                     assert_script_run "crm resource $action ms_$resource", $default_timeout;
-                    sleep 5;
+                    wait_for_idle_cluster;
                 }
 
                 # Migrate resource on the node

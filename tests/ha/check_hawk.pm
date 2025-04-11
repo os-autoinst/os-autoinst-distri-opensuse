@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster qw(get_cluster_name is_node);
+use hacluster qw(get_cluster_name is_node prepare_console_for_fencing);
 use utils qw(systemctl);
 use version_utils qw(is_sle);
 use List::Util qw(sum);
@@ -65,6 +65,11 @@ sub check_hawk_cpu {
 sub run {
     my $cluster_name = get_cluster_name;
     my $hawk_port = '7630';
+
+    # In some scenarios, this module runs at the same time as `ha/hawk_gui` from a client.
+    # `ha/hawk_gui` can cause the nodes to fence, so we need to run this test in the
+    # root-console to properly assert grub2 or the bootmenu
+    prepare_console_for_fencing;
 
     barrier_wait("HAWK_INIT_$cluster_name");
 
