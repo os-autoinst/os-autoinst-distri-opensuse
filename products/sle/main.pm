@@ -801,7 +801,7 @@ elsif (get_var('XFSTESTS')) {
         loadtest 'kernel/update_kernel';
     }
     prepare_target;
-    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
+    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || (is_sle('<16') && (is_pvm || check_var('ARCH', 's390x')))) {
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';

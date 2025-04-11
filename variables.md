@@ -432,6 +432,7 @@ Regular setting: some mandatory setting
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
+XFSTESTS        | string    | ---           | Determines the action to be taken. If set to "installation", it runs xfstests installation and then shuts down. If set to <FS_TYPE> (e.g., "btrfs," "xfs," or "ext4"), the test will be executed on the specified file system.
 XFSTESTS_RANGES | string | | sub-tests ranges. This setting is mandatory. Support using "-" to define a range, or use "," to list separate subtests(e.g. xfs/001-999,generic/001). But the final test range will also count subtests defined in XFSTESTS_GROUPLIST, a skill to set subtests only by XFSTESTS_GROUPLIST is to set a minimal XFSTESTS_RANGES with XFSTESTS_GROUPLIST
 NO_SHUFFLE | boolean | 0 | the default sequence to run all subtests is a random sequence, it's designed to reduce the influence between each subtest. Set NO_SHUFFLE=1 to run in order
 XFSTESTS_BLACKLIST | string | | set the sub-tests will not run. Mostly use in the feature not supported, and exclude some critical issues to make whole tests stable. The final skip test list will also count those defined in XFSTESTS_GROUPLIST. It's also support "-" and "," to set skip range
@@ -458,7 +459,7 @@ Variable        | Type      | Default value | Details
 XFSTESTS_REPO | string | | repo to install xfstests package
 DEPENDENCY_REPO | string | | ibs/obs repo to install related test package to solve dependency issues. e.g. fio
 XFSTESTS_DEVICE | string | | manually set a test disk for both TEST_DEV and SCRATCH_DEV
-XFSTESTS_INSTALL | boolean | false | Install xfstests and dependency package.
+XFSTESTS_INSTALL | boolean | false | Install xfstests and dependency package. Similar to the [XFSTESTS=installation], this option does not shut down the machine after installation. It is usually used for running tests on images that do not have xfstests installed.
 XFSTESTS_PACKAGES | string | | Install additional required packages of xfstests. e.g. 'fsverity-utils libcap-progs'
 
 
