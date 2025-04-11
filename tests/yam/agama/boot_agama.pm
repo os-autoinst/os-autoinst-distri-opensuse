@@ -40,10 +40,10 @@ sub prepare_boot_params {
     }
 
     # add default boot params
-    if (my $agama_auto = get_var('INST_AUTO')) {
-        my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
-          generate_json_profile() :
-          expand_agama_profile($agama_auto);
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        my $profile_url = ($inst_auto =~ /\.libsonnet/) ?
+          generate_json_profile($inst_auto) :
+          expand_agama_profile($inst_auto);
         set_var('INST_AUTO', $profile_url);
         push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
     }
