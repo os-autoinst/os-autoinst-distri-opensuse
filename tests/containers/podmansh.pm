@@ -62,7 +62,7 @@ sub run {
     select_serial_terminal;
 
     $podman = $self->containers_factory('podman');
-    install_packages('podmansh');
+    install_packages('podmansh policycoreutils-python-utils sudo');
 
     # prepare normal user for rootless containers
     prepare_user_account();
