@@ -227,13 +227,11 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    unless (is_sle_micro) {
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            push @packages, "kernel-devel-rt";
-        }
-        else {
-            push @packages, "kernel-devel";
-        }
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        push @packages, "kernel-devel-rt";
+    }
+    else {
+        push @packages, "kernel-devel";
     }
 
     # add explicit version to each package
