@@ -92,7 +92,8 @@ sub test_cryptographic_policies() {
     }
 
     record_info("Restart sshd", "Restart sshd.service");
-    upload_logs("/etc/ssh/sshd_config");
+    # Bsc#1239976 Curl is not installed by default in minimal system role on aarch64
+    upload_logs("/etc/ssh/sshd_config") if (script_run("which curl") == 0);
     systemctl("restart sshd");
 
     # Add all the ssh public key hashes as known hosts
