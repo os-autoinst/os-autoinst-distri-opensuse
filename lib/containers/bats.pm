@@ -29,10 +29,7 @@ use containers::common qw(install_packages);
 our @EXPORT = qw(
   bats_post_hook
   bats_setup
-  enable_modules
-  install_bats
   install_ncat
-  install_oci_runtime
   patch_logfile
   selinux_hack
   switch_to_user
@@ -80,13 +77,17 @@ sub install_bats {
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
 }
 
-sub install_oci_runtime {
-    my $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
-    install_packages($oci_runtime);
-    script_run "mkdir /etc/containers/containers.conf.d";
+sub configure_oci_runtime {
+    my $oci_runtime = shift;
+
+    return if (script_run("command -v podman") != 0);
+
+    if (!$oci_runtime) {
+        $oci_runtime = script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'");
+    }
+    assert_script_run "mkdir -p /etc/containers/containers.conf.d";
     assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
     record_info("OCI runtime", $oci_runtime);
-    return $oci_runtime;
 }
 
 sub get_user_subuid {
@@ -169,8 +170,21 @@ EOF
 }
 
 sub bats_setup {
-    my $self = shift;
+    my ($self, @pkgs) = @_;
     my $reboot_needed = 0;
+
+    install_bats;
+
+    enable_modules if is_sle;
+
+    # Install tests dependencies
+    my $oci_runtime = get_var("OCI_RUNTIME", "");
+    if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
+        push @pkgs, $oci_runtime;
+    }
+    install_packages(@pkgs);
+
+    configure_oci_runtime $oci_runtime;
 
     delegate_controllers;
 

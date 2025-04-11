@@ -60,20 +60,16 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
-    # Install tests dependencies
     my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables jq make protobuf-devel netavark);
     if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
     }
-    install_packages(@pkgs);
-    install_ncat;
 
-    $self->bats_setup;
+    $self->bats_setup(@pkgs);
+
+    install_ncat;
 
     $netavark = script_output "rpm -ql netavark | grep podman/netavark";
     record_info("netavark version", script_output("$netavark --version"));

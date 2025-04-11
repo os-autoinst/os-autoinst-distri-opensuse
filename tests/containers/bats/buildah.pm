@@ -13,10 +13,8 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats;
-use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp/buildah-tests";
-my $oci_runtime = "";
 
 sub run_tests {
     my %params = @_;
@@ -29,6 +27,8 @@ sub run_tests {
 
     my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
     record_info("storage driver", $storage_driver);
+
+    my $oci_runtime = get_var('OCI_RUNTIME', script_output("buildah info --format '{{ .host.OCIRuntime }}'"));
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
@@ -72,17 +72,9 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
-    # Install tests dependencies
     my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
-    install_packages(@pkgs);
 
-    $oci_runtime = install_oci_runtime;
-    $oci_runtime = script_output "command -v $oci_runtime";
-
-    $self->bats_setup;
+    $self->bats_setup(@pkgs);
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));

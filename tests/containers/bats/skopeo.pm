@@ -14,7 +14,7 @@ use utils qw(script_retry);
 use containers::common;
 use Utils::Architectures qw(is_x86_64);
 use containers::bats;
-use version_utils qw(is_sle is_sle_micro);
+use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp/skopeo-tests";
 
@@ -70,15 +70,10 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
-    # Install tests dependencies
     my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless is_sle('>=16.0');
-    install_packages(@pkgs);
 
-    $self->bats_setup;
+    $self->bats_setup(@pkgs);
 
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));

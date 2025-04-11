@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::utils qw(get_podman_version);
 use utils qw(script_retry);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_tumbleweed);
 use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
@@ -82,10 +82,6 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
-    # Install tests dependencies
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go gpg2 iptables jq libcriu2 libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container);
     push @pkgs, qw(criu) if is_tumbleweed;
@@ -95,12 +91,10 @@ sub run {
     } elsif (is_aarch64) {
         push @pkgs, "qemu-arm";
     }
-    install_packages(@pkgs);
+
+    $self->bats_setup(@pkgs);
+
     install_ncat;
-
-    $oci_runtime = install_oci_runtime;
-
-    $self->bats_setup;
 
     assert_script_run "podman system reset -f";
     assert_script_run "modprobe ip6_tables";
@@ -119,6 +113,8 @@ sub run {
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+
+    $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 
     # Patch tests
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
