@@ -51,12 +51,19 @@ subtest '[find_deployment_id]' => sub {
     $mock_function->redefine(get_current_job_id => sub { return '0079'; });
     $mock_function->redefine(get_parent_ids => sub { return ['0083', '0087']; });
     $mock_function->redefine(get_deployer_vm_name => sub { return '0079' if grep(/0079/, @_); });
+    $mock_function->redefine(script_run => sub { return; });
+    $mock_function->redefine(script_output => sub { return '0079'; });
+    $mock_function->redefine(record_info => sub { return; });
 
     is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Current job ID belongs to VM';
 
+    $mock_function->redefine(get_var => sub { return 0; });
+    $mock_function->redefine(script_output => sub { return; });
     $mock_function->redefine(get_current_job_id => sub { return; });
     is find_deployment_id(deployer_resource_group => 'Char'), undef, 'Return undef if no ID found';
 
+    $mock_function->redefine(get_var => sub { return 0; });
+    $mock_function->redefine(script_output => sub { return; });
     $mock_function->redefine(get_deployer_vm_name => sub { return '0083' if grep(/0083/, @_); });
     is find_deployment_id(deployer_resource_group => 'Char'), '0083', 'Parent job ID belongs to VM';
 };

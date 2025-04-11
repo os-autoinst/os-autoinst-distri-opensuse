@@ -209,8 +209,26 @@ Deployment ID returned from both jobs: 123456 - because it matches with existing
 sub find_deployment_id {
     my (%args) = @_;
     return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
+    return get_var('SDAF_GRANDPARENT_ID') if get_var('SDAF_GRANDPARENT_ID');
+
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
     my @check_list = (get_current_job_id(), @{get_parent_ids()});
+
+    # For SDAF cleanup job it needs its grandparent's id
+    my @parents = get_parent_ids();
+    my $parent_id = $parents[0][0];
+    if (looks_like_number($parent_id) && @parents == 1) {
+        # Get the SDAF deployment job ID, here it is set via SDAF_GRANDPARENT_ID and saved in vars.json
+        my $vars_json = 'vars.json';
+        my $openqa_url = get_var('OPENQA_URL', 'openqa.suse.de');
+        script_run("wget --no-check-certificate -O /tmp/$vars_json https://$openqa_url/tests/$parent_id/file/$vars_json");
+        my $str = script_output("grep SDAF_GRANDPARENT_ID /tmp/$vars_json | cut -d ':' -f2", proceed_on_failure => 1);
+        if ($str) {
+            my ($id) = $str =~ /(\d+)/;
+            @check_list = ($id) if ($id);
+            record_info("SDAF grandparent id of cleanup job:$id");
+        }
+    }
 
     diag("Job IDs found: " . Dumper(@check_list));
     my @ids_found;
@@ -218,6 +236,9 @@ sub find_deployment_id {
         my $vm_name =
           get_deployer_vm_name(deployer_resource_group => $args{deployer_resource_group}, deployment_id => $deployment_id);
         push(@ids_found, $deployment_id) if $vm_name;
+
+        # Set SDAF_GRANDPARENT_ID, SDAF cleanup job needs this id for cleanup
+        set_var('SDAF_GRANDPARENT_ID', $deployment_id);
     }
     die "More than one deployment found.\nJobs IDs: " .
       join(', ', @check_list) . "\nVMs found: " . join(', ', @ids_found) if @ids_found > 1;
