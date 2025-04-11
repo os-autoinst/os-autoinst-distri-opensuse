@@ -1,8 +1,17 @@
-name:           extra_tests_textmode
-description:    >
+---
+name: extra_tests_textmode_sle16
+description: >
     Maintainer: qe-core
     Extra CLI tests
 conditional_schedule:
+    fwupd:
+        ARCH:
+            aarch64:
+                - console/fwupd
+            x86_64:
+                - console/fwupd
+            ppc64le:
+                - console/fwupd
     snmp:
         MACHINE:
             64bit:
@@ -101,7 +110,7 @@ schedule:
     - console/sysctl
     - console/sysstat
     - console/tuned
-    - console/fwupd
+    - '{{fwupd}}'
     - '{{snmp}}'
     - console/curl_ipv6
     - console/wget_ipv6
