@@ -372,6 +372,8 @@ sub lsblk_command {
     my (%args) = @_;
     my $output = $args{output} ? " --output $args{output}" : "";
     my $device = $args{device} ? " $args{device}" : "";
+    diag "lsblk -J$output$device";
+    script_output("lsblk -J$output$device");
     decode_json(script_output("lsblk -J$output$device"));
 }
 
@@ -486,6 +488,8 @@ sub validate_lsblk {
         device => "/dev/$dev->{name}")->{blockdevices}[0];
 
     my $errors;
+    diag "got type====$blockdev->{type}";
+    diag "expect type=$type";
     if ($type ne $blockdev->{type}) {
         $errors .= "Wrong type in blockdevice /dev/$dev->{name}. " .
           "Expected: type: $type, got: type: '$blockdev->{type}'\n";

@@ -36,5 +36,6 @@ function(addon_ha_reg_code='',
   [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
   [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
   [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
+  [if storage == 'separate_home_boot' then 'storage']: storage_lib['separate_home_boot'],
   [if user == true then 'user']: base_lib['user'],
 }

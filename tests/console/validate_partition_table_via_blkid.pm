@@ -24,6 +24,8 @@ sub run {
     foreach my $disk (@{$disks}) {
         if (my $expected = $disk->{table_type}) {
             $actual = get_partition_table_via_blkid("/dev/$disk->{name}");
+            diag "actual = $actual";
+            diag "expected = $expected";
             if ($expected ne $actual) {
                 $errors .= "Wrong partition table in /dev/$disk->{name}. " .
                   "Expected '$expected', got '$actual'\n";
