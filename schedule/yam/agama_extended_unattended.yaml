@@ -1,0 +1,11 @@
+---
+name: agama_extended_unattended
+description: >
+  Perform unattended installation with agama setting a custom hostname via kernel parameters and individual packages installed.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_hostname
+  - yam/validate/validate_packages
