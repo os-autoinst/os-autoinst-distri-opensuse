@@ -13,6 +13,7 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $self = shift;
+    set_var('DESKTOP', 'gnome'), if (get_var('DESKTOP') eq 'textmode');
     reset_consoles if (get_var('DESKTOP') eq 'gnome');
     set_var('VERSION', 'Tumbleweed') if (get_test_suite_data()->{os_release_name} =~ /Tumbleweed/);
 }

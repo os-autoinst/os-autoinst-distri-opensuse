@@ -1,0 +1,13 @@
+---
+name: agama_install_desktop
+description: >
+  Perform desktop installation with interactive and unattended.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - yam/agama/switch_to_product
+  - installation/first_boot
+  - yam/validate/validate_desktop
