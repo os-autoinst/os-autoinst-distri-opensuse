@@ -1,0 +1,11 @@
+---
+name: agama_gnome_unattended
+description: >
+  Prepare unattended installation with agama gnome pattern.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages
