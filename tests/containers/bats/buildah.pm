@@ -13,10 +13,8 @@ use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
 use containers::common;
 use containers::bats;
-use version_utils qw(is_sle);
 
 my $test_dir = "/var/tmp/buildah-tests";
-my $oci_runtime = "";
 
 sub run_tests {
     my %params = @_;
@@ -29,6 +27,8 @@ sub run_tests {
 
     my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
     record_info("storage driver", $storage_driver);
+
+    my $oci_runtime = get_var('OCI_RUNTIME', script_output("buildah info --format '{{ .host.OCIRuntime }}'"));
 
     my %_env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
@@ -45,7 +45,7 @@ sub run_tests {
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("BUILDAH_BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "tests/$test";
     }
@@ -54,7 +54,7 @@ sub run_tests {
     my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 7000;
 
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BUILDAH_BATS_SKIP', '') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -72,17 +72,9 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
-    # Install tests dependencies
     my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
-    install_packages(@pkgs);
 
-    $oci_runtime = install_oci_runtime;
-    $oci_runtime = script_output "command -v $oci_runtime";
-
-    $self->bats_setup;
+    $self->bats_setup(@pkgs);
 
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));
@@ -94,7 +86,7 @@ sub run {
 
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    my $url = get_var("BUILDAH_BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     selinux_hack $test_dir;
     selinux_hack "/tmp";
@@ -108,26 +100,22 @@ sub run {
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
     assert_script_run "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BUILDAH_BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
     select_serial_terminal;
-    assert_script_run("cd $test_dir");
+    assert_script_run "cd $test_dir";
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BUILDAH_BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
 
-    die "Tests failed" if ($errors);
+    die "buildah tests failed" if ($errors);
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;

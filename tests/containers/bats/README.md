@@ -18,6 +18,7 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `BATS_PACKAGE` | `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
@@ -27,55 +28,69 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
-| `BUILDAH_BATS_URL` | URL to get the tests from |
-| `BUILDAH_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `BUILDAH_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `BUILDAH_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `BUILDAH_BATS_SKIP_USER` | Skip subtests for non-root user |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root user |
 
 ## netavark
 
 | variable | description |
 | --- | --- |
-| `NETAVARK_BATS_URL` | URL to get the tests from |
-| `NETAVARK_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `NETAVARK_BATS_SKIP` | Skip tests on ALL scenarios |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip tests on ALL scenarios |
 
 ## podman
 
 | variable | description |
 | --- | --- |
-| `PODMAN_BATS_URL` | URL to get the tests from |
-| `PODMAN_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `PODMAN_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `PODMAN_BATS_SKIP_ROOT_LOCAL` | Skip subtests for root / local |
-| `PODMAN_BATS_SKIP_ROOT_REMOTE` | Skip subtests root / remote |
-| `PODMAN_BATS_SKIP_USER_LOCAL` | Skip subtests for rootless / local |
-| `PODMAN_BATS_SKIP_USER_REMOTE` | Skip subtests for rootless / remote |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT_LOCAL` | Skip subtests for root / local |
+| `BATS_SKIP_ROOT_REMOTE` | Skip subtests root / remote |
+| `BATS_SKIP_USER_LOCAL` | Skip subtests for rootless / local |
+| `BATS_SKIP_USER_REMOTE` | Skip subtests for rootless / remote |
 
 ## runc
 
 | variable | description |
 | --- | --- |
-| `RUNC_BATS_URL` | URL to get the tests from |
-| `RUNC_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `RUNC_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `RUNC_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `RUNC_BATS_SKIP_USER` | Skip subtests for non-root user |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root user |
 
 ## skopeo
 
 | variable | description |
 | --- | --- |
-| `SKOPEO_BATS_URL` | URL to get the tests from |
-| `SKOPEO_BATS_TESTS` | Run only the specified tests, otherwise: |
-| `SKOPEO_BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `SKOPEO_BATS_SKIP_ROOT` | Skip subtests for root user |
-| `SKOPEO_BATS_SKIP_USER` | Skip subtests for non-root |
+| `BATS_URL` | URL to get the tests from |
+| `BATS_TESTS` | Run only the specified tests, otherwise: |
+| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
+| `BATS_SKIP_ROOT` | Skip subtests for root user |
+| `BATS_SKIP_USER` | Skip subtests for non-root |
 
 NOTES
  - The special value `all` may be used to skip all tests.
  - The special value `none` should be used to avoid skipping any subtests.
+
+## Summary of variables
+
+| variable | buildah | netavark | podman | runc | skopeo |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `BATS_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_TESTS` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP_ROOT` | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_USER` | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_ROOT_LOCAL` | | | ✅ | | |
+| `BATS_SKIP_ROOT_REMOTE` | | | ✅ | | |
+| `BATS_SKIP_USER_LOCAL` | | | ✅ | | |
+| `BATS_SKIP_USER_REMOTE` | | | ✅ | | |
 
 ## openQA schedules
 
@@ -84,34 +99,10 @@ NOTES
 - [Latest SLES 15](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host.yaml)
 - [SLES 15-SP3+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
 
-## openQA jobs
-
-| product | packages |
-| --- | ---|
-| opensuse Tumbleweed	| [runc skopeo netavark](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_bats_testsuite) |
-| | [buildah](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite) |
-| | [podman](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite) |
-| Latest SLE 16 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite) |
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=podman_testsuite) |
-| Latest SLE 15 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=bats_testsuite) |
-| |	[buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=buildah_testsuite) |
-| |	[podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=podman_testsuite) |
-| SLE 15-SP7 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=buildah_testsuite) |
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=podman_testsuite) |
-| SLE 15-SP6 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=buildah_testsuite)
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=podman_testsuite)
-| SLE 15-SP5 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=buildah_testsuite)
-| SLE 15-SP4 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=buildah_testsuite) |
-| SLE 15-SP3 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=bats_testsuite) |
-
 ## Workflow
 
-- To debug possible SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
+- To debug SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
+- To debug runtime issues you may clone a job with `OCI_RUNTIME=crun`.  The default OCI runtime is `runc` on all openSUSE & SUSE products except SLEM 6.0 & 6.1
 
 ## Tools
 
