@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile
+  xmlns="http://www.suse.com/1.0/yast2ns"
+  xmlns:config="http://www.suse.com/1.0/configns">
+  <!--
+    The purpose of this file is to have a static file,
+    with fixed content, to use as download URL in
+    data/yam/agama/auto/autoyast_supported.xml
+    with a fixed checksum value
+  -->
+</profile>
