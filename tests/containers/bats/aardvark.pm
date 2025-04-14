@@ -31,10 +31,21 @@ sub run_tests {
 
     my $log_file = "aardvark.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    my $ret = script_run "env $env bats --tap test | tee -a $log_file", 2000;
 
-    my @skip_tests = split(/\s+/, get_var('AARDVARK_BATS_SKIP', ''));
-    patch_logfile($log_file, @skip_tests);
+    my @tests;
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
+        $test .= ".bats" unless $test =~ /\.bats$/;
+        push @tests, "test/$test";
+    }
+    my $tests = @tests ? join(" ", @tests) : "test";
+
+    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 2000;
+
+    unless (@tests) {
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', ''));
+        patch_logfile($log_file, @skip_tests);
+    }
+
     parse_extra_log(TAP => $log_file);
     script_run "rm -rf $tmp_dir";
 
@@ -45,19 +56,17 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    install_bats;
-    enable_modules if is_sle;
-
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark slirp4netns);
-    if (is_tumbleweed) {
+    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark podman);
+    if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
         push @pkgs, qw(dbus-1);
     }
-    install_packages(@pkgs);
 
-    $self->bats_setup;
+    $self->bats_setup(@pkgs);
+
+    install_ncat;
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
     record_info("aardvark-dns version", script_output("$aardvark --version"));
@@ -65,7 +74,7 @@ sub run {
 
     # Download aardvark sources
     my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
-    my $url = get_var("NETAVARK_BATS_URL", "https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz");
+    my $url = get_var("BATS_URL", "https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
@@ -75,15 +84,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
     bats_post_hook $test_dir;
-    $self->SUPER::post_run_hook;
 }
 
 1;
