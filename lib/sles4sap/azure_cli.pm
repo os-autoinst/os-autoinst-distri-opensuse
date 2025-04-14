@@ -774,7 +774,7 @@ sub az_vm_create {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
 
-    assert_script_run(join(' ', @vm_create), timeout => 600);
+    assert_script_run(join(' ', @vm_create), timeout => 900);
 }
 
 =head2 az_vm_list
