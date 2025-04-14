@@ -14,6 +14,7 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub install_dependencies_pynfs {
     my @deps = qw(
@@ -26,6 +27,7 @@ sub install_dependencies_pynfs {
       nfs-client
       nfs-kernel-server
     );
+    push(@deps, 'python313-standard-xdrlib') if (is_sle('16+') || is_tumbleweed);
     zypper_call('in ' . join(' ', @deps));
 }
 
