@@ -45,6 +45,7 @@ sub basic_test {
 
     assert_script_run "$runtime compose ps";
     assert_script_run "$runtime compose top";
+    assert_script_run "$runtime compose logs";
 
     # Send HTTP request to haproxy - it should be proxied to nginx
     assert_script_run 'curl -s http://127.0.0.1:8080/ | grep "Welcome to nginx!"';
