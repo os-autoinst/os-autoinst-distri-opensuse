@@ -489,6 +489,8 @@ sub img_proof {
     $args{instance_type} //= 'Standard_A2';
     $args{user} //= 'azureuser';
     $args{provider} //= 'azure';
+    # bsc#1240385 - 12-SP5 Azure: Service waagent.service is not active (stuck in activating state)
+    $args{exclude} //= 'test_sles_azure_running_services';
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {
         $args{running_instance_id} = $parsed_id->{vm_name};
