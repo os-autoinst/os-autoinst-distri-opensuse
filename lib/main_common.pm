@@ -2575,8 +2575,9 @@ sub load_hypervisor_tests {
         my $feature = $virt_features{$test};
         my $modules = $feature->{modules};
         my $hypervisor = $feature->{hypervisor};
+        # The LTSS for SUSE 15-SP1 has ended. Due to a bug (bsc#1230913), also skip 15-SP2.
         if ($test eq 'ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH') {
-            next unless is_sle('>15');
+            next unless is_sle('>=15-sp3');
         }
         check_and_load_mu_virt_features($test, $modules, $hypervisor);
     }
