@@ -18,6 +18,7 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `BATS_PACKAGE` | `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
@@ -97,31 +98,6 @@ NOTES
 - [Latest SLE 16](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host_sle16.yaml)
 - [Latest SLES 15](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host.yaml)
 - [SLES 15-SP3+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
-
-## openQA jobs
-
-| product | packages |
-| --- | ---|
-| opensuse Tumbleweed	| [runc skopeo netavark](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_bats_testsuite) |
-| | [buildah](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite) |
-| | [podman](https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite) |
-| Latest SLE 16 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite) |
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=podman_testsuite) |
-| Latest SLE 15 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=bats_testsuite) |
-| |	[buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=buildah_testsuite) |
-| |	[podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=15-SP7&arch=x86_64&test=podman_testsuite) |
-| SLE 15-SP7 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=buildah_testsuite) |
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=podman_testsuite) |
-| SLE 15-SP6 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=buildah_testsuite)
-| | [podman](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=podman_testsuite)
-| SLE 15-SP5 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=buildah_testsuite)
-| SLE 15-SP4 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=bats_testsuite) |
-| | [buildah](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=buildah_testsuite) |
-| SLE 15-SP3 | [runc skopeo netavark](https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=bats_testsuite) |
 
 ## Workflow
 
