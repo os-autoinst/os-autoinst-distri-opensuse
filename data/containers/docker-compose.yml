@@ -24,6 +24,8 @@ services:
     depends_on:
       - nginx
     restart: on-failure
+    security_opt:
+      - label=disable
 
 networks:
   frontend:
