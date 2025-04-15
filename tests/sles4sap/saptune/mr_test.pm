@@ -135,7 +135,7 @@ sub post_fail_hook {
             $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
         }
         $run_args->{my_provider} = $self->{provider};
-        $run_args->{my_provider}->cleanup($run_args);
+        $run_args->{my_provider}->finalize($run_args);
         return;
     }
     $self->SUPER::post_fail_hook;

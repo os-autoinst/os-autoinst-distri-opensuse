@@ -748,13 +748,13 @@ sub escape_single_quote {
     return $s;
 }
 
-=head2 cleanup
+=head2 teardown
 
-This method is called called after each test on failure or success.
+This method is calling the terraform_destroy() subroutine.
 
 =cut
 
-sub cleanup {
+sub teardown {
     my ($self) = @_;
     $self->terraform_destroy();
     assert_script_run "cd";

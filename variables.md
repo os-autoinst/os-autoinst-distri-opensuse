@@ -365,7 +365,7 @@ PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to
 PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_instance" subroutine within lib/publiccloud/provider.md a limited amount of times. If set to 0 or undef, it allows an unlimited amount of calls.
 PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
 PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t3a.large" | Specify the new instance type to check bsc#1205002 in EC2
-PUBLIC_CLOUD_NO_CLEANUP | boolean | false | Do not remove the instance after test finished running.
+PUBLIC_CLOUD_NO_TEARDOWN | boolean | false | Do not tear the instance down.
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
 PUBLIC_CLOUD_PERF_COLLECT | boolean | 1 | To enable `boottime` measures collection, at end of `create_instance` routine.
 PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
