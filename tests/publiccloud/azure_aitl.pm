@@ -32,7 +32,7 @@ sub run {
     my $resource_group = "openqa-aitl-$job_id";
     my $subscription_id = $provider->provider_client->subscription;
 
-    my $aitl_client_version = "20241118.1";
+    my $aitl_client_version = get_required_var("PUBLIC_CLOUD_AZURE_AITL_VER");
     my $aitl_image_gallery = "test_image_gallery";
     my $aitl_image_version = "latest";
     my $aitl_job_name = "openqa-aitl-$job_id";
@@ -161,5 +161,10 @@ sub json_to_xml {
     $dom->setDocumentElement($testsuite);
     $dom->toFile(hashed_string('aitl_results.xml'), 1);
 }
+
+sub _cleanup {
+    # because it is AITL where we don't create actual instance no point to call _cleanup
+}
+
 
 1;

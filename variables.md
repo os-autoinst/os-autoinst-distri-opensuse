@@ -318,6 +318,7 @@ PUBLIC_CLOUD_AZURE_OFFER | string | "" | Specific to Azure. Allow to query for i
 PUBLIC_CLOUD_AZURE_PUBLISHER | string | "SUSE" | Specific to Azure. Allows to define the used publisher, if it should not be "SUSE"
 PUBLIC_CLOUD_AZURE_SKU | string | "" | Specific to Azure.
 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_TENANT_ID`.
+PUBLIC_CLOUD_AZURE_AITL_VER | string | undef | Define version of Azure Image Testing for Linux (AITL) used in testing
 PUBLIC_CLOUD_AZ_API | string | "http://169.254.169.254/metadata/instance/compute" | For Azure, it is the metadata API endpoint.
 PUBLIC_CLOUD_AZ_API_VERSION | string | "2021-02-01" | For Azure, it is the API version used whe querying metadata API.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
