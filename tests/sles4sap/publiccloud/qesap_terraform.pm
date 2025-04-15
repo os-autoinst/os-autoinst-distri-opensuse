@@ -219,6 +219,12 @@ sub run {
         destroy_terraform => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
 
+    # Sleep $N for fixing ansible "Missing sudo password" issue on GCP
+    if ($provider_setting eq 'GCE') {
+        sleep 60;
+        record_info('Workaround: "sleep 60" for fixing ansible "Missing sudo password" issue on GCP');
+    }
+
     $provider->terraform_applied(1);
     my $instances = create_instance_data(provider => $provider);
     foreach my $instance (@$instances) {

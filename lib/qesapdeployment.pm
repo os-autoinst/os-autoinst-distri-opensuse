@@ -500,7 +500,7 @@ sub qesap_yaml_replace {
 
 =item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
 
-=item B<VERBOSE> - activate verbosity in qesap.py
+=item B<VERBOSE> - activate verbosity in qesap.py. 0 is no verbosity (default), 1 is to enable verbosity
 
 =item B<TIMEOUT> - max expected execution time, default 90sec
 
@@ -559,10 +559,10 @@ sub qesap_execute {
 =head3 qesap_execute_conditional_retry
 
     qesap_execute_conditional_retry(
-    cmd => $qesap_script_cmd,
-    error_list => ['Fatal:'],
-    logname => 'somefile.txt'
-    [, verbose => 1s] );
+        cmd => $qesap_script_cmd,
+        error_list => ['Fatal:'],
+        logname => 'somefile.txt'
+        [, verbose => 1] );
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
@@ -572,15 +572,15 @@ sub qesap_execute {
 
 =item B<CMD> - qesap.py subcommand to run
 
-=item B<VERBOSE> - activate verbosity in qesap.py
-
-=item B<TIMEOUT> - max expected execution time, default 90sec
+=item B<ERROR_LIST> - list of error strings to search for in the log file. If any is found, it enables terraform retry
 
 =item B<LOGNAME> - filename of the log file.
 
+=item B<TIMEOUT> - max expected execution time, default 90sec
+
 =item B<RETRIES> - number of retries in case of expected error
 
-=item B<ERROR_LIST> - list of error strings to search for in the log file. If any is found, it enables terraform retry
+=item B<VERBOSE> - activate verbosity in qesap.py. 0 is no verbosity (default), 1 is to enable verbosity
 
 =item B<destroy_terraform> - destroy terraform before retrying terraform apply
 
@@ -589,61 +589,43 @@ sub qesap_execute {
 
 sub qesap_execute_conditional_retry {
     my (%args) = @_;
-    foreach (qw(cmd logname error_list)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(cmd error_list logname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my $verbose = $args{verbose} ? "--verbose" : "";
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{retries} //= 1;
-    my $max_retries = $args{retries};
-
-    my @ret = qesap_execute(cmd => $args{cmd},
+    my $retries_count = $args{retries};
+    my %exec_args = (
+        cmd => $args{cmd},
         verbose => $args{verbose},
         timeout => $args{timeout},
-        logname => $args{logname});
+        logname => $args{logname}
+    );
 
-    while ($args{retries} > 0) {
-        if ($ret[0]) {
-            if (qesap_file_find_strings(file => $ret[1], search_strings => $args{error_list})) {
-                record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_list});
+    my @ret = qesap_execute(%exec_args);
 
-                # Executing terraform destroy before retrying terraform apply
-                if ($args{destroy_terraform}) {
-                    my @destroy_ret = qesap_execute(
-                        cmd => 'terraform',
-                        cmd_options => '-d',
-                        logname => "qesap_exec_terraform_destroy_before_retry$args{retries}.log.txt",
-                        verbose => 1,
-                        timeout => 1200);
-                    die "Terraform destroy exited with non-zero code." unless ($destroy_ret[0] == 0);
-                }
+    while ($retries_count > 0) {
+        last if ($ret[0] == 0);
+        die "'qesap.py $args{cmd}' return: $ret[0]" if (!qesap_file_find_strings(file => $ret[1], search_strings => $args{error_list}));
+        record_info('DETECTED ' . uc($args{cmd}) . ' ERROR', $args{error_list});
 
-                @ret = qesap_execute(cmd => $args{cmd},
-                    logname => 'qesap_' . $args{cmd} . '_retry_' . ($max_retries - $args{retries}) . '.log.txt',
-                    timeout => $args{timeout},
-                    verbose => $args{verbose});
-                if ($ret[0] == 0) {
-                    record_info('QESAP_EXECUTE RETRY PASS');
-                    last;
-                }
-            } else {
-                die "'qesap.py $args{cmd}' return: $ret[0]";
-            }
-        } else {
-            last;
+        # Executing terraform destroy before retrying terraform apply
+        if ($args{destroy_terraform}) {
+            my @destroy_ret = qesap_execute(
+                cmd => 'terraform',
+                cmd_options => '-d',
+                logname => "qesap_exec_terraform_destroy_before_retry$retries_count.log.txt",
+                verbose => 1,
+                timeout => 1200);
+            die "Terraform destroy exited with non-zero code." unless ($destroy_ret[0] == 0);
         }
 
-        $args{retries}--;
+        $exec_args{logname} = 'qesap_' . $args{cmd} . '_retry_' . ($args{retries} - $retries_count) . '.log.txt';
+        @ret = qesap_execute(%exec_args);
+
+        $retries_count--;
     }
 
-    if ($ret[0]) {
-        die "'qesap.py (after retry) $args{cmd}' return: $ret[0]";
-    }
-
-    # Sleep $N for fixing ansible "Missing sudo password" issue on GCP
-    if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'GCE') {
-        sleep 60;
-        record_info('Workaround: "sleep 60" for fixing ansible "Missing sudo password" issue on GCP');
-    }
+    die "'qesap.py (after retry) $args{cmd}' return: $ret[0]" if ($ret[0]);
 
     return @ret;
 }
