@@ -313,7 +313,7 @@ sub load_container_tests {
         return;
     }
 
-    if (get_var('BATS_PACKAGE') =~ /(buildah|netavark|podman|runc|skopeo)/) {
+    if (get_var('BATS_PACKAGE') =~ /(aardvark|buildah|netavark|podman|runc|skopeo)/) {
         loadtest "containers/bats/$1";
         return;
     }

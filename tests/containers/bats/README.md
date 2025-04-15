@@ -3,6 +3,7 @@ This directory contains [BATS framework](https://github.com/bats-core/bats-core)
 
 | package | upstream location |
 | --- | --- |
+| [aardvark](bats/aardvark.pm) | https://github.com/containers/aardvark-dns/tree/main/test |
 | [buildah](bats/buildah.pm) | https://github.com/containers/buildah/tree/main/tests |
 | [netavark](bats/netavark.pm) | https://github.com/containers/netavark/tree/main/test |
 | [podman](bats/podman.pm) | https://github.com/containers/podman/tree/main/test/system |
@@ -16,12 +17,12 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
-| `BATS_PACKAGE` | `buildah` `netavark` `podman` `runc` `skopeo` |
+| `BATS_PACKAGE` | `aardvark` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
-## netavark
+## aardvark / netavark
 
 | variable | description |
 | --- | --- |
@@ -58,17 +59,17 @@ NOTES
 
 ## Summary of variables
 
-| variable | buildah | netavark | podman | runc | skopeo |
-|---|:---:|:---:|:---:|:---:|:---:|
-| `BATS_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `BATS_TESTS` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `BATS_SKIP` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `BATS_SKIP_ROOT` | ✅ | | | ✅ | ✅ |
-| `BATS_SKIP_USER` | ✅ | | | ✅ | ✅ |
-| `BATS_SKIP_ROOT_LOCAL` | | | ✅ | | |
-| `BATS_SKIP_ROOT_REMOTE` | | | ✅ | | |
-| `BATS_SKIP_USER_LOCAL` | | | ✅ | | |
-| `BATS_SKIP_USER_REMOTE` | | | ✅ | | |
+| variable | aardvark | buildah | netavark | podman | runc | skopeo |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `BATS_URL` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_TESTS` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `BATS_SKIP_ROOT` | | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_USER` | | ✅ | | | ✅ | ✅ |
+| `BATS_SKIP_ROOT_LOCAL` | | | | ✅ | | |
+| `BATS_SKIP_ROOT_REMOTE` | | | | ✅ | | |
+| `BATS_SKIP_USER_LOCAL` | | | | ✅ | | |
+| `BATS_SKIP_USER_REMOTE` | | | | ✅ | | |
 
 ## openQA schedules
 
