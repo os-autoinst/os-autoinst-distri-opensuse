@@ -38,7 +38,6 @@
           <timeout config:type="integer">-1</timeout>
           % if ($check_var->('ARCH', 'aarch64')) {
           <secure_boot>true</secure_boot>
-          <trusted_grub>false</trusted_grub>
           <update_nvram>true</update_nvram>
           % }
       </global>
