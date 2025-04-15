@@ -22,7 +22,8 @@ sub new {
               agama-unsupported-autoyast-elements
               agama-installing
               agama-sle-overview
-              agama-multipath)],
+              agama-multipath
+              agama-headless-mode-ready)],
         timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 240
     }, $class;
 }

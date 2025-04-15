@@ -1,0 +1,14 @@
+---
+name: agama_headless_mode_s390x
+description: >
+  Perform interactive installation with agama for s390x worker in headless mode.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_first_user
+  - yam/validate/validate_systemd_target
