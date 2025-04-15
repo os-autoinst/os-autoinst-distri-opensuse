@@ -27,7 +27,7 @@ sub install_dependencies_pynfs {
       nfs-client
       nfs-kernel-server
     );
-    push(@deps, 'python313-standard-xdrlib') if (is_sle('16+') || is_tumbleweed);
+    push(@deps, 'python3-standard-xdrlib') if (is_sle('16+') || is_tumbleweed);
     zypper_call('in ' . join(' ', @deps));
 }
 
