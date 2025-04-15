@@ -81,7 +81,6 @@ sub run {
     # Ensure that ntp service is activated/started
     activate_ntp;
 
-
     # Initialize the cluster with diskless or shared storage SBD (default)
     $fencing_opt = '-S' if (get_var('USE_DISKLESS_SBD'));
     cluster_init('ha-cluster-init', $fencing_opt, $unicast_opt, $qdevice_opt);
