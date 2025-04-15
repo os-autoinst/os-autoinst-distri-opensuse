@@ -34,7 +34,7 @@
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
       <li><a href="#terraform_param_tags">terraform_param_tags</a></li>
       <li><a href="#get_terraform_output">get_terraform_output</a></li>
-      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#teardown">teardown</a></li>
       <li><a href="#stop_instance">stop_instance</a></li>
       <li><a href="#start_instance">start_instance</a></li>
       <li><a href="#get_state_from_instance">get_state_from_instance</a></li>
@@ -138,9 +138,9 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 
 <p>Query the terraform data structure in json format. Input: &lt;jq-query-format&gt; string; &lt;empty&gt; = no query then full output of data structure. E.g: to get the VM instance name from json data structure, the call is: get_terraform_output(&quot;.vm_name.value[0]&quot;); To get the complete output structure, the call is: get_terraform_output();</p>
 
-<h2 id="cleanup">cleanup</h2>
+<h2 id="teardown">teardown</h2>
 
-<p>This method is called called after each test on failure or success.</p>
+<p>This method is calling the terraform_destroy() subroutine.</p>
 
 <h2 id="stop_instance">stop_instance</h2>
 
