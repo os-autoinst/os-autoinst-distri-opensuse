@@ -10,4 +10,5 @@ schedule:
   - installation/first_boot
   - yam/validate/validate_base_product
   - yam/validate/validate_first_user
+  - yam/validate/validate_deployed_files
   - console/verify_separate_home
