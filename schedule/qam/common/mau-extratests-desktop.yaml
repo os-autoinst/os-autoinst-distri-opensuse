@@ -18,8 +18,16 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP7:
+        - texlive/latexdiff
+        - texlive/latex2html
+        - console/add_phub_extension
+        - x11/network/hwsim_wpa2_enterprise_setup
+        - x11/network/yast2_network_use_nm
+        - x11/network/NM_wpa2_enterprise
       15-SP6:
         - texlive/latexdiff
+        - texlive/latex2html
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
         - x11/network/yast2_network_use_nm

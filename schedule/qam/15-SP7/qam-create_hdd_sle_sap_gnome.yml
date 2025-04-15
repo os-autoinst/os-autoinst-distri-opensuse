@@ -1,0 +1,37 @@
+name:           qam-create_hdd_sle_sap_gnome
+description:    >
+  Create an up-to-date sle qcow2 image for testing SAP products installation.
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/no_separate_home
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - '{{patch_and_reboot}}'
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  patch_and_reboot:
+    FLAVOR:
+      SAP-DVD-Updates:
+        - qa_automation/patch_and_reboot

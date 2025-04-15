@@ -1,0 +1,18 @@
+---
+name: qam-regression-installation
+description: installation for qam-regression-firefox
+schedule:
+- autoyast/prepare_profile
+- installation/isosize
+- installation/bootloader
+- autoyast/installation
+- installation/first_boot
+- x11/x11_setup
+- qa_automation/patch_and_reboot
+- console/system_prepare
+- console/hostname
+- console/force_scheduled_tasks
+- shutdown/grub_set_bootargs
+- shutdown/cleanup_before_shutdown
+- shutdown/shutdown
+...
