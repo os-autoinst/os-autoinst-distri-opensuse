@@ -18,17 +18,15 @@ conditional_schedule:
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
             'uefi-virtio-vga':
-                - installation/bootloader_uefi
+                - installation/bootloader
             '64bit-virtio-vga':
                 - installation/bootloader_uefi
-    efi:
-        UEFI:
-            '1':
-                - console/verify_efi_mok
     wizard:
         FIRST_BOOT_CONFIG:
             'wizard':
                 - jeos/firstrun
+            'cloud-init':
+                - installation/first_boot
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
