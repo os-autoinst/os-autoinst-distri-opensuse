@@ -865,6 +865,7 @@ sub get_addon_fullname {
         nvidia => 'sle-module-NVIDIA-compute',
         idu => is_sle('15+') ? 'IBM-POWER-Tools' : 'IBM-DLPAR-utils',
         ids => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
+        sysm => 'sle-module-systems-management',
     );
     return $product_list{"$addon"};
 }
