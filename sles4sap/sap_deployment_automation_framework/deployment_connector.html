@@ -102,6 +102,8 @@
 
 <p>Using OpenQA parameter <b>SDAF_DEPLOYMENT_ID</b> it is possible to override this value. It is mostly intended for development purposes where it allows you to run test code on already existing deployment. Use it with caution and override the value only with ID of the infrastructure that belongs to you.</p>
 
+<p>Parameter <b>SDAF_GRANDPARENT_ID</b> is used for SDAF cleanup job to cleanup resources created by grandparents job. If <b>SDAF_DEPLOYMENT_ID</b> is not defined then <b>SDAF_GRANDPARENT_ID</b> is the job id of deployment.</p>
+
 <p><b>Example</b>: Job: 123456 - deployment module - created deployer VM tagged with &quot;deployment_id=123456&quot;, Job: 123457 (child of 123456) - some test module Deployment ID returned from both jobs: 123456 - because it matches with existing VM tagged with &quot;deployment_id=123456&quot;</p>
 
 <ul>
