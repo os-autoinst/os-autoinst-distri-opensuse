@@ -1360,7 +1360,7 @@ sub load_x11tests {
         loadtest "x11/firefox_audio";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
-        loadtest "x11/chromium";
+        loadtest "x11/chromium" unless is_leap('>15.5');
     }
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW and Leap 15.6
@@ -1432,9 +1432,6 @@ sub load_x11tests {
         loadtest "x11/gimp";
     }
     if (is_opensuse && !is_livesystem) {
-        if (!is_staging) {
-            loadtest "x11/hexchat";
-        }
         loadtest "x11/vlc";
     }
     if (kdestep_is_applicable()) {
