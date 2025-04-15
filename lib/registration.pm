@@ -186,6 +186,8 @@ Wrapper for SUSEConnect -p $name.
 =cut
 
 sub add_suseconnect_product {
+    # no SCC registration https://progress.opensuse.org/issues/131498#note-5
+    record_info('skip SCC', "Skip activating product on flavor without SCC registration") && return if get_var('FLAVOR') =~ /TERADATA/;
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     assert_script_run 'source /etc/os-release';
     $version //= '${VERSION_ID}';
