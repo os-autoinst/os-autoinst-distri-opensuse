@@ -51,12 +51,16 @@ subtest '[find_deployment_id]' => sub {
     $mock_function->redefine(get_current_job_id => sub { return '0079'; });
     $mock_function->redefine(get_parent_ids => sub { return ['0083', '0087']; });
     $mock_function->redefine(get_deployer_vm_name => sub { return '0079' if grep(/0079/, @_); });
+    $mock_function->redefine(record_info => sub { return; });
+    set_var('OPENQA_URL', 'openqa.suse.de');
 
     is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Current job ID belongs to VM';
 
+    set_var('SDAF_GRANDPARENT_ID', '');
     $mock_function->redefine(get_current_job_id => sub { return; });
     is find_deployment_id(deployer_resource_group => 'Char'), undef, 'Return undef if no ID found';
 
+    set_var('SDAF_GRANDPARENT_ID', '');
     $mock_function->redefine(get_deployer_vm_name => sub { return '0083' if grep(/0083/, @_); });
     is find_deployment_id(deployer_resource_group => 'Char'), '0083', 'Parent job ID belongs to VM';
 };
