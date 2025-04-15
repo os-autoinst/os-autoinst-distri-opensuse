@@ -13,19 +13,21 @@ use qesapdeployment;
 sub run {
     my ($self) = @_;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my @ret = qesap_execute_conditional_retry(
+    my %qesap_exec_args_terraform = (
         cmd => 'terraform',
         logname => 'qesap_exec_terraform.log.txt',
         verbose => 1,
-        timeout => 1800,
-        retries => 1,
-        error_list => ['An internal execution error occurred. Please retry later']);
+        timeout => 1800);
+    $qesap_exec_args_terraform{cmd_options} = '--parallel ' . get_var('QESAPDEPLOY_TERRAFORM_PARALLEL') if get_var('QESAPDEPLOY_TERRAFORM_PARALLEL');
+
+    my @ret = qesap_execute(%qesap_exec_args_terraform);
+    die "Retry failed, original ansible return: $ret[0]" if ($ret[0]);
 
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);
 
     # Set up azure native fencing for MSI
-    if (get_var('QESAPDEPLOY_FENCING') eq 'native' && $provider eq 'AZURE' && check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi')) {
+    if (get_var('QESAPDEPLOY_FENCING') eq 'native' && $provider eq 'AZURE' && check_var('QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION', 'msi')) {
         my @nodes = qesap_get_nodes_names(provider => $provider);
         foreach my $host_name (@nodes) {
             if ($host_name =~ /hana/) {
