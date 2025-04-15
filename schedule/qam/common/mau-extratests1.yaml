@@ -43,6 +43,12 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP7:
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
       15-SP6:
         - console/openssl_nodejs
         - console/golang
@@ -87,6 +93,10 @@ conditional_schedule:
         - '{{sle15}}'
   sle15:
     VERSION:
+      15-SP7:
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
       15-SP6:
         - console/firewalld
         - console/lshw

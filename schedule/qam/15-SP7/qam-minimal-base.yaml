@@ -1,0 +1,54 @@
+---
+name: qam-minimal-base
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - qa_automation/patch_and_reboot
+  - console/dracut
+  - locale/keymap_or_locale
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/hostname
+  - console/installation_snapshots
+  - console/zypper_in
+  - console/zypper_lifecycle
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/firewall_enabled
+  - '{{glibc_sanity}}'
+  - console/salt
+  - console/sshd
+  - console/ssh_cleanup
+  - console/ncurses
+  - console/yast2_bootloader
+  - console/yast2_i
+  - console/yast2_lan
+  - '{{yast2_nfs_server}}'
+  - console/mtab
+  - console/mariadb_srv
+  - console/rsync
+  - console/curl_https
+  - console/http_srv
+  - console/dns_srv
+  - console/apache
+  - console/shibboleth
+  - console/apache_ssl
+  - console/apache_nss
+  - console/postgresql_server
+  - console/orphaned_packages_check
+  - console/coredump_collect
+conditional_schedule:
+  glibc_sanity:
+    ARCH:
+      x86_64:
+        - console/glibc_sanity
+  yast2_nfs_server:
+    BACKEND:
+      qemu:
+        - console/yast2_nfs_server
+...

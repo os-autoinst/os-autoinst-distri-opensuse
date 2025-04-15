@@ -36,6 +36,17 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP7:
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - '{{arch_specific15_sp5plus}}'
       15-SP6:
         - console/osinfo_db
         - console/ovn
