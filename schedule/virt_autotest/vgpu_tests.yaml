@@ -1,0 +1,17 @@
+name: vgpu_tests.yaml
+description:    >
+    Maintainer: qe-virt@suse.de, jcao@suse.com
+    vGPU short and full passthrough tests on UEFI guests without secure boot
+schedule:
+    - autoyast/prepare_profile
+    - installation/ipxe_install
+    - autoyast/installation
+    - virt_autotest/login_console
+    - '{{install_guest}}'
+    - virt_autotest/vgpu
+conditional_schedule:
+    install_guest:
+        VGPU_TEST:
+            full:
+                - virt_autotest/unified_guest_installation
+                - virt_autotest/set_config_as_glue
