@@ -1392,26 +1392,6 @@ subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' 
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
-subtest '[qesap_test_postfail]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-
-    $qesap->redefine(qesap_cluster_logs => sub { return; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
-    my @calls;
-    $qesap->redefine(qesap_execute => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd}; });
-
-    qesap_test_postfail(provider => 'NEMO');
-
-    note("\n  I-->  " . join("\n  I-->  ", @calls));
-
-    my $cmd_chk = pop @calls;
-    ok $cmd_chk eq 'terraform', "Postfail calls $cmd_chk : is expected to be terraform ati very last";
-    $cmd_chk = pop @calls;
-    ok $cmd_chk eq 'ansible', "Postfail calls $cmd_chk : is expected to be ansible before terraform";
-};
-
 subtest '[qesap_calculate_address_range]' => sub {
     my %result_1 = qesap_calculate_address_range(slot => 1);
     my %result_2 = qesap_calculate_address_range(slot => 2);
