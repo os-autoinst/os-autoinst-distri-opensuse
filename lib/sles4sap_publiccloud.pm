@@ -911,9 +911,12 @@ sub deployment_name {
 sub delete_network_peering {
     record_info('Peering cleanup', 'Executing peering cleanup (if peering is present)');
     if (is_azure) {
-        # Check that required variables are available before deleting the peering
+        # Check that the peering isn't managed by terraform and required variables are available before deleting it
         my $rg = qesap_az_get_resource_group();
-        if (get_var('IBSM_RG')) {
+        if (get_var('IBSM_VNET')) {
+            record_info('PEERING MANAGED', 'Peering will be destroyed by terraform destroy');
+        }
+        elsif (get_var('IBSM_RG')) {
             qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
         }
         else {

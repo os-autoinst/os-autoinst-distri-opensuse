@@ -18,6 +18,9 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+    # IBSM VARIABLES
+    ibsm_rg: '%IBSM_RG%'
+    ibsm_vnet_name: '%IBSM_VNET%'
 
     # HANA
     hana_count: '%NODE_COUNT%'
