@@ -28,7 +28,7 @@ use Utils::Architectures 'is_ppc64le';
 
 my $STATUS_LOG = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
-my @PACKAGES = (qw(xfstests fio), split(/ /, get_var('XFSTESTS_PACKAGES')));
+my @PACKAGES = split(/ /, get_var('XFSTESTS_PACKAGES', "xfstests fio"));
 
 sub install_xfstests_from_repo {
     if (is_sle) {
