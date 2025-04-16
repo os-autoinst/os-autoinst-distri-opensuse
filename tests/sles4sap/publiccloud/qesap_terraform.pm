@@ -204,20 +204,26 @@ sub run {
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1);
 
-    # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
-    my $retries = is_gce() ? 5 : 2;
-    my @ret = qesap_execute_conditional_retry(
-        cmd => 'terraform',
+    my %retry_args = (
         logname => 'qesap_exec_terraform.log.txt',
         verbose => 1,
         timeout => 3600,
-        retries => $retries,
         error_list => [
             'An internal execution error occurred. Please retry later',
             'There is a peering operation in progress'
         ],
-        destroy_terraform => 1);
+        destroy => 1);
+    # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
+    $retry_args{retries} = is_gce() ? 5 : 2;
+    $retry_args{cmd_options} = '--parallel ' . get_var('HANASR_TERRAFORM_PARALLEL') if get_var('HANASR_TERRAFORM_PARALLEL');
+    my @ret = qesap_terraform_conditional_retry(%retry_args);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
+
+    # Sleep $N for fixing ansible "Missing sudo password" issue on GCP
+    if (is_gce()) {
+        sleep 60;
+        record_info('Workaround: "sleep 60" for fixing ansible "Missing sudo password" issue on GCP');
+    }
 
     $provider->terraform_applied(1);
     my $instances = create_instance_data(provider => $provider);

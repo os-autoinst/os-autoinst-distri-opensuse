@@ -443,7 +443,30 @@ END
     ok((any { /terraform.init.log.txt/ } @logs), 'terraform.init.log.txt in the list of uploaded logs');
 };
 
-subtest '[qesap_execute_conditional_retry] retry after fail with expected error message' => sub {
+subtest '[qesap_terraform_conditional_retry] pass at first' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(record_info => sub {
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    my @return_list = ();
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            my @results = (0, 'some_log_name');
+            return @results; });
+
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'WALLABY_STREET',
+        retries => 5);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
+    ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
+};
+
+subtest '[qesap_terraform_conditional_retry] retry after fail with expected error message' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -451,22 +474,23 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
             note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     my @return_list = ();
-    # Reverse order than used in the execution
+    # Reverse order than used in the execution,
+    # so it simulate 2 consecutive fails and a PASS at 3rd attempt.
     push @return_list, 0;
     push @return_list, 1;
     push @return_list, 1;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
-            push @calls, $args{cmd};
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
+            push @calls, $cmd;
             my @results = (pop @return_list, 0);
             return @results; });
-    # Simulate that qesap_execute has always 'AERIS'
-    # in the log
+    # Simulate qesap_execute always having 'AERIS' in the log
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
+    #    $qesap->redefine(get_required_var => sub { return ''; });
 
-    my @res = qesap_execute_conditional_retry(
-        cmd => 'TIFA',
+    my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
         logname => 'WALLABY_STREET',
         retries => 5);
@@ -476,11 +500,12 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
     ok scalar @calls == 3, "Exactly '" . scalar @calls . "' as expected 3 retry";
 };
 
-subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub {
+subtest '[qesap_terraform_conditional_retry] retry with destroy terraform' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     my @return_list = (0, 0, 1, 0, 1);
-    # Simulate sequence of return codes for qesap_execute (and because the pop function is used, they are retrieved in reverse order: from right to left).
+    # Simulate sequence of return codes for qesap_execute,
+    # and because the pop function is used, they are retrieved in reverse order: from right to left.
     # This sequence is simulating:
     # 1. terraform apply fails with 1
     # 2. terraform destroy, as part of the RETRY procedure, is passing
@@ -490,37 +515,35 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub 
 
     $qesap->redefine(record_info => sub {
             note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
-            my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
             push @calls, $cmd;
             my @results = (pop @return_list, 0);
             return @results; });
 
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
 
-    my @res = qesap_execute_conditional_retry(
-        cmd => 'test',
+    my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
         logname => 'FOO',
         retries => 2,
-        destroy_terraform => 1);
+        destroy => 1);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
     ok scalar @terraform_destroy == 2, "Terraform destroy as expected 2 retry";
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
 };
 
-subtest '[qesap_execute_conditional_retry] retry with destroy terraform and fail during destruction' => sub {
+subtest '[qesap_terraform_conditional_retry] retry with destroy terraform and fail during destruction' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    my @return_list = (1, 1);
+    my @return_list = (42, 1);
 
     $qesap->redefine(record_info => sub {
             note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
@@ -529,47 +552,61 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform and fail
             return @results; });
 
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
 
-    dies_ok { qesap_execute_conditional_retry(
-            cmd => 'test',
-            error_list => ['AERIS'],
-            logname => 'FOO',
-            retries => 2,
-            destroy_terraform => 1) } 'Expected die if terraform destroy fails';
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'FOO',
+        retries => 2,
+        destroy => 1);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
     ok scalar @terraform_destroy == 1, "Terraform destroy as expected 1 retry";
+    ok $res[0] == 42, "Check that the rc of the result $res[0] is 42";
 };
 
-subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
+subtest '[qesap_terraform_conditional_retry] dies if expected error message is not found' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     $qesap->redefine(record_info => sub {
             note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     my @calls;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return (1, 'log');
     });
-    # Simulate that 'AERIS' is never
-    # in the log
+    # Simulate that 'AERIS' is not in the log, ever
     $qesap->redefine(qesap_file_find_strings => sub { return 0; });
 
-    dies_ok { qesap_execute_conditional_retry(
-            cmd => 'TIFA',
-            logname => 'WALLABY_STREET',
-            error_list => ['AERIS'],
-            retries => 5) } 'Expected die if string is not found';
+    my @res = qesap_terraform_conditional_retry(
+        logname => 'WALLABY_STREET',
+        error_list => ['AERIS'],
+        retries => 5);
     # No retry if 'AERIS' is not in the log
     ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
+    ok $res[0] == 1, "Check that the rc of the result $res[0] is 1";
 };
 
-subtest '[qesap_file_find_strings] success' => sub {
+subtest '[qesap_terraform_conditional_retry] test qesap_file_find_strings' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
+
+    $qesap->redefine(record_info => sub {
+            note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    my @return_list = ();
+    # Reverse order than used in the execution,
+    # so it simulate 2 consecutive fails and a PASS at 3rd attempt.
+    push @return_list, 0;
+    push @return_list, 1;
+    push @return_list, 1;
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
+            push @calls, $cmd;
+            my @results = (pop @return_list, 'SHARK.log');
+            return @results; });
     # internally the function is using grep to search for a set of specific
     # error strings. Here is an example of grep result.
     #      'ERROR    OUTPUT:              "msg": "Timed out waiting for last boot time check (timeout=600)",';
@@ -578,33 +615,13 @@ subtest '[qesap_file_find_strings] success' => sub {
     # the result of the grep. grep return 0 in case of string match
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
-    my $res = qesap_file_find_strings(
-        file => 'JACQUES',
-        search_strings => [
-            'Health is like a crown',
-            'worn by the healthy',
-            'that only the sick can see']);
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'WALLABY_STREET',
+        retries => 5);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res == 1, 'Return is 1 when string is detected';
-    ok((any { /grep.*JACQUES/ } @calls), 'Function calling grep against the log file');
-};
-
-subtest '[qesap_file_find_strings] fail' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-
-    # Create a mock to replace the script_output
-    # The mock will return, within the function under test,
-    # the result of the grep.
-    # Here simulate that the grep does not return any match
-    # grep return 1 in case of string NOT matching
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
-
-    my $res = qesap_file_find_strings(file => 'JACQUES', search_strings => ['Timed out waiting for last boot time check']);
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res == 0, 'Return is 0 when string is not detected';
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
 };
 
 subtest '[qesap_get_nodes_number]' => sub {
