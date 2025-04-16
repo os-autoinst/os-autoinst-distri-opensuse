@@ -1,7 +1,7 @@
 ---
 name: NFS
 description:    >
-    Maintainer: schlad
+    Maintainer: kernel-qe
     Tests creating NFS set-up and testing NFS itself with focus on various
     versions, features etc.
 vars:

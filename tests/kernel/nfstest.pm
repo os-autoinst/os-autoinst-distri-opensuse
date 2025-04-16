@@ -1,9 +1,23 @@
+# SUSE's openQA tests
 
-# SUSE's openQA tests#
-# Copyright 2023 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: run nfstest testsuite
+# Summary: The module to run nfstest testsuite. Original git repo:
+# https://git.linux-nfs.org/?p=mora/nfstest.git. The external testsuite
+# provides set of tools for testing both, the nfs server and the client.
+# Various tests are present in the external testsuite including the
+# folowing:
+# - Space reservation
+# - NFS client side caching
+# - Delegation
+# - Direct I/O
+# - NFS interoperability
+# - Locking
+# - Basic pNFS
+# - POSIX file system level access
+# - Server Side Copy
+
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base "opensusebasetest";
