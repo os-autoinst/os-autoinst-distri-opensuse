@@ -72,6 +72,9 @@ sub run_test {
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info("Guest $guest");
 
+        # Configure the guest
+        prepare_guest_for_vgpu_passthrough($guest);
+
         # Assign vGPU to guest
         my $gpu_slot_in_guest = "0x0a";
         assign_vgpu_to_guest($vgpu, $guest, $gpu_slot_in_guest);
@@ -132,10 +135,15 @@ sub install_vgpu_manager_and_reboot {
             return;
         }
     }
+
+    # Remove NVIDIA open driver (refer to bsc#1239449)
+    zypper_call "rm nvidia-open-driver-*" if script_run("rpm -qa | grep nvidia-open-driver") == 0;
+    script_run("rpm -aq | grep nvidia");
+
     # Install vGPU manager
     download_script(${driver_file}, script_url => ${dirver_url});
     zypper_call "in kernel-default-devel gcc";
-    assert_script_run("modprobe vfio_pci_core") if is_sle('>=15-SP5');
+    assert_script_run("modprobe vfio_pci_core") if is_sle('=15-SP5');
     assert_script_run("./${driver_file} -s");
     record_info("vGPU manager is installed successfully.");
 
@@ -155,6 +163,8 @@ sub install_vgpu_manager_and_reboot {
 sub enable_sriov {
     my $gpu = shift;
     assert_script_run("/usr/lib/nvidia/sriov-manage -e $gpu");
+    # It takes a few seconds
+    sleep 3;
     script_run("dmesg | tail");
     assert_script_run("ls -l /sys/bus/pci/devices/0000:$gpu/ | grep virtfn");
     assert_script_run("lspci | grep NVIDIA");
@@ -236,18 +246,32 @@ sub create_vgpu {
     return ${vgpu_id};
 }
 
-sub assign_vgpu_to_guest {
-    my ($uuid, $vm, $slot) = @_;
+# Configure the guest
+sub prepare_guest_for_vgpu_passthrough {
+    my $vm = shift;
 
-    # The UEFI guest created in virt test is ok for vGPU test
     die "vGPU only works on UEFI guests!" unless $vm =~ /uefi/i;
-    assert_script_run("virsh shutdown $vm") unless script_output("virsh domstate $vm") eq "shut off";
+
     # Save guest xml to /tmp/vm.xml, undefine the current one and define with the new xml
     my $vm_xml_file = "/tmp/$vm.xml";
     assert_script_run "virsh dumpxml --inactive $vm > $vm_xml_file";
-    assert_script_run "virsh undefine $vm";
+
+    # VGPU can work in guests with non-secure boot guests
+    if (script_output("virsh domstate $vm") eq "running") {
+        validate_script_output("ssh root\@$vm 'mokutil --sb-state'", qr/SecureBoot disabled/);
+    }
+
+    # The UEFI guest created in virt test is ok for vGPU test
+    assert_script_run("virsh shutdown $vm") unless script_output("virsh domstate $vm") eq "shut off";
+    assert_script_run("virsh undefine $vm --keep-nvram", 30);
+
+}
+
+sub assign_vgpu_to_guest {
+    my ($uuid, $vm, $slot) = @_;
 
     # Add the vgpu device section to guest configuration file
+    my $vm_xml_file = "/tmp/$vm.xml";
     die "PCI slot '0x0a' has already been used" if script_run("grep \"slot='$slot'\" $vm_xml_file") == 0;
     my $vgpu_xml_section = "<hostdev mode='subsystem' type='mdev' model='vfio-pci' display='off'>\\\n  <source>\\\n    <address uuid='$uuid'/>\\\n  </source>\\\n  <address type='pci' domain='0x0000' bus='0x00' slot='$slot' function='0x0'/>\\\n</hostdev>";
 
@@ -262,6 +286,9 @@ sub assign_vgpu_to_guest {
 
 sub install_vgpu_grid_driver {
     my ($vm, $driver_url) = @_;
+
+    # vGPU grid driver works in guests only without secure boot
+    validate_script_output("ssh root\@$vm 'mokutil --sb-state'", qr/SecureBoot disabled/);
 
     # Download drivers from fileserver
     die "The vGPU driver URL requires to be in 'http://...' format!" unless $driver_url =~ /http:\/\/.*\/(.*\.run)/;
@@ -338,8 +365,11 @@ sub post_fail_hook {
     my $log_file = "$log_dir/host_vgpu_device_status.txt";
     print_cmd_output_to_file("virsh list --all", $log_file);
     print_cmd_output_to_file("nvidia-smi", $log_file);
+    print_cmd_output_to_file("lspci -d 10de: -k", $log_file);
+    print_cmd_output_to_file("ll /sys/bus/pci/devices/*/virtfn1/m*", $log_file);
     my $cmd = "journalctl --cursor-file /tmp/cursor.txt | grep -r -e 'kernel:' -e gpu -e nvidia | grep -v bash_history";
     script_run("echo '' >> $log_file");
+    script_run("echo \"# $cmd\"");
     script_run("$cmd >> $log_file");
     script_run("cp /var/log/nvidia-installer.log $log_dir");
     save_vgpu_device_status_logs($_) foreach (keys %virt_autotest::common::guests);
