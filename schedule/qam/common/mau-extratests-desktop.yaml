@@ -7,6 +7,8 @@ schedule:
   - console/consoletest_setup
   - x11/disable_screensaver
   - x11/vnc_two_passwords
+  - x11/user_defined_snapshot
+  - x11/libqt5_qtbase
   - x11/rrdtool_x11
   - x11/yast2_lan_restart
   - x11/remote_desktop/screensharing_available
@@ -24,8 +26,6 @@ conditional_schedule:
         - x11/network/yast2_network_use_nm
         - x11/network/NM_wpa2_enterprise
       15-SP6:
-        - x11/user_defined_snapshot
-        - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
         - console/add_phub_extension
@@ -33,8 +33,6 @@ conditional_schedule:
         - x11/network/yast2_network_use_nm
         - x11/network/NM_wpa2_enterprise
       15-SP5:
-        - x11/user_defined_snapshot
-        - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
         - console/add_phub_extension
@@ -42,8 +40,6 @@ conditional_schedule:
         - x11/network/yast2_network_use_nm
         - x11/network/NM_wpa2_enterprise
       15-SP4:
-        - x11/user_defined_snapshot
-        - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
         - console/add_phub_extension
@@ -51,8 +47,6 @@ conditional_schedule:
         - x11/network/yast2_network_use_nm
         - x11/network/NM_wpa2_enterprise
       15-SP3:
-        - x11/user_defined_snapshot
-        - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
         - console/add_phub_extension
@@ -60,8 +54,6 @@ conditional_schedule:
         - x11/network/yast2_network_use_nm
         - x11/network/NM_wpa2_enterprise
       15-SP2:
-        - x11/user_defined_snapshot
-        - x11/libqt5_qtbase
         - texlive/latexdiff
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
@@ -71,6 +63,4 @@ conditional_schedule:
         - texlive/latexdiff
       15:
         - texlive/latexdiff
-      12-SP5:
-        - x11/libqt5_qtbase
 ...
