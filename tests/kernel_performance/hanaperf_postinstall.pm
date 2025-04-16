@@ -76,6 +76,27 @@ EOF
     assert_script_run("echo -n '$qaset_config_file' > /root/qaset/config");
     assert_script_run("echo '_QASET_KERNEL_TAG=$qaset_kernel_tag' >> /root/qaset/config") if $qaset_kernel_tag ne '';
 
+    # workaround to prevent network interface random order
+    if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP')) {
+        my $service_file = <<'EOF';
+[Unit]
+Description=Load bnxt_en driver manually
+After=sshd.service
+[Service]
+Type=oneshot
+ExecStart=/sbin/modprobe bnxt_en
+TimeoutSec=0
+RemainAfterExit=no
+TasksMax=12000
+[Install]
+WantedBy=multi-user.target
+EOF
+        assert_script_run("echo 'blacklist bnxt_en' >> /etc/modprobe.d/50-blacklist.conf");
+        assert_script_run("echo '$service_file' > /usr/lib/systemd/system/load_bnxt_en.service");
+        assert_script_run("systemctl enable load_bnxt_en.service --now");
+    }
+
+
     # The qaset/config need not be updated when role is HANA and ABAP
     return if (get_var('PROJECT_M_ROLE', '') =~ /PROJECT_M_HANA|PROJECT_M_ABAP/);
 

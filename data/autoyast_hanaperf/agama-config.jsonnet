@@ -76,6 +76,11 @@
           sed -e "s/selinux=1 enforcing=1/ /g" -i /boot/grub2/grub.cfg
           sed -e "s/selinux=1 enforcing=1/ /g" -i /etc/default/grub
           sed -e "s/SELINUX=enforcing/SELINUX=permissive/g" -i /etc/selinux/config
+          # Disable IPv6 for x86_64 systems because their lab does not support IPv6
+          if [[ "$(uname -i)" == "x86_64" ]]; then
+               echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.d/disable_ipv6.conf
+               echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/disable_ipv6.conf
+          fi
         |||,
       },
     ],
