@@ -1,7 +1,7 @@
 ---
 name: NFS testing on Baremetal
 description:    >
-    Maintainer: mmoese
+    Maintainer: kernel-qe
     Tests creating NFS set-up and testing NFS itself with focus on various
     versions, features etc. on baremetal.
 vars:
@@ -23,7 +23,6 @@ conditional_schedule:
             nfs_client:
                 - kernel/nfs_client
 schedule:
-    - '{{nfs_barriers}}'
     - installation/ipxe_install
     - installation/welcome
     - installation/scc_registration
@@ -49,5 +48,5 @@ schedule:
     - console/force_scheduled_tasks
     - kernel/mellanox_config
     - kernel/before_nfs_test
+    - '{{nfs_barriers}}'
     - '{{nfstest}}'
-    - kernel/nfs_stress_ng
