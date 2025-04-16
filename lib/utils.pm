@@ -1110,6 +1110,7 @@ sub need_unlock_after_bootloader {
     return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     # MicroOS with sdboot supports automatic TPM based unlocking.
     return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+    return 0 if get_var('RUNTIME_TPM_ENROLLED');
     return 1;
 }
 
