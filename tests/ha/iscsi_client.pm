@@ -44,13 +44,7 @@ sub run {
     zypper_call 'in --recommends yast2-iscsi-client';
 
     # open-iscsi & iscsiuio were dropped as dependencies for yast2-iscsi-client. See gh#yast/yast-iscsi-client#121
-    if (script_run('rpm -q open-iscsi iscsiuio')) {
-        # Verify if the recommendation was added to the release notes in SLES 15-SP5
-        my $reln_chk = is_sle('15-SP5+') ? script_run('curl --silent https://www.suse.com/releasenotes/' .
-              get_required_var('ARCH') . '/SUSE-SLES/15-SP5/index.html | grep -q bsc-1204978') : 1;
-        record_soft_failure 'bsc#1204528 bsc#1204978 - Some yast2-iscsi-client dependencies were not installed with --recommends' if $reln_chk;
-        zypper_call 'in open-iscsi iscsiuio';
-    }
+    zypper_call 'in open-iscsi iscsiuio' if script_run('rpm -q open-iscsi iscsiuio');
 
     my $iscsi_client = script_output("rpm -q --qf '%{VERSION}\n' yast2-iscsi-client");
     record_info('iscsi_client version', $iscsi_client);
