@@ -105,7 +105,6 @@ our @EXPORT = qw(
   qesap_az_list_container_files
   qesap_az_diagnostic_log
   qesap_terrafom_ansible_deploy_retry
-  qesap_test_postfail
 );
 
 =head1 DESCRIPTION
@@ -2636,58 +2635,6 @@ sub qesap_ansible_error_detection {
     }
     record_info('ANSIBLE ISSUE', $error_message) unless $ret_code eq 0;
     return $ret_code;
-}
-
-=head2 qesap_test_postfail
-
-  qesap_test_postfail()
-
-  Post fail tasks suitable for post_fail_hook of the test modules.
-  This API is mainly designed for qesap regression test modules.
-
-=over
-
-=item B<PROVIDER> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting
-
-=item B<NET_PEERING_ID> - ID of the network peering, for Azure it has to be the name 
-                          of the Resource Group of the mirror, for AWS it has to be the
-                          something different from an empty string, for example
-                          the setting about the IP RANGE.
-
-=back
-=cut
-
-sub qesap_test_postfail {
-    my (%args) = @_;
-    croak 'Missing mandatory provider argument' unless $args{provider};
-    $args{net_peering_id} //= '';
-
-    qesap_cluster_logs();
-    qesap_upload_logs();
-    if ($args{provider} eq 'AZURE') {
-        if ($args{net_peering_id} ne '') {
-            my $rg = qesap_az_get_resource_group();
-            qesap_az_vnet_peering_delete(source_group => $rg, target_group => $args{net_peering_id});
-        }
-    }
-    elsif ($args{provider} eq 'EC2') {
-        if ($args{net_peering_id} ne '') {
-            qesap_aws_delete_transit_gateway_vpc_attachment(name => qesap_calculate_deployment_name('qesapval') . '*');
-        }
-    }
-    # TODO : GCP is not supported yet.
-    qesap_execute(
-        cmd => 'ansible',
-        cmd_options => '-d',
-        logname => 'qesap_exec_ansible_destroy.log.txt',
-        verbose => 1,
-        timeout => 300);
-    qesap_execute(
-        cmd => 'terraform',
-        cmd_options => '-d',
-        logname => 'qesap_exec_terraform_destroy.log.txt',
-        verbose => 1,
-        timeout => 1200);
 }
 
 1;

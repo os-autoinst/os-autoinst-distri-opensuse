@@ -130,8 +130,6 @@ sub run {
         $variables{REPOS} = join(',', get_test_repos());
     }
 
-
-
     qesap_prepare_env(
         openqa_variables => \%variables,
         provider => get_required_var('PUBLIC_CLOUD_PROVIDER')
