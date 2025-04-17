@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 use trento;
 
 sub run {

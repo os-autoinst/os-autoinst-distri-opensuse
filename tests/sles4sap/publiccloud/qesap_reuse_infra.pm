@@ -13,7 +13,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use serial_terminal 'select_serial_terminal';
 use sles4sap_publiccloud;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 
 sub test_flags {
     return {fatal => 1, publiccloud_multi_module => 1};

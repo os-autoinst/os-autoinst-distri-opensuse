@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 use publiccloud::utils qw(is_azure is_ec2);
 use sles4sap::azure_cli;
 

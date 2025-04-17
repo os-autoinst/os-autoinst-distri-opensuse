@@ -12,7 +12,7 @@ use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
 use sles4sap_publiccloud;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
