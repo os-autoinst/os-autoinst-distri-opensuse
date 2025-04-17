@@ -14,6 +14,7 @@ use Term::ANSIColor 2.01 'colorstrip';
 use testapi qw(is_serial_terminal :DEFAULT);
 use mmapi 'get_current_job_id';
 use utils qw(script_retry script_output_retry);
+use version_utils qw(is_sle);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
@@ -489,6 +490,7 @@ sub img_proof {
     $args{instance_type} //= 'Standard_A2';
     $args{user} //= 'azureuser';
     $args{provider} //= 'azure';
+    $args{exclude} //= 'test_sles_azure_running_services' if (is_sle("=12-SP5"));
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {
         $args{running_instance_id} = $parsed_id->{vm_name};
