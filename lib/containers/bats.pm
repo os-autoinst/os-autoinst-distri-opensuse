@@ -192,6 +192,10 @@ sub bats_setup {
         record_info("Disabling SELinux");
         assert_script_run "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
         assert_script_run "setenforce 0";
+    } else {
+        # Rebuild SELinux policies without the so-called "dontaudit" rules
+        # https://en.opensuse.org/Portal:SELinux/Troubleshooting
+        script_run "semodule -DB || true";
     }
 
     # Remove mounts.conf
