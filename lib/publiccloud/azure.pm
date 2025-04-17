@@ -511,8 +511,6 @@ sub terraform_apply {
 sub on_terraform_apply_timeout {
     my ($self) = @_;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
-
-    $self->upload_boot_diagnostics();
     assert_script_run("az group delete --yes --no-wait --name $resource_group") unless get_var('PUBLIC_CLOUD_NO_CLEANUP');
 }
 
@@ -628,12 +626,11 @@ sub parse_instance_id
 This method is called called after each test on failure or success to revoke the credentials
 =cut
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
 
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
-    $self->upload_boot_diagnostics();
-    $self->SUPER::cleanup();
+    $self->SUPER::teardown();
     return 1;
 }
 

@@ -105,7 +105,7 @@ sub cleanup {
 
 sub finalize {
     my ($self) = @_;
-    die("Cleanup called twice!") if ($self->{finalize_called});
+    die("finalize called twice!") if ($self->{finalize_called});
     $self->{finalize_called} = 1;
 
     # Call cleanup() defined in test modules
@@ -118,22 +118,24 @@ sub finalize {
     diag('Public Cloud finalize: $self->{result}=' . $self->{result}) if ($self->{result});
     diag('Public Cloud finalize: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
 
-    my $dumpable_instance = Storable::dclone($self->{run_args}->{my_instance});
-    my $dumpable_provider = Storable::dclone($self->{run_args}->{my_provider});
-    if (defined $dumpable_instance->{provider}->{provider_client}) {
-        $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = '******';
+    if ($self->{run_args}) {
+        if ($self->{run_args}->{my_instance}) {
+            my $dumpable_instance = Storable::dclone($self->{run_args}->{my_instance});
+            $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = '******';
+            diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . Dumper($dumpable_instance));
+        }
+        if ($self->{run_args}->{my_provider}) {
+            my $dumpable_provider = Storable::dclone($self->{run_args}->{my_provider});
+            $dumpable_provider->{provider_client}->{credentials_file_content} = '******';
+            diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . Dumper($dumpable_provider));
+        }
     }
-    if (defined $dumpable_provider->{provider_client}) {
-        $dumpable_provider->{provider_client}->{credentials_file_content} = '******';
-    }
-    diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . Dumper($dumpable_instance));
-    diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . Dumper($dumpable_provider));
 
     if ($self->{run_args} && $self->{run_args}->{my_instance} && $self->{result} && $self->{result} eq 'fail') {
         $self->{run_args}->{my_instance}->upload_supportconfig_log();
     }
 
-    # currently we have two cases when cleanup of image will be skipped:
+    # currently we have two cases when teardown of instance will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_TEARDOWN' variable
     if (get_var('PUBLIC_CLOUD_NO_TEARDOWN')) {
         diag('Public Cloud finalize: The test has PUBLIC_CLOUD_NO_TEARDOWN variable.');
@@ -147,7 +149,7 @@ sub finalize {
     #   * In case the test does not have 'publiccloud_multi_module' flag we don't expect anything else running after it.
     #   * In case the test does have 'publiccloud_multi_module' flag:
     if ($flags->{publiccloud_multi_module}) {
-        # * We continue with cleanup if the test is failed and fatal.
+        # * We continue with teardown if the test is failed and fatal.
         # * We don't continue with cleaup if the test is not failed or not fatal
         #   This is because we expect other test modules requirening the machine running after.
         diag('Public Cloud finalize: Test has `publiccloud_multi_module` flag.');
@@ -164,7 +166,8 @@ sub finalize {
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         diag('Public Cloud finalize: Ready for provider teardown.');
         # Call the provider teardown
-        eval { $self->{run_args}->{my_provider}->teardown() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
+        eval { $self->{run_args}->{my_provider}->upload_boot_diagnostics() } or record_info('FAILED', "\$self->{run_args}->{my_provider}->upload_boot_diagnostics() failed -- $@");
+        eval { $self->{run_args}->{my_provider}->teardown() } or record_info('FAILED', "\$self->{run_args}->{my_provider}::teardown() failed -- $@", result => 'fail');
         diag('Public Cloud finalize: The provider teardown finished.');
     } else {
         diag('Public Cloud finalize: Not ready for provider teardown.');
