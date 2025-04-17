@@ -34,7 +34,7 @@ sub post_fail_hook {
 
 sub verify_user_info {
     my (%args) = @_;
-    my $user = $args{user_is_root};
+    my $is_root = $args{user_is_root};
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %tz_data = ('en_US' => 'UTC', 'de_DE' => 'Europe/Berlin');
@@ -48,8 +48,18 @@ sub verify_user_info {
 
     my %lang_data = ('en_US' => 'For bug reporting', 'de_DE' => 'Eine Anleitung zum Melden');
     # User has locale defined in firstboot, root always defaults to POSIX (i.e. English)
-    my $proglang = $args{user_is_root} ? 'en_US' : $lang;
+    my $proglang = $is_root ? 'en_US' : $lang;
     assert_script_run("ldd --help | grep '^" . $lang_data{$proglang} . "'");
+
+    return if $is_root;
+
+    if (script_run('rpm -q system-group-wheel') == 0) {
+        if (script_run('groups | grep -qw wheel') && (is_sle('16+') || is_sle_micro('6.2+'))) {
+            die "bsc#1241215 - User $username should be added to wheel group by default";
+        }
+    } else {
+        record_info("wheel", "system group wheel is not present in the system");
+    }
 }
 
 sub verify_mounts {
@@ -161,7 +171,7 @@ sub enter_root_passwd {
 }
 
 sub create_user_in_ui {
-    assert_screen 'jeos-create-non-root';
+    assert_screen [qw(jeos-create-non-root jeos-create-non-root-with-group)];
 
     if (get_var('WIZARD_SKIP_USER', 0)) {
         record_info('skip user', 'skipping user creation in wizard');
@@ -177,6 +187,7 @@ sub create_user_in_ui {
     assert_screen_change { type_string $username };
     send_key "down";
     assert_screen_change { type_string $realname };
+    assert_screen_change { send_key "down" } if match_has_tag('jeos-create-non-root-with-group');
     assert_screen 'jeos-create-non-root-check';
     send_key "down";
 
