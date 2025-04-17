@@ -30,9 +30,10 @@ sub run {
             type => 'disk',
             has_mountpoints_col => $has_mountpoints_col);
         foreach my $part (@{$disk->{partitions}}) {
+            my $part_type = ${part}->{type} // 'part';
             $errors .= validate_lsblk(
                 device => $part,
-                type => 'part',
+                type => $part_type,
                 has_mountpoints_col => $has_mountpoints_col);
         }
     }
