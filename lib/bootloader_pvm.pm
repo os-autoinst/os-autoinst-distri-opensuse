@@ -134,7 +134,7 @@ sub enter_netboot_parameters {
         type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password console=hvc0";
         # inst.auto and inst.install_url are defined in below function
         specific_bootmenu_params;
-        type_string_slow " " . get_var('EXTRABOOTPARAMS') if (get_var('EXTRABOOTPARAMS'));
+        type_string_slow " " . get_var('EXTRABOOTPARAMS') . " " if (get_var('EXTRABOOTPARAMS'));
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
