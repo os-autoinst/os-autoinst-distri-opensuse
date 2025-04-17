@@ -199,11 +199,10 @@ sub img_proof {
     return $self->run_img_proof(%args);
 }
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
 
-    $self->upload_boot_diagnostics();
-    $self->terraform_destroy() if ($self->terraform_applied);
+    $self->SUPER::teardown();
     $self->delete_keypair();
     return 1;
 }

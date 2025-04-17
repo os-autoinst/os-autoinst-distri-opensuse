@@ -628,12 +628,11 @@ sub parse_instance_id
 This method is called called after each test on failure or success to revoke the credentials
 =cut
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
 
     $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
-    $self->upload_boot_diagnostics();
-    $self->SUPER::cleanup();
+    $self->SUPER::teardown();
     return 1;
 }
 

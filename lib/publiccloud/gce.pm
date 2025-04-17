@@ -195,10 +195,9 @@ sub start_instance {
     $instance->public_ip($self->get_public_ip());
 }
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
-    $self->upload_boot_diagnostics();
-    $self->SUPER::cleanup();
+    $self->SUPER::teardown();
     return 1;
 }
 
