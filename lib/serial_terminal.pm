@@ -188,7 +188,7 @@ sub login {
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x);
 
     # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
-    enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
+    enter_cmd('export PAGER=more TERM=dumb; stty cols 2048; exec $SHELL');
     die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x);
     set_serial_prompt($prompt);
     # TODO: Send 'tput rmam' instead/also
