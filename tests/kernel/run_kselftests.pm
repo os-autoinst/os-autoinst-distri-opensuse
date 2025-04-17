@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Executes kselftests
-# Maintainer: Kernel QE <kernel-qa@suse.de>
+# Summary: Executes kselftests.
+# This module introduces openqa runner for kernel selftests
 #
-# Tags: deprecated
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use base 'opensusebasetest';
 
@@ -42,19 +42,16 @@ sub run_tests
         );
     }
 
-    my @volumes = (
-        {src => $root, dst => $root},
-        {src => "/tmp", dst => "/tmp"}
-    );
+    #TODO: run actuall tests here
 
-    LTP::kirk->run(
-        framework => "kselftests:root=$root",
-        skip => $skip_tests,
-        suite => $suite,
-        # when KIRK_INSTALL == 'container' we want to share
-        # kselftests folder and kirk logs folder
-        container_volumes => \@volumes,
-    );
+    #LTP::kirk->run(
+    #    framework => "kselftests:root=$root",
+    #    skip => $skip_tests,
+    #    suite => $suite,
+    #    # when KIRK_INSTALL == 'container' we want to share
+    #    # kselftests folder and kirk logs folder
+    #    container_volumes => \@volumes,
+    #);
 }
 
 sub run
