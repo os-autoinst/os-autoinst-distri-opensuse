@@ -1,0 +1,178 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/sap_deployment_automation_framework/configure_workload_tfvars.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#write_tfvars_file">write_tfvars_file</a></li>
+      <li><a href="#compile_tfvars_section">compile_tfvars_section</a></li>
+      <li><a href="#create_workload_tfvars">create_workload_tfvars</a></li>
+      <li><a href="#define_workload_environment">define_workload_environment</a></li>
+      <li><a href="#define_networking">define_networking</a></li>
+      <li><a href="#define_nat_section">define_nat_section</a></li>
+      <li><a href="#define_subnets">define_subnets</a></li>
+      <li><a href="#define_iscsi_devices">define_iscsi_devices</a></li>
+      <li><a href="#define_storage_account">define_storage_account</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_workload_tfvars.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library with common functions for Microsoft SDAF deployment automation that help with preparation of &#39;WORKLOAD-ZONE&#39; tfvars file. Generated file is following example template: https://github.com/Azure/SAP-automation-samples/blob/main/Terraform/WORKSPACES/SYSTEM/LAB-SECE-SAP04-L00/LAB-SECE-SAP04-L00.tfvars</p>
+
+<h2 id="write_tfvars_file">write_tfvars_file</h2>
+
+<pre><code>write_tfvars_file(tfvars_file=&gt;&#39;/path/towards/happiness&#39;, tfvars_data=&gt;$tfvars_data);</code></pre>
+
+<p>Data provided in <b>$args{tfvars_data}</b> is compiled into tfvars file format and written into target <b>$args{tfvars_file}</b> file located on deployer VM. <b>$args{tfvars_data}</b> is a HASHREF containing individual sections that should be included in final tfvars content. <b>file_header</b> is placed as a comment as a first line of the defined section.</p>
+
+<p><b>Example:</b> { file_header =&gt; &quot;Comment placed on top of the tfvars file&quot;, env_definitions =&gt; {header =&gt; &#39;Comment placed on top of a section - env_definitions&#39;, tfvars_variable_1 = &#39;&quot;value_1&quot;&#39;, tfvars_variable_2 = &#39;&quot;value2&quot;&#39;}, workload_networking =&gt; {header =&gt; &#39;Comment placed on top of a section - workload_networking&#39;, tfvars_variable_boolean = &#39;true&#39;, tfvars_variable_integer = &#39;4&#39;}, }</p>
+
+<p><b>Results in:</b> Pay attention to double quotes. Only strings are double quoted. Bool and int are not. ### Comment placed on top of the tfvars file</p>
+
+<p>### Comment placed on top of a section - env_definitions tfvars_variable_1 = &quot;value_1&quot; tfvars_variable_2 = &quot;value_2&quot;</p>
+
+<p>### Comment placed on top of a section - env_definitions tfvars_variable_boolean = true tfvars_variable_integer = 4</p>
+
+<ul>
+
+<li><p><b>tfvars_file</b>: Target tfvars file location</p>
+
+</li>
+<li><p><b>tfvars_data</b>: Target tfvars file data - Must be a HASHREF</p>
+
+</li>
+<li><p><b>section_order</b>: Order in which the sections should be compiled into the file - must be an ARRAYREF</p>
+
+</li>
+</ul>
+
+<h2 id="compile_tfvars_section">compile_tfvars_section</h2>
+
+<pre><code>compile_tfvars_section($section_data);</code></pre>
+
+<p>Converts HASHREF based tfvars section into terraform format and returns it as a string. Results in: # Header variable_1 = &#39;value_1&#39; variable_2 = &#39;value_2&#39;</p>
+
+<ul>
+
+<li><p><b>$section_data</b>: HASHREF containing tfvars section header (comment) and variables</p>
+
+</li>
+</ul>
+
+<h2 id="create_workload_tfvars">create_workload_tfvars</h2>
+
+<pre><code>create_workload_tfvars(network_data=&gt;[subnet_a =&gt; &#39;192.168.1.0/26&#39;, subnet_b =&gt; &#39;192.168.1.65/26&#39;],
+workload_vnet_code=&gt;&#39;FUN&#39; [, environment=&gt;&#39;LAB&#39;, location=&gt;&#39;swedencentral&#39;, resource_group=&gt;&#39;Funky&#39;, job_id=&gt;&#39;1&#39;]);</code></pre>
+
+<p>Function that generates workload zone tfvars content according to arguments and OpenQA variables provided. Content is generated in perl and transformed into tfvars format. File is uploaded into OpenQA format.</p>
+
+<ul>
+
+<li><p><b>environment</b>: SDAF environment. Can be supplied using OpenQA setting &#39;SDAF_ENV_CODE&#39;</p>
+
+</li>
+<li><p><b>network_data</b>: Network data obtained from `lib/sap_deployment_automation_framework/networking::calculate_subnets`</p>
+
+</li>
+<li><p><b>workload_vnet_code</b>: Workload zone VNET code</p>
+
+</li>
+</ul>
+
+<h2 id="define_workload_environment">define_workload_environment</h2>
+
+<pre><code>define_workload_environment(environment=&gt;&#39;LAB&#39;, location=&gt;&#39;swedencentral&#39;, resource_group=&gt;&#39;OpenQA&#39;);</code></pre>
+
+<p>Returns tfvars environment definitions section in <b>HASHREF</b> format. This section includes various environmental parameters and parameters that do not belong to a specific section. <b>Example:</b> {environment : &#39;LAB&#39;, location : &#39;swedencentral&#39; ... }</p>
+
+<ul>
+
+<li><p><b>environment</b>: SDAF environment</p>
+
+</li>
+<li><p><b>location</b>: Public cloud location</p>
+
+</li>
+<li><p><b>resource_group</b>: Workload zone resource group</p>
+
+</li>
+</ul>
+
+<h2 id="define_networking">define_networking</h2>
+
+<pre><code>define_networking(workload_vnet_code=&gt;&#39;OpenQA-42&#39;, job_id=&gt;&#39;42&#39;);</code></pre>
+
+<p>Returns tfvars networking parameter section in HASHREF format. <b>Example:</b> {network_logical_name : &#39;VNET01&#39;, network_name : &#39;OpenQA-VNET01&#39; ... }</p>
+
+<ul>
+
+<li><p><b>job_id</b>: OpenQA job ID which the deployment belongs to</p>
+
+</li>
+<li><p><b>workload_vnet_code</b>: Workload zone VNET code</p>
+
+</li>
+</ul>
+
+<h2 id="define_nat_section">define_nat_section</h2>
+
+<pre><code>define_nat_section(environment=&gt;&#39;LAB&#39;, sdaf_region=&gt;&#39;swedencentral&#39;, workload_vnet_code=&gt;&#39;OpenQA-42&#39;);</code></pre>
+
+<p>Returns tfvars section related to NAT setup in <b>HASHREF</b> format. <b>Example:</b> {nat_gateway_name : &#39;NAT-01&#39;, network_name : &#39;OpenQA-NAT01&#39; ... }</p>
+
+<ul>
+
+<li><p><b>environment</b>: SDAF environment</p>
+
+</li>
+<li><p><b>sdaf_region</b>: Public cloud location</p>
+
+</li>
+<li><p><b>workload_vnet_code</b>: Public cloud location</p>
+
+</li>
+</ul>
+
+<h2 id="define_subnets">define_subnets</h2>
+
+<pre><code>define_subnets(network_data=&gt;$network_data);</code></pre>
+
+<p>Returns tfvars section related to subnet setup in <b>HASHREF</b> format. <b>Example:</b> {network_address_space : &#39;192.168.1.0/26&#39;, db_subnet_address_prefix : &#39;192.168.1.0/28&#39; ... }</p>
+
+<ul>
+
+<li><p><b>network_data</b>: Network data obtained from `lib/sap_deployment_automation_framework/networking::calculate_subnets`</p>
+
+</li>
+</ul>
+
+<h2 id="define_iscsi_devices">define_iscsi_devices</h2>
+
+<pre><code>define_iscsi_devices();</code></pre>
+
+<p>Returns tfvars section related to setup of iSCSI server(s) in <b>HASHREF</b> format. iSCSI is used mostly for SBD based fencing. <b>Example:</b> {iscsi_count : &#39;3&#39;, iscsi_useDHCP : &#39;true&#39; ... }</p>
+
+<h2 id="define_storage_account">define_storage_account</h2>
+
+<pre><code>define_storage_account();</code></pre>
+
+<p>Returns tfvars section related to storage account settings in <b>HASHREF</b> format. Storage accounts related to installation media and SAP transport shares. <b>Example:</b> {install_volume_size : &#39;1024&#39;, NFS_provider : &#39;AFS&#39; ... }</p>
+
+
+</body>
+
+</html>
+
+

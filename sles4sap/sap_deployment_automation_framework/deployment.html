@@ -37,6 +37,8 @@
       <li><a href="#playbook_settings">playbook_settings</a></li>
       <li><a href="#sdaf_register_byos">sdaf_register_byos</a></li>
       <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
+      <li><a href="#validate_components">validate_components</a></li>
+      <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment.pm</h1>
@@ -476,6 +478,40 @@ tee - writes output also into the log file</code></pre>
 <ul>
 
 <li><p><b>quiet</b>: Hide &#39;record_info&#39; message. Default: undef</p>
+
+</li>
+</ul>
+
+<h2 id="validate_components">validate_components</h2>
+
+<pre><code>validate_components(components=&gt;[&#39;db_install&#39;, &#39;db_ha&#39;]);</code></pre>
+
+<p>Checks if components list is valid and supported by code. Croaks if not. Currently supported components are:</p>
+
+<ul>
+
+<li><p><b>components</b>: <b>ARRAYREF</b> of components that should be installed. Supported values: db_install : Basic DB installation db_ha : Database HA setup nw_pas : Installs primary application server (PAS) nw_aas : Installs additional application server (AAS) nw_ensa : Installs enqueue replication server (ERS)</p>
+
+</li>
+</ul>
+
+<h2 id="get_fencing_mechanism">get_fencing_mechanism</h2>
+
+<pre><code>get_fencing_mechanism(components=&gt;[&#39;db_install&#39;, &#39;db_ha&#39;]);</code></pre>
+
+<p>Converts fencing type naming used by existing OpenQA tests into corresponding value accepted by SDAF setting (tfvars). Value is retrieved as a mandatory OpenQA setting &#39;SDAF_FENCING_MECHANISM&#39;.</p>
+
+<p><b>Value conversion:</b></p>
+
+<ul>
+
+<li><p><b>msi</b> =&gt; &#39;AFA&#39; - Azure fencing agent</p>
+
+</li>
+<li><p><b>sbd</b> =&gt; &#39;ISCSI&#39; - ISCSI based SBD fencing device</p>
+
+</li>
+<li><p><b>asd</b> =&gt; &#39;ASD&#39; - Azure shared disk based SBD device</p>
 
 </li>
 </ul>
