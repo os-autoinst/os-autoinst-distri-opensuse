@@ -931,6 +931,11 @@ sub scc_deregistration {
         quit_packagekit;
         wait_for_purge_kernels;
         assert_script_run('SUSEConnect --version');
+        # Remove registercloudguest when use suseconnect in a non public cloud environment.
+        if (get_var('SCC_ADDONS', '') =~ /pcm/) {
+            my $cloudguest_bin = "/usr/sbin/registercloudguest";
+            assert_script_run "test -f $cloudguest_bin && rm -f $cloudguest_bin";
+        }
         # We don't need to pass $debug_flag to SUSEConnect, because it's already set
         my $deregister_ret = script_run("SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1", 300);
         if ($deregister_ret) {
