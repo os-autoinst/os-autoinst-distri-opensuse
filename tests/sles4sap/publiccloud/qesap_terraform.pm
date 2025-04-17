@@ -81,6 +81,15 @@ sub run {
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
+    if (is_azure()) {
+        # Within the qe-sap-deployment terraform code,
+        # an empty string means no peering.
+        # This "trick" is needed to only have one conf.yaml
+        # for both jobs that creates the peering with terraform or the az cli
+        set_var('IBSM_RG', '') unless (get_var('IBSM_RG'));
+        set_var('IBSM_VNET', '') unless (get_var('IBSM_VNET'));
+    }
+
     my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
     # string appended to the PUBLIC_CLOUD_RESOURCE_GROUP
