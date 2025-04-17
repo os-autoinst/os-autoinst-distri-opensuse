@@ -87,7 +87,7 @@ sub run {
     my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
-    my $ltp_command = get_required_var('LTP_COMMAND_FILE');
+    my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
     $self->{ltp_command} = $ltp_command;
     my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
@@ -146,6 +146,11 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+
+    assert_script_run('curl ' . data_url('publiccloud/ltp_runtest') . ' -o publiccloud');
+    $instance->scp("publiccloud", 'remote:/tmp/publiccloud', 9999);
+    $instance->ssh_assert_script_run(cmd => "sudo mv /tmp/publiccloud /opt/ltp/runtest/publiccloud");
+
     # this will print /all/ kernel messages to the console. So in case kernel panic we will have some data to analyse
     $instance->ssh_assert_script_run(cmd => "echo 1 | sudo tee /sys/module/printk/parameters/ignore_loglevel");
 
