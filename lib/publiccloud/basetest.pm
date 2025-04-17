@@ -103,7 +103,7 @@ sub cleanup {
 
 sub finalize {
     my ($self) = @_;
-    die("Cleanup called twice!") if ($self->{finalize_called});
+    die("finalize called twice!") if ($self->{finalize_called});
     $self->{finalize_called} = 1;
 
     # Call cleanup() defined in test modules
@@ -122,7 +122,7 @@ sub finalize {
         $self->{run_args}->{my_instance}->upload_supportconfig_log();
     }
 
-    # currently we have two cases when cleanup of image will be skipped:
+    # currently we have two cases when cleanup of instance will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_TEARDOWN' variable
     if (get_var('PUBLIC_CLOUD_NO_TEARDOWN')) {
         diag('Public Cloud finalize: The test has PUBLIC_CLOUD_NO_TEARDOWN variable.');
@@ -153,6 +153,7 @@ sub finalize {
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         diag('Public Cloud finalize: Ready for provider teardown.');
         # Call the provider teardown
+        eval { $self->{run_args}->{my_provider}->upload_boot_diagnostics() } or record_info('XXX', "failed -- $@");
         eval { $self->{run_args}->{my_provider}->teardown() } or record_info('FAILED', "\$self->run_args->my_provider::cleanup() failed -- $@", result => 'fail');
         diag('Public Cloud finalize: The provider teardown finished.');
     } else {
