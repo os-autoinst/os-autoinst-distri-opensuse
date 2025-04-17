@@ -577,11 +577,11 @@ sub terraform_apply {
             # Extract region and availability zone from the full zone name
             my ($alt_region, $alt_availability_zone) = ($zone =~ /^([a-z0-9-]+)-([a-z])$/);
 
-             # try to apply in all regions before hardfailing
+            # try to apply in all regions before hardfailing
             record_info('RETRYING', "Attempting with zone $zone (region: $alt_region, availability_zone: $alt_availability_zone)");
             $vars{region} = $alt_region;
             $vars{availability_zone} = $alt_availability_zone;
-            
+
             $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
             script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
             $ret = script_run("set -o pipefail; TF_LOG=$tf_log terraform apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
