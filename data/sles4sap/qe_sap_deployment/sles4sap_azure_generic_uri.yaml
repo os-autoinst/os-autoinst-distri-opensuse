@@ -11,11 +11,17 @@ apiver: 3
 terraform:
   variables:
     # GENERAL VARIABLES #
+    vnet_address_range: "%MAIN_ADDRESS_RANGE%"
+    subnet_address_range: "%SUBNET_ADDRESS_RANGE%"
     az_region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image_uri: '%SLES4SAP_OS_IMAGE_NAME%'
+
+    # IBSM PEERING VARIABLES
+    ibsm_rg: '%IBSM_RG%'
+    ibsm_vnet_name: '%IBSM_VNET%'
 
     # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
@@ -30,7 +36,6 @@ terraform:
     netweaver_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
 
 ansible:
-  roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
   az_key_name: '%HANA_KEYNAME%'
