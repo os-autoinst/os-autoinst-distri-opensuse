@@ -25,7 +25,7 @@
 
 =cut
 
-package qesapdeployment;
+package sles4sap::qesap::qesapdeployment;
 
 use strict;
 use warnings;

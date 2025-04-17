@@ -32,7 +32,7 @@ use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
 use sles4sap_publiccloud;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 

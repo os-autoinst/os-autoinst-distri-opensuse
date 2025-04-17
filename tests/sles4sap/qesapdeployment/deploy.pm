@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 
 sub run {
     my ($self) = @_;

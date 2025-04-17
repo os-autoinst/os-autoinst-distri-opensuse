@@ -10,11 +10,11 @@ use List::Util qw(any none);
 use Data::Dumper;
 
 use testapi 'set_var';
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
 
 subtest '[qesap_aws_get_vpc_id]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @soft_failure;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'FISHERMAN'; });
@@ -37,7 +37,7 @@ subtest '[qesap_aws_vnet_peering] died args' => sub {
 };
 
 subtest '[qesap_aws_get_region_subnets]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @outputs;
     my @result;
@@ -105,7 +105,7 @@ subtest '[qesap_aws_get_region_subnets]' => sub {
 };
 
 subtest '[qesap_aws_create_transit_gateway_vpc_attachment]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -140,7 +140,7 @@ subtest '[qesap_aws_create_transit_gateway_vpc_attachment]' => sub {
 };
 
 subtest '[qesap_aws_create_transit_gateway_vpc_attachment] timeout' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -175,7 +175,7 @@ subtest '[qesap_aws_create_transit_gateway_vpc_attachment] timeout' => sub {
 };
 
 subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -192,7 +192,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
 };
 
 subtest '[qesap_aws_delete_transit_gateway_vpc_attachment] timeout' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -209,7 +209,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment] timeout' => sub {
 };
 
 subtest '[qesap_aws_get_transit_gateway_vpc_attachment] no filters' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(script_output => sub { push @calls, $_[0];
@@ -224,7 +224,7 @@ subtest '[qesap_aws_get_transit_gateway_vpc_attachment] no filters' => sub {
 };
 
 subtest '[qesap_aws_get_transit_gateway_vpc_attachment] return multiple tga' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(script_output => sub { push @calls, $_[0];
@@ -242,7 +242,7 @@ subtest '[qesap_aws_get_transit_gateway_vpc_attachment] return multiple tga' => 
 };
 
 subtest '[qesap_aws_get_transit_gateway_vpc_attachment] transit_gateway_attach_id filter' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(script_output => sub { push @calls, $_[0];
@@ -270,7 +270,7 @@ subtest '[qesap_aws_get_transit_gateway_vpc_attachment] transit_gateway_attach_i
 };
 
 subtest '[qesap_aws_get_transit_gateway_vpc_attachment] name filter' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(script_output => sub { push @calls, $_[0];
@@ -299,7 +299,7 @@ subtest '[qesap_aws_get_transit_gateway_vpc_attachment] name filter' => sub {
 };
 
 subtest '[qesap_aws_add_route_to_tgw]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
 
@@ -316,7 +316,7 @@ subtest '[qesap_aws_add_route_to_tgw]' => sub {
 };
 
 subtest '[qesap_aws_get_mirror_tg]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'tgw-00deadbeef00'; });
 
@@ -328,7 +328,7 @@ subtest '[qesap_aws_get_mirror_tg]' => sub {
 };
 
 subtest '[qesap_aws_get_vpc_workspace]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'VPC_TAG_NAME'; });
 
@@ -340,7 +340,7 @@ subtest '[qesap_aws_get_vpc_workspace]' => sub {
 };
 
 subtest '[qesap_aws_get_routing]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'rtb-00deadbeef00'; });
 
@@ -352,7 +352,7 @@ subtest '[qesap_aws_get_routing]' => sub {
 };
 
 subtest '[qesap_aws_vnet_peering]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_mirror_tg => sub { return 'tgw-00deadbeef00'; });
@@ -369,7 +369,7 @@ subtest '[qesap_aws_vnet_peering]' => sub {
 };
 
 subtest '[qesap_aws_vnet_peering] died when aws does not return expected output' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $tgw_return;

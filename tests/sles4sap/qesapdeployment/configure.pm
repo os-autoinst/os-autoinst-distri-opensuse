@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 use qam 'get_test_repos';
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 
 sub run {
     my ($self) = @_;

@@ -9,7 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use qesapdeployment 'qesap_upload_logs';
+use sles4sap::qesap::qesapdeployment 'qesap_upload_logs';
 use trento 'cluster_config';
 
 sub run {

@@ -14,7 +14,7 @@ use warnings FATAL => 'all';
 use Exporter 'import';
 use Carp qw(croak);
 use testapi;
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
 use sles4sap_publiccloud;
 use publiccloud::utils qw(get_ssh_private_key_path);
 
