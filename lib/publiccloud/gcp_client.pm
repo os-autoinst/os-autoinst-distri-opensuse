@@ -24,6 +24,7 @@ has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+has availability_zone => sub { get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
