@@ -12,8 +12,7 @@ use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login sdaf_deployment_reused);
-use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::configure_sap_systems_tfvars qw(create_sap_systems_tfvars);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
@@ -75,14 +74,11 @@ sub run {
 
     # SAP systems use same VNET as workload zone
     set_var('SDAF_VNET_CODE', $workload_vnet_code);
-    # Setup Workload zone openQA variables - used for tfvars template
-    set_var('SDAF_RESOURCE_GROUP', generate_resource_group_name(deployment_type => 'sap_system'));
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
     load_os_env_variables();
 
-    my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
     my $os;
     # This section is only needed by Azure tests using images uploaded
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
@@ -91,11 +87,6 @@ sub run {
     } else {
         $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
-
-    # Add no cleanup tag if the deployment should be kept after test finished
-    set_var('SDAF_NO_CLEANUP', '"' . no_cleanup_tag() . '" = "1"') if get_var('SDAF_RETAIN_DEPLOYMENT');
-
-    prepare_tfvars_file(deployment_type => 'sap_system', os_image => $os, components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file
@@ -113,6 +104,8 @@ sub run {
     assert_script_run($retrieve_custom_sizing);
 
     az_login();
+
+    create_sap_systems_tfvars(workload_vnet_code => $workload_vnet_code);
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
 
     my @check_files = (
@@ -123,11 +116,10 @@ sub run {
         assert_script_run("cat $file");
     }
 
-    # diconnect the console
+    # disconnect the console
     disconnect_target_from_serial();
 
     # reset temporary variables
-    set_var('SDAF_RESOURCE_GROUP', undef);
     set_var('SDAF_VNET_CODE', undef);
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : end');
 }

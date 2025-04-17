@@ -11,9 +11,9 @@ use strict;
 use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 use sles4sap::sap_deployment_automation_framework::networking qw(assign_address_space calculate_subnets);
+use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(create_workload_tfvars);
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
@@ -32,9 +32,6 @@ sub run {
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
     load_os_env_variables();
-
-    # Setup Workload zone openQA variables - used for tfvars template
-    set_var('SDAF_RESOURCE_GROUP', generate_resource_group_name(deployment_type => 'workload_zone'));
 
     my $workload_vnet_code = get_workload_vnet_code();
     set_var('SDAF_VNET_CODE', $workload_vnet_code);
@@ -64,10 +61,8 @@ sub run {
         set_var(uc($variable_name), $network_data{$variable_name});
     }
 
-    # Add no cleanup tag if the deployment should be kept after test finished
-    set_var('SDAF_NO_CLEANUP', '"' . no_cleanup_tag() . '" = "1"') if get_var('SDAF_RETAIN_DEPLOYMENT');
+    create_workload_tfvars(network_data => \%network_data, workload_vnet_code => $workload_vnet_code);
 
-    prepare_tfvars_file(deployment_type => 'workload_zone');
     az_login();
     sdaf_execute_deployment(
         deployment_type => 'workload_zone',
@@ -78,7 +73,6 @@ sub run {
     disconnect_target_from_serial();
 
     # reset temporary variables
-    set_var('SDAF_RESOURCE_GROUP', undef);
     set_var('SDAF_VNET_CODE', undef);
     serial_console_diag_banner('Module sdaf_deploy_workload_zone.pm : end');
 }

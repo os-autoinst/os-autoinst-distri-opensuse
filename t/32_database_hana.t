@@ -37,7 +37,7 @@ subtest '[hdb_stop] Sapcontrol arguments' => sub {
 
     hdb_stop(instance_id => 'Albus');
     note("\n  -->  " . join("\n  -->  ", @sapcontrol_args));
-    ok((grep /instance_id/, @sapcontrol_args), 'Madatory arg "instance_id"');
+    ok((grep /instance_id/, @sapcontrol_args), 'Mandatory arg "instance_id"');
     ok((grep /expected_state/, @sapcontrol_args), 'Define expected state');
     ok((grep /wait_for_state/, @sapcontrol_args), 'Wait until processes are in correct state');
 };
