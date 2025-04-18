@@ -9,13 +9,14 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
+use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_deployment_logs
   ipaddr2_cloudinit_logs
-  ipaddr2_network_peering_clean
   ipaddr2_infra_destroy
   ipaddr2_network_peering_create
   ipaddr2_add_server_repos_to_hosts
+  ipaddr2_azure_resource_group
 );
 
 sub run {
@@ -38,7 +39,7 @@ sub post_fail_hook {
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
     if (my $ibsm_rg = get_var('IBSM_RG')) {
-        ipaddr2_network_peering_clean(ibsm_rg => $ibsm_rg);
+        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
     }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
