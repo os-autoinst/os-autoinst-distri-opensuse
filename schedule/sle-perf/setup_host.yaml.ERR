@@ -1,0 +1,32 @@
+Perltidy version is 20221112
+
+/home/wq/workplace/openqa/os-autoinst-distri-opensuse/schedule/sle-perf/setup_host.yaml: Begin Error Output Stream
+
+There is no previous '?' to match a ':' on line 2
+2: description: |
+              ^
+
+2: description: |
+              - ^
+found | where term expected (previous token underlined)
+
+There is no previous '?' to match a ':' on line 3
+3: Maintainer: Qi Wang (qi.wang@suse.com) qe-perf@suse.de
+             ^
+
+3: Maintainer: Qi Wang (qi.wang@suse.com) qe-perf@suse.de
+                                        - ^
+found bareword where operator expected (previous token underlined)
+
+There is no previous '?' to match a ':' on line 6
+6: vars:
+       ^
+
+There is no previous '?' to match a ':' on line 7
+7: VIDEOMODE: text
+            ^
+
+There is no previous '?' to match a ':' on line 8
+8: schedule:
+           ^
+10: To save a full .LOG file rerun with -g
