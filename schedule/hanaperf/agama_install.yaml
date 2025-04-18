@@ -5,7 +5,7 @@ schedule:
     - '{{pxe_bootloader}}'
     - installation/agama_reboot
     - support_server/login
-    - kernel_performance/hanaperf_postinstall
+    - kernel_performance/install_qatestset
     - '{{full_run}}'
 conditional_schedule:
     pxe_bootloader:

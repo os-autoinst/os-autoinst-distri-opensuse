@@ -17,6 +17,7 @@ use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use mmapi 'wait_for_children';
 use ipmi_backend_utils;
+use version_utils qw(is_sle);
 
 sub install_pkg {
     my $sleperf_source = get_var('SLE_SOURCE');
@@ -33,6 +34,12 @@ sub install_pkg {
     zypper_call("install qa_lib_ctcs2");
     if (get_var('VERSION') =~ /^12/) {
         zypper_call("install python3");
+    }
+    # Install missing packages for SLE16
+    if (is_sle('16+') && get_var('HANA_PERF')) {
+        zypper_call('install qa_lib_ctcs2 wget bc bzip2 screen cpupower pciutils lsscsi ' .
+              'smartmontools netcat-openbsd libltdl7 unzip lvm hana_insserv_compat');
+        zypper_call('rm snapper-zypp-plugin');
     }
 }
 
@@ -67,13 +74,34 @@ sub setup_environment {
             assert_script_run("sed -e '/blacklist qla2xxx/s/^/#/g' -i /etc/modprobe.d/50-blacklist.conf");
         }
         # Workaround for hana02~05 disable megaraid_sas during installation and enable it during post-install
-        if (get_var('MACHINE') =~ /64bit-ipmi-hana0[2-5]/) {
+        if (is_sle("<16") && (get_var('MACHINE') =~ /64bit-ipmi-hana0[2-5]/)) {
             assert_script_run("sed -e '/blacklist megaraid_sas/s/^/#/g' -i /etc/modprobe.d/50-blacklist.conf");
         }
         # END for workaround for kvmskx1
-        my $qaset_kernel_tag = ' ' . get_var('QASET_KERNEL_TAG', '');
-        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh HANA $mitigation_switch $qaset_kernel_tag");
-        assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
+        my $qaset_kernel_tag = get_var('QASET_KERNEL_TAG', '');
+        if (is_sle("16+")) {
+            # HANA perf does not use /usr/share/qa/qaset/bin/deploy_hana_perf.sh in SLE16
+            # Disable service
+            assert_script_run('systemctl disable qaperf.service chronyd.service firewalld.service');
+            # sync time
+            assert_script_run("chronyd -q 'server ntp1.suse.de iburst'");
+            # set static hostname
+            assert_script_run('hostnamectl hostname `hostname -s`');
+            # create basic /root/qaset/config
+            assert_script_run('mkdir -p /root/qaset/');
+            my $qaset_config_file = <<'EOF';
+_QASET_ROLE=HANA
+SQ_TEST_RUN_SET=performance
+SQ_MSG_QUEUE_ENALBE=y
+_QASET_SOFTWARE_TAG=baremetal
+_QASET_SOFTWARE_SUB_TAG=default
+EOF
+            assert_script_run("echo -n '$qaset_config_file' > /root/qaset/config");
+            assert_script_run("echo '_QASET_KERNEL_TAG=$qaset_kernel_tag' >> /root/qaset/config") if $qaset_kernel_tag ne '';
+        } else {
+            assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh HANA $mitigation_switch $qaset_kernel_tag");
+            assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
+        }
 
         # workaround to prevent network interface random order
         if (check_var('PROJECT_M_ROLE', 'PROJECT_M_ABAP')) {
@@ -121,11 +149,15 @@ sub os_update {
 
 sub run {
     my $self = shift;
+
+    select_console 'root-console' if (is_sle('16+') && get_var('HANA_PERF'));
+
     # Add more packages for HANAonKVM with 15SP2
     if (get_var('HANA_PERF') && get_var('VERSION') eq '15-SP2' && get_var('SYSTEM_ROLE') eq 'kvm') {
         zypper_call("install wget iputils supportutils rsync screen smartmontools tcsh");
     }
 
+    # Update OS for MU testing
     if (my $hana_perf_os_update = get_var("HANA_PERF_OS_UPDATE")) {
         os_update($hana_perf_os_update);
     }
