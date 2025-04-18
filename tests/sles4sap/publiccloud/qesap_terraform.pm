@@ -88,6 +88,10 @@ sub run {
         # for both jobs that creates the peering with terraform or the az cli
         set_var('IBSM_RG', '') unless (get_var('IBSM_RG'));
         set_var('IBSM_VNET', '') unless (get_var('IBSM_VNET'));
+    } elsif (is_gce()) {
+        set_var('IBSM_VPC_NAME', '') unless (get_var('IBSM_VPC_NAME'));
+        set_var('IBSM_SUBNET_NAME', '') unless (get_var('IBSM_SUBNET_NAME'));
+        set_var('IBSM_SUBNET_REGION', '') unless (get_var('IBSM_SUBNET_REGION'));
     }
 
     my $deployment_name = deployment_name();
