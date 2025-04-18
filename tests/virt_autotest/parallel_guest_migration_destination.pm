@@ -41,7 +41,6 @@ use mmapi;
 use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts);
 use virt_utils qw(collect_host_and_guest_logs cleanup_host_and_guest_logs enable_debug_logging);
 use virt_autotest::domain_management_utils qw(construct_uri create_guest remove_guest shutdown_guest show_guest check_guest_state);
-use version_utils qw(is_sle);
 
 =head2 run_test
 
@@ -134,8 +133,6 @@ sub guest_migration_test {
 
     $self->set_test_run_progress;
     my @guest_migration_test = split(/,/, get_var('GUEST_MIGRATION_TEST'));
-    # Remove 'virsh_live_native_p2p_manual_postcopy' if present and record a soft failure
-    @guest_migration_test = $self->filter_migration_tests(migration_tests => \@guest_migration_test) if (is_sle('=15-sp6'));
     my $full_test_matrix = is_kvm_host ? $parallel_guest_migration_base::guest_migration_matrix{kvm} : $parallel_guest_migration_base::guest_migration_matrix{xen};
     @guest_migration_test = keys(%$full_test_matrix) if (scalar @guest_migration_test == 0);
     my $localip = get_required_var('LOCAL_IPADDR');
