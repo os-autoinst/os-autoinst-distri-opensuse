@@ -31,6 +31,7 @@ use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
 use List::Util 'sum';
+use rdma;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -400,9 +401,26 @@ sub setup_nfs_server {
             assert_script_run('sed -i \'/^\[nfsd\\]$/a pnfs_dlm_device = localhost:/srv/pnfs_data\' /etc/nfs.conf');
             assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.1' >> /etc/nfsmount.conf && echo 'Nfsvers=4.1' >> /etc/nfsmount.conf");
         }
+        enable_rdma_in_nfs if $nfsversion =~ 'rdma';
     }
     assert_script_run('exportfs -a && systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
-    if ($nfsversion =~ 'pnfs') {
+}
+
+sub setup_nfs_client {
+    my $nfsversion = shift;
+    if ($nfsversion =~ 'rdma') {
+        install_rdma_dependency;
+        modprobe_rdma;
+        link_add_rxe;
+        rdma_record_info;
+    }
+    if ($nfsversion =~ 'rdma') {
+        my $ip_addr = script_output("ip route | awk 'NR==2 {print \$9}'");
+        script_run("mount -t nfs4 -o vers=4.1,minorversion=1,rdma $ip_addr:/opt/export/test /opt/nfs/test");
+        record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
+        record_info('rdma mount checkpoint', script_output('cat /proc/fs/nfsfs/servers; grep opts: /proc/self/mountstats; grep xprt: /proc/self/mountstats', proceed_on_failure => 1));
+    }
+    elsif ($nfsversion =~ 'pnfs') {
         script_run('mount -t nfs4 -o vers=4.1,minorversion=1 localhost:/opt/export/test /opt/nfs/test');
         record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
     }
@@ -451,6 +469,7 @@ sub run {
             server_configure_network($self);
             install_dependencies_nfs;
             setup_nfs_server("$NFS_VERSION");
+            setup_nfs_client("$NFS_VERSION");
             mutex_create('xfstests_nfs_server_ready');
             wait_for_children;
         }
@@ -463,7 +482,9 @@ sub run {
         else {
             install_dependencies_nfs;
             setup_nfs_server("$NFS_VERSION");
+            setup_nfs_client("$NFS_VERSION");
             $NFS_SERVER_IP = 'localhost';
+            $NFS_SERVER_IP = script_output("ip route | awk 'NR==2 {print \$9}'") if $NFS_VERSION =~ 'rdma';
         }
     }
     elsif ($device) {
