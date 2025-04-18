@@ -9,7 +9,7 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use sles4sap::qesap::qesapdeployment qw (qesap_calculate_address_range qesap_az_vnet_peering qesap_az_vnet_peering_delete qesap_az_clean_old_peerings);
+use sles4sap::qesap::qesapdeployment qw (qesap_calculate_address_range qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
@@ -55,7 +55,6 @@ our @EXPORT = qw(
   ipaddr2_bastion_ssh_addr
   ipaddr2_get_internal_vm_private_ip
   ipaddr2_network_peering_create
-  ipaddr2_network_peering_clean
   ipaddr2_patch_system
   ipaddr2_add_server_repos_to_hosts
 );
@@ -1961,26 +1960,6 @@ sub ipaddr2_test_other_vm {
             bastion_ip => $args{bastion_ip});
         die "Resource $resource is running on $vm and should not" if ($res =~ m/is running on: $vm/);
     }
-}
-
-=head2 ipaddr2_network_peering_clean
-
-    ipaddr2_network_peering_clean(ibsm_rg => );
-
-Cleanup the network peering if needed.
-
-=over
-
-=item B<ibsm_rg> - Resource group of the IBSm
-
-=back
-
-=cut
-
-sub ipaddr2_network_peering_clean {
-    my (%args) = @_;
-    croak 'Missing mandatory argument < ibsm_rg >' unless $args{'ibsm_rg'};
-    qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $args{'ibsm_rg'});
 }
 
 =head2 ipaddr2_network_peering_create
