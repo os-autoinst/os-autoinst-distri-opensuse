@@ -1,11 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: NFS Client
 #    This module provisions the NFS client and then runs some basic
-#    sanity tests
+#    sanity tests. Detailed description of the tests can be found in:
+#    tests/kernel/nfs_server.pm
+
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base "opensusebasetest";
@@ -13,6 +15,11 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
+
+sub copy_file {
+    my ($flag, $nfs_mount, $file) = @_;
+    assert_script_run("dd oflag=$flag if=testfile of=$nfs_mount/$file bs=1024 count=10240");
+}
 
 sub run {
     select_serial_terminal();
@@ -39,7 +46,6 @@ sub run {
     $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
     $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
     $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
-
 
     barrier_wait("NFS_SERVER_ENABLED");
     record_info("showmount", script_output("showmount -e $server_node"));
@@ -72,10 +78,26 @@ sub run {
     if ($kernel_nfs3 == 1) {
         assert_script_run("cp testfile md5sum.txt $local_nfs3");
         assert_script_run("cp testfile md5sum.txt $local_nfs3_async");
+
+        copy_file('direct', $local_nfs3, 'testfile_oflag_direct');
+        copy_file('dsync', $local_nfs3, 'testfile_oflag_dsync');
+        copy_file('sync', $local_nfs3, 'testfile_oflag_sync');
+
+        copy_file('direct', $local_nfs3_async, 'testfile_oflag_direct');
+        copy_file('dsync', $local_nfs3_async, 'testfile_oflag_dsync');
+        copy_file('sync', $local_nfs3_async, 'testfile_oflag_sync');
     }
     if ($kernel_nfs4 == 1) {
         assert_script_run("cp testfile md5sum.txt $local_nfs4");
         assert_script_run("cp testfile md5sum.txt $local_nfs4_async");
+
+        copy_file('direct', $local_nfs4, 'testfile_oflag_direct');
+        copy_file('dsync', $local_nfs4, 'testfile_oflag_dsync');
+        copy_file('sync', $local_nfs4, 'testfile_oflag_sync');
+
+        copy_file('direct', $local_nfs4_async, 'testfile_oflag_direct');
+        copy_file('dsync', $local_nfs4_async, 'testfile_oflag_dsync');
+        copy_file('sync', $local_nfs4_async, 'testfile_oflag_sync');
     }
 
     barrier_wait("NFS_SERVER_CHECK");
