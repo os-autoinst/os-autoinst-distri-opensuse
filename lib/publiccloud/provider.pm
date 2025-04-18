@@ -233,7 +233,12 @@ sub run_img_proof {
     my $cmd = 'img-proof --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
-    $cmd .= '--region "' . $self->provider_client->region . '" ';
+    if (is_gce()) {
+        $cmd .= '--region "' . $self->provider_client->region . '-' . $self->provider_client->availability_zone . '" ';
+    }
+    else {
+        $cmd .= '--region "' . $self->provider_client->region . '" ';
+    }
     $cmd .= '--results-dir "' . $args{results_dir} . '" ';
     $cmd .= '--no-cleanup ';
     $cmd .= '--collect-vm-info ';
