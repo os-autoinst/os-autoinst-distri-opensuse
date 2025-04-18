@@ -519,11 +519,11 @@ sub terraform_apply {
         } elsif (is_gce) {
             my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
             $vars{stack_type} = $stack_type;
+            $vars{availability_zone} = $self->provider_client->availability_zone;
         }
         $vars{instance_count} = $args{count};
         $vars{type} = $instance_type;
         $vars{region} = $self->provider_client->region;
-        $vars{availability_zone} = $self->provider_client->availability_zone;
         $vars{name} = $self->resource_name;
         $vars{project} = $args{project} if ($args{project});
         $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
