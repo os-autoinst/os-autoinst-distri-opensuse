@@ -1,0 +1,11 @@
+---
+name: agama_auto
+description: >
+  Prepare unattended installation with agama gnome.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - yam/agama/switch_to_product
+  - installation/first_boot
+  - yam/validate/validate_desktop
