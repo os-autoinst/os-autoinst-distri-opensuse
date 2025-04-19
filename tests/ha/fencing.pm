@@ -19,10 +19,9 @@ sub run {
     my $node_to_fence = get_var('NODE_TO_FENCE', undef);
     my $node_index = !defined $node_to_fence ? 1 : 2;
 
-    # Force this module to run in the root-console. This is required, as when the test runs
-    # in the serial terminal and it's followed by the boot/boot_to_desktop module, it fails
-    # to match the grub screen
-    select_console 'root-console';
+    # As this module causes a fence operation, we need to prepare the console for assert_screen
+    # on grub2 and bootmenu
+    prepare_console_for_fencing;
 
     # Check cluster state *before* fencing
     barrier_wait("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE${node_index}");

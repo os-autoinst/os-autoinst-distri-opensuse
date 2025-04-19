@@ -4,52 +4,41 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: crmsh ha-cluster-bootstrap corosync-qdevice
-# Summary: Create HA cluster using ha-cluster-init
+# Summary: Create HA cluster using crm cluster init
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use testapi qw(is_serial_terminal :DEFAULT);
+use testapi;
 use lockapi;
+use serial_terminal qw(select_serial_terminal);
 use hacluster;
 use utils qw(zypper_call clear_console file_content_replace);
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 
 sub type_qnetd_pwd {
-    if (is_serial_terminal()) {
-        if (wait_serial(qr/Password:\s*$/i)) {
-            type_password;
-            send_key 'ret';
-        }
-        else {
-            die "Timed out while waiting for password prompt from QNetd server";
-        }
-    }
-    else {
-        assert_screen('password-prompt', 60);
+    if (wait_serial(qr/Password:\s*$/i)) {
         type_password;
         send_key 'ret';
+        return;
     }
+    die "Timed out while waiting for password prompt from QNetd server";
 }
 
 sub cluster_init {
     my ($init_method, $fencing_opt, $unicast_opt, $qdevice_opt) = @_;
 
-    # Clear the console to correctly catch the password needle if needed
-    clear_console if !is_serial_terminal();
-    # No need to send status to serial terminal if running on serial terminal
-    my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
-
-    if ($init_method eq 'ha-cluster-init') {
-        enter_cmd "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
+    record_info 'cluster_init', "Initializing cluster with: -y $fencing_opt $unicast_opt $qdevice_opt";
+    if ($init_method eq 'crm-cluster-init') {
+        enter_cmd "crm cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo cluster-init-finished-\$?";
         type_qnetd_pwd if get_var('QDEVICE');
     }
     elsif ($init_method eq 'crm-debug-mode') {
-        enter_cmd "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
+        enter_cmd "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo cluster-init-finished-\$?";
         type_qnetd_pwd if get_var('QDEVICE');
-        if (!wait_serial("ha-cluster-init-finished-0", $join_timeout)) {
-            # ha-cluster-init failed in debug mode. Wait some seconds and attempt to start pacemaker
+        if (!wait_serial("cluster-init-finished-0", $join_timeout)) {
+            # cluster init failed in debug mode. Wait some seconds and attempt to start pacemaker
             # in case this was due to a transient error
             sleep bmwqemu::scale_timeout(3);
             assert_script_run 'systemctl start pacemaker';
@@ -59,7 +48,9 @@ sub cluster_init {
 }
 
 sub run {
-    # Validate cluster creation with ha-cluster-init tool
+    select_serial_terminal;
+
+    # Validate cluster creation with crm cluster init tool
     my $cluster_name = get_cluster_name;
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
@@ -69,6 +60,10 @@ sub run {
     my $quorum_policy = 'stop';
     my $fencing_opt = "-s \"$sbd_device\"";
     my $qdevice_opt;
+
+    # HA test modules use packages from ClusterTools2. Attempt to install it here and in
+    # ha_cluster_join, but continue if it's not possible (retval 104)
+    zypper_call('in ClusterTools2', exitcode => [0, 104]);
 
     # Qdevice configuration
     if (get_var('QDEVICE')) {
@@ -83,10 +78,10 @@ sub run {
 
     # Initialize the cluster with diskless or shared storage SBD (default)
     $fencing_opt = '-S' if (get_var('USE_DISKLESS_SBD'));
-    cluster_init('ha-cluster-init', $fencing_opt, $unicast_opt, $qdevice_opt);
+    cluster_init('crm-cluster-init', $fencing_opt, $unicast_opt, $qdevice_opt);
 
-    # If we failed to initialize the cluster with 'ha-cluster-init', trying again with crm in debug mode
-    cluster_init('crm-debug-mode', $fencing_opt, $unicast_opt, $qdevice_opt) if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
+    # If we failed to initialize the cluster with 'crm cluster init', try again with crm in debug mode
+    cluster_init('crm-debug-mode', $fencing_opt, $unicast_opt, $qdevice_opt) if (!wait_serial("cluster-init-finished-0", $join_timeout));
 
     # Configure SBD_DELAY_START to yes
     # This may be necessary if your cluster nodes reboot so fast that the
@@ -132,7 +127,13 @@ sub run {
     }
 
     # Check if the multicast port is correct (should be 5405 or 5407 by default)
-    assert_script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf";
+    my $corosync_ver = script_output(q|rpm -q --qf '%{VERSION}\n' corosync|);
+    record_info('corosync version', $corosync_ver);
+
+    # On corosync >= 3.1.9 the mcast port is not explicitly stated in /etc/corosync/corosync.conf
+    # So only test for it on older versions
+    my $cmp_result = package_version_cmp($corosync_ver, '3.1.9');
+    assert_script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf" if ($cmp_result < 0);
 
     # Do a check of the cluster with a screenshot
     save_state;

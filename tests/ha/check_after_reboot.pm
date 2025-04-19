@@ -15,8 +15,8 @@ use Time::HiRes 'sleep';
 use Utils::Architectures;
 use lockapi;
 use hacluster;
-use version_utils qw(is_sles4sap);
-use utils qw(systemctl file_content_replace);
+use version_utils qw(is_sle is_sles4sap);
+use utils qw(systemctl file_content_replace script_retry);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -50,7 +50,7 @@ sub run {
 
     # Check iSCSI server is connected
     my $ret = script_run 'ls /dev/disk/by-path/ip-*', $default_timeout;
-    if ($ret) {    # iscsi is not connected?
+    if ($ret && is_sle('<16')) {    # iscsi is not connected? reconnect with yast module
         script_run("yast2 iscsi-client; echo yast2-iscsi-client-status-\$? > /dev/$serialdev", 0);
         assert_screen 'iscsi-client-overview-service-tab', $default_timeout;
         send_key 'alt-v';
@@ -70,6 +70,17 @@ sub run {
         wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
         assert_screen 'root-console', $default_timeout;
         systemctl 'restart pacemaker', timeout => $default_timeout;
+    }
+    elsif ($ret && is_sle('16+')) {    # iscsi is not connected? restart services to reconnect
+        systemctl 'restart iscsi';
+        systemctl 'restart iscsid';
+        # Check if the iSCSI devices are there. Try 5 times as it can take some seconds
+        script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => 5, delay => 5, fail_message => 'No iSCSI devices!');
+        assert_script_run q|sbd -d "$(awk -F= '/^SBD_DEVICE/ {print $2}' /etc/sysconfig/sbd)" list|;
+        # Attempt to restart pacemaker up to 5 times.
+        # Sometimes it takes some seconds for sbd.service to be able to access the SBD device
+        script_retry('systemctl restart pacemaker', timeout => $default_timeout, retry => 5, delay => 5, fail_message => 'Could not restart pacemaker');
+        systemctl 'status pacemaker';
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
 
