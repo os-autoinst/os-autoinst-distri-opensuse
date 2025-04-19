@@ -254,6 +254,7 @@ sub sign_kernel_module {
         }
     );
 }
+
 sub disable_secureboot {
     my ($self, $exp_data, $esp_details) = @_;
     $self->verification('After grub2-install', $exp_data, sub {

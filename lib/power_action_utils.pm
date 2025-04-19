@@ -1,8 +1,10 @@
+
 =head1 power_action_utils
 
 The module provides base and helper functions for powering off or rebooting a machine under test.
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018-2019 SUSE LLC

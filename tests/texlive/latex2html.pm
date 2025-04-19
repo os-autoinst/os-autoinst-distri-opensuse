@@ -24,6 +24,7 @@ my $latex_data = <<EOF;
 \\begin{document}
 Hello, this is a LaTeX sample example page!
 EOF
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;

@@ -72,6 +72,7 @@ sub check_cpu_flags {
         }
     }
 }
+
 sub run {
     my ($self) = shift;
     my $obj = meltdown->new($mitigations_list);

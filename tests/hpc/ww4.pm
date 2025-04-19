@@ -122,6 +122,7 @@ sub post_run_hook ($self) {
     save_and_upload_log('cat /etc/warewulf/warewulf.conf', '/tmp/warewulf.conf');
     $self->SUPER::post_run_hook();
 }
+
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
     export_logs();

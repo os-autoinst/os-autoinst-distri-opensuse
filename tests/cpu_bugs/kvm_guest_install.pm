@@ -22,6 +22,7 @@ my $logfile_path = get_required_var('VM_INST_LOG');
 my $vm_shares = get_required_var('VM_SHARES');
 my $autoyast = get_required_var('AUTOYAST');
 my $netdevice = get_required_var('SUT_NETDEVICE');
+
 sub run {
     script_run("aa-teardown");
     zypper_call('in -t pattern kvm_server kvm_tools');

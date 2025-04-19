@@ -68,6 +68,7 @@ sub post_run_hook ($self) {
     parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
+
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }

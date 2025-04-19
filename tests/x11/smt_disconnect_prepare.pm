@@ -59,6 +59,7 @@ sub run {
 
     select_console("x11");
 }
+
 sub test_flags {
     return {fatal => 1};
 }

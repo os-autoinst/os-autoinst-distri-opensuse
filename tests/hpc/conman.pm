@@ -81,6 +81,7 @@ sub post_run_hook ($self) {
     parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
+
 sub post_fail_hook ($self) {
     select_serial_terminal;
     $self->upload_service_log('conman');

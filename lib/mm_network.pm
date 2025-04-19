@@ -193,6 +193,7 @@ sub parse_network_configuration {
     }
     return $net_conf;
 }
+
 sub ip_in_subnet {
     my ($network, $num) = @_;
     my ($i1, $i2, $i3, $i4) = split /\./, $network->{subnet_ip};

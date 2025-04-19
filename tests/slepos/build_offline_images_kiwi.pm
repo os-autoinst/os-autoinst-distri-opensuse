@@ -73,6 +73,7 @@ EOT
         }
     }
 }
+
 sub test_flags {
     return {fatal => 1};
 }

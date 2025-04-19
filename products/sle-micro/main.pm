@@ -4,6 +4,7 @@ use needle;
 use File::Basename;
 use scheduler 'load_yaml_schedule';
 use Carp;
+
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }

@@ -23,6 +23,7 @@ sub run {
         #    upload_asset '/var/lib/SLEPOS/system/images/slepos-image-offline-graphical.raw';
     }
 }
+
 sub test_flags {
     return {fatal => 1};
 }

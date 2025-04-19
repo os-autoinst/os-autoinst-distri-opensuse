@@ -1,8 +1,10 @@
+
 =head1 y2_module_guitest.pm
 
 This module provides subroutine to launch YaST2 module in GUI test.
 
 =cut
+
 package y2_module_guitest;
 use base "y2_module_basetest";
 use strict;

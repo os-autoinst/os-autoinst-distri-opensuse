@@ -61,6 +61,7 @@ sub qaset_config {
     $cmd .= q( do grep test_$n-run /usr/share/qa/qaset/set/* >/dev/null || echo "def_simple_run $n '/usr/share/qa/tools/test_${n}-run' qa_test_$n" >> /usr/share/qa/qaset/set/regression.set; done);
     assert_script_run($cmd);
 }
+
 sub upload_parse {
     if (my $soft_tc = get_var("TESTCASES_BLACKLIST")) {
         record_info("$soft_tc");

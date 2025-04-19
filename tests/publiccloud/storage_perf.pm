@@ -30,6 +30,7 @@ use constant IODEPTH => 4;
     reproducible performance degradation.
 
 =cut
+
 sub analyze_previous_series {
     my ($args, $load_types) = @_;
     my $result = 0;

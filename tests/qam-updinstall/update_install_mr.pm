@@ -70,6 +70,7 @@ sub get_patch {
     $patches =~ s/\r//g;
     return $patches;
 }
+
 sub get_patchinfos {
     my ($patches) = @_;
     my $patches_status = script_output("zypper -n info -t patch $patches", 200);

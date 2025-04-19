@@ -21,6 +21,7 @@ use publiccloud::utils qw(is_container_host);
 Creates a VM in Azure and installs IPERF binaries on it
 
 =cut
+
 sub prepare_vms {
     my ($self, $provider) = @_;
     my $repo = get_required_var('IPERF_REPO');
@@ -42,6 +43,7 @@ Gets the PrivateIP or PublicIP of the given C<instance>. This is useful when sto
 a VM again, since the IPs will differ.
 
 =cut
+
 sub get_new_ip {
     my ($instance, $need_pub) = @_;
     my $resgroup = (split('/', $instance->instance_id))[4];
@@ -61,6 +63,7 @@ Enable accelerated network on the given pre-created C<instance>.
 It follows the instructions in https://goo.gl/Px6kou
 
 =cut
+
 sub enable_accelerated_net {
     my ($self, $instance) = @_;
     my $inst_id = $instance->{instance_id};
@@ -85,6 +88,7 @@ lspci output must contain the word Mellanox when SR-IOV is enabled.
 ethtool |grep vf_ must show numbers different than 0 if SR-IOV is enabled.
 
 =cut
+
 sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
@@ -107,6 +111,7 @@ Given C<client> and C<server> instances, it starts IPerf server and runs the
 test on the client side. The test runs TEST_TIME seconds.
 
 =cut
+
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server ' . $server->public_ip);

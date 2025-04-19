@@ -27,6 +27,7 @@ use constant REMOVE_BIG_FILE => "rm /big-data";
 =head2 ensure_size_displayed
 Ensure column for size is displayed or not if flag is provided
 =cut
+
 sub ensure_size_displayed {
     # Displays the exclusive space used by each snapshot
     assert_script_run "snapper -t 0 list | awk -F '|' '{print \$6}' | grep -E 'Used Space|iB'";
@@ -37,6 +38,7 @@ sub ensure_size_displayed {
 =head2 query_space_single_snapshot
 Query the exclusive space when data is included in a single snapshot
 =cut
+
 sub query_space_single_snapshot {
     record_info("Query single", "Query the exclusive space when data is included in a single snapshot");
     # Create 1GiB file in the root file system.
@@ -54,6 +56,7 @@ sub query_space_single_snapshot {
 =head2 query_space_several_snapshot
 Query the exclusive space when data is included in several snapshots (pre- and post-)
 =cut
+
 sub query_space_several_snapshot {
     record_info("Query multiple", "Query the exclusive space when data is included in several snapshots");
     my $args = '--cleanup number --print-number';

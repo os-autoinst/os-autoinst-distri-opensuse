@@ -31,12 +31,14 @@ has client_key_password => 'whatever';
 has netns_name => 'wifi_ref';
 has ref_ifc => 'wlan0';
 has ref_phy => 'phy0';
+
 sub ref_ip {
     return shift->get_ip(is_wicked_ref => 1, @_);
 }
 
 has sut_ifc => 'wlan1';
 has sut_phy => 'phy1';
+
 sub sut_ip {
     return shift->get_ip(is_wicked_ref => 0, @_);
 }

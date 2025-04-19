@@ -2222,6 +2222,7 @@ sub load_vt_perf_tests {
         loadtest 'vt_perf/xen_guest';
     }
 }
+
 sub load_mitigation_tests {
     if (is_ipmi) {
         loadtest "virt_autotest/login_console";

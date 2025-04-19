@@ -1,8 +1,10 @@
+
 =head1 yast2_widget_utils.pm
 
 This module provides helper functions for handling YaST widgets in text and graphical mode.
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC
