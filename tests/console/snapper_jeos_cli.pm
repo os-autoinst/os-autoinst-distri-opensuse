@@ -32,6 +32,7 @@ sub check_package
     End2end flow for snapper to rollback
 
 =cut
+
 sub rollback_and_reboot {
     my ($self, $rollback_id) = @_;
     assert_script_run("snapper rollback $rollback_id");

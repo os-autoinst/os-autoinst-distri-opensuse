@@ -21,6 +21,7 @@ use version_utils qw(is_sle is_alp);
 
 our $virt_host_bridge = 'br0';
 our $based_guest_dir = 'tmp';
+
 sub run_test {
     my ($self) = @_;
 

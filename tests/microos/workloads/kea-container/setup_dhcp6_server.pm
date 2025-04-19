@@ -17,6 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
 
 my ($device, $nm_id);
+
 sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');

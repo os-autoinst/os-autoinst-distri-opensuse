@@ -31,6 +31,7 @@ use version_utils 'is_sle';
 
 our $lvm_vg_name = 'lvm_vg';
 our $lvm_pool_name = 'guest_image_lvm';
+
 sub run_test {
     my ($self) = @_;
 

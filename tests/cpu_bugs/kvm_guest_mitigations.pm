@@ -248,6 +248,7 @@ sub HostMitigation {
         }
     }
 }
+
 sub install_guest {
     my $self = @_;
     my $guest_intall_param = '';
@@ -291,6 +292,7 @@ sub install_guest {
     script_run("virsh start \"${guest_name}\"");
     return 1;
 }
+
 sub get_expect_script {
     my $self = @_;
     my $expect_script_name = 'get_guest_ip.sh';
@@ -298,6 +300,7 @@ sub get_expect_script {
     assert_script_run("chmod a+x " . $expect_script_name);
     assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $expect_script_name");
 }
+
 sub get_guest_ip {
     return script_output("./get_guest_ip.sh \"${guest_name}\"", timeout => 3600);
 }
@@ -328,6 +331,7 @@ if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Skylake/i) {
 my $mitigations_test = {
     mitigations => $mitigations,
 };
+
 sub exec_testcases {
     my $self = @_;
     Mitigation::ssh_vm_cmd("cat /proc/cmdline | grep   \"mitigations=auto\"", $qa_password, $guest_ip_addr);
@@ -362,6 +366,7 @@ sub check_and_run {
         die "Installation guest failed.";
     }
 }
+
 sub run {
     my $self = @_;
     select_console 'root-console';
@@ -374,6 +379,7 @@ sub run {
     get_expect_script();
     check_and_run();
 }
+
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'root-console';

@@ -9,6 +9,7 @@
 Apparmor tests
 
 =cut
+
 package apparmortest;
 
 use strict;
@@ -56,6 +57,7 @@ our $testdir = "testdir";
 
 # $src_dir_name: Source file/directory name
 # $dst_dir_name: Destination file/directory name
+
 =head2 check_copy_file_dir
  check_copy_file_dir();
 Check if source file/directory exists and destination file/directory does not exists, then copy

@@ -33,6 +33,7 @@ sub read_memory_cpu {
     my @cpu_num = map { $_ =~ m/\d+/ } @res_cpu;
     return (\@mem_num, \@cpu_num);
 }
+
 =head2 average
 
  average([1,2,4,5])

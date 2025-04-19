@@ -45,6 +45,7 @@ our %mitigations_list =
         "retpoline",
     ],
   );
+
 sub run {
     my $obj = Mitigation->new(\%mitigations_list);
     if (is_qemu) {

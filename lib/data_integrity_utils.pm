@@ -1,8 +1,10 @@
+
 =head1 data_integrity_utils
 
 Library to verify image data integrity by comparing SHA256 checksums
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC

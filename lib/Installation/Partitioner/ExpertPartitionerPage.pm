@@ -178,6 +178,7 @@ sub modify_hard_disks {
     send_key_until_needlematch(SELECTED_HARD_DISKS, 'down');
     send_key($self->{modify_hard_disks_shortcut});
 }
+
 sub open_partition_table_menu {
     my ($self) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);

@@ -865,6 +865,7 @@ sub check_and_run {
         }
     }
 }
+
 sub exec_testcases {
     my $self = @_;
     # Restore domU kernel parameters
@@ -930,6 +931,7 @@ sub get_expect_script {
     assert_script_run("chmod a+x " . $expect_script_name);
     assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $expect_script_name");
 }
+
 sub run {
     my $self = @_;
     select_console 'root-console';

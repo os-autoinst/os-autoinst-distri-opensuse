@@ -71,6 +71,7 @@ my $qa_password;
 
 our $DEBUG_MODE = get_var("XEN_DEBUG", 0);
 our $CPU_MODE = get_var("CPUMODE", 0);
+
 =head2 reboot_and_wait
 
 	reboot_and_wait([timeout => $timeout]);
@@ -144,6 +145,7 @@ sub Parameter {
     }
     return $self->{Parameter};
 }
+
 sub sysfs_name {
     my ($self, $value) = @_;
     if (@_ == 2) {
@@ -152,6 +154,7 @@ sub sysfs_name {
     }
     return $self->{sysfs_name};
 }
+
 sub CPUID {
     my $self = shift;
     return $self->{CPUID};
@@ -551,6 +554,7 @@ sub do_check_kvm_test {
 
     return (0, $roo, undef, undef);
 }
+
 sub cycle_workflow {
     my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
     my $parameter = $ckey;
@@ -665,6 +669,7 @@ sub guest_cycle {
     }
     parse_junit_log("$junit_file");
 }
+
 sub dealwithdata {
     my ($secnario, $junit_file, $key, $testcase_status) = @_;
     while (my ($cmd, $lines) = each %{$secnario}) {
@@ -678,6 +683,7 @@ sub dealwithdata {
         }
     }
 }
+
 sub guest_cycle_kvm {
     my ($self, $hash, $mode, $qa_password, $guest_name, $vm_ip_addr) = @_;
 

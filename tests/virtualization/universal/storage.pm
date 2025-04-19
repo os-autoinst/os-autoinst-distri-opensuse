@@ -19,6 +19,7 @@ use virt_utils;
 use version_utils;
 
 our $dir_pool_name = 'testing';
+
 sub run_test {
     my ($self) = @_;
 

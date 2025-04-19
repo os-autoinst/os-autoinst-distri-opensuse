@@ -1,8 +1,10 @@
+
 =head1 autoyast
 
 Provide translations for autoyast XML file
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC
@@ -898,6 +900,7 @@ sub test_ayp_url {
 }
 
 # get relative path to all test data files in a directory
+
 =head2 get_test_data_files
   get_test_data($dir_relative_path)
 

@@ -1,8 +1,10 @@
+
 =head1 y2_module_basetest.pm
 
 This module provides common subroutines for YaST2 modules in graphical and text mode.
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC

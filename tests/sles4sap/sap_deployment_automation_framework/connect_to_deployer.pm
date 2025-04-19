@@ -19,6 +19,7 @@ use serial_terminal qw(select_serial_terminal);
 sub test_flags {
     return {fatal => 1};
 }
+
 sub run {
     select_serial_terminal();
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : start');

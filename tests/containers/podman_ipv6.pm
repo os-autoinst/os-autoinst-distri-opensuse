@@ -88,6 +88,7 @@ sub run {
 sub post_run_hook {
     shift->_cleanup();
 }
+
 sub post_fail_hook {
     script_run("sysctl -a | grep --color=never net");
     shift->_cleanup();

@@ -39,6 +39,7 @@ our %mitigations_list =
         "off",
     ],
   );
+
 sub smt_status_qemu {
     my $self = shift;
     $mitigations_list{sysfs}->{full} =~ s/SMT vulnerable/SMT Host state unknown/ig;

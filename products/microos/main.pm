@@ -3,6 +3,7 @@ use warnings;
 use needle;
 use File::Basename;
 use scheduler 'load_yaml_schedule';
+
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }

@@ -47,6 +47,7 @@ if (get_var('MICRO_ARCHITECTURE', '') =~ /Icelake/) {
     $mitigations_list->{sysfs}->{"full,nosmt"} = 'Not affected';
     $mitigations_list->{sysfs}->{default} = 'Not affected';
 }
+
 sub new {
     my ($class, $args) = @_;
     #Help constructor distinguishing is our own test object or openQA call

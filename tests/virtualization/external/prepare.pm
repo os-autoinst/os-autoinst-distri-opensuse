@@ -40,6 +40,7 @@ sub run {
     }
     assert_script_run "cat /etc/hosts";
 }
+
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }

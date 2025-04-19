@@ -11,6 +11,7 @@
 Register base product & extensions with SUSEConnect
 
 =cut
+
 package suseconnect_register;
 
 use base Exporter;

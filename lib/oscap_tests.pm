@@ -198,6 +198,7 @@ sub replace_ds_file {
         record_info("Copied ds file", "Copied file $ds_file_name to $f_ssg_sle_ds");
     }
 }
+
 sub replace_xccdf_file {
     # Replace original xccdf file whith built or downloaded from repository
     my ($self) = $_[0];
@@ -255,6 +256,7 @@ sub replace_ansible_file {
         record_info("Copied ansible file", "Copied file $ansible_local_full_file_path to $full_ansible_file_path");
     }
 }
+
 sub modify_ansible_playbook {
     # Modify and backup ansible playbok for later reuse in remediation
     if ($ansible_playbook_modified == 0) {
@@ -666,6 +668,7 @@ sub modify_ds_ansible_files {
     $_[1] = \@bash_rules;
     $_[2] = \@ansible_rules;
 }
+
 sub install_python311 {
     # Install python 3.11 needed for script execution
     # Ansible playbook still executed by python 3.6 because 3.11 breaks many rules
@@ -673,6 +676,7 @@ sub install_python311 {
     # Set sl for scap scripts
     assert_script_run("ln -s python3.11 /usr/bin/python");
 }
+
 sub generate_missing_rules {
     # Generate text file that contains rules that missing implimentation for profile
     my $output_file = "missing_rules.txt";
@@ -746,6 +750,7 @@ sub get_cac_code {
     }
     return $compliance_as_code_path;
 }
+
 =comment
     OSCAP exit codes from https://github.com/OpenSCAP/openscap/blob/maint-1.3/utils/oscap-tool.h
     // standard oscap CLI exit statuses

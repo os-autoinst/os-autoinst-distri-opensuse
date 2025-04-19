@@ -1,8 +1,10 @@
+
 =head1 network_utils
 
 Functional methods to operate on network
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC

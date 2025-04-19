@@ -31,6 +31,7 @@ Optional C<$stage> can be specified with possible values are 'no', 'in' and 'up'
 Optional C<$package> can be specified name of rpm file. default is 'update-test-security'.
 
 =cut
+
 sub check_package {
     my (%args) = @_;
     my $stage = $args{stage} // 'no';

@@ -1,8 +1,10 @@
+
 =head1 y2lan_restart_common
 
 Library for non-destructive testing using yast2 lan.
 
 =cut
+
 # SUSE's openQA tests
 #
 # Copyright 2016-2021 SUSE LLC

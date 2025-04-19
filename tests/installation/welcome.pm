@@ -57,6 +57,7 @@ sub switch_keyboard_layout {
 
 Returns hash which contains shortcuts for the product selection.
 =cut
+
 sub get_product_shortcuts {
     # We got new products in SLE 15 SP1
     if (is_sle '15-SP1+') {

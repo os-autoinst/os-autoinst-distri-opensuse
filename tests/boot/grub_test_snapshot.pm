@@ -32,6 +32,7 @@ sub run {
     stop_grub_timeout;
     boot_into_snapshot;
 }
+
 sub test_flags {
     return {fatal => 1};
 }

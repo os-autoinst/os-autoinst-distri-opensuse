@@ -1,8 +1,10 @@
+
 =head1 y2_mm_common.pm
 
 Configure a static network.
 
 =cut
+
 package y2_mm_common;
 
 use strict;

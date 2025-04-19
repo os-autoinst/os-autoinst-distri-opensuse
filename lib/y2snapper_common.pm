@@ -1,8 +1,10 @@
+
 =head1 y2snapper_common.pm
 
 Library for creating snapshot by using YaST2 snapper.
 
 =cut
+
 package y2snapper_common;
 
 use strict;

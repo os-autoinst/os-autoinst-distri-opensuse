@@ -35,6 +35,7 @@ sub remove_repo {
     }
     script_run("zypper lr -u");
 }
+
 sub install_service {
     if (get_var("DISTRI") eq "opensuse") {
         remove_repo();

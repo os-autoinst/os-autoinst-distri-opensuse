@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use base "consoletest";
+
 sub run {
     my $self = shift;
     my $wait_switch;
@@ -28,6 +29,7 @@ sub run {
     my $ret = $svirt->run_cmd("$cmd |tee $output_log");
     record_info("Info", "Deploy sleperf finished, test will keep RUNNING if not set WAIT_FINISH tag. please visit http://sleperf.da.suse.cz/dashboard-service/ check detail. Machine running progress is under Message Queue tab", result => 'ok');
 }
+
 sub post_fail_hook {
     my ($self) = @_;
 }

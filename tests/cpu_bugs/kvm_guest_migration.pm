@@ -34,15 +34,19 @@ my $cpu_1 = "";
 sub check_working_status {
     return script_run("grep \'^1\$\' ${vm_pool}/flag");
 }
+
 sub check_idle_status {
     return script_run("grep \'^0\$\' ${vm_pool}/flag");
 }
+
 sub goto_work {
     assert_script_run("echo \"1\" > ${vm_pool}/flag;sync ${vm_pool}/flag");
 }
+
 sub jobs_done {
     assert_script_run("echo \"0\" > ${vm_pool}/flag;sync ${vm_pool}/flag");
 }
+
 sub remove_old_vm {
     assert_script_run(
         'curl '

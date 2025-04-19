@@ -1,8 +1,10 @@
+
 =head1 s390base
 
 Helper functions for s390 console tests
 
 =cut
+
 # SUSE’s openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann

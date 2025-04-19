@@ -170,6 +170,7 @@ sub sudo_user_test {
     enter_cmd('exit', wait_still_screen => 1);
     validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
 }
+
 sub test_flags {
     return {always_rollback => 1};
 }

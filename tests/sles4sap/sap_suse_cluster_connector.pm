@@ -20,6 +20,7 @@ the provided C<command> and log the results in the
 also provided C<logfile>.
 
 =cut
+
 sub exec_conn_cmd {
     my %args = @_;
     my $timeout = $args{timeout} // $bmwqemu::default_timeout;
