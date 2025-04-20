@@ -21,14 +21,14 @@ The tests rely on some variables:
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
-## aardvark / netavark
+### aardvark / netavark
 
 | variable | description |
 | --- | --- |
 | `BATS_TESTS` | Run only the specified tests, otherwise: |
 | `BATS_SKIP` | Skip subtests |
 
-## buildah / runc / skopeo
+### buildah / runc / skopeo
 
 | variable | description |
 | --- | --- |
@@ -37,7 +37,7 @@ The tests rely on some variables:
 | `BATS_SKIP_ROOT` | Skip subtests for root user |
 | `BATS_SKIP_USER` | Skip subtests for non-root user |
 
-## podman
+### podman
 
 | variable | description |
 | --- | --- |
@@ -52,7 +52,7 @@ NOTES
  - The special value `all` may be used to skip all tests.
  - The special value `none` should be used to avoid skipping any subtests.
 
-## Summary of the `BATS_SKIP` variables
+### Summary of the `BATS_SKIP` variables
 
 | variable | aardvark | buildah | netavark | podman | runc | skopeo |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -71,6 +71,11 @@ NOTES
 - To debug buildah issues you may clone a job with `BUILDAH_STORAGE_DRIVER=vfs`
 - To debug individual tests you may clone a job with `BATS_TESTS`
 - You can also use `BATS_URL` to use the latest version from the `main` branch like `BATS_URL=https://github.com/containers/netavark/archive/refs/heads/main.tar.gz`
+
+## Warning
+
+- If you want to run `bats` tests manually, do so in a fresh VM, otherwise you risk losing all your volumes, images & containers.
+Please add this warning on each bug report you open when adding instructions on how to reproduce an issue.
 
 ## openQA schedules
 
@@ -140,6 +145,33 @@ NOTES
 [sp3_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=runc_testsuite
 [sp3_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=skopeo_testsuite
 
+## Skipped tests
+
+### buildah
+
+| test | reason |
+| --- | --- |
+| lots of them | https://github.com/containers/buildah/issues/6071 |
+
+### podman
+
+| test | reason |
+| --- | --- |
+| [080-pause] | https://github.com/opencontainers/runc/pull/4709 |
+| [195-run-namespaces] | https://github.com/opencontainers/runc/issues/4732 |
+| [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
+
+[080-pause]: https://github.com/containers/podman/blob/main/test/system/080-pause.bats
+[195-run-namespaces]: https://github.com/containers/podman/blob/main/test/system/195-run-namespaces.bats
+[505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
+
+### runc
+
+| test | reason |
+| --- | --- |
+| [checkpoint] | https://github.com/checkpoint-restore/criu/issues/2650 |
+
+[checkpoint]: https://github.com/opencontainers/runc/blob/main/tests/integration/checkpoint.bats
 
 ## Tools
 
