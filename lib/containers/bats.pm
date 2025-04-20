@@ -259,5 +259,6 @@ sub bats_post_hook {
         upload_logs($log_dir . $log);
     }
 
+    upload_logs('/proc/config.gz');
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
 }
