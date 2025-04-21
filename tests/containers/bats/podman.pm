@@ -58,14 +58,6 @@ sub run_tests {
 
     unless (@tests) {
         my @skip_tests = split(/\s+/, get_required_var('BATS_SKIP') . " " . $skip_tests);
-        # Unconditionally ignore these flaky subtests
-        my @must_skip = (
-            # this test depends on the openQA worker's scheduler
-            "180-blkio",
-            # this test will fail if there's not "enough" free space
-            "320-system-df",
-        );
-        push @skip_tests, @must_skip;
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -120,6 +112,8 @@ sub run {
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
+    # This test is flaky and will fail if system is "full"
+    assert_script_run "rm -f test/system/320-system-df.bats";
 
     # Compile helpers used by the tests
     script_run "make podman-testing", timeout => 600;
