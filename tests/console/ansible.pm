@@ -26,22 +26,29 @@ use transactional qw(trup_call check_reboot_changes);
 # sudo is used by ansible to become root
 # sudo has to be pop-out after installation otherwise
 # during the cleanup it will remove preinstalled salt packages
-my @pkgs = qw(sudo git-core);
+my @pkgs = qw(sudo git-core ansible);
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    if (is_sle('<15-SP7')) {
+    # poo#181136, 15-SP6 and above use from Systems Managent Module, 15-SP4 and 15-SP5 use LTSS
+    # PackageHub should not be covered
+    if (is_sle('<15-SP6') && !main_common::is_updates_tests()) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
         add_suseconnect_product(get_addon_fullname('sdk'));
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
-        add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call '--gpg-auto-import-keys ref';
     }
-    zypper_call '--gpg-auto-import-keys ref';
+    if (is_sle('<15-SP4') && main_common::is_updates_tests()) {
+        # For sle15sp3 and older release, ansible packages are still from PackageHub
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call '--gpg-auto-import-keys ref';
+    }
 
     # Create user account, if image doesn't already contain user
     # (which is the case for SLE images that were already prepared by openQA)
@@ -51,7 +58,6 @@ sub run {
     }
     ensure_serialdev_permissions;
 
-    push @pkgs, is_sle('=15-SP7') ? 'ansible-9' : 'ansible';
     # python3-yamllint needed by ansible-test
     # ansible-test is not available in newer sles'
     push @pkgs, qw(ansible-test python3-yamllint) unless is_sle;
