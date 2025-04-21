@@ -57,7 +57,7 @@ sub run {
     select_serial_terminal;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld iproute2 iptables jq netavark podman);
+    my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman);
     if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {

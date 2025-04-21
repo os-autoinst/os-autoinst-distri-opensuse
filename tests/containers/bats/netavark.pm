@@ -60,7 +60,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables jq make protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 jq make protobuf-devel netavark);
     if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
