@@ -26,10 +26,6 @@ sub run_tests {
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
 
-    # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
-    my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
-    assert_script_run "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
-
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
@@ -84,6 +80,10 @@ sub run {
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+
+    # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
+    my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
+    assert_script_run "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
