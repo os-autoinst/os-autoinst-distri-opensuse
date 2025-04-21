@@ -26,7 +26,6 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
 
@@ -43,7 +42,9 @@ sub run_tests {
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
+    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
     assert_script_run "echo $log_file .. > $log_file";
+
     background_script_run "podman system service --timeout=0" if ($remote);
 
     my @tests;

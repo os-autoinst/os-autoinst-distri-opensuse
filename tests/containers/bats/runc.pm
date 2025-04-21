@@ -22,8 +22,6 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
-
     my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
 
     my %_env = (
@@ -34,6 +32,7 @@ sub run_tests {
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
+    my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;

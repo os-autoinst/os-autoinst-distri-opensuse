@@ -24,8 +24,6 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
-
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
@@ -39,6 +37,7 @@ sub run_tests {
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
+    my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
     assert_script_run "echo $log_file .. > $log_file";
 
     my @tests;
