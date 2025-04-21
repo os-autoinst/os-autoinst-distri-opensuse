@@ -256,7 +256,6 @@ subtest '[set_cluster_parameter]' => sub {
     ok((grep /RoomOfRequirement open/, @calls), 'Specify parameter name');
 };
 
-
 subtest '[show_cluster_parameter]' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
@@ -268,6 +267,20 @@ subtest '[show_cluster_parameter]' => sub {
     ok((grep /resource param Hogwarts/, @calls), 'Call "resource" option');
     ok((grep /show/, @calls), 'Specify "show" action');
     ok((grep /RoomOfRequirement/, @calls), 'Specify parameter name');
+};
+
+subtest '[execute_crm_resource_refresh_and_check]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { return; });
+    $hacluster->redefine(check_cluster_state => sub { return; });
+    $hacluster->redefine(crm_check_resource_location => sub { return; });
+    $hacluster->redefine(assert_script_run => sub { return; });
+    $hacluster->redefine(script_output => sub { return 'Output value=0'; });
+
+    set_var('SAP_SID', 'QES');
+    execute_crm_resource_refresh_and_check(instance_type => 'type', instance_id => '01', instance_hostname => 'hostname');
+    $hacluster->redefine(script_output => sub { return 'Output value=1'; });
+    dies_ok { execute_crm_resource_refresh_and_check(instance_type => 'type', instance_id => '01', instance_hostname => 'hostname') } 'Expected value';
 };
 
 done_testing;
