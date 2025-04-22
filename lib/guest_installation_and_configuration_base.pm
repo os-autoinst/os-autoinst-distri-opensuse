@@ -1399,6 +1399,7 @@ sub write_guest_network_bridge_device_nmconnection {
     $self->reveal_myself;
     my $_configmethod = ($args{_bootproto} eq 'dhcp' ? 'auto' : 'manual');
     my $_autoconnect = ($args{_startmode} eq 'auto' ? 'true' : 'false');
+    my $_autoconnect_ports = ($args{_startmode} eq 'auto' ? 1 : 0);
     $args{_bridge_stp} = ($args{_bridge_stp} eq 'on' ? 'true' : 'false');
     script_run("cp /etc/NetworkManager/system-connections/$args{_name}.nmconnection /etc/NetworkManager/system-connections/backup-$args{_name}.nmconnection");
     script_run("cp /etc/NetworkManager/system-connections/backup-$args{_name}.nmconnection $common_log_folder");
@@ -1408,6 +1409,13 @@ sub write_guest_network_bridge_device_nmconnection {
         type_string("cat > $_bridge_device_config_file <<EOF
 [connection]
 autoconnect=$_autoconnect
+EOF
+");
+        type_string("cat >> $_bridge_device_config_file <<EOF
+autoconnect-ports=$_autoconnect_ports
+EOF
+") if (is_sle('>=16'));
+        type_string("cat >> $_bridge_device_config_file <<EOF
 id=$args{_name}
 permissions=
 interface-name=$args{_name}
@@ -2711,6 +2719,10 @@ sub terminate_guest_installation_session {
   get_guest_ipaddr($self, @subnets_in_route)
 
 Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr].
+Sometimes guest may have more than one ip address assigned to a single interface, which
+is valid scenario. Getting the first one is enough to interact with the guest. Tumbleweed
+or agama guest may change ip addresses after reboot, so their ip addresses should always
+be refreshed after reboot.
 
 =cut
 
@@ -2719,8 +2731,8 @@ sub get_guest_ipaddr {
     my @subnets_in_route = @_;
 
     $self->reveal_myself;
-    # Tumbleweed guest's IP will change after reboot, so we need check IP multiple times even if an IP has been detected.
-    return $self if ((!is_tumbleweed and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) or ($self->{guest_ipaddr_static} eq 'true'));
+    # Tumbleweed or agama guest's IP will change after reboot, so we need check IP multiple times even if an IP has been detected.
+    return $self if ((!is_agama_guest(guest => $self->{guest_name}) and !is_tumbleweed and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) or ($self->{guest_ipaddr_static} eq 'true'));
     my $_guest_ipaddr = '';
     if ($self->{guest_network_type} eq 'bridge') {
         @subnets_in_route = split(/\n+/, script_output("ip route show all | awk \'{print \$1}\' | grep -v default")) if (scalar(@subnets_in_route) eq 0);
@@ -2747,6 +2759,7 @@ sub get_guest_ipaddr {
 
     my $record_info = '';
     $self->{guest_ipaddr} = 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT' if ($self->{guest_ipaddr} eq '');
+    $self->{guest_ipaddr} = (split(/\n/, $self->{guest_ipaddr}))[0];
     $record_info = $record_info . $self->{guest_name} . ' ' . $self->{guest_ipaddr} . ' ' . $self->{guest_macaddr} . "\n";
     record_info("Guest $self->{guest_name} address info", $record_info);
     return $self;
@@ -3042,6 +3055,9 @@ sub save_guest_agama_installation_logs {
 Get guest ip address and check whether it is already up and running by using ip
 address and name sequentially. Use very common linux command 'hostname' to do
 the actual checking because it is almost available on any linux flavor and release.
+For guest having [guest_network_type]='bridge' and [guest_network_mode]='host',
+FQDN is to be used on ssh command because it might not be reached by using its
+name only due to broader DHCP/DNS configuration problem in testing network.
 
 =cut
 
@@ -3049,29 +3065,37 @@ sub check_guest_installation_result_via_ssh {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_guest_transient_hostname = '';
+    my $_guest_transient_hostname_via_ipaddr = '';
+    my $_guest_transient_hostname_via_name = '';
     record_info("Going to use guest $self->{guest_name} ip address to detect installation result directly.", "No any interested needle or text-login/guest-console-text-login needle is detected.Just a moment");
-    $self->get_guest_ipaddr if (is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
+    $self->get_guest_ipaddr if (is_agama_guest(guest => $self->{guest_name}) or is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
-        $_guest_transient_hostname = script_output("timeout --kill-after=3 --signal=9 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
+        $_guest_transient_hostname_via_ipaddr = script_output("timeout --kill-after=3 --signal=9 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
         save_screenshot;
-        if ($_guest_transient_hostname ne '') {
+        if ($_guest_transient_hostname_via_ipaddr ne '') {
             record_info("Guest $self->{guest_name} can be connected via ssh using ip $self->{guest_ipaddr} directly", "So far so good.");
             if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
-                virt_autotest::utils::add_alias_in_ssh_config('/root/.ssh/config', $_guest_transient_hostname, $self->{guest_domain_name}, $self->{guest_name});
+                $_guest_transient_hostname_via_ipaddr =~ s/.$self->{guest_domain_name}//g;
+                virt_autotest::utils::add_alias_in_ssh_config('/root/.ssh/config', $_guest_transient_hostname_via_ipaddr, $self->{guest_domain_name}, $self->{guest_name});
             }
             save_screenshot;
-            $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
+            $_guest_transient_hostname_via_name = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
             save_screenshot;
-            if ($_guest_transient_hostname ne '') {
+            if ($_guest_transient_hostname_via_name ne '') {
                 record_info("Installation succeeded with good ssh connection for guest $self->{guest_name}", "Well done ! Mark it as PASSED");
                 $self->record_guest_installation_result('PASSED');
             }
             else {
-                virt_autotest::utils::add_guest_to_hosts($self->{guest_name}, $self->{guest_ipaddr});
-                $_guest_transient_hostname = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
-                if ($_guest_transient_hostname ne '') {
+                if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
+                    virt_autotest::utils::add_guest_to_hosts("$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name}", $self->{guest_ipaddr});
+                    $_guest_transient_hostname_via_name = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", proceed_on_failure => 1);
+                }
+                else {
+                    virt_autotest::utils::add_guest_to_hosts($self->{guest_name}, $self->{guest_ipaddr});
+                    $_guest_transient_hostname_via_name = script_output("timeout 30 " . $guest_installation_and_configuration_metadata::host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
+                }
+                if ($_guest_transient_hostname_via_name ne '') {
                     record_info("Installation succeeded with good ssh connection for guest $self->{guest_name} using /etc/hosts", "Although querying guest with FQDN failed, still mark installation as PASSED", result => 'fail');
                     $self->record_guest_installation_result('PASSED');
                 }
@@ -3082,7 +3106,7 @@ sub check_guest_installation_result_via_ssh {
             }
         }
     }
-    return $_guest_transient_hostname;
+    return $_guest_transient_hostname_via_name;
 }
 
 =head2 attach_guest_installation_screen
