@@ -26,7 +26,6 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
     my $args = ($rootless ? "--rootless" : "--root");
     $args .= " --remote" if ($remote);
 
@@ -43,7 +42,9 @@ sub run_tests {
     );
     my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
+    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
     assert_script_run "echo $log_file .. > $log_file";
+
     background_script_run "podman system service --timeout=0" if ($remote);
 
     my @tests;
@@ -58,14 +59,6 @@ sub run_tests {
 
     unless (@tests) {
         my @skip_tests = split(/\s+/, get_required_var('BATS_SKIP') . " " . $skip_tests);
-        # Unconditionally ignore these flaky subtests
-        my @must_skip = (
-            # this test depends on the openQA worker's scheduler
-            "180-blkio",
-            # this test will fail if there's not "enough" free space
-            "320-system-df",
-        );
-        push @skip_tests, @must_skip;
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -82,7 +75,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go gpg2 iptables jq libcriu2 libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go gpg2 jq libcriu2 libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container);
     push @pkgs, qw(criu) if is_tumbleweed;
     # Needed for podman machine
@@ -120,6 +113,8 @@ sub run {
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
+    # This test is flaky and will fail if system is "full"
+    assert_script_run "rm -f test/system/320-system-df.bats";
 
     # Compile helpers used by the tests
     script_run "make podman-testing", timeout => 600;

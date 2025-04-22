@@ -17,7 +17,6 @@ use version_utils qw(is_sle is_tumbleweed);
 
 my $test_dir = "/var/tmp/netavark-tests";
 my $netavark;
-my $firewalld_backend;
 
 sub run_tests {
     my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
@@ -43,10 +42,6 @@ sub run_tests {
 
     unless (@tests) {
         my @skip_tests = split(/\s+/, get_var('BATS_SKIP', ''));
-        # Unconditionally ignore these flaky subtests
-        my @must_skip = ();
-        push @must_skip, "100-bridge-iptables" if ($firewalld_backend ne "iptables");
-        push @skip_tests, @must_skip;
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -60,7 +55,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables jq make protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 jq make protobuf-devel netavark);
     if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
@@ -82,11 +77,12 @@ sub run {
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
 
-    $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
+    my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
     record_info("Firewalld backend", $firewalld_backend);
 
     # Compile helpers & patch tests
     assert_script_run "make examples", timeout => 600;
+    assert_script_run "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
 
     my $errors = run_tests;
     die "netavark tests failed" if ($errors);
