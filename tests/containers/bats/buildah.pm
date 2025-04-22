@@ -22,48 +22,25 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
-    selinux_hack $tmp_dir;
-
     my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
     record_info("storage driver", $storage_driver);
 
     my $oci_runtime = get_var('OCI_RUNTIME', script_output("buildah info --format '{{ .host.OCIRuntime }}'"));
 
-    my %_env = (
+    my %env = (
         BUILDAH_BINARY => "/usr/bin/buildah",
         BUILDAH_RUNTIME => $oci_runtime,
         CI_DESIRED_RUNTIME => $oci_runtime,
         STORAGE_DRIVER => $storage_driver,
-        BATS_TMPDIR => $tmp_dir,
-        TMPDIR => $tmp_dir,
-        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
-    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap";
-    assert_script_run "echo $log_file .. > $log_file";
 
-    my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
-        $test .= ".bats" unless $test =~ /\.bats$/;
-        push @tests, "tests/$test";
-    }
-    my $tests = @tests ? join(" ", @tests) : "tests";
-
-    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 7000;
-
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
-
-    parse_extra_log(TAP => $log_file);
+    my $ret = bats_tests($log_file, \%env, $skip_tests);
 
     script_run 'podman rm -vf $(podman ps -aq --external)';
     assert_script_run "podman system reset -f";
     assert_script_run "buildah prune -a -f";
-    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }

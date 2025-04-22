@@ -29,8 +29,8 @@ use containers::common qw(install_packages);
 our @EXPORT = qw(
   bats_post_hook
   bats_setup
+  bats_tests
   install_ncat
-  patch_logfile
   selinux_hack
   switch_to_user
 );
@@ -261,4 +261,59 @@ sub bats_post_hook {
 
     upload_logs('/proc/config.gz');
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
+}
+
+sub bats_tests {
+    my ($log_file, $_env, $skip_tests) = @_;
+    my %env = %{$_env};
+
+    my $package = get_required_var("BATS_PACKAGE");
+
+    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
+    selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
+
+    $env{BATS_TMPDIR} = $tmp_dir;
+    $env{TMPDIR} = $tmp_dir if ($package eq "buildah");
+    $env{PATH} = '/usr/local/bin:$PATH:/usr/sbin:/sbin';
+    my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
+
+    # Subdirectory in repo containing BATS tests
+    my %tests_dir = (
+        aardvark => "test",
+        buildah => "tests",
+        netavark => "test",
+        podman => "test/system",
+        runc => "tests/integration",
+        skopeo => "systemtest",
+    );
+
+    my @tests;
+    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
+        $test .= ".bats" unless $test =~ /\.bats$/;
+        push @tests, "$tests_dir{$package}/$test";
+    }
+    my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
+
+    my $cmd = "bats --tap $tests";
+    # With podman we must use its own hack/bats instead of calling bats directly
+    if ($package eq "podman") {
+        my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
+        $args .= " --remote" if ($log_file =~ /remote/);
+        $cmd = "hack/bats $args";
+        $cmd .= " $tests" if ($tests ne $tests_dir{podman});
+    }
+
+    assert_script_run "echo $log_file .. > $log_file";
+    my $ret = script_run "env $env $cmd | tee -a $log_file", 7000;
+
+    unless (@tests) {
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
+        patch_logfile($log_file, @skip_tests);
+    }
+
+    parse_extra_log(TAP => $log_file);
+
+    script_run "rm -rf $tmp_dir";
+
+    return ($ret);
 }
