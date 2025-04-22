@@ -25,9 +25,6 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $args = ($rootless ? "--rootless" : "--root");
-    $args .= " --remote" if ($remote);
-
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
     my %env = (
