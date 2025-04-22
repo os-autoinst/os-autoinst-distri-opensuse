@@ -27,6 +27,7 @@ AUTOYAST_PREPARE_PROFILE | boolean | false | Enable variable expansion in the au
 AUTOYAST_VERIFY_TIMEOUT  | boolean | false | Enable validation of pop-up windows timeout.
 AY_EXPAND_VARS | string | | Commas separated list of variable names to be expanded in the provided autoyast profile. For example: REPO_SLE_MODULE_BASESYSTEM,DESKTOP,... Provided variables will replace `{{VAR}}` in the profile with the value of given variable. See also `AUTOYAST_PREPARE_PROFILE`.
 BASE_VERSION | string | | |
+BATS_* | string | | Used for [BATS tests](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/tests/containers/bats/README.md) |
 BETA | boolean | false | Enables checks and processing of beta warnings. Defines current stage of the product under test.
 BCI_DEVEL_REPO | string | | This parameter is given to the bci-tests to inject a different SLE_BCI repository url to the container image instead of the default one. Used by `bci_test.pm`.
 BCI_TEST_ENVS | string | | The list of environments to be tested, e.g. `base,init,dotnet,python,node,go,multistage`. Used by `bci_test.pm`. Use `-` to not schedule any BCI test runs.
