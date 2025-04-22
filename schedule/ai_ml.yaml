@@ -5,7 +5,6 @@ schedule:
   - '{{boot_to_desktop}}'
   - console/prepare_test_data
   - '{{armnn}}'
-  - ai_ml/tflite2
   - ai_ml/tvm
 conditional_schedule:
   armnn:
