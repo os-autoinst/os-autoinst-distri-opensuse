@@ -9,3 +9,4 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_packages
+  - yam/validate/validate_post_partitioning

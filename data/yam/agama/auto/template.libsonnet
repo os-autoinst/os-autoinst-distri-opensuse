@@ -1,6 +1,7 @@
 local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
+local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 
@@ -14,6 +15,7 @@ function(addon_ha_reg_code='',
          product='',
          registration_code='',
          scripts_pre='',
+         scripts_post_partitioning='',
          scripts_post='') {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
   [if patterns != '' || packages != '' then 'software']: std.prune({
@@ -28,8 +30,9 @@ function(addon_ha_reg_code='',
     [if registration_code != '' then 'registrationCode']: registration_code,
   },
   [if root == true then 'root']: base_lib['root'],
-  [if scripts_pre != '' || scripts_post != '' then 'scripts']: {
+  [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
     [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
+    [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
     [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
   },
   [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
