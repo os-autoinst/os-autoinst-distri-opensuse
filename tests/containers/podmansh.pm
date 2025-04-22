@@ -15,7 +15,7 @@ use Utils::Systemd qw(systemctl);
 use utils;
 use containers::common;
 
-my $src_image = "registry.opensuse.org/opensuse/leap";
+my $src_image = "registry.opensuse.org/opensuse/tumbleweed";
 my $quadlet_container = <<_EOF_;
 [Unit]
 Description=Podman shell container
@@ -129,7 +129,7 @@ sub execute_tests {
     validate_script_output("$cmd id", sub { /^uid=1000\(bernhard\) gid=1000\(bernhard\) groups=1000\(bernhard\)$/ });
 
     # verifies if correct image variant
-    validate_script_output("$cmd 'cat /etc/os-release'", sub { /^ID=\"opensuse-leap\"$/m });
+    validate_script_output("$cmd 'cat /etc/os-release'", sub { /^ID=\"opensuse-tumbleweed\"$/m });
 }
 
 sub prepare_user_account {
