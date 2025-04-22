@@ -35,9 +35,9 @@ my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
 my $display = ':37';
 
 # Passwords for VNC access
-my @options = ({pw => "readonly_pw", change => 0}, {pw => "readwrite_pw", change => 1});
+my @options = ({pw => "ropasswd", change => 0}, {pw => "rwpasswd", change => 1});
 # A wrong password to check if the access is denied
-my $wrong_password = "password123";
+my $wrong_password = "badpass";
 
 my $test_xauth;
 my $tigervnc_vers;
