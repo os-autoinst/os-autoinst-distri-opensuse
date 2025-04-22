@@ -10,7 +10,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use containers::utils qw(get_podman_version);
 use utils qw(script_retry);
 use version_utils qw(is_tumbleweed);
 use containers::common;
@@ -80,7 +79,7 @@ sub run {
     record_info("podman rootless", script_output("podman info"));
 
     # Download podman sources
-    my $podman_version = get_podman_version();
+    my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
     my $url = get_var("BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
