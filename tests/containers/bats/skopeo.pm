@@ -27,38 +27,14 @@ sub run_tests {
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
-
-    my %_env = (
-        BATS_TMPDIR => $tmp_dir,
+    my %env = (
         SKOPEO_BINARY => "/usr/bin/skopeo",
         SKOPEO_TEST_REGISTRY_FQIN => $registry,
-        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
-    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
-    assert_script_run "echo $log_file .. > $log_file";
 
-    my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
-        $test .= ".bats" unless $test =~ /\.bats$/;
-        push @tests, "systemtest/$test";
-    }
-    my $tests = @tests ? join(" ", @tests) : "systemtest";
-
-    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 1200;
-
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
-
-    parse_extra_log(TAP => $log_file);
-
-    script_run "rm -rf $tmp_dir";
-
-    return ($ret);
+    return bats_tests($log_file, \%env, $skip_tests);
 }
 
 sub run {

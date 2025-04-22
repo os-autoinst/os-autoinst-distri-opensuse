@@ -31,42 +31,21 @@ sub run_tests {
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
-    selinux_hack $tmp_dir;
-
-    my %_env = (
-        BATS_TMPDIR => $tmp_dir,
+    my %env = (
         PODMAN => "/usr/bin/podman",
         QUADLET => $quadlet,
-        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
-    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
-    assert_script_run "echo $log_file .. > $log_file";
 
     background_script_run "podman system service --timeout=0" if ($remote);
 
-    my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
-        $test .= ".bats" unless $test =~ /\.bats$/;
-        push @tests, "test/system/$test";
-    }
-    my $tests = join(" ", @tests);
+    my $ret = bats_tests($log_file, \%env, $skip_tests);
 
-    my $ret = script_run "env $env hack/bats $args $tests | tee -a $log_file", 8000;
     script_run 'kill %1; kill -9 %1' if ($remote);
-
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_required_var('BATS_SKIP') . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
-
-    parse_extra_log(TAP => $log_file);
 
     script_run 'podman rm -vf $(podman ps -aq --external)';
     assert_script_run "podman system reset -f";
-    script_run "rm -rf $tmp_dir";
 
     return ($ret);
 }

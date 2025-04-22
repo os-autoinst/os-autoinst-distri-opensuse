@@ -19,37 +19,16 @@ my $test_dir = "/var/tmp/aardvark-tests";
 my $aardvark = "";
 
 sub run_tests {
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
     my $netavark = script_output "rpm -ql netavark | grep podman/netavark";
 
-    my %_env = (
+    my %env = (
         AARDVARK => $aardvark,
         NETAVARK => $netavark,
-        BATS_TMPDIR => $tmp_dir,
     );
-    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "aardvark.tap";
-    assert_script_run "echo $log_file .. > $log_file";
 
-    my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
-        $test .= ".bats" unless $test =~ /\.bats$/;
-        push @tests, "test/$test";
-    }
-    my $tests = @tests ? join(" ", @tests) : "test";
-
-    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 2000;
-
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', ''));
-        patch_logfile($log_file, @skip_tests);
-    }
-
-    parse_extra_log(TAP => $log_file);
-    script_run "rm -rf $tmp_dir";
-
-    return ($ret);
+    return bats_tests($log_file, \%env, "");
 }
 
 sub run {

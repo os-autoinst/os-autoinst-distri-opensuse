@@ -22,38 +22,14 @@ sub run_tests {
 
     return if ($skip_tests eq "all");
 
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
-
-    my %_env = (
-        BATS_TMPDIR => $tmp_dir,
+    my %env = (
         RUNC_USE_SYSTEMD => "1",
         RUNC => "/usr/bin/runc",
-        PATH => '/usr/local/bin:$PATH:/usr/sbin:/sbin',
     );
-    my $env = join " ", map { "$_=$_env{$_}" } sort keys %_env;
 
     my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
-    assert_script_run "echo $log_file .. > $log_file";
 
-    my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
-        $test .= ".bats" unless $test =~ /\.bats$/;
-        push @tests, "tests/integration/$test";
-    }
-    my $tests = @tests ? join(" ", @tests) : "tests/integration";
-
-    my $ret = script_run "env $env bats --tap $tests | tee -a $log_file", 2000;
-
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
-
-    parse_extra_log(TAP => $log_file);
-
-    script_run "rm -rf $tmp_dir";
-
-    return ($ret);
+    return bats_tests($log_file, \%env, $skip_tests);
 }
 
 sub run {
