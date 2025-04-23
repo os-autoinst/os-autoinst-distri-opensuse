@@ -57,6 +57,7 @@ sub run {
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_patches;
 
     my $errors = run_tests;
     die "ardvark-dns tests failed" if ($errors);

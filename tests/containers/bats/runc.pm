@@ -53,6 +53,7 @@ sub run {
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_patches;
 
     # Compile helpers used by the tests
     my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";

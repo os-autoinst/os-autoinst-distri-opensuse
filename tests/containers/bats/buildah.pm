@@ -69,6 +69,7 @@ sub run {
     selinux_hack "/tmp";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_patches;
 
     # Patch mkdir to always use -p
     assert_script_run "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";

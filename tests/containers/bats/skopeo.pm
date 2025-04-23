@@ -55,6 +55,7 @@ sub run {
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "cd $test_dir";
     script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_patches;
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";

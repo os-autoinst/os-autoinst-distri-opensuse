@@ -27,6 +27,7 @@ use List::MoreUtils qw(uniq);
 use containers::common qw(install_packages);
 
 our @EXPORT = qw(
+  bats_patches
   bats_post_hook
   bats_setup
   bats_tests
@@ -182,6 +183,7 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
+    push @pkgs, "patch";
     install_packages(@pkgs);
 
     configure_oci_runtime $oci_runtime;
@@ -312,7 +314,6 @@ sub bats_tests {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
         $args .= " --remote" if ($log_file =~ /remote/);
         $cmd = "hack/bats $args";
-        $tests =~ s/\.bats//g;
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
 
@@ -329,4 +330,15 @@ sub bats_tests {
     script_run "rm -rf $tmp_dir";
 
     return ($ret);
+}
+
+sub bats_patches {
+    my $package = get_required_var("BATS_PACKAGE");
+    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
+
+    foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
+        my $url = "https://github.com/$github_org/$package/pull/$patch.diff";
+        record_info("Applying patch $url");
+        assert_script_run "curl -sL $url | patch -p1 --merge";
+    }
 }
