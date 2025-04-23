@@ -20,8 +20,8 @@ sub run {
     select_console 'root-console';
     my @expected_repositories = get_test_suite_data()->{repositories};
     my $repositories = zypper_call("repos --show-enabled-only");
-    for my $repo (@expected_repositories) {
-        $repo =~ $repositories ? diag("Repository $repo is enabled.") : die "Repostory $repo is not enabled on the host"
+    for (@expected_repositories) {
+        $_ =~ $repositories ? diag("Repository $_ is enabled.") : die "Repostory $_ is not enabled on the host"
     }
 }
 
