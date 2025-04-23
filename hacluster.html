@@ -34,6 +34,7 @@
       <li><a href="#ensure_process_running">ensure_process_running</a></li>
       <li><a href="#ensure_resource_running">ensure_resource_running</a></li>
       <li><a href="#ensure_dlm_running">ensure_dlm_running</a></li>
+      <li><a href="#execute_crm_resource_refresh_and_check">execute_crm_resource_refresh_and_check</a></li>
       <li><a href="#write_tag">write_tag</a></li>
       <li><a href="#read_tag">read_tag</a></li>
       <li><a href="#block_device_real_path">block_device_real_path</a></li>
@@ -218,6 +219,12 @@
 <pre><code>ensure_dlm_running();</code></pre>
 
 <p>Checks that the <code>dlm</code> resource is running in the cluster, and that its associated process (<b>dlm_controld</b>) is running in SUT. Returns 0 if process is running or croaks on error.</p>
+
+<h2 id="execute_crm_resource_refresh_and_check">execute_crm_resource_refresh_and_check</h2>
+
+<pre><code>execute_crm_resource_refresh_and_check();</code></pre>
+
+<p>Execute <code>crm resource refresh</code> for specified <code>resource</code> on <code>instance_hostname</code> and check the <code>crm_failcount</code> returns <code>value=0</code>. Check no <b>failover</b> happens and state of cluster resources is healthy.</p>
 
 <h2 id="write_tag">write_tag</h2>
 
