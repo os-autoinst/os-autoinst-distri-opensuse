@@ -312,6 +312,7 @@ sub bats_tests {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
         $args .= " --remote" if ($log_file =~ /remote/);
         $cmd = "hack/bats $args";
+        $tests =~ s/\.bats//g;
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
 
