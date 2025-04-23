@@ -28,6 +28,7 @@ sub run_tests {
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
     my %env = (
+        PODMAN_ROOTLESS_USER => $testapi::username,
         PODMAN => "/usr/bin/podman",
         QUADLET => $quadlet,
     );
