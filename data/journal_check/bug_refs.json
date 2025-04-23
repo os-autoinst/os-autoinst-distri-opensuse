@@ -647,7 +647,7 @@
         "type": "bug"
     },
     "bsc#1231457": {
-        "description": "vas: API is supported only with radix page tables|SED: plpks not available|NX-GZIP is not supported|ibmvscsi.*couldn't initialize crq",
+        "description": "vas: API is supported only with radix page tables|SED: plpks not available|NX-GZIP is not supported|ibmvscsi.*couldn't initialize crq|ibmvscsi.*probe with driver ibmvscsi failed",
         "products": {
             "sle-micro": ["6.1", "6.2"]
         },
@@ -830,6 +830,27 @@
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1240431": {
+        "description": "Activation request for 'org.fedoraproject.Setroubleshootd'",
+        "products": {
+            "sle-micro": ["6.2"]
+        },
+        "type": "ignore"
+    },
+    "bsc#1240138": {
+        "description": "SELinux is preventing btrfs from using the sys_admin capability",
+        "products": {
+            "sle-micro": ["6.2"]
+        },
+        "type": "bug"
+    },
+    "bsc#1231458": {
+        "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed",
+        "products": {
+            "sle-micro": ["6.2"]
         },
         "type": "bug"
     }
