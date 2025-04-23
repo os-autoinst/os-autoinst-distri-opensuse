@@ -87,6 +87,7 @@ sub run {
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 
     # Patch tests
+    assert_script_run "curl -sLo hack/bats https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
