@@ -30,6 +30,7 @@ sub undef_variables {
       SDAF_BOM_NAME
       PUBLIC_CLOUD_IMAGE_ID
       SDAF_FENCING_MECHANISM
+      SDAF_SIMPLE_MOUNT
     );
     set_var($_, undef) foreach @openqa_variables;
 }
@@ -77,6 +78,20 @@ subtest '[create_sap_systems_tfvars] Simple HanaSR cluster settings' => sub {
     is $tfvars_data->{application_servers}{application_server_count}, '"0"', 'PAS deployment is disabled';
     is $tfvars_data->{sap_central_services}{scs_server_count}, '0', 'ASCS deployment is disabled';
     ok(defined($tfvars_data->{cluster_settings}{database_cluster_type}), 'DB cluster type cannot be empty');
+
+    undef_variables;
+};
+
+subtest '[create_sap_systems_tfvars] Verify "SDAF_SIMPLE_MOUNT" input' => sub {
+    set_openqa_settings;
+    set_var('SDAF_DEPLOYMENT_SCENARIO', 'db_install,db_ha,nw_pas,nw_ensa');
+
+    my @expected_failures = ('yes', 'fal', 'tru', ' ');
+
+    for my $failure (@expected_failures) {
+        set_var('SDAF_SIMPLE_MOUNT', $failure);
+        dies_ok { create_sap_systems_tfvars(workload_vnet_code => 'SAP05'); } "Croak with unexpected value: '$failure'";
+    }
 
     undef_variables;
 };

@@ -2,7 +2,7 @@
   "db": {
     "Custom": {
       "compute": {
-        "vm_size": "Standard_E4ds_v4",
+        "vm_size": "Standard_E16ds_v4",
         "accelerated_networking": true
       },
       "storage": [
@@ -15,9 +15,9 @@
         },
         {
           "name": "data",
-          "count": 3,
+          "count": 4,
           "disk_type": "Premium_LRS",
-          "size_gb": 12,
+          "size_gb": 32,
           "caching": "None",
           "write_accelerator": false,
           "lun_start": 0
@@ -26,7 +26,7 @@
           "name": "log",
           "count": 1,
           "disk_type": "UltraSSD_LRS",
-          "size_gb": 16,
+          "size_gb": 128,
           "caching": "None",
           "write_accelerator": false,
           "disk_iops_read_write": 1800,
@@ -46,7 +46,7 @@
           "name": "backup",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 64,
+          "size_gb": 128,
           "caching": "ReadWrite",
           "write_accelerator": false,
           "lun_start": 13
