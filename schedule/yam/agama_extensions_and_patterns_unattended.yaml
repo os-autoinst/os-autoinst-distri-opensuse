@@ -7,5 +7,6 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - yam/validate/validate_repositories
   - yam/validate/validate_registered_addons
   - yam/validate/validate_installed_patterns
