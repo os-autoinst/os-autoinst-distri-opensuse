@@ -15,6 +15,7 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark` `buildah` `netavark` `podman` `runc` `skopeo` |
+| `BATS_PATCHES` | List of github PR id's containing upstream test patches |
 | `BATS_URL` | URL to get the tests from. The default depends on the package version |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
