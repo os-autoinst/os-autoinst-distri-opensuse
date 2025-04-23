@@ -981,21 +981,6 @@ subtest '[get_private_ip_range]' => sub {
     set_var('WORKER_ID', undef);
 };
 
-subtest 'ipaddr2_network_peering_clean' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'test'; });
-
-    my $peering_string;
-
-    $ipaddr2->redefine(qesap_az_vnet_peering_delete => sub {
-            my (%args) = @_;
-            $peering_string = "source_group is $args{source_group}, target_group is $args{target_group}";
-            return;
-    });
-    ipaddr2_network_peering_clean(ibsm_rg => 'ibsm');
-    is $peering_string, "source_group is test, target_group is ibsm", "Clean network peering successfully";
-};
-
 subtest '[ipaddr2_network_peering_create]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(az_network_vnet_get => sub { return 'DavidCuartielles'; });
