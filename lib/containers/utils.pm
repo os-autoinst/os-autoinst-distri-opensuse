@@ -21,26 +21,12 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(runtime_smoke_tests get_vars
-  get_docker_version get_podman_version
   check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
 );
 
-sub get_docker_version {
-    my $raw = script_output("docker --version");
-    my ($v, undef) = split(',', $raw);
-    my @all = $v =~ /(\d+)/g;
-    $v = join('.', @all);
-    record_info "Docker version", "$v";
-    return $v;
-}
-
-sub get_podman_version {
-    return script_output "podman version | awk '/^Version:/ { print \$2 }'";
-}
-
 sub check_min_runtime_version {
     my ($desired_version) = @_;
-    my $podman_version = get_podman_version();
+    my $podman_version = script_output "podman version | awk '/^Version:/ { print \$2 }'";
     return version->parse($podman_version) >= version->parse($desired_version);
 }
 
