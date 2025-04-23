@@ -52,6 +52,7 @@ our @EXPORT = qw(
   ensure_process_running
   ensure_resource_running
   ensure_dlm_running
+  execute_crm_resource_refresh_and_check
   write_tag
   read_tag
   block_device_real_path
@@ -497,6 +498,44 @@ process is running or croaks on error.
 sub ensure_dlm_running {
     die 'dlm is not running' unless check_rsc "dlm";
     return ensure_process_running 'dlm_controld';
+}
+
+=head2 execute_crm_resource_refresh_and_check
+
+ execute_crm_resource_refresh_and_check();
+
+Execute C<crm resource refresh> for specified C<resource> on C<instance_hostname>
+and check the C<crm_failcount> returns C<value=0>.
+Check no B<failover> happens and state of cluster resources is healthy.
+
+=cut
+
+sub execute_crm_resource_refresh_and_check {
+    my (%args) = @_;
+    my $instance_type = $args{instance_type};
+    my $instance_id = $args{instance_id};
+    my $instance_hostname = $args{instance_hostname};
+    my $instance_sid = get_required_var('SAP_SID');
+    my $resource = "rsc_sap_${instance_sid}_$instance_type$instance_id";
+
+    # Delete resource's recorded failures before refresh
+    record_info("Delete failcount", "delete sapinstance recorded failures of $resource");
+    assert_script_run("sudo crm_failcount --delete -r $resource -N $instance_hostname");
+    # Refresh resource
+    record_info("Refresh $instance_type", "refresh sapinstance $resource");
+    assert_script_run("sudo crm resource refresh $resource");
+
+    # Query the current value of the resource's fail count
+    record_info("Query $instance_type", "Query fail count of sapinstance $resource");
+    my $str = script_output("sudo crm_failcount --query -r $resource -N $instance_hostname");
+    $str =~ /value=(\d+)/;
+    die 'Test failed to crm_failcount is non-zero' if (int($1));
+    # Check cluster
+    record_info('Cluster check', 'Checking state of cluster resources is healthy');
+    check_cluster_state();
+    # Check failover
+    record_info('NoFailover check', 'Checking no failover happens');
+    crm_check_resource_location(resource => $resource, wait_for_target => $instance_hostname);
 }
 
 =head2 write_tag

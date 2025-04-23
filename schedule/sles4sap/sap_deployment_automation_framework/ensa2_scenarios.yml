@@ -14,6 +14,7 @@ schedule:
   - sles4sap/redirection_tests/redirection_check
   - '{{hana_cluster_check}}'
   - sles4sap/redirection_tests/ensa2_hanadb_sapcontrol_move_ascs
+  - sles4sap/redirection_tests/ensa2_hanadb_refresh_sapinstances
 conditional_schedule:
   hana_cluster_check:
     HANA_CLUSTER_CHECK:
