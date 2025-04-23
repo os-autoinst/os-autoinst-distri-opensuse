@@ -1,0 +1,9 @@
+name: install_host_ipxe
+description:  >
+  Maintainer: Qi Wang (qi.wang@suse.com) qe-perf@suse.de
+  Installation SLES
+vars:
+  VIDEOMODE: text
+schedule:
+  - virt_autotest/login_console
+  - kernel_performance/install_sleperf
