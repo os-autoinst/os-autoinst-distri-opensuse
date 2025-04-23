@@ -1,3 +1,4 @@
 ---
 repositories:
   - "SUSE_Linux_Enterprise_Server_16.0_x86_64:SLE-Product-SLES-16.0"
+  - "SUSE_Linux_Enterprise_High_Availability_Extension_16.0_x86_64:SLE-Product-HA-16.0"
