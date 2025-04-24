@@ -67,7 +67,6 @@ sub load_boot_from_disk_tests {
             loadtest 'installation/bootloader_uefi' unless is_vmware;
             loadtest 'installation/first_boot';
         }
-        loadtest 'jeos/verify_cloudinit';
     } else {
         if (is_s390x()) {
             loadtest 'boot/boot_to_desktop';
@@ -443,7 +442,11 @@ sub load_tests {
     } elsif (check_var('EXTRA', 'provisioning')) {
         # verify_setup is not working correctly in microos with ignition
         # for the initial configuration. Disabled temporarily to investigate!
-        loadtest 'microos/verify_setup' unless check_var('FIRST_BOOT_CONFIG', 'ignition') && is_microos;
+        if (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
+            loadtest 'jeos/verify_cloudinit';
+        } else {
+            loadtest 'microos/verify_setup' unless check_var('FIRST_BOOT_CONFIG', 'ignition') && is_microos;
+        }
         load_transactional_tests;
     } elsif (check_var('EXTRA', 'virtualization')) {
         load_qemu_tests;
