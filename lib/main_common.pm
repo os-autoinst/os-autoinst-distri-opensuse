@@ -1154,7 +1154,7 @@ sub load_console_server_tests {
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     loadtest "console/apache_ssl" if is_sle;
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-    loadtest "console/apache_nss" if is_sle;
+    loadtest "console/apache_nss" if is_sle("<16");
 }
 
 sub load_consoletests {
