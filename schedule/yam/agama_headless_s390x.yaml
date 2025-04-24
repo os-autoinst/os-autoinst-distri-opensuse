@@ -1,0 +1,15 @@
+---
+name: agama_headless_s390x
+description: >
+  Perform Agama headless default installation for s390x.
+  A headless system is just boot to multi-user.target without a graphical environment.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/validate_headless
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_first_user
