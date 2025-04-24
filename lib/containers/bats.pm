@@ -148,7 +148,7 @@ sub patch_logfile {
     foreach my $test (@skip_tests) {
         next if ($test eq "none");
         if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
-            record_info("BATS: Test $test passed!");
+            record_info("PASS", $test);
         }
     }
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
@@ -338,7 +338,7 @@ sub bats_patches {
 
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
         my $url = "https://github.com/$github_org/$package/pull/$patch.diff";
-        record_info("Applying patch $url");
+        record_info("patch", $url);
         assert_script_run "curl -sL $url | patch -p1 --merge";
     }
 }
