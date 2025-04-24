@@ -158,7 +158,7 @@ sub check_target_version {
     my $release = script_output "cat /etc/os-release";
     my $expected_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
     my $selector = is_micro(">=6.2") ?
-      "VARIANT=\"Micro ?$expected_version\"?" :
+      qq|SUSE_SUPPORT_PRODUCT_VERSION="$expected_version"| :
       "VERSION=\"?$expected_version\"?";
 
     die "Target version not found! Expected: $expected_version" if ($release !~ $selector);
