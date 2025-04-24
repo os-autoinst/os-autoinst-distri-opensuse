@@ -1,10 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright 2018-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: blktests
-# Summary: Block device layer tests
+# Summary: Block device layer tests. This module allow to run blktests external test
+# suite. TODO
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
 use base 'opensusebasetest';
