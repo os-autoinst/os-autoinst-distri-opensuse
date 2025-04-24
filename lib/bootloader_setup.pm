@@ -134,9 +134,6 @@ sub add_custom_grub_entries {
     elsif (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
     }
-    elsif (is_sle("16+")) {
-        $distro = "SUSE Linux" . ' \\?' . get_required_var('VERSION');
-    }
     elsif (is_sle()) {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
     }
