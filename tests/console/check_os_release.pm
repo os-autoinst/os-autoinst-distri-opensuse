@@ -33,9 +33,8 @@ sub run {
         $product = 'sles' if (is_sles4sap and check_var('SCC_REGCODE_SLES4SAP', 'invalid_key') and is_sle('=12-SP5'));
         $checker{NAME} = uc($product);
         $checker{NAME} = 'SLES' if ($product =~ /^sles/);
-        $checker{NAME} = 'SUSE Linux' if is_sle('16.0+');
         $checker{VERSION_ID} =~ s/\-SP/./;
-        $checker{PRETTY_NAME} = is_sle('<16.0') ? "SUSE Linux Enterprise Server $checker{VERSION}" : "SUSE Linux $checker{VERSION}";
+        $checker{PRETTY_NAME} = "SUSE Linux Enterprise Server $checker{VERSION}";
         $checker{PRETTY_NAME} =~ s/\-SP/ SP/;
         $checker{PRETTY_NAME} =~ s/Server/Server for SAP Applications/ if (is_sles4sap and is_sle('<=12-SP2'));
         $checker{PRETTY_NAME} =~ s/Server/Desktop/ if is_desktop;
