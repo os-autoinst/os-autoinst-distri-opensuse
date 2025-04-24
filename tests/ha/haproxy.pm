@@ -89,6 +89,7 @@ sub run {
 
         # Sometimes we need to cleanup the resource
         rsc_cleanup $haproxy_rsc;
+        wait_for_idle_cluster;
     }
 
     # Do a check of the cluster with a screenshot
