@@ -50,8 +50,8 @@ sub run {
     assert_script_run("perf stat -e 'block:*' -a sleep 10");
     # test6
     # Listing (list command)
-    script_run('timeout 5 perf list sw');
-    script_run('timeout 5 perf list');
+    assert_script_run('timeout 5 perf --no-pager list sw');
+    assert_script_run('timeout 5 perf --no-pager list');
 }
 
 1;
