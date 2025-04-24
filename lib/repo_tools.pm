@@ -429,6 +429,9 @@ sub prepare_source_repo {
         elsif (main_common::is_updates_tests) {
             zypper_call(q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')});
         }
+        elsif (is_sle('>=16') and get_var("REPO_SLES_16_SOURCE")) {
+            zypper_call("ar -f " . "$utils::OPENQA_HTTP_URL/" . get_var("REPO_SLES_16_SOURCE") . " repo-source");
+        }
         else {
             record_info('No repo', 'Missing source repository');
             die('Missing source repository');

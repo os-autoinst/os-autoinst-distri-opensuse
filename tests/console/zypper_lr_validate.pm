@@ -100,8 +100,8 @@ sub validatelr {
     elsif (is_sle) {
         if (is_sle('15+')) {
             my $distri = uc(get_var('DISTRI'));
-            $cmd
-              = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$distri\[\[:alnum:\]\[:punct:\]\]*-*$version-$product_channel $distri\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$version-$product_channel $enabled_repo $uri\"";
+            $cmd = $product_channel eq '' ? "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$distri\[\[:alnum:\]\[:punct:\]\]*-*$version $distri\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$version $enabled_repo $uri\""
+              : "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$distri\[\[:alnum:\]\[:punct:\]\]*-*$version-$product_channel $distri\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$version-$product_channel $enabled_repo $uri\"";
         }
         else {
             # SLES12 does not have 'SLES12-Source-Pool' SCC channel
@@ -240,11 +240,14 @@ sub validate_repos_sle {
             # there will be no nvidia repo when WE add-on was removed with MIGRATION_REMOVE_ADDONS
             my $addon_removed = uc get_var('MIGRATION_REMOVE_ADDONS', 'none');
             $we = 1 if ($scc_product eq 'SLE-WE' && $scc_product !~ /$addon_removed/);
-            for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool") {
+            for my $product_channel ("Pool", "Updates", "Debuginfo-Pool", "Debuginfo-Updates", "Source-Pool", "Debug", "Source", "") {
+                # SLE 16.0 doesn't have Pool and Updates channel
+                next if ((is_sle('>=16')) && ($product_channel eq 'Pool' || $product_channel =~ /Updates/));
+                next if ((is_sle('<16')) && ($product_channel eq '' || $product_channel eq 'Debug' || $product_channel eq 'Source'));
                 # Toolchain module doesn't have Source-Pool channel
                 next if (($scc_product eq 'SLE-TCM') && ($product_channel eq 'Source-Pool'));
                 # LTSS doesn't have Pool, Debuginfo-Pool and Source-Pool channels
-                next if (($scc_product =~ /LTSS/) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
+                next if (($scc_product =~ /LTSS/ || is_sle('>=16')) && ($product_channel =~ /(|Debuginfo-|Source-)Pool/));
                 # don't look for add-on that was removed with MIGRATION_REMOVE_ADDONS
                 next if (get_var('ZYPPER_LR') && get_var('MIGRATION_INCONSISTENCY_DEACTIVATE') && $scc_product =~ /$addon_removed/);
                 # IDU and IDS don't have channels, repo is checked below
@@ -253,7 +256,7 @@ sub validate_repos_sle {
                     {
                         product => $scc_product,
                         product_channel => $product_channel,
-                        enabled_repo => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
+                        enabled_repo => ($product_channel =~ m{(Debug|Source)}) ? "No" : "Yes",
                         uri => $uri,
                         version => $version
                     });
