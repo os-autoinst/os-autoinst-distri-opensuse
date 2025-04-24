@@ -159,19 +159,21 @@ NOTES
 | test | reason |
 | --- | --- |
 | [080-pause] | https://github.com/opencontainers/runc/pull/4709 |
-| [195-run-namespaces] | https://github.com/opencontainers/runc/issues/4732 |
+| [252-quadlet] | unknown |
 | [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
 
 [080-pause]: https://github.com/containers/podman/blob/main/test/system/080-pause.bats
-[195-run-namespaces]: https://github.com/containers/podman/blob/main/test/system/195-run-namespaces.bats
+[252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
 [505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
 
 ### runc
 
 | test | reason |
 | --- | --- |
+| [cgroups] | `io.bfq.weight: operation not supported` |
 | [checkpoint] | https://github.com/checkpoint-restore/criu/issues/2650 |
 
+[cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
 [checkpoint]: https://github.com/opencontainers/runc/blob/main/tests/integration/checkpoint.bats
 
 ## Tools
