@@ -23,6 +23,7 @@ use utils;
 use version_utils qw(is_sle is_alp);
 use virt_autotest::utils qw(is_xen_host);
 
+#For SLES16
 sub run_test {
     my ($self) = @_;
 
