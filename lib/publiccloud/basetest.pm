@@ -119,11 +119,15 @@ sub is_selinux_enabled {
 sub check_selinux_denials {
     my ($self, $instance) = @_;
 
+    # my $cmd = 'command -v ausearch >/dev/null 2>&1 && sudo ausearch -m avc,user_avc,selinux_err,user_selinux_err -ts today --raw || dmesg | grep -i "selinux.*denied"';
+    my $cmd = 'command -v ausearch >/dev/null 2>&1 && sudo ausearch -m avc,user_avc,selinux_err,user_selinux_err -ts today --raw || dmesg';
+
     my $denials = $instance->ssh_script_output(
-'command -v ausearch >/dev/null 2>&1 && sudo ausearch -m avc,user_avc,selinux_err,user_selinux_err -ts today --raw || dmesg | grep -i "selinux.*denied"',
-        timeout => 0,
+        $cmd,
         quiet => 1
     );
+
+    record_info('SELinux denials', $denials);
 
     return $denials;
 }
@@ -212,12 +216,18 @@ sub _upload_logs {
 
     my @instance_logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
 
+    $self->{run_args}->{my_instance}->ssh_script_run("echo hello > /tmp/test_change.txt", quiet => 1);
+    push @instance_logs, "/tmp/test_change.txt";
+
     my $selinux_log_file = "/tmp/selinux_denials.txt";
     if ($self->is_selinux_enabled($self->{run_args}->{my_instance})) {
+        record_info('SELinux is enabled, checking for denials');
         my $denials = $self->check_selinux_denials($self->{run_args}->{my_instance});
         if ($self->save_selinux_denials($self->{run_args}->{my_instance}, $denials, $selinux_log_file)) {
             push @instance_logs, $selinux_log_file;    # Add to the array for unified handling
         }
+    } else {
+        record_info('SELinux is disabled, skipping denials check');
     }
 
     for my $instance_log (@instance_logs) {
