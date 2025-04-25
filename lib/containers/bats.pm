@@ -333,6 +333,8 @@ sub bats_tests {
 }
 
 sub bats_patches {
+    return if get_var("BATS_URL");
+
     my $package = get_required_var("BATS_PACKAGE");
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
