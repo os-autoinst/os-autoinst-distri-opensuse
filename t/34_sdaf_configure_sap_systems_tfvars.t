@@ -50,7 +50,7 @@ subtest '[create_sap_systems_tfvars] ENSA2 cluster settings' => sub {
 
     set_openqa_settings;
     set_var('SDAF_DEPLOYMENT_SCENARIO', 'db_install,db_ha,nw_pas,nw_ensa');
-    create_sap_systems_tfvars(workload_vnet_code => 'SAP05');
+    create_sap_systems_tfvars(workload_vnet_code => 'SAP05', os_image => 'suse:sles-sap-15-sp5-byos:gen2:latest');
     is $tfvars_data->{database_tier}{database_high_availability}, 'true', 'DB ha setup must be enabled';
     is $tfvars_data->{database_tier}{database_server_count}, '1', 'DB count must be 1';
     is $tfvars_data->{application_servers}{application_server_count}, '"1"', 'PAS must be deployed';
@@ -71,7 +71,7 @@ subtest '[create_sap_systems_tfvars] Simple HanaSR cluster settings' => sub {
 
     set_openqa_settings;
     set_var('SDAF_DEPLOYMENT_SCENARIO', 'db_install,db_ha');
-    create_sap_systems_tfvars(workload_vnet_code => 'SAP05');
+    create_sap_systems_tfvars(workload_vnet_code => 'SAP05', os_image => 'suse:sles-sap-15-sp5-byos:gen2:latest');
     is $tfvars_data->{database_tier}{database_high_availability}, 'true', 'DB ha setup must be enabled';
     is $tfvars_data->{database_tier}{database_server_count}, '1', 'DB count must be 1';
     is $tfvars_data->{application_servers}{application_server_count}, '"0"', 'PAS deployment is disabled';
