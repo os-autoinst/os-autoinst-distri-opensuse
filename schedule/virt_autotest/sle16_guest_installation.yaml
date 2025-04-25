@@ -9,3 +9,13 @@ schedule:
     - virt_autotest/unified_guest_installation
     - virt_autotest/set_config_as_glue
     - virt_autotest/uefi_guest_verification
+    - '{{virtual_network_test}}'
+conditional_schedule:
+    virtual_network_test:
+        ENABLE_VIR_NET:
+            1:
+                - virt_autotest/libvirt_virtual_network_init
+                - virt_autotest/libvirt_host_bridge_virtual_network
+                - virt_autotest/libvirt_nated_virtual_network
+                - virt_autotest/libvirt_routed_virtual_network
+                - virt_autotest/libvirt_isolated_virtual_network
