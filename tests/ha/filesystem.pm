@@ -26,8 +26,9 @@ sub run {
     # for drbd_passive using the serial terminal: it times out after the `crm resource move`
     # operation after 90 seconds; however, when running on the `root-console` it works. To avoid
     # adding an unnecessary sleep in all scenarios, the lines below move the module to run on the serial
-    # terminal only when running on SLES versions after 15-SP3 and only for drbd_passive
-    (is_sle('<=15-SP3') and $tag eq 'drbd_passive') ? select_console 'root-console' : select_serial_terminal;
+    # terminal only when setting up a FS for drbd_passive. In other cases we select the root-console by
+    # calling prepare_console_for_fencing
+    ($tag eq 'drbd_passive') ? prepare_console_for_fencing : select_serial_terminal;
 
     my $cluster_name = get_cluster_name;
     my $node = get_hostname;
