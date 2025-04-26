@@ -39,8 +39,6 @@ sub run {
 
     $self->bats_setup(@pkgs);
 
-    install_ncat;
-
     $netavark = script_output "rpm -ql netavark | grep podman/netavark";
     record_info("netavark version", script_output("$netavark --version"));
     record_info("netavark package version", script_output("rpm -q netavark"));

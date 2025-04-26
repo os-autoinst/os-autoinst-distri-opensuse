@@ -61,8 +61,6 @@ sub run {
 
     $self->bats_setup(@pkgs);
 
-    install_ncat;
-
     assert_script_run "podman system reset -f";
     assert_script_run "modprobe ip6_tables";
 

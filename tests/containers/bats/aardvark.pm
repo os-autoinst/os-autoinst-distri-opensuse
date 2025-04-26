@@ -43,8 +43,6 @@ sub run {
 
     $self->bats_setup(@pkgs);
 
-    install_ncat;
-
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
     record_info("aardvark-dns version", script_output("$aardvark --version"));
     record_info("aardvark-dns package version", script_output("rpm -q aardvark-dns"));

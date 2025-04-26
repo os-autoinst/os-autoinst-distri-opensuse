@@ -32,7 +32,6 @@ our @EXPORT = qw(
   bats_setup
   bats_sources
   bats_tests
-  install_ncat
   switch_to_user
 );
 
@@ -187,6 +186,8 @@ sub bats_setup {
     install_packages(@pkgs);
 
     configure_oci_runtime $oci_runtime;
+
+    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark|netavark|podman$/);
 
     delegate_controllers;
 
