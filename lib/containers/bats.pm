@@ -340,7 +340,7 @@ sub bats_patches {
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
-        my $url = "https://github.com/$github_org/$package/pull/$patch.diff";
+        my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.diff" : $patch;
         record_info("patch", $url);
         assert_script_run "curl -sL $url | patch -p1 --merge";
     }
