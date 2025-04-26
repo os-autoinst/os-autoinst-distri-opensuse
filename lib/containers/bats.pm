@@ -337,6 +337,8 @@ sub bats_patches {
     return if get_var("BATS_URL");
 
     my $package = get_required_var("BATS_PACKAGE");
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
@@ -350,10 +352,27 @@ sub bats_sources {
     my ($version, $test_dir) = @_;
 
     my $package = get_required_var("BATS_PACKAGE");
-    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
 
-    my $url = "https://github.com/$github_org/$package/archive/refs/tags/v$version.tar.gz";
-    $url = get_var("BATS_URL", $url);
+    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
+    my $tag = "v$version";
+
+    # Support these cases for BATS_URL:
+    # 1. As full URL: https://github.com/containers/aardvark-dns/archive/refs/heads/main.tar.gz
+    # 2. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, yourusername#test-patch, etc
+    # 3. As TAG only: main, v1.2.3, cool-test-fix, etc
+    # 4. Empty. Use default for repo based on package version
+
+    my $url = get_var("BATS_URL", "");
+    if ($url !~ m%^https://%) {
+        if ($url =~ /#/) {
+            ($github_org, $tag) = split("#", $url, 2);
+        } elsif ($url) {
+            $tag = $url;
+        }
+        my $dir = ($tag =~ /^v\d+\./) ? "tags" : "heads";
+        $url = "https://github.com/$github_org/$package/archive/refs/$dir/$tag.tar.gz";
+    }
 
     assert_script_run "mkdir -p $test_dir";
     if ($package eq "buildah") {
