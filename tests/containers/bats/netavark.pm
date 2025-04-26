@@ -10,8 +10,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry);
-use containers::common;
 use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
@@ -49,10 +47,7 @@ sub run {
 
     # Download netavark sources
     my $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
-    my $url = get_var("BATS_URL", "https://github.com/containers/netavark/archive/refs/tags/v$netavark_version.tar.gz");
-    assert_script_run "mkdir -p $test_dir";
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_sources $netavark_version, $test_dir;
     bats_patches;
 
     my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";

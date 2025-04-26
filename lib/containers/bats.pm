@@ -30,9 +30,9 @@ our @EXPORT = qw(
   bats_patches
   bats_post_hook
   bats_setup
+  bats_sources
   bats_tests
   install_ncat
-  selinux_hack
   switch_to_user
 );
 
@@ -342,5 +342,27 @@ sub bats_patches {
         my $url = "https://github.com/$github_org/$package/pull/$patch.diff";
         record_info("patch", $url);
         assert_script_run "curl -sL $url | patch -p1 --merge";
+    }
+}
+
+sub bats_sources {
+    my ($version, $test_dir) = @_;
+
+    my $package = get_required_var("BATS_PACKAGE");
+    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
+
+    my $url = "https://github.com/$github_org/$package/archive/refs/tags/v$version.tar.gz";
+    $url = get_var("BATS_URL", $url);
+
+    assert_script_run "mkdir -p $test_dir";
+    if ($package eq "buildah") {
+        selinux_hack $test_dir;
+        selinux_hack "/tmp";
+    }
+    assert_script_run "cd $test_dir";
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    if ($package eq "podman") {
+        my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
+        assert_script_run "curl -sLo hack/bats $hack_bats";
     }
 }

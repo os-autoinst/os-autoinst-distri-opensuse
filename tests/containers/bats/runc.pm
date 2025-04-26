@@ -10,7 +10,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry);
 use containers::bats;
 use version_utils qw(is_tumbleweed);
 
@@ -49,10 +48,7 @@ sub run {
 
     # Download runc sources
     my $runc_version = script_output "runc --version  | awk '{ print \$3 }'";
-    my $url = get_var("BATS_URL", "https://github.com/opencontainers/runc/archive/refs/tags/v$runc_version.tar.gz");
-    assert_script_run "mkdir -p $test_dir";
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_sources $runc_version, $test_dir;
     bats_patches;
 
     # Compile helpers used by the tests

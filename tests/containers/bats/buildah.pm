@@ -10,8 +10,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry);
-use containers::common;
 use containers::bats;
 
 my $test_dir = "/var/tmp/buildah-tests";
@@ -63,12 +61,7 @@ sub run {
 
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    my $url = get_var("BATS_URL", "https://github.com/containers/buildah/archive/refs/tags/v$buildah_version.tar.gz");
-    assert_script_run "mkdir -p $test_dir";
-    selinux_hack $test_dir;
-    selinux_hack "/tmp";
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_sources $buildah_version, $test_dir;
     bats_patches;
 
     # Patch mkdir to always use -p

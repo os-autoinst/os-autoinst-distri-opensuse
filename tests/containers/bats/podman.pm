@@ -10,9 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry);
 use version_utils qw(is_tumbleweed);
-use containers::common;
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
 
@@ -78,11 +76,7 @@ sub run {
 
     # Download podman sources
     my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
-    my $url = get_var("BATS_URL", "https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz");
-    assert_script_run "mkdir -p $test_dir";
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "curl -sLo hack/bats https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
+    bats_sources $podman_version, $test_dir;
     bats_patches;
 
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
