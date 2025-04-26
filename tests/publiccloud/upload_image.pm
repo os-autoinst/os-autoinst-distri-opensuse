@@ -60,7 +60,7 @@ sub run {
     $provider->upload_img($img_name);
 }
 
-sub _cleanup {
+sub finalize {
     # because it is upload_img we don't have instance created hence clasical cleanup does not make sense
     #TODO: nevertheless we can implement here upload of logs related to image upload process per provider
 }
