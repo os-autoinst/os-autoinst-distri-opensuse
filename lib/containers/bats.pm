@@ -32,11 +32,31 @@ our @EXPORT = qw(
   bats_setup
   bats_sources
   bats_tests
+  run_command
   switch_to_root
   switch_to_user
 );
 
+my $curl_opts = "-sL --retry 5 --retry-delay 6 --retry-max-time 300";
 my $test_dir = "/var/tmp/bats-tests";
+
+my @commands = ();
+
+sub run_command {
+    my $cmd = shift;
+    my %args = testapi::compat_args(
+        {
+            timeout => 90,
+        }, ['timeout'], @_);
+
+    push @commands, $cmd;
+    if ($cmd =~ / &$/) {
+        $cmd =~ s/ \&$//;
+        background_script_run $cmd, %args;
+    } else {
+        assert_script_run $cmd, %args;
+    }
+}
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -59,7 +79,7 @@ sub install_ncat {
         "ln -sf /usr/bin/ncat /usr/bin/nc"
     );
     foreach my $cmd (@cmds) {
-        assert_script_run "$cmd";
+        run_command $cmd;
     }
 }
 
@@ -68,12 +88,12 @@ sub install_bats {
 
     my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
-    script_retry("curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
-    assert_script_run "bash bats-core-$bats_version/install.sh /usr/local";
-    assert_script_run "rm -rf bats-core-$bats_version";
+    run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
+    run_command "bash bats-core-$bats_version/install.sh /usr/local";
+    run_command "rm -rf bats-core-$bats_version";
 
-    script_run "mkdir -m 0750 /etc/sudoers.d/";
-    assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
+    run_command "mkdir -pm 0750 /etc/sudoers.d/";
+    run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
     assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
@@ -88,8 +108,8 @@ sub configure_oci_runtime {
     if (!$oci_runtime) {
         $oci_runtime = script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'");
     }
-    assert_script_run "mkdir -p /etc/containers/containers.conf.d";
-    assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
+    run_command "mkdir -p /etc/containers/containers.conf.d";
+    run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" >> /etc/containers/containers.conf.d/engine.conf';
     record_info("OCI runtime", $oci_runtime);
 }
 
@@ -101,7 +121,9 @@ sub get_user_subuid {
 
 sub switch_to_root {
     select_serial_terminal;
-    assert_script_run "cd $test_dir";
+
+    push @commands, "### RUN AS root";
+    run_command "cd $test_dir";
 }
 
 sub switch_to_user {
@@ -125,14 +147,15 @@ sub switch_to_user {
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
 
     select_user_serial_terminal();
+    push @commands, "### RUN AS user";
 }
 
 sub delegate_controllers {
     if (script_run("test -f /etc/systemd/system/user@.service.d/60-delegate.conf") != 0) {
         # Let user control cpu, io & memory control groups
         # https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
-        script_run "mkdir /etc/systemd/system/user@.service.d/";
-        assert_script_run 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
+        run_command "mkdir -p /etc/systemd/system/user@.service.d/";
+        run_command 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
         systemctl "daemon-reload";
     }
 }
@@ -173,13 +196,15 @@ Type=none
 Options=bind
 EOF
 
-    assert_script_run "mkdir /etc/systemd/system/tmp.mount.d/";
+    assert_script_run "mkdir -p /etc/systemd/system/tmp.mount.d/";
     assert_script_run "echo '$override_conf' > /etc/systemd/system/tmp.mount.d/override.conf";
 }
 
 sub bats_setup {
     my ($self, @pkgs) = @_;
     my $reboot_needed = 0;
+
+    push @commands, "### RUN AS root";
 
     install_bats;
 
@@ -201,16 +226,16 @@ sub bats_setup {
 
     if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
         record_info("Disabling SELinux");
-        assert_script_run "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
-        assert_script_run "setenforce 0";
+        run_command "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
+        run_command "setenforce 0";
     } else {
         # Rebuild SELinux policies without the so-called "dontaudit" rules
         # https://en.opensuse.org/Portal:SELinux/Troubleshooting
-        script_run "semodule -DB || true";
+        assert_script_run "semodule -DB || true";
     }
 
     # Remove mounts.conf
-    script_run "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+    run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
 
     # Disable tmpfs from next boot
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
@@ -240,8 +265,8 @@ sub selinux_hack {
 
     # Use the same labeling in /var/lib/containers for $dir
     # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    script_run "sudo semanage fcontext -a -e /var/lib/containers $dir", timeout => 120;
-    script_run "sudo restorecon -R -v $dir";
+    run_command "sudo semanage fcontext -a -e /var/lib/containers $dir || true", timeout => 120;
+    run_command "sudo restorecon -R -v $dir || true";
 }
 
 sub bats_post_hook {
@@ -282,6 +307,9 @@ sub bats_post_hook {
 
     upload_logs('/proc/config.gz');
     upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
+
+    write_sut_file('/tmp/commands.txt', join("\n", @commands));
+    upload_logs('/tmp/commands.txt');
 }
 
 sub bats_tests {
@@ -315,7 +343,7 @@ sub bats_tests {
     }
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
-    my $cmd = "bats --tap $tests";
+    my $cmd = "env $env bats --tap $tests";
     # With podman we must use its own hack/bats instead of calling bats directly
     if ($package eq "podman") {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
@@ -323,14 +351,16 @@ sub bats_tests {
         $cmd = "hack/bats -t $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
+    $cmd .= " | tee -a $log_file";
 
     $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
     my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
 
-    assert_script_run "echo $log_file .. > $log_file";
-    assert_script_run "echo '# $package $version $os_version' >> $log_file";
-    my $ret = script_run "env $env $cmd | tee -a $log_file", 7000;
+    run_command "echo $log_file .. > $log_file";
+    run_command "echo '# $package $version $os_version' >> $log_file";
+    push @commands, $cmd;
+    my $ret = script_run $cmd, 7000;
 
     unless (@tests) {
         my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
@@ -339,7 +369,7 @@ sub bats_tests {
 
     parse_extra_log(TAP => $log_file);
 
-    script_run "rm -rf $tmp_dir";
+    run_command "rm -rf $tmp_dir";
 
     return ($ret);
 }
@@ -355,7 +385,7 @@ sub bats_patches {
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.diff" : $patch;
         record_info("patch", $url);
-        assert_script_run "curl -sL $url | patch -p1 --merge";
+        run_command "curl $curl_opts $url | patch -p1 --merge";
     }
 }
 
@@ -384,16 +414,19 @@ sub bats_sources {
         my $dir = ($tag =~ /^v\d+\./) ? "tags" : "heads";
         $url = "https://github.com/$github_org/$package/archive/refs/$dir/$tag.tar.gz";
     }
+    record_info("BATS_URL", $url);
 
-    assert_script_run "mkdir -p $test_dir";
+    run_command "mkdir -p $test_dir";
     if ($package eq "buildah") {
         selinux_hack $test_dir;
         selinux_hack "/tmp";
     }
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    run_command "cd $test_dir";
+    run_command "curl $curl_opts $url | tar -zxf - --strip-components 1";
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
-        assert_script_run "curl -sLo hack/bats $hack_bats";
+        run_command "curl $curl_opts -o hack/bats $hack_bats";
     }
 }
+
+1;

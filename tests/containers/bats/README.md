@@ -22,6 +22,10 @@ The tests rely on some variables:
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
+NOTES
+- `BATS_URL` can be a full URL to the tarball in github, `SUSE#branch` or a tag `v1.2.3`
+- `BATS_PATCHES` can be a full URL like `https://github.com/containers/podman/pull/25918.diff`
+
 ### aardvark / netavark
 
 | variable | description |
@@ -71,7 +75,9 @@ NOTES
 - To debug runtime issues you may clone a job with `OCI_RUNTIME=crun`.  The default OCI runtime is `runc` on all openSUSE & SUSE products except SLEM 6.0 & 6.1
 - To debug buildah issues you may clone a job with `BUILDAH_STORAGE_DRIVER=vfs`
 - To debug individual tests you may clone a job with `BATS_TESTS`
-- You can also use `BATS_URL` to use the latest version from the `main` branch like `BATS_URL=https://github.com/containers/netavark/archive/refs/heads/main.tar.gz`
+- You can also test individual tests from the latest version in the `main` branch with `BATS_URL=main`
+- The BATS output is in the log files with `.tap` extension
+- The commands are collected in a log file ending with `-commands.txt`
 
 ## Warning
 
