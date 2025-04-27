@@ -34,6 +34,10 @@ sub handle_all_packages_medium {
     unless (is_sle('15-SP2+')) {
         push @addons, $sle_prod if !grep(/^$sle_prod$/, @addons);
     }
+
+    # For sles 15-SP6 and SP7, systems-management is the default product should be installed.
+    push @addons, 'sysm' if (is_sle('>=15-SP6'));
+
     # Select Desktop-Applications module if gnome is wanted
     push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && !grep(/^desktop$/, @addons);
 
