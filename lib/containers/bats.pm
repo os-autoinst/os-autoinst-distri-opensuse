@@ -318,7 +318,12 @@ sub bats_tests {
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
 
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+    my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
+    my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
+
     assert_script_run "echo $log_file .. > $log_file";
+    assert_script_run "echo '# $package $version $os_version' >> $log_file";
     my $ret = script_run "env $env $cmd | tee -a $log_file", 7000;
 
     unless (@tests) {
