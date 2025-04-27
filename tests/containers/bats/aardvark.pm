@@ -13,7 +13,6 @@ use serial_terminal qw(select_serial_terminal);
 use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
-my $test_dir = "/var/tmp/aardvark-tests";
 my $aardvark = "";
 
 sub run_tests {
@@ -49,7 +48,7 @@ sub run {
 
     # Download aardvark sources
     my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
-    bats_sources $aardvark_version, $test_dir;
+    bats_sources $aardvark_version;
     bats_patches;
 
     my $errors = run_tests;
@@ -57,11 +56,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;

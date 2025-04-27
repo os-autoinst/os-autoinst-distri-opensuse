@@ -13,7 +13,6 @@ use serial_terminal qw(select_serial_terminal);
 use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
-my $test_dir = "/var/tmp/netavark-tests";
 my $netavark;
 
 sub run_tests {
@@ -45,7 +44,7 @@ sub run {
 
     # Download netavark sources
     my $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
-    bats_sources $netavark_version, $test_dir;
+    bats_sources $netavark_version;
     bats_patches;
 
     my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
@@ -60,11 +59,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;

@@ -14,7 +14,6 @@ use version_utils qw(is_tumbleweed);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
 
-my $test_dir = "/var/tmp/podman-tests";
 my $oci_runtime = "";
 
 sub run_tests {
@@ -74,7 +73,7 @@ sub run {
 
     # Download podman sources
     my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
-    bats_sources $podman_version, $test_dir;
+    bats_sources $podman_version;
     bats_patches;
 
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
@@ -94,8 +93,7 @@ sub run {
     # user / remote
     $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('BATS_SKIP_USER_REMOTE', ''));
 
-    select_serial_terminal;
-    assert_script_run "cd $test_dir";
+    switch_to_root;
 
     # root / local
     $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('BATS_SKIP_ROOT_LOCAL', ''));
@@ -107,11 +105,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;

@@ -32,8 +32,11 @@ our @EXPORT = qw(
   bats_setup
   bats_sources
   bats_tests
+  switch_to_root
   switch_to_user
 );
+
+my $test_dir = "/var/tmp/bats-tests";
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -94,6 +97,11 @@ sub get_user_subuid {
     my ($user) = shift;
     my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid", proceed_on_failure => 1);
     return $start_range;
+}
+
+sub switch_to_root {
+    select_serial_terminal;
+    assert_script_run "cd $test_dir";
 }
 
 sub switch_to_user {
@@ -237,8 +245,6 @@ sub selinux_hack {
 }
 
 sub bats_post_hook {
-    my $test_dir = shift;
-
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
@@ -354,7 +360,7 @@ sub bats_patches {
 }
 
 sub bats_sources {
-    my ($version, $test_dir) = @_;
+    my $version = shift;
 
     my $package = get_required_var("BATS_PACKAGE");
     $package = ($package eq "aardvark") ? "aardvark-dns" : $package;

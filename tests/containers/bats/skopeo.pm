@@ -14,7 +14,6 @@ use Utils::Architectures qw(is_x86_64);
 use containers::bats;
 use version_utils qw(is_sle);
 
-my $test_dir = "/var/tmp/skopeo-tests";
 
 sub run_tests {
     my %params = @_;
@@ -49,7 +48,7 @@ sub run {
 
     # Download skopeo sources
     my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
-    bats_sources $skopeo_version, $test_dir;
+    bats_sources $skopeo_version;
     bats_patches;
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
@@ -58,8 +57,7 @@ sub run {
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
-    select_serial_terminal;
-    assert_script_run "cd $test_dir";
+    switch_to_root;
 
     $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
 
@@ -67,11 +65,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;

@@ -12,7 +12,6 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::bats;
 
-my $test_dir = "/var/tmp/buildah-tests";
 
 sub run_tests {
     my %params = @_;
@@ -61,7 +60,7 @@ sub run {
 
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    bats_sources $buildah_version, $test_dir;
+    bats_sources $buildah_version;
     bats_patches;
 
     # Patch mkdir to always use -p
@@ -73,8 +72,7 @@ sub run {
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
-    select_serial_terminal;
-    assert_script_run "cd $test_dir";
+    switch_to_root;
 
     $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
 
@@ -82,11 +80,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;
