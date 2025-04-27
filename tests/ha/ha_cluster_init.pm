@@ -59,7 +59,7 @@ sub run {
     my $unicast_opt = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
     my $fencing_opt = "-s \"$sbd_device\"";
-    my $qdevice_opt;
+    my $qdevice_opt = '';
 
     # HA test modules use packages from ClusterTools2. Attempt to install it here and in
     # ha_cluster_join, but continue if it's not possible (retval 104)
