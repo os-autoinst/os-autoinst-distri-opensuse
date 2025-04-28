@@ -218,14 +218,7 @@ sub run {
         # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
         if (get_var('SMT_URL') =~ /smt/) {
             assert_screen 'import-untrusted-gpg-key', 180;
-            # for 15-SP7 yast2 migration with smt, we need to choose Again and Yes.
-            if (is_sle('15-SP7+')) {
-                send_key 'alt-a';
-                send_key 'alt-y';
-            }
-            else {
-                send_key 'alt-t';
-            }
+            send_key 'alt-t';
             if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
                 assert_screen 'import-untrusted-gpg-key-nvidia', 300;
                 send_key 'alt-t';
