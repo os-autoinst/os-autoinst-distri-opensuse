@@ -296,7 +296,10 @@ sub load_container_tests {
 
         if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
-        } else {
+        } elsif ($chart =~ m/private-registry/) {
+            loadtest 'containers/charts/privateregistry';
+        }   
+          else {
             die "Unsupported HELM_CHART value";
         }
         return;
