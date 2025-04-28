@@ -52,7 +52,7 @@ sub run {
 
     # Compile helpers used by the tests
     my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
-    script_run "make $cmds";
+    run_command "make $cmds || true";
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 

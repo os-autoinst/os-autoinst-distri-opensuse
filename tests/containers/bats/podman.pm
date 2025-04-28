@@ -32,14 +32,14 @@ sub run_tests {
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap";
 
-    background_script_run "podman system service --timeout=0" if ($remote);
+    run_command "podman system service --timeout=0 &" if ($remote);
 
     my $ret = bats_tests($log_file, \%env, $skip_tests);
 
-    script_run 'kill %1; kill -9 %1' if ($remote);
+    run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
-    script_run 'podman rm -vf $(podman ps -aq --external)';
-    assert_script_run "podman system reset -f";
+    run_command 'podman rm -vf $(podman ps -aq --external) || true';
+    run_command "podman system reset -f";
 
     return ($ret);
 }
@@ -60,8 +60,8 @@ sub run {
 
     $self->bats_setup(@pkgs);
 
-    assert_script_run "podman system reset -f";
-    assert_script_run "modprobe ip6_tables";
+    run_command "podman system reset -f";
+    run_command "modprobe ip6_tables";
 
     record_info("podman version", script_output("podman version"));
     record_info("podman info", script_output("podman info"));
@@ -79,13 +79,13 @@ sub run {
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 
     # Patch tests
-    assert_script_run "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
-    assert_script_run "rm -f contrib/systemd/system/podman-kube@.service.in";
+    run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
+    run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
     # This test is flaky and will fail if system is "full"
-    assert_script_run "rm -f test/system/320-system-df.bats";
+    run_command "rm -f test/system/320-system-df.bats";
 
     # Compile helpers used by the tests
-    script_run "make podman-testing", timeout => 600;
+    run_command "make podman-testing || true", timeout => 600;
 
     # user / local
     my $errors = run_tests(rootless => 1, remote => 0, skip_tests => get_var('BATS_SKIP_USER_LOCAL', ''));

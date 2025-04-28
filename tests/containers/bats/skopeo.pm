@@ -53,7 +53,7 @@ sub run {
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
-    assert_script_run "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
+    run_command "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 

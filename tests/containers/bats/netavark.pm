@@ -51,8 +51,8 @@ sub run {
     record_info("Firewalld backend", $firewalld_backend);
 
     # Compile helpers & patch tests
-    assert_script_run "make examples", timeout => 600;
-    assert_script_run "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
+    run_command "make examples", timeout => 600;
+    run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
 
     my $errors = run_tests;
     die "netavark tests failed" if ($errors);

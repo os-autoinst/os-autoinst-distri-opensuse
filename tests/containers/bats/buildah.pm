@@ -35,9 +35,9 @@ sub run_tests {
 
     my $ret = bats_tests($log_file, \%env, $skip_tests);
 
-    script_run 'podman rm -vf $(podman ps -aq --external)';
-    assert_script_run "podman system reset -f";
-    assert_script_run "buildah prune -a -f";
+    run_command 'podman rm -vf $(podman ps -aq --external) || true';
+    run_command "podman system reset -f";
+    run_command "buildah prune -a -f";
 
     return ($ret);
 }
@@ -64,11 +64,11 @@ sub run {
     bats_patches;
 
     # Patch mkdir to always use -p
-    assert_script_run "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
+    run_command "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
-    assert_script_run "make $helpers", timeout => 600;
+    run_command "make $helpers", timeout => 600;
 
     my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
 
