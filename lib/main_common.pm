@@ -2142,6 +2142,12 @@ sub load_x11_remote {
         loadtest 'x11/remote_desktop/windows_network_setup';
         loadtest 'x11/remote_desktop/windows_server_setup';
     }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_server')) {
+        loadtest 'microos/workloads/x11-container/x11_server';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_client')) {
+        loadtest 'microos/workloads/x11-container/x11_client';
+    }
 }
 
 
@@ -2175,6 +2181,8 @@ sub load_common_x11 {
     elsif (check_var('REGRESSION', 'remote')) {
         if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
             loadtest "x11/remote_desktop/windows_client_boot";
+        } elsif (check_var("REMOTE_DESKTOP_TYPE", "x11_server")) {
+            loadtest 'microos/disk_boot';
         }
         else {
             loadtest 'boot/boot_to_desktop';
