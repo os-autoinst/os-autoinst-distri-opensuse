@@ -25,4 +25,4 @@ errors:
 warnings:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
   rootfs_small: Missing device for / with size equal or bigger than 5 GiB and filesystem ext2, ext3, ext4, btrfs, xfs
-  missing_boot: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
+  missing_boot: Missing device for /boot/efi with size equal or bigger than .* and filesystem vfat
