@@ -30,11 +30,13 @@ our @EXPORT = qw(
   bats_patches
   bats_post_hook
   bats_setup
+  bats_sources
   bats_tests
-  install_ncat
-  selinux_hack
+  switch_to_root
   switch_to_user
 );
+
+my $test_dir = "/var/tmp/bats-tests";
 
 sub install_ncat {
     return if (script_run("rpm -q ncat") == 0);
@@ -95,6 +97,11 @@ sub get_user_subuid {
     my ($user) = shift;
     my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid", proceed_on_failure => 1);
     return $start_range;
+}
+
+sub switch_to_root {
+    select_serial_terminal;
+    assert_script_run "cd $test_dir";
 }
 
 sub switch_to_user {
@@ -188,6 +195,8 @@ sub bats_setup {
 
     configure_oci_runtime $oci_runtime;
 
+    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark|netavark|podman$/);
+
     delegate_controllers;
 
     if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
@@ -236,8 +245,6 @@ sub selinux_hack {
 }
 
 sub bats_post_hook {
-    my $test_dir = shift;
-
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
@@ -317,7 +324,12 @@ sub bats_tests {
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
 
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+    my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
+    my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
+
     assert_script_run "echo $log_file .. > $log_file";
+    assert_script_run "echo '# $package $version $os_version' >> $log_file";
     my $ret = script_run "env $env $cmd | tee -a $log_file", 7000;
 
     unless (@tests) {
@@ -336,11 +348,52 @@ sub bats_patches {
     return if get_var("BATS_URL");
 
     my $package = get_required_var("BATS_PACKAGE");
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
-        my $url = "https://github.com/$github_org/$package/pull/$patch.diff";
+        my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.diff" : $patch;
         record_info("patch", $url);
         assert_script_run "curl -sL $url | patch -p1 --merge";
+    }
+}
+
+sub bats_sources {
+    my $version = shift;
+
+    my $package = get_required_var("BATS_PACKAGE");
+    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+
+    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
+    my $tag = "v$version";
+
+    # Support these cases for BATS_URL:
+    # 1. As full URL: https://github.com/containers/aardvark-dns/archive/refs/heads/main.tar.gz
+    # 2. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, yourusername#test-patch, etc
+    # 3. As TAG only: main, v1.2.3, cool-test-fix, etc
+    # 4. Empty. Use default for repo based on package version
+
+    my $url = get_var("BATS_URL", "");
+    if ($url !~ m%^https://%) {
+        if ($url =~ /#/) {
+            ($github_org, $tag) = split("#", $url, 2);
+        } elsif ($url) {
+            $tag = $url;
+        }
+        my $dir = ($tag =~ /^v\d+\./) ? "tags" : "heads";
+        $url = "https://github.com/$github_org/$package/archive/refs/$dir/$tag.tar.gz";
+    }
+
+    assert_script_run "mkdir -p $test_dir";
+    if ($package eq "buildah") {
+        selinux_hack $test_dir;
+        selinux_hack "/tmp";
+    }
+    assert_script_run "cd $test_dir";
+    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    if ($package eq "podman") {
+        my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
+        assert_script_run "curl -sLo hack/bats $hack_bats";
     }
 }

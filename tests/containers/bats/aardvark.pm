@@ -10,12 +10,9 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(script_retry);
-use containers::common;
 use containers::bats;
 use version_utils qw(is_sle is_tumbleweed);
 
-my $test_dir = "/var/tmp/aardvark-tests";
 my $aardvark = "";
 
 sub run_tests {
@@ -45,18 +42,13 @@ sub run {
 
     $self->bats_setup(@pkgs);
 
-    install_ncat;
-
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
     record_info("aardvark-dns version", script_output("$aardvark --version"));
     record_info("aardvark-dns package version", script_output("rpm -q aardvark-dns"));
 
     # Download aardvark sources
     my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
-    my $url = get_var("BATS_URL", "https://github.com/containers/aardvark-dns/archive/refs/tags/v$aardvark_version.tar.gz");
-    assert_script_run "mkdir -p $test_dir";
-    assert_script_run "cd $test_dir";
-    script_retry("curl -sL $url | tar -zxf - --strip-components 1", retry => 5, delay => 60, timeout => 300);
+    bats_sources $aardvark_version;
     bats_patches;
 
     my $errors = run_tests;
@@ -64,11 +56,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 sub post_run_hook {
-    bats_post_hook $test_dir;
+    bats_post_hook;
 }
 
 1;
