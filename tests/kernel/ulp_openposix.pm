@@ -68,7 +68,7 @@ sub setup_ulp {
     my $packname = 'openposix-livepatches';
     my $repo_args = '';
 
-    install_klp_product unless is_sle('16+');
+    install_klp_product if is_sle('<16');
     zypper_call('in libpulp0 libpulp-tools libpulp-load-default');
 
     if (get_var('INCIDENT_REPO')) {
