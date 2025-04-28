@@ -1,0 +1,15 @@
+---
+name: agama_qcow_unattended
+description: >
+  Prepare url for agama.auto boot parameter, boot, perform auto-installation and publish qcow with agama.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_first_user
+  - yam/validate/validate_hostname
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
