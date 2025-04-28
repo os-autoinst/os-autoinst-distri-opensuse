@@ -1,0 +1,16 @@
+name:  agama-create-hdd-gnome
+description:    >
+    Install sle16 via agama auto and publish qcow2 images
+
+schedule:
+    - yam/agama/boot_agama
+    - yam/agama/agama_auto
+    - installation/grub_test
+    - yam/agama/switch_to_product
+    - installation/first_boot
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
