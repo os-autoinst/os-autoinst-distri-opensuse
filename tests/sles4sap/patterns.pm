@@ -30,7 +30,8 @@ sub run {
 
     # Is HA pattern needed?
     if (get_var('HA_CLUSTER')) {
-        is_sle('16+') ? push(@sappatterns, 'sles_ha', 'sles_sap_HAAPP', 'sles_sap_HADB') : push(@sappatterns, 'ha_sles');
+        push(@sappatterns, 'ha_sles');
+        push(@sappatterns, 'sles_sap_HAAPP', 'sles_sap_HADB') if is_sle('16+');
     }
 
     my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
