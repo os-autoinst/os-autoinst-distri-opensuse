@@ -238,14 +238,17 @@ sub get_remote_instance_number {
         ASCS => 'MESSAGESERVER',
         ERS => 'ENQREP'
     );
-
-    my @instance_data = grep /$instance_type_features{$args{instance_type}}/,
-      split('\n', sapcontrol(webmethod => 'GetSystemInstanceList', instance_id => $args{local_instance_id},
-            return_output => 1));
+    my $attempts = 10;
+    my @instance_data;
+    while ($attempts--) {
+        @instance_data = grep /$instance_type_features{$args{instance_type}}/,
+          split('\n', sapcontrol(webmethod => 'GetSystemInstanceList', instance_id => $args{local_instance_id}, return_output => 1));
+        last if (@instance_data);
+        sleep 3;
+    }
+    die "Timeout: Could not find instance with $args{instance_type} after 30 seconds" unless @instance_data;
     my $instance_id = (split(', ', $instance_data[0]))[1];
-    $instance_id = sprintf("%02d", $instance_id);
-
-    return ($instance_id);
+    return sprintf("%02d", $instance_id);
 }
 
 =head2 get_instance_type
