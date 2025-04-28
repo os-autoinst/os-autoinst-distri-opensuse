@@ -216,6 +216,7 @@ sub bats_setup {
         push @pkgs, $oci_runtime;
     }
     push @pkgs, "patch";
+    push @commands, "zypper -n install @pkgs";
     install_packages(@pkgs);
 
     configure_oci_runtime $oci_runtime;
