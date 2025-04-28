@@ -542,7 +542,7 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>get_guest_ipaddr($self, @subnets_in_route)</code></pre>
 
-<p>Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr].</p>
+<p>Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr]. Sometimes guest may have more than one ip address assigned to a single interface, which is valid scenario. Getting the first one is enough to interact with the guest. Tumbleweed or agama guest may change ip addresses after reboot, so their ip addresses should always be refreshed after reboot.</p>
 
 <h2 id="monitor_guest_installation">monitor_guest_installation</h2>
 
@@ -578,7 +578,7 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>check_guest_installation_result_via_ssh($self)</code></pre>
 
-<p>Get guest ip address and check whether it is already up and running by using ip address and name sequentially. Use very common linux command &#39;hostname&#39; to do the actual checking because it is almost available on any linux flavor and release.</p>
+<p>Get guest ip address and check whether it is already up and running by using ip address and name sequentially. Use very common linux command &#39;hostname&#39; to do the actual checking because it is almost available on any linux flavor and release. For guest having [guest_network_type]=&#39;bridge&#39; and [guest_network_mode]=&#39;host&#39;, FQDN is to be used on ssh command because it might not be reached by using its name only due to broader DHCP/DNS configuration problem in testing network.</p>
 
 <h2 id="attach_guest_installation_screen">attach_guest_installation_screen</h2>
 
