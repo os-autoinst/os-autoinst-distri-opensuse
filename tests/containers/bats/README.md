@@ -55,7 +55,6 @@ NOTES
 
 NOTES
  - The special value `all` may be used to skip all tests.
- - The special value `none` should be used to avoid skipping any subtests.
 
 ### Summary of the `BATS_SKIP` variables
 
