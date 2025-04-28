@@ -601,4 +601,41 @@ subtest '[crm_resource_locate] Verify cmd' => sub {
     is crm_resource_locate(crm_resource => 'rsc_sap_QES_ASCS01'), 'qesscs01lc14', 'Return correct hostname';
 };
 
+subtest '[crm_resource_meta_show]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_output => sub { @calls = @_; return; });
+
+    crm_resource_meta_show(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /resource meta Hogwarts/, @calls), 'Call "meta" option');
+    ok((grep /show/, @calls), 'Specify "show" action');
+    ok((grep /RoomOfRequirement/, @calls), 'Specify meta-arg name');
+};
+
+subtest '[crm_resource_meta_set] Set value' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
+
+    crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement', argument_value => 'enter');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /crm/, @calls), 'Execute "crm" command.');
+    ok((grep /resource meta Hogwarts/, @calls), 'Call "meta" option');
+    ok((grep /set/, @calls), 'Specify "set" action');
+    ok((grep /RoomOfRequirement/, @calls), 'Specify meta-arg name');
+};
+
+subtest '[crm_resource_meta_set] Delete meta-argument' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
+
+    crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((grep /delete/, @calls), 'Specify "delete" action');
+
+};
+
 done_testing;

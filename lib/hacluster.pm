@@ -91,6 +91,8 @@ our @EXPORT = qw(
   crm_wait_failcount
   crm_resources_by_class
   crm_resource_locate
+  crm_resource_meta_show
+  crm_resource_meta_set
 );
 
 =head1 SYNOPSIS
@@ -1689,7 +1691,7 @@ Waits till crm fail count reached non-zero value of fail after B<timeout>
 
 sub crm_wait_failcount {
     my (%args) = @_;
-    $args{timeout} //= 60;
+    $args{timeout} //= 300;
     $args{delay} //= 5;
 
     croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
@@ -1759,6 +1761,57 @@ sub crm_resource_locate {
     # Command outputs something like: 'resource rsc_sap_QES_ASCS01 is running on: qesscs01lc14'
     my $result = script_output("crm resource locate $args{crm_resource}");
     return (split(':\s', $result))[1];
+}
+
+=head2 crm_resource_meta_show
+
+    crm_resource_meta_show(resource=>'Totoro', meta_argument=>'neighbour');
+
+Return resource meta-argument value.
+
+=over
+
+=item * B<resource>: Resource containing parameter
+
+=item * B<meta_argument>: Meta-argument name
+
+=back
+
+=cut
+
+sub crm_resource_meta_show {
+    my (%args) = @_;
+    for my $arg ('resource', 'meta_argument') {
+        croak("Mandatory argument '$arg' missing.") unless $arg;
+    }
+    return script_output("crm resource meta $args{resource} show $args{meta_argument}");
+}
+
+=head2 crm_resource_meta_set
+
+    crm_resource_meta_set(resource=>'Totoro', meta_argument=>'neighbour', argument_value=>'my');
+
+Change or delete resource meta-argument value.
+
+=over
+
+=item * B<resource>: Resource containing parameter
+
+=item * B<meta_argument>: Meta-argument name
+
+=item * B<argument_value>: Meta-argument value. If B<undef>, meta argument will be removed.
+
+=back
+
+=cut
+
+sub crm_resource_meta_set {
+    my (%args) = @_;
+    for my $arg ('resource', 'meta_argument') {
+        croak("Mandatory argument '$arg' missing.") unless $arg;
+    }
+    my $action = $args{argument_value} ? 'set' : 'delete';
+    assert_script_run("crm resource meta $args{resource} $action $args{meta_argument}");
 }
 
 1;
