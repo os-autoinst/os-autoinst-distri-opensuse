@@ -336,12 +336,12 @@ sub bats_tests {
     }
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
-    my $cmd = "env $env bats --tap $tests";
+    my $cmd = "env $env bats --tap -T $tests";
     # With podman we must use its own hack/bats instead of calling bats directly
     if ($package eq "podman") {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
         $args .= " --remote" if ($log_file =~ /remote/);
-        $cmd = "env $env hack/bats -t $args";
+        $cmd = "env $env hack/bats -t -T $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
     $cmd .= " | tee -a $log_file";
