@@ -6,8 +6,6 @@ schedule:
     - yam/agama/boot_agama
     - yam/agama/agama_auto
     - installation/first_boot
-    - yam/validate/validate_repositories
-    - console/validate_repos
     - console/system_prepare
     - console/hostname
     - console/force_scheduled_tasks
