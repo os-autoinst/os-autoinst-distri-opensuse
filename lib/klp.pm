@@ -66,7 +66,8 @@ sub install_klp_product {
         assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
         assert_script_run 'sed -i "/^multiversion\.kernels =.*/c\\multiversion.kernels = latest" /etc/zypp/zypp.conf';
         assert_script_run 'echo "LIVEPATCH_KERNEL=\'always\'" >> /etc/sysconfig/livepatching';
-        install_package($livepatch_pack, trup_continue => 1, trup_reboot => 1);
+        install_package($livepatch_pack, trup_continue => 1, trup_reboot => 1)
+          unless is_sle_micro('=6.0') && $livepatch_pack eq 'kernel-rt-livepatch-6.4.0-10.1';
     } else {
         zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
         zypper_call("mr -e kgraft-update") unless $livepatch_repo;
