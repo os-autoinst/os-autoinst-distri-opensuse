@@ -88,7 +88,7 @@ Please add this warning on each bug report you open when adding instructions on 
 - [Tumbleweed](https://github.com/os-autoinst/opensuse-jobgroups/blob/master/job_groups/opensuse_tumbleweed.yaml)
 - [Latest SLE 16](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host_sle16.yaml)
 - [Latest SLES 15](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host.yaml)
-- [SLES 15-SP3+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
+- [SLES 15-SP4+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
 
 NOTES
 - As of now, all jobs are `x86_64` only.
@@ -104,7 +104,6 @@ NOTES
 | SLES 15 SP6         |                 | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
 | SLES 15 SP5         |                 | [![logo]][sp5_b] | [![logo]][sp5_n] |                  | [![logo]][sp5_r] | [![logo]][sp5_s] |
 | SLES 15 SP4         |                 | [![logo]][sp4_b] |                  |                  | [![logo]][sp4_r] | [![logo]][sp4_s] |
-| SLES 15 SP3         |                 |                  |                  |                  | [![logo]][sp3_r] | [![logo]][sp3_s] |
 
 [logo]: logo.svg
 
@@ -147,9 +146,6 @@ NOTES
 [sp4_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=buildah_testsuite
 [sp4_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=runc_testsuite
 [sp4_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=skopeo_testsuite
-
-[sp3_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=runc_testsuite
-[sp3_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP3&arch=x86_64&test=skopeo_testsuite
 
 ## Skipped tests
 

@@ -136,14 +136,6 @@ sub switch_to_user {
         ensure_serialdev_permissions;
     }
 
-    my $subuid_start = get_user_subuid($user);
-    if ($subuid_start eq '') {
-        # bsc#1185342 - YaST does not set up subuids/-gids for users
-        $subuid_start = 200000;
-        my $subuid_range = $subuid_start + 65535;
-        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
-    }
-    assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
 
     select_user_serial_terminal();
