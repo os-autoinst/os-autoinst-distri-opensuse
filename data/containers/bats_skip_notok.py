@@ -28,6 +28,11 @@ def comment_not_ok(path, tests):
     Comment "not ok" lines in path for the specified tests
     """
     skipped = re.compile(rf"in test file .*/(?:{'|'.join(tests)})\.bats")
+    # Some podman tests may not show the "in test file" line above but we can leverage:
+    # "not ok 295 [130] podman kill - print IDs or raw input in 894ms"
+    # Translate "001-foobar" to "001"
+    numeric = [t.split("-")[0] for t in tests if re.match(r"^\d{3}-", t)]
+    skipped2 = re.compile(rf"not ok \d+ \[(?:{'|'.join(numeric)})\]") if numeric else None
     in_not_ok_block = False
     comment_block = False
     buffer = []
@@ -41,7 +46,7 @@ def comment_not_ok(path, tests):
                 flush(file, buffer, comment_block)
                 buffer = [line]
                 in_not_ok_block = True
-                comment_block = False
+                comment_block = bool(skipped2 is not None and skipped2.search(line))
             elif line.startswith("ok"):
                 flush(file, buffer, comment_block)
                 print(line, file=file)
