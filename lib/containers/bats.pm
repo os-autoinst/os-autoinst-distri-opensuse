@@ -369,7 +369,7 @@ sub bats_tests {
 
     parse_extra_log(TAP => $log_file);
 
-    run_command "rm -rf $tmp_dir";
+    run_command "rm -rf $tmp_dir || true";
 
     return ($ret);
 }
