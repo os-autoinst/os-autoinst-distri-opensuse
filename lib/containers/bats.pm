@@ -348,7 +348,7 @@ sub bats_tests {
     if ($package eq "podman") {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
         $args .= " --remote" if ($log_file =~ /remote/);
-        $cmd = "hack/bats -t $args";
+        $cmd = "env $env hack/bats -t $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
     $cmd .= " | tee -a $log_file";
