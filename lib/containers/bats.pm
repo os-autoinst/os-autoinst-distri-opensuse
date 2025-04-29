@@ -318,7 +318,8 @@ sub bats_tests {
 
     my $package = get_required_var("BATS_PACKAGE");
 
-    my $tmp_dir = script_output "mktemp -d -p /var/tmp test.XXXXXX";
+    my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
+    run_command "mkdir -p $tmp_dir";
     selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
 
     $env{BATS_TMPDIR} = $tmp_dir;
