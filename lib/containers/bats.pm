@@ -176,7 +176,6 @@ sub patch_logfile {
     @skip_tests = uniq sort @skip_tests;
 
     foreach my $test (@skip_tests) {
-        next if ($test eq "none");
         if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
             record_info("PASS", $test);
         }
