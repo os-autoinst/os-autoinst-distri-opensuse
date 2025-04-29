@@ -33,7 +33,7 @@ our @EXPORT = qw(
 
 =head2 create_sap_systems_tfvars
 
-    create_sap_systems_tfvars(workload_vnet_code=>'SAP04' [, av_zones=>'true']);
+    create_sap_systems_tfvars(workload_vnet_code=>'SAP04', os_image=>$os_img [, av_zones=>'true']);
 
 Creates data structure with content of sap systems tfvars file according to provided arguments and required OpenQA
 settings. Data structure converted into tfvars format is written into target file.
@@ -85,7 +85,7 @@ sub create_sap_systems_tfvars {
         app_server_count => $app_server_count, sap_sid => $sap_sid);
     $tfvars_data{miscellaneous_settings} = define_miscellaneous_settings();
     $tfvars_data{nfs_support} = define_nfs_settings();
-    $tfvars_data{vm_images} = define_vm_images(os_image => get_required_var('PUBLIC_CLOUD_IMAGE_ID'));
+    $tfvars_data{vm_images} = define_vm_images(os_image => $args{os_image});
 
     my $tfvars_file = get_os_variable('sap_system_parameter_file');
     write_tfvars_file(tfvars_data => \%tfvars_data, tfvars_file => $tfvars_file);

@@ -238,7 +238,7 @@ sub find_deployment_id {
         }
     }
 
-    record_info("Job IDs found", Dumper(@check_list));
+    diag("Job IDs found", Dumper(@check_list));
     my @ids_found;
     for my $deployment_id (@check_list) {
         my $vm_name =
@@ -246,7 +246,7 @@ sub find_deployment_id {
         push(@ids_found, $deployment_id) if $vm_name;
 
         # Set SDAF_GRANDPARENT_ID, SDAF cleanup job needs this id for cleanup
-        set_var('SDAF_GRANDPARENT_ID', $deployment_id);
+        set_var('SDAF_GRANDPARENT_ID', $deployment_id) if $vm_name;
     }
     die "More than one deployment found.\nJobs IDs: " .
       join(', ', @check_list) . "\nVMs found: " . join(', ', @ids_found) if @ids_found > 1;
