@@ -16,6 +16,7 @@ use Exporter qw(import);
 our @EXPORT = qw(
   saphostctrl_list_databases
   parse_instance_name
+  saphostctrl_list_instances
 );
 
 my $saphostctrl = '/usr/sap/hostctrl/exe/saphostctrl';
@@ -99,3 +100,35 @@ sub parse_instance_name {
     return (\@result);
 }
 
+=head2 saphostctrl_list_instances
+
+    saphostctrl_list_instances([as_root=>1]);
+
+Lists all locally installed instances.
+Executes command 'saphostctrl -function ListInstances' and returns parsed result in HASHREF.
+
+=over
+
+=item * B<as_root>: Execute command using sudo. Default: false
+
+=back
+
+=cut
+
+sub saphostctrl_list_instances {
+    my (%args) = @_;
+    my @instances;
+    # command returns data for each DB in new line = one array entry for each DB
+    my $sudo = $args{as_root} ? 'sudo' : '';
+    my $cmd = join(' ', $sudo, $saphostctrl, '-function', 'ListInstances', "| grep 'Inst Info'");
+    for my $instance (split("\n", script_output($cmd))) {
+        my @instance_data = split(/\s:\s|\s-\s/, $instance);
+        push(@instances, {
+                sap_sid => $instance_data[1],
+                instance_id => $instance_data[2],
+                hostname => $instance_data[3],
+                nw_release => $instance_data[4]
+        });
+    }
+    return \@instances;
+}

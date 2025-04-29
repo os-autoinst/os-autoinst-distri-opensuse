@@ -87,6 +87,10 @@ our @EXPORT = qw(
   show_cluster_parameter
   set_cluster_parameter
   prepare_console_for_fencing
+  crm_get_failcount
+  crm_wait_failcount
+  crm_resources_by_class
+  crm_resource_locate
 );
 
 =head1 SYNOPSIS
@@ -1636,6 +1640,125 @@ sub prepare_console_for_fencing {
     send_key 'ctrl-l';
     send_key 'ret';
     select_console 'root-console';
+}
+
+=head2 crm_get_failcount
+
+    crm_get_failcount(crm_resource=>'ASCS_00' [, assert_result=>'true']);
+
+Returns failcount number for specified resource.
+
+=over
+
+=item * B<crm_resource>: Cluster resource name
+
+=item * B<assert_result>: Make test fail instead of returning value. Default: 'false'
+
+=back
+
+=cut
+
+sub crm_get_failcount {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
+    my $cmd = join(' ', 'crm_failcount', '--query', "--resource=$args{crm_resource}");
+    my %result = map { my ($key, $value) = split(/=/, $_); $key => $value } split(/ +/, script_output($cmd));
+    die "Cluster resource '$args{crm_resource}' has positive fail count value: '$result{value}'"
+      if $result{value} != '0' && $args{assert_result};
+
+    return $result{value};
+}
+
+=head2 crm_wait_failcount
+
+    crm_wait_failcount(crm_resource=>'ASCS_00' [, timeout=>'60', delay=>'3']);
+
+Waits till crm fail count reached non-zero value of fail after B<timeout>
+
+=over
+
+=item * B<crm_resource>: Cluster resource name
+
+=item * B<timeout>: Give up after timeout in sec. Default 60 sec.
+
+=item * B<delay>: Delay between retries. Default: 5 sec
+
+=back
+
+=cut
+
+sub crm_wait_failcount {
+    my (%args) = @_;
+    $args{timeout} //= 60;
+    $args{delay} //= 5;
+
+    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
+
+    my $result = 0;
+    my $start_time = time;
+    while ($result == 0) {
+        $result = crm_get_failcount(crm_resource => $args{crm_resource});
+        sleep $args{delay};
+        last if (time() > ($start_time + $args{timeout}));
+    }
+
+    die "Fail count is still 0 after timeout: '$args{timeout}'" if $result == 0;
+    return ($result);
+}
+
+
+=head2 crm_resources_by_class
+
+    crm_resources_by_class(primitive_class=>'stonith:external/sbd');
+
+Returns resource name ARRAYREF filtered by class.
+Refer to CRM help pages for details: C<crm configure show --help> and C<crm ra classes>
+
+=over
+
+=item * B<primitive_class>: CRM resource class name. Example: 'stonith:external/sbd', 'IPaddr2'
+
+=back
+
+=cut
+
+sub crm_resources_by_class {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: "$args{primitive_class}"' unless $args{primitive_class};
+    my @result;
+    # Filter only 'primitive' line
+    foreach (split("\n", script_output("crm configure show related:$args{primitive_class} | grep primitive"))) {
+        # split primitive line "primitive <name> <class>"
+        my @aux = split(/\s+/, $_);
+        if ($aux[2]) {
+            # additional check if returned resource exists for some bogus value
+            assert_script_run("crm resource status $aux[1]");
+            push @result, $aux[1];
+        }
+    }
+    return \@result;
+}
+
+=head2 crm_resource_locate
+
+    crm_resource_locate(crm_resource=>'ASCS_00');
+
+Returns hostname of cluster node where defined B<crm_resource> currently resides.
+
+=over
+
+=item * B<crm_resource>: Cluster resource name
+
+=back
+
+=cut
+
+sub crm_resource_locate {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: "$args{crm_resource}"' unless $args{crm_resource};
+    # Command outputs something like: 'resource rsc_sap_QES_ASCS01 is running on: qesscs01lc14'
+    my $result = script_output("crm resource locate $args{crm_resource}");
+    return (split(':\s', $result))[1];
 }
 
 1;

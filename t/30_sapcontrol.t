@@ -120,4 +120,14 @@ sapen2as, 0, 50013, 50014, 1, MESSAGESERVER|ENQUE, GREEN';
     undef_vars();
 };
 
+subtest '[get_instance_type]' => sub {
+    my $sapcontrol = Test::MockModule->new('sles4sap::sapcontrol', no_auto => 1);
+    $sapcontrol->redefine(sapcontrol => sub { return ('INSTANCE_NAME, Attribute, ERS02') });
+    is get_instance_type(local_instance_id => '00'), 'ERS', 'Return instance type: "ERS"';
+};
+
+subtest '[get_remoget_instance_typete_instance_number] Mandatory args' => sub {
+    dies_ok { get_instance_type(local_instance_id => '00') }, 'Fail with missing argument "local_instance_id"';
+};
+
 done_testing;
