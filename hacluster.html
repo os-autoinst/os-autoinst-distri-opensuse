@@ -67,6 +67,10 @@
       <li><a href="#set_cluster_parameter">set_cluster_parameter</a></li>
       <li><a href="#show_cluster_parameter">show_cluster_parameter</a></li>
       <li><a href="#prepare_console_for_fencing">prepare_console_for_fencing</a></li>
+      <li><a href="#crm_get_failcount">crm_get_failcount</a></li>
+      <li><a href="#crm_wait_failcount">crm_wait_failcount</a></li>
+      <li><a href="#crm_resources_by_class">crm_resources_by_class</a></li>
+      <li><a href="#crm_resource_locate">crm_resource_locate</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -528,6 +532,67 @@
 <pre><code>prepare_console_for_fencing();</code></pre>
 
 <p>Some HA tests modules will cause a node to fence. In these cases, the tests will need to assert a <b>grub2</b> or <b>bootmenu</b> screen, so the modules will need to select the <code>root-console</code> before any calls to <code>assert_screen</code>. On some systems, a simple call to <code>select_console &#39;root-console&#39;</code> will not work as the console could be &quot;dirty&quot; with messages obscuring the root prompt. This function will pre-select the console without asserting anything on the screen, clear it, and then select it normally.</p>
+
+<h2 id="crm_get_failcount">crm_get_failcount</h2>
+
+<pre><code>crm_get_failcount(crm_resource=&gt;&#39;ASCS_00&#39; [, assert_result=&gt;&#39;true&#39;]);</code></pre>
+
+<p>Returns failcount number for specified resource.</p>
+
+<ul>
+
+<li><p><b>crm_resource</b>: Cluster resource name</p>
+
+</li>
+<li><p><b>assert_result</b>: Make test fail instead of returning value. Default: &#39;false&#39;</p>
+
+</li>
+</ul>
+
+<h2 id="crm_wait_failcount">crm_wait_failcount</h2>
+
+<pre><code>crm_wait_failcount(crm_resource=&gt;&#39;ASCS_00&#39; [, timeout=&gt;&#39;60&#39;, delay=&gt;&#39;3&#39;]);</code></pre>
+
+<p>Waits till crm fail count reached non-zero value of fail after <b>timeout</b></p>
+
+<ul>
+
+<li><p><b>crm_resource</b>: Cluster resource name</p>
+
+</li>
+<li><p><b>timeout</b>: Give up after timeout in sec. Default 60 sec.</p>
+
+</li>
+<li><p><b>delay</b>: Delay between retries. Default: 5 sec</p>
+
+</li>
+</ul>
+
+<h2 id="crm_resources_by_class">crm_resources_by_class</h2>
+
+<pre><code>crm_resources_by_class(primitive_class=&gt;&#39;stonith:external/sbd&#39;);</code></pre>
+
+<p>Returns resource name ARRAYREF filtered by class. Refer to CRM help pages for details: <code>crm configure show --help</code> and <code>crm ra classes</code></p>
+
+<ul>
+
+<li><p><b>primitive_class</b>: CRM resource class name. Example: &#39;stonith:external/sbd&#39;, &#39;IPaddr2&#39;</p>
+
+</li>
+</ul>
+
+<h2 id="crm_resource_locate">crm_resource_locate</h2>
+
+<pre><code>crm_resource_locate(crm_resource=&gt;&#39;ASCS_00&#39;);</code></pre>
+
+<p>Returns hostname of cluster node where defined <b>crm_resource</b> currently resides.</p>
+
+<ul>
+
+<li><p><b>crm_resource</b>: Cluster resource name</p>
+
+</li>
+</ul>
 
 
 </body>
