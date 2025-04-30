@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'systemctl';
 use hacluster;
+use version_utils qw(is_sle);
 use strict;
 use warnings;
 
@@ -24,6 +25,7 @@ sub run {
     my $lun = get_lun;
     my $sap_dir = "/usr/sap/$sid";
     my ($proto, $path) = $self->fix_path(get_required_var('NW'));
+    my $nfs_client_service_name = is_sle('16+') ? 'nfs-client.target' : 'nfs.service';
 
     # LUN information is needed after for the HA configuration
     set_var('INSTANCE_LUN', "$lun");
@@ -39,8 +41,8 @@ sub run {
     # Mount NFS filesystem
     assert_script_run "echo '$path/$arch/nfs_share/sapmnt /sapmnt $proto defaults,bg 0 0' >> /etc/fstab";
     assert_script_run "echo '$path/$arch/nfs_share/usrsapsys $sap_dir/SYS $proto defaults,bg 0 0' >> /etc/fstab";
-    systemctl 'enable nfs';
-    systemctl 'start nfs';
+    systemctl "enable $nfs_client_service_name";
+    systemctl "start $nfs_client_service_name";
     foreach my $mountpoint ('/sapmnt', "$sap_dir/SYS") {
         assert_script_run "mkdir -p $mountpoint && mount $mountpoint";
 

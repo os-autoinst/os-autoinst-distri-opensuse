@@ -4,12 +4,17 @@ description: >
   SLES4SAP Agama Auto Installation on pvm_hmc
   Run HANA or NetWeaver installation and test by conditional
 schedule:
+  - '{{barrier_init}}'
   - yam/agama/boot_agama
   - installation/agama_reboot
   - installation/first_boot
   - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
   - sles4sap/patterns
   - '{{single_node_testcase}}'
+  - '{{multi_node_testcase}}'
 conditional_schedule:
   single_node_testcase:
     SINGLE_NODE_TESTCASE:
@@ -19,3 +24,41 @@ conditional_schedule:
       single_node_netweaver:
         - sles4sap/netweaver_install
         - sles4sap/netweaver_test_instance
+  multi_node_testcase:
+    MULTI_NODE_TESTCASE:
+      two_nodes_netweaver_cluster:
+        - ha/firewall_disable
+        - ha/iscsi_client_setup
+        - ha/setup_hosts_and_luns
+        - ha/watchdog
+        - '{{cluster_setup}}'
+        - sles4sap/netweaver_network
+        - sles4sap/netweaver_filesystems
+        - sles4sap/netweaver_install
+        - sles4sap/netweaver_cluster
+        - sles4sap/monitoring_services
+        - '{{cluster_connector}}'
+        - ha/fencing
+        - '{{boot_to_desktop}}'
+        - ha/check_after_reboot
+        - ha/check_logs
+        - shutdown/shutdown
+  barrier_init:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/barrier_init
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join
+  cluster_connector:
+    HA_CLUSTER_INIT:
+      yes:
+        - sles4sap/sap_suse_cluster_connector
+  boot_to_desktop:
+    HA_CLUSTER_INIT:
+      yes:
+        - installation/handle_reboot
+        - installation/first_boot
