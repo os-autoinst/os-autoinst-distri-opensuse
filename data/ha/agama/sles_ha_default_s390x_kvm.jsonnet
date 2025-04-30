@@ -1,7 +1,16 @@
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE}}'
+    registrationCode: '{{SCC_REGCODE}}',
+    addons: [
+      {
+        id: 'sle-ha',
+        registrationCode: '{{SCC_REGCODE_HA}}'
+      }
+    ]
+  },
+  bootloader: {
+    stopOnBootMenu: true,
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',
@@ -11,13 +20,12 @@
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true,
-    sshPublicKey: 'enable ssh',
+    hashedPassword: true
   },
   scripts: {
     post: [
       {
-        name: 'enable sshd',
+        name: 'enable root login sshd',
         chroot: true,
         content: |||
           #!/usr/bin/env bash
