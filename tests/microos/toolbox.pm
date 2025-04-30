@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run simple toolbox tests
@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use containers::common;
-use version_utils qw(is_sle_micro is_leap_micro);
+use version_utils qw(is_sle_micro is_leap_micro is_microos);
 use transactional;
 use Utils::Architectures qw(is_ppc64le);
 
@@ -71,6 +71,8 @@ sub run {
         # $image = suse/sle-15-sp3/update/products/microos51/update/cr/images/suse/sle-micro/5.1/toolbox:latest
         (my $registry = $toolbox_image_to_test) =~ s/\/.*//;
         (my $image = $toolbox_image_to_test) =~ s/^[^\/]*\///;
+        # CONTAINER_IMAGE_TO_TEST may have a totest tumbleweed image
+        ($image) =~ s/\/tumbleweed(?:latest)?$/\/toolbox/ if is_microos;
         assert_script_run "echo REGISTRY=$registry > /etc/toolboxrc";
         assert_script_run "echo IMAGE=$image >> /etc/toolboxrc";
         record_info 'toolboxrc', script_output('cat /etc/toolboxrc');
