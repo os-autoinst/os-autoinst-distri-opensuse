@@ -62,24 +62,24 @@ sub run {
       validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, retry => 10, delay => 30, timeout => 120, fail_message => "$release_name-$component didn't deploy");
       my @pods = split(' ', script_output("kubectl get pods -l component=$component"));
       my $full_pod_name = $pods[0];
-      assert_script_run('test $(kubectl get pod $full_pod_name --no-headers -o "jsonpath={..status.conditions[?(@.type==\"Ready\")].status}"', retry => 10, delay => 30, fail_message => "$full_pod_name is not in the Ready state!");
+      assert_script_run("test $(kubectl get pod $full_pod_name --no-headers -o 'jsonpath={..status.conditions[?(@.type==\"Ready\")].status}'", retry => 10, delay => 30, fail_message => "$full_pod_name is not in the Ready state!");
     }
     
-    # Get the webui credentials & ingress
-    $registry_password = script_run(kubectl get secrets "$release_name-core" --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0);
-    $registry_ingress_url = script_run(kubectl get ingress "$release_name-ingress" -o jsonpath="{.spec..host}");
+    # Get the webui credentials & ingress url
+    my $registry_password = script_run("kubectl get secrets $release_name-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
+    my $registry_ingress_url = script_run("kubectl get ingress $release_name-ingress -o jsonpath='{.spec..host}'");
 
     # Login 
-    assert_script_run('podman login --username admin --password $registry_password --tls-verify=false') 
-    assert_script_run('helm registry login --username admin --password $registry_password --insecure')
+    assert_script_run("podman login --username admin --password $registry_password --tls-verify=false") 
+    assert_script_run("helm registry login --username admin --password $registry_password --insecure")
 
     # Push container
-    assert_script_run('podman pull $test_image:latest')
-    assert_script_run('podman push $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false')
+    assert_script_run("podman pull $test_image:latest")
+    assert_script_run("podman push $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false")
 
     # Push chart
-    assert_script_run('helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .')
-    assert_script_run('helm push dummy_chart.tar.gz oci://$registry_ingress_url/library')
+    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .")
+    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library")
     
 } 
 
