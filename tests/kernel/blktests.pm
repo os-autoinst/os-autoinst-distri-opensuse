@@ -61,7 +61,7 @@ sub run {
     script_run('chmod +x post_process');
     script_run('./post_process');
 
-    record_info('LS', script_output('ll'));
+    record_info('LS', script_output('ls'));
 
     if ($devices ne 'none') {
         my @all_dev = split(' ', $devices);
