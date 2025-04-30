@@ -27,18 +27,19 @@ sub get_kernel_flavor {
 
 sub remove_kernel_packages {
     my @packages;
+    my @devpacks;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         # workaround for bsc1227773
         @packages = qw(kernel-rt);
-        push @packages, qw(kernel-rt-devel kernel-source-rt) unless is_transactional;
+        @devpacks = qw(kernel-rt-devel kernel-source-rt);
     }
     elsif (get_kernel_flavor eq 'kernel-64kb') {
         @packages = qw(kernel-64kb*);
     }
     else {
         @packages = qw(kernel-default);
-        push @packages, qw(kernel-default-devel kernel-macros kernel-source) unless is_transactional;
+        @devpacks = qw(kernel-default-devel kernel-macros kernel-source);
     }
 
     # SLE12 and SLE12SP1 has xen kernel
@@ -46,17 +47,18 @@ sub remove_kernel_packages {
         push @packages, qw(kernel-xen kernel-xen-devel);
     }
 
-    my @retlist = @packages;
-    push @packages, "multipath-tools"
+    my @rmpacks = @packages;
+    push @rmpacks, @devpacks unless is_transactional;
+    push @rmpacks, "multipath-tools"
       if is_sle('>=15-SP3') and !get_var('KGRAFT');
 
     if (is_transactional) {
-        trup_call 'pkg remove ' . join(' ', @packages);
+        trup_call 'pkg remove ' . join(' ', @rmpacks);
     } else {
-        zypper_call('-n rm ' . join(' ', @packages), exitcode => [0, 104]);
+        zypper_call('-n rm ' . join(' ', @rmpacks), exitcode => [0, 104]);
     }
 
-    return @retlist;
+    return (@packages, @devpacks);
 }
 
 1;

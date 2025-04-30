@@ -7,6 +7,7 @@
 # Summary: This module installs maint update under test for kernel/kgraft to ltp work image
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
+package update_kernel;
 use 5.018;
 use warnings;
 use strict;
@@ -29,11 +30,13 @@ sub check_kernel_package {
     my $kernel_name = shift;
 
     enter_trup_shell(global_options => '-c') if is_transactional;
-    script_run('ls -1 /boot/vmlinu[xz]*');
+    script_run('shopt -s nullglob');
+    script_run('ls -1 /boot/vmlinu[xz]* /boot/[Ii]mage*');
+    script_run('shopt -u nullglob');
     # Only check versioned kernels in livepatch tests. Some old kernel
     # packages install /boot/vmlinux symlink but don't set package ownership.
     my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
-    my $cmd = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
+    my $cmd = 'shopt -s nullglob; rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob . ' /boot/[Ii]mage' . $glob;
     my $packs = script_output($cmd);
     exit_trup_shell if is_transactional;
 
@@ -46,16 +49,11 @@ sub check_kernel_package {
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
 sub first_azure_release {
-    my $repo = shift;
+    my ($self, $repo) = @_;
 
     fully_patch_system;
     remove_kernel_packages();
-
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar $val kernel-update-$i");
-    }
-
+    $self->add_update_repos($repo);
     zypper_call("ref");
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     zypper_call('in kernel-devel');
@@ -85,7 +83,7 @@ sub prepare_kernel_base {
 }
 
 sub update_kernel {
-    my ($repo, $incident_id) = @_;
+    my ($self, $repo, $incident_id) = @_;
 
     fully_patch_system;
 
@@ -96,10 +94,7 @@ sub update_kernel {
         zypper_call('in kernel-devel');
     }
 
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar -G $val kernel-update-$i");
-    }
+    $self->add_update_repos($repo);
     zypper_call("ref");
 
     #Get patch list related to incident
@@ -225,13 +220,11 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    unless (is_sle_micro) {
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            push @packages, "kernel-devel-rt";
-        }
-        else {
-            push @packages, "kernel-devel";
-        }
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        push @packages, "kernel-devel-rt";
+    }
+    else {
+        push @packages, "kernel-devel";
     }
 
     # add explicit version to each package
@@ -250,20 +243,57 @@ sub install_lock_kernel {
     exit_trup_shell if is_transactional;
 }
 
+sub add_update_repos {
+    my ($self, $repo) = @_;
+
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        my $cur_repo = "kernel-update-$i";
+        zypper_call("ar -G $val $cur_repo");
+        my $pkgs = zypper_search("-s -t package -r $cur_repo");
+        $self->{repos}->{$cur_repo} = $pkgs;
+    }
+}
+
+sub enable_update_repos {
+    my ($self, $enable) = @_;
+    my $arg = ($enable // 1) ? '-e' : '-d';
+
+    for my $repo (keys %{$self->{repos}}) {
+        zypper_call("mr $arg $repo");
+    }
+}
+
+sub prepare_increment_livepatch {
+    my ($self, $kflavor, $kver) = @_;
+
+    my $klp_pkg;
+    while (my ($cur_repo, $pkgs) = each(%{$self->{repos}})) {
+        foreach my $pkg (@$pkgs) {
+            my $cur_pkg = is_klp_pkg($pkg);
+            if ($cur_pkg && $$cur_pkg{kflavor} eq $kflavor && $$cur_pkg{kver} eq $kver && (!defined($klp_pkg) || $$cur_pkg{version} > $$klp_pkg{version})) {
+                $klp_pkg = $cur_pkg;
+            }
+        }
+    }
+
+    die "No kernel livepatch package found" unless $klp_pkg;
+    $kver = find_version("kernel-$kflavor", $kver);
+    install_klp_product($kver);
+    return $klp_pkg;
+}
+
 sub prepare_kgraft {
-    my ($repo, $incident_id) = @_;
+    my ($self, $repo, $incident_id) = @_;
 
     #add repository with tested patch
     my $incident_klp_pkg;
     my @all_pkgs;
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        my $cur_repo = "kgraft-test-repo-$i";
-        zypper_call("ar -G $val $cur_repo");
-        my $pkgs = zypper_search("-s -t package -r $cur_repo");
-        #disable kgraf-test-repo for while
-        zypper_call("mr -d $cur_repo");
 
+    $self->add_update_repos($repo);
+    $self->enable_update_repos(0) unless get_var('NO_DISABLE_REPOS');
+
+    while (my ($cur_repo, $pkgs) = each(%{$self->{repos}})) {
         foreach my $pkg (@$pkgs) {
             my $cur_klp_pkg = is_klp_pkg($pkg);
             if ($cur_klp_pkg) {
@@ -359,12 +389,9 @@ sub start_heavy_load {
 }
 
 sub update_kgraft {
-    my ($incident_klp_pkg, $repo, $incident_id) = @_;
+    my ($self, $incident_klp_pkg, $repo, $incident_id) = @_;
 
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        zypper_call("mr -e kgraft-test-repo-$i");
-    }
+    $self->enable_update_repos(1);
 
     # Get patch list related to incident
     my $patches = '';
@@ -423,6 +450,24 @@ sub install_kotd {
     install_package('kernel-devel', trup_continue => 1);
 }
 
+sub update_kgraft_under_load {
+    my ($self, $incident_klp_pkg, $repo, $incident_id) = @_;
+
+    # dependencies for heavy load script
+    add_qa_head_repo;
+    install_package("ltp-stable", trup_reboot => 1);
+
+    # update kgraft patch under heavy load
+    $self->update_kgraft($incident_klp_pkg, $repo, $incident_id);
+
+    enter_trup_shell if is_transactional;
+    zypper_call("rr qa-head");
+    zypper_call("rm ltp-stable");
+    exit_trup_shell if is_transactional;
+
+    verify_klp_pkg_patch_is_active($incident_klp_pkg);
+}
+
 sub boot_to_console {
     my ($self) = @_;
 
@@ -436,6 +481,8 @@ sub boot_to_console {
 sub run {
     my $self = shift;
     my $kernel_package = get_kernel_flavor;
+
+    $self->{repos} = {};
 
     unless (get_var('KERNEL_FLAVOR')) {
         $kernel_package = 'kernel-default-base' if is_sle('<12');
@@ -457,18 +504,38 @@ sub run {
         reboot_on_changes;
     }
 
+    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
+    my $incident_id = undef;
+
     add_extra_customer_repositories;
 
     if (get_var('KERNEL_VERSION')) {
-        downgrade_kernel(get_var('KERNEL_VERSION'));
+        my $kver = get_var('KERNEL_VERSION');
+
+        if ($repo) {
+            $self->add_update_repos($repo);
+            $self->enable_update_repos(0) unless get_var('NO_DISABLE_REPOS');
+        }
+
+        downgrade_kernel($kver);
         check_kernel_package($kernel_package);
         power_action('reboot', textmode => 1);
-        $self->wait_boot if get_var('LTP_BAREMETAL') || is_transactional;
+
+        if (get_var('KGRAFT')) {
+            my $kflavor = $kernel_package =~ s/^kernel-//r;
+
+            boot_to_console($self);
+            my $klp_pkg = $self->prepare_increment_livepatch($kflavor, $kver);
+            $self->update_kgraft_under_load($klp_pkg, $repo);
+            kgraft_state;
+            reboot_on_changes if is_transactional;
+        }
+        else {
+            $self->wait_boot if get_var('LTP_BAREMETAL') || is_transactional;
+        }
+
         return;
     }
-
-    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
-    my $incident_id = undef;
 
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');
@@ -476,23 +543,11 @@ sub run {
     }
 
     if (get_var('KGRAFT')) {
-        my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
+        my $incident_klp_pkg = $self->prepare_kgraft($repo, $incident_id);
         boot_to_console($self);
 
         if (!check_var('REMOVE_KGRAFT', '1')) {
-            # dependencies for heavy load script
-            add_qa_head_repo;
-            install_package("ltp-stable", trup_reboot => 1);
-
-            # update kgraft patch under heavy load
-            update_kgraft($incident_klp_pkg, $repo, $incident_id);
-
-            enter_trup_shell if is_transactional;
-            zypper_call("rr qa-head");
-            zypper_call("rm ltp-stable");
-            exit_trup_shell if is_transactional;
-
-            verify_klp_pkg_patch_is_active($incident_klp_pkg);
+            $self->update_kgraft_under_load($incident_klp_pkg, $repo, $incident_id);
         }
 
         kgraft_state;
@@ -501,23 +556,23 @@ sub run {
         $kernel_package = 'kernel-azure';
 
         if (get_var('AZURE_FIRST_RELEASE')) {
-            first_azure_release($repo);
+            $self->first_azure_release($repo);
         }
         else {
             $self->prepare_azure;
-            update_kernel($repo, $incident_id);
+            $self->update_kernel($repo, $incident_id);
         }
     }
     elsif (get_var('KERNEL_BASE')) {
         $kernel_package = 'kernel-default-base';
         $self->prepare_kernel_base;
-        update_kernel($repo, $incident_id);
+        $self->update_kernel($repo, $incident_id);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
     }
     else {
-        update_kernel($repo, $incident_id);
+        $self->update_kernel($repo, $incident_id);
     }
 
     check_kernel_package($kernel_package);
@@ -576,3 +631,8 @@ Install the kernel version set in this variable instead of the latest update.
 
 Repository URL for installing kernel of the day packages. Update system and
 install new kernel using the simplified installation method.
+
+=head2 NO_DISABLE_REPOS
+
+Skip temporarily disabling update repos after they have been added. This
+means that they will be used during preparatory system update.
