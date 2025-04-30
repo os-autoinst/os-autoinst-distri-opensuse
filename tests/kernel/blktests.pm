@@ -63,6 +63,7 @@ sub run {
 
     record_info('LS', script_output('ls'));
 
+    sleep(999999999);
     if ($devices ne 'none') {
         my @all_dev = split(' ', $devices);
         foreach my $i (@all_dev) {
