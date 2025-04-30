@@ -561,7 +561,7 @@ sub qesap_execute {
         logname => 'somefile.txt'
         [, verbose => 1, cmd_options => '--parallel 3', timeout => 1200, retries => 5, destroy => 1] );
 
-    Execute 'qesap.py ... teraform' and eventually retry for some specific errors.
+    Execute 'qesap.py ... terraform' and eventually retry for some specific errors.
     Test returns execution result in same format of qesap_execute.
 
 =over
