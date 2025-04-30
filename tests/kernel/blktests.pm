@@ -63,7 +63,6 @@ sub run {
 
     record_info('LS', script_output('ls'));
 
-    sleep(999999999);
     if ($devices ne 'none') {
         my @all_dev = split(' ', $devices);
         foreach my $i (@all_dev) {
@@ -72,7 +71,7 @@ sub run {
         }
     }
 
-    #parse_extra_log('XUnit', 'nodev_results.xml');
+    parse_extra_log('XUnit', 'nodev_results.xml');
     #parse_extra_log('XUnit', 'nullb0_results.xml');
 
     script_run('tar -zcvf results.tar.gz results');
