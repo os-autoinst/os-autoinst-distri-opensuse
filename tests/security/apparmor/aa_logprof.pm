@@ -30,6 +30,8 @@ sub run {
     my $output;
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
+    my $test_bin = is_sle('<=15-sp4') ? 'nscd' : 'smbd';
+    my $test_service = is_sle('<=15-sp4') ? 'nscd' : 'smb';
     my $interactive_str = [
         {
             prompt => qr/\(A\)llow/m,
@@ -42,23 +44,23 @@ sub run {
     ];
 
     # Stop smb and restart auditd before generate needed audit logs
-    systemctl('stop smb');
+    systemctl("stop $test_service");
     systemctl("restart $audit_service");
 
     $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 
-    my @aa_logprof_items = ('\s+\/var\/spool\/samba\/.*rw', '\/usr.*\/smbd flags', '\s+\/usr\/lib\*\/samba\/auth\/\*\.so mr');
+    my @aa_logprof_items = is_sle('<=15-sp4') ? ('\/usr.*\/nscd mrix', 'nscd\.conf r') : ('\s+\/var\/spool\/samba\/.*rw', '\/usr.*\/smbd flags', '\s+\/usr\/lib\*\/samba\/auth\/\*\.so mr');
 
     # Remove some rules from profile
     foreach my $item (@aa_logprof_items) {
-        assert_script_run "sed -i '/$item/d' $aa_tmp_prof/usr.sbin.smbd";
+        assert_script_run "sed -i '/$item/d' $aa_tmp_prof/usr.sbin.$test_bin";
     }
 
-    validate_script_output "aa-complain -d $aa_tmp_prof usr.sbin.smbd", sub { m/Setting.*complain/ };
+    validate_script_output "aa-complain -d $aa_tmp_prof usr.sbin.$test_bin", sub { m/Setting.*complain/ };
 
     assert_script_run "echo > $log_file";
 
-    systemctl('start smb');
+    systemctl("start $test_service");
 
     assert_script_run "aa-status | tee /dev/$serialdev";
 
@@ -70,10 +72,10 @@ sub run {
     select_serial_terminal;
 
     foreach my $item (@aa_logprof_items) {
-        validate_script_output "cat $aa_tmp_prof/usr.sbin.smbd", sub { m/$item/ };
+        validate_script_output "cat $aa_tmp_prof/usr.sbin.$test_bin", sub { m/$item/ };
     }
 
-    $self->aa_tmp_prof_verify("$aa_tmp_prof", 'smb');
+    $self->aa_tmp_prof_verify("$aa_tmp_prof", "$test_service");
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
 
     if (!is_sle("<15-sp3") && !is_leap("<15.3")) {

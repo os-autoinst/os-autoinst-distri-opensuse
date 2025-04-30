@@ -28,6 +28,17 @@ use version_utils qw(is_sle is_tumbleweed);
 use constant ENABLED => 1;
 use constant DISABLED => 0;
 
+sub nscd_service_autorestart {
+    my $enable = shift;
+    if ($enable) {
+        assert_script_run 'rm /etc/systemd/system/nscd.service.d/override.conf';
+        assert_script_run 'rmdir /etc/systemd/system/nscd.service.d/';
+    } else {
+        assert_script_run 'mkdir -p /etc/systemd/system/nscd.service.d';
+        assert_script_run 'echo -e "[Service]\nRestart=no" > /etc/systemd/system/nscd.service.d/override.conf';
+    }
+    assert_script_run 'systemctl daemon-reload';
+}
 
 sub smbd_service_autorestart {
     my $enable = shift;
@@ -41,14 +52,15 @@ sub smbd_service_autorestart {
     assert_script_run 'systemctl daemon-reload';
 }
 
-
 sub run {
     my ($self) = @_;
 
     my $tmp_prof = "/tmp/apparmor.d";
     my $audit_log = "/var/log/audit/audit.log";
-    my $executable_name = "/usr/sbin/smbd";
     my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
+    my $test_bin = is_sle('<=15-sp4') ? 'nscd' : 'smbd';
+    my $test_service = is_sle('<=15-sp4') ? 'nscd' : 'smb';
+    my $executable_name = "/usr/sbin/$test_bin";
 
     systemctl("restart $audit_service");
 
@@ -62,35 +74,45 @@ sub run {
     validate_script_output "aa-notify -l", sub { m/^(AppArmor\sdenials:\s+0\s+\(since.*)?$/ };
 
     # Make it failed intentionally to get some audit messages
-    assert_script_run "sed -i '/samba/d' $tmp_prof/usr.sbin.smbd";
-    assert_script_run "cat $tmp_prof/usr.sbin.smbd";
+    assert_script_run "sed -i '/\\/etc\\/nscd.conf/d' $tmp_prof/usr.sbin.nscd" if is_sle('<=15-sp4');
+    assert_script_run "sed -i '/samba/d' $tmp_prof/usr.sbin.smbd" unless is_sle('<=15-sp4');
+    assert_script_run "cat $tmp_prof/usr.sbin.$test_bin";
 
-    assert_script_run "aa-disable smbd";
-    assert_script_run "aa-enforce -d $tmp_prof smbd";
+    assert_script_run "aa-disable $test_bin";
+    assert_script_run "aa-enforce -d $tmp_prof $test_bin";
 
-    smbd_service_autorestart(DISABLED);
+    nscd_service_autorestart(DISABLED) if is_sle('<=15-sp4');
+    smbd_service_autorestart(DISABLED) unless is_sle('<=15-sp4');
 
-    systemctl('restart smb', expect_false => 1);
+    systemctl("restart $test_service", expect_false => 1);
     upload_logs($audit_log);
+
+    validate_script_output "aa-notify -l -v", sub {
+        m/
+            Name:\s+\/etc\/nscd\.conf.*
+            Denied:\s+r.*
+            AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
+    } if is_sle('<=15-sp4');
 
     validate_script_output "aa-notify -l -v", sub {
         m/
             Name:.*samba.*
             Denied:\s+ac.*
             AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
-    };
+    } unless is_sle('<=15-sp4');
 
     # Make sure it could restore to the default profile
-    assert_script_run "aa-disable -d $tmp_prof smbd";
+    assert_script_run "aa-disable -d $tmp_prof $test_bin";
 
     # restore enforce mode
     validate_script_output "aa-enforce $executable_name", sub {
-        m/Setting.*smbd to enforce mode/;
+        m/Setting.*$test_bin to enforce mode/;
     }, timeout => 180;
 
-    systemctl("restart smb");
+    systemctl("restart $test_service");
     $self->aa_tmp_prof_clean("$tmp_prof");
-    smbd_service_autorestart(ENABLED);
+    nscd_service_autorestart(ENABLED) if is_sle('<=15-sp4');
+    smbd_service_autorestart(ENABLED) unless is_sle('<=15-sp4');
 }
 
 1;

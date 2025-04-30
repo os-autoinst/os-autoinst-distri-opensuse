@@ -27,17 +27,19 @@ sub run {
 
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $test_binfiles = "/usr/bin/pam*";
+    my $test_pkg = is_sle('<=15-sp4') ? 'nscd' : 'samba';
+    my $test_bin = is_sle('<=15-sp4') ? 'nscd' : 'smbd';
 
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
-    assert_script_run "aa-autodep -d $aa_tmp_prof/ smbd";
+    assert_script_run "aa-autodep -d $aa_tmp_prof/ $test_bin";
 
-    validate_script_output "cat $aa_tmp_prof/usr.sbin.smbd", sub {
+    validate_script_output "cat $aa_tmp_prof/usr.sbin.$test_bin", sub {
         m/
             include\s+<tunables\/global>.*
-            \/usr\/sbin\/smbd\s+flags=\(complain\)\s*\{.*
+            \/usr\/sbin\/$test_bin\s+flags=\(complain\)\s*\{.*
             include\s+<abstractions\/base>.*
-            \/usr\/sbin\/smbd\s+mr.*
+            \/usr\/sbin\/$test_bin\s+mr.*
             \}/sxx
     };
 
@@ -71,7 +73,7 @@ sub run {
         assert_script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     }
 
-    assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.smbd";
+    assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.$test_bin";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
 
     assert_script_run "aa-status | tee /dev/$serialdev";
@@ -79,7 +81,7 @@ sub run {
     # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.smbd
     # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
     my $target_dir = (is_sle('>=15-SP2') || is_opensuse) ? '/var/cache/apparmor/' : '/var/lib/apparmor/cache/';
-    assert_script_run "find $target_dir -name usr.sbin.smbd -delete";
+    assert_script_run "find $target_dir -name usr.sbin.$test_bin -delete";
 }
 
 1;

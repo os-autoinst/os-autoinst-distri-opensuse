@@ -21,6 +21,7 @@ use warnings;
 use base "apparmortest";
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 use serial_terminal qw(select_serial_terminal);
 
 sub run {
@@ -29,14 +30,17 @@ sub run {
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $sc_dtch_msg = "Screen detached";
     my $sc_term_msg = "Screen terminated";
+    my $test_pkg = is_sle('<=15-sp4') ? 'nscd' : 'samba';
+    my $test_bin = is_sle('<=15-sp4') ? 'nscd' : 'smbd';
+    my $test_service = is_sle('<=15-sp4') ? 'nscd' : 'smb';
 
-    zypper_call('in samba');
+    zypper_call("in $test_pkg");
 
     systemctl('start auditd');
 
     $self->aa_tmp_prof_prepare("$aa_tmp_prof");
 
-    assert_script_run("rm -f  $aa_tmp_prof/usr.sbin.smbd");
+    assert_script_run("rm -f  $aa_tmp_prof/usr.sbin.$test_bin");
 
     # Run aa-genprof command in screen so that we could restart smbd at the
     # same time while it is waiting for scan
@@ -46,7 +50,7 @@ sub run {
     # Confirm it is in the screen
     validate_script_output "echo \$TERM", sub { m/screen/ };
 
-    script_run_interactive("aa-genprof -d $aa_tmp_prof smbd", undef);
+    script_run_interactive("aa-genprof -d $aa_tmp_prof $test_bin", undef);
     wait_serial("Please start the application", 20);
 
     # Detach screen
@@ -55,7 +59,7 @@ sub run {
     send_key 'd';
     wait_serial("$sc_dtch_msg", 10);    # confirm detached
 
-    systemctl('restart smb');
+    systemctl("restart $test_service");
     sleep 3;
 
     # reattach screen
@@ -87,16 +91,16 @@ sub run {
     select_serial_terminal;
 
     # Not all rules will be checked here, only the critical ones.
-    validate_script_output "cat $aa_tmp_prof/usr.sbin.smbd", sub {
+    validate_script_output "cat $aa_tmp_prof/usr.sbin.$test_bin", sub {
         m/
 		    include\s+<tunables\/global>.*
-            \/usr\/sbin\/smbd\s*{.*
+            \/usr\/sbin\/$test_bin\s*{.*
             include\s+<abstractions\/base>.*
-            \/usr\/sbin\/smbd\s+mr.*
+            \/usr\/sbin\/$test_bin\s+mr.*
             }/sxx
     };
 
-    $self->aa_tmp_prof_verify("$aa_tmp_prof", 'smb');
+    $self->aa_tmp_prof_verify("$aa_tmp_prof", "$test_service");
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
 }
 
