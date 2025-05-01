@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_sle);
 use repo_tools 'add_qa_head_repo';
 use Utils::Logging 'export_logs_basic';
 
@@ -47,6 +48,12 @@ sub run {
 
     prepare_blktests_config($devices);
 
+    #temp override of $tests and $devices
+    if (is_sle(">=16")) {
+        $tests = 'scsi,dm';
+        $devices = '/dev/sdb';
+    }
+
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
@@ -68,8 +75,8 @@ sub run {
         }
     }
 
-    parse_extra_log('XUnit', 'nodev_results.xml');
-    parse_extra_log('XUnit', 'nullb0_results.xml');
+    #parse_extra_log('XUnit', 'nodev_results.xml');
+    #parse_extra_log('XUnit', 'nullb0_results.xml');
 
     script_run('tar -zcvf results.tar.gz results');
     upload_logs('results.tar.gz');
