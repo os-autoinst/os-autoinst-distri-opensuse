@@ -51,7 +51,7 @@ sub run {
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
         $tests = 'scsi,dm';
-        $devices = '/dev/sdb';
+        #$devices = '/dev/sdb';
     }
 
     my @tests = split(',', $tests);
