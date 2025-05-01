@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Check for any orphaned packages. There should be none in fully
@@ -47,9 +47,9 @@ sub compare_orphans_lists {
     }
 
     # Summary
-    record_info('Detected Orphans', to_string @detected_orphans);
-    record_info('Orphans whitelisted', $whitelist // 'No orphans whitelisted within the test suite');
-    record_info('Missing', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
+    record_info('Detected orphans', to_string @detected_orphans);
+    record_info('Allowed orphans', $whitelist // 'No orphans whitelisted within the test suite');
+    record_info('Unexpected orphans', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
 
     return ((scalar @missed_orphans) == 0);
 }
