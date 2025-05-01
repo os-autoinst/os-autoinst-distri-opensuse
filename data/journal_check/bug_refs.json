@@ -595,6 +595,16 @@
         },
         "type": "ignore"
     },
+    "detected-falseticket": {
+        "description": "Detected falseticker .*",
+        "products": {
+            "microos":  ["Tumbleweed"],
+            "sle": ["12-SP5", "15", "15-SP1", "15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"],
+            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
+            "leap-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
+        },
+        "type": "ignore"
+    },
     "boo#1212970": {
         "description": "systemd-vconsole-setup\\[.*\\]: /usr/bin/setfont failed with exit status 71.*",
         "products": {
