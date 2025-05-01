@@ -49,7 +49,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go1.24 gpg2 jq libcriu2 libgpgme-devel
-      libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container);
+      libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu) if is_tumbleweed;
     # Needed for podman machine
     if (is_x86_64) {
