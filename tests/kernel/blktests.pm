@@ -45,12 +45,13 @@ sub run {
     #with some packages provided in both, tested product and qa repo; example: fio
     add_qa_head_repo(priority => 100);
     zypper_call('in blktests');
+    zypper_call('in fio');
 
     prepare_blktests_config($devices);
 
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
-        $tests = 'scsi,dm';
+        $tests = 'scsi,dm,loop';
         #$devices = '/dev/sdb';
     }
 
