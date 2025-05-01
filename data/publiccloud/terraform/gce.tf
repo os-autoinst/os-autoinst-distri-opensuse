@@ -144,6 +144,10 @@ resource "google_compute_instance" "openqa" {
     }
   }
 
+  scheduling {
+    on_host_maintenance = "TERMINATE"
+  }
+
   metadata = merge({
     sshKeys             = "susetest:${file("${var.ssh_public_key}")}"
     openqa_created_by   = var.name
