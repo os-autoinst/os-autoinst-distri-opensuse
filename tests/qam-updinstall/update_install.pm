@@ -475,6 +475,13 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    force_soft_failure('Expected to fail') if get_var('BUILD') =~ /update-test-trivial/;
+    return if get_var('BUILD') =~ /update-test-trivial/;
+    $self->SUPER::post_fail_hook;
+}
+
 sub test_flags {
     return {fatal => 1};
 }
