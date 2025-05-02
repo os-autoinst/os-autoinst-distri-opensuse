@@ -50,7 +50,7 @@ sub run {
 
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
-        $tests = 'scsi,dm';
+        $tests = 'loop';
         #$devices = '/dev/sdb';
     }
 
