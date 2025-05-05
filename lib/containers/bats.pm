@@ -20,7 +20,6 @@ use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use Utils::Architectures 'is_aarch64';
-use Utils::Logging 'save_and_upload_log';
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
@@ -111,12 +110,6 @@ sub configure_oci_runtime {
     run_command "mkdir -p /etc/containers/containers.conf.d";
     run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" >> /etc/containers/containers.conf.d/engine.conf';
     record_info("OCI runtime", $oci_runtime);
-}
-
-sub get_user_subuid {
-    my ($user) = shift;
-    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid", proceed_on_failure => 1);
-    return $start_range;
 }
 
 sub switch_to_root {
