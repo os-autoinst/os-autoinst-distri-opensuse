@@ -25,7 +25,7 @@ The tests rely on some variables:
 
 NOTES
 - `BATS_URL` can be a full URL to the tarball in github, `SUSE#branch` or a tag `v1.2.3`
-- `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.diff`
+- `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
 
 ### Summary of the `BATS_SKIP` variables
 
@@ -57,7 +57,7 @@ NOTES
 
 1. Identify the commit(s) that fix the test issue.
 1. Identify the PR ID associated with the commit: `gh pr list --search $COMMIT_SHA --state merged`
-1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.diff` (`runc` is under `opencontainers`)
+1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.patch` (`runc` is under `opencontainers`)
 1. Add the ID to `BATS_PATCHES` sorted numerically for obvious reasons.
 1. Run a verification run with the above setting.
 1. Adjust YAML schedule.
