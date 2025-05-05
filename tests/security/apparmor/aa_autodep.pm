@@ -3,13 +3,13 @@
 
 # Package: apparmor-utils
 # Summary: Single testcase for AppArmor that guesses basic profile requirements
-# for nscd and pam using aa_autodep.
-# - Create a temporary profile for nscd in "/tmp/apparmor.d" using
-# "aa-autodep -d $aa_tmp_prof/ nscd"
-# - Check if "/tmp/apparmor.d/usr.sbin.nscd" contains required fields
+# for smbd and pam using aa_autodep.
+# - Create a temporary profile for smbd in "/tmp/apparmor.d" using
+# "aa-autodep -d $aa_tmp_prof/ smbd"
+# - Check if "/tmp/apparmor.d/usr.sbin.smbd" contains required fields
 # - Create a temporaty profile for /usr/bin/pam*
 # - Output created pam profile to serial output
-# - Disable temporarily created nscd profile
+# - Disable temporarily created smbd profile
 # - Cleanup temporary profiles
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36889, poo#45803, poo#106002
@@ -27,19 +27,19 @@ sub run {
 
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $test_binfiles = "/usr/bin/pam*";
-
-    zypper_call('in nscd');
+    my $test_pkg = is_sle('<=15-sp4') ? 'nscd' : 'samba';
+    my $test_bin = is_sle('<=15-sp4') ? 'nscd' : 'smbd';
 
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
-    assert_script_run "aa-autodep -d $aa_tmp_prof/ nscd";
+    assert_script_run "aa-autodep -d $aa_tmp_prof/ $test_bin";
 
-    validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {
+    validate_script_output "cat $aa_tmp_prof/usr.sbin.$test_bin", sub {
         m/
             include\s+<tunables\/global>.*
-            \/usr\/sbin\/nscd\s+flags=\(complain\)\s*\{.*
+            \/usr\/sbin\/$test_bin\s+flags=\(complain\)\s*\{.*
             include\s+<abstractions\/base>.*
-            \/usr\/sbin\/nscd\s+mr.*
+            \/usr\/sbin\/$test_bin\s+mr.*
             \}/sxx
     };
 
@@ -73,15 +73,15 @@ sub run {
         assert_script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     }
 
-    assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
+    assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.$test_bin";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
 
     assert_script_run "aa-status | tee /dev/$serialdev";
 
-    # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.nscd
+    # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.smbd
     # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
     my $target_dir = (is_sle('>=15-SP2') || is_opensuse) ? '/var/cache/apparmor/' : '/var/lib/apparmor/cache/';
-    assert_script_run "find $target_dir -name usr.sbin.nscd -delete";
+    assert_script_run "find $target_dir -name usr.sbin.$test_bin -delete";
 }
 
 1;
