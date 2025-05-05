@@ -48,8 +48,8 @@ sub run_fips_rsa_tests {
             my $encrypt_cmd = "$openssl_binary pkeyutl -encrypt -in $file_raw -inkey $rsa_pubkey -pubin -out $file_enc";
             my $decrypt_cmd = "$openssl_binary pkeyutl -decrypt -in $file_enc -inkey $rsa_prikey -out $file_dec";
             # should fail without oaep padding and pass with oeap padding
-            validate_script_output "$encrypt_cmd 2>&1", sub { m/illegal or unsupported padding mode/ }, proceed_on_failure => 1;    # Encrypt with public key
-            validate_script_output "$decrypt_cmd 2>&1", sub { m/illegal or unsupported padding mode/ }, proceed_on_failure => 1;    # Decrypt with private key
+            validate_script_output "$encrypt_cmd 2>&1", sub { m/(illegal or unsupported|invalid) padding mode/ }, proceed_on_failure => 1; # Encrypt with public key
+            validate_script_output "$decrypt_cmd 2>&1", sub { m/(illegal or unsupported|invalid) padding mode/ }, proceed_on_failure => 1; # Decrypt with private key
             my $oaep_options = " -pkeyopt rsa_padding_mode:oaep";
             assert_script_run $encrypt_cmd . $oaep_options;    # Encrypt with public key
             assert_script_run $decrypt_cmd . $oaep_options;    # Decrypt with private key
