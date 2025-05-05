@@ -924,6 +924,10 @@ sub delete_network_peering {
         }
     }
     elsif (is_ec2) {
+        if (get_var('IBSM_VPC_ID')) {
+            record_info('PEERING MANAGED', 'Peering will be destroyed by terraform destroy');
+            return;
+        }
         qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
     }
 }
