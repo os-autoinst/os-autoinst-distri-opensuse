@@ -893,7 +893,7 @@ sub specific_bootmenu_params {
     }
 
     if (my $agama_auto = get_var('INST_AUTO')) {
-        my $url = autoyast::expand_agama_profile($agama_auto);
+        my $url = ($agama_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($agama_auto) : autoyast::expand_agama_profile($agama_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
         push @params, "inst.auto=$url inst.finish=stop";
     }
