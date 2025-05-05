@@ -92,7 +92,10 @@ schedule:
     - console/ping
     - console/arping
     - console/orphaned_packages_check
+    - console/zypper_lr_validate
     - console/zypper_ref
+    - console/zypper_info
+    - console/snapper_zypp
     - console/zypper_extend
     - console/check_os_release
     - console/openvswitch
