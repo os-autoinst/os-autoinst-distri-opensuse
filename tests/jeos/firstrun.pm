@@ -54,7 +54,7 @@ sub verify_user_info {
     return if $is_root;
 
     if (script_run('rpm -q system-group-wheel') == 0) {
-        if (script_run('groups | grep -qw wheel') && (is_sle('16+') || is_sle_micro('6.2+'))) {
+        if (!get_var('WIZARD_SKIP_USER') && script_run('groups | grep -qw wheel') && (is_sle('16+') || is_sle_micro('6.2+'))) {
             die "bsc#1241215 - User $username should be added to wheel group by default";
         }
     } else {
