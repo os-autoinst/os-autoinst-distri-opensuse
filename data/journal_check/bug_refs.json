@@ -863,5 +863,12 @@
             "sle-micro": ["6.2"]
         },
         "type": "bug"
+    },
+    "rpc.idmapd": {
+        "description": "rpc.idmapd.*(Setting log level to 0|libnfsidmap: Unable to determine the NFSv4 domain|exiting on signal 15)",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
     }
 }
