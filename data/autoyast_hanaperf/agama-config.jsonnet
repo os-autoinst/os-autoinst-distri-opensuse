@@ -65,8 +65,9 @@
         content: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          # Workaround for NetworkManager to make sure the expected NIC up only
+          # Workaround for bsc#1235024 NetworkManager to make sure the expected NIC up only
           rm -f /etc/NetworkManager/system-connections/default_connection.nmconnection
+          rm -f /etc/NetworkManager/system-connections/Wired*nmconnection
           echo -e "[main]\nno-auto-default=type:ethernet" > /etc/NetworkManager/conf.d/disable_auto.conf
           echo -e "[connection]\nid=nic0\nuuid=$(uuidgen)\ntype=ethernet\n[ethernet]\nmac-address={{SUT_NETDEVICE}}\n[ipv4]\nmethod=auto\n" > /etc/NetworkManager/system-connections/nic0.nmconnection
           chmod 0600 /etc/NetworkManager/system-connections/nic0.nmconnection

@@ -81,8 +81,8 @@ sub setup_environment {
         my $qaset_kernel_tag = get_var('QASET_KERNEL_TAG', '');
         if (is_sle("16+")) {
             # HANA perf does not use /usr/share/qa/qaset/bin/deploy_hana_perf.sh in SLE16
-            # Disable service
-            assert_script_run('systemctl disable qaperf.service chronyd.service firewalld.service');
+            # Disable and stop service
+            assert_script_run('systemctl disable qaperf.service chronyd.service firewalld.service --now');
             # sync time
             assert_script_run("chronyd -q 'server ntp1.suse.de iburst'");
             # set static hostname
