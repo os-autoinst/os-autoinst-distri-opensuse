@@ -36,7 +36,7 @@ our @EXPORT = qw(
   switch_to_user
 );
 
-my $curl_opts = "-sL --retry 5 --retry-delay 6 --retry-max-time 300";
+my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/bats-tests";
 
 my @commands = ();
@@ -372,7 +372,7 @@ sub bats_patches {
     foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.diff" : $patch;
         record_info("patch", $url);
-        run_command "curl $curl_opts $url | patch -p1 --merge";
+        run_command "curl $curl_opts $url | patch -p1 --merge", timeout => 900;
     }
 }
 
