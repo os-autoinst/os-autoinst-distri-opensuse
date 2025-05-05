@@ -16,6 +16,7 @@ The tests rely on some variables:
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_PATCHES` | List of github PR id's containing upstream test patches |
+| `BATS_TESTS` | Run only the specified tests |
 | `BATS_URL` | URL to get the tests from. The default depends on the package version |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
@@ -24,49 +25,23 @@ The tests rely on some variables:
 
 NOTES
 - `BATS_URL` can be a full URL to the tarball in github, `SUSE#branch` or a tag `v1.2.3`
-- `BATS_PATCHES` can be a full URL like `https://github.com/containers/podman/pull/25918.diff`
-
-### aardvark / netavark
-
-| variable | description |
-| --- | --- |
-| `BATS_TESTS` | Run only the specified tests, otherwise: |
-| `BATS_SKIP` | Skip subtests |
-
-### buildah / runc / skopeo
-
-| variable | description |
-| --- | --- |
-| `BATS_TESTS` | Run only the specified tests, otherwise: |
-| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `BATS_SKIP_ROOT` | Skip subtests for root user |
-| `BATS_SKIP_USER` | Skip subtests for non-root user |
-
-### podman
-
-| variable | description |
-| --- | --- |
-| `BATS_TESTS` | Run only the specified tests, otherwise: |
-| `BATS_SKIP` | Skip subtests on ALL scenarios below: |
-| `BATS_SKIP_ROOT_LOCAL` | Skip subtests for root / local |
-| `BATS_SKIP_ROOT_REMOTE` | Skip subtests root / remote |
-| `BATS_SKIP_USER_LOCAL` | Skip subtests for rootless / local |
-| `BATS_SKIP_USER_REMOTE` | Skip subtests for rootless / remote |
-
-NOTES
- - The special value `all` may be used to skip all tests.
+- `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.diff`
 
 ### Summary of the `BATS_SKIP` variables
 
-| variable | aardvark | buildah | netavark | podman | runc | skopeo |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| `BATS_SKIP` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `BATS_SKIP_ROOT` | | ✅ | | | ✅ | ✅ |
-| `BATS_SKIP_USER` | | ✅ | | | ✅ | ✅ |
-| `BATS_SKIP_ROOT_LOCAL` | | | | ✅ | | |
-| `BATS_SKIP_ROOT_REMOTE` | | | | ✅ | | |
-| `BATS_SKIP_USER_LOCAL` | | | | ✅ | | |
-| `BATS_SKIP_USER_REMOTE` | | | | ✅ | | |
+| variable | description | aardvark | buildah | netavark | podman | runc | skopeo |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `BATS_SKIP` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|
+| `BATS_SKIP_ROOT` | Skip tests for root user            |  |✅|  |  |✅|✅|
+| `BATS_SKIP_USER` | Skip tests for rootless             |  |✅|  |  |✅|✅|
+| `BATS_SKIP_ROOT_LOCAL` | Skip tests for root / local   |  |  |  |✅|  |  |
+| `BATS_SKIP_ROOT_REMOTE` | Skip tests for root / remote |  |  |  |✅|  |  |
+| `BATS_SKIP_USER_LOCAL` | Skip tests for user / local   |  |  |  |✅|  |  |
+| `BATS_SKIP_USER_REMOTE` | Skip tests for user / remote |  |  |  |✅|  |  |
+
+NOTES
+ - The special value `all` may be used to skip all tests.
+ - We don't really skip jobs, only ignore their failures.
 
 ## Workflow
 
@@ -75,7 +50,7 @@ NOTES
 - To debug buildah issues you may clone a job with `BUILDAH_STORAGE_DRIVER=vfs`
 - To debug individual tests you may clone a job with `BATS_TESTS`
 - You can also test individual tests from the latest version in the `main` branch with `BATS_URL=main`
-- The BATS output is in the log files with `.tap` extension
+- The BATS output is collected in the log files with the `.tap` extension
 - The commands are collected in a log file ending with `-commands.txt`
 
 ## Warning
@@ -95,15 +70,15 @@ NOTES
 
 ## openQA jobs
 
-| Product             | aardvark        | buildah          | netavark         | podman           | runc             | skopeo |
+| Product             | aardvark         | buildah          | netavark         | podman           | runc             | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| openSUSE Tumbleweed | [![tw_al]][tw_a] | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n]   | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r]   | [![tw_sl]][tw_s] |
-| Latest SLES 16      |                 | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
-| Latest SLES 15      |                 | [![logo]][s15_b] | [![logo]][s15_n] | [![logo]][s15_p] | [![logo]][s15_r] | [![logo]][s15_s] |
-| SLES 15 SP7         |                 | [![logo]][sp7_b] | [![logo]][sp7_n] | [![logo]][sp7_p] | [![logo]][sp7_r] | [![logo]][sp7_s] |
-| SLES 15 SP6         |                 | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
-| SLES 15 SP5         |                 | [![logo]][sp5_b] | [![logo]][sp5_n] |                  | [![logo]][sp5_r] | [![logo]][sp5_s] |
-| SLES 15 SP4         |                 | [![logo]][sp4_b] |                  |                  | [![logo]][sp4_r] | [![logo]][sp4_s] |
+| openSUSE Tumbleweed | [![tw_al]][tw_a] | [![tw_bl]][tw_b] | [![tw_nl]][tw_n] | [![tw_pl]][tw_p] | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
+| Latest SLES 16      |                  | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
+| Latest SLES 15      |                  | [![logo]][s15_b] | [![logo]][s15_n] | [![logo]][s15_p] | [![logo]][s15_r] | [![logo]][s15_s] |
+| SLES 15 SP7         |                  | [![logo]][sp7_b] | [![logo]][sp7_n] | [![logo]][sp7_p] | [![logo]][sp7_r] | [![logo]][sp7_s] |
+| SLES 15 SP6         |                  | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
+| SLES 15 SP5         |                  | [![logo]][sp5_b] | [![logo]][sp5_n] |                  | [![logo]][sp5_r] | [![logo]][sp5_s] |
+| SLES 15 SP4         |                  | [![logo]][sp4_b] |                  |                  | [![logo]][sp4_r] | [![logo]][sp4_s] |
 
 [logo]: logo.svg
 
