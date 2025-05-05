@@ -53,9 +53,18 @@ NOTES
 - The BATS output is collected in the log files with the `.tap` extension
 - The commands are collected in a log file ending with `-commands.txt`
 
+## Adding patches to `BATS_PATCHES`
+
+1. Identify the commit(s) that fix the test issue.
+1. Identify the PR ID associated with the commit: `gh pr list --search $COMMIT_SHA --state merged`
+1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.diff` (`runc` is under `opencontainers`)
+1. Add the ID to `BATS_PATCHES` sorted numerically for obvious reasons.
+1. Run a verification run with the above setting.
+1. Adjust YAML schedule.
+
 ## Warning
 
-- If you want to run `bats` tests manually, do so in a fresh VM, otherwise you risk losing all your volumes, images & containers.
+- If you want to run container `bats` tests manually, do so in a fresh VM, otherwise you risk losing all your volumes, images & containers.
 Please add this warning on each bug report you open when adding instructions on how to reproduce an issue.
 
 ## openQA schedules
