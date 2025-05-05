@@ -77,7 +77,10 @@ sub run {
     reset_container_network_if_needed($runtime);
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && $runtime eq 'docker');
-
+    if (get_var('LTSS_TEST_ISSUES')) {
+        my $regcode = get_var('SCC_REGCODE_LTSS');
+        assert_script_run qq[echo $regcode | $runtime login -u "regcode" --password-stdin registry.suse.com];
+    }
     # Running podman as root with docker installed may be problematic as netavark uses nftables
     # while docker still uses iptables.
     # Use workaround suggested in:
