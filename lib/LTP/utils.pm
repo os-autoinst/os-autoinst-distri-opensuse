@@ -152,6 +152,11 @@ sub export_ltp_env {
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
+    my $pids_max = script_output("cat /sys/fs/cgroup/user.slice/user-0.slice/pids.max");
+    if ($pids_max < 3000) {
+        assert_script_run("echo 3000 | sudo tee /sys/fs/cgroup/user.slice/user-0.slice/pids.max");
+    }
+
     assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
