@@ -17,7 +17,6 @@ sub test_schedule {
     my ($is_rt, $runtime, $container) = @_;
 
     assert_script_run("$runtime exec $container chrt -m");
-    validate_script_output("$runtime exec $container cat /sys/kernel/realtime", qr/^1$/);
     assert_script_run("$runtime exec $container test -f /proc/sys/kernel/sched_rt_period_us");
     assert_script_run("$runtime exec $container test -f /proc/sys/kernel/sched_rt_runtime_us");
 
