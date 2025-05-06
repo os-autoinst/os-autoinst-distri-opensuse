@@ -125,10 +125,10 @@ sub run {
     }
     my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
-    my $test_envs = get_required_var('BCI_TEST_ENVS');
+    my $test_envs = get_var('BCI_TEST_ENVS', '');
     my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
 
-    return if ($test_envs eq '-');
+    return if ($test_envs eq '-') || ($test_envs eq '');
 
     reset_container_network_if_needed($engine);
 
