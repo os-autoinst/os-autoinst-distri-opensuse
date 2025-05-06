@@ -75,7 +75,8 @@ sub run_tests {
 
     record_info('Test', "Cleanup");
     assert_script_run("buildah rm $container");
-    assert_script_run("buildah rmi newimage $image");
+    assert_script_run("buildah rmi -f newimage $image");
+    assert_script_run("buildah rmi -af");
     assert_script_run("rm -f /tmp/script.sh");
 
     if (!get_var("OCI_RUNTIME")) {
