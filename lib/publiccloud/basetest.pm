@@ -21,6 +21,8 @@ use publiccloud::acr;
 use publiccloud::aks;
 use publiccloud::openstack;
 use publiccloud::noprovider;
+use Data::Dumper;
+use Storable qw(dclone);
 use strict;
 use warnings;
 
@@ -115,8 +117,17 @@ sub finalize {
     diag('Public Cloud finalize: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
     diag('Public Cloud finalize: $self->{result}=' . $self->{result}) if ($self->{result});
     diag('Public Cloud finalize: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
-    diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . $self->{run_args}->{my_provider}) if ($self->{run_args} && $self->{run_args}->{my_provider});
-    diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args} && $self->{run_args}->{my_instance});
+
+    my $dumpable_instance = Storable::dclone($self->{run_args}->{my_instance});
+    my $dumpable_provider = Storable::dclone($self->{run_args}->{my_provider});
+    if (defined $dumpable_instance->{provider}->{provider_client}) {
+        $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = '******';
+    }
+    if (defined $dumpable_provider->{provider_client}) {
+        $dumpable_provider->{provider_client}->{credentials_file_content} = '******';
+    }
+    diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . Dumper($dumpable_instance));
+    diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . Dumper($dumpable_provider));
 
     if ($self->{run_args} && $self->{run_args}->{my_instance} && $self->{result} && $self->{result} eq 'fail') {
         $self->{run_args}->{my_instance}->upload_supportconfig_log();
