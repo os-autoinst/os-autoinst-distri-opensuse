@@ -571,21 +571,17 @@ sub terraform_apply {
     record_info("TFM apply output", $tf_apply_output);
     record_info("TFM apply exit code", $ret);
 
-    # when testing instances that have nvidia gpus,
-    # the zone (i.e. "sub-region") might not have them available and
-    # suggest other zones instead (the pattern is GCE specific)
-    if ($ret != 0 && get_var('PUBLIC_CLOUD_NVIDIA') && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone\. Consider trying your request in the (.*) zone\(s\)/)) {
-        # split captured suggestions by a ',' char, trim whitespace
-        my @alternative_zones = split /\s*,\s*/, $1;
+    # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
+    # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
+    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*/)) {
+        my $zones_output = script_output("gcloud compute zones list --filter='region=" . $vars{region} . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
+        my @alternative_zones = split /\s*,\s*/, $zones_output;
+        @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
         record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
-        for my $zone (@alternative_zones) {
-            # Extract region and availability zone from the full zone name
-            my ($alt_region, $alt_availability_zone) = ($zone =~ /^([a-z0-9-]+)-([a-z])$/);
-
+        for my $az (@alternative_zones) {
             # try to apply in all regions before hardfailing
-            record_info('RETRYING', "Attempting with zone $zone (region: $alt_region, availability_zone: $alt_availability_zone)");
-            $vars{region} = $alt_region;
-            $vars{availability_zone} = $alt_availability_zone;
+            record_info('RETRYING', "Attempting with availability_zone: $az");
+            $vars{availability_zone} = $az;
 
             $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
             script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
