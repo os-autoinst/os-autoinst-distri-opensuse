@@ -13,6 +13,11 @@ use sles4sap::qesap::qesapdeployment;
 
 sub run {
     select_serial_terminal;
+
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2') && get_var('QESAPDEPLOY_IBSMIRROR_IP_RANGE')) {
+        my $deployment_name = qesap_calculate_deployment_name('qesapval');
+        qesap_aws_delete_transit_gateway_vpc_attachment(name => $deployment_name . '*');
+    }
     my @ansible_ret = qesap_execute(
         cmd => 'ansible',
         cmd_options => '-d',
