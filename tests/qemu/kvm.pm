@@ -43,7 +43,7 @@ sub run {
     elsif (is_s390x) {
         # Native kvm requires SIE support (start-interpretive execution)
         die "SIE support on s390x cpu required for native kvm" if (script_run('grep sie /proc/cpuinfo') != 0);
-        enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
+        enter_cmd "qemu-system-s390x -nographic -enable-kvm -m 1G -kernel /boot/image -initrd /boot/initrd";
         assert_screen 'qemu-reached-target-basic-system', 60;
     }
     elsif (is_aarch64) {

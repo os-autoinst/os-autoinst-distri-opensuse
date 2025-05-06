@@ -66,7 +66,7 @@ sub run {
     elsif (is_s390x) {
         is_qemu_preinstalled or install_qemu('qemu-s390x');
         # use kernel from host system for booting
-        enter_cmd "qemu-system-s390x -nographic -kernel /boot/image -initrd /boot/initrd";
+        enter_cmd "qemu-system-s390x -nographic -m 1G -kernel /boot/image -initrd /boot/initrd";
         assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl', 'qemu-linux-req-more-recent-proc-hw', 'qemu-reached-target-socket-units'], 400;
         if (match_has_tag 'qemu-s390x-exec-0x7f4-not-impl') {
             record_soft_failure 'bsc#1124595 - qemu on s390x fails when called WITHOUT kvm: EXECUTE on instruction prefix 0x7f4 not implemented';
