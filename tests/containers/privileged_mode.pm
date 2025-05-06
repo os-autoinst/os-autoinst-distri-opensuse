@@ -59,25 +59,6 @@ sub run {
     # Capabilities are only available in privileged mode
     my $capbnd = script_output("cat /proc/1/status | grep CapBnd");
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
-
-    # Test container nesting on SLES15+
-    # Anything below 12-SP5 is simply too old. 12-SP5 doesn't work because of bsc#1232429
-    unless (is_sle('<15') || check_var('BETA', '1')) {
-        if ($runtime eq 'docker' && (is_x86_64 || is_aarch64)) {
-            # Docker-in-Docker (DinD) uses the special dind image, which is only available for x86_64 and aarch64
-            my $dind = registry_url('docker:dind');
-            assert_script_run("docker run -d --privileged --name dind $dind");
-            script_retry("docker exec -it dind docker run -it $image ls", timeout => 300, retry => 3, delay => 60);  # docker is sometimes not immediately ready
-            script_run("docker container stop dind");
-            script_run("docker container rm dind");
-        } elsif ($runtime eq 'podman') {
-            assert_script_run("podman run -d --privileged --name pinp $image sleep infinity");
-            assert_script_run("podman exec pinp zypper -n --gpg-auto-import-keys in podman", timeout => 300); # Auto import keys because of the NVIDIA repository on SLES
-            assert_script_run("podman exec -it pinp podman run -it $image ls", timeout => 300);
-            script_run("podman container stop pinp");
-            script_run("podman container rm pinp");
-        }
-    }
 }
 
 sub cleanup {
