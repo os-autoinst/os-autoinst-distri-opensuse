@@ -70,7 +70,7 @@ sub cleanup {
     my $resource_group = "openqa-cli-test-rg-$job_id";
     my $machine_name = "openqa-cli-test-vm-$job_id";
 
-    script_run("az group delete --resource-group $resource_group --yes", 180);
+    script_run("az group delete --resource-group $resource_group --yes", 360);
     return 1;
 }
 

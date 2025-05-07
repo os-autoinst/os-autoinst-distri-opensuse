@@ -101,7 +101,6 @@ sub terraform_apply {
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
-    $self->upload_boot_diagnostics();
 }
 
 sub upload_boot_diagnostics {
@@ -196,10 +195,9 @@ sub start_instance {
     $instance->public_ip($self->get_public_ip());
 }
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
-    $self->upload_boot_diagnostics();
-    $self->SUPER::cleanup();
+    $self->SUPER::teardown();
     return 1;
 }
 
