@@ -1,0 +1,12 @@
+---
+name: agama_gnome_unattended_s390x
+description: >
+  Perform desktop unattended installation for s390x
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages
