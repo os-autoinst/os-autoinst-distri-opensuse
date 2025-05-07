@@ -16,6 +16,8 @@ use lockapi;
 sub run {
     my $cluster_name = get_cluster_name;
 
+    diag 'Waiting for barriers creation';
+    mutex_wait 'ha_barriers_ready';
     diag "Waiting for barrier $cluster_name...";
     barrier_wait("BARRIER_HA_$cluster_name");
 }
