@@ -37,8 +37,6 @@ sub enable_fips {
     my $self = shift;
 
     if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
-        # bsc#1239509
-        zypper_call('in openssl-3') if is_sle('>=16');
         assert_script_run("fips-mode-setup --enable");
         $self->reboot_and_select_serial_term;
     } else {
