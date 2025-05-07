@@ -23,7 +23,7 @@ use containers::k8s;
 
 sub run {
     my ($self) = @_;
-    my $release_name = "private_registry";
+    my $release_name = "privateregistry";
     my @private_registry_components = qw(core jobservice portal registry database valkey trivy);
     my $test_image = "registry.suse.com/bci/bci-busybox:latest";
     select_serial_terminal;
