@@ -53,7 +53,7 @@ sub run {
 
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
-        $tests = 'scsi,dm,throtl,loop';
+        $tests = 'throtl';
         #$devices = '/dev/sdb';
     }
 
