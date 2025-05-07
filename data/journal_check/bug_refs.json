@@ -874,6 +874,14 @@
         },
         "type": "bug"
     },
+    "bsc#1242592": {
+        "description": "Race condition on shutdown causes pam_wtmpdb to be closed before it can write event to DB",
+        "products": {
+            "sle-micro": ["6.0", "6.1", "6.2"],
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
     "rpc.idmapd": {
         "description": "rpc.idmapd.*(Setting log level to 0|libnfsidmap: Unable to determine the NFSv4 domain|exiting on signal 15)",
         "products": {
