@@ -86,7 +86,7 @@ sub ibft_validation {
     }
     else {
         # SLE16 uses agama, so search the general logs of agama
-        assert_script_run 'zgrep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/agama-installation/*';
+        assert_script_run "zgrep -a -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/agama-installation/logs.tar.gz";
     }
 
     # Scan for ibft interface
