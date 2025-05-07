@@ -1,0 +1,12 @@
+---
+name: agama_gnome_unattended_ppc64le
+description: >
+  Perform desktop unattended installation for ppc64le
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages
