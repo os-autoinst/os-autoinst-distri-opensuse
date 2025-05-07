@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021,2025 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -191,8 +191,7 @@ sub cleanup {
     my $resource_group = "oqaclirg$job_id";
     my $machine_name = "oqaclivm$job_id";
 
-    assert_script_run("az group delete --resource-group $resource_group --yes",
-        180);
+    script_run("az group delete --resource-group $resource_group --yes", 180);
 }
 
 sub test_flags {
