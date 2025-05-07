@@ -70,16 +70,16 @@ sub run {
     my $registry_ingress_url = script_run("kubectl get ingress $release_name-ingress -o jsonpath='{.spec..host}'");
 
     # Login 
-    assert_script_run("podman login --username admin --password $registry_password --tls-verify=false") 
-    assert_script_run("helm registry login --username admin --password $registry_password --insecure")
+    assert_script_run("podman login --username admin --password $registry_password --tls-verify=false");
+    assert_script_run("helm registry login --username admin --password $registry_password --insecure");
 
     # Push container
-    assert_script_run("podman pull $test_image:latest")
-    assert_script_run("podman push $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false")
+    assert_script_run("podman pull $test_image:latest");
+    assert_script_run("podman push $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false");
 
     # Push chart
-    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .")
-    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library")
+    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .");
+    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library");
     
 } 
 
