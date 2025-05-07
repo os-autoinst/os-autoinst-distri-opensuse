@@ -74,6 +74,11 @@ sub run {
     create_general_ha_barriers();
     create_ensa_only_barriers();
 
+    # Create a final mutex to signal all jobs that barriers are ready to use
+    # It must be used with mutex_wait() before any barrier_wait() calls in the jobs
+    # Taken from ha/barriers_init
+    mutex_create('ha_barriers_ready');
+
     # Wait for all children to start
     # Children are server/test suites that use the PARALLEL_WITH variable
     wait_for_children_to_start();
