@@ -76,6 +76,9 @@ sub run {
     # on grub2 and bootmenu
     prepare_console_for_fencing;
 
+    # iptables is not installed in SLE 16 by default
+    zypper_call 'in iptables' if is_sle('>=16');
+
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
         zypper_call 'in corosync-qnetd';
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
