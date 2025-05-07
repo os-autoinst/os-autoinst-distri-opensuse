@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
 use sles4sap::database_hana;
-use sles4sap::sap_host_agent qw(saphostctrl_list_databases parse_instance_name);
+use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
 use sles4sap::sapcontrol qw(sapcontrol_process_check sap_show_status_info);
 use hacluster qw(wait_for_idle_cluster wait_until_resources_started);
 use Data::Dumper;
@@ -53,10 +53,11 @@ sub run {
     my $node_roles = get_node_roles();
 
     # Retrieve database information: DB SID and instance ID
-    my @db_data = @{(saphostctrl_list_databases())};
+    my @db_data = @{saphostctrl_list_instances(running => 'yes')};
     record_info('DB data', Dumper(@db_data));
     die('Multiple databases on one host not supported') if @db_data > 1;
-    my ($db_sid, $db_id) = @{parse_instance_name($db_data[0]->{instance_name})};
+    my $db_sid = $db_data[0]->{sap_sid};
+    my $db_id = $db_data[0]->{instance_id};
 
     # Perform failover on replica
     record_info('Failover', "Performing failover method '$failover_method' on database '$expected_failover_db'");
