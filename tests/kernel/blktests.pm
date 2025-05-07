@@ -4,7 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: blktests
-# Summary: Block device layer tests
+# Summary: Block device layer tests.
+#     QEMURAM=8192 is required since test throtl/006 is using memory backed
+#     device and as such exhaust system memory quickly
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
 use base 'opensusebasetest';
@@ -51,7 +53,7 @@ sub run {
 
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
-        $tests = 'scsi,dm,loop';
+        $tests = 'scsi,dm,throtl,loop';
         #$devices = '/dev/sdb';
     }
 
