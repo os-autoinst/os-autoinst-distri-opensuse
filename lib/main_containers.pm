@@ -297,7 +297,7 @@ sub load_container_tests {
 
         if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/privateregistry/) {
+        } elsif ($chart =~ m/private-registry/) {
             loadtest 'containers/charts/privateregistry';
         }   
           else {
