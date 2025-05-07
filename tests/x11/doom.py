@@ -12,3 +12,4 @@ def run(self):
     perl.require('x11test')
     ensure_installed('chocolate-doom')
     x11_start_program('chocolate-doom')
+    send_key('alt-f4')
