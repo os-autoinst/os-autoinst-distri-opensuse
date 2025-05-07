@@ -62,7 +62,7 @@ sub run {
       validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, retry => 10, delay => 30, timeout => 120, fail_message => "$release_name-$component didn't deploy");
       my @pods = split(' ', script_output("kubectl get pods --no-headers -l component=$component"));
       my $full_pod_name = $pods[0];
-      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 10, delay => 30, fail_message => "$full_pod_name is not in the Ready state!");
+      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 10, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
     }
     
     # Get the webui credentials & ingress url
