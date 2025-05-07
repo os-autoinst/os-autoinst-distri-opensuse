@@ -51,7 +51,7 @@ sub upload_img {
     my $uri = $self->provider_client->storage_name . '/' . $file;
     # See https://cloud.google.com/sdk/gcloud/reference/compute/images/create for a list of available features
     # SEV_CAPABLE is added because all images from 15-SP2 onwards support SEV
-    my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE,SEV_CAPABLE');
+    my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE,SEV_CAPABLE,SEV_LIVE_MIGRATABLE_V2');
     my $arch = get_var('PUBLIC_CLOUD_ARCH', '');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
