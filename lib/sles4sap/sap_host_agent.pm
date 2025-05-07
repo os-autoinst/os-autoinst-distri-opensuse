@@ -102,7 +102,7 @@ sub parse_instance_name {
 
 =head2 saphostctrl_list_instances
 
-    saphostctrl_list_instances([as_root=>1]);
+    saphostctrl_list_instances([as_root=>1, running=>'yes']);
 
 Lists all locally installed instances.
 Executes command 'saphostctrl -function ListInstances' and returns parsed result in HASHREF.
@@ -110,6 +110,8 @@ Executes command 'saphostctrl -function ListInstances' and returns parsed result
 =over
 
 =item * B<as_root>: Execute command using sudo. Default: false
+
+=item * B<running>: List only running instances. Default: undef
 
 =back
 
@@ -120,7 +122,8 @@ sub saphostctrl_list_instances {
     my @instances;
     # command returns data for each DB in new line = one array entry for each DB
     my $sudo = $args{as_root} ? 'sudo' : '';
-    my $cmd = join(' ', $sudo, $saphostctrl, '-function', 'ListInstances', "| grep 'Inst Info'");
+    my $running = $args{running} ? '-running' : '';
+    my $cmd = join(' ', $sudo, $saphostctrl, '-function', 'ListInstances', $running, "| grep 'Inst Info'");
     for my $instance (split("\n", script_output($cmd))) {
         my @instance_data = split(/\s:\s|\s-\s/, $instance);
         push(@instances, {
