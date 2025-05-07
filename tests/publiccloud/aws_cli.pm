@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021-2024 SUSE LLC
+# Copyright 2021-2025 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -74,11 +74,11 @@ sub cleanup {
     my $instance_id = script_output("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", 90);
     my $security_group_name = "openqa-cli-test-sg-$job_id";
     record_info("InstanceId", "InstanceId: " . $instance_id);
-    assert_script_run("aws ec2 terminate-instances --instance-ids $instance_id", 240);
+    script_run("aws ec2 terminate-instances --instance-ids $instance_id", 240);
     my $ssh_key = "openqa-cli-test-key-$job_id";
-    assert_script_run "aws ec2 delete-key-pair --key-name $ssh_key";
+    script_run "aws ec2 delete-key-pair --key-name $ssh_key";
     # The security group can be deleted only after the instance is terminated which takes a moment
-    script_retry "aws ec2 delete-security-group --group-name $security_group_name", delay => 15, retry => 12;
+    script_retry "aws ec2 delete-security-group --group-name $security_group_name", delay => 15, retry => 12, die => 0;
     return 1;
 }
 
