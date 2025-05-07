@@ -50,7 +50,7 @@ sub run {
     prepare_blktests_config($devices);
 
 
-    sleep(99999999999)
+    sleep(99999999999);
     #temp override of $tests and $devices
     if (is_sle(">=16")) {
         $tests = 'throtl';
