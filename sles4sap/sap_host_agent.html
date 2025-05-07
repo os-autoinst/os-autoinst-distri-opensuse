@@ -53,13 +53,16 @@
 
 <h2 id="saphostctrl_list_instances">saphostctrl_list_instances</h2>
 
-<pre><code>saphostctrl_list_instances([as_root=&gt;1]);</code></pre>
+<pre><code>saphostctrl_list_instances([as_root=&gt;1, running=&gt;&#39;yes&#39;]);</code></pre>
 
 <p>Lists all locally installed instances. Executes command &#39;saphostctrl -function ListInstances&#39; and returns parsed result in HASHREF.</p>
 
 <ul>
 
 <li><p><b>as_root</b>: Execute command using sudo. Default: false</p>
+
+</li>
+<li><p><b>running</b>: List only running instances. Default: undef</p>
 
 </li>
 </ul>
