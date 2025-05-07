@@ -190,6 +190,10 @@ sub run {
     # Children are server/test suites that use the PARALLEL_WITH variable
     wait_for_children_to_start;
 
+    # Create a final mutex to signal all jobs that barriers are ready to use
+    # It must be used with mutex_wait() before any barrier_wait() calls in the jobs
+    mutex_create('ha_barriers_ready');
+
     # Finish early if running in node 1 instead of supportserver
     return if is_not_supportserver_scenario;
 
