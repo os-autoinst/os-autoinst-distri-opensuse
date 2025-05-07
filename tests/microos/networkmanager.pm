@@ -61,8 +61,9 @@ sub run {
     # the below network confiration is used if on pvm
     %network_pvm = ();
     if (is_pvm) {
-        my $vm_mac = script_output qq(ip link show eth0 | grep -F 'link/ether' |awk '{print \$2}');
-        my $vm_ip = script_output qq(ip addr show eth0 | grep -F 'inet ' | awk '{print \$2}' |awk -F '/' '{print \$1}');
+        my $interface = script_output qq(ip -br link show | awk '! /lo/ {print \$1}');
+        my $vm_mac = script_output qq(ip link show $interface | grep -F 'link/ether' |awk '{print \$2}');
+        my $vm_ip = script_output qq(ip addr show $interface | grep -F 'inet ' | awk '{print \$2}' |awk -F '/' '{print \$1}');
         chomp($vm_mac);
         chomp($vm_ip);
         %network_pvm = (
