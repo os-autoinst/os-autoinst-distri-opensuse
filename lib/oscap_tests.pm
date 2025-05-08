@@ -990,6 +990,8 @@ sub oscap_security_guide_setup {
         # Some packages require PackageHub repo is available
         return unless is_phub_ready();
         add_suseconnect_product(get_addon_fullname('phub'));
+        # Add systems management module for ansible
+        add_suseconnect_product(get_addon_fullname('sysm')) if is_sle('=15-SP7');
         # Need to use pyython3.1x
         add_suseconnect_product(get_addon_fullname('python3'));
         # On SLES 12 ansible packages require dependencies located in sle-module-public-cloud
