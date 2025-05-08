@@ -70,7 +70,7 @@ sub run {
     # Get the webui credentials & ingress url
     my $registry_password = script_output("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
     my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
-    my $registry_ingress_ip = script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}");
+    my $registry_ingress_ip = script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}'");
 
     script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status.loadBalancer.ingress[0].ip}'");
     script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status..loadBalancer..ingress[0]..ip}'");
