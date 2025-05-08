@@ -20,11 +20,8 @@
       <li><a href="#build-dockerfile_path-image_tag-args">build($dockerfile_path, $image_tag, [%args])</a></li>
       <li><a href="#run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</a></li>
       <li><a href="#pull-image_name-args">pull($image_name, [%args])</a></li>
-      <li><a href="#enum_images">enum_images</a></li>
-      <li><a href="#enum_images1">enum_images</a></li>
       <li><a href="#get_container_logs-container-filename">get_container_logs($container, $filename)</a></li>
       <li><a href="#remove_container-container_name-assert">remove_container($container_name, [assert])</a></li>
-      <li><a href="#check_image_in_host">check_image_in_host</a></li>
       <li><a href="#configure_insecure_registries">configure_insecure_registries</a></li>
       <li><a href="#cleanup_system_host">cleanup_system_host</a></li>
     </ul>
@@ -55,14 +52,6 @@
 
 <p>Pull a container with the given <code>image_name</code> where <code>image_name</code> can be the name or id of the image. <code>args</code> passes parameters to <code>script_run</code></p>
 
-<h2 id="enum_images">enum_images</h2>
-
-<p>Return an array ref of the images</p>
-
-<h2 id="enum_images1">enum_images</h2>
-
-<p>Return an array ref of the containers</p>
-
 <h2 id="get_container_logs-container-filename">get_container_logs($container, $filename)</h2>
 
 <p>Request container&#39;s logs. <code>container</code> the running container. <code>filename</code> file the logs are written to.</p>
@@ -70,10 +59,6 @@
 <h2 id="remove_container-container_name-assert">remove_container($container_name, [assert])</h2>
 
 <p>Remove a container from the pool. <code>container_name</code> is the container name to be removed. Required argument. <code>assert</code> Is an optional boolean for asserting that the call is successful. If false the method returns the return value of the call.</p>
-
-<h2 id="check_image_in_host">check_image_in_host</h2>
-
-<p>Returns true if host contains <code>img</code> or false.</p>
 
 <h2 id="configure_insecure_registries">configure_insecure_registries</h2>
 
