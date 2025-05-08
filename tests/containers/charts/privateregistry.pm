@@ -72,10 +72,10 @@ sub run {
     my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
     my $registry_ingress_ip = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status.loadBalancer.ingress[0].ip}'");
 
-    record_info("IP1","echo $(kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status.loadBalancer.ingress[0].ip}')");
-    record_info("IP2","echo $(kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status..loadBalancer..ingress[0]..ip}')");
-    record_info("IP3","echo $(kubectl get nodes -o jsonpath='{.status.addresses[0].address}')");
-    record_info("IP4","echo $(kubectl get nodes -o jsonpath='{..status.addresses[0].address}')");
+    script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status.loadBalancer.ingress[0].ip}'");
+    script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status..loadBalancer..ingress[0]..ip}'");
+    script_output("kubectl get nodes -o jsonpath='{.status.addresses[0].address}'");
+    script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}'");
 
     # Add the k3s IP to /etc/hosts
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
