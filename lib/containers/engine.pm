@@ -178,20 +178,6 @@ sub pull {
     return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
 }
 
-=head2 enum_images
-
-Return an array ref of the images
-
-=cut
-
-sub enum_images {
-    my ($self) = shift;
-    my $images_s = $self->_engine_script_output("images -q");
-    record_info "Images", $images_s;
-    my @images = split /[\n\t]/, $images_s;
-    return \@images;
-}
-
 =head2 get_container_logs($container, $filename)
 
 Request container's logs.
