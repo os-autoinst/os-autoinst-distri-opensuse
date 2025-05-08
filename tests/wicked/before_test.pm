@@ -191,7 +191,8 @@ EOT
     # Disable firewall by default.
     # Tests which need firewall, should explicit enable it
     if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
-        systemctl("disable --now " . opensusebasetest::firewall);
+        systemctl("stop " . opensusebasetest::firewall);
+        systemctl("disable " . opensusebasetest::firewall);
     }
     record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 }
