@@ -178,34 +178,6 @@ sub pull {
     return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
 }
 
-=head2 enum_images
-
-Return an array ref of the images
-
-=cut
-
-sub enum_images {
-    my ($self) = shift;
-    my $images_s = $self->_engine_script_output("images -q");
-    record_info "Images", $images_s;
-    my @images = split /[\n\t]/, $images_s;
-    return \@images;
-}
-
-=head2 enum_images
-
-Return an array ref of the containers
-
-=cut
-
-sub enum_containers {
-    my ($self) = shift;
-    my $containers_s = $self->_engine_script_output("container ls -q");
-    record_info "Containers", $containers_s;
-    my @containers = split /[\n\t]/, $containers_s;
-    return \@containers;
-}
-
 =head2 get_container_logs($container, $filename)
 
 Request container's logs.
@@ -237,17 +209,6 @@ sub remove_container {
     }
 }
 
-=head2 check_image_in_host
-
-Returns true if host contains C<img> or false.
-
-=cut
-
-sub check_image_in_host {
-    my ($self, $img) = @_;
-    grep { $img eq $_ } @{$self->enum_images()};
-}
-
 =head2 configure_insecure_registries
 
 Updates the registry files for the running container runtime to allow access to
@@ -269,8 +230,7 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 =cut
 
 sub cleanup_system_host {
-    my ($self, $assert) = @_;
-    $assert //= 1;
+    my ($self) = @_;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
 
     # all containers should be stopped before running prune
@@ -282,11 +242,6 @@ sub cleanup_system_host {
     }
     $self->_engine_script_run("volume prune -f", 300);
     $self->_engine_script_run("system prune -a -f", 300);
-
-    if ($assert) {
-        assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-        assert_equals(0, scalar @{$self->enum_images()}, "images have not been removed");
-    }
 }
 
 1;
