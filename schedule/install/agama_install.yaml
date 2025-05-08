@@ -9,3 +9,4 @@ schedule:
   - installation/first_boot
   - installation/opensuse_welcome
   - console/system_prepare
+  - shutdown/shutdown
