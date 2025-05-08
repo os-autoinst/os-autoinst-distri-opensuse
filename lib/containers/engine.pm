@@ -237,17 +237,6 @@ sub remove_container {
     }
 }
 
-=head2 check_image_in_host
-
-Returns true if host contains C<img> or false.
-
-=cut
-
-sub check_image_in_host {
-    my ($self, $img) = @_;
-    grep { $img eq $_ } @{$self->enum_images()};
-}
-
 =head2 configure_insecure_registries
 
 Updates the registry files for the running container runtime to allow access to
