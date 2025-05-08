@@ -24,7 +24,7 @@ use containers::k8s;
 sub run {
     my ($self) = @_;
     my $release_name = "privateregistry";
-    my @private_registry_components = qw(core jobservice portal registry database valkey trivy);
+    my @private_registry_components = qw(core jobservice portal registry database redis trivy);
     my $test_image = "registry.suse.com/bci/bci-busybox:latest";
     select_serial_terminal;
 
@@ -63,6 +63,7 @@ sub run {
       my @pods = split(' ', script_output("kubectl get pods --no-headers -l component=$component"));
       my $full_pod_name = $pods[0];
       assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 10, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
+      record_info("$component is ready", "$full_pod_name is in the Ready state.");
     }
     
     # Get the webui credentials & ingress url
