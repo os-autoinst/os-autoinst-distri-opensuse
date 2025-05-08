@@ -77,6 +77,7 @@ sub run
 
     if (get_var('KSELFTEST_GIT')) {
         run_tests_from_git_repo();
+        sleep(99999);
     } else {
         run_tests("/usr/share/kselftests");
     }
