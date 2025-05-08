@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Integrate the Lynis scanner into OpenQA: analyze the "system audit"
