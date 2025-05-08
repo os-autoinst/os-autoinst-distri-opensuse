@@ -19,6 +19,18 @@ use utils;
 use LTP::WhiteList;
 use LTP::utils;
 
+sub run_tests_from_git_repo
+{
+    my ($root) = @_;
+
+    my $git_tree = get_required_var('KERNEL_GIT_TREE');
+
+    # download, compile and install a kernel tree from git
+    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
+    # git clone takes a long time due to slow network connection
+    assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 7200);
+}
+
 sub run_tests
 {
     my ($root) = @_;
@@ -54,6 +66,7 @@ sub run
 {
     select_serial_terminal;
 
+    my $kselftest_git = get_var('KSELFTEST_GIT', 0);
     my $repo = get_var('KSELFTESTS_REPO', '');
     my $suite = get_var('KSELFTESTS_SUITE', '');
 
@@ -61,7 +74,13 @@ sub run
     zypper_call("--gpg-auto-import-keys ref");
 
     zypper_call("install -y kselftests-$suite");
-    run_tests("/usr/share/kselftests");
+
+    if (get_var('KSELFTEST_GIT')) {
+        run_tests_from_git_repo();
+        sleep(9999999999);
+    } else {
+        run_tests("/usr/share/kselftests");
+    }
 }
 
 1;
