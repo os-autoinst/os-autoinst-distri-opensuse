@@ -21,9 +21,10 @@ use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures qw(is_ppc64le);
 use containers::k8s;
 
+our $release_name = "privateregistry";
+
 sub run {
     my ($self) = @_;
-    my $release_name = "privateregistry";
     my @private_registry_components = qw(core jobservice portal registry database redis trivy);
     my $test_image = "registry.suse.com/bci/bci-busybox:latest";
     select_serial_terminal;
@@ -67,8 +68,8 @@ sub run {
     }
     
     # Get the webui credentials & ingress url
-    my $registry_password = script_run("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
-    my $registry_ingress_url = script_run("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
+    my $registry_password = script_output("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
+    my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
 
     # Login 
     assert_script_run("podman login --username admin --password $registry_password --tls-verify=false");
@@ -88,7 +89,7 @@ sub post_fail_hook {
     my ($self) = @_;
     script_run('tar -capf /tmp/containers-logs.tar.xz /var/log/pods $(find /var/lib/rancher/k3s -name \*.log -name \*.toml)');
     upload_logs("/tmp/containers-logs.tar.xz");
-    script_run("helm delete privateregistry");
+    script_run("helm delete $release_name");
 }
 
 sub test_flags {
