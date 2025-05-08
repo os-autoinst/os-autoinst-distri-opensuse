@@ -46,6 +46,7 @@ sub check_pk_algos {
     my ($openssl_binary) = @_;
 
     my @valid_algos = qw(RSA rsa DSA dsa EC DH HMAC CMAC);
+    push(@valid_algos, 'ED', 'ML') unless is_sle('<16');
     push(@valid_algos, 'HKDF', 'TLS1-PRF') if has_default_openssl3;
     my %pattern = (
         fips => '\@ fips',
