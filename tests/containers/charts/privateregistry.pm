@@ -72,8 +72,8 @@ sub run {
     my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
 
     # Login 
-    assert_script_run("podman login --username admin --password $registry_password --tls-verify=false");
-    assert_script_run("helm registry login --username admin --password $registry_password --insecure");
+    assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false");
+    assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure");
 
     # Push container
     assert_script_run("podman pull $test_image:latest");
