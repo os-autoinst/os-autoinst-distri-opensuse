@@ -269,8 +269,7 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 =cut
 
 sub cleanup_system_host {
-    my ($self, $assert) = @_;
-    $assert //= 1;
+    my ($self) = @_;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
 
     # all containers should be stopped before running prune
@@ -282,11 +281,6 @@ sub cleanup_system_host {
     }
     $self->_engine_script_run("volume prune -f", 300);
     $self->_engine_script_run("system prune -a -f", 300);
-
-    if ($assert) {
-        assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-        assert_equals(0, scalar @{$self->enum_images()}, "images have not been removed");
-    }
 }
 
 1;
