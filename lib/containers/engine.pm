@@ -192,20 +192,6 @@ sub enum_images {
     return \@images;
 }
 
-=head2 enum_images
-
-Return an array ref of the containers
-
-=cut
-
-sub enum_containers {
-    my ($self) = shift;
-    my $containers_s = $self->_engine_script_output("container ls -q");
-    record_info "Containers", $containers_s;
-    my @containers = split /[\n\t]/, $containers_s;
-    return \@containers;
-}
-
 =head2 get_container_logs($container, $filename)
 
 Request container's logs.
