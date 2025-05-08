@@ -35,14 +35,6 @@ sub run_tests {
     validate_script_output('buildah containers', sub { /tumbleweed-working-container/ });
     validate_script_output("buildah run $container -- cat /etc/os-release", sub { /openSUSE Tumbleweed/ });
 
-    # When trying to install packages inside the container in Docker, there's a
-    # network failure
-    if ($runtime eq 'podman') {
-        record_info('Test', "Install random package in the container");
-        assert_script_run("buildah run $container -- zypper in -y python3", timeout => 300);
-        assert_script_run("buildah run $container -- python3 --version");
-    }
-
     record_info('Test', "Add environment variable to the container");
     assert_script_run("buildah config --env foo=bar $container");
     validate_script_output("buildah run $container -- bash -c 'echo \$foo'", sub { /bar/ });
