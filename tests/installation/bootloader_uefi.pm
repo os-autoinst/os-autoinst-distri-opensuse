@@ -127,7 +127,7 @@ sub run {
     }
 
     if (match_has_tag('bootloader-grub2') && is_bootloader_grub2_bls) {
-        return;
+        return if !(get_var('FLAVOR') eq 'DVD');
     }
 
     if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
