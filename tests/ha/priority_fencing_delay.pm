@@ -13,6 +13,8 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use utils qw(zypper_call);
+use version_utils qw(is_sle);
 
 sub stonith_iptables {
     my ($self, $count, $cluster) = @_;
@@ -48,6 +50,9 @@ sub run {
     # As this module causes a fence operation, we need to prepare the console for assert_screen
     # on grub2 and bootmenu
     prepare_console_for_fencing;
+
+    # iptables is not installed in SLE 16 by default
+    zypper_call 'in iptables' if is_sle('>=16');
 
     # Configure a master resource on node1 for getting a heavier weight for the priority fencing feature
     if (is_node(1)) {
