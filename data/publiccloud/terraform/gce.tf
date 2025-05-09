@@ -145,8 +145,9 @@ resource "google_compute_instance" "openqa" {
   }
 
   # some instance types requires this parameter others fails with it so we need to use it based on instance type
+  # NOTE: currently list contains instance types which does NOT need this parameter
   dynamic "scheduling" {
-    for_each = contains(["c3-highcpu-192-metal", "a2-highgpu-1g", "a3-highgpu-4g", "g2-standard-96", "g2-standard-4", "x4-megamem-960-metal", "z3-highmem-176"], var.type) ? [1] : []
+    for_each = contains(["e2-medium"], var.type) ? [] : [1]
     content {
       on_host_maintenance = "TERMINATE"
     }
