@@ -47,7 +47,7 @@ sub run {
     }
     my $helm_values = get_var('HELM_CONFIG');
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
-    my $set_options = "";
+    my $set_options = "--set global.imageRegistry=registry.suse.de/suse/sle-15-sp6/update/products/privateregistry/containerfile";
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         my ($repository, $tag) = split(':', $image, 2);
         $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
@@ -74,11 +74,10 @@ sub run {
 
     # Add the k3s IP to /etc/hosts
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
-    script_run("sleep 1800", timeout => 840);
 
     # Login 
-    assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false");
-    assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure");
+    assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 3, delay => 10);
+    assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 3, delay => 10);
 
     # Push container
     assert_script_run("podman pull $test_image:latest");
