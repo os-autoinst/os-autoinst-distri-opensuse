@@ -262,6 +262,8 @@ LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are bootin
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
+TPM_METHOD | string | PIN | Chooses a TPM unlocking method. TPM will not be locked if this variable is not defined. Currently, only "PIN" is supported.
+TPM_PIN | string | | Defines a separate PIN for locking the TPM. Uses default password if undefined. Ignored if TPM_METHOD is not set to "PIN".
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
 TRENTO_CYPRESS_VERSION | string | 9.6.1 | used as tag for the docker.io/cypress/included registry.
 TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation

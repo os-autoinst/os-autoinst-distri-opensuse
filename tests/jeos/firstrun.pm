@@ -276,8 +276,20 @@ sub run {
         send_key 'ret';
 
         if (get_var('QEMUTPM')) {
-            send_key_until_needlematch 'jeos-fde-option-enroll-tpm', 'down' unless check_screen('jeos-fde-option-enroll-tpm', 1);
-            send_key 'ret';
+            # Allow either enrolling tpm with or without pin, not both, hence we want to choose between these options
+            if (check_var('TPM_METHOD', 'PIN')) {
+                my $pin = get_var('TPM_PIN', $testapi::password);
+                send_key_until_needlematch 'jeos-fde-option-enroll-tpm-pin', 'down' unless check_screen('jeos-fde-option-enroll-tpm-pin', 1);
+                send_key "ret";
+                type_password $pin;
+                send_key "ret";
+                wait_still_screen 2;
+                type_password $pin;
+                send_key 'ret';
+            } else {
+                send_key_until_needlematch 'jeos-fde-option-enroll-tpm', 'down' unless check_screen('jeos-fde-option-enroll-tpm', 1);
+                send_key 'ret';
+            }
         }
 
         # All options used up, so no need to press 'Done' explicitly anymore.
