@@ -26,7 +26,7 @@ our $release_name = "privateregistry";
 sub run {
     my ($self) = @_;
     my @private_registry_components = qw(core jobservice portal registry database redis trivy);
-    my $test_image = "registry.suse.com/bci/bci-busybox:latest";
+    my $test_image = "registry.suse.com/bci/bci-busybox";
     select_serial_terminal;
 
     my ($version, $sp, $host_distri) = get_os_release;
@@ -63,30 +63,33 @@ sub run {
       validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, retry => 3, delay => 30, timeout => 120, fail_message => "$release_name-$component didn't deploy");
       my @pods = split(' ', script_output("kubectl get pods --no-headers -l component=$component"));
       my $full_pod_name = $pods[0];
-      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={..status.conditions[?(@.type==\"Ready\")].status}'", retry => 5, delay => 30, timeout => 60, fail_message => "$full_pod_name is not in the Ready state!");
-      record_info("$component is ready", "$full_pod_name is in the Ready state.");
+      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 5, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
     }
     
+    #Install Traefik manually
+    assert_script_run("helm install traefik oci://ghcr.io/traefik/helm/traefik --namespace kube-system");
+    script_run("sleep 120", timeout => 140);
+    script_output("kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik");
+
     # Get the webui credentials & ingress url
     my $registry_password = script_output("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
     my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
-    my $registry_ingress_ip = script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}'");
+    my $registry_ingress_ip = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}'");
 
     # Add the k3s IP to /etc/hosts
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
 
-    # Login 
-    script_run("sleep 1800", timeout => 1800);
-    assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 3, delay => 10);
-    assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 3, delay => 10);
+    # Login to Harbor
+    script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 5, delay => 10, timeout => 60);
+    script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 5, delay => 10, timeout => 60);
 
     # Push container
-    assert_script_run("podman pull $test_image:latest");
-    assert_script_run("podman push $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false");
+    assert_script_run("podman pull $test_image:latest", timeout => 60);
+    assert_script_run("podman push --remove-signatures $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false", timeout => 60);
 
     # Push chart
-    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .");
-    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library");
+    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .", timeout => 60);
+    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library --insecure-skip-tls-verify", timeout => 60);
     
 } 
 

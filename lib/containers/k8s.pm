@@ -99,7 +99,7 @@ sub install_k3s {
     # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
     my $disables = '--disable=metrics-server';
     $disables .= ' --disable-helm-controller' unless (get_var('K3S_ENABLE_HELM_CONTROLLER'));
-    $disables .= ' --disable=traefik';
+    $disables .= ' --disable=traefik' unless get_var('K3S_ENABLE_TRAEFIK');
     $disables .= ' --disable=coredns' unless get_var('K3S_ENABLE_COREDNS');
 
     while (my ($key, $value) = each %k3s_args) {
