@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle, is_tumbleweed );
 use repo_tools 'add_qa_head_repo';
 use Utils::Logging 'export_logs_basic';
 
@@ -49,7 +49,7 @@ sub run {
     prepare_blktests_config($devices);
 
     #temp override of $tests and $devices
-    if (is_sle(">=16")) {
+    if (is_sle(">=16") or is_tumbleweed) {
         $tests = 'loop';
         #$devices = '/dev/sdb';
     }
