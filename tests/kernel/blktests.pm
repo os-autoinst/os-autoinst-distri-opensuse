@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle, is_tumbleweed );
+use version_utils qw(is_sle is_tumbleweed );
 use repo_tools 'add_qa_head_repo';
 use Utils::Logging 'export_logs_basic';
 
