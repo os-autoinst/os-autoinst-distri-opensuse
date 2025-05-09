@@ -63,7 +63,7 @@ sub run {
       validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, retry => 3, delay => 30, timeout => 120, fail_message => "$release_name-$component didn't deploy");
       my @pods = split(' ', script_output("kubectl get pods --no-headers -l component=$component"));
       my $full_pod_name = $pods[0];
-      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 3, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
+      assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={..status.conditions[?(@.type==\"Ready\")].status}'", retry => 5, delay => 30, timeout => 60, fail_message => "$full_pod_name is not in the Ready state!");
       record_info("$component is ready", "$full_pod_name is in the Ready state.");
     }
     
@@ -72,13 +72,9 @@ sub run {
     my $registry_ingress_url = script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{.spec..host}'");
     my $registry_ingress_ip = script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}'");
 
-    script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status.loadBalancer.ingress[0].ip}'");
-    script_output("kubectl get ingress $release_name-harbor-ingress -o jsonpath='{..status..loadBalancer..ingress[0]..ip}'");
-    script_output("kubectl get nodes -o jsonpath='{.status.addresses[0].address}'");
-    script_output("kubectl get nodes -o jsonpath='{..status.addresses[0].address}'");
-
     # Add the k3s IP to /etc/hosts
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
+    script_run("sleep 1800", timeout => 840);
 
     # Login 
     assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false");
