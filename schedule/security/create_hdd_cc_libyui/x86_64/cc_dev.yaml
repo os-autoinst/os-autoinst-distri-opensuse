@@ -4,7 +4,7 @@ description: >
   encryption on beta SLES.
 schedule:
   access_beta:
-    - installation/access_beta_distribution
+    - security/installation/handle_beta_status
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
