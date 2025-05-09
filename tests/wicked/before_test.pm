@@ -189,7 +189,9 @@ EOT
     }
 
     # Disable firewall by default.
-    # Tests which need firewall, should explicit enable it
+    # Tests which need firewall, should explicit enable it.
+    # "systemctl disable --now" doesn't work with SuSEfirewall2, see poo#182003,
+    # So stop firewall at first before disabling it
     if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
         systemctl("stop " . opensusebasetest::firewall);
         systemctl("disable " . opensusebasetest::firewall);
