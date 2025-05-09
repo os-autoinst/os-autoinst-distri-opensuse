@@ -18,6 +18,10 @@ use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
+    if (is_sle('=15-SP6')) {
+        record_soft_failure('SKIPPING TEST - poo#179729');
+        return;
+    }
     my $vm_type = 'legacy';
     $vm_type = 'uefi' if get_var('UEFI');
     # aarch64 does not support tpm1.2
