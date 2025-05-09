@@ -39,6 +39,11 @@ sub run {
     install_kubectl();
     install_helm();
 
+    # brute force
+    script_run("rm -f ~/.kube/config");
+    script_run("/usr/local/bin/k3s-uninstall.sh");
+    assert_script_run("curl -sfL https://get.k3s.io | sh -", timeout => 300);
+
     # Pull helm chart, if it is a http file
     if ($helm_chart =~ m!^http(s?)://!) {
         my ($url, $path) = split(/#/, $helm_chart, 2);    # split extracted folder path, if present
@@ -75,7 +80,7 @@ sub run {
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
 
     # Login 
-    script_run("sleep 1800", timeout => 1800);
+    #script_run("sleep 360", timeout => 360);
     assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 5, delay => 10);
     assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 5, delay => 10);
 
