@@ -16,5 +16,4 @@ vars:
     BOOT_HDD_IMAGE: 1
 schedule:
     - boot/boot_to_desktop
-    - kernel/build_git_kernel
     - kernel/blktests
