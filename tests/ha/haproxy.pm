@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl);
+use network_utils qw(iface);
 use hacluster;
 
 sub run {
@@ -25,6 +26,7 @@ sub run {
     my $apache_file = '/srv/www/htdocs/index.html';
     my $vip_ip = '10.0.2.30';
     my $vip_rsc = 'vip_haproxy';
+    my $iface = iface();
     my $node_01 = choose_node(1);
     my $node_02 = choose_node(2);
     my $node_01_ip = get_ip($node_01);
@@ -72,7 +74,7 @@ sub run {
 
     if (is_node(1)) {
         # Create vip resource
-        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='eth0' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
         # Just to be sure that vip resource is started
         sleep 5;
