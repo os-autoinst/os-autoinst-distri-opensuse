@@ -31,7 +31,6 @@ sub run {
     assert_script_run('cd linux');
     assert_script_run('zcat /proc/config.gz > .config');
 
-    sleep(999999);
     assert_script_run("sed -i 's/CONFIG_MODULE_SIG_KEY=.*/CONFIG_MODULE_SIG_KEY=\"\"/' .config");
     assert_script_run("sed -i 's/CONFIG_SYSTEM_TRUSTED_KEYRING=.*/CONFIG_SYSTEM_TRUSTED_KEYRING=n/' .config");
     assert_script_run("sed -i 's/CONFIG_DEBUG_INFO_BTF=y/# CONFIG_DEBUG_INFO_BTF=y/' .config");
