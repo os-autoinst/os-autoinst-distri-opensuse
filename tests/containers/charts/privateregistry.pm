@@ -43,6 +43,7 @@ sub run {
     script_run("rm -f ~/.kube/config");
     script_run("/usr/local/bin/k3s-uninstall.sh");
     assert_script_run("curl -sfL https://get.k3s.io | sh -", timeout => 300);
+    assert_script_run('ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config');
 
     # Pull helm chart, if it is a http file
     if ($helm_chart =~ m!^http(s?)://!) {
