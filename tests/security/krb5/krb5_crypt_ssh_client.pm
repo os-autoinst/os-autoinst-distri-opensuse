@@ -12,13 +12,18 @@ use testapi;
 use utils;
 use lockapi;
 use mmapi;
+use version_utils qw(is_sle);
 use krb5crypt;    # Import public variables
 
 sub run {
     select_console 'root-console';
 
     foreach my $i ('GSSAPIAuthentication', 'GSSAPIDelegateCredentials') {
-        assert_script_run "sed -i 's/^.*$i .*\$/$i yes/' /etc/ssh/ssh_config";
+        if (is_sle('>=16')) {
+            assert_script_run "echo $i yes >> /etc/ssh/ssh_config.d/10-gssapi.conf";
+        } else {
+            assert_script_run "sed -i 's/^.*$i .*\$/$i yes/' /etc/ssh/ssh_config";
+        }
     }
 
     mutex_wait('CONFIG_READY_SSH_SERVER');

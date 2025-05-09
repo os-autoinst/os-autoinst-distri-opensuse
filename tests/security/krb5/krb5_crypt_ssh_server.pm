@@ -12,6 +12,7 @@ use testapi;
 use utils;
 use lockapi;
 use mmapi;
+use version_utils qw(is_sle);
 use krb5crypt;    # Import public variables
 
 sub run {
@@ -22,7 +23,11 @@ sub run {
 
     # Config sshd
     foreach my $i ('GSSAPIAuthentication', 'GSSAPICleanupCredentials') {
-        assert_script_run "sed -i 's/^#$i .*\$/$i yes/' /etc/ssh/sshd_config";
+        if (is_sle('>=16')) {
+            assert_script_run "echo $i yes >> /etc/ssh/sshd_config.d/10-gssapi.conf";
+        } else {
+            assert_script_run "sed -i 's/^#$i .*\$/$i yes/' /etc/ssh/sshd_config";
+        }
     }
     systemctl("restart sshd");
 
