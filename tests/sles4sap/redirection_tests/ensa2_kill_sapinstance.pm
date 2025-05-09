@@ -62,6 +62,7 @@ sub run {
     my @instances_data = @{saphostctrl_list_instances(as_root => 'yes', running => 'yes')};
     my $instance_id = $instances_data[0]->{instance_id};
     my $instance_type = get_instance_type(local_instance_id => $instance_id);
+    my $forced_takeover = ($scenario{forced_takeover} && $instance_type eq 'ASCS') ? '1' : undef;
 
     # Show status
     sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instance_id);
@@ -72,8 +73,18 @@ sub run {
     wait_until_resources_started();
     wait_for_idle_cluster();
 
-    # Remove meta-argument 'migration-threshold' for cluster to try restarting sapinstance process first.
-    crm_resource_meta_set(resource => $resource_name, meta_argument => 'migration-threshold');
+    # Store original 'migration-threshold' to restore it at the end of the test
+    my $migration_threshold_original_value =
+      crm_resource_meta_show(resource => $resource_name, meta_argument => 'migration-threshold');
+    record_info('CRM meta', "CRM meta set: $migration_threshold_original_value");
+
+    # Change migration threshold according to scenario settings
+    # 1 = killing process will trigger takeover immediately
+    my $migration_threshold = $forced_takeover ? '1' : undef;
+    crm_resource_meta_set(
+        resource => $resource_name,
+        meta_argument => 'migration-threshold',
+        argument_value => $migration_threshold);
 
     record_info('Cluster check', 'Checking state of cluster resources');
     check_cluster_state();
@@ -87,44 +98,61 @@ sub run {
 
     # Kill sapinstance process
     my $process_name;
-    $process_name = 'en.sap' if $instance_type eq 'ASCS';
-    $process_name = 'er.sap' if $instance_type eq 'ERS';
+    # There is a different naming between S4HANA and regular NW installation.
+    # Note: 'pgrep' accepts only limited regexes
+    $process_name = '"en.sap|enq.sap"' if $instance_type eq 'ASCS';
+    $process_name = '"er.sap|enqr.sap"' if $instance_type eq 'ERS';
     die "Unknown instance type: '$instance_type'" unless $process_name;
 
-    record_info('PROC list', script_output("ps -ef | grep $process_name"));    # Show SAP processes running
-    my $pid = script_output("pgrep $process_name");
+    record_info('PROC list', script_output("ps -ef | grep -E $process_name"));    # Show SAP processes running
+    my $pid = script_output("pgrep -f $process_name");
     die "Sapinstance $instance_type process ID not found" unless $pid;
-    record_info('KILL INST', "Killing $instance_type sapinstance process");
+    record_info('KILL INST', "Killing $instance_type sapinstance process PID '$pid'");
     assert_script_run("kill -9 $pid");
 
     # Check if sapinstance process was killed
-    record_info('PROC list', script_output("ps -ef | grep $process_name"));
-    script_retry("pgrep $process_name",
-        expect => 1,    # pgrep returns 1 if process was not found
-        delay => 1,    # short delay in case process gets up too quickly
-        timeout => 30,    # 30 sec is plenty
-        fail_message => "$instance_type process still running after being killed."
-    );
+    record_info('PROC list', script_output("ps -ef | grep -E $process_name"));
+
+    my $retry = 0;
+    until (script_run("pgrep -f $process_name")) {
+        sleep 1;
+        $retry++;
+        die if ($retry == 30);
+    }
 
     record_info('Cluster wait', 'Waiting for cluster detecting failure');
     # Wait till fail count increases
     $fail_count = crm_wait_failcount(crm_resource => $resource_name);
     record_info("Fail count: $fail_count", "Fail count is $fail_count");
 
-    record_info('Res cleanup', 'Cleaning up resources using "crm resource cleanup"');
-    rsc_cleanup($resource_name);
+    record_info('Refresh', 'Refreshing resources using "crm resource refresh"');
+    assert_script_run('crm resource refresh');
     wait_until_resources_started();
     wait_for_idle_cluster();
     record_info('Cluster check', 'Checking state of cluster resources');
     check_cluster_state();
 
-    # Resource must not be moved - compare current location with initial one.
-    die "Cluster resource '$resource_name' is not on the original node." if
-      (crm_resource_locate(crm_resource => $resource_name) ne $initial_res_location);
+    if ($forced_takeover) {
+        die "Cluser resource '$resource_name' was not moved to another node" if
+          crm_resource_locate(crm_resource => $resource_name) eq $initial_res_location;
+    }
+    else {
+        die "Cluster resource '$resource_name' is not on the original node." if
+          (crm_resource_locate(crm_resource => $resource_name) ne $initial_res_location);
+    }
+
+    # Restore 'migration-threshold' to original value
+    if (crm_resource_meta_show(resource => $resource_name, meta_argument => 'migration-threshold')
+        ne $migration_threshold_original_value) {
+        crm_resource_meta_set(
+            resource => $resource_name,
+            meta_argument => 'migration-threshold',
+            argument_value => $migration_threshold_original_value);
+    }
 
     # Show status of local instances
     sap_show_status_info(cluster => 1, netweaver => 1, instance_id => $instances_data[0]->{instance_id});
-
+    # Close serial connection to SUT
     disconnect_target_from_serial();
 }
 1;
