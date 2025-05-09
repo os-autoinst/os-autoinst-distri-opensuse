@@ -214,6 +214,10 @@ sub post_fail_hook {
 
 sub post_run_hook {
     my ($self) = @_;
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        # SAP/HA Public Cloud test case uses its own cleanup procedure (for example: loadtest qesap_cleanup.pm)
+        return;
+    }
     $self->finalize() unless $self->{finalize_called};
 }
 
