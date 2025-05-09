@@ -89,6 +89,7 @@ sub run {
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
     my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
     $self->{ltp_command} = $ltp_command;
+    my @commands = split(/\s+/, $ltp_command);
     my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
     select_host_console();
@@ -126,7 +127,11 @@ sub run {
     my $skip_tests;
     if ($issues) {
         my $whitelist = LTP::WhiteList->new($issues);
-        my @skipped = $whitelist->list_skipped_tests($ltp_env, $ltp_command);
+        my @skipped;
+        foreach my $command (@commands) {
+            my @skipped_for_command = $whitelist->list_skipped_tests($ltp_env, $command);
+            push @skipped, @skipped_for_command;
+        }
         if (@skipped) {
             $skip_tests = '^(' . join("|", @skipped) . ')$';
             $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
@@ -174,8 +179,6 @@ sub run {
     $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_cmd=\'' . $reset_cmd . '\'';
-    $sut .= ':hostkey_policy=missing';
-    $sut .= ':known_hosts=~/.ssh/known_hosts';
 
     my $cmd = 'python3.11 kirk ';
     $cmd .= "--framework ltp ";
