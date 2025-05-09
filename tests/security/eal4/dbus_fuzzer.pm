@@ -29,6 +29,9 @@ sub run {
     assert_script_run('make');
 
     my $output = script_output('./dfuzzer -l 2>&1');
+    my $test_log = "DBus_fuzzer_log.txt";
+    script_run('printf "# Run \'DBus fuzzer\' test case of EAL4 test suite\n" >> ' . $test_log . '');
+    script_run('printf "Output of \'dfuzzer -l 2>&1\':\n' . $output . '\n" >> ' . $test_log . '');
 
     # Parse the output and push the items to related array
     my @bus_list;
@@ -48,6 +51,7 @@ sub run {
     }
 
     record_info('Result of dfuzzer -l', Dumper(\@bus_list));
+    script_run('printf "Result of dfuzzer -l:\n' . Dumper(\@bus_list) . '\n" >> ' . $test_log . '');
 
     # Analyse the results
     my %hash_white_list = map { $_ => 1 } @eal4_test::white_list_for_dbus;
@@ -98,6 +102,9 @@ sub run {
         $self->result('fail');
     }
     record_info('Results of testing dbus', Dumper(\%test_result));
+    script_run('printf "Results of testing dbus:\n' . Dumper(\%test_result) . '\n" >> ' . $test_log . '');
+    upload_log_file($test_log);
+
 }
 
 sub test_flags {
