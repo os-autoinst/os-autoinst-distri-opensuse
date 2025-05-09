@@ -145,7 +145,11 @@ sub run {
     assert_script_run("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
+        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt'));
+    } else {
+        record_info('VM type', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+    }
 
     assert_script_run('curl ' . data_url('publiccloud/ltp_runtest') . ' -o publiccloud');
     $instance->scp("publiccloud", 'remote:/tmp/publiccloud', 9999);
