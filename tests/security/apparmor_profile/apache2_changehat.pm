@@ -52,7 +52,7 @@ sub run {
     my ($self) = shift;
 
     # only skip on maintenace, not on dev
-    if (is_sle('>=15-SP6') && (check_var('BETA', '0') || !get_var('BETA'))) {
+    if (is_sle('>=15-SP7') && (check_var('BETA', '0') || !get_var('BETA'))) {
         record_info('SKIPPING TEST', "Skipping test due to bsc#1191684");
         return;
     }
