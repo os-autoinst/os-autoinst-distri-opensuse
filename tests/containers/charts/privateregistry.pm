@@ -76,6 +76,7 @@ sub run {
     assert_script_run("echo \"$registry_ingress_ip $registry_ingress_url\" | sudo tee -a /etc/hosts");
 
     # Login 
+    script_run("sleep 1800", timeout => 1800);
     assert_script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 3, delay => 10);
     assert_script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 3, delay => 10);
 
