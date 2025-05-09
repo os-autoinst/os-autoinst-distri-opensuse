@@ -39,6 +39,11 @@ sub run {
     # Clone to a bare git repo
     assert_script_run("cd ~/repos;git clone --bare qa1 qa0");
 
+    # Prepare ssh
+    assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
+    assert_script_run("ssh-keyscan -H localhost >> ~/.ssh/known_hosts");
+    assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
+    assert_script_run("cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys");
     # Clone repo via ssh
     script_run("git clone ssh://localhost:/root/repos/qa0 qa2 | tee /dev/$serialdev", 0);
 
@@ -51,7 +56,7 @@ sub run {
     assert_script_run("cd ~;git clone -q https://github.com/os-autoinst/os-autoinst-distri-example");
 
     # clean up
-    assert_script_run("rm -rf ~/repos ~/os-autoinst*");
+    assert_script_run("rm -rf ~/.ssh ~/repos ~/os-autoinst*");
 }
 
 1;
