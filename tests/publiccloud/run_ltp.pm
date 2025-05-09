@@ -174,8 +174,6 @@ sub run {
     $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_cmd=\'' . $reset_cmd . '\'';
-    $sut .= ':hostkey_policy=missing';
-    $sut .= ':known_hosts=~/.ssh/known_hosts';
 
     my $cmd = 'python3.11 kirk ';
     $cmd .= "--framework ltp ";
