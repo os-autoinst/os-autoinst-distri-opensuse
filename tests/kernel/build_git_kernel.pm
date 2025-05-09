@@ -25,6 +25,8 @@ sub run {
 
     # download, compile and install a kernel tree from git
     zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
+
+    sleep(999999);
     # git clone takes a long time due to slow network connection
     assert_script_run("git clone --depth 1 --single-branch --branch $git_branch $git_tree linux", 7200);
     assert_script_run('cd linux');
