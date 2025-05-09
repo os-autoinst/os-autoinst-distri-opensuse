@@ -1813,7 +1813,11 @@ sub crm_resource_meta_set {
         croak("Mandatory argument '$arg' missing.") unless $arg;
     }
     my $action = $args{argument_value} ? 'set' : 'delete';
-    assert_script_run("crm resource meta $args{resource} $action $args{meta_argument}");
+    my $cmd = "crm resource meta $args{resource} $action $args{meta_argument}";
+    $cmd .= " $args{argument_value}" if $action eq 'set';
+
+    assert_script_run($cmd);
+    record_info('CRM meta set', "CRM meta set: $cmd");
 }
 
 1;
