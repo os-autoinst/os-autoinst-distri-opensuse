@@ -37,14 +37,20 @@ sub run {
         # Create the partitions
         assert_script_run("mkdir -p $sap_dir/$instance_dir");
         assert_script_run("parted -s $lun_path --list");
-        assert_script_run("parted -s $lun_path mklabel gpt");
-        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
-        script_run('partprobe -s');
-        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
         # From the manual: changes will *probably* be made to the disk
         # immediately after typing a command. However, the operating system’s
         # cache and the disk’s hardware cache may delay this. When using serial
         # we hit this limitation, to avoid that we run partprobe and parted again.
+        script_run('partprobe');
+        script_run('partprobe -s');
+        assert_script_run("parted -s $lun_path mklabel gpt");
+        script_run('partprobe');
+        script_run('partprobe -s');
+        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
+        script_run('partprobe');
+        script_run('partprobe -s');
+        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
+        script_run('partprobe');
         script_run('partprobe -s');
         assert_script_run("parted -s $lun_path --list");
 
