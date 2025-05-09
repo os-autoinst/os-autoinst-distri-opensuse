@@ -13,12 +13,13 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use network_utils qw(iface);
 
 sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
     my $remove_cmd = 'crm cluster remove -y -c';
-    my $join_cmd = 'crm cluster join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
+    my $join_cmd = 'crm cluster join -y -i ' . get_var('SUT_NETDEVICE', iface()) . ' -c';
     my $remove_timeout = bmwqemu::scale_timeout(60);
     my $timer = bmwqemu::scale_timeout(5);
 

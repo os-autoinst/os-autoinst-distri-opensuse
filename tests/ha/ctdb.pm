@@ -14,8 +14,9 @@ use testapi;
 use lockapi;
 use hacluster;
 use serial_terminal qw(select_serial_terminal);
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
 use utils qw(systemctl file_content_replace zypper_call);
+use network_utils qw(iface);
 
 sub run {
     # Exit of this module if we are in a maintenance update not related to samba
@@ -36,6 +37,7 @@ sub run {
         my $nmb_rsc = 'nmb';
         my $smb_rsc = 'smb';
         my $ip_rsc = 'vip';
+        my $iface = iface();
         my @node_list;
 
         foreach my $node (1 .. get_node_number) {
@@ -72,7 +74,7 @@ sub run {
             assert_script_run "crm configure property maintenance-mode=true";
 
             # Create vip resource
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='eth0' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
             # Add ctdb, nmb, smb, group, clone and order resources
             assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
