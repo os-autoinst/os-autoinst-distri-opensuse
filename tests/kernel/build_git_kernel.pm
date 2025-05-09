@@ -42,7 +42,7 @@ sub run {
     assert_script_run('make modules_install', 3600);
     assert_script_run('make install');
 
-    assert_script_run('mkinitrd /boot/initrd-$(make kernelrelease) $(make kernelrelease)');
+    assert_script_run('dracut --force /boot/initramfs-$(make kernelrelease).img $(make kernelrelease)');
     assert_script_run('cp /boot/vmlinuz /boot/vmlinuz-$(make kernelrelease)');
     assert_script_run('ls -la /boot | grep vmlinuz-$(make kernelrelease)');
     assert_script_run('update-bootloader');
