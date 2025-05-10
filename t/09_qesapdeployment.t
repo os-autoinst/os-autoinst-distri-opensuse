@@ -13,6 +13,44 @@ use sles4sap::qesap::qesapdeployment;
 
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
 
+sub create_qesap_prepare_env_mocks_noret {
+    my $called_functions = shift;
+    my $mock_func = shift;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    # First mock functions returning nothing
+    foreach (@{$mock_func}) {
+        my $fn = $_;
+        $called_functions->{$fn} = 0;
+        $qesap->redefine($fn => sub { $called_functions->{$fn} = 1; return; });
+    }
+    return $qesap;
+}
+
+sub create_qesap_prepare_env_mocks_with_calls {
+    my $called_functions = shift;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    # then mock functions with some more complex return value
+    $called_functions->{qesap_get_file_paths} = 0;
+    $qesap->redefine(qesap_get_file_paths => sub {
+            $called_functions->{qesap_get_file_paths} = 1;
+            my %paths;
+            $paths{qesap_conf_src} = '/REEF';
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{terraform_dir} = '/SPLASH';
+            $paths{deployment_dir} = '/WAVE';
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+    $called_functions->{qesap_get_terraform_dir} = 0;
+    $qesap->redefine(qesap_get_terraform_dir => sub { $called_functions->{qesap_get_terraform_dir} = 1; return '/SHELL'; });
+    $called_functions->{qesap_execute} = 0;
+    $qesap->redefine(qesap_execute => sub { $called_functions->{qesap_execute} = 1; return (0, "ALL GOOD"); });
+
+    return $qesap;
+}
+
 subtest '[qesap_get_inventory] upper case' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
@@ -917,44 +955,6 @@ subtest '[qesap_prepare_env] integration test' => sub {
     }
 };
 
-sub create_qesap_prepare_env_mocks_noret {
-    my $called_functions = shift;
-    my $mock_func = shift;
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-
-    # First mock functions returning nothing
-    foreach (@{$mock_func}) {
-        my $fn = $_;
-        $called_functions->{$fn} = 0;
-        $qesap->redefine($fn => sub { $called_functions->{$fn} = 1; return; });
-    }
-    return $qesap;
-}
-
-sub create_qesap_prepare_env_mocks_with_calls {
-    my $called_functions = shift;
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-
-    # then mock functions with some more complex return value
-    $called_functions->{qesap_get_file_paths} = 0;
-    $qesap->redefine(qesap_get_file_paths => sub {
-            $called_functions->{qesap_get_file_paths} = 1;
-            my %paths;
-            $paths{qesap_conf_src} = '/REEF';
-            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
-            $paths{terraform_dir} = '/SPLASH';
-            $paths{deployment_dir} = '/WAVE';
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
-    });
-    $called_functions->{qesap_get_terraform_dir} = 0;
-    $qesap->redefine(qesap_get_terraform_dir => sub { $called_functions->{qesap_get_terraform_dir} = 1; return '/SHELL'; });
-    $called_functions->{qesap_execute} = 0;
-    $qesap->redefine(qesap_execute => sub { $called_functions->{qesap_execute} = 1; return (0, "ALL GOOD"); });
-
-    return $qesap;
-}
-
 subtest '[qesap_prepare_env]' => sub {
     my %called_functions;
     my @mock_func = qw(qesap_get_variables
@@ -1135,110 +1135,18 @@ subtest '[qesap_prepare_env] AWS' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
 
     my $qesap_create_aws_config_called = 0;
-    $qesap->redefine(qesap_create_aws_config => sub { $qesap_create_aws_config_called = 1; });
+    $qesap->redefine(qesap_aws_create_config => sub { $qesap_create_aws_config_called = 1; });
     my $qesap_create_aws_credentials_called = 0;
-    $qesap->redefine(qesap_create_aws_credentials => sub { $qesap_create_aws_credentials_called = 1; });
+    $qesap->redefine(qesap_aws_create_credentials => sub { $qesap_create_aws_credentials_called = 1; });
 
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
 
-    qesap_prepare_env(provider => 'EC2');
+    qesap_prepare_env(provider => 'EC2', region => 'SOMEWHERE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok($qesap_create_aws_config_called, '$qesap_create_aws_config called');
     ok($qesap_create_aws_credentials_called, '$qesap_create_aws_credentials called');
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @calls;
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return 'eu-central-1'; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
-    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-south-2');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    ok((any { qr|mkdir -p ~/\.aws| } @calls), '.aws directory initialized');
-    ok((any { qr|curl.+/files/config.+~/\.aws/config| } @calls), 'AWS Config file downloaded');
-    ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
-    is $contents[0], 'config', "AWS config file: config is the expected value and got $contents[0]";
-    like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config fix quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @calls;
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '"eu-central-1"'; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
-    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-south-2');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '%REGION%'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template with quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '"%REGION%"'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template and variable with quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-    $qesap->redefine(script_output => sub { return '%REGION%'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', '"eu-central-1"');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
 };
 
 subtest '[qesap_is_job_finished]' => sub {

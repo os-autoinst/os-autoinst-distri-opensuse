@@ -132,8 +132,8 @@ sub run {
 
     qesap_prepare_env(
         openqa_variables => \%variables,
-        provider => get_required_var('PUBLIC_CLOUD_PROVIDER')
-    );
+        provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        region => $provider->provider_client->region);
 }
 
 sub test_flags {
