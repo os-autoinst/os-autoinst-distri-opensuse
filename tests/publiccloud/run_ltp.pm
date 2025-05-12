@@ -49,6 +49,7 @@ sub upload_ltp_logs
 {
     my $self = shift;
     my $ltp_testsuite = $self->{ltp_command};
+    my @commands = split(/\s+/, $ltp_testsuite);
     my $log_file = Mojo::File::path('ulogs/results.json');
 
     record_info('LTP Logs', 'upload');
@@ -67,8 +68,16 @@ sub upload_ltp_logs
         my $whitelist = LTP::WhiteList->new();
 
         for my $result (@{$parser->results()}) {
-            if ($whitelist->override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
-                $result->{result} = 'softfail';
+            foreach my $command (@commands) {
+                if ($whitelist->override_known_failures(
+                        $self,
+                        {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}},
+                        $command,
+                        $result->{test_fqn}
+                )) {
+                    $result->{result} = 'softfail';
+                    last;
+                }
             }
         }
 
