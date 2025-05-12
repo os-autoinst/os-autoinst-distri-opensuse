@@ -62,7 +62,7 @@ $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failure
 set_var('DESKTOP', check_var('VIDEOMODE', 'text') ? 'textmode' : 'kde') unless get_var('DESKTOP');
 # See https://github.com/agama-project/agama/issues/2143
 # Autologin is not possible in agama as of now
-set_var("NOAUTOLOGIN", 1) if is_leap("16.0+");
+set_var("NOAUTOLOGIN", 1) if (is_leap("16.0+") && !get_var("ZDUP", 0));
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
