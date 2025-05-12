@@ -32,7 +32,6 @@ schedule:
     - '{{wizard}}'
     - console/journal_check
     - console/suseconnect_scc
-    - sles4sap/patterns
     - sles4sap/saptune
     - console/hostname
     - console/force_scheduled_tasks
