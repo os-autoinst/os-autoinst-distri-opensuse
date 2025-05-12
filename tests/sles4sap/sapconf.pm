@@ -107,8 +107,7 @@ sub run {
 
     verify_sapconf_service('sapconf.service', 'sapconf') unless ($default_profile eq 'saptune');
     verify_sapconf_service('uuidd.socket', 'UUID daemon activation socket');
-    verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
-      if is_sle('15+');
+    verify_sapconf_service('sysstat.service', '') if is_sle('15+');
 
     my $sapconf_bin = is_sle('<15') ? 'sapconf' : '/usr/lib/sapconf/sapconf';
     if (is_sle('<15')) {
