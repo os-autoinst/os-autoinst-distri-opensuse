@@ -17,7 +17,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
-    return if ($skip_tests eq "all");
+    return if check_var($skip_tests, "all");
 
     my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
     record_info("storage driver", $storage_driver);
@@ -70,11 +70,11 @@ sub run {
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
     run_command "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
 
     die "buildah tests failed" if ($errors);
 }
