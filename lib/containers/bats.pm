@@ -23,6 +23,7 @@ use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use containers::common qw(install_packages);
+use YAML::PP;
 
 our @EXPORT = qw(
   bats_patches
@@ -37,6 +38,7 @@ our @EXPORT = qw(
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/bats-tests";
+my $settings;
 
 my @commands = ();
 
@@ -81,7 +83,7 @@ sub install_bats {
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
-    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
+    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats/skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
 }
 
@@ -335,8 +337,9 @@ sub bats_tests {
     push @commands, $cmd;
     my $ret = script_run $cmd, 7000;
 
+    $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -355,15 +358,32 @@ sub bats_patches {
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
-    foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
+    my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
+    if (!@patches && defined $settings->{BATS_PATCHES}) {
+        @patches = @{$settings->{BATS_PATCHES}};
+    }
+
+    foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
         run_command "curl $curl_opts $url | patch -p1 --merge", timeout => 900;
     }
 }
 
+sub bats_settings {
+    my $package = get_required_var("BATS_PACKAGE");
+    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+
+    assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
+    my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
+    my $yaml = YAML::PP->new()->load_string($text);
+
+    return $yaml->{$package}{$os_version};
+}
+
 sub bats_sources {
     my $version = shift;
+    $settings = bats_settings;
 
     my $package = get_required_var("BATS_PACKAGE");
     $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
