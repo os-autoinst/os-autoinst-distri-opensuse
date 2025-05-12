@@ -20,6 +20,7 @@ use isotovideo;
 use maintenance_smelt qw(get_incident_packages);
 use x11utils qw(ensure_unlocked_desktop);
 use Utils::Logging qw(export_logs);
+use network_utils qw(iface);
 use Carp qw(croak);
 use Data::Dumper;
 
@@ -288,7 +289,7 @@ Returns the IP address of SUT or 0 if the address cannot be determined. Special 
 =cut
 
 sub get_my_ip {
-    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+    my $netdevice = get_var('SUT_NETDEVICE', iface());
     my $node_ip = script_output "ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
     return _just_the_ip($node_ip);
 }
