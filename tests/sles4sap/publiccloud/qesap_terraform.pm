@@ -208,14 +208,14 @@ sub run {
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
 
     # Prepare QESAP deployment
-    qesap_prepare_env(provider => $provider_setting);
+    qesap_prepare_env(provider => $provider_setting, region => get_required_var('PUBLIC_CLOUD_REGION'));
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
     qesap_create_ansible_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
-    qesap_prepare_env(provider => $provider_setting, only_configure => 1);
+    qesap_prepare_env(provider => $provider_setting, only_configure => 1, region => get_required_var('PUBLIC_CLOUD_REGION'));
 
     my %retry_args = (
         logname => 'qesap_exec_terraform.log.txt',
