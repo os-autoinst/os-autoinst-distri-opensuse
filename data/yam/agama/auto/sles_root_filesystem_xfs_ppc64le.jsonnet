@@ -1,4 +1,7 @@
 {
+  bootloader: {
+    stopOnBootMenu: true,
+  },
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
     registrationCode: '{{SCC_REGCODE}}',
@@ -37,7 +40,7 @@
           done
         |||,
       },
-    ],    
+    ],
     post: [
       {
         name: 'enable root login',

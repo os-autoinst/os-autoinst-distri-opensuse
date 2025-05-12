@@ -1,4 +1,7 @@
 {
+  bootloader: {
+    stopOnBootMenu: true,
+  },
   root: {
     sshPublicKey: 'fake public key to enable sshd and open firewall',
   },
