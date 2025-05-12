@@ -8,7 +8,7 @@ schedule:
   - yam/agama/agama
   - installation/grub_test
   - installation/first_boot
-  - console/validate_repos
   - yam/validate/validate_base_product
   - yam/validate/validate_first_user
   - yam/validate/validate_hostname
+  - console/validate_repos
