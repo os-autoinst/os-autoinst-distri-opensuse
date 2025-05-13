@@ -149,6 +149,9 @@ sub load_kernel_tests {
         loadtest_kernel 'boot_ltp';
         loadtest_kernel 'ulp_openposix';
     }
+    elsif (get_var('KDUMP')) {
+        loadtest_kernel 'kdump';
+    }
 
     if (is_svirt && get_var('PUBLISH_HDD_1')) {
         loadtest_kernel '../shutdown/svirt_upload_assets';

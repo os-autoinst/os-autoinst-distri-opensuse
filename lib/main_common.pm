@@ -282,7 +282,8 @@ sub is_kernel_test {
         || get_var('BLKTESTS')
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
-        || get_var('TUNED'));
+        || get_var('TUNED')
+        || get_var('KDUMP'));
 }
 
 sub is_systemd_test {
