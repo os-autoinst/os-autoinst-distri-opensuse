@@ -18,7 +18,7 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle has_selinux);
+use version_utils qw(is_sle is_jeos has_selinux);
 use Utils::Architectures;
 
 sub cleanup {
@@ -31,6 +31,8 @@ sub run {
     select_serial_terminal;
 
     zypper_call('in mariadb');
+    zypper_call("in policycoreutils-python-utils") if has_selinux();
+
     my $mariadb = (is_sle '<15-SP4') ? 'mysql' : 'mariadb';
     if (script_run("grep 'bindir=\"\$basedir/sbin\"' /usr/bin/${mariadb}_install_db") == 0) {
         record_soft_failure 'bsc#1142058';
