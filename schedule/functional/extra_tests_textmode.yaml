@@ -127,6 +127,7 @@ schedule:
     - console/consoletest_setup
     - '{{update_repos}}'
     - console/ntp_client
+    - console/dnsmasq
     - console/man_pages
     - console/ping
     - console/arping
