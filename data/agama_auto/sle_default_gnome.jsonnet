@@ -30,14 +30,6 @@
           #!/usr/bin/env bash
           systemctl enable sshd
         |||
-      },
-      {
-        name: 'enable gdm',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable gdm
-        |||
       }
     ]
   }
