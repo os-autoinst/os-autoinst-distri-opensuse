@@ -18,7 +18,7 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle has_selinux);
 use Utils::Architectures;
 
 sub cleanup {
@@ -36,6 +36,12 @@ sub run {
         record_soft_failure 'bsc#1142058';
         assert_script_run "sed -i 's|resolveip=\"\$bindir/resolveip\"|resolveip=\"/usr/bin/resolveip\"|' /usr/bin/${mariadb}_install_db";
     }
+
+    if (has_selinux()) {
+        assert_script_run("semanage port -a -t mysqld_port_t -p tcp 3310");
+        assert_script_run("semanage port -a -t mysqld_port_t -p tcp 3315");
+    }
+
     systemctl "status $mariadb", expect_false => 1, fail_message => 'mariadb should be disabled by default';
     systemctl "start $mariadb", timeout => 300;
     systemctl "is-active $mariadb";
