@@ -1,0 +1,101 @@
+---
+name: basic_cluster_node
+description: >
+  Cluster Test. Schedule for alpha/beta/ctdb (2 nodes cluster) and delta/gamma (3 nodes cluster).
+
+  Some settings are required in the job group or test suite for this schedule to work.
+  HA_CLUSTER_INIT must be defined for all jobs. In one of the jobs, it must be defined
+  to 'yes', while in the rest to 'no'. This will only control the conditional scheduling
+  of ha_cluster_init or ha_cluster_join.
+
+  The other settings required in the job group are.
+
+  CLUSTER_NAME must be defined for all jobs as a string.
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
+  HOSTNAME must be defined to different hostnames for each node.
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  TWO_NODES must be set to 'no' for every cluster with more than '2' nodes.
+  And of course, YAML_SCHEDULE must point to this file.
+
+  Below are the optional settings.
+
+  CTDB_TEST_ROLE can be defined as 'server' for testing CTDB.
+  HA_CLUSTER_DRBD can be defined for enabling DRBD test.
+  HA_REMOVE_NODE can be defined for testing a node removal.
+  USE_DISKLESS_SBD can be defined for making a cluster without sbd device.
+  USE_SYSRQ_FENCING can be defined for fencing through sysrq instead of 'crm node fence' command.
+
+vars:
+  DESKTOP: 'textmode'
+  HA_CLUSTER: '1'
+  HDD_SCC_REGISTERED: '1'
+  TIMEOUT_SCALE: '2'
+schedule:
+  - '{{barrier_init}}'
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_hae_active.py
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/iscsi_client_setup
+  - ha/setup_hosts_and_luns
+  - ha/watchdog
+  - '{{cluster_setup}}'
+  - ha/check_hawk
+  - ha/dlm
+  - ha/clvmd_lvmlockd
+  - ha/cluster_md
+  - ha/vg
+  - ha/filesystem
+  - '{{drbd}}'
+  - '{{ctdb}}'
+  - ha/fencing
+  - '{{boot_to_desktop_node01}}'
+  - ha/check_after_reboot
+  - '{{remove_node}}'
+  - '{{graceful_shutdown}}'
+  - ha/check_logs
+  - shutdown/shutdown
+conditional_schedule:
+  barrier_init:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/barrier_init
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join
+  drbd:
+    HA_CLUSTER_DRBD:
+      1:
+        - ha/drbd_passive
+        - ha/filesystem
+  ctdb:
+    CTDB_TEST_ROLE:
+      server:
+        - ha/ctdb
+  boot_to_desktop_node01:
+    HA_CLUSTER_INIT:
+      yes:
+        - boot/reconnect_mgmt_console
+        - installation/first_boot
+  remove_node:
+    HA_REMOVE_NODE:
+      1:
+        - ha/remove_node
+  graceful_shutdown:
+    HA_GRACEFUL_SHUTDOWN:
+      1:
+        - ha/graceful_shutdown
