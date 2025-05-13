@@ -28,6 +28,7 @@ schedule:
 - console/check_network
 - console/system_state
 - console/prepare_test_data
+- console/ntp_client
 - console/consoletest_setup
 - console/force_scheduled_tasks
 - console/textinfo
