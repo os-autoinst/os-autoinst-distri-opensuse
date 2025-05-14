@@ -74,6 +74,7 @@ sub run {
     zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
     # force reinstall release notes, package must not come from expected SLE-Product repo e.g. GMC
     zypper_call('in -f release-notes*');
+    zypper_call('in zypper-lifecycle-plugin') if (is_sle('>=16'));
 
     select_user_serial_terminal;
     my $overview = script_output('zypper lifecycle', 600);
