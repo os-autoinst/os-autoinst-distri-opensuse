@@ -1,16 +1,16 @@
 ---
-name: agama full disk encryption
+name: Agama unattended with encryption
 description: >
-  Perform full disk encryption installation with agama.
+  Perform Agama unattended installation with encryption.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/import_agama_profile
-  - yam/agama/patch_agama_tests
-  - yam/agama/agama
+  - yam/agama/agama_auto
   - yam/agama/boot_encrypted
   - installation/first_boot
   - console/validate_encrypt
+  - console/validate_partition_table
+  - console/validate_blockdevices
 test_data:
   crypttab:
-    num_devices_encrypted: 2
+    num_devices_encrypted: 1
   <<: !include test_data/yast/encryption/default_enc_luks2.yaml
