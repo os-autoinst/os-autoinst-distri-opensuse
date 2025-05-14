@@ -5,6 +5,8 @@
 #
 # Summary: Executes kselftests
 # Maintainer: Kernel QE <kernel-qa@suse.de>
+#
+# Tags: deprecated
 
 use base 'opensusebasetest';
 
