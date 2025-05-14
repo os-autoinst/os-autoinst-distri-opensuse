@@ -299,8 +299,8 @@ sub load_container_tests {
         } elsif ($chart =~ m/private-registry/) {
             set_var('K3S_ENABLE_TRAEFIK', 1);
             loadtest 'containers/charts/privateregistry';
-        }   
-          else {
+        }
+        else {
             die "Unsupported HELM_CHART value";
         }
         return;

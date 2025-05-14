@@ -57,25 +57,23 @@ sub run {
     script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60) if ($helm_chart =~ m!^oci://!);
     assert_script_run("helm install $set_options $release_name $helm_chart $helm_options", timeout => 300);
     assert_script_run("helm list");
- 
+
     # Smoketest - is everything Ready?
     foreach my $component (@private_registry_components) {
-      validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, title => "$component status:" ,fail_message => "$release_name-$component didn't deploy");
-      #my @pods = split(' ', script_output("kubectl get pods --no-headers -l component=$component"));
-      #my $full_pod_name = $pods[0];
-      my $full_pod_name = script_output("kubectl get pods -l component=$component --no-headers -o custom-columns=':metadata.name'");
-      #assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 5, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
-      validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", fail_message => "$full_pod_name is not in the Ready state!");
-      
+        validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, title => "$component status:", fail_message => "$release_name-$component didn't deploy");
+        my $full_pod_name = script_output("kubectl get pods -l component=$component --no-headers -o custom-columns=':metadata.name'");
+#assert_script_run("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", retry => 5, delay => 30, timeout => 120, fail_message => "$full_pod_name is not in the Ready state!");
+        validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", fail_message => "$full_pod_name is not in the Ready state!");
+
     }
-    
+
     #Install Traefik manually
     assert_script_run("helm install traefik oci://ghcr.io/traefik/helm/traefik --namespace kube-system");
 
     #script_run("sleep 120", timeout => 140);
     my $traefik_pod = script_output("kubectl get pods -n kube-system --no-headers -l app.kubernetes.io/name=traefik -o custom-columns=':metadata.name'");
     validate_script_output_retry("kubectl get pod $traefik_pod -n kube-system --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "Traefik readiness");
-    
+
 
     # Get the webui credentials & ingress url
     my $registry_password = script_output("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
@@ -96,8 +94,8 @@ sub run {
     # Push chart
     assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .", timeout => 60);
     assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library --insecure-skip-tls-verify", timeout => 60);
-    
-} 
+
+}
 
 sub post_fail_hook {
     my ($self) = @_;
