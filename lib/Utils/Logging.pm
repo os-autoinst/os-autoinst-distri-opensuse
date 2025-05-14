@@ -34,6 +34,7 @@ our @EXPORT = qw(
   upload_solvertestcase_logs
   export_logs_basic
   export_logs_desktop
+  record_avc_selinux_alerts
 );
 
 =head2 save_and_upload_log
@@ -323,7 +324,7 @@ sub export_logs_basic {
     save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.txt', {screenshot => 1});
     save_and_upload_log('dmesg', '/tmp/dmesg.txt', {screenshot => 1});
     tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.gz', {gzip => 1});
-
+    record_avc_selinux_alerts();
     for my $service (get_started_systemd_services()) {
         save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.txt", {screenshot => 1});
     }
@@ -372,6 +373,38 @@ sub export_logs_desktop {
     if (!script_run("ls -l $log_path")) {
         save_and_upload_log("cat $log_path", '/tmp/sddm_session.txt', {screenshot => 1});
     }
+}
+
+# I am not sure if this should even be here
+my %avc_record = (
+    start => 0,
+    end => undef
+);
+
+=head2 record_avc_selinux_alerts
+
+List AVCs that have been recorded during a runtime of a test module that executes this function
+
+=cut
+
+sub record_avc_selinux_alerts {
+
+    if ((current_console() !~ /root|log/) || (script_run('test -f /var/log/audit/audit.log') != 0)) {
+        return;
+    }
+
+    my @logged = split(/\n/, script_output('ausearch -m avc -r', timeout => 300, proceed_on_failure => 1));
+
+    # no new messages are registered
+    if (scalar @logged <= $avc_record{start}) {
+        return;
+    }
+
+    $avc_record{end} = scalar @logged - 1;
+    my @avc = @logged[$avc_record{start} .. $avc_record{end}];
+    $avc_record{start} = $avc_record{end} + 1;
+
+    record_info('AVC', join("\n", @avc));
 }
 
 1;
