@@ -129,6 +129,8 @@ sub accept_addons_license {
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
     my @addons_with_license = qw(geo rt idu nvidia);
+    # Add license agreement handling for sle-we on 15-SP7 x86_64 (only maintenance, not dev)
+    push @addons_with_license, 'we' if (is_sle('=15-SP7') && is_x86_64 && check_var('FLAVOR', 'Server-DVD-Updates'));
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
