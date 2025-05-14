@@ -2577,14 +2577,28 @@ sub load_hypervisor_tests {
     );
 
     for my $test (keys %virt_features) {
+        print "Processing feature: $test\n";
         next if $test eq 'ENABLE_SNAPSHOTS';
+        print "Skipping ENABLE_SNAPSHOTS\n";
+
         my $feature = $virt_features{$test};
         my $modules = $feature->{modules};
         my $hypervisor = $feature->{hypervisor};
+
+        print "Feature: $test\n";
+        print "  Modules: @$modules\n";
+        print "  Hypervisor: $hypervisor\n";
+
         # The LTSS for SUSE 15-SP1 has ended. Due to a bug (bsc#1230913), also skip 15-SP2.
         if ($test eq 'ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH') {
-            next unless is_sle('>=15-sp3');
+            print "Checking version for ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH\n";
+            unless (is_sle('>=15-sp3')) {
+                print "Skipping ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH due to version <= 15-SP2\n";
+                next;
+            }
         }
+
+        print "Calling check_and_load_mu_virt_features for $test\n";
         check_and_load_mu_virt_features($test, $modules, $hypervisor);
     }
     # Load ENABLE_SNAPSHOTS at the end
