@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2024 SUSE LLC
+# Copyright 2018-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: perl-base ltp
@@ -17,7 +17,7 @@ use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos registercloudguest register_openstack);
+use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -151,7 +151,8 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
-        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt'));
+        # The metal detector fails on GCP because it may return "google"
+        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
     } else {
         record_info('VM type', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
     }
