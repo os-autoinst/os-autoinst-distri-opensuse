@@ -58,10 +58,12 @@ podman:
   # https://github.com/containers/podman/pull/25340 is needed for 030-run
   # https://github.com/containers/podman/pull/25350 is needed for 030-run
   # https://github.com/containers/podman/pull/25718 is needed for 030-run
+  # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - https://github.com/containers/podman/pull/25918.patch
+    - https://github.com/containers/podman/pull/25942.patch
     - https://github.com/containers/podman/pull/26017.patch
     BATS_SKIP: ''
     BATS_SKIP_ROOT_LOCAL: 200-pod
