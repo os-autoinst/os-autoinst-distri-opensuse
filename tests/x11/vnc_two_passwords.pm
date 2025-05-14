@@ -261,7 +261,7 @@ sub post_fail_hook {
     my $self = @_;
     # Normally this test fails on X11, but in the odd chance it doesn't
     # avoid killing the testsuite by sending ctrl+c in serial terminal
-    send_key "ctrl-c" unless is_serial_terminal();
+    send_key "ctrl-c" unless testapi::is_serial_terminal();
     select_console 'log-console';
     # xev seems to hang, send control-c to ensure that we can actually type
     upload_logs('/tmp/xev_log', failok => 1);
