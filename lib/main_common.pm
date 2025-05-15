@@ -1140,6 +1140,8 @@ sub load_console_server_tests {
         # The NFS test expects the IP to be 10.0.2.15
         loadtest "console/yast2_nfs_server";
     }
+    # Add to textmode and textmode-server on o3 for s390x (z/VM)
+    loadtest "console/ping" if (is_opensuse && is_s390x);
     loadtest "console/rsync";
     loadtest "console/http_srv";
     loadtest "console/apache";
