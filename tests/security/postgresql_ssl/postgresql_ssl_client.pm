@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: The client side of postgresql ssl connection test.
@@ -24,6 +24,7 @@ sub run {
     select_console 'root-console';
 
     # Install runtime dependencies
+    zypper_call("ref");
     zypper_call("in iputils");
 
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
