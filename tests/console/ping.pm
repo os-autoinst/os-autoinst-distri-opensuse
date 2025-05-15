@@ -22,8 +22,7 @@ use version_utils qw(is_jeos is_sle);
 
 sub run {
     my ($self) = @_;
-    my $ping_group_range;
-    my $capability;
+    my ($ping_group_range, $capability, $cmd, $rc);
 
     select_serial_terminal;
     $ping_group_range = script_output('sysctl net.ipv4.ping_group_range');
@@ -87,9 +86,20 @@ sub run {
         assert_script_run("time $sudo $cmd -c2");
     }
 
+    # s390x ttl=0 bug
+    # https://github.com/iputils/iputils/pull/591
+    $cmd = 'ping -c2 127.0.0.1 |grep ttl=0';
+    record_info($cmd);
+    $rc = script_run($cmd);
+    if ($rc) {
+        record_info('ttl=0 not found');
+    } else {
+        record_soft_failure('bsc#1243284');
+    }
+
     # IPv6 -I bug reproducibility
-    my $cmd = "ping6 -c2 $ipv6 -I$ifname -v";
-    my $rc = script_run("$sudo $cmd -c2");
+    $cmd = "ping6 $ipv6 -I$ifname -v";
+    $rc = script_run("$sudo $cmd -c2");
     if ($rc) {
         my $bug;
         $bug = "bsc#1195826 or bsc#1200617" if is_sle('=15-SP4');
