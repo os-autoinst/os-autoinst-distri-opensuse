@@ -321,11 +321,11 @@ sub prepare_kgraft {
     $src_name .= '-' . $$incident_klp_pkg{kflavor}
       unless $$incident_klp_pkg{kflavor} eq 'default';
 
-    zypper_call("mr -e kgraft-test-repo-0") if get_var('FLAVOR') =~ /-Updates-Staging/;
+    $self->enable_update_repos(1) if get_var('FLAVOR') =~ /-Updates-Staging/ && !get_var('NO_DISABLE_REPOS');
     my $kernel_version = find_version($kernel_name, $$incident_klp_pkg{kver});
     my $src_version = find_version($src_name, $$incident_klp_pkg{kver});
     install_lock_kernel($kernel_version, $src_version);
-    zypper_call("mr -d kgraft-test-repo-0") if get_var('FLAVOR') =~ /-Updates-Staging/;
+    $self->enable_update_repos(0) if get_var('FLAVOR') =~ /-Updates-Staging/ && !get_var('NO_DISABLE_REPOS');
 
     install_klp_product($kernel_version);
 
