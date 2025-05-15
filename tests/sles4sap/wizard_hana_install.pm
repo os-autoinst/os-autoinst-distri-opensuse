@@ -59,6 +59,9 @@ sub run {
     my $wiz_name = (is_sle('15-SP5+') and get_var('BONE')) ? "bone-installation-wizard" : "sap-installation-wizard";
     my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' $wiz_name");
 
+    # initial workaround for 15-SP7 and b1 installer 2502
+    $self->b1_workaround_os_version;
+
     # start wizard
     if (check_var('DESKTOP', 'textmode')) {
         script_run "yast2 sap-installation-wizard; echo yast2-sap-installation-wizard-status-\$? > /dev/$serialdev", 0;
