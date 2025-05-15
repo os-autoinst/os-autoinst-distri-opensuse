@@ -38,9 +38,16 @@ sub prepare_kselftests_from_git
 
     assert_script_run("cd ./linux");
     assert_script_run("make headers");
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install", 7200);
+}
+
+sub install_kselftest_suite
+{
+    my ($suite) = @_;
+
+    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
     assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     assert_script_run("./run_kselftest.sh -l");
+    assert_script_run("cd -");
 }
 
 sub prepare_kselftests_from_ibs
@@ -71,12 +78,14 @@ sub run
         prepare_kselftests_from_git();
 
         foreach my $i (@kselftests_suite) {
+            install_kselftest_suite($i);
+            assert_script_run("cd ./tools/testing/selftests/kselftest_install");
             #required by the TAP openQA parser
             assert_script_run("echo t/$i.t .. > $i.tap");
             assert_script_run("./run_kselftest.sh -c $i >> $i.tap", 7200);
             parse_extra_log(TAP => "$i.tap");
+            assert_script_run("cd -");
         }
-
     } else {
         prepare_kselftests_from_ibs("/usr/share/kselftests");
 
@@ -85,7 +94,6 @@ sub run
             assert_script_run("/usr/share/kselftests/run_kselftest.sh -c $i >> $i.tap", 7200);
             parse_extra_log(TAP => "$i.tap");
         }
-
     }
 }
 
