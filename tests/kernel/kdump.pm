@@ -12,12 +12,19 @@ use warnings;
 use testapi;
 use utils;
 use kdump_utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    configure_service(test_type => 'function', yast_interface => 'cli');
-    check_function(test_type => 'function');
+
+    if (is_sle(">=16")) {
+    #SLE 16 doesn't have yast or other tooling for kdump configuration and we should configure kdump manually.
+    activate_kdump_without_yast();
+    } else {
+        configure_service(test_type => 'function', yast_interface => 'cli');
+    }
+        check_function(test_type => 'function');
 
 }
 
