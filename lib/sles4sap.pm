@@ -22,7 +22,7 @@ use x11utils qw(ensure_unlocked_desktop);
 use power_action_utils qw(power_action);
 use Utils::Backends;
 use registration qw(add_suseconnect_product);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle has_selinux);
 use utils qw(zypper_call);
 use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
@@ -566,8 +566,19 @@ and threads that it can create.
 =cut
 
 sub test_pids_max {
+    my ($self) = @_;
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
     my $uid = script_output "id -u $sapadmin";
+
+    # In SLES 16 this test fails with SELinux in enforcing mode. Query current
+    # mode, change to permissive and then rollback after test finishes
+    my $selinux_mode = 'Enforcing';
+    if (has_selinux) {
+        $selinux_mode = script_output q@echo "|$(getenforce)|"@;
+        $selinux_mode =~ /\|(\w+)\|/;
+        $selinux_mode = $1 // 'Enforcing';
+        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+    }
 
     # push the command to SUT by write_sut_file API instead of typing string
     # it is not stable to type long string especially when high load on worker
@@ -609,6 +620,7 @@ systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -
     my $rc2 = script_run "bash -eox pipefail /root/test_script.sh";
 
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
+    $self->modify_selinux_setenforce('selinux_mode' => $selinux_mode) if has_selinux;
 }
 
 =head2 test_forkbomb
