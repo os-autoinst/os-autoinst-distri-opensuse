@@ -16,11 +16,23 @@ use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
+    my $kdump_mem_limit = get_var('KDUMP_MEM_LIMIT', '256');
+
     select_console('root-console');
 
     if (is_sle(">=16")) {
     #SLE 16 doesn't have yast or other tooling for kdump configuration and we should configure kdump manually.
-    activate_kdump_without_yast();
+    # Activate kdump
+    prepare_for_kdump;
+    activate_kdump_without_yast;
+
+    # Reboot
+    power_action('reboot');
+    reconnect_mgmt_console if is_pvm;
+    $self->wait_boot(bootloader_time => 200);
+    select_console('root-console');
+    die "Failed to enable kdump" unless kdump_is_active;
+
     } else {
         configure_service(test_type => 'function', yast_interface => 'cli');
     }
