@@ -13,37 +13,68 @@ use testapi;
 use utils;
 use publiccloud::utils;
 
-sub validate_nvidia {
-    # Check card name, depends on terraform setup
-    validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });
+my $driver_std = "nvidia-open-driver-G06-signed-kmp-default";
+my $driver_cuda = "nvidia-open-driver-G06-signed-cuda-kmp-default";
+
+sub pre_run_hook {
+    zypper_call('addrepo -fG -p 90 ' . get_required_var('NVIDIA_REPO') . ' nvidia');
+    zypper_call('addrepo -fG -p 90 ' . get_required_var('NVIDIA_CUDA_REPO') . ' cuda');
+}
+
+sub install {
+    my ($cuda) = @_;
+    my $variant;    # Used to pin the installed driver version
+
+    # Make sure compute utils is removed first
+    if (!script_run("rpm -q nvidia-compute-utils-G06")) {
+        zypper_call("remove --clean-deps nvidia-compute-utils-G06");
+    }
+
+    # Install the driver while removing the other variant
+    if (defined $cuda) {
+        $variant = $driver_cuda;
+        if (script_run("rpm -q $driver_cuda")) {
+            zypper_call("in -l $driver_cuda -$driver_std");
+        }
+    } else {
+        $variant = $driver_std;
+        if (script_run("rpm -q $driver_std")) {
+            zypper_call("in -l $driver_std -$driver_cuda");
+        }
+    }
+
+    # Install compute utils which packages `nvidia-smi`
+    my $version = script_output("rpm -qa --queryformat '%{VERSION}\n' $variant | cut -d '_' -f1 | sort -u | tail -n 1");
+    record_info("NVIDIA Version", $version);
+    zypper_call("in -l nvidia-compute-utils-G06 == ${version}");
+}
+
+sub validate {
+    # Check card name
+    if (my $gpu = get_var("NVIDIA_EXPECTED_GPU_REGEX")) {
+        validate_script_output("hwinfo --gfxcard", sub { /$gpu/mg });
+    }
     # Check loaded modules
-    assert_script_run("lsmod | grep nvidia", fail_message => "nvidia module not loaded");
-    # Ideally, we should check for nvidia-smi here but it is delivered by nvidia-compute-utils-G06 package, which is not available on PublicCloud
+    assert_script_run("lsmod | grep nvidia", fail_message => "NVIDIA module not loaded");
+    # Check driver works
+    my $smi_output = script_output("nvidia-smi");
+    record_info("NVIDIA SMI Output", $smi_output);
 }
 
 sub run {
     my ($self, $args) = @_;
-    script_run("cat /etc/os-release");
-    if (get_var('NVIDIA_REPO')) {
-        zypper_call('--gpg-auto-import-keys addrepo -p 90 ' . get_required_var('NVIDIA_REPO') . ' nvidia_repo');
-        zypper_call '--gpg-auto-import-keys ref';
-    }
-    # First check cuda variant as is more important in PublicCloud enviroment
-    if (script_run("rpm -q nvidia-open-driver-G06-signed-cuda-kmp-default")) {
-        zypper_call("in nvidia-open-driver-G06-signed-cuda-kmp-default kernel-firmware-nvidia-gspx-G06-cuda -nvidia-open-driver-G06-signed-kmp-default -kernel-firmware-nvidia-gspx-G06", quiet => 1);
-        $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-    }
-    validate_nvidia;
-    # Check gfx nvidia driver
-    zypper_call("in nvidia-open-driver-G06-signed-kmp-default kernel-firmware-nvidia-gspx-G06 -nvidia-open-driver-G06-signed-cuda-kmp-default -kernel-firmware-nvidia-gspx-G06-cuda", quiet => 1);
-    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-    validate_nvidia;
 
-    assert_script_run("SUSEConnect --status-text", 300);
+    install "cuda";
+    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    validate;
+
+    install;
+    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    validate;
 }
 
 sub test_flags {
-    return {publiccloud_multi_module => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

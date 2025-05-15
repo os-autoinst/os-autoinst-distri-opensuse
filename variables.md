@@ -166,6 +166,8 @@ NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
 NVIDIA_REPO | string | '' | Define the external repo for nvidia driver. Used by `nvidia.pm` module.
+NVIDIA_CUDA_REPO | string | '' | Define the external repo for nvidia cuda. Used by `nvidia.pm` module.
+NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect. Used by `nvidia.pm` module.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
 OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
