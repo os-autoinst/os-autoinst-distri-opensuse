@@ -3,8 +3,8 @@ aardvark:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
   opensuse-Tumbleweed:
-    BATS_SKIP: bud chroot run sbom
-    BATS_SKIP_ROOT: from namespaces
+    BATS_SKIP: bud run sbom
+    BATS_SKIP_ROOT: from
     BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP4:
     BATS_SKIP: bud namespaces run
@@ -34,11 +34,11 @@ netavark:
   sle-15-SP5:
     BATS_PATCHES:
     - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
+    BATS_SKIP: 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
     - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
+    BATS_SKIP: 250-bridge-nftables
   sle-15-SP7:
     BATS_PATCHES:
     - https://github.com/containers/netavark/pull/1191.patch
@@ -66,9 +66,9 @@ podman:
     - https://github.com/containers/podman/pull/25942.patch
     - https://github.com/containers/podman/pull/26017.patch
     BATS_SKIP: ''
-    BATS_SKIP_ROOT_LOCAL: 200-pod
+    BATS_SKIP_ROOT_LOCAL: ''
     BATS_SKIP_ROOT_REMOTE: ''
-    BATS_SKIP_USER_LOCAL: 080-pause 252-quadlet 505-networking-pasta
+    BATS_SKIP_USER_LOCAL: 252-quadlet 505-networking-pasta
     BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
   sle-15-SP6:
     BATS_PATCHES:
@@ -105,7 +105,7 @@ podman:
 runc:
   opensuse-Tumbleweed:
     BATS_SKIP: ''
-    BATS_SKIP_ROOT: cgroups checkpoint
+    BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: ''
   sle-15-SP4:
     BATS_SKIP: ''
