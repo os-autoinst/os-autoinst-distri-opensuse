@@ -17,6 +17,7 @@ use Data::Dumper;
 
 sub run {
     my ($self) = shift;
+    my $test_log = "accessible_network_interface_log.txt";
 
     select_console 'root-console';
 
@@ -32,9 +33,11 @@ sub run {
         '(sshd.*s390kvm.*openqaworker.*\(ESTABLISHED\))',    # ssh connection s390x
         '(systemd.*:5901 \(LISTEN\))',    # vnc on s390x
         '(sshd.*\(ESTABLISHED\))');    # ssh connection to test system
+    script_run('printf "\n#expected_listen_ports:\n' . Dumper(\@expected_listen_ports) . '\n" >> ' . $test_log . '');
 
     my $regex = join('|', @expected_listen_ports);
     my $output = script_output('lsof -i -P');
+    script_run('printf "\nlsof -i -P output:\n' . $output . '\n" >> ' . $test_log . '');
     my @lines = split(/\n/, $output);
     foreach my $port (@lines) {
         if ($port =~ /^COMMAND/) {
@@ -43,12 +46,14 @@ sub run {
         }
         elsif ($port =~ /$regex/) {
             record_info($port, 'This is an expected listening port');
+            script_run('printf "\nThis is an expected listening port:' . $port . '" >> ' . $test_log . '');
         }
         else {
             record_info($port, 'This is not an expected listening port', result => 'fail');
             $self->result('fail');
         }
     }
+    upload_log_file($test_log);
 }
 
 1;
