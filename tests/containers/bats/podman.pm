@@ -20,7 +20,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $remote, $skip_tests) = ($params{rootless}, $params{remote}, $params{skip_tests});
 
-    return if ($skip_tests eq "all");
+    return if check_var($skip_tests, "all");
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
@@ -48,7 +48,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go1.24 gpg2 jq libcriu2 libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit git-core glibc-devel-static go1.24 gpg2 jq libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu) if is_tumbleweed;
     # Needed for podman machine
@@ -89,18 +89,18 @@ sub run {
     run_command "make podman-testing || true", timeout => 600;
 
     # user / local
-    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => get_var('BATS_SKIP_USER_LOCAL', ''));
+    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_SKIP_USER_LOCAL');
 
     # user / remote
-    $errors += run_tests(rootless => 1, remote => 1, skip_tests => get_var('BATS_SKIP_USER_REMOTE', ''));
+    $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_SKIP_USER_REMOTE');
 
     switch_to_root;
 
     # root / local
-    $errors += run_tests(rootless => 0, remote => 0, skip_tests => get_var('BATS_SKIP_ROOT_LOCAL', ''));
+    $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_SKIP_ROOT_LOCAL');
 
     # root / remote
-    $errors += run_tests(rootless => 0, remote => 1, skip_tests => get_var('BATS_SKIP_ROOT_REMOTE', ''));
+    $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_SKIP_ROOT_REMOTE');
 
     die "podman tests failed" if ($errors);
 }

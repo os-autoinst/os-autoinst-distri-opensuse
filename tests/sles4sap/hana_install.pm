@@ -16,7 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
-use version_utils 'is_sle';
+use version_utils qw(is_sle has_selinux);
 use POSIX 'ceil';
 use Utils::Logging 'save_and_upload_log';
 use repo_tools 'add_qa_head_repo';
@@ -91,6 +91,12 @@ sub get_test_summary {
     return $info;
 }
 
+sub restorecon_rootfs {
+    # restorecon does not behave too well with btrfs, so exclude /.snapshots in btrfs rootfs
+    assert_script_run 'test -d /.snapshots && restorecon -R / -e /.snapshots';
+    assert_script_run 'test -d /.snapshots || restorecon -R /';
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -129,6 +135,14 @@ sub run {
     if (get_var("WORKAROUND_BSC1239148")) {
         record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
         $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+    }
+
+    # On SLES for SAP 16.0 and newer, we need to do further SELinux setup for HANA
+    if (has_selinux) {
+        assert_script_run 'semanage boolean -m --on selinuxuser_execmod';
+        assert_script_run 'semanage boolean -m --on unconfined_service_transition_to_unconfined_user';
+        assert_script_run 'semanage permissive -a snapper_grub_plugin_t';
+        restorecon_rootfs();
     }
 
     # Add host's IP to /etc/hosts
@@ -255,6 +269,10 @@ sub run {
     }
     assert_script_run "df -h";
 
+    # Run restorecon again on SLES for SAP 16.0 and newer as we have created and mounted new
+    # FS since the last run
+    restorecon_rootfs() if has_selinux;
+
     # hdblcm is used for installation, verify if it exists.
     # hdblcm can be provided from the external with HANA_HDBLCM
     # variable, that is a relative path to /sapinst
@@ -308,6 +326,9 @@ sub run {
     $self->upload_hana_install_log;
     save_and_upload_log('rpm -qa', 'packages.list');
     save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
+
+    # On SLES for SAP 16.0 and newer, we need to do further SELinux setup for HANA
+    restorecon_rootfs() if has_selinux;
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';

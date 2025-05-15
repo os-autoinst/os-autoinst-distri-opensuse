@@ -5,7 +5,8 @@ vars:
   PATTERNS: 'default,-enhanced_base'
   YUI_REST_API: 1
 schedule:
-  access_beta: []
+  access_beta:
+    - security/installation/handle_beta_status
   add_on_product:
     - installation/add_on_product/add_maintenance_repos
   additional_products: []

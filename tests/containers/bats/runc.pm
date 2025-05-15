@@ -18,7 +18,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
-    return if ($skip_tests eq "all");
+    return if check_var($skip_tests, "all");
 
     my %env = (
         RUNC_USE_SYSTEMD => "1",
@@ -54,11 +54,11 @@ sub run {
     my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
     run_command "make $cmds || true";
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
 
     die "runc tests failed" if ($errors);
 }

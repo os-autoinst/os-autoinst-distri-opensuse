@@ -19,7 +19,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
-    return if ($skip_tests eq "all");
+    return if check_var($skip_tests, "all");
 
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
@@ -55,11 +55,11 @@ sub run {
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
     run_command "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
 
     die "skopeo tests failed" if ($errors);
 }

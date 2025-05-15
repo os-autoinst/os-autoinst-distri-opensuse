@@ -20,7 +20,6 @@ use version_utils qw(is_sle package_version_cmp);
 sub run {
     return record_info('Skip iscsi_client_setup', 'Module skipped on older versions of SLES. Use ha/iscsi_client instead') if (is_sle('<16'));
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
-    my $iscsi_conf = '/etc/iscsi/iscsid.conf';
 
     select_serial_terminal;
 
@@ -33,10 +32,6 @@ sub run {
     zypper_call 'in open-iscsi' if (script_run('rpm -q open-iscsi'));
     record_info('open-iscsi version', script_output('rpm -q open-iscsi'));
 
-    # Change node.startup to automatic
-    file_content_replace($iscsi_conf, 'node.startup = manual' => 'node.startup = automatic');
-    record_info('iscsi startup', script_output("grep node.startup $iscsi_conf"));
-
     systemctl 'enable --now iscsid';
     record_info('iscsid status', script_output('systemctl status iscsid'));
 
@@ -44,6 +39,12 @@ sub run {
     record_info('iscsi_iqn_node_name', $iqn_node_name);
     my ($node_name) = $iqn_node_name =~ /(\S+)$/;
     record_info('node_name', $node_name);
+
+    # Change node.startup to automatic
+    my $iscsi_conf = "/var/lib/iscsi/nodes/$node_name/*/default";
+    assert_script_run "ls -l $iscsi_conf";
+    file_content_replace($iscsi_conf, 'node.startup = manual' => 'node.startup = automatic');
+    record_info('iscsi startup', script_output("grep node.startup $iscsi_conf"));
 
     assert_script_run "iscsiadm --mode node --target '$node_name' --portal $iscsi_server -o new";
     assert_script_run "iscsiadm --mode node --target '$node_name' --portal $iscsi_server -n discovery.sendtargets.use_discoveryd -v Yes";

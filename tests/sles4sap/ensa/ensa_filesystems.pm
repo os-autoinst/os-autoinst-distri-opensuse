@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl file_content_replace script_retry);
 use hacluster;
 use lockapi;
 
@@ -37,20 +37,26 @@ sub run {
         # Create the partitions
         assert_script_run("mkdir -p $sap_dir/$instance_dir");
         assert_script_run("parted -s $lun_path --list");
-        assert_script_run("parted -s $lun_path mklabel gpt");
-        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
-        script_run('partprobe -s');
-        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
         # From the manual: changes will *probably* be made to the disk
         # immediately after typing a command. However, the operating system’s
         # cache and the disk’s hardware cache may delay this. When using serial
         # we hit this limitation, to avoid that we run partprobe and parted again.
+        script_run('partprobe');
+        assert_script_run("parted -s $lun_path mklabel gpt");
+        script_run('partprobe');
+        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
+        script_run('partprobe');
+        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
+        script_run('partprobe');
         script_run('partprobe -s');
         assert_script_run("parted -s $lun_path --list");
 
         # Format the partitions
-        assert_script_run("mkfs.xfs $lun_path-part1");
-        assert_script_run("mkfs.xfs $lun_path-part2");
+        script_retry("mkfs.xfs $lun_path-part1", delay => 5, retry => 3);
+        script_run('partprobe');
+        script_retry("mkfs.xfs $lun_path-part2", delay => 5, retry => 3);
+        script_run('partprobe');
+        assert_script_run("fdisk -l");
         assert_script_run("mount -t xfs $lun_path-part1 $sap_dir/$instance_dir");
         assert_script_run("chmod 777 $sap_dir/$instance_dir");
     }

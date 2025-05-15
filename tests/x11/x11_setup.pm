@@ -12,12 +12,17 @@ use strict;
 use warnings;
 use testapi;
 use utils 'ensure_serialdev_permissions';
+use version_utils qw(is_leap);
 
 sub run {
     select_console 'root-console';
     ensure_serialdev_permissions;
     #Switch to x11 console, if not selected, before trying to start xterm
     select_console('x11');
+    # xterm is not installed by default anymore in leap 16
+    # there is pending work to switch tests to not depend on
+    # xterm See https://progress.opensuse.org/issues/169162
+    ensure_installed('xterm') if is_leap('=16.0');
 }
 
 # add milestone flag to save setup in lastgood vm snapshot

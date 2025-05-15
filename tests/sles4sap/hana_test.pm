@@ -11,7 +11,8 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal);
+use version_utils qw(has_selinux);
 
 sub test_python3 {
     my ($self) = @_;
@@ -61,8 +62,18 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
-    # Test PIDs max, as SAP as some prerequisites on this and change for SAP user
+    # Test PIDs max, as SAP has some prerequisites on this and change for SAP user
+    # In SLES 16 this test fails with SELinux in enforcing mode. Query current
+    # mode, change to permisisive and then rollback after test finishes
+    my $selinux_mode = 'Enforcing';
+    if (has_selinux) {
+        $selinux_mode = script_output q@echo "|$(getenforce)|"@;
+        $selinux_mode =~ /\|(\w+)\|/;
+        $selinux_mode = $1 // 'Enforcing';
+        $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+    }
     $self->test_pids_max unless get_var('CLUSTER_NAME');
+    $self->modify_selinux_setenforce('selinux_mode' => $selinux_mode) if has_selinux;
     $self->user_change;
 
     assert_script_run "HDB info";

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2024 SUSE LLC
+# Copyright 2018-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: perl-base ltp
@@ -17,7 +17,7 @@ use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos registercloudguest register_openstack);
+use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -89,6 +89,7 @@ sub run {
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
     my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
     $self->{ltp_command} = $ltp_command;
+    my @commands = split(/\s+/, $ltp_command);
     my $ltp_exclude = get_var('LTP_COMMAND_EXCLUDE', '');
 
     select_host_console();
@@ -126,7 +127,11 @@ sub run {
     my $skip_tests;
     if ($issues) {
         my $whitelist = LTP::WhiteList->new($issues);
-        my @skipped = $whitelist->list_skipped_tests($ltp_env, $ltp_command);
+        my @skipped;
+        foreach my $command (@commands) {
+            my @skipped_for_command = $whitelist->list_skipped_tests($ltp_env, $command);
+            push @skipped, @skipped_for_command;
+        }
         if (@skipped) {
             $skip_tests = '^(' . join("|", @skipped) . ')$';
             $skip_tests .= '|' . $ltp_exclude if $ltp_exclude;
@@ -145,7 +150,12 @@ sub run {
     assert_script_run("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
+        # The metal detector fails on GCP because it may return "google"
+        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
+    } else {
+        record_info('VM type', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+    }
 
     assert_script_run('curl ' . data_url('publiccloud/ltp_runtest') . ' -o publiccloud');
     $instance->scp("publiccloud", 'remote:/tmp/publiccloud', 9999);
@@ -174,8 +184,6 @@ sub run {
     $sut .= ':key_file=$(realpath ' . $instance->provider->ssh_key . ')';
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_cmd=\'' . $reset_cmd . '\'';
-    $sut .= ':hostkey_policy=missing';
-    $sut .= ':known_hosts=~/.ssh/known_hosts';
 
     my $cmd = 'python3.11 kirk ';
     $cmd .= "--framework ltp ";

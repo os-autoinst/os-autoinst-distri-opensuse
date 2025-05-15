@@ -13,14 +13,19 @@ use testapi;
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_svirt is_hyperv);
 use power_action_utils 'power_action';
-use version_utils qw(is_vmware);
+use version_utils qw(is_vmware is_leap);
 
 sub run {
     my $self = shift;
     my $reboot_page = $testapi::distri->get_reboot();
-
     $reboot_page->expect_is_shown();
-    $self->upload_agama_logs() unless is_hyperv();
+
+    if (!is_leap()) {
+        # While the work on Agama settles, on leap
+        # Leave log collection for the post_fail_hook
+        # see also https://progress.opensuse.org/issues/182102
+        $self->upload_agama_logs() unless is_hyperv();
+    }
 
     (is_s390x() || is_ppc64le() || is_vmware()) ?
       # reboot via console

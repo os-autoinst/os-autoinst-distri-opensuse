@@ -139,7 +139,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
         rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag == 'cleanup';
 
         # Wait to get Filesystem running on all nodes (if applicable)
-        sleep 5;
+        wait_until_resources_started;
     }
     else {
         diag 'Wait until Filesystem resource is added...';

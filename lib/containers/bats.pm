@@ -16,14 +16,14 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use Utils::Architectures 'is_aarch64';
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use containers::common qw(install_packages);
+use YAML::PP;
 
 our @EXPORT = qw(
   bats_patches
@@ -38,6 +38,7 @@ our @EXPORT = qw(
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/bats-tests";
+my $settings;
 
 my @commands = ();
 
@@ -58,23 +59,10 @@ sub run_command {
 }
 
 sub install_ncat {
-    return if (script_run("rpm -q ncat") == 0);
-
-    my $version = "SLE_15";
-    if (is_sle('<15-SP6')) {
-        $version = get_required_var("VERSION");
-        $version =~ s/-/_/g;
-        $version = "SLE_" . $version;
-    } elsif (is_tumbleweed || is_sle('>=16')) {
-        $version = "openSUSE_Factory";
-        $version .= "_ARM" if (is_aarch64);
-    }
-
-    my $repo = "https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo";
+    my $version = get_var("NCAT_VERSION", "7.95-3");
 
     my @cmds = (
-        "zypper addrepo $repo",
-        "zypper --gpg-auto-import-keys -n install ncat",
+        "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm",
         "ln -sf /usr/bin/ncat /usr/bin/nc"
     );
     foreach my $cmd (@cmds) {
@@ -95,7 +83,7 @@ sub install_bats {
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
-    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats_skip_notok.py");
+    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats/skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
 }
 
@@ -349,8 +337,9 @@ sub bats_tests {
     push @commands, $cmd;
     my $ret = script_run $cmd, 7000;
 
+    $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
     unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', '') . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
         patch_logfile($log_file, @skip_tests);
     }
 
@@ -369,15 +358,32 @@ sub bats_patches {
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
-    foreach my $patch (split(/\s+/, get_var("BATS_PATCHES", ""))) {
+    my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
+    if (!@patches && defined $settings->{BATS_PATCHES}) {
+        @patches = @{$settings->{BATS_PATCHES}};
+    }
+
+    foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
         run_command "curl $curl_opts $url | patch -p1 --merge", timeout => 900;
     }
 }
 
+sub bats_settings {
+    my $package = get_required_var("BATS_PACKAGE");
+    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+
+    assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
+    my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
+    my $yaml = YAML::PP->new()->load_string($text);
+
+    return $yaml->{$package}{$os_version};
+}
+
 sub bats_sources {
     my $version = shift;
+    $settings = bats_settings;
 
     my $package = get_required_var("BATS_PACKAGE");
     $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
