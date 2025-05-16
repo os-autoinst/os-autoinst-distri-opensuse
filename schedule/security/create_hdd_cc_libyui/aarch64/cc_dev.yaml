@@ -5,6 +5,12 @@ description: >
 schedule:
   access_beta:
     - security/installation/handle_beta_status
+  registration:
+    - security/installation/registration
+  extension_module_selection:
+    - security/installation/module_selection
+  add_on_product:
+    - security/installation/add_on_selection
   system_role:
     - installation/system_role/select_common_criteria_role
     - installation/common_criteria_configuration/common_criteria_configuration
