@@ -356,7 +356,7 @@ sub bats_tests {
 }
 
 sub bats_patches {
-    return if get_var("BATS_URL");
+    return if (get_var("BATS_URL") || check_var("BATS_PATCHES", "none"));
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
