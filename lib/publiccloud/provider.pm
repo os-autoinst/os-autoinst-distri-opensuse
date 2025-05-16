@@ -573,7 +573,7 @@ sub terraform_apply {
 
     # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
     # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
-    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*/)) {
+    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
         my $zones_output = script_output("gcloud compute zones list --filter='region=" . $vars{region} . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
         my @alternative_zones = split /\s*,\s*/, $zones_output;
         @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
