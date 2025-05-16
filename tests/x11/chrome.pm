@@ -19,7 +19,7 @@ sub install_google_repo_key {
     become_root;
     assert_script_run "rpm --import https://dl.google.com/linux/linux_signing_key.pub";
     # validate it's properly installed
-    script_run "rpm -qi gpg-pubkey-7fac5991-*";
+    script_run "rpm -qi gpg-pubkey-d38b4796-*";
     assert_screen 'google-key-installed';
 }
 
