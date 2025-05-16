@@ -151,7 +151,14 @@ sub patch_logfile {
 
     foreach my $test (@skip_tests) {
         next if (!$test);
-        if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
+        my $exp = "-e 'in test file.*/$test.bats'";
+        # Sometimes bats lack the line above in podman remote tests
+        # so we have to fetch the test number with another regexp
+        if ($package eq "podman") {
+            my ($number) = $test =~ /^(\d+)/;
+            $exp .= " -e '^not ok [0-9]+ \\[$number\\]'";
+        }
+        if (script_run("grep -qE $exp $log_file") != 0) {
             record_info("PASS", $test);
         }
     }
