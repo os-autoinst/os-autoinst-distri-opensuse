@@ -38,6 +38,7 @@ our @EXPORT = qw(
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/bats-tests";
+my $package;
 my $settings;
 
 my @commands = ();
@@ -290,8 +291,6 @@ sub bats_tests {
     my ($log_file, $_env, $skip_tests) = @_;
     my %env = %{$_env};
 
-    my $package = get_required_var("BATS_PACKAGE");
-
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
     selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
@@ -328,7 +327,6 @@ sub bats_tests {
     }
     $cmd .= " | tee -a $log_file";
 
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
     my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
 
@@ -353,9 +351,6 @@ sub bats_tests {
 sub bats_patches {
     return if get_var("BATS_URL");
 
-    my $package = get_required_var("BATS_PACKAGE");
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
-
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
     my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
@@ -371,7 +366,6 @@ sub bats_patches {
 }
 
 sub bats_settings {
-    my $package = get_required_var("BATS_PACKAGE");
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
     assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
@@ -385,8 +379,7 @@ sub bats_sources {
     my $version = shift;
     $settings = bats_settings;
 
-    my $package = get_required_var("BATS_PACKAGE");
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+    $package = get_required_var("BATS_PACKAGE");
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
     my $tag = "v$version";
