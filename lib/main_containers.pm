@@ -313,6 +313,7 @@ sub load_container_tests {
     }
 
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
+        $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
         return;
     }
