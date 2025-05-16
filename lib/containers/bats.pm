@@ -151,7 +151,14 @@ sub patch_logfile {
 
     foreach my $test (@skip_tests) {
         next if (!$test);
-        if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
+        my $exp = "-e 'in test file.*/$test.bats'";
+        # Sometimes bats lack the line above in podman remote tests
+        # so we have to fetch the test number with another regexp
+        if ($package eq "podman") {
+            my ($number) = $test =~ /^(\d+)/;
+            $exp .= " -e '^not ok [0-9]+ \\[$number\\]'";
+        }
+        if (script_run("grep -qE $exp $log_file") != 0) {
             record_info("PASS", $test);
         }
     }
@@ -177,6 +184,8 @@ EOF
 sub bats_setup {
     my ($self, @pkgs) = @_;
     my $reboot_needed = 0;
+
+    $package = get_required_var("BATS_PACKAGE");
 
     push @commands, "### RUN AS root";
 
@@ -336,10 +345,8 @@ sub bats_tests {
     my $ret = script_run $cmd, 7000;
 
     $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
+    my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
+    patch_logfile($log_file, @skip_tests);
 
     parse_extra_log(TAP => $log_file);
 
@@ -378,8 +385,6 @@ sub bats_settings {
 sub bats_sources {
     my $version = shift;
     $settings = bats_settings;
-
-    $package = get_required_var("BATS_PACKAGE");
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
     my $tag = "v$version";
