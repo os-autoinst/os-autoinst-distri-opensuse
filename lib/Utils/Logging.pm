@@ -393,7 +393,7 @@ sub record_avc_selinux_alerts {
         return;
     }
 
-    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err', timeout => 300, proceed_on_failure => 1));
+    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r', timeout => 300, proceed_on_failure => 1));
 
     # no new messages are registered
     if (scalar @logged <= $avc_record{start}) {
