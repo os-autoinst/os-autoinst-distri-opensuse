@@ -185,6 +185,8 @@ sub bats_setup {
     my ($self, @pkgs) = @_;
     my $reboot_needed = 0;
 
+    $package = get_required_var("BATS_PACKAGE");
+
     push @commands, "### RUN AS root";
 
     install_bats;
@@ -385,8 +387,6 @@ sub bats_settings {
 sub bats_sources {
     my $version = shift;
     $settings = bats_settings;
-
-    $package = get_required_var("BATS_PACKAGE");
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
     my $tag = "v$version";
