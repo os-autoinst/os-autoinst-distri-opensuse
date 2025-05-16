@@ -119,7 +119,7 @@ sub process_reboot {
             # Replace by wait_boot if possible
             if (is_ipmi) {
                 reset_consoles;
-                select_console('sol', await_console => 1);
+                select_console('sol', await_console => 0);
             }
             assert_screen 'grub2', 300;
             wait_screen_change { send_key 'ret' };
