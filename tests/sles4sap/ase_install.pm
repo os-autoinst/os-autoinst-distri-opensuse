@@ -38,14 +38,17 @@ sub prepare_system_for_ase {
     $args{target} //= '/sapinst';
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
-    $self->prepare_profile('SAP-ASE');
+    $self->prepare_profile('SAP-ASE') if is_sle('<16');
     # We need to ensure that the kernel parameter kernel.randomize_va_space is set to 0 SLES 11+
     assert_script_run 'sysctl kernel.randomize_va_space=0';
     record_info 'kernel.randomize_va_space', script_output('sysctl kernel.randomize_va_space', proceed_on_failure => 1);
     assert_script_run "mkdir -p $args{target}";
 
     # wget is currently not in the default install of SLE16.
-    zypper_call("in wget") if (is_sle('16+'));
+    # SLES 16 provides a libnsl1-stub package for older workloads which require libnsl1
+    # ASE requires libnsl1, so prepare the system by installing this stub library
+    # see https://susedoc.github.io/release-notes/slesap-16.0/html/release-notes/index.html#jsc-DOCTEAM-1849
+    zypper_call 'in wget libnsl-stub1' if (is_sle('16+'));
 }
 
 =head2 download_ase_assets
