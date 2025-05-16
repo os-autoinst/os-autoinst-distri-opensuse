@@ -29,6 +29,8 @@ NOTES
 
 ### Summary of the `BATS_SKIP` variables
 
+These are defined for each product in [data/containers/bats/skip.yaml](skip.yaml)
+
 | variable | description | aardvark | buildah | netavark | podman | runc | skopeo |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|
 | `BATS_SKIP` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|
