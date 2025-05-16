@@ -2438,6 +2438,7 @@ sub set_mu_virt_vars {
     # Set PXE resource
     unless (get_var('PXE_PRODUCT_NAME') || get_var('MIRROR_HTTP')) {
         unless (get_var('IPXE')) {
+            set_var('IPXE', 0);
             # PRG1 lab SUTs use pxe way
             my $pxe_product_name = "SLE-" . get_required_var('VERSION');
             if (is_sle('15+')) {
