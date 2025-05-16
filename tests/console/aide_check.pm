@@ -31,7 +31,7 @@ sub run {
     assert_script_run "mv aide_conf /etc/aide.conf";
 
 
-    assert_script_run "mkdir /testdir";
+    assert_script_run "mkdir -p /testdir";
     assert_script_run "echo hello > /testdir/t1.log";
 
     # Initialize the database and move it to the appropriate place before using the --check command
