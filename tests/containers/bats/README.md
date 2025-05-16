@@ -149,7 +149,6 @@ NOTES
 
 | test | reason |
 | --- | --- |
-| [080-pause] | https://github.com/opencontainers/runc/pull/4709 |
 | [252-quadlet] | unknown |
 | [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
 
