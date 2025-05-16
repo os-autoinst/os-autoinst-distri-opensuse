@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
-use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop);
+use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use serial_terminal 'select_serial_terminal';
 
 sub post_run_hook {
@@ -33,6 +33,7 @@ sub post_fail_hook {
     select_serial_terminal();
     export_healthcheck_basic;
     export_logs_basic;
+    record_avc_selinux_alerts;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     export_logs_desktop;
     select_log_console;
