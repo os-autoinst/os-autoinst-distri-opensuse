@@ -137,6 +137,20 @@ sub select_software {
 
     # Futher manually selected patterns should go here
 
+    if (get_var('AGAMA_SOFTWARE_ALL')) {
+        # Useful to validate that all of offline install options work
+        # and avoid issues like boo#1242116
+        # Let's go to bottom and click all empty checkboxes until we reach top
+        # which is currently easier to match
+        send_key "ctrl-down";
+        until (!match_has_tag('software-selection-topmost')) { # currently Documentation
+            until (match_has_tag('software-selection-empty-checkbox')) {
+                assert_and_click('software-selection-empty-checkbox');
+            }
+            send_key "ctrl-up";
+        }
+    }
+
     assert_and_click('agama-software-selection-close');
 
 }
