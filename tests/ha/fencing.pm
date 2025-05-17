@@ -13,6 +13,8 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils qw(is_sles4sap);
+use bootloader_setup qw(add_grub_cmdline_settings);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -34,6 +36,11 @@ sub run {
         'sles4sap'->check_hanasr_attr;
         save_screenshot;
         barrier_wait("HANA_REPLICATE_STATE_${cluster_name}_NODE${node_index}");
+    }
+
+    # Modify SELinux configurtion file to take permissive mode effect after rebooting
+    if (get_var("WORKAROUND_BSC1239148") && is_sles4sap()) {
+        add_grub_cmdline_settings('enforcing=0', update_grub => 1);
     }
 
     # Fence a node with sysrq, crm node fence or by killing corosync
