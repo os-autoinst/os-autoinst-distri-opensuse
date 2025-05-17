@@ -52,9 +52,14 @@ sub ssh_interactive_tunnel {
 
     # Pipe the output of the device fifo to the local serial terminal
 # Note: We run this in a loop so that the ssh tunnel gets automatically re-established after device reboots and such. The sleep helps to avoid unnecessary CPU hogging in case of connection issues
-    enter_cmd("while true; do ssh sut -yt -R '$upload_port:$upload_host:$upload_port' 'rm -f /dev/sshserial && mkfifo -m a=rwx /dev/sshserial && tail -fn +1 /dev/sshserial' 2>&1 >/dev/$serialdev; sleep 5; done");
+    my $cmd = "while true; do ssh sut -yt -R '$upload_port:$upload_host:$upload_port' 'rm -f /dev/sshserial && mkfifo -m a=rwx /dev/sshserial && tail -fn +1 /dev/sshserial' 2>&1 >/dev/$serialdev; sleep 5; done";
+    enter_cmd($cmd);
     # give the ssh connection some time to settle
     sleep 10;
+
+    # Check if the connection is established
+    my $check = script_run('test -e /dev/sshserial');
+    die "ssh connection to $instance is not established" if ($check != 0);
 
     # from here onwards, the serial output should be directed to /dev/sshserial instead to /dev/ttyS0
     set_var('SERIALDEV_', $serialdev);
