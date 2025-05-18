@@ -40,6 +40,7 @@ sub run {
     assert_script_run("cd ~/repos;git clone --bare qa1 qa0");
 
     # Prepare ssh
+    assert_script_run('rm -rf ~/.ssh');
     assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
     assert_script_run("ssh-keyscan -H localhost >> ~/.ssh/known_hosts");
     assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
