@@ -2481,6 +2481,7 @@ sub set_mu_virt_vars {
     if (is_sle('15+')) {
         $scc_addons .= ',' if ($scc_addons);
         $scc_addons .= 'base,sdk,serverapp,desktop';
+        $scc_addons .= ',contm' if (get_var('KUBEVIRT_TEST'));
     }
     set_var('SCC_ADDONS', "$scc_addons");
 
