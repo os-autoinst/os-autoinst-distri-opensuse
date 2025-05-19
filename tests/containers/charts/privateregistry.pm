@@ -25,19 +25,21 @@ our $release_name = "privateregistry";
 
 sub run {
     my ($self) = @_;
+    select_serial_terminal;
+
     my @private_registry_components = qw(core jobservice portal registry database redis trivy);
     my $test_image = "registry.suse.com/bci/bci-busybox";
-    select_serial_terminal;
+    my $test_chart = "dummy_chart";
 
     my ($version, $sp, $host_distri) = get_os_release;
     # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
     return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le);
     die "helm tests only work on k3s" unless (check_var('CONTAINER_RUNTIMES', 'k3s'));
 
-    my $helm_chart = get_required_var('HELM_CHART');
-
     install_kubectl();
     install_helm();
+
+    my $helm_chart = get_required_var('HELM_CHART');
 
     # Pull helm chart, if it is a http file
     if ($helm_chart =~ m!^http(s?)://!) {
@@ -47,7 +49,7 @@ sub run {
     }
     my $helm_values = get_var('HELM_CONFIG');
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
-    my $full_registry_path = get_var('HELM_FULL_REGISTRY_PATH');
+    my $full_registry_path = get_required_var('HELM_FULL_REGISTRY_PATH');
     my $set_options = "--set global.imageRegistry=$full_registry_path";
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         my ($repository, $tag) = split(':', $image, 2);
@@ -61,10 +63,10 @@ sub run {
 
     # Smoketest - is everything Ready?
     foreach my $component (@private_registry_components) {
-      validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, title => "$component status:" ,fail_message => "$release_name-$component didn't deploy");
-      my $full_pod_name = script_output("kubectl get pods -l component=$component --no-headers -o custom-columns=':metadata.name'");
-      validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", fail_message => "$full_pod_name is not in the Ready state!");
-      
+        validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, title => "$component status:", fail_message => "$release_name-$component didn't deploy");
+        my $full_pod_name = script_output("kubectl get pods -l component=$component --no-headers -o custom-columns=':metadata.name'");
+        validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", fail_message => "$full_pod_name is not in the Ready state!");
+
     }
 
     #Install Traefik manually
@@ -85,13 +87,16 @@ sub run {
     script_run("podman login $registry_ingress_url --username admin --password $registry_password --tls-verify=false", retry => 5, delay => 10, timeout => 60);
     script_run("helm registry login $registry_ingress_url --username admin --password $registry_password --insecure", retry => 5, delay => 10, timeout => 60);
 
-    # Push container
-    assert_script_run("podman pull $test_image:latest", timeout => 60);
+    # Container push & pull
+    script_retry("podman pull $test_image:latest", timeout => 60, retry => 5, delay => 30);
     assert_script_run("podman push --remove-signatures $test_image:latest $registry_ingress_url/library/main/$test_image:latest --tls-verify=false", timeout => 60);
+    assert_script_run("podman pull $registry_ingress_url/library/main/$test_image:latest --tls-verify=false", timeout => 60);
 
-    # Push chart
-    assert_script_run("helm create dummy_chart && tar -czvf dummy_chart.tar.gz -C dummy_chart .", timeout => 60);
-    assert_script_run("helm push dummy_chart.tar.gz oci://$registry_ingress_url/library --insecure-skip-tls-verify", timeout => 60);
+    # Chart push & pull
+    assert_script_run("helm create $test_chart && tar -czvf $test_chart.tar.gz -C $test_chart .", timeout => 60);
+    assert_script_run("helm push $test_chart.tar.gz oci://$registry_ingress_url/library --insecure-skip-tls-verify", timeout => 60);
+    assert_script_run("helm pull oci://$registry_ingress_url/library/$test_chart -d /tmp/ --insecure-skip-tls-verify", timeout => 60);
+
 
 }
 
