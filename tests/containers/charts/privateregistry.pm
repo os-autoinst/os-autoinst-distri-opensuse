@@ -47,10 +47,11 @@ sub run {
     }
     my $helm_values = get_var('HELM_CONFIG');
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
-    my $set_options = "--set global.imageRegistry=registry.suse.de/suse/sle-15-sp6/update/products/privateregistry/containerfile";
+    my $full_registry_path = get_var('HELM_FULL_REGISTRY_PATH');
+    my $set_options = "--set global.imageRegistry=$full_registry_path";
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         my ($repository, $tag) = split(':', $image, 2);
-        $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
+        $set_options = "--set global.imageRegistry=$full_registry_path --set app.image.repository=$repository --set app.image.tag=$tag";
     }
     my $helm_options = "--debug";
     $helm_options = "-f myvalue.yaml $helm_options" if ($helm_values);
