@@ -101,15 +101,15 @@ sub run {
     $cmd = "ping6 $ipv6 -I$ifname -v";
     $rc = script_run("$sudo $cmd -c2");
     if ($rc) {
-        my $bug;
-        $bug = "bsc#1195826 or bsc#1200617" if is_sle('=15-SP4');
-        $bug = "bsc#1196840 or bsc#1200617" if is_sle('=15-SP3');
-        $bug = "bsc#1199918 or bsc#1200617" if is_sle('=15-SP2');
-        $bug = "bsc#1199926" if is_sle('=15-SP1');
-        $bug = "bsc#1199927" if is_sle('=15');
+        my $bsc;
+        $bsc = "bsc#1195826 or bsc#1200617" if is_sle('=15-SP4');
+        $bsc = "bsc#1196840 or bsc#1200617" if is_sle('=15-SP3');
+        $bsc = "bsc#1199918 or bsc#1200617" if is_sle('=15-SP2');
+        $bsc = "bsc#1199926" if is_sle('=15-SP1');
+        $bsc = "bsc#1199927" if is_sle('=15');
 
-        if (defined($bug)) {
-            record_info('Softfail', $bug, result => 'softfail');
+        if (defined($bsc)) {
+            record_soft_failure($bsc);
         } else {
             record_info("Fail", "Unknown failure on $cmd, maybe related to: bsc#1200617, bsc#1195826, bsc#1196840, bsc#1199918, bsc#1199926, bsc#1199927",
                 result => 'fail');
