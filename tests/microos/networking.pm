@@ -24,8 +24,8 @@ sub run {
 
     # curl
     my $openqa = is_opensuse ? "openqa.opensuse.org" : "openqa.suse.de";
-    script_retry("curl -Lf --HEAD $openqa", retry => 5, delay => 60);    # openQA Networking (required for mirrors)
-    script_retry("curl -Lf --HEAD github.com", retry => 5, delay => 60);    # Required for kubeadm (behind the scenes)
+    script_retry("curl -Lf --head $openqa", retry => 5, delay => 60);    # openQA Networking (required for mirrors)
+    script_retry("curl -Lf --head github.com", retry => 5, delay => 60);    # Required for kubeadm (behind the scenes)
 
 }
 
