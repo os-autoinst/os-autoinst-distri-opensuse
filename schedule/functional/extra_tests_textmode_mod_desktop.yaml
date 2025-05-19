@@ -17,6 +17,7 @@ schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
+    - console/libaom
     - '{{tests_requiring_soundcard}}'
     - console/libvorbis
     - console/zypper_log_packages
