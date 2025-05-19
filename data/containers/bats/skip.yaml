@@ -58,6 +58,7 @@ podman:
   # https://github.com/containers/podman/pull/25340 is needed for 030-run
   # https://github.com/containers/podman/pull/25350 is needed for 030-run
   # https://github.com/containers/podman/pull/25718 is needed for 030-run
+  # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
