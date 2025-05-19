@@ -1,12 +1,14 @@
 
 This directory contains [BATS framework](https://github.com/bats-core/bats-core) tests for the following packages:
 
-- [aardvark](https://github.com/containers/aardvark-dns/tree/main/test)
-- [buildah](https://github.com/containers/buildah/tree/main/tests)
-- [netavark](https://github.com/containers/netavark/tree/main/test)
-- [podman](https://github.com/containers/podman/tree/main/test/system)
-- [runc](https://github.com/opencontainers/runc/tree/main/tests/integration)
-- [skopeo](https://github.com/containers/skopeo/tree/main/systemtest)
+| package | tests |
+| --- | --- |
+| [aardvark-dns](aardvark.pm) | https://github.com/containers/aardvark-dns/tree/main/test |
+| [buildah](buildah.pm) | https://github.com/containers/buildah/tree/main/tests |
+| [netavark](netavark.pm) | https://github.com/containers/netavark/tree/main/test |
+| [podman](podman.pm) | https://github.com/containers/podman/tree/main/test/system |
+| [runc](runc.pm) | https://github.com/opencontainers/runc/tree/main/tests/integration |
+| [skopeo](skopeo.pm) | https://github.com/containers/skopeo/tree/main/systemtest |
 
 Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
 
