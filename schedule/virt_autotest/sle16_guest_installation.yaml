@@ -1,11 +1,20 @@
 name:          sle16-virt-guest-installation
 description:    >
-    Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
+  Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
 schedule:
-    - installation/ipxe_install
-    - installation/agama_reboot
-    - virt_autotest/login_console
-    - virt_autotest/prepare_non_transactional_server
-    - virt_autotest/unified_guest_installation
-    - virt_autotest/set_config_as_glue
-    - virt_autotest/uefi_guest_verification
+  - installation/ipxe_install
+  - installation/agama_reboot
+  - virt_autotest/login_console
+  - virt_autotest/prepare_non_transactional_server
+  - virt_autotest/unified_guest_installation
+  - virt_autotest/set_config_as_glue
+  - '{{uefi_guest_verification}}'
+  - '{{sev-es_guest_verification}}'
+conditional_schedule:
+  uefi_guest_verification:
+    VIRT_UEFI_GUEST_INSTALL:
+      1:
+        - virt_autotest/uefi_guest_verification
+    VIRT_SEV_ES_GUEST_INSTALL:
+      1:
+        - virt_autotest/sev_es_guest_verification
