@@ -334,6 +334,7 @@ sub prepare_kgraft {
         zypper_call("rm " . $pversion);
     }
 
+    check_kernel_package($kernel_name);
     power_action('reboot', textmode => 1);
     reconnect_mgmt_console if is_pvm || get_var('LTP_BAREMETAL');
 
