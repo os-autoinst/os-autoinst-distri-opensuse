@@ -24,6 +24,7 @@ use data_integrity_utils 'verify_checksum';
 use File::Basename;
 use network_utils qw(genmac);
 use bootloader_setup;
+use Carp 'croak';
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -56,6 +57,36 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+# wrapper for vmware shell cmd execution
+# res: 0 passed, 1 failed. Does 'assertion' when errmsg provided
+sub run_command {
+    my ($self, $command, %args) = @_;
+    return unless ($command);
+    $args{errmsg} //= "Error";
+    $args{assert} //= 0;
+    my $res = $self->run_cmd($command, domain => 'sshVMwareServer');
+    croak($args{errmsg}) if ($res && $args{assert});
+    return $res;
+}
+
+# remove existing vmware images in dir, for next update
+sub datastore_cleanup_hdd {
+    my ($self, $dir) = @_;
+    return unless ($dir);
+    # Add trailing '/' to dir, when missing
+    $dir =~ s{(?<!/)$}{\/};
+    foreach my $n (1 .. get_var('NUMDISKS', 1)) {
+        # skip when hdd missing
+        if (my $disk = get_var('HDD_' . $n)) {
+            $disk =~ s/vmdk\.xz$/vmdk/;
+            # remove all vmdk*, then .vmdk and .vmdk.xz
+            diag("List before rm $dir:\n" . $self->get_cmd_output("ls -l $dir", {domain => 'sshVMwareServer'}));
+            $self->get_cmd_output("set -x; rm -f $dir" . basename($disk) . "\*", {domain => 'sshVMwareServer'});
+            diag("List after rm $dir:\n" . $self->get_cmd_output("ls -l $dir", {domain => 'sshVMwareServer'}));
+        }
+    }
+}
+
 sub run {
     my $arch = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
@@ -69,6 +100,8 @@ sub run {
         # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+        # On-demand pre-cleanup of images on host
+        datastore_cleanup_hdd($svirt, $vmware_openqa_datastore) if (get_var('VMWARE_DATASTORE_CLEANUP'));
         # Remove invalid VM by previous openQA job
         my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
         foreach (@vm_id) {
@@ -76,8 +109,6 @@ sub run {
             $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
         }
     }
-
-    my $n = get_var('NUMDISKS', 1);
 
     my $xenconsole = "hvc0";
     if (!get_var('SP2ORLATER')) {
@@ -141,18 +172,26 @@ sub run {
 
     my $hdddir = "$basedir/openqa/${share_factory}hdd $basedir/openqa/${share_factory}hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
-    foreach my $n (1 .. get_var('NUMDISKS')) {
+    foreach my $n (1 .. get_var('NUMDISKS', 1)) {
         if (my $full_hdd = get_var('HDD_' . $n)) {
             my $hdd = basename($full_hdd);
             my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
             if ($hddpath =~ m/vmdk\.xz$/) {
+                # check xz compressed images
                 my $nfs_ro = $hddpath;
                 $hddpath = "$vmware_openqa_datastore/$hdd" =~ s/vmdk\.xz/vmdk/r;
                 # do nothing if the image is already unpacked in datastore
-                if ($svirt->run_cmd("test -e $hddpath", domain => 'sshVMwareServer')) {
-                    my $ret = $svirt->run_cmd("xz --decompress --keep --verbose $vmware_openqa_datastore/$hdd", domain => 'sshVMwareServer');
-                    die "Image decompress in datastore failed!\n" if $ret;
+                if (run_command($svirt, "test -e $hddpath")) {
+                    # load the image.xz if not in datastore
+                    run_command($svirt, "test -e ${hddpath}.xz || cp $nfs_ro ${hddpath}.xz",
+                        assert => 1, errmesg => "Copy $nfs_ro error!\n");
+                    run_command($svirt, "xz --decompress --keep --verbose ${hddpath}.xz",
+                        assert => 1, errmesg => "Image decompress in datastore failed!\n");
                 }
+            } elsif ($hddpath =~ m/vmdk$/) {
+                #  check vmware expanded images, loading in datastore when not present
+                run_command($svirt, "test -e $vmware_openqa_datastore/$hdd || cp $hddpath $vmware_openqa_datastore",
+                    assert => 1, errmesg => "Copy ${hddpath} error!\n");
             }
             $svirt->add_disk(
                 {
