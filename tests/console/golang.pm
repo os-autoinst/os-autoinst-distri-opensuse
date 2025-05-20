@@ -25,7 +25,7 @@ sub mob_test {
 sub run {
     select_serial_terminal;
 
-    if (is_sle() && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
