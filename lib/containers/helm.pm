@@ -8,12 +8,20 @@
 
 package containers::helm;
 
+use base Exporter;
+use Exporter;
+use strict;
+use warnings;
 use testapi;
+use utils qw(script_retry);
 use version_utils qw(get_os_release);
 use Utils::Architectures qw(is_ppc64le);
-use containers::k8s qw(install_kubectl install_helm);
 
-ur @EXPORT = qw(helm_supported_os helm_get_chart helm_configure_values helm_install_chart);
+our @EXPORT = qw(helm_supported_os helm_get_chart helm_configure_values helm_install_chart);
+
+=head2 helm_supported_os
+Check if the current OS is supported for Helm chart testing
+=cut
 
 sub helm_supported_os {
     my ($version, $sp, $host_distri) = get_os_release;
@@ -21,6 +29,10 @@ sub helm_supported_os {
     return if (!($host_distri eq "sles" && $version == 15 && $sp >= 3) || is_ppc64le);
     die "helm tests only work on k3s" unless (check_var('CONTAINER_RUNTIMES', 'k3s'));
 }
+
+=head2 helm_get_chart
+Download chart from URL and prepare it
+=cut
 
 sub helm_get_chart {
     my ($helm_chart) = @_;
@@ -34,6 +46,10 @@ sub helm_get_chart {
     }
     return $helm_chart
 }
+
+=head2 helm_configure_values
+Configure values from a values file
+=cut
 
 sub helm_configure_values {
     my ($helm_values) = @_;
@@ -58,12 +74,16 @@ sub helm_configure_values {
     return ($set_options, $helm_options);
 }
 
+=head2 helm_install_chart
+Install helm chart with settings and values
+=cut
+
 sub helm_install_chart {
-    my ($chart, $values) = @_;
+    my ($chart, $values, $release_name) = @_;
     # e.g. helm_install_chart("url to chart", "url to values")
 
-    my $helm_chart = get_helm_chart($chart);
-    my ($set_options, $helm_options) = configure_helm_values($values);
+    my $helm_chart = helm_get_chart($chart);
+    my ($set_options, $helm_options) = helm_configure_values($values);
 
     # Install the helm chart
     script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60) if ($helm_chart =~ m!^oci://!);
