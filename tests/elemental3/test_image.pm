@@ -19,7 +19,7 @@ sub run {
     # For HDD image boot
     if (check_var('IMAGE_TYPE', 'disk')) {
         # Wait for GRUB and select default entry
-        $self->wait_grub();
+        $self->wait_grub(bootloader_time => 300);
         send_key('ret', wait_screen_change => 1);
         wait_still_screen(timeout => 120);
         save_screenshot();
