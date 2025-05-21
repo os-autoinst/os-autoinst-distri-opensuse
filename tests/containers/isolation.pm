@@ -57,7 +57,7 @@ sub run {
     script_run "echo 0 > /etc/docker/suse-secrets-enable";
 
     my @ip_versions = (4);
-    push @ip_versions, 6 unless (is_hyperv || is_vmware);
+    push @ip_versions, 6 unless (is_hyperv || is_s390x || is_vmware);
 
     my %ip_addr;
     for my $ip_version (@ip_versions) {
