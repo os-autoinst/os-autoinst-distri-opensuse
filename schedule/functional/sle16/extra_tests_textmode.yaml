@@ -1,0 +1,98 @@
+---
+name: extra_tests_textmode_sle16
+description: >
+    Maintainer: qe-core
+    Extra CLI tests
+conditional_schedule:
+    fwupd:
+        ARCH:
+            aarch64:
+                - console/fwupd
+            x86_64:
+                - console/fwupd
+            ppc64le:
+                - console/fwupd
+    snmp:
+        MACHINE:
+            64bit:
+                - network/snmp
+            aarch64:
+                - network/snmp
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/ntp_client
+    - console/dnsmasq
+    - console/man_pages
+    - console/ping
+    - console/arping
+    - console/orphaned_packages_check
+    - console/zypper_lr_validate
+    - console/zypper_ref
+    - console/zypper_info
+    - console/snapper_zypp
+    - console/zypper_extend
+    - console/check_os_release
+    - console/openvswitch
+    - console/ovn
+    - console/pam
+    - console/shar
+    - console/sshd
+    - console/update_alternatives
+    - console/rpm
+    - console/slp
+    - console/pkcon
+    - console/command_not_found
+    - console/openssl_alpn
+    - console/cron
+    - console/syslog
+    - console/mta
+    - console/check_default_network_manager
+    - console/git
+    - console/cups
+    - console/java
+    - console/golang
+    - console/sqlite3
+    - console/sysctl
+    - console/sysstat
+    - console/tuned
+    - '{{fwupd}}'
+    - '{{snmp}}'
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/gpg
+    - console/rsync
+    - console/rust
+    - console/shells
+    - console/sudo
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+    - console/pciutils
+    - console/supportutils
+    - console/vsftpd
+    - console/year_2038_detection
+    - console/redis
+    - console/mdadm
+    - console/quota
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - console/lshw
+    - console/kmod
+    - console/suse_module_tools
+    - console/firewalld
+    - console/nftables
+    - console/aaa_base
+    - console/osinfo_db
+    - console/journalctl
+    - console/tar
+    - console/ruby
+    - console/coredump_collect
+    - console/valgrind
+    - console/sssd_389ds_functional
+    - console/zypper_log_packages

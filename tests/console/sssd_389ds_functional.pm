@@ -28,10 +28,10 @@ sub run {
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in sudo nscd") unless is_tumbleweed;
+    zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
 
     my $docker = "podman";
-    if (is_sle) {
+    if (is_sle('<16')) {
         $docker = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
