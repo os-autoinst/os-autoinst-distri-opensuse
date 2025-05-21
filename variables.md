@@ -510,3 +510,4 @@ AGAMA | boolean | 0 | Agama installation support
 AGAMA_LIVE_ISO_URL | string | | The url of agama live iso to pass as kernel's command-line parameter. Example of usage "root=live:http://agama.iso"
 INST_AUTO | string | | The auto-installation is started by passing `inst.auto=<url>` on the kernel's command line
 INST_INSTALL_URL | string | | This will support using 'inst.install_url' boot parameter for overriding the default installation repositories. You can use multiple URLs separated by comma: inst.install_url=https://example.com/1,https://example.com/2
+AGAMA_SOFTWARE_ALL | boolean | 0 | Manually select all software patterns for installation in Agama
