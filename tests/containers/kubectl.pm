@@ -33,6 +33,7 @@ sub run {
             $kubeconf =~ s/\n//g;
             script_run("echo -en $kubeconf | base64 -d | gzip -d > /tmp/k3s-qa.yaml", 0);
             assert_script_run('export KUBECONFIG=/tmp/k3s-qa.yaml');
+            sleep;
         } else {
             # Install k3s locally in SUT
             $is_local_k3s = 1;
