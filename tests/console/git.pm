@@ -58,7 +58,7 @@ sub run {
     assert_script_run("cd ~;git clone -q https://github.com/os-autoinst/os-autoinst-distri-example");
 
     # clean up
-    assert_script_run("rm -rf ~/.ssh ~/repos ~/os-autoinst*");
+    assert_script_run("rm -rf ~/repos ~/os-autoinst*");
 }
 
 1;
