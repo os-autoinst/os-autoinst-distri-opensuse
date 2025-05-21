@@ -72,7 +72,12 @@ sub run {
         $self->close_powershell;
         $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
         assert_and_click 'wsl-suse-startup-search';
+        # Address welcome_to_wsl and welcome_to_ms_edge needles
         if (check_var('DISTRI', 'sle')) {
+            if (check_var('WIN_VERSION', '11')) {
+                assert_and_click("welcome_to_ms_edge", timeout => 60);
+                send_key "alt-f4";
+            }
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
@@ -82,7 +87,12 @@ sub run {
             cmd => "wsl --install --distribution $WSL_version",
             timeout => 300,
         );
+        # Address welcome_to_wsl and welcome_to_ms_edge needles
         if (check_var('DISTRI', 'sle')) {
+            if (check_var('WIN_VERSION', '11')) {
+                assert_and_click("welcome_to_ms_edge", timeout => 60);
+                send_key "alt-f4";
+            }
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
