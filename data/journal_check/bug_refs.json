@@ -198,9 +198,9 @@
         "type": "bug"
     },
     "bsc#1191575": {
-        "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns",
+        "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns|kernel: ACPI PPTT: PPTT table found, but unable to locate core.*\\)",
         "products": {
-            "sle": ["15-SP4", "15-SP5"]
+            "sle": ["15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
