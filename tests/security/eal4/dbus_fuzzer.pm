@@ -50,7 +50,7 @@ sub run {
     record_info('Result of dfuzzer -l', Dumper(\@bus_list));
 
     # Analyse the results
-    my %hash_white_list = map { $_ => 1 } @eal4_test::white_list_for_dbus;
+    my %hash_white_list = map { $_ => 1 } @eal4_test::static_dbus_whitelist;
     my @unknown_bus_name = grep { !$hash_white_list{$_} } (@bus_list);
 
     # After filtering there should be no unknown name
