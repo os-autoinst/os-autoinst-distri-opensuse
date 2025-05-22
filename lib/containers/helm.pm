@@ -17,26 +17,29 @@ use utils qw(script_retry);
 use version_utils qw(get_os_release);
 use Utils::Architectures qw(is_ppc64le);
 
-our @EXPORT = qw(helm_supported_os helm_get_chart helm_configure_values helm_install_chart);
+our @EXPORT = qw(helm_is_supported helm_get_chart helm_configure_values helm_install_chart);
 
-=head2 helm_supported_os
-Check if the current OS is supported for Helm chart testing
+=head2 helm_is_supported
+Checks if the current OS is supported for Helm chart testing.
+Returns True if the OS and Architecture are supported.
 =cut
 
-sub helm_supported_os {
+sub helm_is_supported {
     my ($version, $sp, $host_distri) = get_os_release;
     # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
-    return if (!($host_distri eq "sles" && $version == 15 && $sp >= 3) || is_ppc64le);
+    return ($host_distri eq "sles" && $version == 15 && $sp >= 3) && !is_ppc64le;
     die "helm tests only work on k3s" unless (check_var('CONTAINER_RUNTIMES', 'k3s'));
 }
 
 =head2 helm_get_chart
-Download chart from URL and prepare it
+Downloads a chart from a URL. 
+Usage: helm_get_chart($helm_chart)
+$helm_chart should be a full URL to a helm chart, e.g. oci://dp.apps.rancher.io/charts/grafana
+Returns the name of the helm chart.
 =cut
 
 sub helm_get_chart {
     my ($helm_chart) = @_;
-    # $helm_chart should be a full URL to a helm chart
 
     # Pull helm chart, if it is a http file
     if ($helm_chart =~ m!^https?://!) {
@@ -48,12 +51,14 @@ sub helm_get_chart {
 }
 
 =head2 helm_configure_values
-Configure values from a values file
+Configure values from a values file. 
+Usage: helm_configure_values($helm_values)
+$helm_values should be a URL to a valid values.yml file. e.g. https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+Returns the installation ad-hoc options ($set_options) and the options from the values file ($helm_options).
 =cut
 
 sub helm_configure_values {
     my ($helm_values) = @_;
-    # $helm_values should be a URL to a values.yml file
 
     # Pull helm values file if defined
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
@@ -75,12 +80,12 @@ sub helm_configure_values {
 }
 
 =head2 helm_install_chart
-Install helm chart with settings and values
+Installs a helm chart with settings, values and a release name. 
+Usage: helm_install_chart("URL_TO_CHART", "URL_TO_VALUES_FILE", "RELEASE_NAME")
 =cut
 
 sub helm_install_chart {
     my ($chart, $values, $release_name) = @_;
-    # e.g. helm_install_chart("url to chart", "url to values")
 
     my $helm_chart = helm_get_chart($chart);
     my ($set_options, $helm_options) = helm_configure_values($values);
