@@ -156,7 +156,6 @@ NOTES
 | [252-quadlet] | unknown |
 | [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
 
-[080-pause]: https://github.com/containers/podman/blob/main/test/system/080-pause.bats
 [252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
 [505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
 
