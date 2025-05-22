@@ -60,6 +60,16 @@ sub run_command {
     }
 }
 
+sub install_git {
+    # We need git 2.47.0+ to use `--ours` with `git apply -3`
+    if (is_sle) {
+        my $version = get_var("VERSION");
+        $version =~ s/-SP/./;
+        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/devel:/languages:/python:/backports/$version/devel:languages:python:backports.repo";
+    }
+    run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
 sub install_ncat {
     my $version = get_var("NCAT_VERSION", "7.95-3");
 
@@ -199,7 +209,6 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @pkgs, "git-core";
     push @commands, "zypper -n install @pkgs";
     install_packages(@pkgs);
 
@@ -365,6 +374,8 @@ sub bats_patches {
     if (!@patches && defined $settings->{BATS_PATCHES}) {
         @patches = @{$settings->{BATS_PATCHES}};
     }
+
+    install_git;
 
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
