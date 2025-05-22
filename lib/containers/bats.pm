@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use containers::common qw(install_packages);
 use YAML::PP;
+use File::Basename;
 
 our @EXPORT = qw(
   bats_patches
@@ -37,7 +38,7 @@ our @EXPORT = qw(
 );
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
-my $test_dir = "/var/tmp/bats-tests";
+my $test_dir = "/var/tmp/";
 my $package;
 my $settings;
 
@@ -198,7 +199,7 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @pkgs, "patch";
+    push @pkgs, "git-core";
     push @commands, "zypper -n install @pkgs";
     install_packages(@pkgs);
 
@@ -356,7 +357,7 @@ sub bats_tests {
 }
 
 sub bats_patches {
-    return if (get_var("BATS_URL") || check_var("BATS_PATCHES", "none"));
+    return if check_var("BATS_PATCHES", "none");
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
@@ -368,7 +369,8 @@ sub bats_patches {
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
-        run_command "curl $curl_opts $url | patch -p1 --merge", timeout => 900;
+        run_command "curl $curl_opts -O $url", timeout => 900;
+        run_command "git apply -3 --ours " . basename($url);
     }
 }
 
@@ -387,36 +389,30 @@ sub bats_sources {
     $settings = bats_settings;
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
-    my $tag = "v$version";
+    my $branch = "v$version";
 
-    # Support these cases for BATS_URL:
-    # 1. As full URL: https://github.com/containers/aardvark-dns/archive/refs/heads/main.tar.gz
-    # 2. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, yourusername#test-patch, etc
-    # 3. As TAG only: main, v1.2.3, cool-test-fix, etc
-    # 4. Empty. Use default for repo based on package version
+    # Support these cases for BATS_REPO: [<GITHUB_ORG>]#BRANCH
+    # 1. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, your_gh_user#test-patch, etc
+    # 2. As TAG only: main, v1.2.3, etc
+    # 3. Empty. Use default for repo based on package version
 
-    my $url = get_var("BATS_URL", "");
-    if ($url !~ m%^https://%) {
-        if ($url =~ /#/) {
-            ($github_org, $tag) = split("#", $url, 2);
-        } elsif ($url) {
-            $tag = $url;
-        }
-        my $dir = ($tag =~ /^v\d+\./) ? "tags" : "heads";
-        $url = "https://github.com/$github_org/$package/archive/refs/$dir/$tag.tar.gz";
+    my $repo = get_var("BATS_REPO", "");
+    if ($repo =~ /#/) {
+        ($github_org, $branch) = split("#", $repo, 2);
+    } elsif ($repo) {
+        $branch = $repo;
     }
-    record_info("BATS_URL", $url);
 
-    run_command "mkdir -p $test_dir";
-    if ($package eq "buildah") {
-        selinux_hack $test_dir;
-        selinux_hack "/tmp";
-    }
     run_command "cd $test_dir";
-    run_command "curl $curl_opts $url | tar -zxf - --strip-components 1";
+    run_command "git clone --branch $branch https://github.com/$github_org/$package.git", timeout => 300;
+    $test_dir .= $package;
+    run_command "cd $test_dir";
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
+    } elsif ($package eq "buildah") {
+        selinux_hack $test_dir;
+        selinux_hack "/tmp";
     }
 }
 

@@ -19,14 +19,14 @@ The tests rely on some variables:
 | `BATS_PACKAGE` | `aardvark` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_PATCHES` | List of github PR id's containing upstream test patches |
 | `BATS_TESTS` | Run only the specified tests |
-| `BATS_URL` | URL to get the tests from. The default depends on the package version |
+| `BATS_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
 NOTES
-- `BATS_URL` can be a full URL to the tarball in github, `SUSE#branch` or a tag `v1.2.3`
+- `BATS_REPO` can be `SUSE#branch` or a tag `v1.2.3`
 - `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
 
 ### Summary of the `BATS_SKIP` variables
