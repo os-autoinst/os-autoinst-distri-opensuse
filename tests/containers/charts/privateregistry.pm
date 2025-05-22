@@ -33,7 +33,7 @@ sub run {
     my $helm_chart = get_required_var('HELM_CHART');
     my $helm_values = get_var('HELM_CONFIG');
 
-    helm_supported_os();
+    return unless (helm_is_supported());
 
     install_kubectl();
     install_helm();
