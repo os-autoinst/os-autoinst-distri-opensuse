@@ -58,7 +58,7 @@ sub search_image_on_svirt_host {
 }
 
 # wrapper for vmware shell cmd execution
-# res: 0 passed, 1 failed. Does 'assertion' when errmsg provided
+# res: 0 passed, 1 failed. Does 'assertion' when assert => true
 sub run_command {
     my ($self, $command, %args) = @_;
     return unless ($command);
@@ -67,24 +67,6 @@ sub run_command {
     my $res = $self->run_cmd($command, domain => 'sshVMwareServer');
     croak($args{errmsg}) if ($res && $args{assert});
     return $res;
-}
-
-# remove existing vmware images in dir, for next update
-sub datastore_cleanup_hdd {
-    my ($self, $dir) = @_;
-    return unless ($dir);
-    # Add trailing '/' to dir, when missing
-    $dir =~ s{(?<!/)$}{\/};
-    foreach my $n (1 .. get_var('NUMDISKS', 1)) {
-        # skip when hdd missing
-        if (my $disk = get_var('HDD_' . $n)) {
-            $disk =~ s/vmdk\.xz$/vmdk/;
-            # remove all vmdk*, then .vmdk and .vmdk.xz
-            diag("List before rm $dir:\n" . $self->get_cmd_output("ls -l $dir", {domain => 'sshVMwareServer'}));
-            $self->get_cmd_output("set -x; rm -f $dir" . basename($disk) . "\*", {domain => 'sshVMwareServer'});
-            diag("List after rm $dir:\n" . $self->get_cmd_output("ls -l $dir", {domain => 'sshVMwareServer'}));
-        }
-    }
 }
 
 sub run {
@@ -100,8 +82,7 @@ sub run {
         # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
-        # On-demand pre-cleanup of images on host
-        datastore_cleanup_hdd($svirt, $vmware_openqa_datastore) if (get_var('VMWARE_DATASTORE_CLEANUP'));
+
         # Remove invalid VM by previous openQA job
         my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
         foreach (@vm_id) {
