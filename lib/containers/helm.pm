@@ -44,7 +44,7 @@ sub helm_get_chart {
         assert_script_run("curl -sSL --retry 3 --retry-delay 30 $url | tar -zxf -");
         $helm_chart = $path ? "./$path" : ".";
     }
-    return $helm_chart
+    return $helm_chart;
 }
 
 =head2 helm_configure_values
