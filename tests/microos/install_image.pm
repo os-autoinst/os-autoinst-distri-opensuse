@@ -55,10 +55,9 @@ sub run {
     # Set permanent grub configuration
     assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/etc/default/grub") if is_x86_64;
     # Fully disable graphical terminal on legacy systems without UEFI
-    assert_script_run("sed -i 's/#GRUB_TERMINAL=console/GRUB_TERMINAL=console/g' /mnt/etc/default/grub") if (is_ipmi && !get_var('IPXE_UEFI'));
-    # We need to properly set grub terminal bsc#1230844, otherwise grub menu will not be visible in non graphical boot environments
-    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
-    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
+    my $grub_terminal_io = is_ipmi && !get_var('IPXE_UEFI') ? 'console' : 'console gfxterm';
+    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
+    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
     # Enable root loging with password
     assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
     assert_script_run("btrfs property set /mnt ro true");
