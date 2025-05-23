@@ -33,19 +33,19 @@ netavark:
     BATS_SKIP: ''
   sle-15-SP5:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP7:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: ''
 podman:
   # Note on patches:
@@ -56,9 +56,9 @@ podman:
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/25918.patch
-    - https://github.com/containers/podman/pull/25942.patch
-    - https://github.com/containers/podman/pull/26017.patch
+    - 25918
+    - 25942
+    - 26017
     BATS_SKIP: ''
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
@@ -66,8 +66,8 @@ podman:
     BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
   sle-15-SP6:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    - https://github.com/containers/podman/pull/25792.patch
+    - 21875
+    - 25792
     BATS_SKIP: ''
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
@@ -75,8 +75,8 @@ podman:
     BATS_SKIP_USER_REMOTE:
   sle-15-SP7:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    - https://github.com/containers/podman/pull/25792.patch
+    - 21875
+    - 25792
     BATS_SKIP: ''
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
@@ -84,10 +84,10 @@ podman:
     BATS_SKIP_USER_REMOTE:
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/25792.patch
-    - https://github.com/containers/podman/pull/25918.patch
-    - https://github.com/containers/podman/pull/25942.patch
-    - https://github.com/containers/podman/pull/26017.patch
+    - 25792
+    - 25918
+    - 25942
+    - 26017
     BATS_SKIP: ''
     BATS_SKIP_ROOT_LOCAL: 520-checkpoint
     BATS_SKIP_ROOT_REMOTE: 520-checkpoint

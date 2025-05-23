@@ -380,7 +380,12 @@ sub bats_patches {
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
-        run_command "curl $curl_opts -O $url", timeout => 900;
+        if ($patch =~ /^\d+$/) {
+            push @commands, "curl $curl_opts -O $url";
+            assert_script_run "curl -O " . data_url("containers/bats/patches/$package/$patch.patch");
+        } else {
+            run_command "curl $curl_opts -O $url", timeout => 900;
+        }
         run_command "git apply -3 --ours " . basename($url);
     }
 }
