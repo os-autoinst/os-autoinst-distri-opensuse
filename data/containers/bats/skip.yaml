@@ -8,19 +8,19 @@ buildah:
     BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP4:
     BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
   sle-15-SP5:
     BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
   sle-15-SP6:
     BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
   sle-15-SP7:
     BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
   sle-16.0:
     BATS_SKIP: bud run sbom
@@ -30,23 +30,23 @@ netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
+    BATS_SKIP:
   sle-15-SP5:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP7:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
+    - 1191
     BATS_SKIP: 250-bridge-nftables
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: ''
+    - 1191
+    BATS_SKIP:
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -56,91 +56,91 @@ podman:
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/25918.patch
-    - https://github.com/containers/podman/pull/25942.patch
-    - https://github.com/containers/podman/pull/26017.patch
-    BATS_SKIP: ''
+    - 25918
+    - 25942
+    - 26017
+    BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
     BATS_SKIP_USER_LOCAL: 252-quadlet 505-networking-pasta
     BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
   sle-15-SP6:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    - https://github.com/containers/podman/pull/25792.patch
-    BATS_SKIP: ''
+    - 21875
+    - 25792
+    BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
     BATS_SKIP_USER_LOCAL:
     BATS_SKIP_USER_REMOTE:
   sle-15-SP7:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    - https://github.com/containers/podman/pull/25792.patch
-    BATS_SKIP: ''
+    - 21875
+    - 25792
+    BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
     BATS_SKIP_USER_LOCAL:
     BATS_SKIP_USER_REMOTE:
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/25792.patch
-    - https://github.com/containers/podman/pull/25918.patch
-    - https://github.com/containers/podman/pull/25942.patch
-    - https://github.com/containers/podman/pull/26017.patch
-    BATS_SKIP: ''
+    - 25792
+    - 25918
+    - 25942
+    - 26017
+    BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL: 520-checkpoint
     BATS_SKIP_ROOT_REMOTE: 520-checkpoint
     BATS_SKIP_USER_LOCAL: 505-networking-pasta
     BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
 runc:
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups checkpoint
-    BATS_SKIP_USER: ''
+    BATS_SKIP_USER:
   sle-15-SP4:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP5:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP6:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP7:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-16.0:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
-    BATS_SKIP_USER: ''
+    BATS_SKIP_USER:
 skopeo:
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-15-SP4:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-15-SP5:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-15-SP6:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-15-SP7:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-16.0:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
 
