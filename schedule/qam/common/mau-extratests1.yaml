@@ -9,6 +9,7 @@ schedule:
   - console/check_os_release
   - console/ping
   - console/arping
+  - console/wireshark_cli
   - console/man_pages
   - console/openvswitch
   - console/pam
