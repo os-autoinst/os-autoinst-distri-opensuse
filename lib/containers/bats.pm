@@ -156,6 +156,8 @@ sub enable_modules {
 sub patch_logfile {
     my ($log_file, @skip_tests) = @_;
 
+    die "BATS failed!" if (script_run("test -e $log_file") != 0);
+
     @skip_tests = uniq sort @skip_tests;
 
     foreach my $test (@skip_tests) {
