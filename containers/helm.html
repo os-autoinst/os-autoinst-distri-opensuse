@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/containers/helm.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#helm_is_supported-Checks-if-the-current-OS-is-supported-for-Helm-chart-testing.-Returns-True-if-the-OS-and-Architecture-are-supported">helm_is_supported Checks if the current OS is supported for Helm chart testing. Returns True if the OS and Architecture are supported.</a></li>
+      <li><a href="#helm_get_chart-Downloads-a-chart-from-a-URL.-Usage:-helm_get_chart-helm_chart-helm_chart-should-be-a-full-URL-to-a-helm-chart-e.g.-oci:-dp.apps.rancher.io-charts-grafana-Returns-the-name-of-the-helm-chart">helm_get_chart Downloads a chart from a URL. Usage: helm_get_chart($helm_chart) $helm_chart should be a full URL to a helm chart, e.g. oci://dp.apps.rancher.io/charts/grafana Returns the name of the helm chart.</a></li>
+      <li><a href="#helm_configure_values-Configure-values-from-a-values-file.-Usage:-helm_configure_values-helm_values-helm_values-should-be-a-URL-to-a-valid-values.yml-file.-e.g.-https:-github.com-grafana-helm-charts-blob-main-charts-grafana-values.yaml-Returns-the-installation-ad-hoc-options-set_options-and-the-options-from-the-values-file-helm_options">helm_configure_values Configure values from a values file. Usage: helm_configure_values($helm_values) $helm_values should be a URL to a valid values.yml file. e.g. https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml Returns the installation ad-hoc options ($set_options) and the options from the values file ($helm_options).</a></li>
+      <li><a href="#helm_install_chart-Installs-a-helm-chart-with-settings-values-and-a-release-name.-Usage:-helm_install_chart-URL_TO_CHART-URL_TO_VALUES_FILE-RELEASE_NAME">helm_install_chart Installs a helm chart with settings, values and a release name. Usage: helm_install_chart(&quot;URL_TO_CHART&quot;, &quot;URL_TO_VALUES_FILE&quot;, &quot;RELEASE_NAME&quot;)</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/containers/helm.pm</h1>
+
+<h2 id="helm_is_supported-Checks-if-the-current-OS-is-supported-for-Helm-chart-testing.-Returns-True-if-the-OS-and-Architecture-are-supported">helm_is_supported Checks if the current OS is supported for Helm chart testing. Returns True if the OS and Architecture are supported.</h2>
+
+<h2 id="helm_get_chart-Downloads-a-chart-from-a-URL.-Usage:-helm_get_chart-helm_chart-helm_chart-should-be-a-full-URL-to-a-helm-chart-e.g.-oci:-dp.apps.rancher.io-charts-grafana-Returns-the-name-of-the-helm-chart">helm_get_chart Downloads a chart from a URL. Usage: helm_get_chart($helm_chart) $helm_chart should be a full URL to a helm chart, e.g. oci://dp.apps.rancher.io/charts/grafana Returns the name of the helm chart.</h2>
+
+<h2 id="helm_configure_values-Configure-values-from-a-values-file.-Usage:-helm_configure_values-helm_values-helm_values-should-be-a-URL-to-a-valid-values.yml-file.-e.g.-https:-github.com-grafana-helm-charts-blob-main-charts-grafana-values.yaml-Returns-the-installation-ad-hoc-options-set_options-and-the-options-from-the-values-file-helm_options">helm_configure_values Configure values from a values file. Usage: helm_configure_values($helm_values) $helm_values should be a URL to a valid values.yml file. e.g. https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml Returns the installation ad-hoc options ($set_options) and the options from the values file ($helm_options).</h2>
+
+<h2 id="helm_install_chart-Installs-a-helm-chart-with-settings-values-and-a-release-name.-Usage:-helm_install_chart-URL_TO_CHART-URL_TO_VALUES_FILE-RELEASE_NAME">helm_install_chart Installs a helm chart with settings, values and a release name. Usage: helm_install_chart(&quot;URL_TO_CHART&quot;, &quot;URL_TO_VALUES_FILE&quot;, &quot;RELEASE_NAME&quot;)</h2>
+
+
+</body>
+
+</html>
+
+
