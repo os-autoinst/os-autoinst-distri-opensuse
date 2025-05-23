@@ -36,9 +36,15 @@ sub run {
 
     # Mount nfs share with images
     assert_script_run("mount -o ro,noauto,nofail,nolock -t nfs openqa.suse.de:/var/lib/openqa/share /mnt");
-    assert_script_run("ls -als /mnt/factory/hdd/${image}");
-    # dd image to disk
-    assert_script_run("xzcat /mnt/factory/hdd/${image} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    # Image can be in hdd/fixed or hdd, search it, use first one and prefer fixed directory
+    my $image_file = script_output("find /mnt/factory/hdd/fixed /mnt/factory/hdd -maxdepth 1 -name $image -print -quit");
+    die "$image does not exist" unless $image_file =~ /\Q$image\E$/;
+    # Recognize if it is compressed image or not and dd image to disk
+    if ($image_file =~ /\.xz$/) {
+        assert_script_run("xzcat ${image_file} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    } else {
+        assert_script_run("dd if=${image_file} of=${device} bs=65536 status=progress", timeout => 300);
+    }
     assert_script_run("sync");
     assert_script_run("umount /mnt");
 
@@ -55,10 +61,9 @@ sub run {
     # Set permanent grub configuration
     assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/etc/default/grub") if is_x86_64;
     # Fully disable graphical terminal on legacy systems without UEFI
-    assert_script_run("sed -i 's/#GRUB_TERMINAL=console/GRUB_TERMINAL=console/g' /mnt/etc/default/grub") if (is_ipmi && !get_var('IPXE_UEFI'));
-    # We need to properly set grub terminal bsc#1230844, otherwise grub menu will not be visible in non graphical boot environments
-    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
-    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
+    my $grub_terminal_io = is_ipmi && !get_var('IPXE_UEFI') ? 'console' : 'console gfxterm';
+    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
+    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
     # Enable root loging with password
     assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
     assert_script_run("btrfs property set /mnt ro true");
