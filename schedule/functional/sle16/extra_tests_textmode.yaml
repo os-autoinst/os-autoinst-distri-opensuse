@@ -1,0 +1,12 @@
+---
+name: extra_tests_textmode_sle16
+description: >
+    Maintainer: qe-core
+    Extra CLI tests
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/wireshark_cli
