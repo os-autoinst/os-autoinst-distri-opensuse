@@ -21,7 +21,7 @@ use virt_autotest::utils 'is_xen_host';
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_cli activate_kdump_without_yast activate_kdump_transactional
   kdump_is_active do_kdump configure_service check_function
-  full_kdump_check deactivate_kdump_cli);
+  full_kdump_check deactivate_kdump_cli configure_kdump_with_nfs only_check_kdump);
 
 sub determine_kernel_debuginfo_package {
     # Using the provided capabilities of the currently active kernel, get the
@@ -519,6 +519,14 @@ sub full_kdump_check {
     if ($stage eq 'after') {
         check_ssh_files();
     }
+}
+
+sub configure_kdump_with_nfs {
+    record_info("configure_kdump_with_nfs: implement");
+}
+
+sub only_check_kdump {
+    record_info("only_check_kdump: implement");
 }
 
 1;
