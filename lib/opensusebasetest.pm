@@ -606,7 +606,15 @@ sub handle_emergency_if_needed {
 
 sub handle_displaymanager_login {
     my ($self, %args) = @_;
-    assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
+    assert_screen [qw(displaymanager emergency-shell emergency-mode gdm-crash)], $args{ready_time};
+    if (is_ppc64le && check_var('VERSION', '15-SP7') && check_var('TEST', 'qam-minimal-full') && match_has_tag('gdm-crash')) {
+        select_serial_terminal();
+        systemctl('disable --now display-manager');
+        set_var('DESKTOP', 'textmode', reload_needles => 1);
+        assert_script_run('while ps aux|grep gdm|grep -v grep; do sleep 2; done', 300);
+        select_console 'root-console';
+        return;
+    }
     handle_emergency_if_needed;
     handle_login unless $args{nologin};
 }
@@ -797,6 +805,7 @@ sub wait_boot_past_bootloader {
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
     push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
+    push(@tags, 'root-console') if is_ppc64le && check_var('VERSION', '15-SP7') && check_var('TEST', 'qam-minimal-full');
 
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && is_aarch64 && check_var('DESKTOP', 'gnome')) {
