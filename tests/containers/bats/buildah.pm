@@ -46,7 +46,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
+    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
 
     $self->bats_setup(@pkgs);
 
