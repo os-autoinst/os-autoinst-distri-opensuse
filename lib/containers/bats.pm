@@ -83,8 +83,6 @@ sub install_ncat {
 }
 
 sub install_bats {
-    return if (script_run("command -v bats") == 0);
-
     my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
