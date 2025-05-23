@@ -64,11 +64,11 @@ sub helm_configure_values {
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
 
     # Configure Registry, Image repository and Image tag
-    my $full_registry_path = get_var('HELM_FULL_REGISTRY_PATH'); 
+    my $full_registry_path = get_var('HELM_FULL_REGISTRY_PATH');
     my $set_options = "";
 
     if ($full_registry_path ne "") {
-        $set_options = "--set global.imageRegistry=$full_registry_path"; # Only necessary if the chart uses non-publicly available images.
+        $set_options = "--set global.imageRegistry=$full_registry_path";    # Only necessary if the chart uses non-publicly available images.
     }
 
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
