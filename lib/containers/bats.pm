@@ -212,7 +212,7 @@ sub bats_setup {
 
     configure_oci_runtime $oci_runtime;
 
-    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark|netavark|podman$/);
+    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark-dns|netavark|podman$/);
 
     install_git;
 
@@ -321,7 +321,7 @@ sub bats_tests {
 
     # Subdirectory in repo containing BATS tests
     my %tests_dir = (
-        aardvark => "test",
+        "aardvark-dns" => "test",
         buildah => "tests",
         netavark => "test",
         podman => "test/system",
