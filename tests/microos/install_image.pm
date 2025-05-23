@@ -36,9 +36,15 @@ sub run {
 
     # Mount nfs share with images
     assert_script_run("mount -o ro,noauto,nofail,nolock -t nfs openqa.suse.de:/var/lib/openqa/share /mnt");
-    assert_script_run("ls -als /mnt/factory/hdd/${image}");
-    # dd image to disk
-    assert_script_run("xzcat /mnt/factory/hdd/${image} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    # Image can be in hdd/fixed or hdd, search it, use first one and prefer fixed directory
+    my $image_file = script_output("find /mnt/factory/hdd/fixed /mnt/factory/hdd -maxdepth 1 -name $image -print -quit");
+    die "$image does not exist" unless $image_file =~ /\Q$image\E$/;
+    # Recognize if it is compressed image or not and dd image to disk
+    if ($image_file =~ /\.xz$/) {
+        assert_script_run("xzcat ${image_file} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    } else {
+        assert_script_run("dd if=${image_file} of=${device} bs=65536 status=progress", timeout => 300);
+    }
     assert_script_run("sync");
     assert_script_run("umount /mnt");
 
