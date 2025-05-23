@@ -214,6 +214,8 @@ sub bats_setup {
 
     install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark|netavark|podman$/);
 
+    install_git;
+
     delegate_controllers;
 
     if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
@@ -372,8 +374,6 @@ sub bats_patches {
     if (!@patches && defined $settings->{BATS_PATCHES}) {
         @patches = @{$settings->{BATS_PATCHES}};
     }
-
-    install_git;
 
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
