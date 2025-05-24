@@ -50,7 +50,6 @@ sub run {
     # Download xml config
     my $b1_cfg = "bone.cfg";
     my $hostname = script_output 'hostname';
-    my $local_url = "http://10.100.103.247:8000/";
     my $admin_id = "ndbadm";
 
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$b1_cfg -o /tmp/$b1_cfg";
@@ -58,6 +57,10 @@ sub run {
     # change some default values
     file_content_replace("/tmp/$b1_cfg", '%SERVER%' => $hostname, '%INSTANCE%' => $instid, '%TENANT_DB%' => $sid, '%PASSWORD%' => $sles4sap::instance_password);
 
+    # initial workaround for 15-SP7 and b1 installer 2502
+    $self->b1_workaround_os_version;
+
+    # Install
     assert_script_run "$install_bin -i silent -f /tmp/$b1_cfg --debug", $tout;
 
     # Upload installations logs

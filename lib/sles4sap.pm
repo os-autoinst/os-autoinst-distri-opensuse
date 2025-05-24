@@ -133,6 +133,24 @@ undef by default. Test modules testing for SAP ASE should set this property befo
 
 has ASE_RESPONSE_FILE => undef;
 
+=head2 b1_workaround_os_version
+
+    $self->b1_workaround_os_version()
+
+This is a simple workaround to  allow SAP Business One to be installed on
+versions that the_
+installer reports as "unsupported OS" by changing VERSION_ID on /etc/os-release.
+
+=cut
+
+sub b1_workaround_os_version {
+    my $origin_os = script_output(q@grep VERSION_ID /etc/os-release | cut -d '"' -f2@);
+    if (get_var('B1_WORKAROUND')) {
+        record_info("Enabling Business One workaround as SLES" . get_var('B1_WORKAROUND'));
+        file_content_replace("/etc/os-release", $origin_os => get_var('B1_WORKAROUND'));
+    }
+}
+
 =head2 download_hana_assets_from_server
 
     $self->download_hana_assets_from_server()
