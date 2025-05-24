@@ -79,7 +79,7 @@ sub run ($self) {
     sleep(6);
     my $nodes = join(',', @cluster_nodes);
     sleep(6);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 --npernode 1 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces --display-allocation", timeout => 240);    
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 -npernode 1 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces --display-allocation", timeout => 240);    
     script_output('ls');
     sleep(6);
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
