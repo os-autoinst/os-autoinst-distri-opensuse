@@ -78,9 +78,9 @@ sub run ($self) {
     sleep(6);
     my $nodes = join(',', @cluster_nodes);
     sleep(6);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin -mpich-dbg=RUN_log -mpich-dbg-level=verbose", timeout => 240);
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose", timeout => 240);
     sleep(6);
-    upload_log("./RUN_log");
+    script_output('ls');
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
     barrier_wait('MPI_RUN_TEST');
