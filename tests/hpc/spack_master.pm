@@ -42,6 +42,8 @@ sub run ($self) {
     $self->check_nodes_availability();
     record_info('INFO', script_output('cat /proc/cpuinfo'));
 
+    zypper_call("in gdb");
+
     my $hostname = get_var('HOSTNAME', 'susetest');
     record_info "hostname", "$hostname";
     assert_script_run "hostnamectl status|grep $hostname";
@@ -78,7 +80,7 @@ sub run ($self) {
     sleep(6);
     my $nodes = join(',', @cluster_nodes);
     sleep(6);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose", timeout => 240);    
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces", timeout => 240);    
     sleep(6);
     script_output('ls');
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
