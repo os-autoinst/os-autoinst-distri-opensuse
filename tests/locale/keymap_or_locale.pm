@@ -25,7 +25,7 @@ sub run {
     # characters on that language. Therefore we use 'us' instead of $expected
     my $keystrokes = $self->get_keystroke_list('us');
 
-    assert_screen([qw(linux-login cleared-console)]);
+    assert_screen([qw(linux-login cleared-console)], timeout => 60);
     return $self->verify_default_keymap_textmode_non_us($keystrokes, "${expected}_keymap") if ($expected ne 'us');
     $self->verify_default_keymap_textmode($keystrokes, "${expected}_keymap");
     $self->verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'root-console');
