@@ -57,9 +57,13 @@ sub run ($self) {
         $load_rt = assert_script_run "spack load $mpi";
         $compile_rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
     }
+    sleep(6);
     test_case('Enable modules', 'Load spack modules', $load_rt);
+    sleep(6);
     test_case('Compilation', 'Program compiled successfully', $compile_rt);
+    sleep(6);
     barrier_wait('MPI_BINARIES_READY');
+    sleep(6);
 
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
@@ -69,9 +73,14 @@ sub run ($self) {
     $rt = assert_script_run("${ld_library_path} mpirun $exports_path{'bin'}/$mpi_bin");
     test_case("$mpi_compiler test 0", 'Run in a single node', $compile_rt);
 
+    sleep(6);
     record_info('INFO', 'Run MPI over several nodes');
+    sleep(6);
     my $nodes = join(',', @cluster_nodes);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 240);
+    sleep(6);
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin -mpich-dbg=RUN_log -mpich-dbg-level=verbose", timeout => 240);
+    sleep(6);
+    upload_log("./RUN_log");
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
     barrier_wait('MPI_RUN_TEST');
