@@ -27,9 +27,14 @@ sub run {
         select_serial_terminal;
     }
 
+    # SLE16 misses libvirt and virt-manager packages
     zypper_call("in qemu swtpm virt-install wget gnutls libvirt-daemon");
-    zypper_call("in libvirt virt-manager") if is_sle('<16');
-    zypper_call("in -t pattern kvm_server") if is_sle('>=16');
+    if (is_sle('>=16.0')) {
+        zypper_call("in -t pattern kvm_server");
+    }
+    else {
+        zypper_call("in libvirt virt-manager");
+    }
 
     assert_script_run("systemctl start libvirtd");
     assert_script_run("virsh net-start default");
