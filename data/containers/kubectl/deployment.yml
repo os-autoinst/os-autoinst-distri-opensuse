@@ -14,12 +14,19 @@ spec:
       labels:
         app: nginx
     spec:
+      initContainers:
+      - name: hello-groot
+        image: registry.opensuse.org/opensuse/bci/bci-busybox:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "I am Groot, welcome fellow QA tester!" > /htdocs/index.html
+        volumeMounts:
+          - name: scratch-volume
+            mountPath: /htdocs
       containers:
       - name: nginx
-        # Use custom registry to avoid API rate limits on docker.io
-        # The testing.registry must be registered in k8s
-        # as private registry and point to REGISTRY variable.
-        image: docker.io/library/nginx
+        image: registry.opensuse.org/opensuse/nginx:latest
         ports:
         - containerPort: 80
         resources:
@@ -30,11 +37,10 @@ spec:
             cpu: "0.1"
             memory: 128Mi
         volumeMounts:
-          - name: www
-            mountPath: /usr/share/nginx/html
+          - name: scratch-volume
+            mountPath: /srv/www/htdocs
       volumes:
-        - name: www
-          hostPath:
-            path: /srv/www/kubectl
-            type: Directory
-
+      - name: scratch-volume
+        emptyDir:
+          sizeLimit: 50Mi
+          medium: Memory
