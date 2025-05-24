@@ -35,9 +35,12 @@
   },
   software: {
       patterns: [
-         'base',
-         'kvm_server',
-         'kvm_tools'
+        'base',
+        'kvm_server',
+        'kvm_tools'
+      ],
+      packages: [
+        'virt-bridge-setup'
       ]
   },
   scripts: {
