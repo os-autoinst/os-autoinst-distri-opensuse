@@ -76,7 +76,7 @@ sub run ($self) {
 
     sleep(6);
     record_info('INFO', 'Run MPI over several nodes');
-    sleep(6);
+    sleep(99999999);
     my $nodes = join(',', @cluster_nodes);
     $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 -npernode 1 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces --display-allocation", timeout => 240);    
     script_output('ls');
