@@ -42,6 +42,7 @@ sub run ($self) {
     $self->check_nodes_availability();
     record_info('INFO', script_output('cat /proc/cpuinfo'));
 
+
     my $hostname = get_var('HOSTNAME', 'susetest');
     record_info "hostname", "$hostname";
     assert_script_run "hostnamectl status|grep $hostname";
@@ -57,9 +58,13 @@ sub run ($self) {
         $load_rt = assert_script_run "spack load $mpi";
         $compile_rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
     }
+    sleep(6);
     test_case('Enable modules', 'Load spack modules', $load_rt);
+    sleep(6);
     test_case('Compilation', 'Program compiled successfully', $compile_rt);
+    sleep(6);
     barrier_wait('MPI_BINARIES_READY');
+    sleep(6);
 
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
@@ -69,9 +74,13 @@ sub run ($self) {
     $rt = assert_script_run("${ld_library_path} mpirun $exports_path{'bin'}/$mpi_bin");
     test_case("$mpi_compiler test 0", 'Run in a single node', $compile_rt);
 
+    sleep(6);
     record_info('INFO', 'Run MPI over several nodes');
+    sleep(99999999);
     my $nodes = join(',', @cluster_nodes);
-    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 240);
+    $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 -npernode 1 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces --display-allocation", timeout => 240);    
+    script_output('ls');
+    sleep(6);
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
     barrier_wait('MPI_RUN_TEST');
@@ -82,6 +91,7 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
+    script_output('ls');
     tar_and_upload_log("/etc/spack", "/tmp/spack_etc.tar", {timeout => 1200, screenshot => 1});
     $self->uninstall_spack_modules();
     parse_test_results('HPC MPI tests', $file, @all_tests_results);
@@ -92,6 +102,7 @@ sub post_fail_hook ($self) {
     # Upload all the modules.
     # Inside compiled modules comes as <module>-<version>-<hash>
     # Each module includes build logs under <module>-<version>-<hash>/.spack
+    script_output('ls');
     my $compiler_ver = script_output("gcc --version | grep -E '\\b[0-9]+\.[0-9]+\.[0-9]+\$' | awk '{print \$4}'");
     my $arch = get_var('ARCH');
     my $node = script_output('hostname');
