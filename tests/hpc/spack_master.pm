@@ -80,6 +80,7 @@ sub run ($self) {
     my $nodes = join(',', @cluster_nodes);
     sleep(6);
     $rt = assert_script_run("$ld_library_path mpirun -n 2 --host slave-node00,slave-node01 $exports_path{'bin'}/$mpi_bin -mpich-dbg=file -mpich-dbg-level=verbose --get-stack-traces", timeout => 240);    
+    script_output('ls');
     sleep(6);
     test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
 
@@ -91,9 +92,9 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
+    script_output('ls');
     tar_and_upload_log("/etc/spack", "/tmp/spack_etc.tar", {timeout => 1200, screenshot => 1});
     $self->uninstall_spack_modules();
-    script_output('ls');
     parse_test_results('HPC MPI tests', $file, @all_tests_results);
     parse_extra_log('XUnit', "/tmp/$file");
 }
@@ -102,6 +103,7 @@ sub post_fail_hook ($self) {
     # Upload all the modules.
     # Inside compiled modules comes as <module>-<version>-<hash>
     # Each module includes build logs under <module>-<version>-<hash>/.spack
+    script_output('ls');
     my $compiler_ver = script_output("gcc --version | grep -E '\\b[0-9]+\.[0-9]+\.[0-9]+\$' | awk '{print \$4}'");
     my $arch = get_var('ARCH');
     my $node = script_output('hostname');
