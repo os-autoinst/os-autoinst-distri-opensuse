@@ -8,7 +8,7 @@
   </suse_register>
   <bootloader>
     <global>
-      <timeout config:type="integer">-1</timeout>
+      <timeout config:type="integer">20</timeout>
     </global>
   </bootloader>
   <files config:type="list">
