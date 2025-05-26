@@ -423,17 +423,10 @@ sub setup_nfs_client {
     elsif ($nfsversion =~ 'pnfs') {
         script_run('mount -t nfs4 -o vers=4.1,minorversion=1 localhost:/opt/export/test /opt/nfs/test');
         record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
+        record_info('/etc/exports', script_output('cat /etc/exports', proceed_on_failure => 1));
+        record_info('nfsstat -m', script_output('nfsstat -m', proceed_on_failure => 1));
+        script_run('umount /opt/nfs/test');
     }
-    elsif ($nfsversion =~ '4') {
-        script_run("mount -t nfs4 -o vers=$nfsversion localhost:/opt/export/test /opt/nfs/test");
-    }
-    else {
-        script_run("mount -t nfs -o vers=$nfsversion localhost:/opt/export/test /opt/nfs/test");
-    }
-    record_info('/etc/exports', script_output('cat /etc/exports', proceed_on_failure => 1));
-    record_info('nfsstat -m', script_output('nfsstat -m', proceed_on_failure => 1));
-    script_run('umount /opt/nfs/test');
-
     # There's a graceful time we need to wait before using the NFS server
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
     sleep($gracetime * 2);
