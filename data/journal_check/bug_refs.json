@@ -888,5 +888,13 @@
             "sle": ["16.0"]
         },
         "type": "ignore"
+    },
+    "dracut-no-logger": {
+        "description": "No '\/dev\/log' or 'logger' included for syslog logging",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
