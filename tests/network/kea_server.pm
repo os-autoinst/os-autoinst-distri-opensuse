@@ -22,6 +22,7 @@ use lockapi;
 use utils qw(zypper_call systemctl);
 use network_utils 'iface';
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     select_serial_terminal;
@@ -36,8 +37,9 @@ sub run {
     assert_script_run("sed -i 's/\"eth0\"/\"$server_nic\"/' /etc/kea/kea-dhcp4.conf") unless $server_nic eq 'eth0';
     assert_script_run("kea-dhcp4 -t /etc/kea/kea-dhcp4.conf", fail_message => 'Kea dhcp4 config invalid');
 
-    systemctl("enable --now kea");
-    systemctl("is-active kea");
+    my $package = (is_sle('>=16') || is_tumbleweed) ? 'kea-dhcp4' : 'kea';
+    systemctl("enable --now $package");
+    systemctl("is-active $package");
 
     barrier_wait('kea_dhcp');
 
@@ -45,9 +47,13 @@ sub run {
     record_info("Lease file", script_output("cat $lease_file"));
     die("Lease file only has header, no lease assigned") if script_output("wc -l < $lease_file") < 2;
 
-    my $dhcp_log = script_output("grep -E 'DHCP(DISCOVER|OFFER|REQUEST|ACK)' /var/log/kea.log");
-    record_info("DHCP handshake", $dhcp_log);
-    assert_script_run("grep -Pz '(?s)(?=.*DHCPDISCOVER)(?=.*DHCPOFFER)(?=.*DHCPREQUEST)(?=.*DHCPACK)' /var/log/kea.log", fail_message => "Missing one or more DHCP handshake keywords in kea log");
+    unless (is_sle('>=16') || is_tumbleweed) {
+        my $dhcp_log = script_output("grep -E 'DHCP(DISCOVER|OFFER|REQUEST|ACK)' /var/log/kea.log");
+        record_info("DHCP handshake", $dhcp_log);
+        assert_script_run("grep -Pz '(?s)(?=.*DHCPDISCOVER)(?=.*DHCPOFFER)(?=.*DHCPREQUEST)(?=.*DHCPACK)' /var/log/kea.log", fail_message => "Missing one or more DHCP handshake keywords in kea log");
+    } else {
+        record_soft_failure("bsc#1243797 - kea is not logging in kea.log");
+    }
 }
 
 sub post_fail_hook {
