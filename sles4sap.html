@@ -17,6 +17,7 @@
       <li><a href="#SAPINIT_RE-SYSTEMD_RE">SAPINIT_RE &amp; SYSTEMD_RE</a></li>
       <li><a href="#SYSTEMCTL_UNITS_RE">SYSTEMCTL_UNITS_RE</a></li>
       <li><a href="#ASE_RESPONSE_FILE">ASE_RESPONSE_FILE</a></li>
+      <li><a href="#b1_workaround_os_version">b1_workaround_os_version</a></li>
       <li><a href="#download_hana_assets_from_server">download_hana_assets_from_server</a></li>
       <li><a href="#ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</a></li>
       <li><a href="#fix_path">fix_path</a></li>
@@ -92,6 +93,12 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <pre><code>$self-&gt;ASE_RESPONSE_FILE($filename);</code></pre>
 
 <p>Let the class methods know the name of the ASE response file currently in use. It is set to undef by default. Test modules testing for SAP ASE should set this property before anything else.</p>
+
+<h2 id="b1_workaround_os_version">b1_workaround_os_version</h2>
+
+<pre><code>$self-&gt;b1_workaround_os_version()</code></pre>
+
+<p>This is a simple workaround to allow SAP Business One to be installed on versions that the_ installer reports as &quot;unsupported OS&quot; by changing VERSION_ID on /etc/os-release.</p>
 
 <h2 id="download_hana_assets_from_server">download_hana_assets_from_server</h2>
 
