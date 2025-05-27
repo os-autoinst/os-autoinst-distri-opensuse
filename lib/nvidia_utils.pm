@@ -13,6 +13,8 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils 'is_transactional';
+use transactional;
 
 our @EXPORT = qw(
   install
@@ -37,6 +39,8 @@ sub install
     my $variant_cuda = 'nvidia-open-driver-G06-signed-cuda-kmp-default';
     my $variant = $args{variant} eq "cuda" ? $variant_cuda : $variant_std;
 
+    enter_trup_shell if is_transactional;
+
     zypper_ar(get_required_var('NVIDIA_REPO'), name => 'nvidia', no_gpg_check => 1, priority => 90);
     zypper_ar(get_required_var('NVIDIA_CUDA_REPO'), name => 'cuda', no_gpg_check => 1, priority => 90);
 
@@ -49,6 +53,8 @@ sub install
     my $version = script_output("rpm -qa --queryformat '%{VERSION}\n' $variant | cut -d '_' -f1 | sort -u | tail -n 1");
     record_info("NVIDIA Version", $version);
     zypper_call("install -l nvidia-compute-utils-G06 == $version");
+
+    exit_trup_shell if is_transactional;
 }
 
 =head2 validate
