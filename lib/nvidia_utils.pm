@@ -15,6 +15,9 @@ use warnings;
 use utils;
 use version_utils 'is_transactional';
 use transactional;
+use base 'opensusebasetest';
+use serial_terminal qw(select_serial_terminal);
+use power_action_utils qw(power_action);
 
 our @EXPORT = qw(
   install
@@ -23,13 +26,20 @@ our @EXPORT = qw(
 
 =head2 install
 
- install([ variant => 'cuda' ]);
+ install([ variant => 'cuda' ], [ reboot => 0 ]);
 
 Install the NVIDIA driver and the compute utils, making sure to remove
 any conflicting variant first. Also, it tries to add the relevant
 repositories to grab the packages from, defined by the job through
 NVIDIA_REPO and NVIDIA_CUDA_REPO. Make sure to reboot the SUT after
 calling this subroutine.
+
+Options:
+
+C<$variant> if set to "cuda", install the CUDA variant of the driver.
+
+C<$reboot> reboot the SUT after a successful installation. Implies
+serial_terminal and opensusebasetest.
 
 =cut
 
@@ -39,6 +49,7 @@ sub install
     my $variant_std = 'nvidia-open-driver-G06-signed-kmp-default';
     my $variant_cuda = 'nvidia-open-driver-G06-signed-cuda-kmp-default';
     my $variant = $args{variant} eq "cuda" ? $variant_cuda : $variant_std;
+    my $reboot = $args{reboot} // 0;
 
     enter_trup_shell if is_transactional;
 
@@ -56,6 +67,13 @@ sub install
     zypper_call("install -l nvidia-compute-utils-G06 == $version");
 
     exit_trup_shell if is_transactional;
+
+    if ($reboot eq 1) {
+        my $opensuse = opensusebasetest->new();
+        power_action('reboot', textmode => 1);
+        $opensuse->wait_boot(bootloader_time => 300);
+        select_serial_terminal();
+    }
 }
 
 =head2 validate

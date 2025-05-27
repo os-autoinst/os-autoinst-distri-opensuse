@@ -13,7 +13,6 @@ use utils;
 use warnings;
 use nvidia_utils;
 use serial_terminal qw(select_serial_terminal);
-use power_action_utils qw(power_action);
 
 sub run
 {
@@ -21,16 +20,10 @@ sub run
 
     select_serial_terminal();
 
-    nvidia_utils::install();
-    power_action('reboot');
-    $self->wait_boot(bootloader_time => 300);
-    select_serial_terminal();
+    nvidia_utils::install(reboot => 1);
     nvidia_utils::validate();
 
-    nvidia_utils::install(variant => "cuda");
-    power_action('reboot');
-    $self->wait_boot(bootloader_time => 300);
-    select_serial_terminal();
+    nvidia_utils::install(variant => "cuda", reboot => 1);
     nvidia_utils::validate();
 }
 
