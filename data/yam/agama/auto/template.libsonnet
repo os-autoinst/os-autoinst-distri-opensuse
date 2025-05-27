@@ -4,19 +4,22 @@ local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
+local security_lib = import 'lib/security.libsonnet';
 
 function(addon_ha_reg_code='',
          bootloader=false,
-         user=true,
-         root=true,
-         storage='',
          packages='',
          patterns='',
          product='',
          registration_code='',
+         registration_url='',
+         root=true,
          scripts_pre='',
          scripts_post_partitioning='',
-         scripts_post='') {
+         scripts_post='',
+         sslCertificates='false',
+         storage='',
+         user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
   [if patterns != '' || packages != '' then 'software']: std.prune({
     patterns: if patterns != '' then std.split(patterns, ','),
@@ -28,8 +31,10 @@ function(addon_ha_reg_code='',
     ]),
     id: product,
     [if registration_code != '' then 'registrationCode']: registration_code,
+    [if registration_url != '' then 'registrationUrl']: registration_url,
   },
   [if root == true then 'root']: base_lib['root'],
+  [if sslCertificates == true then 'security']: security_lib.sslCertificates(),
   [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
     [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
     [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
