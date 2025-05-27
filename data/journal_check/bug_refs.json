@@ -896,5 +896,19 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "tpm-auth-session": {
+        "description": "kernel: tpm tpm0: auth session is active",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "block-dm-0-deprecated": {
+        "description": "kernel: block dm-0: the capability attribute has been deprecated",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
     }
 }
