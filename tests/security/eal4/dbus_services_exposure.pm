@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2024 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'DBus services exposure' test case of EAL4 test suite
