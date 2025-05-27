@@ -86,7 +86,7 @@ NOTES
 | Product             | aardvark         | buildah          | netavark         | podman           | runc             | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | openSUSE Tumbleweed | [![tw_al]][tw_a] | [![tw_bl]][tw_b] | [![tw_nl]][tw_n] | [![tw_pl]][tw_p] | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
-| Latest SLES 16      |                  | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
+| Latest SLES 16      | [![logo]][s16_a] | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
 | Latest SLES 15      |                  | [![logo]][s15_b] | [![logo]][s15_n] | [![logo]][s15_p] | [![logo]][s15_r] | [![logo]][s15_s] |
 | SLES 15 SP7         |                  | [![logo]][sp7_b] | [![logo]][sp7_n] | [![logo]][sp7_p] | [![logo]][sp7_r] | [![logo]][sp7_s] |
 | SLES 15 SP6         |                  | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
@@ -108,6 +108,7 @@ NOTES
 [tw_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 [tw_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 
+[s16_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=aardvark_testsuite
 [s16_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite
 [s16_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=netavark_testsuite
 [s16_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=podman_testsuite

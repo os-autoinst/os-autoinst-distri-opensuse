@@ -1,6 +1,8 @@
 aardvark-dns:
   opensuse-Tumbleweed:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
+  sle-16.0:
+    BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
   opensuse-Tumbleweed:
     BATS_SKIP: bud run sbom
