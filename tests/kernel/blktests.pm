@@ -55,8 +55,6 @@ sub run {
         #$devices = '/dev/sdb';
     }
 
-    sleep(9999999);
-
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
