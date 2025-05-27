@@ -268,6 +268,12 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
+    # handle registration notice
+    if (is_sle || is_sle_micro) {
+        assert_screen 'jeos-please-register';
+        send_key 'ret';
+    }
+
     if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
         send_key 'ret';
@@ -283,11 +289,6 @@ sub run {
         # All options used up, so no need to press 'Done' explicitly anymore.
 
         # Continues below to verify that /etc/issue shows the recovery key
-    }
-
-    if (is_sle || is_sle_micro) {
-        assert_screen 'jeos-please-register';
-        send_key 'ret';
     }
 
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
