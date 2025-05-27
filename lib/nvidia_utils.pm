@@ -28,7 +28,8 @@ our @EXPORT = qw(
 Install the NVIDIA driver and the compute utils, making sure to remove
 any conflicting variant first. Also, it tries to add the relevant
 repositories to grab the packages from, defined by the job through
-NVIDIA_REPO and NVIDIA_CUDA_REPO.
+NVIDIA_REPO and NVIDIA_CUDA_REPO. Make sure to reboot the SUT after
+calling this subroutine.
 
 =cut
 
