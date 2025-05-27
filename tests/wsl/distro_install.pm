@@ -78,7 +78,7 @@ sub run {
         }
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store, legacy or modern.
-        if (check_var('MSSTORE_LEGACY', '1')) {
+        if (check_var('WSL_MSSTORE_LEGACY', '1')) {
             # Install required SUSE distro from the MS Store
             $self->run_in_powershell(
                 cmd => "wsl --install --legacy --distribution $WSL_version",
