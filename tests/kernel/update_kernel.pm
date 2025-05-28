@@ -59,24 +59,13 @@ sub first_azure_release {
     zypper_call('in kernel-devel');
 }
 
-sub prepare_azure {
-    my $self = shift;
+sub prepare_kernel {
+    my ($self, $kernel_name) = @_;
 
     fully_patch_system;
     remove_kernel_packages();
-    zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
-    check_kernel_package('kernel-azure');
-    power_action('reboot', textmode => 1);
-    boot_to_console($self);
-}
-
-sub prepare_kernel_base {
-    my $self = shift;
-
-    fully_patch_system;
-    remove_kernel_packages();
-    zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
-    check_kernel_package('kernel-default-base');
+    zypper_call("in -l ${kernel_name}", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package($kernel_name);
     power_action('reboot', textmode => 1);
     reconnect_mgmt_console if is_pvm;
     boot_to_console($self);
@@ -89,6 +78,9 @@ sub update_kernel {
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
+    }
+    elsif (get_var('COCO')) {
+        zypper_call('in kernel-devel-coco');
     }
     elsif (is_sle('12+')) {
         zypper_call('in kernel-devel');
@@ -560,13 +552,18 @@ sub run {
             $self->first_azure_release($repo);
         }
         else {
-            $self->prepare_azure;
+            $self->prepare_kernel($kernel_package);
             $self->update_kernel($repo, $incident_id);
         }
     }
     elsif (get_var('KERNEL_BASE')) {
         $kernel_package = 'kernel-default-base';
-        $self->prepare_kernel_base;
+        $self->prepare_kernel($kernel_package);
+        $self->update_kernel($repo, $incident_id);
+    }
+    elsif (get_var('COCO')) {
+        $kernel_package = 'kernel-coco';
+        $self->prepare_kernel($kernel_package);
         $self->update_kernel($repo, $incident_id);
     }
     elsif (get_var('KOTD_REPO')) {
@@ -623,6 +620,12 @@ because there is never any kernel-azure package in the pool repository.
 When KERNEL_BASE variable evaluates to true, the job should test the
 alternative minimal kernel. Uninstall kernel-default and install
 kernel-default-base instead. Then update kernel as in the default case.
+
+=head2 COCO
+
+When COCO variable evaluates to true, the job should test the kernel-coco from
+Confidential Computing Module. Uninstall kernel-default and install kernel-coco
+instead. Then update kernel as in the default case.
 
 =head2 KERNEL_VERSION
 
