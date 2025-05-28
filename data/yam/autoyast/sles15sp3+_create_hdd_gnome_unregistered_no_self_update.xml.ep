@@ -10,7 +10,7 @@
         % if ($check_var->('ARCH', 's390x')) {
         <media_url><![CDATA[ftp://openqa.suse.de/SLE-<%= $get_var->('VERSION') %>-Full-s390x-GM-Media1/]]></media_url>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://download.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         % }
         <product>sle-module-basesystem</product>
         <product_dir>/Module-Basesystem</product_dir>
@@ -19,7 +19,7 @@
         % if ($check_var->('ARCH', 's390x')) {
         <media_url><![CDATA[ftp://openqa.suse.de/SLE-<%= $get_var->('VERSION') %>-Full-s390x-GM-Media1/]]></media_url>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://download.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         % }
         <product>sle-module-server-applications</product>
         <product_dir>/Module-Server-Applications</product_dir>
@@ -28,7 +28,7 @@
         % if ($check_var->('ARCH', 's390x')) {
         <media_url><![CDATA[ftp://openqa.suse.de/SLE-<%= $get_var->('VERSION') %>-Full-s390x-GM-Media1/]]></media_url>
         % } else {
-        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <media_url><![CDATA[http://download.suse.de/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
         % }
         <product>sle-module-desktop-applications</product>
         <product_dir>/Module-Desktop-Applications</product_dir>
