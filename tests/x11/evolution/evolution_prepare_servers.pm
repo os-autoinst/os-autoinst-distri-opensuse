@@ -42,11 +42,23 @@ sub run() {
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
+        ###workaround for bsc#1243409, will remove once the fix is ready####
+        zypper_call("ar https://download.opensuse.org/tumbleweed/repo/oss/ test0");
+        zypper_call("--gpg-auto-import-keys ref");
+        ###workaround for bsc#1243409, will remove once the fix is ready####
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
     # configure dovecot
+    if (is_sle('>=16')) {
+        zypper_call('in postfix');
+        assert_script_run('cd /etc/dovecot');
+        assert_script_run('mv dovecot.conf dovecot.conf.org');
+        assert_script_run('curl -o dovecot.tar ' . data_url('dovecot.tar'));
+        assert_script_run('tar xf dovecot.tar');
+        assert_script_run('cd');
+    }
     assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf";
     assert_script_run "sed -i -e 's/#mail_access_groups =/mail_access_groups = mail/g' /etc/dovecot/conf.d/10-mail.conf";
     assert_script_run "sed -i -e 's/#ssl_cert =/ssl_cert =/g' /etc/dovecot/conf.d/10-ssl.conf";
@@ -74,6 +86,7 @@ sub run() {
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
+    assert_script_run "postconf -e 'smtpd_tls_security_level = encrypt'" if is_sle('>=16');
     assert_script_run "postconf -e 'smtpd_tls_key_file = /etc/ssl/private/dovecot.pem'";
     assert_script_run "postconf -e 'smtpd_tls_cert_file = /etc/ssl/private/dovecot.crt'";
     assert_script_run "sed -i -e 's/#tlsmgr/tlsmgr/g' /etc/postfix/master.cf";
@@ -84,7 +97,21 @@ sub run() {
 
     # start/restart services
     systemctl 'start dovecot';
+    record_info('Main.cf', script_output('cat /etc/postfix/main.cf', proceed_on_failure => 1));
     systemctl 'restart postfix';
+    assert_script_run "postconf -e 'smtpd_use_tls = yes'";
+    assert_script_run "postconf -e 'smtpd_tls_security_level = encrypt'" if is_sle('>=16');
+    assert_script_run "postconf -e 'smtpd_tls_key_file = /etc/ssl/private/dovecot.pem'";
+    assert_script_run "postconf -e 'smtpd_tls_cert_file = /etc/ssl/private/dovecot.crt'";
+    assert_script_run "sed -i -e 's/#tlsmgr/tlsmgr/g' /etc/postfix/master.cf";
+    assert_script_run "postconf -e 'smtpd_sasl_auth_enable = yes'";
+    assert_script_run "postconf -e 'smtpd_sasl_path = private/auth'";
+    assert_script_run "postconf -e 'smtpd_sasl_type = dovecot'";
+    assert_script_run "postconf -e 'myhostname = localhost'";
+    assert_script_run "postconf -e 'home_mailbox = Maildir/'" if is_sle('>=16');
+    sleep 3;
+    systemctl 'restart postfix';
+    record_info('Main.cf1', script_output('cat /etc/postfix/main.cf', proceed_on_failure => 1));
 
     # DH parameters are generated after start in Dovecot < 2.2.7
     assert_script_run("( journalctl -f -u dovecot.service & ) | grep -q 'ssl-params: SSL parameters regeneration completed'", 900) if is_sle('<15');
