@@ -299,7 +299,7 @@ sub run {
                 type_password $pin;
                 send_key 'ret';
             } else {
-                # We need to explicitly press 'Done' since we chose not to use any TPM-based unlocking method despite a TPM being available, hence we deliberately left options unused.
+# We need to explicitly press 'Done' since we chose not to use any TPM-based unlocking method despite a TPM being available, hence we deliberately left options unused.
                 send_key_until_needlematch 'jeos-fde-option-done', 'down' unless check_screen('jeos-fde-option-done', 1);
                 send_key 'ret';
             }
