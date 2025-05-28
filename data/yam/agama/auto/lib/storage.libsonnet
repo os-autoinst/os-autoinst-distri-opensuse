@@ -68,10 +68,47 @@ local whole_disk_and_boot_unattended() = {
     device: 'boot-disk',
   },
 };
+
+local raid(level='0') = {
+  drives: [
+    {
+      partitions: [
+        { search: '*', delete: true },
+        { id: 'bios_boot', size: '8 MiB', boot: true },
+        { alias: 'first-raid', id: 'raid', size: '7.81 GiB' },
+        { alias: 'second-raid', id: 'raid', size: '512 MiB' },
+      ],
+      mdRaids: [
+        {
+          level: level,
+          devices: ['first-raid'],
+          partitions: [
+            {
+              filesystem: {
+                path: '/',
+                type: { btrfs: { snapshots: false } },
+              },
+              boot: true,
+            },
+          ],
+        },
+        {
+          level: 'raid0',
+          devices: ['second-raid'],
+          partitions: [
+            { filesystem: { path: 'swap' } },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 {
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
+  raid0: raid('0'),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
   whole_disk_and_boot_unattended: whole_disk_and_boot_unattended(),

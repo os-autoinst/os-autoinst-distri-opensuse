@@ -1,0 +1,12 @@
+---
+name: agama_raid_unattended
+description: >
+  Perform unattended installation with raid.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_md_raid
+  - console/validate_raid
+  - console/console_reboot
