@@ -8,7 +8,6 @@ schedule:
   - console/validate_lvm
   - console/validate_encrypt
   - yam/validate/validate_tpm_fde
-  - security/create_swtpm_hdd/build_hdd
 test_data:
   crypttab:
     num_devices_encrypted: 1
