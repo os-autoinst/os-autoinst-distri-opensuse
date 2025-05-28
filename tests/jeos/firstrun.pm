@@ -283,8 +283,13 @@ sub run {
 
         # The following options are only shown when a TPM device is available
         if (get_var('QEMUTPM')) {
+            my $method = get_var('FDE_UNLOCK_METHOD', 'TPM');
+
             # Allow either enrolling tpm with or without pin, not both, hence we want to choose between these options
-            if (check_var('FDE_UNLOCK_METHOD', 'TPM_PIN')) {
+            if ($method eq 'TPM') {
+                send_key_until_needlematch 'jeos-fde-option-enroll-tpm', 'down' unless check_screen('jeos-fde-option-enroll-tpm', 1);
+                send_key 'ret';
+            } elsif ($method eq 'TPM_PIN') {
                 my $pin = get_var('FDE_UNLOCK_TPM_PIN', $testapi::password);
                 send_key_until_needlematch 'jeos-fde-option-enroll-tpm-pin', 'down' unless check_screen('jeos-fde-option-enroll-tpm-pin', 1);
                 send_key "ret";
@@ -293,11 +298,8 @@ sub run {
                 wait_still_screen 2;
                 type_password $pin;
                 send_key 'ret';
-            } elsif (check_var('FDE_UNLOCK_METHOD', 'TPM')) {
-                send_key_until_needlematch 'jeos-fde-option-enroll-tpm', 'down' unless check_screen('jeos-fde-option-enroll-tpm', 1);
-                send_key 'ret';
             } else {
-# We need to explicitly press 'Done' since we chose not to use any TPM-based unlocking method despite a TPM being available, hence we deliberately left options unused.
+                # We need to explicitly press 'Done' since we chose not to use any TPM-based unlocking method despite a TPM being available, hence we deliberately left options unused.
                 send_key_until_needlematch 'jeos-fde-option-done', 'down' unless check_screen('jeos-fde-option-done', 1);
                 send_key 'ret';
             }
