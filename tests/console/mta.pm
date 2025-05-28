@@ -20,7 +20,7 @@ sub run {
 
     assert_script_run '! rpm -q exim';
     if (is_sle('>=16')) {
-        zypper_call('in postfix');
+        zypper_call('in postfix mailx');
         systemctl 'enable postfix';
         systemctl 'start postfix';
     }
