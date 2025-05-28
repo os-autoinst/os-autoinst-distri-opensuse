@@ -17,6 +17,8 @@ use version_utils;
 use publiccloud::utils;
 use containers::k8s;
 
+my $is_local_k3s = 0;
+
 sub run {
     select_serial_terminal;
 
@@ -24,15 +26,19 @@ sub run {
     # Record kubectl version and check if the tool itself is healthy
     record_info("kubectl", script_output("kubectl version --client --output=json"));
 
-    # Prepare the webserver testdata
-    assert_script_run('mkdir -p /srv/www/kubectl');
-    assert_script_run("echo 'I am Groot' > /srv/www/kubectl/index.html");
-
     # Configure CSP/k3s. Only one CSP at a time is possible due to the conflicting configuration in .kube/config
     assert_script_run('mkdir -p ~/.kube');
-    my $provider = get_var("KUBECTL_CLUSTER", "k3s");
-    if ($provider eq "k3s") {
-        install_k3s();
+    if (get_var("KUBECTL_CLUSTER", "k3s") eq 'k3s') {
+        if (my $kubeconf = get_var('KUBE_CONFIG')) {
+            $kubeconf =~ s/\n//g;
+            script_run("echo -en $kubeconf | base64 -d | gzip -d > /tmp/k3s-qa.yaml", 0);
+            assert_script_run('export KUBECONFIG=/tmp/k3s-qa.yaml');
+            sleep;
+        } else {
+            # Install k3s locally in SUT
+            $is_local_k3s = 1;
+            install_k3s();
+        }
 
         # Ensure k3s has not installed its own kubectl
         assert_script_run("! stat /usr/local/bin/kubectl");
@@ -82,14 +88,18 @@ sub run {
     record_info('Testing: jobs and pods', 'job and pod test runs');
     # The testing.registry must be registered in k8s as private registry and point to REGISTRY variable.
     assert_script_run("kubectl create job sayhello --image=registry.opensuse.org/opensuse/busybox -- echo 'Hello World'");
-    assert_script_run("kubectl create job gimme-date --image=registry.opensuse.org/opensuse/busybox -- date");
     validate_script_output("kubectl get jobs --no-headers", qr/sayhello/);
-    validate_script_output("kubectl get jobs --no-headers", qr/gimme-date/);
     assert_script_run('kubectl wait jobs/sayhello --for=condition=complete --timeout=300s', timeout => 330);
-    assert_script_run('kubectl wait jobs/gimme-date --for=condition=complete --timeout=300s', timeout => 330);
     # Check job output. First get the pod name
     my $pod = script_output('kubectl get pods -o name --no-headers=true | grep sayhello');
     script_retry("kubectl logs $pod | grep 'Hello World'", retry => 5, delay => 10);    # collection of the log can sometime take some time
+    assert_script_run("kubectl delete job sayhello");
+
+    assert_script_run("kubectl create job gimme-date --image=registry.opensuse.org/opensuse/busybox -- date");
+    validate_script_output("kubectl get jobs --no-headers", qr/gimme-date/);
+    assert_script_run('kubectl wait jobs/gimme-date --for=condition=complete --timeout=300s', timeout => 330);
+    assert_script_run("kubectl delete job gimme-date");
+
     ## Apply a custom Deployment, test scaling
     record_info('Testing: deployment', 'deployment test');
     assert_script_run('curl -o deployment.yml ' . data_url('containers/kubectl/deployment.yml'));
@@ -122,17 +132,28 @@ sub run {
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*Port:.*8080\/TCP.*/ });
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*TargetPort:.*80\/TCP.*/ });
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*Endpoints:.*10.*/ });
-    $pid = background_script_run('kubectl port-forward deploy/nginx-deployment 8008:80');
-    validate_script_output_retry("curl http://localhost:8008/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
-    assert_script_run("kill $pid");    # terminate port-forwarding
-    my $output = script_output("kubectl describe services/web-load-balancer");
-    my ($ip) = $output =~ /IP:\s+([^\s]+)/;
+    # test need to wait for event: Updated LoadBalancer with new IPs
+    my ($ip, $c) = 5;
+    do {
+        sleep 5;
+        $ip = script_output('kubectl get services -l app=nginx -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}"');
+    } while (!$ip || --$c == 0);
     record_info('Balancer IP', $ip);
     validate_script_output_retry("curl http://$ip:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
+}
 
-    assert_script_run('kubectl delete -f service.yml');
+sub _cleanup {
+    script_run('kubectl delete -f service.yml --force');
+    script_run('kubectl delete -f deployment.yml --force');
+    script_run('kubectl delete jobs --all --force');
 
-    assert_script_run('kubectl delete -f deployment.yml');
+    if ($is_local_k3s) {
+        script_run('systemctl --no-pager disable --now k3s');
+    }
+}
+
+sub post_run_hook {
+    _cleanup;
 }
 
 sub post_fail_hook {
@@ -140,9 +161,8 @@ sub post_fail_hook {
     script_run('kubectl describe deployments');
     script_run('kubectl describe services');
     script_run('kubectl describe pods');
-    # Cleanup
-    script_run('kubectl delete -f service.yml');
-    script_run('kubectl delete -f deployment.yml');
+
+    _cleanup;
 }
 
 1;
