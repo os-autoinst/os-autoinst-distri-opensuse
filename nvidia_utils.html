@@ -22,9 +22,15 @@
 
 <h2 id="install">install</h2>
 
-<pre><code>install([ variant =&gt; &#39;cuda&#39; ]);</code></pre>
+<pre><code>install([ variant =&gt; &#39;cuda&#39; ], [ reboot =&gt; 0 ]);</code></pre>
 
-<p>Install the NVIDIA driver and the compute utils, making sure to remove any conflicting variant first. Also, it tries to add the relevant repositories to grab the packages from, defined by the job through NVIDIA_REPO and NVIDIA_CUDA_REPO.</p>
+<p>Install the NVIDIA driver and the compute utils, making sure to remove any conflicting variant first. Also, it tries to add the relevant repositories to grab the packages from, defined by the job through NVIDIA_REPO and NVIDIA_CUDA_REPO. Make sure to reboot the SUT after calling this subroutine.</p>
+
+<p>Options:</p>
+
+<p><code>$variant</code> if set to &quot;cuda&quot;, install the CUDA variant of the driver.</p>
+
+<p><code>$reboot</code> reboot the SUT after a successful installation. Implies serial_terminal and opensusebasetest.</p>
 
 <h2 id="validate">validate</h2>
 
