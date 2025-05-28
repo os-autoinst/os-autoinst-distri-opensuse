@@ -496,7 +496,7 @@
     "bsc#1218471": {
         "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": ["6.0", "6.1", "6.2"]
         },
         "type": "bug"
     },
