@@ -406,7 +406,7 @@ echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> > /root/.ssh/id_rsa.pub
 cat >> /root/.ssh/config << EOF
 StrictHostKeyChecking no
 HostKeyAlgorithms ssh-rsa,ssh-ed25519
-PreferredAuthentications publickey
+PreferredAuthentications publickey,password
 #ControlMaster auto
 #ControlPersist 86400
 #ControlPath ~/.ssh/ssh_%r_%h_%p
