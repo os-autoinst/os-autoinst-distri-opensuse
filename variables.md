@@ -37,6 +37,7 @@ BCI_TARGET | string | ibs-cr | Container project to be tested. `ibs-cr` is the C
 BCI_SKIP | boolean | false | Switch to disable BCI test runs. Necessary for fine-granular test disablement
 BCI_PREPARE | boolean | false | Launch the bci_prepare step again. Useful to re-initialize the BCI-Test repo when using a different BCI_TESTS_REPO
 BCI_VIRTUALENV | boolean | false | Use a virtualenv for pip dependencies in BCI tests
+BCI_KEA_TESTS_REJECT_DHCP_OFFERS_FROM | string | | Ignore DHCP offers from external server for kea tests, e.g. `172.25.0.2,172.25.0.5,192.168.1.1`
 BCI_OS_VERSION | string | | Set the environment variable OS_VERSION to this value, if present
 BOOTLOADER | string | grub2 | Which bootloader is used by the image or will be selected during installation, e.g. `grub2`, `grub2-bls`, `systemd-boot`
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
