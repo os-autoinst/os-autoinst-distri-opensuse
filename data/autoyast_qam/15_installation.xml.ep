@@ -213,6 +213,9 @@
   <bootloader>
     <global>
       <timeout config:type="integer">45</timeout>
+      % if ($check_var->('BACKEND', 'ipmi')) {
+      <terminal>console</terminal>
+      % }
     </global>
   </bootloader>
   <general>
