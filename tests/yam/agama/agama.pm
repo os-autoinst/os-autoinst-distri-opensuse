@@ -22,6 +22,7 @@ use testapi qw(
   upload_logs
   select_console
   console
+  reset_consoles
 );
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_svirt);
@@ -67,6 +68,7 @@ sub run {
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot
       $reboot_page->reboot();
+    reset_consoles;
 }
 
 1;
