@@ -20,10 +20,10 @@ sub run
 
     select_serial_terminal();
 
-    nvidia_utils::install(reboot => 1);
+    nvidia_utils::install(variant => "cuda", reboot => 1);
     nvidia_utils::validate();
 
-    nvidia_utils::install(variant => "cuda", reboot => 1);
+    nvidia_utils::install(reboot => 1);
     nvidia_utils::validate();
 }
 
