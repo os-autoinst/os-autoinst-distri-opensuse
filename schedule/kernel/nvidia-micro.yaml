@@ -1,0 +1,9 @@
+---
+name: nvidia-micro
+schedule:
+- installation/bootloader_start
+- microos/install_image
+- transactional/host_config
+- console/suseconnect_scc
+- transactional/install_updates
+- kernel/nvidia

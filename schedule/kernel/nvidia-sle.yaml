@@ -1,0 +1,17 @@
+---
+name: nvidia-sle
+schedule:
+- autoyast/prepare_profile
+- installation/bootloader_start
+- autoyast/installation
+- console/yast2_vnc
+- console/force_scheduled_tasks
+- shutdown/grub_set_bootargs
+- autoyast/autoyast_reboot
+- installation/handle_reboot
+- installation/first_boot
+- console/system_prepare
+- qa_automation/patch_and_reboot
+- kernel/nvidia
+- x11/glxgears
+- shutdown/shutdown
