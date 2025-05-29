@@ -81,17 +81,19 @@ sub run {
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
+    # Within the qe-sap-deployment terraform code, in each differend CSP implementation,
+    # an empty string means no peering.
+    # This "trick" is needed to only have one conf.yaml
+    # for both jobs that creates the peering with terraform or the az cli
     if (is_azure()) {
-        # Within the qe-sap-deployment terraform code,
-        # an empty string means no peering.
-        # This "trick" is needed to only have one conf.yaml
-        # for both jobs that creates the peering with terraform or the az cli
         set_var('IBSM_RG', '') unless (get_var('IBSM_RG'));
         set_var('IBSM_VNET', '') unless (get_var('IBSM_VNET'));
     } elsif (is_gce()) {
         set_var('IBSM_VPC_NAME', '') unless (get_var('IBSM_VPC_NAME'));
         set_var('IBSM_SUBNET_NAME', '') unless (get_var('IBSM_SUBNET_NAME'));
         set_var('IBSM_SUBNET_REGION', '') unless (get_var('IBSM_SUBNET_REGION'));
+    } elsif (is_ec2()) {
+        set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
 
     my $deployment_name = deployment_name();
