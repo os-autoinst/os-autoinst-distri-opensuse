@@ -17,13 +17,29 @@ use Utils::Architectures 'is_x86_64';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 
+sub get_disk_by_wwn {
+    my $wwn = shift;
+    $wwn =~ s/^wwn-//;
+
+    my $name;
+    my $output = script_output('lsblk -d -o name,wwn');
+    for my $line (split /\n/, $output) {
+        if ($line =~ /\Q$wwn\E$/) {
+            ($name) = split(/\s+/, $line);
+            return $name;
+        }
+    }
+    die "WWN ${wwn} not found in\n${output}";
+}
+
 sub run {
     select_serial_terminal;
 
     # Use image name from HDD_1 variable
     my $image = get_required_var('HDD_1');
-    # Use sda as target disk by default
-    my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", "/dev/sda");
+    # Use target disk supplied by the variable, find by WWN or use sda by default
+    my $wwn = get_var('INSTALL_DISK_WWN');
+    my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", $wwn ? "/dev/" . get_disk_by_wwn($wwn) : "/dev/sda");
     # Use partition prefix for nvme devices
     my $prefix = $device =~ /nvme/ ? "p" : "";
     # SL Micro x86_64 image has three partitions, aarch64 and ppc64le images have only two partitions
