@@ -112,6 +112,7 @@ sub run {
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_var('BCI_TESTS_REPO', 'https://github.com/SUSE/BCI-tests.git');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH', '');    # Keep BCI_TESTS_BRANCH for backwards compatibility.
+    my $reject_dhcp_offers_from = get_var('BCI_KEA_TESTS_REJECT_DHCP_OFFERS_FROM', '');
     if ($bci_tests_repo =~ m/(.*)#(.*)/) {
         $bci_tests_repo = $1;
         $bci_tests_branch = $2;
@@ -139,6 +140,9 @@ sub run {
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
+    if ($reject_dhcp_offers_from) {
+        assert_script_run("export REJECT_DHCP_OFFERS_FROM=$reject_dhcp_offers_from");
+    }
     if ($os_version) {
         script_run("export OS_VERSION=$os_version");
         validate_script_output('echo $OS_VERSION', sub { m/$os_version/ });
