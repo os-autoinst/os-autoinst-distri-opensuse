@@ -24,6 +24,7 @@ use data_integrity_utils 'verify_checksum';
 use File::Basename;
 use network_utils qw(genmac);
 use bootloader_setup;
+use Carp 'croak';
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -56,6 +57,39 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+# Check image present in host datastore, otherwhise load it
+sub provide_image_vmware_in_ds {
+    my ($self, $input_file, $vmware_openqa_datastore, %args) = @_;
+    my $nfs_dir = ($args{backingfile}) ? 'hdd' : 'iso';
+    my $vmware_nfs_datastore = get_required_var('VMWARE_NFS_DATASTORE');
+    my $debug = get_var('VMWARE_NFS_DATASTORE_DEBUG') ? "set -x; ls -l $vmware_openqa_datastore;" : "";
+    my $basefile = basename($input_file);
+    # expected name of uncompressed image
+    my $baseimage = basename($input_file) =~ s/\.xz$//r;
+    my $dest_image = "$vmware_openqa_datastore/${baseimage}";
+    # input file without path, standard folder is the origin
+    my $file_origin = ($input_file eq $basefile) ? "/vmfs/volumes/$vmware_nfs_datastore/$nfs_dir/$basefile" : $input_file;
+    # shell script to manage vmware image
+    my $cmd = qq(
+$debug
+if test -e $dest_image; then
+  while lsof | grep -E  "cp.*$baseimage|xz.*$basefile"; do
+    echo Waiting $input_file loading; sleep 10; 
+  done;
+else
+  if [[ "$input_file" == *.xz ]]; then 
+    [ -e $dest_image.xz ] || cp $file_origin $dest_image.xz;
+    [ \$\? -eq 0 ] && xz --decompress --keep --verbose $dest_image.xz;
+  else
+    cp $file_origin $vmware_openqa_datastore;
+  fi;
+fi;
+);
+    my $ret = $self->run_cmd($cmd, domain => 'sshVMwareServer');
+    croak "Error on VMware image $input_file preparation." if $ret;
+    return $dest_image;
+}
+
 sub run {
     my $arch = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
@@ -69,6 +103,7 @@ sub run {
         # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+
         # Remove invalid VM by previous openQA job
         my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
         foreach (@vm_id) {
@@ -76,8 +111,6 @@ sub run {
             $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
         }
     }
-
-    my $n = get_var('NUMDISKS', 1);
 
     my $xenconsole = "hvc0";
     if (!get_var('SP2ORLATER')) {
@@ -141,18 +174,13 @@ sub run {
 
     my $hdddir = "$basedir/openqa/${share_factory}hdd $basedir/openqa/${share_factory}hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
-    foreach my $n (1 .. get_var('NUMDISKS')) {
+    foreach my $n (1 .. get_var('NUMDISKS', 1)) {
         if (my $full_hdd = get_var('HDD_' . $n)) {
             my $hdd = basename($full_hdd);
             my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
-            if ($hddpath =~ m/vmdk\.xz$/) {
-                my $nfs_ro = $hddpath;
-                $hddpath = "$vmware_openqa_datastore/$hdd" =~ s/vmdk\.xz/vmdk/r;
+            if ($hddpath =~ m/\.vmdk\.xz$|\.vmdk$/) {
                 # do nothing if the image is already unpacked in datastore
-                if ($svirt->run_cmd("test -e $hddpath", domain => 'sshVMwareServer')) {
-                    my $ret = $svirt->run_cmd("xz --decompress --keep --verbose $vmware_openqa_datastore/$hdd", domain => 'sshVMwareServer');
-                    die "Image decompress in datastore failed!\n" if $ret;
-                }
+                $hddpath = provide_image_vmware_in_ds($svirt, $hddpath, $vmware_openqa_datastore, backingfile => 1);
             }
             $svirt->add_disk(
                 {
