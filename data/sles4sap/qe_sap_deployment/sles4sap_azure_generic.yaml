@@ -17,11 +17,11 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
 
-    # IBSM PEERING VARIABLES
-    ibsm_rg: '%IBSM_RG%'
-    ibsm_vnet_name: '%IBSM_VNET%'
+    # IBSm network peering
     vnet_address_range: "%MAIN_ADDRESS_RANGE%"
     subnet_address_range: "%SUBNET_ADDRESS_RANGE%"
+    ibsm_rg: '%IBSM_RG%'
+    ibsm_vnet_name: '%IBSM_VNET%'
 
     # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
