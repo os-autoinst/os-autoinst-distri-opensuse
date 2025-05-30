@@ -21,6 +21,8 @@ sub run ($self) {
     $self->prepare_user_and_group();
     my $slurm_pkg = get_slurm_version(get_var('SLURM_VERSION', ''));
 
+    sleep(999999999);
+
     # If one wants to test unversioned slurm, one should not
     # install slurm-node at all.
     if ($slurm_pkg eq 'slurm' and is_sle('=12-sp5')) {
