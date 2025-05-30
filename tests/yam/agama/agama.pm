@@ -67,6 +67,7 @@ sub run {
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot
       $reboot_page->reboot();
+    reset_consoles;
 }
 
 1;
