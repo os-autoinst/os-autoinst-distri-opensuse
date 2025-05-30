@@ -105,13 +105,11 @@ sub run {
     my ($self, $run_args) = @_;
 
     # This test module is using sles4sap and not sles4sap_publiccloud_basetest
-    # as base class. network_peering_present and ansible_present are propagated here
+    # as base class. ansible_present is propagated here
     # to a different context than usual
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});
     record_info('MR_TEST CONTEXT', join(' ',
             'cleanup_called:', $self->{cleanup_called} // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined',
             'ansible_present:', $self->{ansible_present} // 'undefined')
     );
 
@@ -129,11 +127,6 @@ sub post_fail_hook {
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
         my $run_args = OpenQA::Test::RunArgs->new();
-        record_info('CONTEXT LOG', join(' ', 'network_peering_present:', $self->{network_peering_present} // 'undefined'));
-        if ($self->{network_peering_present}) {
-            delete_network_peering();
-            $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
-        }
         $run_args->{my_provider} = $self->{provider};
         $run_args->{my_provider}->finalize($run_args);
         return;

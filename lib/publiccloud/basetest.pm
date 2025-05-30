@@ -203,7 +203,6 @@ sub post_fail_hook {
         sles4sap_publiccloud::sles4sap_cleanup(
             $self,
             cleanup_called => $self->{cleanup_called} // undef,
-            network_peering_present => 1,
             ansible_present => 0
         );
         return;
