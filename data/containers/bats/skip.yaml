@@ -58,7 +58,6 @@ podman:
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 25918
     - 25942
     - 26017
     BATS_SKIP:
