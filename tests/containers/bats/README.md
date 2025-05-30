@@ -165,10 +165,8 @@ NOTES
 | test | reason |
 | --- | --- |
 | [cgroups] | `io.bfq.weight: operation not supported` |
-| [checkpoint] | https://github.com/checkpoint-restore/criu/issues/2650 |
 
 [cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
-[checkpoint]: https://github.com/opencontainers/runc/blob/main/tests/integration/checkpoint.bats
 
 ## Tools
 
