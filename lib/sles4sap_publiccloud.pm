@@ -56,7 +56,6 @@ our @EXPORT = qw(
   sbd_delay_formula
   create_instance_data
   deployment_name
-  delete_network_peering
   create_playbook_section_list
   create_hana_vars_section
   azure_fencing_agents_playbook_args
@@ -161,8 +160,6 @@ sub get_promoted_hostname {
 
 =item B<cleanup_called> - flag to indicate cleanup status
 
-=item B<network_peering_present> - flag to indicate network peering presence
-
 =item B<ansible_present> - flag to indicate ansible has need executed as part of the deployment
 
 =back
@@ -174,7 +171,6 @@ sub sles4sap_cleanup {
         'Cleanup',
         join(' ',
             'cleanup_called:', $args{cleanup_called} // 'undefined',
-            'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
     # Do not run destroy if already executed
@@ -191,9 +187,6 @@ sub sles4sap_cleanup {
     qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
-    if ($args{network_peering_present}) {
-        delete_network_peering();
-    }
 
     my @cmd_list;
 
@@ -900,33 +893,6 @@ sub create_instance_data {
 
 sub deployment_name {
     return qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
-}
-
-=head2 delete_network_peering
-
-    Delete network peering between SUT created with qe-sa-deployment
-    and the IBS Mirror. Function is generic over all the Cloud Providers
-
-=cut
-
-sub delete_network_peering {
-    record_info('Peering cleanup', 'Executing peering cleanup (if peering is present)');
-    if (is_azure) {
-        # Check that the peering isn't managed by terraform and required variables are available before deleting it
-        my $rg = qesap_az_get_resource_group();
-        if (get_var('IBSM_VNET')) {
-            record_info('PEERING MANAGED', 'Peering will be destroyed by terraform destroy');
-        }
-        elsif (get_var('IBSM_RG')) {
-            qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
-        }
-        else {
-            record_info('No peering', 'No peering exists, peering destruction skipped');
-        }
-    }
-    elsif (is_ec2) {
-        qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
-    }
 }
 
 =head2 create_ansible_playbook_list

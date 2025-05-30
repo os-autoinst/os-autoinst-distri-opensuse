@@ -21,7 +21,7 @@ sub test_flags {
 sub run {
     my ($self, $run_args) = @_;
 
-    # Needed to have peering and ansible state propagated in post_fail_hook
+    # Needed to have ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
     if (get_var('QESAP_DEPLOYMENT_IMPORT')) {
@@ -36,7 +36,6 @@ sub run {
         loadtest('sles4sap/publiccloud/qesap_terraform', name => 'deploy_qesap_terraform', run_args => $run_args, @_);
         if (check_var('IS_MAINTENANCE', 1)) {
             loadtest('sles4sap/publiccloud/clean_leftover_peerings', name => 'clean_leftover_peerings', run_args => $run_args, @_);
-            loadtest('sles4sap/publiccloud/network_peering', name => 'network_peering', run_args => $run_args, @_);
             loadtest('sles4sap/publiccloud/add_server_to_hosts', name => 'add_server_to_hosts', run_args => $run_args, @_);
             loadtest('sles4sap/publiccloud/cluster_add_repos', name => 'cluster_add_repos', run_args => $run_args, @_);
         }

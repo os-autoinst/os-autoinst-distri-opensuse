@@ -57,13 +57,11 @@ sub cleanup {
     my $res = sles4sap_cleanup(
         $self,
         cleanup_called => $self->{cleanup_called},
-        network_peering_present => $self->{network_peering_present},
         ansible_present => $self->{ansible_present}
     );
 
     if ($res eq 0) {
         $self->{cleanup_called} = 1;
-        $self->{network_peering_present} = 0;
         $self->{ansible_present} = 0;
     }
 
@@ -86,12 +84,10 @@ record the information in the test results.
 sub import_context {
     my ($self, $run_args) = @_;
     $self->{instances} = $run_args->{instances};
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});
     record_info('CONTEXT LOG', join(' ',
             'cleanup_called:', $self->{cleanup_called} // 'undefined',
             'instances:', $self->{instances} // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined',
             'ansible_present:', $self->{ansible_present} // 'undefined')
     );
 }
