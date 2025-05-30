@@ -1,0 +1,11 @@
+---
+name: agama_rmt_unattended_ppc64le
+description: >
+  Perform agama installation with RMT registration for ppc64le
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_repos
