@@ -322,7 +322,7 @@ sub is_hana_resource_running {
 =head2 is_hana_node_up
     is_hana_node_up($my_instance, [timeout => 900]);
 
-    Waits until 'is_system_running' returns successfully on the target instance.
+    Waits until 'is-system-running' returns successfully on the target instance.
 
 =over
 
@@ -354,7 +354,7 @@ sub wait_hana_node_up {
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
         sleep 10;
     }
-    die('Timeout reached. is_system_running returns: ' . $out);
+    die('Timeout reached. is-system-running returns: ' . $out);
 }
 
 =head2 stop_hana
