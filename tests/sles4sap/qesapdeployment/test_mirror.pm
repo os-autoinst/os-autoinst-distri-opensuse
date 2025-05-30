@@ -10,7 +10,6 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::qesap_aws;
-use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 sub run {
     my ($self) = @_;
