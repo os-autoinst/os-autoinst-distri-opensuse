@@ -69,6 +69,7 @@ sub get_gcp_guest_os_features {
             'SEV_SNP_CAPABLE',
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
+            'IDPF',
         ],
         'SLES15-SP6' => [
             'GVNIC',
@@ -80,6 +81,7 @@ sub get_gcp_guest_os_features {
             'TDX_CAPABLE',
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
+            'IDPF',
         ],
     );
 
