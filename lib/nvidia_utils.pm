@@ -58,7 +58,7 @@ sub install
 
     # Make sure to remove the other variant first
     my $remove_variant = script_run("rpm -q $variant_std") ? $variant_cuda : $variant_std;
-    zypper_call("remove --clean-deps ${remove_variant}");
+    zypper_call("remove --clean-deps ${remove_variant}", exitcode => [0, 104]);
 
     # Install driver and compute utils which packages `nvidia-smi`
     zypper_call("install -l $variant");
