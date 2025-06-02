@@ -33,6 +33,10 @@ sub run {
     my $zypper_retrieving = qr/Retrieving: \S+/;
     my $zypper_check_conflicts = qr/Checking for file conflicts: \S+/;
 
+    my %conflict_solutions = (
+        'star-rmt' => qr{.*Solution (\d+):\s*deinstallation of star-rmt},
+    );
+
     # This is just for reference to know how the network was configured prior to the update
     script_run "ip addr show";
     save_screenshot;
@@ -122,8 +126,27 @@ sub run {
                 record_info 'workaround dependencies';
                 send_key '1';
                 send_key 'ret';
-            }
-            else {
+            } else {
+                # check if we have conflicts to solve
+                # otherwise fail the test
+                my $conflict_solved = 0;
+                my @lines = split /\n/, $out;
+                foreach my $package_name (keys %conflict_solutions) {
+                    last if $conflict_solved;
+                    my $regex = $conflict_solutions{$package_name};
+                    foreach my $line (@lines) {
+                        if ($line =~ /$regex/) {
+                            record_info "$package_name";
+                            send_key $1;
+                            send_key 'ret';
+                            $conflict_solved = 1;
+                            last;
+                        }
+                    }
+                }
+                # if we found a conflict and solved it, keep looping
+                next if $conflict_solved;
+
                 $self->result('fail');
                 save_screenshot;
                 return;
