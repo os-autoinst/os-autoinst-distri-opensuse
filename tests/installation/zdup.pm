@@ -147,9 +147,12 @@ sub run {
                         }
                     }
                 }
-                record_info "Debug: $conflict_solved";
-                # if we found a conflict and solved it, keep looping
-                next if $conflict_solved;
+                # if we found a conflict and solved it, keep looping, update $out too
+                if ($conflict_solved) {
+                    save_screenshot;
+                    $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 120);
+                    next;
+                }
 
                 $self->result('fail');
                 save_screenshot;
