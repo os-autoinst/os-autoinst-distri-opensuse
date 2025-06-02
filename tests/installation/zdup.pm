@@ -33,10 +33,6 @@ sub run {
     my $zypper_retrieving = qr/Retrieving: \S+/;
     my $zypper_check_conflicts = qr/Checking for file conflicts: \S+/;
 
-    my %conflict_solutions = (
-        'star-rmt' => qr{.*Solution (\d+):\s*deinstallation of star-rmt},
-    );
-
     # This is just for reference to know how the network was configured prior to the update
     script_run "ip addr show";
     save_screenshot;
@@ -127,28 +123,8 @@ sub run {
                 send_key '1';
                 send_key 'ret';
             } else {
-                # check if we have conflicts to solve
-                # otherwise fail the test
-                my $conflict_solved = 0;
-                my @lines = split /\n/, $out;
-                foreach my $package_name (keys %conflict_solutions) {
-                    last if $conflict_solved;
-                    record_info $package_name;
-                    my $regex = $conflict_solutions{$package_name};
-                    foreach my $line (@lines) {
-                        last if $conflict_solved;
-                        if ($line =~ /$regex/) {
-                            send_key $1;
-                            wait_still_screen 1;
-                            send_key 'ret';
-                            $conflict_solved = 1;
-                            save_screenshot;
-                            last;
-                        }
-                    }
-                }
                 # if we found a conflict and solved it, keep looping, update $out too
-                if ($conflict_solved) {
+                if (solve_conflicts($out)) {
                     save_screenshot;
                     $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 120);
                     next;
@@ -216,6 +192,32 @@ sub run {
     }
 
     assert_screen "zypper-dup-finish";
+}
+
+sub solve_conflicts {
+    my ($output) = @_;
+    my $conflict_solved = 0;
+    my %conflict_solutions = (
+        'star-rmt' => qr{.*Solution (\d+):\s*deinstallation of star-rmt},
+    );
+
+    my @lines = split /\n/, $output;
+    foreach my $package_name (keys %conflict_solutions) {
+        my $regex = $conflict_solutions{$package_name};
+        foreach my $line (@lines) {
+            if ($line =~ /$regex/) {
+                record_info $package_name;
+                send_key $1;
+                wait_still_screen 1;
+                send_key 'ret';
+                $conflict_solved = 1;
+                save_screenshot;
+                return $conflict_solved;
+            }
+        }
+    }
+
+    return $conflict_solved;
 }
 
 sub post_fail_hook {
