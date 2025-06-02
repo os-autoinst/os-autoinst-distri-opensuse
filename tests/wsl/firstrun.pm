@@ -164,6 +164,10 @@ sub run {
         assert_screen 'wsl-linux-prompt';
     } elsif (match_has_tag 'jeos-wsl-firstboot-welcome') {
         # put in jeos test logic
+        assert_screen(['window-max', 'window-minimize']);
+        assert_and_click 'window-max' if match_has_tag 'window-max';
+        assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
+        wait_still_screen stilltime => 3, timeout => 10;
         send_key 'ret';
         assert_screen 'wsl-select-system-locale';
         send_key 'ret';
