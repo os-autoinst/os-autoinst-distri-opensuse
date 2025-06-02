@@ -68,27 +68,32 @@ sub license {
     }
 
     if (is_sle) {
-        # license warning
-        assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
-        if (match_has_tag 'wsl-license-not-accepted') {
-            send_key 'ret';
-        }
-        else {
-            # When activating SLED, license agreement for workstation module appears,
-            # and this time the popup shows Yes or No options
+        if (check_var('WSL_MSSTORE_LEGACY', '1')) {
             send_key 'alt-n';
         }
-        # Accept license
-        # assert_screen 'wsl-license' or wsl-liscense-beta;
-        if (check_var("BETA", "1")) {
-            assert_screen 'wsl-license-beta', timeout => 240;
-        }
         else {
-            assert_screen 'wsl-license', timeout => 240;
+            # license warning
+            assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
+            if (match_has_tag 'wsl-license-not-accepted') {
+                send_key 'ret';
+            }
+            else {
+                # When activating SLED, license agreement for workstation module appears,
+                # and this time the popup shows Yes or No options
+                send_key 'alt-n';
+            }
+            # Accept license
+            # assert_screen 'wsl-license' or wsl-liscense-beta;
+            if (check_var("BETA", "1")) {
+                assert_screen 'wsl-license-beta', timeout => 240;
+            }
+            else {
+                assert_screen 'wsl-license', timeout => 240;
+            }
+            send_key 'alt-a';
+            assert_screen 'license-accepted';
+            send_key 'alt-n';
         }
-        send_key 'alt-a';
-        assert_screen 'license-accepted';
-        send_key 'alt-n';
     }
 }
 
