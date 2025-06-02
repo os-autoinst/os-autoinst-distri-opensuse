@@ -339,6 +339,34 @@ sub upload_tcpdump {
     select_console($old_console) if defined($old_console);
 }
 
+sub upload_oprofile {
+    my $self = shift;
+    my $pid = $self->{oprofile_pid};
+    my $old_console;
+
+    $self->{oprofile_pid} = undef;
+
+    if ($self->{timed_out}) {
+        $old_console = current_console();
+        select_console('root-console');
+
+        unless (defined(script_run("timeout 20 sh -c \"kill -s INT $pid && while [ -d /proc/$pid ]; do usleep 100000; done\""))) {
+            select_console($old_console, await_console => 0);
+            return;
+        }
+    }
+    else {
+        assert_script_run("kill -s INT $pid && wait $pid");
+    }
+
+    assert_script_run('cd /tmp');
+    assert_script_run("tar cjf /tmp/ltp_oprofile_data.tar.bz2 ltp_oprofile");
+    assert_script_run('cd -');
+    upload_logs("/tmp/ltp_oprofile_data.tar.bz2");
+    upload_logs("/tmp/ltp_oprofile.txt");
+    select_console($old_console) if defined($old_console);
+}
+
 sub pre_run_hook {
     my ($self) = @_;
     my @pattern_list;
@@ -385,6 +413,12 @@ sub run {
         script_run('while [ ! -e /tmp/tcpdump.pcap ]; do usleep 100000; done');
     }
 
+    if (check_var_array('LTP_DEBUG', 'oprofile')) {
+        script_run('rm -rf /tmp/ltp_oprofile');
+        assert_script_run('mkdir -p /tmp/ltp_oprofile');
+        $self->{oprofile_pid} = background_script_run('operf -ls -d /tmp/ltp_oprofile &>/tmp/ltp_oprofile.txt');
+    }
+
     if (is_serial_terminal) {
         script_run("echo '$klog_stamp' > /dev/kmsg");
         # SLE11-SP4 doesn't support ignore_loglevel, due that stamp is not printed in console
@@ -403,6 +437,7 @@ sub run {
 
     if ($test_log =~ qr/$fin_msg(\d+)\.$/) {
         $env{retval} = $1;
+        $self->upload_oprofile() if defined($self->{oprofile_pid});
         $self->upload_tcpdump() if defined($self->{tcpdump_pid});
     }
 
@@ -424,6 +459,7 @@ sub run {
 sub run_post_fail {
     my ($self, $msg) = @_;
 
+    $self->upload_oprofile() if defined($self->{oprofile_pid});
     $self->upload_tcpdump() if defined($self->{tcpdump_pid});
     $self->dump_tasktrace() if check_var_array('LTP_DEBUG', 'tasktrace');
     $self->save_crashdump()
@@ -514,9 +550,11 @@ E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 =head2 LTP_DEBUG
 
 Comma separated list of debug features to enable during test run.
-C<tcpdump>: Capture all packets sent or received during each test.
-C<crashdump>: Save kernel crashdump on test timeout.
-C<tasktrace>: Print backtrace of all processes and show blocked tasks
+- C<oprofile>: Collect system-wide oprofile during each test. QEMUCPU=host may
+  be required.
+- C<tcpdump>: Capture all packets sent or received during each test.
+- C<crashdump>: Save kernel crashdump on test timeout.
+- C<tasktrace>: Print backtrace of all processes and show blocked tasks
 
 =head2 LTP_REBOOT_AFTER_TEST
 

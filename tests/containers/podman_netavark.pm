@@ -13,9 +13,9 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
 use Utils::Systemd qw(systemctl);
-use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
 use publiccloud::utils qw(is_gce);
+use utils qw(script_retry);
 
 my ($ipv6_gateway, $ipv6_interface, $dev);
 
@@ -139,6 +139,7 @@ sub run {
         name6 => 'webserver_ctr_ipv6'
     };
 
+    script_retry("podman pull $ctr1->{image}", timeout => 300, delay => 60, retry => 3);
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
@@ -235,12 +236,9 @@ sub run {
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
         }
 
-        # NOTE: Remove condition when https://bugzilla.suse.com/show_bug.cgi?id=1239176 is fixed
-        unless (is_s390x) {
-            assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
-            assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
-            assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
-        }
+        assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
+        assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
+        assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
     }
 
     remove_subtest_setup;

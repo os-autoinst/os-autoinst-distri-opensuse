@@ -625,7 +625,7 @@ EOF
                 $n_runs++;
             }
             send_key 'ctrl-c';
-            assert_script_run("sed -i 's/Tests Suite/$section/g' $junit_xml");
+            assert_script_run("sed -i 's/\\(KubeVirt Tests Suite\\|Tests Suite\\)/$section/g' $junit_xml");
             $if_case_fail = 1 if (script_output("tail -1 $test_log") eq 'FAIL');
         }
     }
@@ -664,7 +664,7 @@ sub generate_test_report {
                 <include name="*_test.xml" />
             </fileset>
             <report format="noframes" todir="$html_dir" styledir="/tmp">
-                <param name="TITLE" expression="Kubevirt Test Results"/>
+                <param name="TITLE" expression="KubeVirt Test Results"/>
             </report>
         </junitreport>
     </target>

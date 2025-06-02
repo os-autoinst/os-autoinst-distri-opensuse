@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 
 sub run {
-    if (check_var('FLAVOR', 'Full-QR')) {
+    if (check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full')) {
         $testapi::distri->get_module_selection()->select_modules(
             [qw(containers desktop development legacy web python)]);
     } else {

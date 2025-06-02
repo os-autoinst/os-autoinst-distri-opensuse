@@ -240,6 +240,9 @@
       % if ($get_var->('VERSION') gt '15-SP5') {
       <package>libvirt-daemon-proxy</package>
       % }
+      % if ($get_var->('VERSION') eq '15-SP7') {
+      <package>libvirt-daemon-config-nwfilter</package>
+      % }
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>

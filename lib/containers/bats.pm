@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use containers::common qw(install_packages);
 use YAML::PP;
+use File::Basename;
 
 our @EXPORT = qw(
   bats_patches
@@ -37,7 +38,8 @@ our @EXPORT = qw(
 );
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
-my $test_dir = "/var/tmp/bats-tests";
+my $test_dir = "/var/tmp/";
+my $package;
 my $settings;
 
 my @commands = ();
@@ -58,6 +60,16 @@ sub run_command {
     }
 }
 
+sub install_git {
+    # We need git 2.47.0+ to use `--ours` with `git apply -3`
+    if (is_sle) {
+        my $version = get_var("VERSION");
+        $version =~ s/-SP/./;
+        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/devel:/languages:/python:/backports/$version/devel:languages:python:backports.repo";
+    }
+    run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
 sub install_ncat {
     my $version = get_var("NCAT_VERSION", "7.95-3");
 
@@ -71,8 +83,6 @@ sub install_ncat {
 }
 
 sub install_bats {
-    return if (script_run("command -v bats") == 0);
-
     my $bats_version = get_var("BATS_VERSION", "1.11.1");
 
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
@@ -139,18 +149,27 @@ sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
-    # Needed for libcriu2
+    # Needed for criu & fakeroot
     add_suseconnect_product(get_addon_fullname('phub'));
 }
 
 sub patch_logfile {
     my ($log_file, @skip_tests) = @_;
 
+    die "BATS failed!" if (script_run("test -e $log_file") != 0);
+
     @skip_tests = uniq sort @skip_tests;
 
     foreach my $test (@skip_tests) {
         next if (!$test);
-        if (script_run("grep -q 'in test file.*/$test.bats' $log_file") != 0) {
+        my $exp = "-e 'in test file.*/$test.bats'";
+        # Sometimes bats lack the line above in podman remote tests
+        # so we have to fetch the test number with another regexp
+        if ($package eq "podman") {
+            my ($number) = $test =~ /^(\d+)/;
+            $exp .= " -e '^not ok [0-9]+ \\[$number\\]'";
+        }
+        if (script_run("grep -qE $exp $log_file") != 0) {
             record_info("PASS", $test);
         }
     }
@@ -177,6 +196,8 @@ sub bats_setup {
     my ($self, @pkgs) = @_;
     my $reboot_needed = 0;
 
+    $package = get_required_var("BATS_PACKAGE");
+
     push @commands, "### RUN AS root";
 
     install_bats;
@@ -188,13 +209,14 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @pkgs, "patch";
     push @commands, "zypper -n install @pkgs";
     install_packages(@pkgs);
 
     configure_oci_runtime $oci_runtime;
 
-    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark|netavark|podman$/);
+    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark-dns|netavark|podman$/);
+
+    install_git;
 
     delegate_controllers;
 
@@ -290,8 +312,6 @@ sub bats_tests {
     my ($log_file, $_env, $skip_tests) = @_;
     my %env = %{$_env};
 
-    my $package = get_required_var("BATS_PACKAGE");
-
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
     selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
@@ -303,7 +323,7 @@ sub bats_tests {
 
     # Subdirectory in repo containing BATS tests
     my %tests_dir = (
-        aardvark => "test",
+        "aardvark-dns" => "test",
         buildah => "tests",
         netavark => "test",
         podman => "test/system",
@@ -328,7 +348,6 @@ sub bats_tests {
     }
     $cmd .= " | tee -a $log_file";
 
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
     my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
 
@@ -338,10 +357,8 @@ sub bats_tests {
     my $ret = script_run $cmd, 7000;
 
     $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
-    unless (@tests) {
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
-        patch_logfile($log_file, @skip_tests);
-    }
+    my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
+    patch_logfile($log_file, @skip_tests);
 
     parse_extra_log(TAP => $log_file);
 
@@ -351,10 +368,7 @@ sub bats_tests {
 }
 
 sub bats_patches {
-    return if get_var("BATS_URL");
-
-    my $package = get_required_var("BATS_PACKAGE");
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
+    return if check_var("BATS_PATCHES", "none");
 
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
 
@@ -366,12 +380,17 @@ sub bats_patches {
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
-        run_command "curl $curl_opts $url | patch -p1 --merge", timeout => 900;
+        if ($patch =~ /^\d+$/) {
+            push @commands, "curl $curl_opts -O $url";
+            assert_script_run "curl -O " . data_url("containers/bats/patches/$package/$patch.patch");
+        } else {
+            run_command "curl $curl_opts -O $url", timeout => 900;
+        }
+        run_command "git apply -3 --ours " . basename($url);
     }
 }
 
 sub bats_settings {
-    my $package = get_required_var("BATS_PACKAGE");
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
     assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
@@ -385,40 +404,31 @@ sub bats_sources {
     my $version = shift;
     $settings = bats_settings;
 
-    my $package = get_required_var("BATS_PACKAGE");
-    $package = ($package eq "aardvark") ? "aardvark-dns" : $package;
-
     my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
-    my $tag = "v$version";
+    my $branch = "v$version";
 
-    # Support these cases for BATS_URL:
-    # 1. As full URL: https://github.com/containers/aardvark-dns/archive/refs/heads/main.tar.gz
-    # 2. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, yourusername#test-patch, etc
-    # 3. As TAG only: main, v1.2.3, cool-test-fix, etc
-    # 4. Empty. Use default for repo based on package version
+    # Support these cases for BATS_REPO: [<GITHUB_ORG>]#BRANCH
+    # 1. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, your_gh_user#test-patch, etc
+    # 2. As TAG only: main, v1.2.3, etc
+    # 3. Empty. Use default for repo based on package version
 
-    my $url = get_var("BATS_URL", "");
-    if ($url !~ m%^https://%) {
-        if ($url =~ /#/) {
-            ($github_org, $tag) = split("#", $url, 2);
-        } elsif ($url) {
-            $tag = $url;
-        }
-        my $dir = ($tag =~ /^v\d+\./) ? "tags" : "heads";
-        $url = "https://github.com/$github_org/$package/archive/refs/$dir/$tag.tar.gz";
+    my $repo = get_var("BATS_REPO", "");
+    if ($repo =~ /#/) {
+        ($github_org, $branch) = split("#", $repo, 2);
+    } elsif ($repo) {
+        $branch = $repo;
     }
-    record_info("BATS_URL", $url);
 
-    run_command "mkdir -p $test_dir";
-    if ($package eq "buildah") {
-        selinux_hack $test_dir;
-        selinux_hack "/tmp";
-    }
     run_command "cd $test_dir";
-    run_command "curl $curl_opts $url | tar -zxf - --strip-components 1";
+    run_command "git clone --branch $branch https://github.com/$github_org/$package.git", timeout => 300;
+    $test_dir .= $package;
+    run_command "cd $test_dir";
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
+    } elsif ($package eq "buildah") {
+        selinux_hack $test_dir;
+        selinux_hack "/tmp";
     }
 }
 

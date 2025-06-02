@@ -22,10 +22,11 @@ sub run {
     # Needed to have peering and ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
-    if (is_azure() && get_var('IBSM_VNET')) {
+    if ((is_azure() && get_var('IBSM_VNET')) || (is_ec2() && get_var('IBSM_PRJ_TAG'))) {
         record_info('PEERING MANAGED', 'Peering should already be created by terraform');
         return;
     }
+
     die 'Network peering already in place' if ($self->{network_peering_present});
     if (is_azure()) {
         qesap_az_vnet_peering(source_group => qesap_az_get_resource_group(), target_group => get_required_var('IBSM_RG'));

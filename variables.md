@@ -56,6 +56,7 @@ CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
 CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
+HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dependecy_issues will be scheduled or not before certain modules which need it.
@@ -99,7 +100,7 @@ HTTPPROXY  |||
 HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test suite.
 HPC_WAREWULF_CONTAINER_NAME | string | The OS name which is expected to run from HPC_WAREWULF_CONTAINER.
 HPC_WAREWULF_CONTAINER_USERNAME | string | Defining username enables authentication for containers, needs valid HPC subscription on SCC for containers from registry.suse.com. If you want use default HPC subscription, just set same value as in SCC_EMAIL
-_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC 
+_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
@@ -117,6 +118,9 @@ IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine 
 K3S_SYMLINK | string | | Can be 'skip' or 'force'. Skips the installation of k3s symlinks to tools like kubectl or forces the creation of symlinks
 K3S_BIN_DIR | string | | If defined, install k3s to this provided directory instead of `/usr/local/bin/`
 K3S_CHANNEL | string | | Set the release channel to pick the k3s version from. Options include "stable", "latest" and "testing"
+K3S_ENABLE_COREDNS | boolean | | During K3s installation, should CoreDNS be installed.
+K3S_ENABLE_TRAEFIK | boolean | | During K3s installation, should Traefik be installed.
+K3S_ENABLE_HELM_CONTROLLER | boolean | | During K3s installation, should Helm Controller be installed.
 KERNEL_FLAVOR | string | kernel-default | Set specific kernel flavor for test scenarios
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
@@ -165,7 +169,9 @@ NO_ADD_MAINT_TEST_REPOS | boolean | true |  Do not add again (and duplicate) rep
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
-NVIDIA_REPO | string | '' | Define the external repo for nvidia driver. Used by `nvidia.pm` module.
+NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
+NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
+NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
 OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
@@ -262,6 +268,7 @@ LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are bootin
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
+TRANSACTIONAL_UPDATE_PATCH | boolean | false | Use `zypper patch` when true and `zypper up` when false.
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
 TRENTO_CYPRESS_VERSION | string | 9.6.1 | used as tag for the docker.io/cypress/included registry.
 TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation

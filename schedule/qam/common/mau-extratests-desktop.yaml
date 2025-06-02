@@ -19,6 +19,7 @@ conditional_schedule:
       15-SP7:
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
         - x11/network/yast2_network_use_nm
@@ -28,6 +29,7 @@ conditional_schedule:
         - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
         - x11/network/yast2_network_use_nm
@@ -37,6 +39,7 @@ conditional_schedule:
         - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
         - x11/network/yast2_network_use_nm
@@ -46,6 +49,7 @@ conditional_schedule:
         - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
+        - console/libaom
         - console/add_phub_extension
         - x11/network/hwsim_wpa2_enterprise_setup
         - x11/network/yast2_network_use_nm

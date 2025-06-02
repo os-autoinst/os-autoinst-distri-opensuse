@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: The server side of postgresql ssl connection test.
@@ -34,6 +34,7 @@ sub run {
     systemctl("stop firewalld");
 
     # Install postgresql
+    zypper_call("ref");
     zypper_call('in postgresql-server');
     systemctl('start postgresql');
 

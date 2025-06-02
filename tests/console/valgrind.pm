@@ -127,14 +127,14 @@ sub run {
     assert_present($output, 'heap_tree=', "massif 'heap_tree' mismatch");
 
     assert_script_run 'cd';
-    if (is_sle && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('sdk'));    # unregister SDK
     }
 }
 
 sub prepare {
     # development module needed for dependencies, released products are tested with sdk module
-    if (is_sle && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         cleanup_registration;
         register_product;
         add_suseconnect_product(get_addon_fullname('desktop'));

@@ -1,0 +1,15 @@
+---
+name: stack_tests_python_sle16+
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/python3_new_version_check
+  - console/python3_setuptools
+  - console/python3_pipx
+  - console/python_virtualenv
+  - console/python3_beautifulsoup4
+  - console/python3_pynacl
+  - console/python3_websocket_client
+  - console/python_flake8
+  - console/python_pycairo
+  - console/python_scientific

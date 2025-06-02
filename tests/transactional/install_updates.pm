@@ -16,6 +16,18 @@ use version_utils 'is_sle_micro';
 use serial_terminal;
 use utils qw(script_retry fully_patch_system);
 
+sub update_system {
+    # By default we use 'up', but this covers also the case of 'patch'
+    if (get_var('TRANSACTIONAL_UPDATE_PATCH')) {
+        record_info('PATCH', 'Patching system');
+        fully_patch_system(trup_call_timeout => 1800);
+    } else {
+        record_info('UPDATE', 'Updating system');
+        trup_call('up', timeout => 1800);
+        process_reboot(trigger => 1);
+    }
+}
+
 sub run {
     my ($self) = @_;
 
@@ -33,13 +45,12 @@ sub run {
         assert_script_run 'rm /tmp/journal_before';
     }
 
-    # First we update the system
-    fully_patch_system(trup_call_timeout => 1800);
+    update_system;
 
-    # Now we add the incident repositories and do a zypper patch
+    # Now we add the test repositories and do a system update
     add_test_repositories;
     record_info('Updates', script_output('zypper lu'));
-    trup_call('patch', timeout => 300, proceed_on_failure => 1) unless get_var('DISABLE_UPDATE_WITH_PATCH');
+    update_system;
 
     # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
     # see poo#169090

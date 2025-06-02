@@ -1,0 +1,71 @@
+---
+name: pvm_ha_crash_test_node
+description: >
+  HA Cluster Test on ppc64le hmc_pvm backend. Schedule for all nodes.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+
+  The other settings are required in the job group.
+
+  CLUSTER_NAME must be defined for all jobs as a string.
+  HA_CLUSTER_INIT must be defined to yes in the job that initializes the cluster and to
+  no in the the other cluster node jobs
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
+  HOSTNAME must be defined to different hostnames for each node.
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000)
+  All jobs with the exception of the HA_CLUSTER_INIT=yes job must include a PARALLEL_WITH setting
+  referencing the HA_CLUSTER_INIT=yes job.
+
+  CLUSTER_INFOS must be set in one of the nodes instead of the support server.
+  ISCSI_SERVER must be set in all nodes.
+  ISCSI_LUN_INDEX - must be set in all nodes,
+  tells the modules which LUN in the iSCSI server to use to avoid having multiple jobs using the same devices.
+  NFS_SUPPORT_SHARE - must be set in all nodes, a RW NFS share where the nodes will write file and share information.
+
+  SLE_PRODUCT must be defined and set accordingly.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  DESKTOP: 'textmode'
+  HA_CLUSTER: '1'
+  HDD_SCC_REGISTERED: '1'
+  # Below setting must be defined in the openQA UI because macros for %VERSION%,
+  # %ARCH% and %BUILD% are usually not defined yet when this file is being loaded
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+schedule:
+  - '{{barrier_init}}'
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_hae_active.py
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/iscsi_client_setup
+  - ha/setup_hosts_and_luns
+  - ha/watchdog
+  - '{{cluster_setup}}'
+  - '{{ha_cluster_crash_test}}'
+  - ha/check_logs
+  - shutdown/shutdown
+conditional_schedule:
+  barrier_init:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/barrier_init
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join
+  ha_cluster_crash_test:
+    PREFLIGHT_CHECK:
+      1:
+        - ha/ha_cluster_crash_test

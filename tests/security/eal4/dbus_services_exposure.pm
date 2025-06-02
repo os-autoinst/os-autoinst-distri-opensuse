@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'DBus services exposure' test case of EAL4 test suite
@@ -17,50 +17,39 @@ use Data::Dumper;
 use version_utils 'is_sle';
 use Utils::Architectures 'is_s390x';
 
-my %white_list_for_busctl = (
-    systemd => 1,
-    'wickedd-dhcp4' => 1,
-    'wickedd-dhcp6' => 1,
-    wickedd => 1,
-    'wickedd-auto4' => 1,
-    'systemd-logind' => 1,
-    'wickedd-nanny' => 1,
-    'systemd-machine' => 1,
-    libvirtd => 1,
-    busctl => 1,
-    snapperd => 1,
-    'session-1' => 1,
-    'session-3' => 1,
-    virtnetworkd => 1
+# List of known safe processes that can have DBus services
+my @allowed_processes = qw(
+  systemd
+  wickedd-dhcp4
+  wickedd-dhcp6
+  wickedd
+  wickedd-auto4
+  systemd-logind
+  wickedd-nanny
+  systemd-machine
+  libvirtd
+  busctl
+  snapperd
+  virtnetworkd
+  virtqemud
+  dbus-send
 );
 
 sub parse_results {
     my $output = shift;
     my %results;
+
     foreach my $line (split(/\n/, $output)) {
         if ($line =~ /^NAME/) {
-            # do nothing for the title
+            # Skip header line
             next;
         }
         elsif ($line =~ /string\s+"(\S+)"/) {
-            # This regex is used to parse the output of dbus_send, such as:
-            # array [
-            #    string "org.freedesktop.DBus"
-            #    string "org.opensuse.Network.Nanny"
-            #    string ":1.7"
-            #    string "org.freedesktop.login1"
-            #    string ":1.8"
-            #    ... ]
+            # Parse output of dbus_send
             $results{$1} = 1;
         }
         elsif ($line =~ /(\S+)\s+(\d+|-)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
-            # This regex is used to parse the output of busctl list, such as:
-            # NAME                         PID PROCESS         USER     CONNECTION    UNIT                     SESSION DESCRIPTION
-            # :1.0                           1 systemd         root     :1.0          init.scope               -       -
-            # :1.60                      30274 busctl          root     :1.60         session-5.scope          5       -
-            # :1.8                         970 wickedd-nanny   root     :1.8          wickedd-nanny.service    -       -
-            # org.freedesktop.DBus           1 systemd         root     -             init.scope               -       -
-            # org.freedesktop.PolicyKit1     - -               -        (activatable) -                        -       -
+            # Parse output of busctl list
             $results{$1} = {
                 pid => $2,
                 process => $3,
@@ -72,12 +61,18 @@ sub parse_results {
             };
         }
     }
+
     return %results;
+}
+
+sub is_dynamic_name {
+    my $name = shift;
+    # Dynamic names start with a colon followed by a number (e.g., :1.42)
+    return $name =~ /^:\d+\.\d+$/;
 }
 
 sub run {
     my ($self) = shift;
-
     select_console 'root-console';
 
     # Run the test
@@ -89,40 +84,61 @@ sub run {
     my %busctl_list_result = parse_results($output_busctl_list);
     record_info('Results of parsing busctl list', Dumper(\%busctl_list_result));
 
-    # https://bugzilla.suse.com/show_bug.cgi?id=1216538
+    # Add platform-specific services if needed
     if (is_sle('>=15-SP6') && is_s390x) {
-        $white_list_for_busctl{virtqemud} = 1;
-        push(@eal4_test::white_list_for_dbus, '1.28', '1.38');
+        push(@allowed_processes, 'virtqemud');
     }
 
-    # Analyse the results.
-    foreach my $wl (@eal4_test::white_list_for_dbus) {
+    # Create a hash for faster lookups
+    my %allowed_processes = map { $_ => 1 } @allowed_processes;
 
-        # Remove the well known names which are in the white list.
-        delete $dbus_send_results{$wl} if $dbus_send_results{$wl};
+    # Filter out static whitelisted services
+    foreach my $wl (@eal4_test::static_dbus_whitelist) {
+        delete $dbus_send_results{$wl} if exists $dbus_send_results{$wl};
 
-        # The destination may be the child object of the well known, such as
-        # org.opensuse.Network         966 wickedd         root     :1.5          wickedd.service          -       -
-        # So we also consider ':1.5' is well known one.
-        if ($busctl_list_result{$wl}) {
+        # Also remove connections associated with whitelisted services
+        if (exists $busctl_list_result{$wl} && $busctl_list_result{$wl}->{connection}) {
             my $connection = $busctl_list_result{$wl}->{connection};
-            delete $dbus_send_results{$connection} if $dbus_send_results{$connection};
+            delete $dbus_send_results{$connection} if exists $dbus_send_results{$connection};
         }
     }
 
-    # The names not in white list need to be analysed further.
-    # Find the names in 'busctl' and check their processes
-    foreach my $key (keys %dbus_send_results) {
-        next unless $busctl_list_result{$key};
-        my $process = $busctl_list_result{$key}->{process};
-        delete $dbus_send_results{$key} if $white_list_for_busctl{$process};
+    # Filter out dynamic names
+    my @dynamic_names = grep { is_dynamic_name($_) } keys %dbus_send_results;
+    foreach my $dynamic_name (@dynamic_names) {
+        # For dynamic names, check if they belong to allowed processes
+        if (exists $busctl_list_result{$dynamic_name}) {
+            my $process = $busctl_list_result{$dynamic_name}->{process};
+            if (exists $allowed_processes{$process}) {
+                delete $dbus_send_results{$dynamic_name};
+            }
+        }
+        # If we can't find process info, assume it's the test process itself (dbus-send)
+        else {
+            delete $dbus_send_results{$dynamic_name};
+        }
     }
 
-    # After filtering there should be only one unknow name. This belongs to 'dbus-send'
-    if (scalar(keys %dbus_send_results) > 1) {
+    # Check remaining static names against allowed processes
+    foreach my $name (keys %dbus_send_results) {
+        next if is_dynamic_name($name);    # Already handled dynamic names
+
+        if (exists $busctl_list_result{$name}) {
+            my $process = $busctl_list_result{$name}->{process};
+            if (exists $allowed_processes{$process}) {
+                delete $dbus_send_results{$name};
+            }
+        }
+    }
+
+    # After filtering, there should be no unknown services left
+    if (scalar(keys %dbus_send_results) > 0) {
         my @unknown_names = keys %dbus_send_results;
-        record_info('There are unknow names', Dumper(\@unknown_names), result => 'fail');
+        record_info('Unknown DBus services found', Dumper(\@unknown_names), result => 'fail');
         $self->result('fail');
+    }
+    else {
+        record_info('DBus services check', 'All DBus services are accounted for', result => 'ok');
     }
 }
 

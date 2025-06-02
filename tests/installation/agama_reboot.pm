@@ -33,9 +33,10 @@ use power_action_utils 'assert_shutdown_and_restore_system';
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
     select_console("root-console");
-    # stores logs in /tmp/agma-logs.tar.gz
     script_run('agama logs store -d /tmp');
+    script_run('agama config show > /tmp/agama_config.txt');
     upload_logs('/tmp/agama-logs.tar.gz');
+    upload_logs('/tmp/agama_config.txt');
 }
 
 sub get_agama_install_console_tty {
@@ -68,10 +69,7 @@ sub run {
         select_console('root-console');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
-        script_run('agama logs store -d /tmp');
-        script_run('agama config show > /tmp/agama_config.txt');
-        upload_logs('/tmp/agama-logs.tar.gz');
-        upload_logs('/tmp/agama_config.txt');
+        upload_agama_logs();
         record_info 'Reboot system to disk boot';
         enter_cmd 'reboot';
         # Swith back to sol console, then user can monitor the boot log

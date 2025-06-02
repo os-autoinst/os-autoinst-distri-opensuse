@@ -1,0 +1,6 @@
+---
+repos:
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    enabled: 'Yes'
+    filter: name

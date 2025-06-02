@@ -3,11 +3,6 @@
 shark.jpg: 	http://www.norbertwu.com/nwp/landscape-subjects-for-calendars/australia_web/originals/3869.JPG
 Cat.jpg: 	https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/767px-Cat_November_2010-1a.jpg
 Dog.jpg: 	https://pixabay.com/static/uploads/photo/2016/02/19/15/46/dog-1210559_960_720.jpg
-## models/
-mnasnet_1.3_224_09_07_2018.tgz: 		http://download.tensorflow.org/models/tflite/mnasnet_1.3_224_09_07_2018.tgz
-mobilenet_v1_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/mobilenet_v1_2018_08_02/mobilenet_v1_1.0_224_quant.tgz
-mobilenet_v1_1.0_224_quant_and_labels.zip: 	http://download.tensorflow.org/models/tflite/mobilenet_v1_1.0_224_quant_and_labels.zip
-mobilenet_v2_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224_quant.tgz
 ## Python files
 label_image.py: 	https://github.com/tensorflow/tensorflow/raw/master/tensorflow/lite/examples/python/label_image.py
 tvm/post_processing.py: https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html

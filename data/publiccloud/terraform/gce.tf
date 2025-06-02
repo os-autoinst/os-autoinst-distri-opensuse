@@ -1,15 +1,15 @@
 terraform {
   required_providers {
     google = {
-      version = "= 4.57.0"
+      version = "= 6.36.1"
       source  = "hashicorp/google"
     }
     random = {
-      version = "= 3.1.0"
+      version = "= 3.7.2"
       source  = "hashicorp/random"
     }
     external = {
-      version = "= 2.1.0"
+      version = "= 2.3.5"
       source  = "hashicorp/external"
     }
   }
@@ -124,7 +124,7 @@ resource "random_id" "service" {
 
 resource "google_compute_instance" "openqa" {
   count        = var.instance_count
-  name         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+  name         = "${var.name}-${element(random_id.service[*].hex, count.index)}"
   machine_type = var.type
 
   guest_accelerator {
@@ -137,7 +137,7 @@ resource "google_compute_instance" "openqa" {
   }
 
   boot_disk {
-    device_name = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+    device_name = "${var.name}-${element(random_id.service[*].hex, count.index)}"
     initialize_params {
       image = var.image_id
       size  = var.root-disk-size 
@@ -154,10 +154,10 @@ resource "google_compute_instance" "openqa" {
   }
 
   metadata = merge({
-    sshKeys             = "susetest:${file("${var.ssh_public_key}")}"
+    sshKeys             = "susetest:${file(var.ssh_public_key)}"
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service.*.hex, count.index)
+    openqa_created_id   = element(random_id.service[*].hex, count.index)
   }, var.tags)
 
   network_interface {
@@ -189,36 +189,36 @@ resource "google_compute_instance" "openqa" {
 
 resource "google_compute_attached_disk" "default" {
   count    = var.create-extra-disk ? var.instance_count : 0
-  disk     = element(google_compute_disk.default.*.self_link, count.index)
-  instance = element(google_compute_instance.openqa.*.self_link, count.index)
+  disk     = element(google_compute_disk.default[*].self_link, count.index)
+  instance = element(google_compute_instance.openqa[*].self_link, count.index)
 }
 
 resource "google_compute_disk" "default" {
-  name                      = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
+  name                      = "ssd-disk-${element(random_id.service[*].hex, count.index)}"
   count                     = var.create-extra-disk ? var.instance_count : 0
   type                      = var.extra-disk-type
   size                      = var.extra-disk-size
   physical_block_size_bytes = 4096
   labels = {
     openqa_created_by = var.name
-    openqa_created_id = element(random_id.service.*.hex, count.index)
+    openqa_created_id = element(random_id.service[*].hex, count.index)
   }
 }
 
 output "public_ip" {
-  value = google_compute_instance.openqa.*.network_interface.0.access_config.0.nat_ip
+  value = google_compute_instance.openqa[*].network_interface[0].access_config[0].nat_ip
 }
 
 output "vm_name" {
-  value = google_compute_instance.openqa.*.name
+  value = google_compute_instance.openqa[*].name
 }
 
 output "confidential_instance_config" {
-  value = google_compute_instance.openqa.*.confidential_instance_config
+  value = google_compute_instance.openqa[*].confidential_instance_config
 }
 
 output "project" {
-  value = "${var.project}"
+  value = var.project
 }
 
 output "region" {

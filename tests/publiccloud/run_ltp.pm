@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2024 SUSE LLC
+# Copyright 2018-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: perl-base ltp
@@ -17,7 +17,7 @@ use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos registercloudguest register_openstack);
+use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -49,6 +49,7 @@ sub upload_ltp_logs
 {
     my $self = shift;
     my $ltp_testsuite = $self->{ltp_command};
+    my @commands = split(/\s+/, $ltp_testsuite);
     my $log_file = Mojo::File::path('ulogs/results.json');
 
     record_info('LTP Logs', 'upload');
@@ -67,8 +68,16 @@ sub upload_ltp_logs
         my $whitelist = LTP::WhiteList->new();
 
         for my $result (@{$parser->results()}) {
-            if ($whitelist->override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
-                $result->{result} = 'softfail';
+            foreach my $command (@commands) {
+                if ($whitelist->override_known_failures(
+                        $self,
+                        {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}},
+                        $command,
+                        $result->{test_fqn}
+                )) {
+                    $result->{result} = 'softfail';
+                    last;
+                }
             }
         }
 
@@ -151,7 +160,8 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
-        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt'));
+        # The metal detector fails on GCP because it may return "google"
+        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
     } else {
         record_info('VM type', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
     }

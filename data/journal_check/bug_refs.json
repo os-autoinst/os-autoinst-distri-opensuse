@@ -198,9 +198,9 @@
         "type": "bug"
     },
     "bsc#1191575": {
-        "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns",
+        "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns|kernel: ACPI PPTT: PPTT table found, but unable to locate core.*\\)",
         "products": {
-            "sle": ["15-SP4", "15-SP5"]
+            "sle": ["15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
@@ -496,7 +496,7 @@
     "bsc#1218471": {
         "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": ["6.0", "6.1", "6.2"]
         },
         "type": "bug"
     },
@@ -884,6 +884,28 @@
     },
     "rpc.idmapd": {
         "description": "rpc.idmapd.*(Setting log level to 0|libnfsidmap: Unable to determine the NFSv4 domain|exiting on signal 15)",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "dracut-no-logger": {
+        "description": "No '\/dev\/log' or 'logger' included for syslog logging",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
+    "tpm-auth-session": {
+        "description": "kernel: tpm tpm0: auth session is active",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "block-dm-0-deprecated": {
+        "description": "kernel: block dm-0: the capability attribute has been deprecated",
         "products": {
             "sle": ["16.0"]
         },

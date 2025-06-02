@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'DBus fuzzer' test case of EAL4 test suite
@@ -50,7 +50,7 @@ sub run {
     record_info('Result of dfuzzer -l', Dumper(\@bus_list));
 
     # Analyse the results
-    my %hash_white_list = map { $_ => 1 } @eal4_test::white_list_for_dbus;
+    my %hash_white_list = map { $_ => 1 } @eal4_test::static_dbus_whitelist;
     my @unknown_bus_name = grep { !$hash_white_list{$_} } (@bus_list);
 
     # After filtering there should be no unknown name
@@ -83,7 +83,7 @@ sub run {
         # Check the test result
         my $filter_output = script_output("grep -B 1 -i 'exit status' $log_file");
 
-        my $exit_code = $filter_output =~ /Exit status:\s+(\d)/ ? $1 : 'unknow';
+        my $exit_code = $filter_output =~ /Exit status:\s+(\d)/ ? $1 : 'unknown';
 
         # Test case pass (0) or passed but there was a memory leak (3). See poo#154105
         next if ($exit_code == 0 || $exit_code == 3);

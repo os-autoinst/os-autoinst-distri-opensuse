@@ -155,7 +155,7 @@ sub run {
 }
 
 sub test_flags {
-    return {milestone => 1, fatal => 0};
+    return {milestone => 1, fatal => 1};
 }
 
 sub post_fail_hook {
@@ -171,7 +171,7 @@ sub post_fail_hook {
     ha_export_logs;
 
     # Execute the common part
-    $self->post_fail_hook;
+    $self->SUPER::post_fail_hook();
 }
 
 1;

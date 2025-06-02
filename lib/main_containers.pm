@@ -296,7 +296,11 @@ sub load_container_tests {
 
         if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
-        } else {
+        } elsif ($chart =~ m/private-registry/) {
+            set_var('K3S_ENABLE_TRAEFIK', 1);
+            loadtest 'containers/charts/privateregistry';
+        }
+        else {
             die "Unsupported HELM_CHART value";
         }
         return;
@@ -313,6 +317,7 @@ sub load_container_tests {
     }
 
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
+        $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
         return;
     }

@@ -1,11 +1,11 @@
 terraform {
   required_providers {
     aws = {
-      version = "= 5.14.0"
+      version = "= 5.98.0"
       source  = "hashicorp/aws"
     }
     random = {
-      version = "= 3.1.0"
+      version = "= 3.7.2"
       source  = "hashicorp/random"
     }
   }
@@ -97,8 +97,8 @@ resource "random_id" "service" {
 }
 
 resource "aws_key_pair" "openqa-keypair" {
-  key_name   = "openqa-${element(random_id.service.*.hex, 0)}"
-  public_key = file("${var.ssh_public_key}")
+  key_name   = "openqa-${element(random_id.service[*].hex, 0)}"
+  public_key = file(var.ssh_public_key)
 }
 
 resource "aws_instance" "openqa" {
@@ -114,7 +114,7 @@ resource "aws_instance" "openqa" {
   tags = merge({
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service.*.hex, count.index)
+    openqa_created_id   = element(random_id.service[*].hex, count.index)
   }, var.tags)
 
   root_block_device {
@@ -139,26 +139,26 @@ resource "aws_instance" "openqa" {
 resource "aws_volume_attachment" "ebs_att" {
   count       = var.create-extra-disk ? var.instance_count : 0
   device_name = "/dev/sdb"
-  volume_id   = element(aws_ebs_volume.ssd_disk.*.id, count.index)
-  instance_id = element(aws_instance.openqa.*.id, count.index)
+  volume_id   = element(aws_ebs_volume.ssd_disk[*].id, count.index)
+  instance_id = element(aws_instance.openqa[*].id, count.index)
 }
 
 resource "aws_ebs_volume" "ssd_disk" {
   count             = var.create-extra-disk ? var.instance_count : 0
-  availability_zone = element(aws_instance.openqa.*.availability_zone, count.index)
+  availability_zone = element(aws_instance.openqa[*].availability_zone, count.index)
   size              = var.extra-disk-size
   type              = var.extra-disk-type
   tags = merge({
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service.*.hex, count.index)
+    openqa_created_id   = element(random_id.service[*].hex, count.index)
   }, var.tags)
 }
 
 output "public_ip" {
-  value = aws_instance.openqa.*.public_ip
+  value = aws_instance.openqa[*].public_ip
 }
 
 output "vm_name" {
-  value = aws_instance.openqa.*.id
+  value = aws_instance.openqa[*].id
 }

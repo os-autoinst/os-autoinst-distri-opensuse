@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use lockapi;
 use Socket qw(inet_ntoa);
-use utils qw(systemctl file_content_replace zypper_call);
+use utils qw(systemctl file_content_replace zypper_call script_retry);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
 
 sub replace_text_in_ha_files {
@@ -138,8 +138,15 @@ sub run {
                 $lun = script_output 'echo \|$(ls ' . $lun . ')\|';
                 $lun =~ /\|([^\|]+)\|/;
                 $lun = $1;
-                assert_script_run "wipefs --all $lun";
-                assert_script_run "dd if=/dev/zero of=$lun bs=1M count=128";
+                # Need more time due to low performance on hmc_ppc64le workers
+                # Even with "ls $lun" returns 0 command 'dd' still reports sporadic error like:
+                #  "dd: failed to open '/xxx/*-lun-41': No such device or address"
+                # and command 'wipefs' reports sporadic error like:
+                #  "command 'wipefs --all /xxx/*-lun-4' timed out".
+                # So using 'script_retry'
+                script_retry "wipefs --all $lun", timeout => 300, delay => 5, retry => 10, die => 1, fail_message => "failed to wipefs $lun";
+                script_retry "ls $lun", delay => 5, retry => 10;
+                script_retry "dd if=/dev/zero of=$lun bs=1M count=128", timeout => 300, delay => 5, retry => 10, die => 1, fail_message => "failed to dd $lun";
             }
         }
 

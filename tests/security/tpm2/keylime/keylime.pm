@@ -16,8 +16,8 @@ use version_utils qw(is_sle);
 
 sub run {
     select_serial_terminal;
-    if (is_sle('=15-SP2')) {
-        record_info('SKIPPING TEST', "Skipping unsupported test on 15-SP2");
+    if (is_sle('=15-SP2') || is_sle('=16.0')) {
+        record_info('SKIPPING TEST', "Skipping unsupported test on 15-SP2 and 16.0");
         return;
     }
 
