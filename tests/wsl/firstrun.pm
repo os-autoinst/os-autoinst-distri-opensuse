@@ -59,7 +59,13 @@ sub license {
     # If we are enabling SLED, this screen will be checked
     # a second time after installing modules. That's the reason of the timeout
     assert_screen 'wsl-license', timeout => 240;
-    send_key 'alt-n';
+    # Different approaches for yast and jeos firstboot
+    if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+        send_key 'alt-n';
+    }
+    else {
+        send_ket 'ret';
+    }
 
     if (is_sle) {
         # license warning
