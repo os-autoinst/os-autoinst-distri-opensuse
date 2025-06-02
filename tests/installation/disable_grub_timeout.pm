@@ -78,9 +78,12 @@ sub run {
     $timeout = "60" if is_sle('<12-SP1');
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
-    # the UI doesn't accept -1 anymore
-    $timeout = 60 if (!is_sle && !is_leap && is_staging && (is_microos || is_uefi_boot));
-    type_string $timeout;
+    # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
+    if (!is_sle && !is_leap && is_staging && (is_microos || is_uefi_boot)) {
+        send_key 'alt-a';
+    } else {
+        type_string $timeout;
+    }
 
     wait_still_screen(1);
     # ncurses uses blocking modal dialog, so press return is needed
