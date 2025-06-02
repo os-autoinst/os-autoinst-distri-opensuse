@@ -64,7 +64,7 @@ sub license {
         send_key 'alt-n';
     }
     else {
-        send_ket 'ret';
+        send_key 'ret';
     }
 
     if (is_sle) {
