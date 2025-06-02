@@ -83,12 +83,23 @@ sub run {
             $self->run_in_powershell(
                 cmd => "wsl --install --legacy --distribution $WSL_version",
                 timeout => 300,
+                code => sub {
+                    assert_screen("yast2-wsl-firstboot-welcome", timeout => 300);
+                }
             );
         }
         else {
             $self->run_in_powershell(
                 cmd => "wsl --install --web-download --distribution $WSL_version",
                 timeout => 300,
+            );
+            # Web-download requires manual firstboot start
+            $self->run_in_powershell(
+                cmd => "wsl.exe --distribution $WSL_version",
+                code => sub {
+                    # change to jeos-wsl-firstboot-welcome
+                    assert_screen("jeos-wsl-firstboot-welcome", timeout => 300);
+                }
             );
         }
         if (check_var('DISTRI', 'sle')) {
@@ -97,12 +108,6 @@ sub run {
         }
         # check automatic firstboot launch logic
         # referenced in https://progress.opensuse.org/issues/177769
-        $self->run_in_powershell(
-            cmd => "wsl.exe --distribution $WSL_version",
-            code => sub {
-                assert_screen("yast2-wsl-firstboot-welcome", timeout => 300);
-            }
-        );
     } else {
         die("The value entered for WSL_INSTALL_FROM is not 'build' neither 'msstore'");
     }

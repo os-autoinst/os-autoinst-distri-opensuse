@@ -124,7 +124,7 @@ sub wsl_gui_pattern {
 
 sub run {
     # WSL installation is in progress
-    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 480;
+    assert_screen [qw(yast2-wsl-firstboot-welcome jeos-wsl-firstboot-welcome wsl-installing-prompt)], 480;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         # The new process of installing, appears in an already maximized window,
@@ -162,6 +162,9 @@ sub run {
         click_lastmatch if (check_screen('wsl-onedrive-popup'));
         # Back to CLI
         assert_screen 'wsl-linux-prompt';
+    } elsif (match_has_tag 'jeos-wsl-firstboot-welcome') {
+        # put in jeos test logic
+
     } else {
         #1) skip registration, we cannot register against proxy SCC
         assert_and_click 'window-max';
