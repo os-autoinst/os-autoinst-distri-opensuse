@@ -81,6 +81,14 @@ sub cleanup {
     return 1;
 }
 
+sub post_run_hook {
+    cleanup();
+}
+
+sub post_fail_hook {
+    cleanup();
+}
+
 sub test_flags {
     return {fatal => 0, milestone => 0, always_rollback => 1};
 }
