@@ -42,8 +42,15 @@ sub run {
     my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
     $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id";
 
-    # Configure default location and create Resource group
+    # Configure default location
     assert_script_run("az configure --defaults location=southeastasia");
+
+    # Check resource group creation/deletion
+    my $temp_rg = "openqa-cli-test-rg-$job_id-check-delete";
+    assert_script_run("az group create -n $temp_rg --tags '$tags'");
+    assert_script_run("az group delete --resource-group $temp_rg --yes", 360);
+
+    # Create Resource group
     assert_script_run("az group create -n $resource_group --tags '$tags'");
 
     # Pint - command line tool to query pint.suse.com to get the current image name
@@ -72,6 +79,14 @@ sub cleanup {
 
     script_run("az group delete --resource-group $resource_group --yes", 360);
     return 1;
+}
+
+sub post_run_hook {
+    cleanup();
+}
+
+sub post_fail_hook {
+    cleanup();
 }
 
 sub test_flags {
