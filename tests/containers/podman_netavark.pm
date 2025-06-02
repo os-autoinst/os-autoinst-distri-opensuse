@@ -15,6 +15,7 @@ use containers::common qw(install_packages);
 use Utils::Systemd qw(systemctl);
 use main_common qw(is_updates_tests);
 use publiccloud::utils qw(is_gce);
+use utils qw(script_retry);
 
 my ($ipv6_gateway, $ipv6_interface, $dev);
 
@@ -138,6 +139,7 @@ sub run {
         name6 => 'webserver_ctr_ipv6'
     };
 
+    script_retry("podman pull $ctr1->{image}", timeout => 300, delay => 60, retry => 3);
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
