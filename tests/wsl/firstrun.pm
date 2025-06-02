@@ -164,6 +164,14 @@ sub run {
         assert_screen 'wsl-linux-prompt';
     } elsif (match_has_tag 'jeos-wsl-firstboot-welcome') {
         # put in jeos test logic
+        send_key 'ret';
+        assert_screen 'wsl-select-system-locale';
+        send_key 'ret';
+        assert_screen 'wsl-select-keyboard-layout';
+        send_key 'ret';
+        # License handling
+        license;
+        assert_screen 'wsl-select-timezone';
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
