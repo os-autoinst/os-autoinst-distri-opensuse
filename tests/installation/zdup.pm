@@ -133,17 +133,21 @@ sub run {
                 my @lines = split /\n/, $out;
                 foreach my $package_name (keys %conflict_solutions) {
                     last if $conflict_solved;
+                    record_info $package_name;
                     my $regex = $conflict_solutions{$package_name};
                     foreach my $line (@lines) {
+                        last if $conflict_solved;
                         if ($line =~ /$regex/) {
-                            record_info "$package_name";
                             send_key $1;
+                            wait_still_screen 1;
                             send_key 'ret';
                             $conflict_solved = 1;
+                            save_screenshot;
                             last;
                         }
                     }
                 }
+                record_info "Debug: $conflict_solved";
                 # if we found a conflict and solved it, keep looping
                 next if $conflict_solved;
 
