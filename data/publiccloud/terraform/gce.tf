@@ -29,6 +29,7 @@ data "external" "gce_cred" {
 
 locals {
   zone = "${var.region}-${var.availability_zone}"
+  use_idpf = startswith(lower(var.type), "c3") || startswith(lower(var.type), "x4")
 }
 
 variable "cred_file" {
@@ -165,6 +166,7 @@ resource "google_compute_instance" "openqa" {
     subnetwork = "tf-subnetwork"
     access_config {}
     stack_type = var.stack_type
+    nic_type = local.use_idpf ? "IDPF" : null
   }
   can_ip_forward = true
 
