@@ -69,9 +69,6 @@ sub license {
 
     if (is_sle) {
         if (check_var('WSL_MSSTORE_LEGACY', '1')) {
-            send_key 'alt-n';
-        }
-        else {
             # license warning
             assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
             if (match_has_tag 'wsl-license-not-accepted') {
@@ -93,6 +90,10 @@ sub license {
             send_key 'alt-a';
             assert_screen 'license-accepted';
             send_key 'alt-n';
+        }
+        else {
+            assert_screen 'wsl-agree-license';
+            send_key 'ret';
         }
     }
 }
