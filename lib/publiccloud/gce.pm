@@ -85,10 +85,11 @@ sub get_gcp_guest_os_features {
 
     my @default_flags = (
         'MULTI_IP_SUBNET',
+        'IDPF'
         'SEV_CAPABLE',
         'SEV_LIVE_MIGRATABLE_V2',
         'UEFI_COMPATIBLE',
-        'VIRTIO_SCSI_MULTIQUEUE'
+        'VIRTIO_SCSI_MULTIQUEUE',
     );
 
     my $os_version;
