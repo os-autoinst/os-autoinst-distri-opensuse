@@ -38,6 +38,8 @@ sub set_svirt_domain_elements {
                   "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
                   "/assets/iso/" . get_required_var('ISO'));
             $cmdline .= " live.password=$testapi::password";
+            $cmdline .= " ip=dhcp";
+            $cmdline .= " rd.neednet";
         } else {
             $cmdline .= "install=$repo";
             $cmdline .= remote_install_bootmenu_params;
