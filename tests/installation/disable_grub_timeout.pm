@@ -79,7 +79,7 @@ sub run {
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
     # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
-    if (!is_sle && !is_leap && is_staging && (is_microos || is_uefi_boot)) {
+    if (!is_sle && !is_leap && is_staging && check_var("VERSION", "Staging:F") && (is_microos || is_uefi_boot)) {
         send_key 'alt-a';
     } else {
         type_string $timeout;
