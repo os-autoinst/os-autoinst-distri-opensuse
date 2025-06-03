@@ -36,7 +36,6 @@
       <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-filename-search_pattern-search_pattern-replace_with-replace_with">cloud_file_content_replace cloud_file_content_replace(filename =&gt; $filename, search_pattern =&gt; $search_pattern, replace_with =&gt; $replace_with);</a></li>
       <li><a href="#create_instance_data">create_instance_data</a></li>
       <li><a href="#deployment_name">deployment_name</a></li>
-      <li><a href="#delete_network_peering">delete_network_peering</a></li>
       <li><a href="#create_ansible_playbook_list">create_ansible_playbook_list</a></li>
       <li><a href="#azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</a></li>
       <li><a href="#get_hana_site_names">get_hana_site_names</a></li>
@@ -104,10 +103,6 @@ Return 0 if no internal error.</code></pre>
 <dl>
 
 <dt id="cleanup_called---flag-to-indicate-cleanup-status"><b>cleanup_called</b> - flag to indicate cleanup status</dt>
-<dd>
-
-</dd>
-<dt id="network_peering_present---flag-to-indicate-network-peering-presence"><b>network_peering_present</b> - flag to indicate network peering presence</dt>
 <dd>
 
 </dd>
@@ -331,11 +326,6 @@ class instances.</code></pre>
 
 <pre><code>Return a string to be used as value for the deployment_name variable
 in the qe-sap-deployment.</code></pre>
-
-<h2 id="delete_network_peering">delete_network_peering</h2>
-
-<pre><code>Delete network peering between SUT created with qe-sa-deployment
-and the IBS Mirror. Function is generic over all the Cloud Providers</code></pre>
 
 <h2 id="create_ansible_playbook_list">create_ansible_playbook_list</h2>
 
