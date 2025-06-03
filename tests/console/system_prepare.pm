@@ -25,6 +25,7 @@ use List::MoreUtils 'uniq';
 use migration 'modify_kernel_multiversion';
 use strict;
 use Utils::Architectures 'is_ppc64le';
+use Utils::Backends 'is_pvm';
 use warnings;
 use virt_autotest::hyperv_utils 'hyperv_cmd';
 use transactional qw(process_reboot);
@@ -86,7 +87,7 @@ sub run {
 
     # bsc#997263 - VMware screen resolution defaults to 800x600 and longer GRUB_TIMEOUT for better needle detection
     # Also for HA ha_cluster_crash_test test cases
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware') || check_var('CLUSTER_NAME', 'crashtest')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware') || (check_var('CLUSTER_NAME', 'crashtest') && is_pvm)) {
         #change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
         #change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
         change_grub_config('=.*', '=30', 'GRUB_TIMEOUT=');
