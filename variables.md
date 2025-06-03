@@ -71,6 +71,7 @@ DUD | string | | Defines url or relative path to the DUD file if in [data direct
 DUD_ADDONS | string | | Comma separated list of addons added using DUD.
 DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combined with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
+RUNTIME_TPM_ENROLLED | boolean | false | Alters behavior of need_unlock_after_bootloader, set at runtime by sdbootutil_enroll test
 ENCRYPT_CANCEL_EXISTING | boolean | false | Used to cancel activation of the encrypted partitions |
 SOFTLOCKUP_PANIC_DISABLED | boolean | false | Disables panicking on softlockup, provides a stack trace once a softlockup has been detected (see POO#50345)
 ETC_PASSWD | string | | Sets content for /etc/passwd, can be used to mimic existing users. Is used to test import of existing users on backends which have no shapshoting support (powerVM, zVM). Should be used together with `ENCRYPT_ACTIVATE_EXISTING` and `ETC_SHADOW`.

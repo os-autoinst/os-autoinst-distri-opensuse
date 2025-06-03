@@ -441,12 +441,17 @@ sub load_reboot_tests {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             # exclude this scenario for autoyast test with switched keyboard layaout. also exclude on ipmi as installation/first_boot will call wait_grub
-            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
+            if (is_bootloader_grub2) {
+                loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
+            } else {
+                loadtest "installation/simple_boot";
+            }
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
         }
-        if (get_var('ENCRYPT')) {
+        if (get_var('ENCRYPT') && is_bootloader_grub2) {
+            ## installation/disk_boot handles unlocking encrypted partitions
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
             if (is_s390x) {
@@ -1100,10 +1105,12 @@ sub load_inst_tests {
     if (installyaststep_is_applicable()) {
         loadtest "installation/resolve_dependency_issues" unless (get_var("DEPENDENCY_RESOLVER_FLAG") || get_var('KERNEL_64KB_PAGE_SIZE'));
         loadtest "installation/installation_overview";
+        loadtest 'installation/configure_bls' if (is_bootloader_sdboot || is_bootloader_grub2_bls);
+
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots on SLE <16 and Leap <16.0, so grub needs to timeout
         set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || (get_var('SELINUX') && (is_sle('<16') || is_leap('<16.0')));
-        loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT');
+        loadtest "installation/disable_grub_timeout" if is_bootloader_grub2 && !get_var('KEEP_GRUB_TIMEOUT');
         if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
@@ -1168,6 +1175,11 @@ sub load_consoletests {
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
+
+    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && (check_var("ENCRYPT", 1) && check_var('QEMUTPM', 1))) {
+        loadtest 'console/sdbootutil_enroll';
+    }
+
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 
     if (get_var('IBM_TESTS')) {
@@ -1983,7 +1995,7 @@ sub load_x11_installation {
     loadtest "console/system_prepare";
     loadtest "console/hostname" unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
-    loadtest "shutdown/grub_set_bootargs";
+    loadtest "shutdown/grub_set_bootargs" if is_bootloader_grub2;
     load_shutdown_tests;
 }
 
