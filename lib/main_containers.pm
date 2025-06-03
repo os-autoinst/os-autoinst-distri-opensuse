@@ -181,10 +181,7 @@ sub load_host_tests_docker {
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
     }
-    if (is_tumbleweed || is_microos) {
-        loadtest 'containers/buildx';
-        loadtest 'containers/rootless_docker';
-    }
+    loadtest 'containers/rootless_docker' if (is_tumbleweed);
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
         loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
@@ -194,6 +191,7 @@ sub load_host_tests_docker {
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
+    loadtest('containers/buildx', run_args => $run_args, name => $run_args->{runtime} . "_buildx") if (is_tumbleweed || is_sle('>=16.0') || is_leap('>16.0'));
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';
