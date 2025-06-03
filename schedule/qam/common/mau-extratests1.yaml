@@ -48,8 +48,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
-        # https://bugzilla.suse.com/show_bug.cgi?id=1243259
-        # - qe-core/systemd/journal_remote
+        - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP6:
         - console/openssl_nodejs
