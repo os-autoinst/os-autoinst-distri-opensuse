@@ -107,10 +107,7 @@ sub load_container_engine_privileged_mode {
 sub load_compose_tests {
     my ($run_args) = @_;
     return if (is_staging);
-    return unless (is_tumbleweed || is_microos);
-    # compose is only available on these arches:
-    # https://github.com/containers/podman/issues/21757
-    return unless (is_aarch64 || is_x86_64);
+    return unless (is_tumbleweed || is_sle('>=16.0') || is_sle_micro('>=6.0'));
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
 }
 
