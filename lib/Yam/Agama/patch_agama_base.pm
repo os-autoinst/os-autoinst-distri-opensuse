@@ -10,10 +10,12 @@ use strict;
 use warnings;
 use testapi;
 use y2_base 'save_upload_y2logs';
+use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_svirt);
 
 sub post_fail_hook {
     my ($self) = @_;
-    select_console 'root-console';
+    select_console 'agama-console' unless is_s390x() && is_svirt();
     y2_base::save_upload_y2logs($self, skip_logs_investigation => 1);
 }
 

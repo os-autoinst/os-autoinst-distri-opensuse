@@ -488,6 +488,7 @@ sub init_consoles {
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
         $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
+        $self->add_console('agama-console', 'tty-console', {tty => 8});
         $self->add_console('user-console', 'tty-console', {tty => 4});
         $self->add_console('log-console', 'tty-console', {tty => 5});
         $self->add_console('displaymanager', 'tty-console', {tty => 7});
@@ -539,7 +540,6 @@ sub init_consoles {
                 username => 'root',
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
             });
-
         $self->add_console(
             'root-console',
             'ssh-xterm',
@@ -636,6 +636,14 @@ sub init_consoles {
                     password => $testapi::password,
                     username => 'root'
                 });
+            $self->add_console(
+                'agama-console',
+                'ssh-xterm',
+                {
+                    hostname => $hostname,
+                    password => $testapi::password,
+                    username => 'root'
+                });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
             $self->add_console(
@@ -676,6 +684,14 @@ sub init_consoles {
 
         $self->add_console(
             'install-shell',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                username => 'root'
+            });
+        $self->add_console(
+            'agama-console',
             'ssh-xterm',
             {
                 hostname => $hostname,
@@ -810,12 +826,12 @@ sub get_console_info {
     if ($name eq 'user') {
         $user = $testapi::username;
     }
-    elsif ($name =~ /log|tunnel/) {
+    elsif ($name =~ /log|tunnel|agama/) {
         $user = 'root';
     }
 
     # Use ssh for generalhw(ssh/no VNC) for given consoles
-    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|install-shell|user-console|log-console/);
+    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|agama-console|install-shell|user-console|log-console/);
     return ($name, $user, $type);
 }
 
@@ -840,7 +856,7 @@ sub activate_console {
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
-    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|install-shell|log-console)$/);
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|agama-console|install-shell|log-console)$/);
     if ($console eq 'install-shell') {
         # Agama behaves similarly as LIVE but we set a fixed password there
         if (get_var("LIVECD") && !get_var('AGAMA')) {
@@ -992,7 +1008,7 @@ configure a timeout value different than default.
 
 sub console_selected {
     my ($self, $console, %args) = @_;
-    if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console =~ m/^(root-console|install-shell|log-console)$/) {
+    if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console =~ m/^(root-console|agama-console|install-shell|log-console)$/) {
         $console = 'root-ssh';
         my $ret = query_isotovideo('backend_select_console', {testapi_console => $console});
         die $ret->{error} if $ret->{error};

@@ -9,6 +9,8 @@ use strict;
 use warnings;
 use testapi qw(assert_script_run data_url get_required_var select_console script_run);
 use autoyast qw(expand_agama_profile generate_json_profile);
+use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_svirt);
 
 sub run {
     my $profile = get_required_var('AGAMA_PROFILE');
@@ -16,7 +18,7 @@ sub run {
       generate_json_profile($profile) :
       expand_agama_profile($profile);
 
-    select_console 'root-console';
+    select_console 'agama-console';
     assert_script_run("agama profile import $profile_url", timeout => 300);
 }
 

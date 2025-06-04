@@ -10,6 +10,8 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Logging 'save_and_upload_log';
+use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_svirt);
 
 sub post_fail_hook {
     upload_agama_logs();
@@ -17,7 +19,7 @@ sub post_fail_hook {
 }
 
 sub upload_agama_logs {
-    select_console 'root-console';
+    select_console 'agama-console' unless is_s390x() && is_svirt();
 
     if (script_run("test -d /run/agama/scripts") == 0) {
         script_run("tar czvf /tmp/agama_scripts.tar.gz /run/agama/scripts/*", {timeout => 60});
