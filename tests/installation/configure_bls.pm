@@ -50,11 +50,21 @@ sub run {
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
         assert_screen 'installation-bootloader-options';
-        # Select Timeout dropdown box and disable
-        send_key 'alt-t';
-        # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
-        record_soft_failure "boo#1216366: Disabling the timeout is not possible";
-        type_string "42";
+        my $is_textmode = check_var('VIDEOMODE', 'text');
+        # changes are for now confined to Staging:F
+        if (!is_sle && !is_leap && is_staging && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
+            # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
+            # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
+            send_key 'alt-a';
+            send_key 'spc' if $is_textmode;
+            wait_still_screen(1);
+        } else {
+            # Select Timeout dropdown box and disable
+            send_key 'alt-t';
+            # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
+            record_soft_failure "boo#1216366: Disabling the timeout is not possible";
+            type_string "42";
+        }
 
         wait_still_screen(1);
         save_screenshot;
