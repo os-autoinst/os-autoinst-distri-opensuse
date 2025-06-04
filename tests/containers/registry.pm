@@ -18,7 +18,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_tumbleweed is_leap);
+use version_utils qw(is_sle is_tumbleweed);
 use registration;
 use containers::common;
 use containers::utils;
@@ -58,7 +58,7 @@ sub registry_push_pull {
     assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # podman artifact needs podman 5.4.0
-    if ($engine->runtime eq "podman" && (is_tumbleweed) {
+    if ($engine->runtime eq "podman" && (is_tumbleweed || is_sle('>=16.0'))) {
         my $artifact = "localhost:5000/testing-artifact";
         assert_script_run "podman artifact add $artifact /etc/passwd";
         assert_script_run "podman artifact push $artifact";
