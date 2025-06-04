@@ -11,7 +11,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls);
+use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls is_sle is_leap is_staging);
 
 sub run {
     my ($self) = shift;
