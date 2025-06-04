@@ -18,8 +18,8 @@ sub run {
 
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded", 90;
-
-    if (check_var('VIDEOMODE', 'text')) {
+    my $is_textmode = check_var('VIDEOMODE', 'text');
+    if ($is_textmode) {
         # Select section booting on Installation Settings overview on text mode
         send_key $cmd{change};
         assert_screen 'inst-overview-options';
@@ -39,8 +39,7 @@ sub run {
     send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
     send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'down' if is_bootloader_grub2_bls;
     send_key 'ret', wait_screen_change => 1;    # Select the option
-    # workaround focus being stolen by bootloader field
-    send_key 'alt-d' if (is_bootloader_sdboot || is_bootloader_grub2_bls);
+    send_key 'alt-d' if (is_bootloader_sdboot || is_bootloader_grub2_bls);    # workaround focus being stolen by bootloader field
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
         assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
@@ -50,7 +49,6 @@ sub run {
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
         assert_screen 'installation-bootloader-options';
-        my $is_textmode = check_var('VIDEOMODE', 'text');
         # changes are for now confined to Staging:F
         if (!is_sle && !is_leap && is_staging && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
             # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
@@ -69,7 +67,7 @@ sub run {
         wait_still_screen(1);
         save_screenshot;
         # ncurses uses blocking modal dialog, so press return is needed
-        send_key 'ret' if check_var('VIDEOMODE', 'text');
+        send_key 'ret' if $is_textmode;
     }
 
     send_key $cmd{ok};
