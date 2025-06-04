@@ -79,7 +79,8 @@ sub run {
     if (!is_sle && !is_leap && is_staging && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
         # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
         # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
-        wait_screen_change(sub { send_key 'alt-a'; });
+        send_key 'alt-a';
+        send_key 'spc' if $is_textmode;
         wait_still_screen(1);
     } else {
         # Select Timeout dropdown box and disable
