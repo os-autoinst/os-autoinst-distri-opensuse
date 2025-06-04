@@ -172,11 +172,8 @@ sub load_host_tests_docker {
         loadtest 'containers/zypper_docker' if (is_sle("<15-SP6") || is_leap("<15.6"));
         loadtest 'containers/docker_runc';
     }
-    unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro || is_staging) {
-        # These tests use packages from Package Hub, so they are applicable
-        # to maintenance jobs or new products after Beta release
-        # PackageHub is not available in SLE Micro | MicroOS
-        loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
+    unless (is_staging || is_transactional || is_sle(">=16.0") || is_sle("<15-sp4")) {
+        loadtest 'containers/registry';
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
