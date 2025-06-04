@@ -921,11 +921,9 @@ sub wait_boot {
         }
     } elsif (is_bootloader_sdboot) {
         assert_screen 'systemd-boot', 300;
-        save_screenshot;    # Show what's selected for booting
         send_key('ret');
     } elsif (is_bootloader_grub2_bls) {
         assert_screen('grub2-bls', 300);
-        save_screenshot;    # Show what's selected for booting
         send_key('ret');
     } else {
         die 'Unknown bootloader';
