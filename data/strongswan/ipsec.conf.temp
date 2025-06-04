@@ -13,4 +13,4 @@ conn host-host
     left=%LOCAL_IP%
     leftcert=%HOST_CERT_PEM%
     right=%REMOTE_IP%
-    rightid="C=CN, O=SUSEQA, CN=%HOST%"
+    rightid="C=DE, O=SUSEQA, CN=%HOST%"
