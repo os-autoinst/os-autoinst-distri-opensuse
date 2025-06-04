@@ -188,6 +188,7 @@ sub run {
         # License handling
         license;
         assert_screen 'wsl-select-timezone';
+        send_key 'ret';
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
