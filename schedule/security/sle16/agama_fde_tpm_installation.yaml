@@ -8,6 +8,9 @@ schedule:
   - console/validate_lvm
   - console/validate_encrypt
   - yam/validate/validate_tpm_fde
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
 test_data:
   crypttab:
     num_devices_encrypted: 1
