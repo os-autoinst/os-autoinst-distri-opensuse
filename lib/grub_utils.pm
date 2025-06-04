@@ -37,11 +37,7 @@ sub grub_test {
     unlock_bootloader;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
-    if (is_bootloader_grub2_bls) {
-        assert_screen('grub2-bls', $timeout);
-    } else {
-        assert_screen('grub2', $timeout);
-    }
+    assert_screen(is_bootloader_grub2_bls ? 'grub2-bls' : 'grub2', $timeout);
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
