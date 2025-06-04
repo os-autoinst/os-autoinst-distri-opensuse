@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2024 SUSE LLC
+# Copyright 2012-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: docker-distribution-registry | distribution-registry
+# Package: registry
 # Summary: Test container registry package
 # - distribution-registry package can be installed
 # - distribution-registry daemon can be started
@@ -58,7 +58,7 @@ sub registry_push_pull {
     assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # podman artifact needs podman 5.4.0
-    if ($engine->runtime eq "podman" && is_tumbleweed) {
+    if ($engine->runtime eq "podman" && (is_tumbleweed) {
         my $artifact = "localhost:5000/testing-artifact";
         assert_script_run "podman artifact add $artifact /etc/passwd";
         assert_script_run "podman artifact push $artifact";
@@ -72,39 +72,18 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    # Install and check that it's running
-    my $pkg = 'distribution-registry';
-    if (is_sle(">=15-SP4")) {
-        activate_containers_module;
-    } elsif (is_sle("<=15")) {
-        record_info("SKIP", "docker-distribution-registry is not available on this version of SLE");
-        return;
-    } elsif (is_sle(">15")) {
-        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-        $pkg = 'docker-distribution-registry';
-    } elsif (is_leap("<15.4")) {
-        $pkg = 'docker-distribution-registry';
-    }
-
-    zypper_call "se -v $pkg";
-    zypper_call "in $pkg";
-    systemctl '--now enable registry';
-    systemctl 'status registry';
-
-    script_retry 'curl http://127.0.0.1:5000/v2/_catalog', delay => 3, retry => 10;
-    assert_script_run 'curl -s http://127.0.0.1:5000/v2/_catalog | grep repositories';
-
-    # Run docker tests
-    my $docker = $self->containers_factory('docker');
+    my $registry = 'registry.opensuse.org/opensuse/registry:latest';
     my $image = 'registry.opensuse.org/opensuse/busybox';
-    registry_push_pull(image => $image, runtime => $docker);
-    $docker->cleanup_system_host();
 
-    # Run podman tests
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        my $podman = $self->containers_factory('podman');
-        registry_push_pull(image => $image, runtime => $podman);
-        $podman->cleanup_system_host();
+    foreach my $runtime ('docker', 'podman') {
+        my $engine = $self->containers_factory($runtime);
+        script_retry "$runtime pull $image", timeout => 300, delay => 60, retry => 3;
+        assert_script_run "$runtime run -d --name registry --net=host -p 5000:5000";
+        script_retry 'curl http://127.0.0.1:5000/v2/_catalog', delay => 3, retry => 10;
+        assert_script_run 'curl -s http://127.0.0.1:5000/v2/_catalog | grep repositories';
+        registry_push_pull(image => $image, runtime => $docker);
+        script_run "$runtime rm -vf registry";
+        $engine->cleanup_system_host();
     }
 }
 
