@@ -76,7 +76,7 @@ sub run {
     $timeout = "60" if is_sle('<12-SP1');
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     # changes are for now confined to Staging:F
-    if (!is_sle && !is_leap && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
+    if (is_bootloader_grub2_bls || is_bootloader_sdboot) {
         # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
         # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
         send_key 'alt-a';
