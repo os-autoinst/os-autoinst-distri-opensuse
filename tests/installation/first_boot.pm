@@ -18,12 +18,26 @@ use warnings;
 use base 'bootbasetest';
 use testapi;
 use x11utils 'turn_off_plasma_tooltips';
+use Utils::Backends 'is_qemu';
 
+sub qemu_backend_ifup_check {
+    # We need do make sure the NIC is up and ip address is allocated aftere installation
+    # for VM with QEMU backend, see https://progress.opensuse.org/issues/183446
+    if (is_qemu && get_var('IFUP_CHECK', '1')) {
+        my $vm_ip_addr = get_var('VM_IP_ADDR', '10.0.2.15');
+        my $vm_ip_route = get_var('VM_IP_ROUTE', '10.0.2.2');
+        select_console 'root-console';
+        die 'No ip addresse is allocated' unless (script_run("ip a | grep $vm_ip_addr") == 0);
+        die 'The gateway is not accessible' unless (script_run("ping -c 3 $vm_ip_route") == 0);
+        select_console('x11', await_console => 0) if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde'));
+    }
+}
 sub run {
     shift->wait_boot_past_bootloader;
     # This only works with generic-desktop. In the opensuse-welcome case,
     # the opensuse-welcome module will handle it instead.
     turn_off_plasma_tooltips if match_has_tag('generic-desktop');
+    qemu_backend_ifup_check();
 }
 
 sub test_flags {
