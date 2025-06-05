@@ -14,7 +14,7 @@ use testapi;
 
 sub run {
     # Cleanup logs of libvirt daemons
-    my @libvirt_daemons = qw(libvirtd virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd virtlogd);
+    my @libvirt_daemons = qw(libvirtd virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtlockd virtlogd);
     foreach (@libvirt_daemons) {
         my $log_file = "/var/log/libvirt/$_.log";
         if (script_run("test -f $log_file") == 0) {
