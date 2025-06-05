@@ -56,7 +56,8 @@ sub run {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $sbd_device = get_lun;
     my $sbd_cfg = '/etc/sysconfig/sbd';
-    my $unicast_opt = get_var("HA_UNICAST") ? '-u' : '';
+    my $unicast_arg = is_sle('>=16') ? '--transport udpu' : '-u';
+    my $unicast_opt = get_var("HA_UNICAST") ? $unicast_arg : '';
     my $quorum_policy = 'stop';
     my $fencing_opt = "-s \"$sbd_device\"";
     my $qdevice_opt = '';
