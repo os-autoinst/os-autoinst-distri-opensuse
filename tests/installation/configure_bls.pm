@@ -39,24 +39,23 @@ sub run {
     send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
     send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'down' if is_bootloader_grub2_bls;
     send_key 'ret', wait_screen_change => 1;    # Select the option
-    send_key 'alt-d' if (is_bootloader_sdboot || is_bootloader_grub2_bls);    # workaround focus being stolen by bootloader field
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
-        assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
-        # Depending on an optional button "release notes" we need to press "tab"
-        # to go to the first tab
-        send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
+        # In the case the bootloader selected is the same we're expecting, we have to cycle
+        # through the different controls in the ui to reach the highligted tab, since pressing
+        # enter, does not move us to the 'OK' button anymore.
+        send_key_until_needlematch 'inst-bootloader-settings-first_tab_highlighted', 'tab';
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
-        assert_screen 'installation-bootloader-options';
         # changes are for now confined to Staging:F
-        if (!is_sle && !is_leap && is_staging && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
+        if (!is_sle && !is_leap && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
             # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
             # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
             send_key 'alt-a';
             send_key 'spc' if $is_textmode;
             wait_still_screen(1);
         } else {
+            # Keep old behavior around for now
             # Select Timeout dropdown box and disable
             send_key 'alt-t';
             # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
