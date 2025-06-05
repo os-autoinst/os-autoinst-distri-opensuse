@@ -833,6 +833,7 @@ Returns true if the SUT uses GRUB2 as bootloader
 =cut
 
 sub is_bootloader_grub2 {
+    return 0 if is_staging && check_var("VERSION", "Staging:F") && check_var('UEFI', '1') && is_tumbleweed;
     return get_var('BOOTLOADER', 'grub2') eq 'grub2';
 }
 
@@ -854,7 +855,7 @@ Returns true if the SUT uses GRUB2-BLS as bootloader
 
 sub is_bootloader_grub2_bls {
     # the BOOTLOADER variable probably should be set in main.pm by default
-    return 1 if is_staging && check_var("VERSION", "Staging:F") && get_var('UEFI') && is_tumbleweed;
+    return 1 if is_staging && check_var("VERSION", "Staging:F") && check_var('UEFI', '1') && is_tumbleweed;
     return get_var('BOOTLOADER', 'grub2') eq 'grub2-bls';
 }
 
