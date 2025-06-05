@@ -304,6 +304,7 @@ sub load_container_tests {
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
         $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
+        loadtest 'containers/logs';
         return;
     }
 
@@ -352,6 +353,7 @@ sub load_container_tests {
             loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
             loadtest 'containers/apptainer' if (/apptainer/i);
+            loadtest 'containers/logs';
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
