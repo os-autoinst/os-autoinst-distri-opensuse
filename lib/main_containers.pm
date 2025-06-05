@@ -170,7 +170,6 @@ sub load_host_tests_docker {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is only available on SLES < 15-SP6
         loadtest 'containers/zypper_docker' if (is_sle("<15-SP6") || is_leap("<15.6"));
-        loadtest 'containers/docker_runc';
     }
     unless (is_staging || is_transactional || is_sle(">=16.0") || is_sle("<15-sp4")) {
         loadtest 'containers/registry';
