@@ -7,6 +7,8 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

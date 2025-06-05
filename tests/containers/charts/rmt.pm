@@ -12,6 +12,8 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use File::Basename qw(dirname);
 use testapi;
