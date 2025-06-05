@@ -833,7 +833,7 @@ Returns true if the SUT uses GRUB2 as bootloader
 =cut
 
 sub is_bootloader_grub2 {
-    return 0 if check_var("VERSION", "Staging:F") && check_var('UEFI', '1') && is_tumbleweed;
+    return 0 if check_var("VERSION", "Staging:F") && check_var('UEFI', '1') && (is_tumbleweed || is_microos);
     return get_var('BOOTLOADER', 'grub2') eq 'grub2';
 }
 
