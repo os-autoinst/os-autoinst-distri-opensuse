@@ -9,7 +9,7 @@
 #  * After client connects, both sides perform ping, then disconnect
 #  * Easy-RSA CA infrastructure is generated, server configured and started
 #  * After client connects, both sides perform ping, then disconnect
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE Security <none@suse.de>
 
 use base 'consoletest';
 use testapi;
@@ -24,8 +24,12 @@ use repo_tools 'add_qa_head_repo';
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use strict;
 use warnings;
+use Utils::Architectures;
+use network_utils 'iface';
 
 sub run {
+    my $server_ip = get_var('SERVER_IP', '10.0.2.101');
+    my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
     barrier_create 'SETUP_DONE', 2;
     barrier_create('OPENVPN_STATIC_STARTED', 2);
     barrier_create('OPENVPN_STATIC_FINISHED', 2);
@@ -37,6 +41,12 @@ sub run {
 
     # Install runtime dependencies
     zypper_call("in iputils");
+
+    # We don't run setup_multimachine in s390x, but we need to know the server and client's
+    # ip address, so we add a known ip to NETDEV
+    my $netdev = iface();
+    assert_script_run("ip addr add $server_ip/24 dev $netdev") if (is_s390x);
+    assert_script_run('systemctl restart sshd');
 
     # Install openvpn, generate static key. On openSUSE or SLE>=15-SP2 we have a newer version in PHub compared to qa_head.
     # SLE16 has no easy-rsa.
@@ -54,6 +64,14 @@ sub run {
 
     # Remove unsupported configuration options on older SLE versions
     assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" static.conf') if (is_sle('<15-sp4'));
+
+    # Send client key
+    if (is_s390x) {
+        assert_script_run 'firewall-cmd --zone=public --permanent --add-port=8008/tcp';
+        assert_script_run 'firewall-cmd --zone=public --permanent --add-port=1194/udp';
+        assert_script_run 'firewall-cmd --reload';
+    }
+    my $server_pid = background_script_run "python3 -m http.server -b $server_ip 8008";
 
     # Start the server
     systemctl('start openvpn@static');
@@ -116,6 +134,9 @@ sub run {
     systemctl('stop openvpn@ca');
 
     wait_for_children();
+
+    # Delete the ip that we added if arch is s390x
+    assert_script_run("ip addr del $server_ip/24 dev $netdev") if (is_s390x);
 }
 
 1;
