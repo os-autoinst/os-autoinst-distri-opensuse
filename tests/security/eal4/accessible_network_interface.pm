@@ -14,11 +14,12 @@ use testapi;
 use utils;
 use eal4_test;
 use Data::Dumper;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # The result of 'lsof -i -P' likes:
     #   COMMAND    PID     USER   FD   TYPE DEVICE SIZE/OFF NODE NAME

@@ -13,6 +13,12 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Architectures 'is_s390x';
+use serial_terminal 'select_serial_terminal';
+
+use constant {
+    USER_TERMINAL => 0,
+    ROOT_TERMINAL => 1,
+};
 
 my $log_file = '/tmp/syscalls_output.log';
 
@@ -26,7 +32,7 @@ sub run {
         return;
     }
 
-    select_console 'root-console';
+    select_serial_terminal ROOT_TERMINAL;
 
     my $exe_file = 'thrash';
     assert_script_run('cd /usr/local/eal4');
@@ -35,7 +41,7 @@ sub run {
     assert_script_run("chmod 755 $exe_file");
 
     # The test needs to run by non-root
-    select_console 'user-console';
+    select_serial_terminal USER_TERMINAL;
 
     my $test_dir = 'test_syscall_thrasher';
     assert_script_run("mkdir -p $test_dir");
