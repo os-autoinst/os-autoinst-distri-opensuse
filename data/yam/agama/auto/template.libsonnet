@@ -1,5 +1,6 @@
 local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
+local dasd_lib = import 'lib/dasd.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
@@ -7,6 +8,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
+         dasd=false,
          localization='',
          packages='',
          patterns='',
@@ -22,6 +24,7 @@ function(bootloader=false,
          storage='',
          user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  [if dasd == true then 'dasd']: dasd_lib.dasd(),
   [if localization == true then 'localization']: base_lib['localization'],
   [if patterns != '' || packages != '' then 'software']: std.prune({
     patterns: if patterns != '' then std.split(patterns, ','),
