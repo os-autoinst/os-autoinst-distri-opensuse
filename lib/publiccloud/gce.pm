@@ -60,7 +60,23 @@ sub get_gcp_guest_os_features {
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
         ],
+        'SLES15-SP3' => [
+            'GVNIC',
+            'SEV_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
         'SLES15-SP4' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP5' => [
             'GVNIC',
             'IDPF',
             'SEV_CAPABLE',
@@ -81,14 +97,17 @@ sub get_gcp_guest_os_features {
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
         ],
-    );
-
-    my @default_flags = (
-        'MULTI_IP_SUBNET',
-        'SEV_CAPABLE',
-        'SEV_LIVE_MIGRATABLE_V2',
-        'UEFI_COMPATIBLE',
-        'VIRTIO_SCSI_MULTIQUEUE'
+        'SLES15-SP7' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'TDX_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
     );
 
     my $os_version;
@@ -96,12 +115,9 @@ sub get_gcp_guest_os_features {
         $os_version = uc($1);
     }
 
-    my @features = @default_flags;
-    if ($os_version && exists $guest_os_features{$os_version}) {
-        @features = @{$guest_os_features{$os_version}};
-    }
+    die "Unsupported OS: $os_version" unless ($os_version && exists $guest_os_features{$os_version});
 
-    return join(',', @features);
+    return join(',', @{$guest_os_features{$os_version}});
 }
 
 

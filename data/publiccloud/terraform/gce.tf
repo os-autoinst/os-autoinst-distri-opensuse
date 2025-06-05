@@ -29,7 +29,6 @@ data "external" "gce_cred" {
 
 locals {
   zone = "${var.region}-${var.availability_zone}"
-  use_idpf = startswith(lower(var.type), "c3") || startswith(lower(var.type), "x4")
 }
 
 variable "cred_file" {
@@ -51,12 +50,12 @@ variable "type" {
 # https://cloud.google.com/compute/docs/regions-zones
 variable "region" {
   description = "The region where the objects will be deployed to."
-  default = "europe-west1"
+  default     = "europe-west1"
 }
 
 variable "availability_zone" {
   description = "The availability zone of the specified region. Used by zone-specific resources like DBs and disks."
-  default = "b"
+  default     = "b"
 }
 
 variable "image_id" {
@@ -114,6 +113,11 @@ variable "stack_type" {
   default = "IPV4_ONLY"
 }
 
+variable "nic_type" {
+  type    = string
+  default = null
+}
+
 
 resource "random_id" "service" {
   count = var.instance_count
@@ -141,7 +145,7 @@ resource "google_compute_instance" "openqa" {
     device_name = "${var.name}-${element(random_id.service[*].hex, count.index)}"
     initialize_params {
       image = var.image_id
-      size  = var.root-disk-size 
+      size  = var.root-disk-size
     }
   }
 
@@ -166,7 +170,7 @@ resource "google_compute_instance" "openqa" {
     subnetwork = "tf-subnetwork"
     access_config {}
     stack_type = var.stack_type
-    nic_type = local.use_idpf ? "IDPF" : null
+    nic_type   = var.nic_type
   }
   can_ip_forward = true
 

@@ -524,6 +524,8 @@ sub terraform_apply {
         } elsif (is_gce) {
             my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
             $vars{stack_type} = $stack_type;
+            my $nic_type = get_var('PUBLIC_CLOUD_GCE_NIC_TYPE', '');
+            $vars{nic_type} = $nic_type if $nic_type;
             $vars{availability_zone} = $self->provider_client->availability_zone;
         }
         $vars{instance_count} = $args{count};
