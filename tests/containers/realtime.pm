@@ -7,6 +7,8 @@
 # Summary: Test RT workload in a container
 # Maintainer: qa-c@suse.de
 
+use strict;
+use warnings;
 use Mojo::Base qw(containers::basetest);
 use testapi;
 use serial_terminal qw(select_serial_terminal);

@@ -7,6 +7,8 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::basetest;
+use strict;
+use warnings;
 use containers::docker;
 use containers::podman;
 use containers::containerd_crictl;

@@ -12,6 +12,8 @@
 #   be used by OpenQA to represent the results in "External results"
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'opensusebasetest';
 use XML::LibXML;
 use testapi;
