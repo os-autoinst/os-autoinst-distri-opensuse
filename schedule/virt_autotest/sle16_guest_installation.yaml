@@ -8,7 +8,8 @@ schedule:
   - virt_autotest/unified_guest_installation
   - virt_autotest/set_config_as_glue
   - '{{uefi_guest_verification}}'
-  - '{{sev-es_guest_verification}}'
+  - '{{sev_snp_guest_verification}}'
+  - '{{sev_es_guest_verification}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -19,6 +20,11 @@ conditional_schedule:
     VIRT_UEFI_GUEST_INSTALL:
       1:
         - virt_autotest/uefi_guest_verification
+  sev_snp_guest_verification:
+    VIRT_SEV_SNP_GUEST_INSTALL:
+      1:
+        - virt_autotest/sev_snp_guest_verification
+  sev_es_guest_verification:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
         - virt_autotest/sev_es_guest_verification
