@@ -11,15 +11,15 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls);
+use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls is_sle is_leap is_staging);
 
 sub run {
     my ($self) = shift;
 
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded", 90;
-
-    if (check_var('VIDEOMODE', 'text')) {
+    my $is_textmode = check_var('VIDEOMODE', 'text');
+    if ($is_textmode) {
         # Select section booting on Installation Settings overview on text mode
         send_key $cmd{change};
         assert_screen 'inst-overview-options';
@@ -41,23 +41,32 @@ sub run {
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
-        assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
-        # Depending on an optional button "release notes" we need to press "tab"
-        # to go to the first tab
-        send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
+        # In the case the bootloader selected is the same we're expecting, we have to cycle
+        # through the different controls in the ui to reach the highligted tab, since pressing
+        # enter, does not move us to the 'OK' button anymore.
+        send_key_until_needlematch 'inst-bootloader-settings-first_tab_highlighted', 'tab';
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
-        assert_screen 'installation-bootloader-options';
-        # Select Timeout dropdown box and disable
-        send_key 'alt-t';
-        # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
-        record_soft_failure "boo#1216366: Disabling the timeout is not possible";
-        type_string "42";
+        # changes are for now confined to Staging:F
+        if (!is_sle && !is_leap && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
+            # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
+            # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
+            send_key 'alt-a';
+            send_key 'spc' if $is_textmode;
+            wait_still_screen(1);
+        } else {
+            # Keep old behavior around for now
+            # Select Timeout dropdown box and disable
+            send_key 'alt-t';
+            # "-1" does not work and "menu-force" is not accepted, so use something else for the time being as workaround
+            record_soft_failure "boo#1216366: Disabling the timeout is not possible";
+            type_string "42";
+        }
 
         wait_still_screen(1);
         save_screenshot;
         # ncurses uses blocking modal dialog, so press return is needed
-        send_key 'ret' if check_var('VIDEOMODE', 'text');
+        send_key 'ret' if $is_textmode;
     }
 
     send_key $cmd{ok};
