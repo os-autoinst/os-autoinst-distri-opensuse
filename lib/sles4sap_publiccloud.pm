@@ -934,6 +934,12 @@ sub deployment_name {
 
 =item B<ptf_container> - name of the container for PTF files (optional)
 
+=item B<ibsm_ip> - IP address of the IBS Mirror  (optional)
+
+=item B<download_hostname> - hostname associated to the IBS Mirror IP address on each hana node (optional)
+
+=item B<repos> - comma separated list of repos (optional)
+
 =back
 =cut
 
@@ -962,7 +968,23 @@ sub create_playbook_section_list {
         push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
+    }
 
+    # The presence of ha_enabled is only a trick to detect that
+    # code is running in saptune mr_test scenario.
+    # For the moment this scenario is ot using Ansible,
+    # and the scenario detection is implicitly delegated to this function.
+    # No playbooks has to be added in saptune mr_test scenario,
+    # to avoid conf.yaml validation failue.
+    if ($args{ha_enabled} && $args{ibsm_ip} && $args{download_hostname} && $args{repos}) {
+        my @ibsm_args = ('ibsm.yaml');
+        push @ibsm_args, "-e ibsm_ip='$args{ibsm_ip}'";
+        push @ibsm_args, "-e download_hostname='$args{download_hostname}'";
+        push @ibsm_args, "-e repos='$args{repos}'";
+        push @playbook_list, join(' ', @ibsm_args);
+    }
+
+    unless ($args{registration} eq 'noreg') {
         # Add "fully patch system" module after registration module and before test start/configuration modules.
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.

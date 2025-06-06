@@ -36,6 +36,7 @@ use sles4sap::qesap::qesapdeployment;
 use sles4sap::azure_cli;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
+use qam;
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -208,6 +209,13 @@ sub run {
             $playbook_configs{registration} = 'suseconnect' if (is_byos() && $reg_mode !~ 'noreg');
         }
     }
+
+    $playbook_configs{ibsm_ip} = get_var('IBSM_IP') if get_var('IBSM_IP');
+    $playbook_configs{download_hostname} = get_var('REPO_MIRROR_HOST') if get_var('REPO_MIRROR_HOST');
+
+    my @repos = get_test_repos();
+    $playbook_configs{repos} = join(',', @repos);
+
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
 
     # Prepare QESAP deployment
