@@ -189,6 +189,10 @@ subtest 'bootloader_tests' => sub {
     set_var('VERSION', 'Staging:F');
     ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
 
+    set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
+    ok get_default_bootloader eq 'grub2', "Container host image is grub2";
+    set_var('FLAVOR', 'Server-DVD');
+
     set_var('UPGRADE', 1);
     ok get_default_bootloader eq 'grub2', "Upgrading Tumbleweed on UEFI is grub2";
     set_var('UPGRADE', undef);
