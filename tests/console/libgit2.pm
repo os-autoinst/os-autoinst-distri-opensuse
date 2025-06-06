@@ -24,12 +24,12 @@ my $python_sub_version;
 
 sub run {
     # Package 'pygit2' requires PackageHub is available
-    return if (!is_phub_ready() && is_sle);
+    return if (!is_phub_ready() && is_sle('<16'));
 
     select_serial_terminal;
     return if (is_sle('<15-sp6') || is_leap('<15.6'));
 
-    if (is_sle) {
+    if (is_sle('<16')) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
         add_suseconnect_product('sle-module-python3');
