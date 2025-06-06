@@ -550,6 +550,12 @@ sub create_guest {
     my ($guest, $method) = @_;
     my $v_type = $guest->{name} =~ /HVM/ ? "-v" : "";
 
+    # Ensure UEFI firmware package is installed if this guest requires UEFI mode
+    if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi' && script_run("rpm -q ovmf") != 0) {
+        record_info("Installing OVMF", "Installing OVMF package for UEFI support for guest $guest->{name}");
+        zypper_call("in ovmf");
+    }
+
     my $name = $guest->{name};
     my $location = $guest->{location};
     my $autoyast = $guest->{autoyast};
@@ -576,6 +582,11 @@ sub create_guest {
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network bridge=br0 --autostart --location=$location --wait -1";
+        # Configure boot firmware based on guest configuration
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
+            $virtinstall .= " --boot firmware=efi";
+            record_info("Boot Firmware", "Guest $name configured for EFI boot");
+        }
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
