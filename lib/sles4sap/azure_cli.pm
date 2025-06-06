@@ -41,6 +41,7 @@ our @EXPORT = qw(
   az_vm_as_create
   az_img_from_vhd_create
   az_vm_create
+  az_vm_create_crash
   az_vm_list
   az_vm_openport
   az_vm_wait_cloudinit
@@ -69,6 +70,7 @@ our @EXPORT = qw(
   az_keyvault_list
   az_keyvault_secret_list
   az_keyvault_secret_show
+  az_get_publicip
 );
 
 
@@ -427,6 +429,20 @@ sub az_network_publicip_get {
     return script_output($az_cmd);
 }
 
+#az vm show --show-details --resource-group $MY_RESOURCE_GROUP_NAME --name $MY_VM_NAME --query publicIps --output tsv
+sub az_get_publicip {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ', 'az vm show',
+        '--show-details',
+        '--resource-group', $args{resource_group},
+        "--name", $args{name},
+        "--query publicIps",
+        '-o tsv');
+    return script_output($az_cmd);
+}
+
 =head2 az_network_nat_gateway_create
 
     az_network_nat_gateway_create(
@@ -773,6 +789,31 @@ sub az_vm_create {
     } else {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
+
+    assert_script_run(join(' ', @vm_create), timeout => 900);
+}
+
+sub az_vm_create_crash {
+    my (%args) = @_;
+    foreach (qw(resource_group name image)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+
+    my @vm_create = ('az vm create');
+
+    push @vm_create, '--resource-group', $args{resource_group};
+    push @vm_create, '-n', $args{name};
+    push @vm_create, '--image', $args{image};
+
+    $args{size} //= 'Standard_B1s';
+    push @vm_create, '--size', $args{size};
+
+    push @vm_create, '-l', $args{region} if $args{region};
+
+    push @vm_create, '--admin-username', $args{username} if $args{username};
+    push @vm_create, '--generate-ssh-keys';
+    push @vm_create, '--assign-identity';
+    push @vm_create, '--public-ip-sku Standard';
 
     assert_script_run(join(' ', @vm_create), timeout => 900);
 }
