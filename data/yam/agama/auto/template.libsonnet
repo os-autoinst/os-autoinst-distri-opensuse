@@ -6,18 +6,18 @@ local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
-function(registration_code_ha='',
-         bootloader=false,
+function(bootloader=false,
          packages='',
          patterns='',
          product='',
          registration_code='',
+         registration_code_ha='',
          registration_url='',
          root_password=true,
          scripts_pre='',
          scripts_post_partitioning='',
          scripts_post='',
-         sslCertificates='false',
+         ssl_certificates=false,
          storage='',
          user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
@@ -34,7 +34,7 @@ function(registration_code_ha='',
     [if registration_url != '' then 'registrationUrl']: registration_url,
   },
   root: base_lib.root(root_password),
-  [if sslCertificates == true then 'security']: security_lib.sslCertificates(),
+  [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
   [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
     [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
     [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
