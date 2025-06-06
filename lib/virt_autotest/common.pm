@@ -250,11 +250,19 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     } elsif (is_sle('=15-SP6')) {
         my @allowed_guests = qw(sles12sp5 sles15sp6);
+        # For SEV-SNP guest verification, use specific guest sets
+        if (get_var('ENABLE_SEV_SNP_GUEST_VERIFICATION', 1)) {
+            @allowed_guests = qw(sles15sp6);
+        }
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP7')) {
         my @allowed_guests = qw(sles12sp5 sles15sp6 sles15sp7);
+        # For SEV-SNP guest verification, use specific guest sets
+        if (get_var('ENABLE_SEV_SNP_GUEST_VERIFICATION', 1)) {
+            @allowed_guests = qw(sles15sp6 sles15sp7);
+        }
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
