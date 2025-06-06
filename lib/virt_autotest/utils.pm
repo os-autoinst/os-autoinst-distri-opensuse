@@ -97,6 +97,7 @@ our @EXPORT = qw(
   reboot_virtual_machine
   reconnect_console_if_not_good
   get_guest_settings
+  should_use_uefi
 );
 
 my %log_cursors;
@@ -550,6 +551,12 @@ sub create_guest {
     my ($guest, $method) = @_;
     my $v_type = $guest->{name} =~ /HVM/ ? "-v" : "";
 
+    # Ensure UEFI firmware package is installed
+    if (script_run("rpm -q ovmf") != 0) {
+        record_info("Installing OVMF", "Installing OVMF package for UEFI support");
+        zypper_call("in ovmf");
+    }
+
     my $name = $guest->{name};
     my $location = $guest->{location};
     my $autoyast = $guest->{autoyast};
@@ -576,12 +583,16 @@ sub create_guest {
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network bridge=br0 --autostart --location=$location --wait -1";
+        # Add UEFI boot if VIRT_LEGACY_BOOT=0, use legacy BIOS if VIRT_LEGACY_BOOT=1 or not set
+        if (should_use_uefi()) {
+            $virtinstall .= " --boot firmware=efi";  # Enable UEFI boot support
+        }
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
         script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
 
-        # wait for initrd to ensure the installation is starting
+        #  wait for initrd to ensure the installation is starting
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     } else {
         die "unsupported create_guest method '$method'";
@@ -1132,10 +1143,10 @@ sub subscribe_extensions_and_modules {
 
   is_sev_es_guest($guest_name)
 
-Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching
-whether sev-es or sev word is available in its name. The only argument for the
-subroutine is guest_name. It returns sev-es or sev if either is found in guest
-name, otherwise it returns 0.
+Check whether a guest is sev-snp, sev-es, sev only, or not sev/sev-es/sev-snp guest by searching
+whether sev-snp, sev-es, or sev word is available in its name. The only argument for the
+subroutine is guest_name. It returns sev-snp, sev-es, or sev if any is found in guest
+name, otherwise it returns 'notsev'.
 
 =cut
 
@@ -1144,11 +1155,11 @@ sub is_sev_es_guest {
     $guest_name //= '';
     croak('Arugment guest_name should not be empty') if ($guest_name eq '');
 
-    if ($guest_name =~ /(sev-es|sev)/img) {
+    if ($guest_name =~ /(sev-snp|sev-es|sev)/img) {
         record_info("$guest_name is $1 guest", "Guest $guest_name is a $1 enabled guest judging by its name.");
         return $1;
     } else {
-        record_info("$guest_name is not sev(es) guest", "Guest $guest_name is not a sev or sev-es enabled guest judging by its name.");
+        record_info("$guest_name is not sev/sev-es/sev-snp guest", "Guest $guest_name is not a sev, sev-es, or sev-snp enabled guest judging by its name.");
         return 'notsev';
     }
 }
@@ -1484,6 +1495,13 @@ sub get_guest_settings {
     }
 
     return \%settings_matrix;
+}
+
+# return 1 if UEFI boot should be enabled for VMs
+sub should_use_uefi {
+    # VIRT_LEGACY_BOOT=1 or not set means legacy mode (return 0)
+    # VIRT_LEGACY_BOOT=0 means UEFI mode (return 1)
+    return get_var("VIRT_LEGACY_BOOT", 1) ? 0 : 1;
 }
 
 1;
