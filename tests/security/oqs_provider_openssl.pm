@@ -19,13 +19,40 @@ sub run {
     if (zypper_call("--no-refresh if oqs-provider") != 0) {
         record_info('SKIPPING TEST', "Skipping test due to missing oqs-provider package.");
     } else {
-        zypper_call("in gcc wget cmake oqs-provider liboqs-devel libopenssl-3-devel");
+        zypper_call("in gcc wget cmake openssl oqs-provider");
 
-        my $oqs_version = "0.7.0";
-        assert_script_run("wget --quiet " . data_url("security/oqs-provider-$oqs_version.tar.gz"));
-        assert_script_run("tar xf oqs-provider-$oqs_version.tar.gz && cd oqs-provider-$oqs_version");
-        assert_script_run("cmake -S . -B _build && cmake --build _build");
-        assert_script_run("cd _build && export OPENSSL_CONF=/dev/null ; ctest --parallel 5 --rerun-failed --output-on-failure -V", 300);
+        my $conf_file = '/etc/ssl/oqs-openssl.cnf';
+        my $conf = <<EOF;
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+default = default_sect
+oqs = oqs_sect
+
+[default_sect]
+activate = 1
+
+[oqs_sect]
+module = /usr/lib64/ossl-modules/oqsprovider.so
+EOF
+
+        script_output("echo '$conf' >> $conf_file");
+        assert_script_run("export OPENSSL_CONF=$conf_file");
+        assert_script_run("openssl list -provider oqs -public-key-algorithms | grep -q dilithium2");
+
+        my $key_path = "/root/dilithium2-key.pem";
+        assert_script_run("openssl genpkey -provider oqs -algorithm dilithium2 -out $key_path");
+        # Sign a message with the generated key
+        my $test_file = "/tmp/input.txt";
+        my $sig_file = "/tmp/input.sig";
+        assert_script_run("echo 'openQA test' > $test_file");
+        assert_script_run("openssl pkeyutl -sign -provider oqs -inkey $key_path -out $sig_file -in $test_file");
+
+        # Verify the signature using the same key
+        assert_script_run("openssl pkeyutl -verify -provider oqs -inkey $key_path -sigfile $sig_file -in $test_file");
     }
 }
 
