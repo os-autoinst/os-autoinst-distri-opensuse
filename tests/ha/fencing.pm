@@ -12,9 +12,17 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster;
-use version_utils qw(is_sles4sap);
+use hacluster qw(check_cluster_state
+  choose_node
+  get_cluster_name
+  get_hostname
+  get_node_to_join
+  is_node
+  prepare_console_for_fencing
+);
+use version_utils qw(is_sles4sap is_sle);
 use bootloader_setup qw(add_grub_cmdline_settings);
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -77,6 +85,17 @@ sub run {
         set_var('TAKEOVER_NODE', choose_node(2));
     } else {
         set_var('TAKEOVER_NODE', choose_node(1)) if check_var('CLUSTER_NAME', 'hana');
+    }
+}
+
+# Avoid calling hacluster::post_run_hook(). It will fail on fenced node
+# But collect SELinux AVCs on non fenced node
+sub post_run_hook {
+    my ($self) = @_;
+    my $node_to_fence = get_var('NODE_TO_FENCE', undef);
+    # If NODE_TO_FENCE is undef, then the module fences first node only, otherwise check for the hostname
+    if ((defined $node_to_fence && (get_hostname ne $node_to_fence)) || (!defined $node_to_fence && !check_var('HA_CLUSTER_INIT', 'yes'))) {
+        record_avc_selinux_alerts() if is_sle('16+');
     }
 }
 

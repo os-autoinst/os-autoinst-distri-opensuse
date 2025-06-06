@@ -14,6 +14,7 @@ use testapi;
 use lockapi;
 use hacluster qw(get_cluster_name ha_export_logs);
 use version_utils 'is_sle';
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -39,6 +40,10 @@ sub run {
             title => 'segfault?'
         );
     }
+}
+
+sub post_run_hook {
+    record_avc_selinux_alerts() if is_sle('16+');
 }
 
 # Specific test_flags for this test module
