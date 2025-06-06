@@ -1869,3 +1869,5 @@ sub az_group_exists {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
 }
+
+1;
