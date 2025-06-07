@@ -189,7 +189,7 @@ Options=bind
 EOF
 
     assert_script_run "mkdir -p /etc/systemd/system/tmp.mount.d/";
-    assert_script_run "echo '$override_conf' > /etc/systemd/system/tmp.mount.d/override.conf";
+    write_sut_file('/etc/systemd/system/tmp.mount.d/override.conf', $override_conf);
 }
 
 sub bats_setup {
