@@ -269,7 +269,7 @@ sub bats_post_hook {
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
-    assert_script_run "mkdir -p $log_dir";
+    assert_script_run "mkdir -p $log_dir || true";
     assert_script_run "cd $log_dir";
 
     script_run "rm -rf $test_dir";
