@@ -84,7 +84,11 @@ sub run {
         assert_script_run 'dd if=/usr/share/qemu/qemu-uefi-aarch64.bin of=flash0.img conv=notrunc';
         assert_script_run 'dd if=/dev/zero of=flash1.img bs=1M count=64';
         enter_cmd "qemu-system-aarch64 -M virt,usb=off -cpu cortex-a57 -nographic -pflash flash0.img -pflash flash1.img";
-        assert_screen ['qemu-uefi-shell', 'qemu-no-bootable-device'], 600;
+        assert_screen([qw(qemu-enter-boot-manager qemu-uefi-shell)], 600);
+        if (match_has_tag('qemu-enter-boot-manager')) {
+            send_key('e');
+            assert_screen('qemu-uefi-boot-manager');
+        }
     }
     else {
         die sprintf("Test case is missing support for %s architecture", get_var('ARCH'));
