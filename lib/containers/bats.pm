@@ -71,7 +71,7 @@ sub install_git {
 }
 
 sub install_ncat {
-    my $version = get_var("NCAT_VERSION", "7.95-3");
+    my $version = get_var("NCAT_VERSION", "7.97-1");
 
     my @cmds = (
         "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm",
@@ -80,6 +80,7 @@ sub install_ncat {
     foreach my $cmd (@cmds) {
         run_command $cmd;
     }
+    record_info("nc", script_output("nc --version"));
 }
 
 sub install_bats {
