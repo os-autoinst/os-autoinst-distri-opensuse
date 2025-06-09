@@ -32,8 +32,6 @@ sub prepare_boot_params {
     push @params, 'console=tty' . (is_x86_64 ? 'S0' : 'AMA0'), 'console=tty';
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
-    push @params, 'ip=dhcp';
-    push @params, 'rd.neednet';
 
     # override default boot params
     if (get_var('BOOTPARAMS')) {
