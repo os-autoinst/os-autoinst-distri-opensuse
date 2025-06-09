@@ -12,11 +12,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Complile
     assert_script_run('cd /usr/local/eal4/pentest/netlink');
