@@ -14,7 +14,8 @@ use sles4sap::sap_deployment_automation_framework::deployment_connector;
 subtest '[get_deployer_vm_name] Test expected failures' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     $mock_function->redefine(diag => sub { return; });
-    $mock_function->redefine(script_output => sub { return '
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(az_vm_list => sub { return '
 [
   "0079-Zaku_II",
   "0079-MSM-07"
@@ -25,50 +26,12 @@ subtest '[get_deployer_vm_name] Test expected failures' => sub {
     dies_ok { get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079') } 'Die with multiple VMs tagged with same ID';
 };
 
-subtest '[get_deployer_vm_name] Check command composition' => sub {
+subtest '[get_deployer_vm_name]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     my @calls;
     $mock_function->redefine(diag => sub { return; });
-    $mock_function->redefine(script_output => sub { push(@calls, @_); return '[
-  "0079-Zaku_II"
-]'
-    });
-
-    my $result = get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079');
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((grep /az vm list/, @calls), 'Check main az command');
-    ok((grep /--resource-group Char/, @calls), 'Check --resource-group argument');
-    ok((grep /--query "\[\?tags.deployment_id == '0079'].name"/, @calls), 'Check --query argument');
-    ok((grep /--output json/, @calls), 'Output must be in json format');
-    is $result, '0079-Zaku_II', 'Return VM name';
-
-    $mock_function->redefine(script_output => sub { push(@calls, @_); return '[]' });
-    is get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079'), undef, 'Return empty string if no VM found';
-};
-
-subtest '[find_deployment_id]' => sub {
-    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
-    $mock_function->redefine(get_current_job_id => sub { return '0079'; });
-    $mock_function->redefine(get_parent_ids => sub { return ['0083', '0087']; });
-    $mock_function->redefine(get_deployer_vm_name => sub { return '0079' if grep(/0079/, @_); });
-    $mock_function->redefine(record_info => sub { return; });
-    set_var('OPENQA_URL', 'openqa.suse.de');
-
-    is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Current job ID belongs to VM';
-
-    set_var('SDAF_GRANDPARENT_ID', '');
-    $mock_function->redefine(get_current_job_id => sub { return; });
-    is find_deployment_id(deployer_resource_group => 'Char'), undef, 'Return undef if no ID found';
-
-    set_var('SDAF_GRANDPARENT_ID', '');
-    $mock_function->redefine(get_deployer_vm_name => sub { return '0083' if grep(/0083/, @_); });
-    is find_deployment_id(deployer_resource_group => 'Char'), '0083', 'Parent job ID belongs to VM';
-};
-
-subtest '[find_deployment_id]' => sub {
-    set_var('SDAF_DEPLOYMENT_ID', '0079');
-    is find_deployment_id(deployer_resource_group => 'Char'), '0079', 'Override deployment id using "SDAF_DEPLOYMENT_ID"';
-    set_var('SDAF_DEPLOYMENT_ID', undef);
+    $mock_function->redefine(az_vm_list => sub { push(@calls, @_); return ['0079-Zaku_II'] });
+    is get_deployer_vm_name(deployer_resource_group => 'Char', deployment_id => '0079'), '0079-Zaku_II', 'Return correct VM name';
 };
 
 subtest '[find_deployer_resources] Check command composition' => sub {
@@ -136,7 +99,6 @@ subtest '[get_deployer_ip] Test expected failures' => sub {
         dies_ok { get_deployer_ip(deployer_resource_group => 'OpenQA_SDAF_0087') } "Detect incorrect IP addr pattern: $ip_input";
     }
 };
-
 
 subtest '[check_ssh_availability]' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
@@ -260,6 +222,53 @@ subtest '[destroy_orphaned_resources]' => sub {
     ok(!grep(/602-OpenQA_Deployer_VM_not_orphaned/, @{$arguments{resource_cleanup_list}}), 'Do not delete resource which is not orphaned');
     ok(!grep(/deployer_snapshot_12082024|LAB-SECE-DEP10_labsecedep10deploy00|LAB-SECE-DEP10-vnet/, @{$arguments{resource_cleanup_list}}),
         'Do not delete permanent resources');
+};
+
+subtest '[find_deployment_id]' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(diag => sub { return; });
+    # Tags which exist on cloud: 55, 22
+    $mock_function->redefine(az_vm_list => sub { return (['22', '55']); });
+    # Job 5 has parent 55
+    $mock_function->redefine(get_parent_ids => sub { return (['55']) if grep(/^5$/, @_); });
+    # Current job is 5
+    $mock_function->redefine(get_current_job_id => sub { return '5'; });
+
+    is find_deployment_id(), 55, 'Return correct value';
+};
+
+subtest '[find_deployment_id] Test exceptions' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(diag => sub { return; });
+    # Tags which exist on cloud: 55, 22
+    $mock_function->redefine(az_vm_list => sub { return (['22', '55']); });
+    # Job 5 has parents 55 and 22 - There are deplyoments in cloud for both = BAD!
+    $mock_function->redefine(get_parent_ids => sub { return (['55', '22']) if grep(/^5$/, @_); });
+    # Current job ID is 5
+    $mock_function->redefine(get_current_job_id => sub { return '5'; });
+
+    dies_ok { find_deployment_id() } 'Fail with multiple deployments found';
+
+    # Oh no! There are no deployments in the cloud! Very BAD!
+    $mock_function->redefine(az_vm_list => sub { return; });
+    dies_ok { find_deployment_id() } 'Fail with no deployments found';
+};
+
+subtest '[find_deployment_id] Infinite loop check' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(diag => sub { return; });
+    # Tags which exist on cloud: 50-71 Infinite loop prevention trips with more than 20 jobs being checked
+    # Increase this number if there are actually more than 20 jobs in any schedule.
+    $mock_function->redefine(az_vm_list => sub { return (['55']); });
+    # Job 5 has parents 55 and 22 - There are deplyoments in cloud for both = BAD!
+    $mock_function->redefine(get_parent_ids => sub { return ([50 .. 71]) if grep(/^5$/, @_); });
+    # Current job ID is 5
+    $mock_function->redefine(get_current_job_id => sub { return '5'; });
+
+    dies_ok { find_deployment_id() } 'Detect infinite loop';
 };
 
 done_testing();
