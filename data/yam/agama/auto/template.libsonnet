@@ -7,6 +7,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
+         localization='',
          packages='',
          patterns='',
          product='',
@@ -21,6 +22,7 @@ function(bootloader=false,
          storage='',
          user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  [if localization == true then 'localization']: base_lib['localization'],
   [if patterns != '' || packages != '' then 'software']: std.prune({
     patterns: if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
