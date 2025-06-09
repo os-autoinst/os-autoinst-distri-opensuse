@@ -131,10 +131,12 @@ sub enter_netboot_parameters {
     }
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     if (is_agama) {
-        type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password console=hvc0 ip=dhcp";
+        type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password console=hvc0";
         # inst.auto and inst.install_url are defined in below function
         specific_bootmenu_params;
         type_string_slow " " . get_var('EXTRABOOTPARAMS') . " " if (get_var('EXTRABOOTPARAMS'));
+        # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+        type_string_slow " " . get_var('AGAMA_NETWORK_PARAMS') . " " if (get_var('AGAMA_NETWORK_PARAMS'));
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
