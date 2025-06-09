@@ -25,4 +25,10 @@ sub run
     nvidia_utils::validate();
 }
 
+sub test_flags {
+    return {
+        publiccloud_multi_module => 1
+    };
+}
+
 1;
