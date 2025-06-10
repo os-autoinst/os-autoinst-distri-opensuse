@@ -7,6 +7,8 @@
 # Summary: Test containerd with nerdctl installation and usage
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use serial_terminal 'select_serial_terminal';
 use containers::utils 'runtime_smoke_tests';

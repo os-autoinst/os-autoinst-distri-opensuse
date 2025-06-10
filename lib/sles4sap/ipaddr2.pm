@@ -436,9 +436,12 @@ sub ipaddr2_infra_deploy {
         port => '80');
 
     foreach (1 .. 2) {
-        az_vm_wait_running(
+        my $wt = az_vm_wait_running(
             resource_group => $rg,
-            name => ipaddr2_get_internal_vm_name(id => $_));
+            name => ipaddr2_get_internal_vm_name(id => $_),
+            timeout => 600
+        );
+        record_info('VM RUNNING', "VM $_ takes $wt seconds to reach the Running state.");
     }
 }
 

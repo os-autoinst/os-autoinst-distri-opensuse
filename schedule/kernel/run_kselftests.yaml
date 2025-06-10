@@ -1,0 +1,19 @@
+name:          kselftests
+description:    >
+    Generic scheduler for Linux kselftests
+schedule:
+    - '{{boot}}'
+    - boot/boot_to_desktop
+    - kernel/run_kselftests
+    - shutdown/shutdown
+
+conditional_schedule:
+    boot:
+        BACKEND:
+            spvm:
+                - installation/bootloader
+            pvm_hmc:
+                - installation/bootloader
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm

@@ -28,10 +28,10 @@ sub run {
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in sudo nscd") unless is_tumbleweed;
+    zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
 
     my $docker = "podman";
-    if (is_sle) {
+    if (is_sle('<16')) {
         $docker = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
@@ -44,12 +44,8 @@ sub run {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
     }
     else {
-        $tag = 'registry.suse.com/suse/sle15:15.5';
-        if (check_var('BETA', '1') || (get_var('SCC_URL') =~ /proxy\.scc/)) {
-            my ($v, $sp) = split("-SP", get_var("VERSION"));
-            $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/images/suse/sle$v:$v.0";
-            ensure_ca_certificates_suse_installed;
-        }
+        # Use the latest SLE GA bci iamge, see https://progress.opensuse.org/issues/182780
+        $tag = 'registry.suse.com/suse/sle15:15.7';
     }
     systemctl("enable --now $docker") if ($docker eq "docker");
     #build image, create container, setup 389-ds database and import testing data
@@ -70,7 +66,6 @@ sub run {
     my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
     assert_script_run("curl --remote-name-all " . data_url($data_url));
 
-    assert_script_run(qq(sed -i '/gpg-auto-import-keys/i\\RUN zypper rr SLE_BCI' Dockerfile_$docker)) if (check_var('BETA', '1'));
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
 
     # Cleanup the container in case a previous run did not cleanup properly, no need to assert
@@ -106,7 +101,7 @@ sub run {
     assert_script_run("install --mode 0600 -D ./sssd.conf /etc/sssd/sssd.conf");
     assert_script_run("install --mode 0600 -D ./config ~/.ssh/config");
 
-    systemctl("disable --now nscd.service") unless is_tumbleweed;
+    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_tumbleweed);
     systemctl("enable --now sssd.service");
 
     #execute test cases

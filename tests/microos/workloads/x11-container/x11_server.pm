@@ -53,7 +53,7 @@ sub run {
     x11_preparation();
 
     # start X11 container
-    my $containerpath = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/xorg:latest');
+    my $containerpath = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/xorg:latest');
     assert_script_run("podman pull $containerpath --tls-verify=false", 300);
     assert_script_run("podman run --privileged -d --pod wallboard-pod -e XAUTHORITY=/home/user/xauthority/.xauth -v xauthority:/home/user/xauthority:rw -v xsocket:/tmp/.X11-unix:rw -v /run/udev/data:/run/udev/data:rw --name x11-init-container --security-opt=no-new-privileges $containerpath");
     # verify the x11 server container started

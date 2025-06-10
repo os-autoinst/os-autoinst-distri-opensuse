@@ -1,0 +1,28 @@
+From 42c3a958e36696581fc17a08ea5026b78ecfea82 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 29 Apr 2025 15:21:11 +0200
+Subject: [PATCH] test: Fix for runc error message
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/030-run.bats | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/test/system/030-run.bats b/test/system/030-run.bats
+index bed44e6850..84ca7ff1c4 100644
+--- a/test/system/030-run.bats
++++ b/test/system/030-run.bats
+@@ -77,7 +77,12 @@ echo $rand        |   0 | $rand
+     echo "$content" > $PODMAN_TMPDIR/tempfile
+ 
+     run_podman run --rm -i --preserve-fds=2 $IMAGE sh -c "cat <&4" 4<$PODMAN_TMPDIR/tempfile
+-    is "$output" "$content" "container read input from fd 4"
++
++    if [[ "$(podman_runtime)" = "runc" ]]; then
++        assert "$output" =~ "${content}(.* error .* already been removed.*)?"
++    else
++        is "$output" "$content" "container read input from fd 4"
++    fi
+ }
+ 
+ # 'run --preserve-fd' passes a list of additional file descriptors into the container

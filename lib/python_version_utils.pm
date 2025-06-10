@@ -27,13 +27,12 @@ our @EXPORT = qw(
 
 =head2 get_system_python_version
 
-returns a string with the system's current default python version, for example 'python311'
+returns a string with the system's current python versions, for example 'python3 python311'
 =cut
 
 sub get_system_python_version() {
-    my @system_python_version = script_output(qq[zypper se --installed-only --provides '/usr/bin/python3' | awk -F '|' '/python3[0-9]*/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]);
-    die "There are many python3 versions installed " if (scalar(@system_python_version) > 1);
-    return $system_python_version[0];
+    my $system_python_version = script_output(qq[zypper se --installed-only --provides '/usr/bin/python3' | awk -F '|' '/python3[0-9]*/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq | awk '{printf "%s ", \$0}']);
+    return $system_python_version;
 }
 
 =head2 get_available_python_versions

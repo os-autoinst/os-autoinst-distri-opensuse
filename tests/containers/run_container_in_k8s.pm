@@ -7,6 +7,8 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
 use containers::k8s qw(apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);

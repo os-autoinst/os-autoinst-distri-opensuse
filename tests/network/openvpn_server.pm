@@ -39,8 +39,9 @@ sub run {
     zypper_call("in iputils");
 
     # Install openvpn, generate static key. On openSUSE or SLE>=15-SP2 we have a newer version in PHub compared to qa_head.
-    add_qa_head_repo unless (is_opensuse() || is_sle('>=15-SP2'));
-    add_suseconnect_product(get_addon_fullname('phub')) if is_phub_ready();
+    # SLE16 has no easy-rsa.
+    add_qa_head_repo unless (is_opensuse() || (is_sle('>=15-SP2') && !is_sle('>=16.0')));
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && !is_sle('>=16.0'));
 
     zypper_call('--gpg-auto-import-keys in openvpn easy-rsa');
     zypper_call("install openssl") if (script_run("which openssl") != 0);

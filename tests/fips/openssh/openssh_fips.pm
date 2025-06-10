@@ -54,7 +54,8 @@ sub run {
     validate_script_output("$cmd", sub { m/Unknown mac type|no matching MAC found/ }, proceed_on_failure => 1);
 
     # Verify ssh doesn't support DSA public key in fips mode
-    validate_script_output('ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ }, proceed_on_failure => 1);
+    my $message = is_sle('>=16') ? "unknown key type dsa" : "Key type dsa not alowed in FIPS mode";
+    validate_script_output('ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/$message/ }, proceed_on_failure => 1);
 
     # Although there is StrictHostKeyChecking=no option, but the fingerprint
     # for localhost was still added into ~/.ssh/known_hosts, which potentially

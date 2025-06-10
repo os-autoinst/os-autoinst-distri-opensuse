@@ -8,6 +8,8 @@
 # - check if firewalld doesn't break either
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base qw(containers::basetest);
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);

@@ -29,7 +29,7 @@ sub run {
 
     # Create a test repo
     zypper_call("in git-core");
-    assert_script_run("mkdir -p repos/qa1;cd repos/qa1");
+    assert_script_run("rm -rf ~/repos && mkdir -p repos/qa1;cd repos/qa1");
     assert_script_run("git init");
     assert_script_run("echo \"SUSE Test\" > README");
     assert_script_run("git config --global user.email \"$email\"");
@@ -38,6 +38,13 @@ sub run {
 
     # Clone to a bare git repo
     assert_script_run("cd ~/repos;git clone --bare qa1 qa0");
+
+    # Prepare ssh
+    assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
+    assert_script_run("rm -rf ~/.ssh/id_rsa");
+    assert_script_run("ssh-keyscan -H localhost >> ~/.ssh/known_hosts");
+    assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
+    assert_script_run("cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys");
 
     # Clone repo via ssh
     script_run("git clone ssh://localhost:/root/repos/qa0 qa2 | tee /dev/$serialdev", 0);

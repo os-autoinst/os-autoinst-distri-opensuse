@@ -32,7 +32,7 @@ use utils qw(write_sut_file);
 use Carp qw(croak);
 use Time::Piece;
 use mmapi qw(get_parents get_job_autoinst_vars get_children get_job_info get_current_job_id);
-use sles4sap::azure_cli qw(az_resource_delete az_resource_list);
+use sles4sap::azure_cli qw(az_resource_delete az_resource_list az_vm_list);
 use Data::Dumper;
 use Mojo::URL;
 use Mojo::UserAgent;
@@ -146,18 +146,12 @@ Function dies if there is more than one VM found, because two VM's must not have
 sub get_deployer_vm_name {
     my (%args) = @_;
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
-    $args{deployment_id} //= find_deployment_id();
+    $args{deployment_id} //= find_deployment_id(deployer_resource_group => $args{deployer_resource_group});
     croak 'Missing mandatory argument $args{deployment_id}' unless $args{deployment_id};
 
     # Following query lists VMs within a resource group that were tagged with specified deployment id.
-    my $az_cmd = join(' ',
-        'az vm list',
-        "--resource-group $args{deployer_resource_group}",
-        "--query \"\[?tags.deployment_id == '$args{deployment_id}'].name\"",
-        '--output json'
-    );
-
-    my @vm_list = @{decode_json(script_output($az_cmd))};
+    my @vm_list = @{az_vm_list(resource_group => $args{deployer_resource_group},
+            query => "[?tags.deployment_id == '$args{deployment_id}'].name")};
     diag((caller(0))[3] . " - VMs found: " . join(', ', @vm_list));
     die "Multiple VMs with same IDs found. Each VM must have unique ID!\n
     Following VMs found tagged with: deployment_id=$args{deployment_id}"
@@ -170,12 +164,20 @@ sub get_deployer_vm_name {
 
     get_parent_ids();
 
-Returns B<ARRAYREF> of all parent job IDs acquired from current job data.
+Returns B<ARRAYREF> of all parent job IDs acquired from job data.
+
+=over
+
+=item * B<job_id>: Job ID which parents should be listed
+
+=back
 
 =cut
 
 sub get_parent_ids {
-    my $job_info = get_job_info(get_current_job_id());
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{job_id}"' unless $args{job_id};
+    my $job_info = get_job_info($args{job_id});
     # This will loop through all parent job types (chained, parallel, etc...) and creates a list of IDs
     my @parent_ids = map { @{$job_info->{parents}{$_}} } keys(%{$job_info->{parents}});
     diag((caller(0))[3] . "Parent job data: " . Dumper($job_info->{parents}));
@@ -196,9 +198,6 @@ Using OpenQA parameter B<SDAF_DEPLOYMENT_ID> it is possible to override this val
 purposes where it allows you to run test code on already existing deployment. Use it with caution and override
 the value only with ID of the infrastructure that belongs to you.
 
-Parameter B<SDAF_GRANDPARENT_ID> is used for SDAF cleanup job to cleanup resources created by grandparents job.
-If B<SDAF_DEPLOYMENT_ID> is not defined then B<SDAF_GRANDPARENT_ID> is the job id of deployment.
-
 B<Example>:
 Job: 123456 - deployment module - created deployer VM tagged with "deployment_id=123456",
 Job: 123457 (child of 123456) - some test module
@@ -213,45 +212,38 @@ Deployment ID returned from both jobs: 123456 - because it matches with existing
 
 sub find_deployment_id {
     my (%args) = @_;
-    return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
-    return get_var('SDAF_GRANDPARENT_ID') if get_var('SDAF_GRANDPARENT_ID');
-
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
-    my @check_list = (get_current_job_id(), @{get_parent_ids()});
 
-    # For SDAF cleanup job it needs its grandparent's id
-    my @parents = get_parent_ids();
-    my $parent_id = $parents[0][0];
-    if (looks_like_number($parent_id) && @parents == 1) {
-        # Get the SDAF deployment job ID, here it is set via SDAF_GRANDPARENT_ID and saved in vars.json
-        my $vars_json = 'vars.json';
-        my $openqa_url = get_required_var('OPENQA_URL');
-        my $url = Mojo::URL->new("https://$openqa_url/tests/$parent_id/file/$vars_json") or die "No $vars_json found";
-        my $ua = Mojo::UserAgent->new;
-        $ua->insecure(1);
-        my $tx = $ua->get($url);
-        my $json = $tx->res->json;
-        my $id = $json->{SDAF_GRANDPARENT_ID};
-        if ($id) {
-            @check_list = ($id);
-            record_info("SDAF grandparent id of cleanup job:$id");
-        }
+    # Lists VMs in cloud which contain 'deployment_id' tag and displays only tag values => list of all deployments
+    my @cloud_deployments = @{az_vm_list(
+            resource_group => $args{deployer_resource_group}, query => '[?tags.deployment_id].tags.deployment_id')};
+    my @found_deployments;
+    # check current job first
+    my @to_check = get_current_job_id;
+
+    my $round = 0;
+    # Just a limit to to prevent infinite loops
+    # If there are actually 20 jobs in any chain, increase this number
+    my $die_after = 20;
+    while (my $id = shift(@to_check)) {
+        diag("Checking ID: $id");
+        diag("Deployments in cloud:\n" . join("\n", @cloud_deployments));
+        push @to_check, @{get_parent_ids(job_id => $id)} if get_parent_ids(job_id => $id);
+        diag("IDs to be checked:\n" . join("\n", @to_check));
+
+        push @found_deployments, $id if grep(/^$id$/, @cloud_deployments);
+        diag("Matching deployments:\n" . join("\n", @found_deployments));
+
+        die "Possible infinite loop encountered. Check repeated '$die_after' times" if $round == $die_after;
+        $round++;
     }
 
-    diag("Job IDs found", Dumper(@check_list));
-    my @ids_found;
-    for my $deployment_id (@check_list) {
-        my $vm_name =
-          get_deployer_vm_name(deployer_resource_group => $args{deployer_resource_group}, deployment_id => $deployment_id);
-        push(@ids_found, $deployment_id) if $vm_name;
+    die 'No deployment detected' unless @found_deployments;
+    die "Multiple deployments detected. This should not happen.\nFound:\n" . join("\n", @found_deployments)
+      if @found_deployments != 1;
 
-        # Set SDAF_GRANDPARENT_ID, SDAF cleanup job needs this id for cleanup
-        set_var('SDAF_GRANDPARENT_ID', $deployment_id) if $vm_name;
-    }
-    die "More than one deployment found.\nJobs IDs: " .
-      join(', ', @check_list) . "\nVMs found: " . join(', ', @ids_found) if @ids_found > 1;
-
-    return ($ids_found[0]);
+    record_info('Deploy ID', "Deployment ID found:\n" . join("\n", @found_deployments));
+    return $found_deployments[0];
 }
 
 =head2 get_deployer_resources

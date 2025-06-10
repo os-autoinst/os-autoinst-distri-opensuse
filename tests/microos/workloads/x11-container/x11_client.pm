@@ -47,7 +47,7 @@ sub run {
     my $opts = "-e DISPLAY=:0 -e XAUTHORITY=/home/user/xauthority/.xauth -e PULSE_SERVER=/var/run/pulse/native -v xauthority:/home/user/xauthority:rw -v pasocket:/var/run/pulse/ -v xsocket:/tmp/.X11-unix:rw";
     # pulseaudio image url and firefox kiosk url are joined together by a space
     # split the string by space
-    my ($pacontainerpath, $ffcontainerpath) = split(/\s+/, get_var("CONTAINER_IMAGE_TO_TEST", 'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/pulseaudio:17 registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk-firefox-esr:128.8'));
+    my ($pacontainerpath, $ffcontainerpath) = split(/\s+/, get_var("CONTAINER_IMAGE_TO_TEST", 'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/pulseaudio:latest registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/firefox-esr:latest'));
     # start pulseaudio container
     enter_cmd("podman pull $pacontainerpath --tls-verify=false", 300);
     assert_screen("podman-pa-pull-done");

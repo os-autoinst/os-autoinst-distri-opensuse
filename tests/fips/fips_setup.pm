@@ -37,7 +37,7 @@ sub enable_fips {
     my $self = shift;
 
     if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
-        assert_script_run("fips-mode-setup --enable");
+        assert_script_run("fips-mode-setup --enable", timeout => 120);
         $self->reboot_and_select_serial_term;
     } else {
         # on SL Micro 6.0+ we only need to reboot, no need to manually change grub.

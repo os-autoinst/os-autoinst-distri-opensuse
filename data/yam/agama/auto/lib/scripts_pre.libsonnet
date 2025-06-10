@@ -21,4 +21,11 @@
       done
     |||
   },
+  disable_questions: {
+    name: 'disable questions',
+    content: |||
+      #!/usr/bin/env bash
+      agama questions mode non-interactive
+    |||
+  },
 }

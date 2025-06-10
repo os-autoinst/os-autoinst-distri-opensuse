@@ -387,11 +387,12 @@ subtest '[az_vm_wait_running] running at first try' => sub {
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
 
-    az_vm_wait_running(resource_group => 'Arlecchino',
+    my $wt = az_vm_wait_running(resource_group => 'Arlecchino',
         name => 'Truffaldino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((scalar @calls == 1), 'Calls az cli only once if return is running');
+    ok($wt eq 0), "WT:$wt is 0 as expected, as getting the Running state at first attempt.";
 };
 
 subtest '[az_vm_wait_running] running at second try' => sub {
@@ -406,11 +407,13 @@ subtest '[az_vm_wait_running] running at second try' => sub {
             }
             return '["PowerState/running","VM running"]'; });
 
-    az_vm_wait_running(resource_group => 'Arlecchino',
+    my $wt = az_vm_wait_running(resource_group => 'Arlecchino',
         name => 'Truffaldino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    note("--> WT:$wt");
     ok((scalar @calls == 2), 'Calls az cli twice if return is not running');
+    ok($wt > 0), "WT:$wt is greate than 0 as expected.";
 };
 
 subtest '[az_vm_wait_running] never running default timeout' => sub {

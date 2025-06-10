@@ -52,7 +52,9 @@ sub get_repo_url_for_kdump_sle {
     return join('/', $openqa_url, get_var('REPO_SLE_MODULE_BASESYSTEM_DEBUG'))
       if get_var('REPO_SLE_MODULE_BASESYSTEM_DEBUG')
       and is_sle('15+');
-    return join('/', $openqa_url, get_var('REPO_SLES_DEBUG')) if get_var('REPO_SLES_DEBUG');
+
+    my $repo = is_sle('16+') ? 'REPO_SLES_16_DEBUG' : 'REPO_SLES_DEBUG';
+    return join('/', $openqa_url, get_var("$repo")) if get_var("$repo");
 }
 
 sub prepare_for_kdump_sle {
@@ -107,7 +109,8 @@ sub install_kernel_debuginfo_via_repo {
 sub disable_packagekitd {
     return if is_transactional;
     quit_packagekit;
-    my @pkgs = qw(yast2-kdump kdump);
+    my @pkgs = qw(kdump);
+    push @pkgs, qw(yast2-kdump) if (is_opensuse || is_sle('<16'));
     push @pkgs, qw(crash);
 
     if (is_jeos && get_var('UEFI')) {
@@ -251,38 +254,47 @@ sub determine_crash_memory {
     return $crash_memory;
 }
 
-# Activate kdump using yast command line interface
+# Activate kdump using command line tools
 sub activate_kdump_cli {
-    # Skip configuration, if is kdump already enabled and no special memory settings is required
-    # and always proceed with kdump configuration if fadump is requested
-    # Yast cli may timeout on with XEN bsc#1206274, we need to check configuration directly
-    my $status;
-    if (is_xen_host) {
-        $status = script_run('! grep "GRUB_CMDLINE_XEN_DEFAULT.*crashkernel" /etc/default/grub');
-    } else {
-        $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+    if (is_sle('16+')) {
+        assert_script_run('kdumptool commandline -u');
     }
-    return if ($status and !get_var('CRASH_MEMORY') and !get_var('FADUMP'));
+    else {
+        # Skip configuration, if is kdump already enabled and no special memory settings is required
+        # and always proceed with kdump configuration if fadump is requested
+        # Yast cli may timeout on with XEN bsc#1206274, we need to check configuration directly
+        my $status;
+        if (is_xen_host) {
+            $status = script_run('! grep "GRUB_CMDLINE_XEN_DEFAULT.*crashkernel" /etc/default/grub');
+        } else {
+            $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+        }
+        return if ($status and !get_var('CRASH_MEMORY') and !get_var('FADUMP'));
 
-    # Make sure fadump is disabled on PowerVM
-    assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
+        # Make sure fadump is disabled on PowerVM
+        assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
 
-    my $crash_memory = determine_crash_memory;
-    record_info('CRASH MEMORY', $crash_memory);
-    assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
-    # Enable firmware assisted dump if needed
-    assert_script_run('yast2 kdump fadump enable', 180) if get_var('FADUMP');
-    assert_script_run('yast kdump show', 180);
+        my $crash_memory = determine_crash_memory;
+        record_info('CRASH MEMORY', $crash_memory);
+        assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
+        # Enable firmware assisted dump if needed
+        assert_script_run('yast2 kdump fadump enable', 180) if get_var('FADUMP');
+        assert_script_run('yast kdump show', 180);
+    }
     systemctl('enable kdump');
 }
 
-# Deactivate kdump using yast command line interface
+# Deactivate kdump using command line tools
 sub deactivate_kdump_cli {
-    # Solution to poo113351. Avoid to use needles to solve this case.
-    zypper_call("--gpg-auto-import-keys ref");
-    # Disable the crashkernel option from the kernel grub cmdline
-    assert_script_run('yast kdump startup disable alloc_mem=0', 180);
-    # Disable the kdump service at boot time
+    if (is_sle('16+')) {
+        assert_script_run('kdumptool commandline -d');
+    } else {
+        # Solution to poo113351. Avoid to use needles to solve this case.
+        zypper_call("--gpg-auto-import-keys ref");
+        # Disable the crashkernel option from the kernel grub cmdline
+        assert_script_run('yast kdump startup disable alloc_mem=0', 180);
+        # Disable the kdump service at boot time
+    }
     systemctl('disable kdump');
 }
 
@@ -360,7 +372,7 @@ sub configure_service {
     my $self = y2_module_consoletest->new();
     if ($args{test_type} eq 'function') {
         # preparation for crash test
-        if (is_sle '15+') {
+        if ((is_sle '15+') && (is_sle '<16')) {
             add_suseconnect_product('sle-module-desktop-applications');
             add_suseconnect_product('sle-module-development-tools');
         }

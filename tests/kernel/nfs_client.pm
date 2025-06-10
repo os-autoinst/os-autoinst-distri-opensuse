@@ -26,6 +26,8 @@ sub run {
     record_info("hostname", script_output("hostname"));
     my $server_node = get_var('SERVER_NODE', 'server-node00');
 
+    zypper_call("in nfs-client");
+
     my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/home/localNFS3');
     my $local_nfs3_async = get_var('NFS_LOCAL_NFS3_ASYNC', '/home/localNFS3async');
     my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/home/localNFS4');

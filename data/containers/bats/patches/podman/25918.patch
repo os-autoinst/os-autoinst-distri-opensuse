@@ -1,0 +1,29 @@
+From a7a7304c6ff104fe6a6097ca6adbc89b4fdd84c3 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 17 Apr 2025 17:18:49 +0200
+Subject: [PATCH] test: Fix expected output for runc on namespaces
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/195-run-namespaces.bats | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/test/system/195-run-namespaces.bats b/test/system/195-run-namespaces.bats
+index dffe815dc0..599ae7eeb3 100644
+--- a/test/system/195-run-namespaces.bats
++++ b/test/system/195-run-namespaces.bats
+@@ -38,7 +38,13 @@ uts    | uts
+             run_podman logs $cname
+             con1_ns="$output"
+ 
+-            assert "$con1_ns" == "$con2_ns" "($name) namespace matches (type: $type)"
++            if [[ "$option" = "pid" ]] && is_rootless && ! is_remote && [[ "$(podman_runtime)" = "runc" ]]; then
++                # Replace "pid:[1234567]" with "pid:\[1234567\]"
++                con1_ns_esc="${con1_ns//[\[\]]/\\&}"
++                assert "$con2_ns" =~ "${con1_ns_esc}.*warning .*" "($name) namespace matches (type: $type)"
++            else
++                assert "$con1_ns" == "$con2_ns" "($name) namespace matches (type: $type)"
++            fi
+             local matcher="=="
+             if [[ "$type" != "host" ]]; then
+                 matcher="!="

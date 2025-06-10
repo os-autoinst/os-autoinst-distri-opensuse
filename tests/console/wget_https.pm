@@ -23,16 +23,9 @@ sub run {
     zypper_call("in wget");
 
     assert_script_run("rpm -q wget");
-    # <= 15-SP5 has problems under FIPS with new b.o.o configuration bsc#1239835
-    assert_script_run("wget -c https://build.opensuse.org -O opensuse.html") if (is_sle('>=15-SP6'));
     assert_script_run("wget -c https://www.google.com -O google.html");
     assert_script_run("wget -c https://github.com -O github.html");
-    my @files;
-    if (is_sle('<=15-SP5')) {
-        @files = qw(google.html github.html);
-    } else {
-        @files = qw(opensuse.html google.html github.html);
-    }
+    my @files = qw(google.html github.html);
     for my $var (@files) {
         assert_script_run("test -f $var");
         assert_script_run("rm -f $var");

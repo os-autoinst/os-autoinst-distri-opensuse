@@ -7,6 +7,8 @@
 # Summary: Upstream buildah integration tests
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
@@ -46,7 +48,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(buildah docker git-core git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
+    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
 
     $self->bats_setup(@pkgs);
 

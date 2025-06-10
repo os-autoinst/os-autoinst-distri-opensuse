@@ -1,0 +1,20 @@
+---
+name: agama-gfx-usb-drivers
+vars:
+    AGAMA: 1
+    AGAMA_PRODUCT_ID: SLES
+    INST_AUTO: yam/agama/auto/sles_default.jsonnet
+schedule:
+- installation/ipxe_install
+- installation/agama_reboot
+- installation/grub_test
+- installation/first_boot
+- console/system_prepare
+- console/consoletest_setup
+- console/hostname
+- console/textinfo
+- console/consoletest_finish
+- x11/glxgears
+- kernel/usb_nic
+- kernel/usb_drive
+- shutdown/shutdown

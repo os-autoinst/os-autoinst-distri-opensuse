@@ -15,6 +15,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 my $testdir = '/tmp';
 
@@ -28,7 +29,8 @@ sub run {
     assert_script_run("mkdir -p  $testdir");
     # Copy the Kiwi XML description file from the data folder for building the
     # Kiwi image locally
-    assert_script_run("curl -v -o $testdir/appliance.kiwi " . data_url("kiwi/appliance.kiwi"));
+    my $kiwi_file = is_sle('=15-SP7') ? 'appliance_sle15sp7.kiwi' : 'appliance.kiwi';
+    assert_script_run("curl -v -o $testdir/appliance.kiwi " . data_url("kiwi/$kiwi_file"));
     assert_script_run("curl -v -o $testdir/config.sh " . data_url("kiwi/config.sh"));
     assert_script_run("sed -ie 's/SLE-version/$version/' $testdir/appliance.kiwi");
     assert_script_run("sed -ie 's/USER_PASSWORD/$testapi::password/' $testdir/appliance.kiwi");

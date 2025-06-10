@@ -1,0 +1,18 @@
+connections {
+  host-host {
+    remote_addrs = %REMOTE_IP%
+    local {
+      auth = pubkey
+      certs = %HOST_CERT_PEM%
+    }
+    remote {
+      auth = pubkey
+      id = "C=DE, O=SUSEQA, CN=%HOST%"
+    }
+    children {
+      host-host {
+        start_action = trap
+      }
+    }
+  }
+}

@@ -20,7 +20,6 @@ sub run {
     $self->import_context($run_args);
     my @repos = get_test_repos();
     my $count = 0;
-    my @zypper_cmd;
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
@@ -30,13 +29,14 @@ sub run {
         }
         foreach my $instance (@{$self->{instances}}) {
             next if ($instance->{'instance_id'} !~ m/vmhana/);
-            $self->wait_for_zypper(instance => $instance);
-            @zypper_cmd = ('sudo zypper --no-gpg-checks ar -f');
-            push(@zypper_cmd, "-n TEST_$count");
-            push(@zypper_cmd, '--priority ' . get_var('REPO_PRIORITY')) if get_var('REPO_PRIORITY');
-            push(@zypper_cmd, "$maintrepo TEST_$count");
-            $instance->run_ssh_command(cmd => join(' ', @zypper_cmd),
-                username => 'cloudadmin');
+            # Create repository file on target
+            my $reponame = "TEST_$count";
+            my @content = ("[$reponame]", "name=$reponame", "enabled=1", "autorefresh=1", "baseurl=$maintrepo");
+            push @content, "priority=" . get_var('REPO_PRIORITY') if get_var('REPO_PRIORITY');
+            # tricky quoting: the echoed @content needs to be inside double quotes " "
+            # and newline separator is single quoted so won't be interpreted by Perl
+            my $command = 'echo -e "' . join('\n', @content) . qq{" | sudo tee /etc/zypp/repos.d/$reponame.repo};
+            $instance->run_ssh_command(cmd => $command, username => 'cloudadmin');
         }
         $count++;
     }

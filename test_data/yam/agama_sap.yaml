@@ -1,2 +1,18 @@
 ---
 os_release_name: SLES_SAP
+repos:
+  - name: SLE-Product-SLES_SAP-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_Applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES_SAP-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_Applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES_SAP-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_Applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name

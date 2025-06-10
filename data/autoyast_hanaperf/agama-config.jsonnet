@@ -71,12 +71,6 @@
           echo -e "[main]\nno-auto-default=type:ethernet" > /etc/NetworkManager/conf.d/disable_auto.conf
           echo -e "[connection]\nid=nic0\nuuid=$(uuidgen)\ntype=ethernet\n[ethernet]\nmac-address={{SUT_NETDEVICE}}\n[ipv4]\nmethod=auto\n" > /etc/NetworkManager/system-connections/nic0.nmconnection
           chmod 0600 /etc/NetworkManager/system-connections/nic0.nmconnection
-          # Workaround to set SELinux as permissive
-          cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.orig
-          cp /etc/default/grub /etc/default/grub.orig
-          sed -e "s/selinux=1 enforcing=1/ /g" -i /boot/grub2/grub.cfg
-          sed -e "s/selinux=1 enforcing=1/ /g" -i /etc/default/grub
-          sed -e "s/SELINUX=enforcing/SELINUX=permissive/g" -i /etc/selinux/config
         |||,
       },
     ],

@@ -23,6 +23,12 @@ sub run {
     if ((is_sle("<15")) && (!is_public_cloud)) {
         script_retry("systemctl is-active ntp-wait.service | grep -vq 'activating'", retry => 10, delay => 60, fail_message => "ntp-wait did not finish syncing");
     }
+    # cronie is not installed by default on sle16
+    if (is_sle('>=16')) {
+        zypper_call('in cronie');
+        systemctl('enable cron');
+        systemctl('start cron');
+    }
     # check if cronie is installed, enabled and running
     assert_script_run 'rpm -q cronie';
     systemctl 'is-enabled cron';

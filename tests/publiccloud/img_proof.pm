@@ -131,7 +131,7 @@ sub run {
 
     assert_script_run(sprintf('ssh-keyscan %s >> %s/known_hosts', $instance->public_ip, $ssh_dir));
 
-    if (is_hardened) {
+    if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
         patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
     }
@@ -150,24 +150,13 @@ sub run {
 
     # fail, if at least one test failed
     if ($img_proof->{fail} > 0) {
-
-        # Upload cloudregister log if corresponding test fails
-        for my $t (@{$self->{extra_test_results}}) {
-            next if ($t->{name} !~ m/registration|repo|smt|guestregister|update/);
-            my $filename = 'result-' . $t->{name} . '.json';
-            my $file = path(bmwqemu::result_dir(), $filename);
-            my $json = Mojo::JSON::decode_json($file->slurp);
-            next if ($json->{result} ne 'fail');
-            $instance->upload_log('/var/log/cloudregister', log_name => 'cloudregister.txt');
-            last;
-        }
         $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
         upload_logs('/tmp/rpm_qa.txt');
         $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
         upload_logs('/tmp/journalctl_b.txt');
     }
 
-    if (is_hardened) {
+    if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
         # Upload SCAP profile used by img-proof
         my $url = "https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.15.xml.gz";
         assert_script_run("curl --fail -LO $url");

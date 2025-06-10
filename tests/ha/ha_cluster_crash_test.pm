@@ -31,7 +31,9 @@ use hacluster qw(check_cluster_state
   wait_until_resources_started
   prepare_console_for_fencing
 );
-use utils qw(zypper_call);
+use utils qw(zypper_call reconnect_mgmt_console);
+use Utils::Backends 'is_pvm';
+use version_utils qw(is_sle);
 use Mojo::JSON qw(encode_json);
 
 our $dir_log = '/var/lib/crmsh/crash_test/';
@@ -73,7 +75,11 @@ sub run {
         my $cmd = "crm cluster crash_test --$check --force";
         record_info($check, "Executing $cmd");
         if ($check eq 'split-brain-iptables') {
-            enter_cmd $cmd;
+            # iptables is not installed in SLE 16 by default
+            zypper_call 'in iptables' if is_sle('>=16');
+            # Wait for a moment and save the screen shot for debugging purpose
+            enter_cmd $cmd, wait_still_screen => 10;
+            save_screenshot();
             $cmd_fails = 0;
         }
         else { $cmd_fails = script_run("timeout 20 $cmd"); }
@@ -83,6 +89,7 @@ sub run {
         my $loop_count = bmwqemu::scale_timeout(15);    # Wait 1 minute (15*4) maximum, can be scaled with SCALE_TIMEOUT
         while (1) {
             last if ($loop_count-- <= 0);
+            reconnect_mgmt_console if (is_pvm && ($check ne 'kill-pacemakerd'));
             if (check_screen('grub2', 0, no_wait => 1)) {
                 # Wait for boot and reconnect to root console
                 $self->wait_boot;
@@ -155,7 +162,7 @@ sub run {
 }
 
 sub test_flags {
-    return {milestone => 1, fatal => 0};
+    return {milestone => 1, fatal => 1};
 }
 
 sub post_fail_hook {
@@ -171,7 +178,7 @@ sub post_fail_hook {
     ha_export_logs;
 
     # Execute the common part
-    $self->post_fail_hook;
+    $self->SUPER::post_fail_hook();
 }
 
 1;

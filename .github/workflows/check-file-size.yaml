@@ -1,0 +1,20 @@
+---
+name: Check file size
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+jobs:
+  check-file-size:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+    - name: Checkout Branch
+      uses: actions/checkout@v4
+    - name: "Check for oversized files"
+      uses: freenet-actions/check-file-size@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        max_size: 14000
+        fail_on_find: true
+        post_comment: false

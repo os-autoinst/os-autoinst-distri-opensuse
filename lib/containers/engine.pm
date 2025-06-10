@@ -7,6 +7,8 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::engine;
+use strict;
+use warnings;
 use Mojo::Base -base;
 use testapi;
 use Carp 'croak';

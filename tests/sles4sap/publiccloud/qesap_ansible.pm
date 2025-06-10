@@ -24,7 +24,7 @@ sub run {
 
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    # Needed to have peering and ansible state propagated in post_fail_hook
+    # Needed to have ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
     my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;

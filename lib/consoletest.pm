@@ -9,13 +9,8 @@ use warnings;
 use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
-use Utils::Logging qw(export_logs_basic export_logs_desktop);
+use Utils::Logging qw(export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use utils;
-
-my %avc_record = (
-    start => 0,
-    end => undef
-);
 
 =head1 consoletest
 
@@ -58,31 +53,6 @@ sub post_fail_hook {
     select_console('log-console');
     show_oom_info;
     show_tasks_in_blocked_state;
-}
-
-=head2 record_avc_selinux_alerts
-
-List AVCs that have been recorded during a runtime of a test module that executes this function
-
-=cut
-
-sub record_avc_selinux_alerts {
-    if ((current_console() !~ /root|log/) || (script_run('test -f /var/log/audit/audit.log') != 0)) {
-        return;
-    }
-
-    my @logged = split(/\n/, script_output('ausearch -m avc -r', timeout => 300, proceed_on_failure => 1));
-
-    # no new messages are registered
-    if (scalar @logged <= $avc_record{start}) {
-        return;
-    }
-
-    $avc_record{end} = scalar @logged - 1;
-    my @avc = @logged[$avc_record{start} .. $avc_record{end}];
-    $avc_record{start} = $avc_record{end} + 1;
-
-    record_info('AVC', join("\n", @avc));
 }
 
 =head2 use_wicked_network_manager

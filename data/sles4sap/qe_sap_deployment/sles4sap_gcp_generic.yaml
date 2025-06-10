@@ -20,10 +20,10 @@ terraform:
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
 
     # IBSm network peering
+    ip_cidr_range: '%MAIN_ADDRESS_RANGE%'
     ibsm_vpc_name: '%IBSM_VPC_NAME%'
     ibsm_subnet_name: '%IBSM_SUBNET_NAME%'
     ibsm_subnet_region: '%IBSM_SUBNET_REGION%'
-    ip_cidr_range: '%MAIN_ADDRESS_RANGE%'
 
     # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'

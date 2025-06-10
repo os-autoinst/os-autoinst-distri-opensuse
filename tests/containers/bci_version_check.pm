@@ -11,6 +11,8 @@
 # Summary: Checks if the container version for the test run is still up-to-date
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base qw(consoletest);
 use utils qw(zypper_call script_retry);
 use version_utils;

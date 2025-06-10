@@ -258,12 +258,16 @@ sub run {
 }
 
 sub post_fail_hook {
+    my $self = @_;
+    # Normally this test fails on X11, but in the odd chance it doesn't
+    # avoid killing the testsuite by sending ctrl+c in serial terminal
+    send_key "ctrl-c" unless testapi::is_serial_terminal();
     select_console 'log-console';
     # xev seems to hang, send control-c to ensure that we can actually type
-    send_key "ctrl-c";
     upload_logs('/tmp/xev_log', failok => 1);
     upload_logs("/home/testuser/.local/state/tigervnc/susetest$display.log", failok => 1) unless $curr_vers < 0;
     upload_logs("/home/testuser/.vnc/susetest$display.log", failok => 1) if $curr_vers < 0;
+    $self->SUPER::post_fail_hook;
     clean;
 }
 

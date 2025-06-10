@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2024 SUSE LLC
+# Copyright 2012-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-distribution-registry | distribution-registry
@@ -14,11 +14,13 @@
 # - images can be deleted
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_tumbleweed is_leap);
+use version_utils qw(is_sle is_tumbleweed);
 use registration;
 use containers::common;
 use containers::utils;
@@ -74,17 +76,7 @@ sub run {
 
     # Install and check that it's running
     my $pkg = 'distribution-registry';
-    if (is_sle(">=15-SP4")) {
-        activate_containers_module;
-    } elsif (is_sle("<=15")) {
-        record_info("SKIP", "docker-distribution-registry is not available on this version of SLE");
-        return;
-    } elsif (is_sle(">15")) {
-        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-        $pkg = 'docker-distribution-registry';
-    } elsif (is_leap("<15.4")) {
-        $pkg = 'docker-distribution-registry';
-    }
+    activate_containers_module if is_sle(">=15-SP4");
 
     zypper_call "se -v $pkg";
     zypper_call "in $pkg";
@@ -101,11 +93,9 @@ sub run {
     $docker->cleanup_system_host();
 
     # Run podman tests
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        my $podman = $self->containers_factory('podman');
-        registry_push_pull(image => $image, runtime => $podman);
-        $podman->cleanup_system_host();
-    }
+    my $podman = $self->containers_factory('podman');
+    registry_push_pull(image => $image, runtime => $podman);
+    $podman->cleanup_system_host();
 }
 
 1;

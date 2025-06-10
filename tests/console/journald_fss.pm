@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2022 SUSE LLC
+# Copyright 2016-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Case 1560070  - FIPS: systemd journald FSS
@@ -32,12 +32,12 @@ sub run {
 
     assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' $journald_conf") if is_sle('<=15-SP5') || is_leap('<=15.5');
     assert_script_run("echo -e \"Storage=persistent\nSeal=yes\" >> $journald_conf");
-    assert_script_run("mkdir -p /var/log/journal");
+    assert_script_run("rm -rf /var/log/journal; mkdir -p /var/log/journal");
     systemctl 'restart systemd-journald.service';
 
     # Setup keys
     assert_script_run("journalctl --flush");
-    assert_script_run("journalctl --interval=30s --setup-keys | tee /tmp/key");
+    assert_script_run("journalctl --interval=30s --setup-keys --force | tee /tmp/key");
     assert_script_run("journalctl --rotate");
 
     # Verify the journal with valid verification key

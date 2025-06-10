@@ -101,6 +101,15 @@ systemLog:
     </user>
   </users>
   <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>pre.sh</filename>
+        <source><![CDATA[
+#!/usr/bin/env bash
+agama questions mode non-interactive
+]]></source>
+      </script>
+    </pre-scripts>
     <chroot-scripts config:type="list">
       <script>
         <file_name>post.sh</file_name>

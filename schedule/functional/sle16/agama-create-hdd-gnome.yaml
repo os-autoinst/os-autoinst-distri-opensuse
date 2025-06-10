@@ -8,6 +8,7 @@ schedule:
     - installation/grub_test
     - yam/agama/switch_to_product
     - installation/first_boot
+    - installation/network_check
     - console/system_prepare
     - console/hostname
     - console/force_scheduled_tasks

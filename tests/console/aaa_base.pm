@@ -9,17 +9,17 @@
 # - Changes to /tmp/aaa_base_test directory
 # - Creates test-file.txt and test_dir
 # - run command "old test-file.txt", after, ls -lah test-file*
-# - run safe-rm /tmp/aaa_base_test/test-file.txt; then ls -lah
-# - run safe-rmdir /tmp/aaa_base_test/test_dir; then ls -lah
+# - run rm /tmp/aaa_base_test/test-file.txt; then ls -lah
+# - run rmdir /tmp/aaa_base_test/test_dir; then ls -lah
 # - run get_kernel_version \$(ls /boot/vmlinu*-* | sort | tail -1)
 # - run rpmlocate aaa_base
-# - run /usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_ENCODING
-# ISO-8859-1; grep CONSOLE_ENCODING /etc/sysconfig/console
-# - run /usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1;
-# grep CONSOLE_ENCODING /etc/sysconfig/console
+# - run /usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_FONT
+# eurlatgr.psfu; grep CONSOLE_FONT /etc/sysconfig/console
+# - run /usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_FONT
+# eurlatgr.psfu; grep CONSOLE_FONT /etc/sysconfig/console
 # - run service --status-all, checks for "loaded"
 # - remove /tmp/aa_base_test directory
-# Maintainer: Marcelo Martins <mmartins@suse.cz>
+# Maintainer: qe-core <qe-core@suse.com>
 
 use base "consoletest";
 use strict;
@@ -35,11 +35,11 @@ sub run {
 
     #test basic aaa_base commands, and verify if works when need.
     assert_script_run "old test-file.txt ; ls -lah test-file*";
-    assert_script_run "safe-rm /tmp/aaa_base_test/test-file.txt; ls -lah";
-    assert_script_run "safe-rmdir /tmp/aaa_base_test/test_dir; ls -lah";
+    assert_script_run "rm /tmp/aaa_base_test/test-file.txt; ls -lah";
+    assert_script_run "rmdir /tmp/aaa_base_test/test_dir; ls -lah";
     assert_script_run "rpmlocate aaa_base";
-    assert_script_run "/usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1 ; grep CONSOLE_ENCODING /etc/sysconfig/console";
-    assert_script_run "/usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1; grep CONSOLE_ENCODING /etc/sysconfig/console";
+    assert_script_run "/usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_FONT eurlatgr.psfu; grep CONSOLE_FONT /etc/sysconfig/console";
+    assert_script_run "/usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_FONT eurlatgr.psfu; grep CONSOLE_FONT /etc/sysconfig/console";
     validate_script_output "service --status-all", sub { /loaded/ };
 
     #Clean files used:

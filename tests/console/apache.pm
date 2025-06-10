@@ -183,7 +183,7 @@ sub run {
 
     # Start the webserver and test the password access
     record_info('poo#179678', 'Job for apache2.service may fail because start of the service was attempted too often');
-    sleep 3;
+    sleep 5;
     systemctl 'start apache2';
     assert_script_run 'curl -vI -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HTTP/1.1 200 OK"';
     assert_script_run 'curl -v -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HI, JOE"';

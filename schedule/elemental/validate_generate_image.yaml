@@ -1,4 +1,4 @@
-name: validate_generate_image.yaml
+name: validate_generate_image
 description: >
   Test container image and extract Elemental ISO/HDD image.
   Maintainer: elemental@suse.de

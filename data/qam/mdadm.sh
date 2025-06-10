@@ -175,6 +175,7 @@ done
 run umount $MD_DEVICE
 run mdadm --detail --scan >/var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
+run sync
 run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
 mount | grep -F -q $tempmnt || exit 1

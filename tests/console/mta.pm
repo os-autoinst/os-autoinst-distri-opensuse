@@ -19,7 +19,11 @@ sub run {
     select_serial_terminal;
 
     assert_script_run '! rpm -q exim';
-
+    if (is_sle('>=16')) {
+        zypper_call('in postfix');
+        systemctl 'enable postfix';
+        systemctl 'start postfix';
+    }
     unless (is_public_cloud()) {
         # check if postfix is installed, enabled and running
         assert_script_run 'rpm -q postfix';

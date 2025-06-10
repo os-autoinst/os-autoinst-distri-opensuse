@@ -15,8 +15,9 @@ subtest '[ipaddr2_infra_deploy]' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -46,7 +47,8 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -77,7 +79,8 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -106,7 +109,8 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(write_sut_file => sub { return; });
     $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
@@ -127,7 +131,8 @@ subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(write_sut_file => sub { return; });
     $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub {
@@ -146,8 +151,9 @@ subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });

@@ -12,11 +12,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures;
+use Utils::Architectures qw(is_s390x);
+use version_utils qw(is_sle);
 use audit_test qw(run_testcase compare_run_log);
 
 sub run {
     my ($self) = shift;
+
+    if (is_sle('>=15-SP6') && is_s390x) {
+        record_soft_failure('SKIPPING TEST - bsc#1242131');
+        return;
+    }
+
     my $f_ifcfg_br0 = '/etc/sysconfig/network/ifcfg-br0';
     my $f_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0';
     my $bakf_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0.bak';

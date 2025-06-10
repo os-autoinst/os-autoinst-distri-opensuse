@@ -1,11 +1,11 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 3.48.0"
+      version = "= 4.29.0"
       source  = "hashicorp/azurerm"
     }
     random = {
-      version = "= 3.1.0"
+      version = "= 3.7.2"
       source  = "hashicorp/random"
     }
   }
@@ -106,35 +106,35 @@ resource "random_id" "service" {
 
 
 resource "azurerm_resource_group" "openqa-group" {
-  name     = "${var.name}-${element(random_id.service.*.hex, 0)}"
+  name     = "${var.name}-${element(random_id.service[*].hex, 0)}"
   location = var.region
 
   tags = merge({
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service.*.hex, 0)
+    openqa_created_id   = element(random_id.service[*].hex, 0)
   }, var.tags)
 }
 
 resource "azurerm_public_ip" "openqa-publicip" {
-  name                = "${var.name}-${element(random_id.service.*.hex, count.index)}-public-ip"
+  name                = "${var.name}-${element(random_id.service[*].hex, count.index)}-public-ip"
   location            = var.region
   resource_group_name = azurerm_resource_group.openqa-group.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   count               = var.instance_count
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
-  name                = "${var.name}-${element(random_id.service.*.hex, count.index)}-nic"
+  name                = "${var.name}-${element(random_id.service[*].hex, count.index)}-nic"
   location            = var.region
   resource_group_name = azurerm_resource_group.openqa-group.name
   count               = var.instance_count
 
   ip_configuration {
-    name                          = "${element(random_id.service.*.hex, count.index)}-nic-config"
+    name                          = "${element(random_id.service[*].hex, count.index)}-nic-config"
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
+    public_ip_address_id          = element(azurerm_public_ip.openqa-publicip[*].id, count.index)
   }
 }
 
@@ -150,15 +150,16 @@ resource "azurerm_image" "image" {
     os_state = "Generalized"
     blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
     size_gb  = var.root-disk-size 
+    storage_type = "Standard_LRS"
   }
 }
 
 resource "azurerm_linux_virtual_machine" "openqa-vm" {
-  name                            = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+  name                            = "${var.name}-${element(random_id.service[*].hex, count.index)}"
   resource_group_name             = azurerm_resource_group.openqa-group.name
   location                        = var.region
   size                            = var.type
-  computer_name                   = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+  computer_name                   = "${var.name}-${element(random_id.service[*].hex, count.index)}"
   admin_username                  = "azureuser"
   disable_password_authentication = true
 
@@ -169,24 +170,24 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   tags = merge({
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service.*.hex, count.index)
+    openqa_created_id   = element(random_id.service[*].hex, count.index)
   }, var.tags)
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("${var.ssh_public_key}")
+    public_key = file(var.ssh_public_key)
   }
 
   os_disk {
-    name                 = "${var.name}-${element(random_id.service.*.hex, count.index)}-osdisk"
+    name                 = "${var.name}-${element(random_id.service[*].hex, count.index)}-osdisk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
     # SLE images are 30G by default. Uncomment this line in case we need to increase the disk size
     # note: value can not be decreased because 30 GB is minimum allowed by Azure
-    disk_size_gb         = var.root-disk-size 
+    disk_size_gb         = var.root-disk-size
   }
 
-  source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image.0.id : null)
+  source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image[0].id : null)
   dynamic "source_image_reference" {
     for_each = range(var.image_id == "" && var.image_uri == "" ? 1 : 0)
     content {
@@ -211,15 +212,15 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
   count              = var.create-extra-disk ? var.instance_count : 0
-  managed_disk_id    = element(azurerm_managed_disk.ssd_disk.*.id, count.index)
-  virtual_machine_id = element(azurerm_linux_virtual_machine.openqa-vm.*.id, count.index)
+  managed_disk_id    = element(azurerm_managed_disk.ssd_disk[*].id, count.index)
+  virtual_machine_id = element(azurerm_linux_virtual_machine.openqa-vm[*].id, count.index)
   lun                = "1"
   caching            = "ReadWrite"
 }
 
 resource "azurerm_managed_disk" "ssd_disk" {
   count                = var.create-extra-disk ? var.instance_count : 0
-  name                 = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
+  name                 = "ssd-disk-${element(random_id.service[*].hex, count.index)}"
   location             = azurerm_resource_group.openqa-group.location
   resource_group_name  = azurerm_resource_group.openqa-group.name
   storage_account_type = var.extra-disk-type
@@ -229,24 +230,24 @@ resource "azurerm_managed_disk" "ssd_disk" {
 
 
 output "vm_name" {
-  value = azurerm_linux_virtual_machine.openqa-vm.*.id
+  value = azurerm_linux_virtual_machine.openqa-vm[*].id
 }
 
 data "azurerm_public_ip" "openqa-publicip" {
   name                = azurerm_public_ip.openqa-publicip[count.index].name
-  resource_group_name = azurerm_linux_virtual_machine.openqa-vm.0.resource_group_name
+  resource_group_name = azurerm_linux_virtual_machine.openqa-vm[0].resource_group_name
   count               = var.instance_count
 }
 
 output "public_ip" {
-  value = data.azurerm_public_ip.openqa-publicip.*.ip_address
+  value = data.azurerm_public_ip.openqa-publicip[*].ip_address
 }
 
 output "instance_id" {
-  value = azurerm_linux_virtual_machine.openqa-vm.*.id 
+  value = azurerm_linux_virtual_machine.openqa-vm[*].id
 }
 
 output "resource_group_name" {
-  value = azurerm_resource_group.openqa-group.*.name
+  value = azurerm_resource_group.openqa-group[*].name
 }
 

@@ -12,6 +12,7 @@ requires 'Class::Accessor::Fast';
 requires 'Cwd';
 requires 'Data::Dump';
 requires 'Data::Dumper';
+requires 'Date::Parse';
 requires 'DateTime';
 requires 'Digest::file';
 requires 'Exporter';

@@ -7,6 +7,8 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::containerd_nerdctl;
+use strict;
+use warnings;
 use Mojo::Base 'containers::engine';
 use testapi;
 use containers::common 'install_containerd_when_needed';

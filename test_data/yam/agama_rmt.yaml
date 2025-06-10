@@ -1,0 +1,14 @@
+---
+repos:
+  - name: SLE-Product-SLES-16.0
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-16.0-Debug
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0-Debug
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-16.0-Source
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0-Source
+    enabled: 'No'
+    filter: name

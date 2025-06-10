@@ -139,6 +139,8 @@ Set serial terminal prompt to given string.
 sub set_serial_prompt {
     $serial_term_prompt = shift // '';
 
+    # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
+    enter_cmd('export PAGER=cat TERM=dumb; stty cols 2048; exec $SHELL') if (is_sle('>=16') && is_s390x);
     die "Invalid prompt string '$serial_term_prompt'"
       unless $serial_term_prompt =~ s/\s*$//r;
     enter_cmd(qq/PS1="$serial_term_prompt"/);

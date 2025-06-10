@@ -1,0 +1,61 @@
+name:           pvm_ha_priority_fencing
+description:    >
+  Create a 2 nodes cluster on ppc64le hmc_pvm backend for testing the priority fencing delay feature
+
+  Schedule for priority fencing delay test cluster nodes.
+  Use HA_CLUSTER_INIT setting in the job group so the schedule loads the tests for a node running ha-cluster-init or for nodes running ha-cluster-join.
+  Some settings are defined here in the schedule, while others are required outside the schedule.
+
+  The following settings must be defined outside of the schedule, either in the job group yaml configuration or in a test suite.
+
+  CLUSTER_NAME - defining a name for the cluster test, for example qdevice. Only use characters permitted by DNS in this name
+  HA_CLUSTER_INIT - set to yes on the node that does ha-cluster-init, and to no on the nodes that do ha-cluster-join
+  HA_CLUSTER_JOIN - set to the hostname of the node that runs ha-cluster-init
+  HOSTNAME - set to the name of the node hostname
+  NICTYPE - must be set to 'tap' in the job group directly in qemu based jobs.
+  STONITH_COUNT - set the number of stonith test for validating the fencing priority feqture
+  YAML_SCHEDULE - set to schedule/ha/bv/pvm_ha_priority_fencing.yaml
+
+  All jobs with the exception of the HA_CLUSTER_JOIN=yes job must include a PARALLEL_WITH setting referencing the HA_CLUSTER_INIT=yes job.
+
+  CLUSTER_INFOS - must be set in one of the nodes instead of the support server.
+  ISCSI_SERVER - must be set in all nodes.
+  ISCSI_LUN_INDEX - must be set in all nodes, tells the modules which LUN in the iSCSI server to use to avoid having multiple jobs using the same devices.
+  NFS_SUPPORT_SHARE - must be set in all nodes, a RW NFS share where the nodes will write file and share information.
+
+vars:
+  DESKTOP: 'textmode'
+  HA_CLUSTER: '1'
+  HDD_SCC_REGISTERED: '1'
+schedule:
+  - '{{barrier_init}}'
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_hae_active.py
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/iscsi_client_setup
+  - ha/setup_hosts_and_luns
+  - ha/watchdog
+  - '{{cluster_setup}}'
+  - ha/priority_fencing_delay
+  - ha/check_logs
+conditional_schedule:
+  barrier_init:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/barrier_init
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join

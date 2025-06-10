@@ -856,7 +856,11 @@ Get the VM state until status looks like:
   "VM running"
 ]
 
-or reach timeout. Polling frequency is dynamically calculated based on the timeout
+or reach timeout.
+
+Polling frequency is dynamically calculated based on the timeout.
+
+It returns the total ammount of time spent waiting or function kills the test on timeout.
 
 =over
 
@@ -891,10 +895,10 @@ sub az_vm_wait_running {
         # Expected return is
         # [ "PowerState/running", "VM running" ]
         $count = grep(/running/, @$res);
-        return if ($count eq 2);
+        return (time() - $start_time) if ($count eq 2);
         sleep $sleep_time;
     }
-    die "VM not running after " . (time() - $start_time) . "seconds";
+    die "VM not running after " . (time() - $start_time) . " seconds";
 }
 
 =head2 az_vm_openport

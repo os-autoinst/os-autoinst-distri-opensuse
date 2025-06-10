@@ -28,14 +28,15 @@ sub run() {
 
     quit_packagekit;
 
-    if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
-        my $dovecot_repo = get_required_var("DOVECOT_REPO");
-        # Add dovecot repository and install dovecot
-        zypper_call("ar -f ${dovecot_repo} dovecot_repo");
+    if (check_var('SLE_PRODUCT', 'sled')) {
+        my $version = get_var('VERSION');
+        # Add server-applications to get dovecot, dovecot or server applications repo is not available on SLE Desktop
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/$version/x86_64/update/ sle-module-server-applications:${version}::pool");
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/$version/x86_64/product/ sle-module-server-applications:${version}::update");
 
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
-        zypper_call("rr dovecot_repo");
+        zypper_call("rr sle-module-server-applications:${version}::pool sle-module-server-applications:${version}::update");
     } else {
         if (is_opensuse) {
             # exim is installed by default in openSUSE, but we need postfix

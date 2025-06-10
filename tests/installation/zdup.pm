@@ -122,8 +122,14 @@ sub run {
                 record_info 'workaround dependencies';
                 send_key '1';
                 send_key 'ret';
-            }
-            else {
+            } else {
+                # if we found a conflict and solved it, keep looping, update $out too
+                if (solve_conflicts($out)) {
+                    save_screenshot;
+                    $out = wait_serial([$zypper_dup_continue, $zypper_dup_conflict, $zypper_dup_error], 120);
+                    next;
+                }
+
                 $self->result('fail');
                 save_screenshot;
                 return;
@@ -186,6 +192,32 @@ sub run {
     }
 
     assert_screen "zypper-dup-finish";
+}
+
+sub solve_conflicts {
+    my ($output) = @_;
+    my $conflict_solved = 0;
+    my %conflict_solutions = (
+        'star-rmt' => qr{.*Solution (\d+):\s*deinstallation of star-rmt},
+    );
+
+    my @lines = split /\n/, $output;
+    foreach my $package_name (keys %conflict_solutions) {
+        my $regex = $conflict_solutions{$package_name};
+        foreach my $line (@lines) {
+            if ($line =~ /$regex/) {
+                record_info $package_name;
+                send_key $1;
+                wait_still_screen 1;
+                send_key 'ret';
+                $conflict_solved = 1;
+                save_screenshot;
+                return $conflict_solved;
+            }
+        }
+    }
+
+    return $conflict_solved;
 }
 
 sub post_fail_hook {

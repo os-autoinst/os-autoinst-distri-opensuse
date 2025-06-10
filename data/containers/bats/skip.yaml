@@ -1,153 +1,148 @@
-aardvark:
+aardvark-dns:
   opensuse-Tumbleweed:
+    BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
+  sle-16.0:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
   opensuse-Tumbleweed:
-    BATS_SKIP: bud chroot run sbom
-    BATS_SKIP_ROOT: from namespaces
+    BATS_SKIP: bud run sbom
+    BATS_SKIP_ROOT: from
     BATS_SKIP_USER: add basic commit copy overlay rmi squash
-  sle-15-SP4:
-    BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
-  sle-15-SP5:
-    BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
-  sle-15-SP6:
-    BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
-  sle-15-SP7:
-    BATS_SKIP: bud namespaces run
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
   sle-16.0:
     BATS_SKIP: bud run sbom
     BATS_SKIP_ROOT: from
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
+  sle-15-SP7:
+    BATS_SKIP: bud namespaces run sbom
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
+  sle-15-SP6:
+    BATS_SKIP: bud namespaces run sbom
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
+  sle-15-SP5:
+    BATS_SKIP: bud namespaces run sbom
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
+  sle-15-SP4:
+    BATS_SKIP: bud namespaces run sbom
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: add basic commit copy overlay rmi squash
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
-  sle-15-SP5:
-    BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
-  sle-15-SP6:
-    BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
-  sle-15-SP7:
-    BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: 250-bridge-nftables
+    BATS_SKIP:
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/netavark/pull/1191.patch
-    BATS_SKIP: ''
+    - 1191
+    BATS_SKIP:
+  sle-15-SP7:
+    BATS_PATCHES:
+    - 1191
+    BATS_SKIP: 250-bridge-nftables
+  sle-15-SP6:
+    BATS_PATCHES:
+    - 1191
+    BATS_SKIP: 250-bridge-nftables
+  sle-15-SP5:
+    BATS_PATCHES:
+    - 1191
+    BATS_SKIP: 250-bridge-nftables
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
-  # https://github.com/containers/podman/pull/23851 is needed for 271-tcp-cors-server
-  # https://github.com/containers/podman/pull/23854 is needed for 125-import
-  # https://github.com/containers/podman/pull/23987 is needed for 090-events
-  # https://github.com/containers/podman/pull/24068 is needed for 271-tcp-cors-server
-  # https://github.com/containers/podman/pull/25133 is needed for 410-selinux
-  # https://github.com/containers/podman/pull/25340 is needed for 030-run
-  # https://github.com/containers/podman/pull/25350 is needed for 030-run
-  # https://github.com/containers/podman/pull/25718 is needed for 030-run
+  # https://github.com/containers/podman/pull/25792 is needed for 080-pause
+  # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
+  # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/25918.patch
-    - https://github.com/containers/podman/pull/26017.patch
-    BATS_SKIP: ''
+    - 25918
+    - 25942
+    - 26017
+    BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL: 200-pod
-    BATS_SKIP_ROOT_REMOTE: ''
-    BATS_SKIP_USER_LOCAL: 080-pause 252-quadlet 505-networking-pasta
-    BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
-  sle-15-SP6:
-    BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT_LOCAL: ''
-    BATS_SKIP_ROOT_REMOTE: ''
-    BATS_SKIP_USER_LOCAL: 080-pause
-    BATS_SKIP_USER_REMOTE: ''
-  sle-15-SP7:
-    BATS_PATCHES:
-    - https://github.com/containers/podman/pull/21875.patch
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT_LOCAL: ''
-    BATS_SKIP_ROOT_REMOTE: ''
-    BATS_SKIP_USER_LOCAL: 080-pause
-    BATS_SKIP_USER_REMOTE: ''
+    BATS_SKIP_ROOT_REMOTE:
+    BATS_SKIP_USER_LOCAL: 252-quadlet 505-networking-pasta
+    BATS_SKIP_USER_REMOTE: 505-networking-pasta
   sle-16.0:
     BATS_PATCHES:
-    - https://github.com/containers/podman/pull/23851.patch
-    - https://github.com/containers/podman/pull/23854.patch
-    - https://github.com/containers/podman/pull/23987.patch
-    - https://github.com/containers/podman/pull/24068.patch
-    - https://github.com/containers/podman/pull/25133.patch
-    - https://github.com/containers/podman/pull/25340.patch
-    - https://github.com/containers/podman/pull/25350.patch
-    - https://github.com/containers/podman/pull/25718.patch
-    - https://github.com/containers/podman/pull/26017.patch
-    BATS_SKIP: 125-import
-    BATS_SKIP_ROOT_LOCAL: 520-checkpoint
-    BATS_SKIP_ROOT_REMOTE: 090-events 520-checkpoint
-    BATS_SKIP_USER_LOCAL: 080-pause 505-networking-pasta
-    BATS_SKIP_USER_REMOTE: 505-networking-pasta
+    - 25792
+    - 25918
+    - 25942
+    - 26017
+    BATS_SKIP:
+    BATS_SKIP_ROOT_LOCAL: 200-pod 520-checkpoint
+    BATS_SKIP_ROOT_REMOTE: 520-checkpoint
+    BATS_SKIP_USER_LOCAL: 505-networking-pasta
+    BATS_SKIP_USER_REMOTE: 130-kill 505-networking-pasta
+  sle-15-SP7:
+    BATS_PATCHES:
+    - 21875
+    - 25792
+    BATS_SKIP:
+    BATS_SKIP_ROOT_LOCAL:
+    BATS_SKIP_ROOT_REMOTE:
+    BATS_SKIP_USER_LOCAL:
+    BATS_SKIP_USER_REMOTE:
+  sle-15-SP6:
+    BATS_PATCHES:
+    - 21875
+    - 25792
+    BATS_SKIP:
+    BATS_SKIP_ROOT_LOCAL:
+    BATS_SKIP_ROOT_REMOTE:
+    BATS_SKIP_USER_LOCAL:
+    BATS_SKIP_USER_REMOTE:
 runc:
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: cgroups checkpoint
-    BATS_SKIP_USER: ''
-  sle-15-SP4:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
-    BATS_SKIP_USER: run userns
-  sle-15-SP5:
-    BATS_SKIP: ''
+    BATS_SKIP_USER:
+  sle-16.0:
+    BATS_SKIP:
+    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_USER:
+  sle-15-SP7:
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP6:
-    BATS_SKIP: ''
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
-  sle-15-SP7:
-    BATS_SKIP: ''
+  sle-15-SP5:
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
-  sle-16.0:
-    BATS_SKIP: ''
+  sle-15-SP4:
+    BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
-    BATS_SKIP_USER: ''
+    BATS_SKIP_USER: run userns
 skopeo:
   opensuse-Tumbleweed:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
-  sle-15-SP4:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
-  sle-15-SP5:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
-  sle-15-SP6:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
-  sle-15-SP7:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
   sle-16.0:
-    BATS_SKIP: ''
-    BATS_SKIP_ROOT: ''
-    BATS_SKIP_USER: ''
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
+  sle-15-SP7:
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
+  sle-15-SP6:
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
+  sle-15-SP5:
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
+  sle-15-SP4:
+    BATS_SKIP:
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER:
 
