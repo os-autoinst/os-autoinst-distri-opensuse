@@ -1,0 +1,38 @@
+From 99b2f369db2a3a033041696c26d9ecf92df25b6c Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Thu, 29 Feb 2024 13:39:58 +0100
+Subject: [PATCH] test/system: fix mount external container test
+
+Checking for the mountdir is not relevent, a recent c/storage change[1] no
+longer deletes the mount point directory so the check will cause a false
+positive. findmnt exits 1 when the given path is not a mountpoint so
+let's use that to check.
+
+[1] https://github.com/containers/storage/pull/1828/commits/3f2e81abb38926d9b908528412c25fa2e199b6b9
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/060-mount.bats | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/test/system/060-mount.bats b/test/system/060-mount.bats
+index fbc925a47c..070dba5eb9 100644
+--- a/test/system/060-mount.bats
++++ b/test/system/060-mount.bats
+@@ -249,13 +249,10 @@ EOF
+     reported_mountpoint=$(echo "$output" | awk '{print $2}')
+     is "$reported_mountpoint" "$mount_path" "mountpoint reported by 'podman mount'"
+ 
+-    # umount, and make sure files are gone
++    # umount, and make sure mountpoint no longer exists
+     run_podman umount $external_cid
+-    if [ -d "$mount_path" ]; then
+-        # Under VFS, mountpoint always exists even despite umount
+-        if [[ "$(podman_storage_driver)" != "vfs" ]]; then
+-            die "'podman umount' did not umount $mount_path"
+-        fi
++    if findmnt "$mount_path" >/dev/null ; then
++        die "'podman umount' did not umount $mount_path"
+     fi
+     buildah rm $external_cid
+ }

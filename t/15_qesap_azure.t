@@ -159,7 +159,6 @@ subtest '[qesap_az_get_active_peerings] die for missing mandatory arguments' => 
 
 subtest '[qesap_az_get_active_peerings] test correct ID extraction' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my %results;
 
     $qesap->redefine(script_output => sub {
             if ($_[0] =~ /myresourcegroup/ && $_[0] =~ /myvnetname/) {
@@ -167,7 +166,7 @@ subtest '[qesap_az_get_active_peerings] test correct ID extraction' => sub {
             }
     });
     # Test correct id extraction
-    %results = qesap_az_get_active_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
+    my %results = qesap_az_get_active_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
     my %expected_results = (
         "vnet123456-vnet-other" => 123456,
         "vnet789012-vnet-other" => 789012

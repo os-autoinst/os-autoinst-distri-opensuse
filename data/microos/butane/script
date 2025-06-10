@@ -25,8 +25,9 @@ detect_free_drive() {
     for d in ${drives[@]}; do
         # 64bit worker boots the image with cd-rom (sr0) device
         # vmware adds floppy drive
+        # microos has loop devices present
         # skip any of this device in case it is detected
-        [[ "$d" =~ ^(sr|fd)[0-9]$ ]] && continue
+        [[ "$d" =~ ^(sr|fd|loop)[0-9]$ ]] && continue
         blkid /dev/"$d" &> /dev/null
         if [[ "$?" -eq 2 ]]; then
             printf "%s" "/dev/$d"
@@ -36,10 +37,10 @@ detect_free_drive() {
 }
 
 create_fs() {
-    DRIVE=$(detect_free_drive)
+    local DRIVE=$(detect_free_drive)
     test -n "$DRIVE" || exit 2
 
-    PART="${DRIVE}1"
+    local PART="${DRIVE}1"
 
     # create partition and filesystem on additional drive
     echo "label: gpt" | sfdisk "$DRIVE"
@@ -82,14 +83,62 @@ test_prepare() {
     echo "combustion: test_prepare function ran OK" > /dev/kmsg
 }
 
-can_encrypt() {
-    [ -c "/dev/tpm0" ] && command -v disk-encryption-tool >/dev/null
+fde_in_service() {
+cat > /opt/reencrypt.sh <<'EOF'
+#!/bin/bash
+set -eux
+
+# define fde data
+luks_keyfile=/root/.root.keyfile
+luks_dev=$(blkid -t TYPE=crypto_LUKS --output=device)
+newpass=$(mktemp /tmp/fde.XXXXXX)
+echo -n bm90czNjcjN0Cg== | base64 -d > "${newpass}"
+
+if [ -f /run/.kiwi_reencrypt.keyfile ]; then
+    oldpass=/run/.kiwi_reencrypt.keyfile
+else
+    oldpass=$(mktemp /tmp/fde.XXXXXX)
+    echo -n "1234" > "${oldpass}"
+fi
+
+sed -i "s,${luks_keyfile},/.virtual-root.key,g" /etc/crypttab
+cryptsetup --key-file "${oldpass}" luksChangeKey --pbkdf pbkdf2 "${luks_dev}" "${newpass}"
+cryptsetup reencrypt --key-file "${newpass}" "${luks_dev}"
+fdectl --passfile "${newpass}" regenerate-key
+systemctl enable fde-tpm-enroll.service
+transactional-update initrd grub.cfg
+rm -f "${newpass}" "${oldpass}" "${luks_keyfile}"
+systemctl --message="Combustion triggered FDE" reboot
+EOF
+
+chmod 755 /opt/reencrypt.sh
+
+cat > /etc/systemd/system/reencrypt.service <<'EOF'
+[Unit]
+Description=Run FDE reencrypt configured by combustion
+
+ConditionPathExists=/root/.root.keyfile
+
+After=local-fs.target systemd-firstboot.service basic.target
+Before=getty.target network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/reencrypt.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable reencrypt.service
 }
 
 if [ "${1-}" = "--prepare" ]; then
     test_prepare
 
-    if can_encrypt; then
+    if [ -c "/dev/tpm0" ] && command -v disk-encryption-tool &> /dev/null; then
         mkdir -p /run/credstore
         echo "force" > /run/credstore/disk-encryption-tool-dracut.encrypt
         echo "cr_root /dev/vda3" >> /run/credstore/disk-encryption-tool-dracut.partitions
@@ -101,19 +150,18 @@ fi
 # Redirect output to the console
 exec > >(exec tee -a /dev/console) 2>&1
 
-. /etc/os-release
-
-if [ "{ID}" = "opensuse-microos" ]; then
+if command -v mkfs.ext4 &> /dev/null; then
+    create_fs
+    systemd_mount
+else
     mount /home
 fi
 
-if [ "{ID_LIKE}" = "suse" ]; then
-    create_fs
-    systemd_mount
+if [ -c "/dev/tpm0" ] && command -v fdectl &> /dev/null; then
+    fde_in_service
 fi
 
-
-if can_encrypt; then
+if [ -c "/dev/tpm0" ] && command -v disk-encryption-tool &> /dev/null; then
     systemd-machine-id-setup
     [ -z "${TRANSACTIONAL_UPDATE+x}" ] || mount /var
     mkdir -p /etc/credstore.encrypted

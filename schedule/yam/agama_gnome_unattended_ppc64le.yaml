@@ -2,11 +2,13 @@
 name: agama_gnome_unattended_ppc64le
 description: >
   Perform desktop unattended installation for ppc64le
+  For bsc#1243045, we need to skip first_boot because it can't
+  boot into gnome for the worker has no graphic card while we
+  want to test that we can still install gnome on ppc64le.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - installation/grub_test
-  - installation/first_boot
   - yam/validate/validate_installed_patterns
   - yam/validate/validate_packages

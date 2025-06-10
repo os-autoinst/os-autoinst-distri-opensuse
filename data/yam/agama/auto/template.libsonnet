@@ -4,37 +4,45 @@ local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
+local security_lib = import 'lib/security.libsonnet';
 
-function(addon_ha_reg_code='',
-         bootloader=false,
-         user=true,
-         root=true,
-         storage='',
+function(bootloader=false,
+         localization='',
          packages='',
          patterns='',
          product='',
          registration_code='',
+         registration_code_ha='',
+         registration_url='',
+         root_password=true,
          scripts_pre='',
          scripts_post_partitioning='',
-         scripts_post='') {
+         scripts_post='',
+         ssl_certificates=false,
+         storage='',
+         user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  [if localization == true then 'localization']: base_lib['localization'],
   [if patterns != '' || packages != '' then 'software']: std.prune({
     patterns: if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
   }),
   [if product != '' then 'product']: {
-    [if addon_ha_reg_code != '' then 'addons']: std.prune([
-      if addon_ha_reg_code != '' then addons_lib.addon_ha(addon_ha_reg_code),
+    [if registration_code_ha != '' then 'addons']: std.prune([
+      if registration_code_ha != '' then addons_lib.addon_ha(registration_code_ha),
     ]),
     id: product,
     [if registration_code != '' then 'registrationCode']: registration_code,
+    [if registration_url != '' then 'registrationUrl']: registration_url,
   },
-  [if root == true then 'root']: base_lib['root'],
+  root: base_lib.root(root_password),
+  [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
   [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
     [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
     [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
     [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
   },
+  [if std.startsWith(storage, 'raid') then 'storage']: storage_lib[storage],
   [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
   [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
   [if storage == 'lvm_tpm_fde' then 'storage']: storage_lib['lvm_tpm_fde'],

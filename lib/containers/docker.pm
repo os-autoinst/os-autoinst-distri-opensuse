@@ -7,6 +7,8 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::docker;
+use strict;
+use warnings;
 use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);

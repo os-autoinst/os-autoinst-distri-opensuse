@@ -88,7 +88,7 @@ sub run {
     my $file_flag_sync = 'testfile_oflag_sync';
 
     # provision NFS server(s) of various types
-    zypper_call("in yast2-nfs-server nfs-kernel-server");
+    zypper_call("in nfs-kernel-server");
 
     # configure our exports
     if ($kernel_nfs3 == 1) {

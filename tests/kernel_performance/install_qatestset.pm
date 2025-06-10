@@ -17,7 +17,26 @@ use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use mmapi 'wait_for_children';
 use ipmi_backend_utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle has_selinux);
+
+sub setup_rules_for_sleperf_when_selinux_enforcing {
+    if (has_selinux && script_output('getenforce') eq 'Enforcing') {
+        my @sleperf_selinux_rules = (
+            '-t var_log_t "/var/log/qa(/.*)?"',
+            '-t var_log_t "/var/log/qaset(/.*)?"',
+            '-t usr_t "/usr/share/qa(/.*)?"',
+            '-t bin_t "/usr/share/qa/qaset/bin(/.*)?"',
+            '-t bin_t "/usr/share/qa/perfcom/perfcmd.py"',
+            '-t systemd_unit_file_t "/usr/lib/systemd/system/qaperf.service"');
+        assert_script_run("semanage fcontext -a -s system_u $_") foreach (@sleperf_selinux_rules);
+        # TODO: SLEperf will fix to create /var/log/qa dir later, skip assert checking here
+        script_run('restorecon -FR -v /var/log/qa');
+        assert_script_run('restorecon -FR -v /var/log/qaset');
+        assert_script_run('restorecon -FR -v /usr/share/qa');
+        assert_script_run('restorecon -FR -v /usr/lib/systemd/system/qaperf.service');
+        assert_script_run('restorecon -FR -v /etc/systemd/system/multi-user.target.wants/qaperf.service');
+    }
+}
 
 sub install_pkg {
     my $sleperf_source = get_var('SLE_SOURCE');
@@ -29,6 +48,9 @@ sub install_pkg {
     assert_script_run("tar xf /root/sleperf.tar -C /root");
     assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh scheduler-service");
     assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh common-infra");
+
+    # Setup selinux rule for sleperf
+    setup_rules_for_sleperf_when_selinux_enforcing;
 
     # Install qa_lib_ctcs2 package to fix dependency issue
     zypper_call("install qa_lib_ctcs2");
@@ -151,6 +173,20 @@ sub run {
     my $self = shift;
 
     select_console 'root-console' if (is_sle('16+') && get_var('HANA_PERF'));
+
+    if (has_selinux) {
+        my $selinux_mode = get_var('HANAPERF_SELINUX_SETENFORCE', 'Enforcing');
+        record_info('sestatus', script_output('sestatus'));
+        if (script_output('getenforce') !~ m/$selinux_mode/i) {
+            assert_script_run('setenforce ' . $selinux_mode);
+            validate_script_output('getenforce', sub { m/$selinux_mode/i });
+            # Modify /etc/selinux/config and "SELINUX=" uses low case
+            $selinux_mode = lc $selinux_mode;
+            assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
+            assert_script_run("echo 'SELINUX=$selinux_mode' >> /etc/selinux/config");
+            record_info('sestatus', script_output('sestatus'));
+        }
+    }
 
     # Add more packages for HANAonKVM with 15SP2
     if (get_var('HANA_PERF') && get_var('VERSION') eq '15-SP2' && get_var('SYSTEM_ROLE') eq 'kvm') {

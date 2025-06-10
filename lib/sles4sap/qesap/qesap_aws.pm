@@ -37,11 +37,6 @@ use testapi;
 our @EXPORT = qw(
   qesap_aws_get_vpc_id
   qesap_aws_delete_transit_gateway_vpc_attachment
-  qesap_aws_get_transit_gateway_vpc_attachment
-  qesap_aws_add_route_to_tgw
-  qesap_aws_get_mirror_tg
-  qesap_aws_get_vpc_workspace
-  qesap_aws_get_routing
   qesap_aws_vnet_peering
   qesap_aws_create_credentials
   qesap_aws_create_config

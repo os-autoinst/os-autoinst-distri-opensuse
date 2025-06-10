@@ -36,6 +36,11 @@ has provider_client => undef;
 
 has ssh_key => get_ssh_private_key_path();
 
+my $runner = get_var('PUBLIC_CLOUD_TERRAFORM_RUNNER', 'tofu');
+unless ($runner eq 'terraform' || $runner eq 'tofu') {
+    die "Unsupported PUBLIC_CLOUD_TERRAFORM_RUNNER: '$runner'. Must be 'terraform' or 'tofu'";
+}
+
 =head1 METHODS
 
 =cut
@@ -488,7 +493,7 @@ sub terraform_apply {
     # 1) Terraform init
 
     assert_script_run('cd ' . TERRAFORM_DIR);
-    script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
+    script_retry($runner . ' init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
     # 2) Terraform plan
 
@@ -524,6 +529,8 @@ sub terraform_apply {
         } elsif (is_gce) {
             my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
             $vars{stack_type} = $stack_type;
+            my $nic_type = get_var('PUBLIC_CLOUD_GCE_NIC_TYPE', '');
+            $vars{nic_type} = $nic_type if $nic_type;
             $vars{availability_zone} = $self->provider_client->availability_zone;
         }
         $vars{instance_count} = $args{count};
@@ -554,7 +561,7 @@ sub terraform_apply {
         $vars{ssh_public_key} = $self->ssh_key . '.pub';
     }
 
-    my $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
+    my $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
 
     # 3) Terraform apply
@@ -564,7 +571,7 @@ sub terraform_apply {
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
     # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
-    my $ret = script_run("set -o pipefail; TF_LOG=$tf_log terraform apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+    my $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
     my $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
 
@@ -573,7 +580,7 @@ sub terraform_apply {
 
     # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
     # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
-    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*/)) {
+    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
         my $zones_output = script_output("gcloud compute zones list --filter='region=" . $vars{region} . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
         my @alternative_zones = split /\s*,\s*/, $zones_output;
         @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
@@ -583,9 +590,9 @@ sub terraform_apply {
             record_info('RETRYING', "Attempting with availability_zone: $az");
             $vars{availability_zone} = $az;
 
-            $cmd = terraform_cmd('terraform plan -no-color -out myplan', %vars);
+            $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
             script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-            $ret = script_run("set -o pipefail; TF_LOG=$tf_log terraform apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+            $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
             $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
             record_info("TFM apply output", $tf_apply_output);
             record_info("TFM apply exit code", $ret);
@@ -601,7 +608,7 @@ sub terraform_apply {
             send_key('ctrl-\\');    # Send QUIT signal
         }
         assert_script_run('true');    # Make sure we have a prompt
-        script_run("killall -KILL terraform");    # Send SIGKILL in case SIGQUIT doesn't work
+        script_run("killall -KILL $runner");    # Send SIGKILL in case SIGQUIT doesn't work
         record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
         assert_script_run('cd ' . TERRAFORM_DIR);
         $self->on_terraform_apply_timeout();
@@ -611,7 +618,7 @@ sub terraform_apply {
 
     # 4) Terraform output
 
-    my $output = decode_json(script_output("terraform output -json"));
+    my $output = decode_json(script_output($runner . ' output -json'));
     my ($vms, $ips, $resource_id);
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         foreach my $vm_type ('hana', 'drbd', 'netweaver') {
@@ -684,7 +691,7 @@ sub terraform_destroy {
         $vars{'storage-account'} = $storage_account if ($storage_account);
     }
     # Regarding the use of '-lock=false': Ignore lock to avoid "Error acquiring the state lock"
-    my $cmd = terraform_cmd('terraform destroy -no-color -auto-approve -lock=false', %vars);
+    my $cmd = terraform_cmd($runner . ' destroy -no-color -auto-approve -lock=false', %vars);
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
     my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
@@ -743,7 +750,7 @@ To get the complete output structure, the call is:
 sub get_terraform_output {
     my ($self, $jq_query) = @_;
     script_run("cd " . TERRAFORM_DIR);
-    my $res = script_output("terraform output -no-color -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
+    my $res = script_output("$runner output -no-color -json | jq -r '$jq_query' 2>/dev/null", proceed_on_failure => 1);
     # jq 'null' shall return empty
     script_run('cd -');
     return $res unless ($res =~ /^null$/);

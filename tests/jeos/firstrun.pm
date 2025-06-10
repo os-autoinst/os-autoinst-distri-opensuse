@@ -123,7 +123,7 @@ sub verify_partition_label {
     # The RPi firmware needs MBR. s390x images also use MBR.
     # Note: JeOS-for-RaspberryPi means "kiwi-templates-Minimal" and JeOS-for-RPi means "community JeOS".
     # In sle-micro the raw aarch64 images are used for RPi, hence they have contain `dos`
-    if (is_s390x || get_var('FLAVOR', '') =~ /JeOS-for-RaspberryPi/ || check_var('FLAVOR', 'JeOS-for-RPi') || (is_sle_micro && is_aarch64 && get_var('FLAVOR', '') =~ /(^Base$|^Default$)/)) {
+    if (is_s390x || get_var('FLAVOR', '') =~ /JeOS-for-RaspberryPi/ || check_var('FLAVOR', 'JeOS-for-RPi') || (is_sle_micro("<6.2") && is_aarch64 && get_var('FLAVOR', '') =~ /(^Base$|^Default$)/)) {
         $label = 'dos';
     }
 
@@ -268,6 +268,12 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
+    # handle registration notice
+    if (is_sle || is_sle_micro) {
+        assert_screen 'jeos-please-register';
+        send_key 'ret';
+    }
+
     if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
         send_key 'ret';
@@ -285,11 +291,6 @@ sub run {
         # Continues below to verify that /etc/issue shows the recovery key
     }
 
-    if (is_sle || is_sle_micro) {
-        assert_screen 'jeos-please-register';
-        send_key 'ret';
-    }
-
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
     if (get_var('FLAVOR') =~ m/-encrypted/i) {
         # Select FDE with pass and tpm
@@ -303,7 +304,7 @@ sub run {
         type_password;
         send_key "ret";
         # Disk encryption is gonna take time
-        assert_screen 're-encrypt-finished', 600;
+        assert_screen 're-encrypt-finished', 600 unless is_sle_micro('>=6.2');
     }
 
     if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {

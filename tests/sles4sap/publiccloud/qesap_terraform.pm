@@ -33,8 +33,10 @@ use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::azure_cli;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
+use qam;
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -81,17 +83,19 @@ sub run {
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
+    # Within the qe-sap-deployment terraform code, in each differend CSP implementation,
+    # an empty string means no peering.
+    # This "trick" is needed to only have one conf.yaml
+    # for both jobs that creates the peering with terraform or the az cli
     if (is_azure()) {
-        # Within the qe-sap-deployment terraform code,
-        # an empty string means no peering.
-        # This "trick" is needed to only have one conf.yaml
-        # for both jobs that creates the peering with terraform or the az cli
         set_var('IBSM_RG', '') unless (get_var('IBSM_RG'));
         set_var('IBSM_VNET', '') unless (get_var('IBSM_VNET'));
     } elsif (is_gce()) {
         set_var('IBSM_VPC_NAME', '') unless (get_var('IBSM_VPC_NAME'));
         set_var('IBSM_SUBNET_NAME', '') unless (get_var('IBSM_SUBNET_NAME'));
         set_var('IBSM_SUBNET_REGION', '') unless (get_var('IBSM_SUBNET_REGION'));
+    } elsif (is_ec2()) {
+        set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
 
     my $deployment_name = deployment_name();
@@ -205,6 +209,13 @@ sub run {
             $playbook_configs{registration} = 'suseconnect' if (is_byos() && $reg_mode !~ 'noreg');
         }
     }
+
+    $playbook_configs{ibsm_ip} = get_var('IBSM_IP') if get_var('IBSM_IP');
+    $playbook_configs{download_hostname} = get_var('REPO_MIRROR_HOST') if get_var('REPO_MIRROR_HOST');
+
+    my @repos = get_test_repos();
+    $playbook_configs{repos} = join(',', @repos);
+
     $ansible_playbooks = create_playbook_section_list(%playbook_configs);
 
     # Prepare QESAP deployment
@@ -213,6 +224,14 @@ sub run {
     qesap_create_ansible_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
+
+    # Clean leftover peerings (Azure only)
+    if (is_azure() && get_var('IBSM_RG')) {
+        record_info 'PEERING CLEANUP', "Peering cleanup START";
+        my $group = get_var('IBSM_RG');
+        qesap_az_clean_old_peerings(rg => $group, vnet => az_network_vnet_get(resource_group => $group, query => "[0].name"));
+        record_info 'PEERING CLEANUP', "Peering cleanup END";
+    }
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1, region => get_required_var('PUBLIC_CLOUD_REGION'));

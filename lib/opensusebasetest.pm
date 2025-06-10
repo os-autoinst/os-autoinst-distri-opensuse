@@ -383,7 +383,9 @@ sub wait_grub {
     my $in_grub = $args{in_grub} // 0;
     my @tags;
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI') && !get_var('DISABLE_SECUREBOOT');
-    push @tags, 'grub2';
+    push @tags, 'grub2-bls' if is_bootloader_grub2_bls;
+    push @tags, 'bootloader-sdboot' if is_bootloader_sdboot;
+    push @tags, 'grub2' if is_bootloader_grub2;
     push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
     push @tags, 'bootloader' if get_var('OFW');
     push @tags, 'encrypted-disk-password-prompt-grub', 'encrypted-disk-password-prompt' if get_var('ENCRYPT');
@@ -606,7 +608,15 @@ sub handle_emergency_if_needed {
 
 sub handle_displaymanager_login {
     my ($self, %args) = @_;
-    assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
+    assert_screen [qw(displaymanager emergency-shell emergency-mode gdm-crash)], $args{ready_time};
+    if (is_ppc64le && check_var('VERSION', '15-SP7') && check_var('TEST', 'qam-minimal-full') && match_has_tag('gdm-crash')) {
+        select_serial_terminal();
+        systemctl('disable --now display-manager');
+        set_var('DESKTOP', 'textmode', reload_needles => 1);
+        assert_script_run('while ps aux|grep gdm|grep -v grep; do sleep 2; done', 300);
+        select_console 'root-console';
+        return;
+    }
     handle_emergency_if_needed;
     handle_login unless $args{nologin};
 }
@@ -797,6 +807,7 @@ sub wait_boot_past_bootloader {
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
     push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
+    push(@tags, 'root-console') if is_ppc64le && check_var('VERSION', '15-SP7') && check_var('TEST', 'qam-minimal-full');
 
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && is_aarch64 && check_var('DESKTOP', 'gnome')) {
@@ -898,6 +909,9 @@ sub wait_boot {
     # When no bounce back on power KVM, we need skip bootloader process and go ahead when 'displaymanager' matched.
     elsif (get_var('OFW') && (check_screen('displaymanager', 5))) {
     }
+    # SLE-16 boot on ppc64le results too quick to be captured, from grub2 to login prompt
+    elsif (get_var('OFW') && is_sle('16+') && check_var('MACHINE', 'ppc64le-emu') && (check_screen('linux-login', 10))) {
+    }
     elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
@@ -912,10 +926,10 @@ sub wait_boot {
         }
     } elsif (is_bootloader_sdboot) {
         assert_screen 'systemd-boot', 300;
-        save_screenshot;    # Show what's selected for booting
         send_key('ret');
     } elsif (is_bootloader_grub2_bls) {
-        save_screenshot;
+        assert_screen('grub2-bls', 300);
+        send_key('ret');
     } else {
         die 'Unknown bootloader';
     }

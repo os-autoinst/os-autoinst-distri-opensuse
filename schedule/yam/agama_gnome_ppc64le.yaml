@@ -1,0 +1,15 @@
+---
+name: agama_gnome_ppc64le
+description: >
+  Perform desktop interactive installation for ppc64le.
+  For bsc#1243045, we need to skip first_boot because it can't
+  boot into gnome for the worker has no graphic card while we
+  want to test that we can still install gnome on ppc64le.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages

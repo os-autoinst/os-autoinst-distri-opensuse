@@ -12,6 +12,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
+use utils qw(zypper_call);
+use version_utils qw(is_sle);
 use strict;
 use warnings;
 
@@ -52,11 +54,10 @@ sub run {
     # Mount media
     $self->mount_media($proto, $path, '/sapinst');
 
-    # Workaround for SLE16 if variable WORKAROUND_BSC1234806 set
-    if (get_var("WORKAROUND_BSC1236235")) {
-        record_soft_failure("bsc#1236235: workaround by installing libnsl package from NFS");
-        assert_script_run "rpm -Uvh /mnt/libnsl1-2.38-160000.4.4." . get_var("ARCH") . ".rpm";
-    }
+    # SLES 16 provides a libnsl1-stub package for older workloads which require libnsl1
+    # Current versions of NetWeaver require libnsl1, so install this stub library too
+    # see https://susedoc.github.io/release-notes/slesap-16.0/html/release-notes/index.html#jsc-DOCTEAM-1849
+    zypper_call 'in libnsl-stub1' if is_sle('16+');
 
     # Workaround for SLE16 for bsc#1236372
     if (get_var("WORKAROUND_BSC1236372")) {

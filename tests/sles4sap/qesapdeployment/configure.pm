@@ -115,16 +115,19 @@ sub run {
         $variables{IBSM_VNET} = get_var('QESAPDEPLOY_IBSM_VNET', '');
         $variables{IBSM_RG} = get_var('QESAPDEPLOY_IBSM_RG', '');
     }
+    elsif ($provider_setting eq 'EC2') {
+        $variables{IBSM_PRJ_TAG} = get_var('QESAPDEPLOY_IBSM_PRJ_TAG', '');
+    }
     elsif ($provider_setting eq 'GCE') {
         $variables{IBSM_VPC_NAME} = get_var('QESAPDEPLOY_IBSM_VPC_NAME', '');
         $variables{IBSM_SUBNET_NAME} = get_var('QESAPDEPLOY_IBSM_SUBNET_NAME', '');
         $variables{IBSM_SUBNET_REGION} = get_var('QESAPDEPLOY_IBSM_SUBNET_REGION', '');
     }
 
-
-
     if (($provider_setting eq 'AZURE' && get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) ||
-        ($provider_setting eq 'GCE' && get_var('QESAPDEPLOY_IBSM_VPC_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_REGION'))) {
+        ($provider_setting eq 'EC2' && get_var('QESAPDEPLOY_IBSM_PRJ_TAG')) ||
+        ($provider_setting eq 'GCE' && get_var('QESAPDEPLOY_IBSM_VPC_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_REGION'))
+    ) {
         $variables{IBSM_IP} = get_required_var('QESAPDEPLOY_IBSM_IP');
         $variables{DOWNLOAD_HOSTNAME} = get_required_var('QESAPDEPLOY_DOWNLOAD_HOSTNAME');
         $variables{REPOS} = join(',', get_test_repos());

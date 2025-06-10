@@ -7,6 +7,8 @@
 # Summary: Upstream runc integration tests
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
@@ -34,7 +36,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(git-core glibc-devel-static go1.24 jq libseccomp-devel make runc);
+    my @pkgs = qw(glibc-devel-static go1.24 jq libseccomp-devel make runc);
     push @pkgs, "criu" if is_tumbleweed;
 
     $self->bats_setup(@pkgs);

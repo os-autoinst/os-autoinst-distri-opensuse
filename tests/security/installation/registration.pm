@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 
 sub run {
-    if (check_var('FLAVOR', 'Full-QR')) {
+    if (check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full')) {
         $testapi::distri->get_registration()->skip_registration();
     } else {
         $testapi::distri->get_registration()->register_via_scc({

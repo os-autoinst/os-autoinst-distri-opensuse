@@ -56,6 +56,7 @@ CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
 CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
+HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dependecy_issues will be scheduled or not before certain modules which need it.
@@ -99,7 +100,7 @@ HTTPPROXY  |||
 HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test suite.
 HPC_WAREWULF_CONTAINER_NAME | string | The OS name which is expected to run from HPC_WAREWULF_CONTAINER.
 HPC_WAREWULF_CONTAINER_USERNAME | string | Defining username enables authentication for containers, needs valid HPC subscription on SCC for containers from registry.suse.com. If you want use default HPC subscription, just set same value as in SCC_EMAIL
-_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC 
+_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
@@ -117,6 +118,9 @@ IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine 
 K3S_SYMLINK | string | | Can be 'skip' or 'force'. Skips the installation of k3s symlinks to tools like kubectl or forces the creation of symlinks
 K3S_BIN_DIR | string | | If defined, install k3s to this provided directory instead of `/usr/local/bin/`
 K3S_CHANNEL | string | | Set the release channel to pick the k3s version from. Options include "stable", "latest" and "testing"
+K3S_ENABLE_COREDNS | boolean | | During K3s installation, should CoreDNS be installed.
+K3S_ENABLE_TRAEFIK | boolean | | During K3s installation, should Traefik be installed.
+K3S_ENABLE_HELM_CONTROLLER | boolean | | During K3s installation, should Helm Controller be installed.
 KERNEL_FLAVOR | string | kernel-default | Set specific kernel flavor for test scenarios
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
@@ -165,7 +169,9 @@ NO_ADD_MAINT_TEST_REPOS | boolean | true |  Do not add again (and duplicate) rep
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
-NVIDIA_REPO | string | '' | Define the external repo for nvidia driver. Used by `nvidia.pm` module.
+NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
+NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
+NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
 OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
@@ -262,6 +268,7 @@ LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are bootin
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
+TRANSACTIONAL_UPDATE_PATCH | boolean | false | Use `zypper patch` when true and `zypper up` when false.
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
 TRENTO_CYPRESS_VERSION | string | 9.6.1 | used as tag for the docker.io/cypress/included registry.
 TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation
@@ -307,6 +314,7 @@ The following variables are relevant for publiccloud related jobs. Keep in mind 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana").
+OPENTOFU_VERSION | string | "1.9.1" | Version of opentofu to include into PC Tools image
 PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
@@ -345,6 +353,7 @@ PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO t
 PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
 PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
+PUBLIC_CLOUD_GCE_NIC_TYPE | string | "" | Network Interface Card type, possible values: GVNIC, VIRTIO_NET, IDPF, MRDMA or IRDMA 
 PUBLIC_CLOUD_GEN_RESOLVER | boolean | 0 | Control use of `--debug-resolver` option during maintenance updates testing . In case option was used also controls uploading of resolver case into the test
 PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
 PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.
@@ -394,6 +403,7 @@ PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added 
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
+PUBLIC_CLOUD_TERRAFORM_RUNNER | string | "tofu" | Override terraform runner container. Can be either "tofu" or "terraform".
 PUBLIC_CLOUD_TOOLS_CLI | boolean | false | If set, it schedules `publiccloud_tools_cli` job group.
 PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
@@ -401,6 +411,7 @@ PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the 
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
 PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
+TERRAFORM_VERSION | string | "1.5.7" | Version of terraform to include into PC Tools image
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
 TERRAFORM_VM_CREATE_TIMEOUT | string | "20m" | Terraform timeout for creating the virtual machine resource.
 _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance

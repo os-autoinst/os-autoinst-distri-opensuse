@@ -9,7 +9,6 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use sles4sap::qesap::qesapdeployment;
-use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 sub run {
     my ($self) = @_;
@@ -19,6 +18,19 @@ sub run {
     # just that crash trough Ansible does not hang Ansible execution
     qesap_ansible_cmd(
         cmd => 'sudo echo b > /proc/sysrq-trigger &',
+        provider => $provider_setting,
+        filter => '"hana[0]"',
+        timeout => 300);
+
+    # Check that if comes back to life
+    qesap_ansible_cmd(
+        cmd => 'echo \"I am back\"',
+        provider => $provider_setting,
+        filter => '"hana[0]"',
+        timeout => 300);
+
+    qesap_ansible_cmd(
+        cmd => 'sudo systemctl is-system-running',
         provider => $provider_setting,
         filter => '"hana[0]"',
         timeout => 300);

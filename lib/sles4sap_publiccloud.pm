@@ -27,6 +27,7 @@ use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version is_sle);
 use hacluster;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::qesap_aws;
 use publiccloud::utils;
 use publiccloud::provider;
 use publiccloud::ssh_interactive qw(select_host_console);
@@ -55,7 +56,6 @@ our @EXPORT = qw(
   sbd_delay_formula
   create_instance_data
   deployment_name
-  delete_network_peering
   create_playbook_section_list
   create_hana_vars_section
   azure_fencing_agents_playbook_args
@@ -160,8 +160,6 @@ sub get_promoted_hostname {
 
 =item B<cleanup_called> - flag to indicate cleanup status
 
-=item B<network_peering_present> - flag to indicate network peering presence
-
 =item B<ansible_present> - flag to indicate ansible has need executed as part of the deployment
 
 =back
@@ -173,7 +171,6 @@ sub sles4sap_cleanup {
         'Cleanup',
         join(' ',
             'cleanup_called:', $args{cleanup_called} // 'undefined',
-            'network_peering_present:', $args{network_peering_present} // 'undefined',
             'ansible_present:', $args{ansible_present} // 'undefined'));
 
     # Do not run destroy if already executed
@@ -190,9 +187,6 @@ sub sles4sap_cleanup {
     qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
-    if ($args{network_peering_present}) {
-        delete_network_peering();
-    }
 
     my @cmd_list;
 
@@ -321,7 +315,7 @@ sub is_hana_resource_running {
 =head2 is_hana_node_up
     is_hana_node_up($my_instance, [timeout => 900]);
 
-    Waits until 'is_system_running' returns successfully on the target instance.
+    Waits until 'is-system-running' returns successfully on the target instance.
 
 =over
 
@@ -353,7 +347,7 @@ sub wait_hana_node_up {
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
         sleep 10;
     }
-    die('Timeout reached. is_system_running returns: ' . $out);
+    die('Timeout reached. is-system-running returns: ' . $out);
 }
 
 =head2 stop_hana
@@ -901,33 +895,6 @@ sub deployment_name {
     return qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
 }
 
-=head2 delete_network_peering
-
-    Delete network peering between SUT created with qe-sa-deployment
-    and the IBS Mirror. Function is generic over all the Cloud Providers
-
-=cut
-
-sub delete_network_peering {
-    record_info('Peering cleanup', 'Executing peering cleanup (if peering is present)');
-    if (is_azure) {
-        # Check that the peering isn't managed by terraform and required variables are available before deleting it
-        my $rg = qesap_az_get_resource_group();
-        if (get_var('IBSM_VNET')) {
-            record_info('PEERING MANAGED', 'Peering will be destroyed by terraform destroy');
-        }
-        elsif (get_var('IBSM_RG')) {
-            qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
-        }
-        else {
-            record_info('No peering', 'No peering exists, peering destruction skipped');
-        }
-    }
-    elsif (is_ec2) {
-        qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
-    }
-}
-
 =head2 create_ansible_playbook_list
 
     Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
@@ -967,6 +934,12 @@ sub delete_network_peering {
 
 =item B<ptf_container> - name of the container for PTF files (optional)
 
+=item B<ibsm_ip> - IP address of the IBS Mirror  (optional)
+
+=item B<download_hostname> - hostname associated to the IBS Mirror IP address on each hana node (optional)
+
+=item B<repos> - comma separated list of repos (optional)
+
 =back
 =cut
 
@@ -995,7 +968,23 @@ sub create_playbook_section_list {
         push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
+    }
 
+    # The presence of ha_enabled is only a trick to detect that
+    # code is running in saptune mr_test scenario.
+    # For the moment this scenario is ot using Ansible,
+    # and the scenario detection is implicitly delegated to this function.
+    # No playbooks has to be added in saptune mr_test scenario,
+    # to avoid conf.yaml validation failue.
+    if ($args{ha_enabled} && $args{ibsm_ip} && $args{download_hostname} && $args{repos}) {
+        my @ibsm_args = ('ibsm.yaml');
+        push @ibsm_args, "-e ibsm_ip='$args{ibsm_ip}'";
+        push @ibsm_args, "-e download_hostname='$args{download_hostname}'";
+        push @ibsm_args, "-e repos='$args{repos}'";
+        push @playbook_list, join(' ', @ibsm_args);
+    }
+
+    unless ($args{registration} eq 'noreg') {
         # Add "fully patch system" module after registration module and before test start/configuration modules.
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.

@@ -15,6 +15,7 @@ certutil -d ./nssdb -A -a -i localhost.pem -t TCP -n localhost
 # spin up a temp TLS server
 openssl s_server -accept 4443 -cert localhost.pem -key localhost.key -www &
 SERVER_PID=$!
+sleep 3
 # call the server with nss client
 (echo "GET / HTTP/1.0" | $TSTCLNT -d ./nssdb -h localhost -p 4443 2>&1 > $OUTFILE) &
 sleep 3

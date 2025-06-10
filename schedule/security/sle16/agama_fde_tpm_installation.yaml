@@ -1,0 +1,17 @@
+---
+name: Agama unattended lvm with TPM FDE
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+  - yam/validate/validate_tpm_fde
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml

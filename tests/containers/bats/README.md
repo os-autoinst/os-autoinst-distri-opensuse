@@ -1,12 +1,14 @@
 
 This directory contains [BATS framework](https://github.com/bats-core/bats-core) tests for the following packages:
 
-- [aardvark](https://github.com/containers/aardvark-dns/tree/main/test)
-- [buildah](https://github.com/containers/buildah/tree/main/tests)
-- [netavark](https://github.com/containers/netavark/tree/main/test)
-- [podman](https://github.com/containers/podman/tree/main/test/system)
-- [runc](https://github.com/opencontainers/runc/tree/main/tests/integration)
-- [skopeo](https://github.com/containers/skopeo/tree/main/systemtest)
+| package | tests |
+| --- | --- |
+| [aardvark-dns](aardvark.pm) | https://github.com/containers/aardvark-dns/tree/main/test |
+| [buildah](buildah.pm) | https://github.com/containers/buildah/tree/main/tests |
+| [netavark](netavark.pm) | https://github.com/containers/netavark/tree/main/test |
+| [podman](podman.pm) | https://github.com/containers/podman/tree/main/test/system |
+| [runc](runc.pm) | https://github.com/opencontainers/runc/tree/main/tests/integration |
+| [skopeo](skopeo.pm) | https://github.com/containers/skopeo/tree/main/systemtest |
 
 Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
 
@@ -14,20 +16,22 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
-| `BATS_PACKAGE` | `aardvark` `buildah` `netavark` `podman` `runc` `skopeo` |
+| `BATS_PACKAGE` | `aardvark-dns` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_PATCHES` | List of github PR id's containing upstream test patches |
 | `BATS_TESTS` | Run only the specified tests |
-| `BATS_URL` | URL to get the tests from. The default depends on the package version |
+| `BATS_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
 NOTES
-- `BATS_URL` can be a full URL to the tarball in github, `SUSE#branch` or a tag `v1.2.3`
+- `BATS_REPO` can be `SUSE#branch` or a tag `v1.2.3`
 - `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
 
 ### Summary of the `BATS_SKIP` variables
+
+These are defined in [skip.yaml](data/containers/bats/skip.yaml)
 
 | variable | description | aardvark | buildah | netavark | podman | runc | skopeo |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -71,7 +75,6 @@ Please add this warning on each bug report you open when adding instructions on 
 
 - [Tumbleweed](https://github.com/os-autoinst/opensuse-jobgroups/blob/master/job_groups/opensuse_tumbleweed.yaml)
 - [Latest SLE 16](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host_sle16.yaml)
-- [Latest SLES 15](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host.yaml)
 - [SLES 15-SP4+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
 
 NOTES
@@ -82,7 +85,7 @@ NOTES
 | Product             | aardvark         | buildah          | netavark         | podman           | runc             | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | openSUSE Tumbleweed | [![tw_al]][tw_a] | [![tw_bl]][tw_b] | [![tw_nl]][tw_n] | [![tw_pl]][tw_p] | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
-| Latest SLES 16      |                  | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
+| Latest SLES 16      | [![logo]][s16_a] | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
 | Latest SLES 15      |                  | [![logo]][s15_b] | [![logo]][s15_n] | [![logo]][s15_p] | [![logo]][s15_r] | [![logo]][s15_s] |
 | SLES 15 SP7         |                  | [![logo]][sp7_b] | [![logo]][sp7_n] | [![logo]][sp7_p] | [![logo]][sp7_r] | [![logo]][sp7_s] |
 | SLES 15 SP6         |                  | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
@@ -104,6 +107,7 @@ NOTES
 [tw_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 [tw_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 
+[s16_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=aardvark_testsuite
 [s16_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite
 [s16_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=netavark_testsuite
 [s16_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=podman_testsuite
@@ -149,11 +153,9 @@ NOTES
 
 | test | reason |
 | --- | --- |
-| [080-pause] | https://github.com/opencontainers/runc/pull/4709 |
 | [252-quadlet] | unknown |
 | [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
 
-[080-pause]: https://github.com/containers/podman/blob/main/test/system/080-pause.bats
 [252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
 [505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
 
@@ -162,10 +164,8 @@ NOTES
 | test | reason |
 | --- | --- |
 | [cgroups] | `io.bfq.weight: operation not supported` |
-| [checkpoint] | https://github.com/checkpoint-restore/criu/issues/2650 |
 
 [cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
-[checkpoint]: https://github.com/opencontainers/runc/blob/main/tests/integration/checkpoint.bats
 
 ## Tools
 

@@ -48,9 +48,9 @@ sub run {
 
     select_serial_terminal();
     # Package requires PackageHub is available
-    return if (!is_phub_ready() && is_sle);
+    return if (!is_phub_ready() && is_sle('<16'));
 
-    if (is_sle) {
+    if (is_sle("<16")) {
         add_suseconnect_product(get_addon_fullname('legacy'));
         add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
@@ -58,6 +58,9 @@ sub run {
         add_suseconnect_product(get_addon_fullname('python3'));
         my $repo = sprintf('http://download.suse.de/download/ibs/SUSE:/SLE-%s:/GA/standard/',
             get_var('VERSION'));
+        zypper_call("ar $repo systemd-tests");
+    } else {
+        my $repo = get_var('SYSTEMD_TESTS_REPO');
         zypper_call("ar $repo systemd-tests");
     }
 

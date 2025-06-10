@@ -45,13 +45,90 @@ sub find_img {
     return $json->[0]->{name};
 }
 
+sub get_gcp_guest_os_features {
+    my ($self, $file) = @_;
+
+    my %guest_os_features = (
+        'SLES12-SP5' => [
+            'GVNIC',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP2' => [
+            'GVNIC',
+            'SEV_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP3' => [
+            'GVNIC',
+            'SEV_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP4' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP5' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP6' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'TDX_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+        'SLES15-SP7' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'TDX_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
+    );
+
+    my $os_version;
+    if ($file =~ /(SLES\d+-SP\d+)/i) {
+        $os_version = uc($1);
+    }
+
+    die "Unsupported OS: $os_version" unless ($os_version && exists $guest_os_features{$os_version});
+
+    return join(',', @{$guest_os_features{$os_version}});
+}
+
+
 sub upload_img {
     my ($self, $file) = @_;
     my $img_name = $self->file2name($file);
     my $uri = $self->provider_client->storage_name . '/' . $file;
     # See https://cloud.google.com/sdk/gcloud/reference/compute/images/create for a list of available features
     # SEV_CAPABLE is added because all images from 15-SP2 onwards support SEV
-    my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE,SEV_CAPABLE');
+
+    my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', $self->get_gcp_guest_os_features($file));
     my $arch = get_var('PUBLIC_CLOUD_ARCH', '');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);

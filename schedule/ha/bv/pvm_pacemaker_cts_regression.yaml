@@ -1,0 +1,29 @@
+---
+name: pacemaker_cts_regression
+description: >
+  HA Pacemaker Cluster Test Suite - Single Machine Regression Test.
+
+  Schedule to test Pacemaker Cluster Test Suite in a single machine
+  job for the purpose of identifying regressions in pacemaker and
+  pacemaker-cts.
+
+  Most settings required by this test are defined below, but the
+  following extra settings must be provided via CLI, YAML job
+  group configuration or test suites.
+
+vars:
+  DESKTOP: textmode
+  HA_CLUSTER: '1'
+  HOSTNAME: cts-node
+  PACEMAKER_CTS_REG: '1'
+schedule:
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_hae_active.py
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/pacemaker_cts_regression

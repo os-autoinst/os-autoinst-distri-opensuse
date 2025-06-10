@@ -14,7 +14,7 @@ use testapi;
 
 sub run {
     my ($self, $run_args) = @_;
-    # Needed to have peering and ansible state propagated in post_fail_hook
+    # Needed to have ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
     if (get_var('QESAP_NO_CLEANUP')) {
@@ -23,7 +23,6 @@ sub run {
         return 1;
     }
     eval { $self->cleanup($run_args); } or bmwqemu::fctwarn("self::cleanup(\$run_args) failed -- $@");
-    $run_args->{network_peering_present} = $self->{network_peering_present};
     $run_args->{ansible_present} = $self->{ansible_present};
 }
 

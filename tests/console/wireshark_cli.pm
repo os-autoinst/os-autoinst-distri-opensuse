@@ -25,13 +25,12 @@ sub run {
 
     record_info("List interfaces", script_output('tshark -D'));
     script_run("tshark -i $iface -f 'udp port 53' -w $cap_file -a duration:10 > /tmp/tshark.log 2>&1 & echo \$! > $pid_file");
-    sleep 2;
+    script_retry("test -s $cap_file", delay => 1, retry => 2, fail_message => 'Capture file is empty');
 
     record_info('dig output', script_output('dig +short www.suse.com A'));
     record_info('host output', script_output('host www.suse.com'));
 
     assert_script_run("wait \$(cat $pid_file)");
-    assert_script_run("test -s $cap_file", fail_message => 'Capture file is empty');
     assert_script_run("tshark -r $cap_file -Y 'dns.qry.name==\"www.suse.com\"' | grep www.suse.com", fail_message => 'No DNS query for www.suse.com found');
     record_info('Filtered DNS', script_output("tshark -r $cap_file -Y 'dns.qry.name==\"www.suse.com\"'"));
 }

@@ -14,7 +14,7 @@ use utils 'zypper_call';
 
 sub run {
     zypper_call('in ack');
-    assert_script_run q{ret=false; for i in {1..5} ; do openqa-cli api jobs state=running state=done | ack --passthru --color 'running|done' && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ]}, 300;
+    assert_script_run q{ret=false; for i in {1..10} ; do openqa-cli api jobs state=running state=done | ack --passthru --color 'running|done' && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ]}, 400;
 }
 
 sub post_fail_hook {

@@ -8,6 +8,8 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 
+use strict;
+use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
@@ -33,6 +35,8 @@ sub run {
     my $policy = "policy.json";
 
     assert_script_run('curl ' . data_url("containers/$runtime-seccomp.json") . " -o $policy");
+
+    script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Verify ls works with that policy
     validate_script_output "$runtime run --rm --security-opt seccomp=$policy $image ls", qr/proc/;

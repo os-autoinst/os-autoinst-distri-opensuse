@@ -74,7 +74,7 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python311-img-proof python311-img-proof-tests');
+    zypper_call('-q in python-img-proof python-img-proof-tests');
     record_info('python exec', script_output("$python_exec --version"));
 
     assert_script_run("img-proof list");
@@ -121,10 +121,20 @@ sub run {
 #!/bin/bash -e
 podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true docker.io/hashicorp/terraform:$terraform_version \$@
 EOT
-
     create_script_file('terraform', '/usr/local/bin/terraform', $terraform_wrapper);
     validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
+
+    my $opentofu_version = get_var('OPENTOFU_VERSION', '1.9.1');
+    # opentofu in a container
+    my $opentofu_wrapper = <<EOT;
+#!/bin/bash -e
+podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true ghcr.io/opentofu/opentofu:$opentofu_version \$@
+EOT
+
+    create_script_file('tofu', '/usr/local/bin/tofu', $opentofu_wrapper);
+    validate_script_output("tofu version", qr/OpenTofu v?$opentofu_version/);
+    record_info('OpenTofu', script_output('tofu version'));
 
     # Ansible install with pip
     # Default version is chosen as low as possible so it run also on SLE12's

@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_grub2_bls is_bootloader_sdboot);
+use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_grub2_bls is_bootloader_sdboot is_bootloader_grub2);
 use Carp qw(croak);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
@@ -1070,6 +1070,8 @@ that the boot partition is encrypted.
 sub is_boot_encrypted {
     my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
 
+    # systemd-boot and grub-bls don't support encrypted bootloader
+    return 0 if !is_bootloader_grub2;
     return 0 if get_var('UNENCRYPTED_BOOT') && !$is_enc_cc_s390x;
     return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
