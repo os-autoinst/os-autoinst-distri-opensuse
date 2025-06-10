@@ -277,6 +277,7 @@ sub bats_post_hook {
     script_run('df -h > df-h.txt');
     script_run('dmesg > dmesg.txt');
     script_run('findmnt > findmnt.txt');
+    script_run('lsmod > lsmod.txt');
     script_run('rpm -qa | sort > rpm-qa.txt');
     script_run('sysctl -a > sysctl.txt');
     script_run('systemctl > systemctl.txt');
