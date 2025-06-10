@@ -6,7 +6,7 @@ vars:
     AGAMA_PRODUCT_ID: SLES
     INST_AUTO: yam/agama/auto/sles_default.jsonnet
 schedule:
-    - installation/ipxe_install
+    - installation/bootloader_start
     - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
