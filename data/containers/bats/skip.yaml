@@ -53,6 +53,7 @@ podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
   # https://github.com/containers/podman/pull/25792 is needed for 080-pause
+  # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
@@ -69,6 +70,7 @@ podman:
   sle-16.0:
     BATS_PATCHES:
     - 25792
+    - 25858
     - 25918
     - 25942
     - 26017
