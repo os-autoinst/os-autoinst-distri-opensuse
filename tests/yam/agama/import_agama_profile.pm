@@ -16,7 +16,7 @@ sub run {
       generate_json_profile($profile) :
       expand_agama_profile($profile);
 
-    select_console 'root-console';
+    select_console 'install-shell';
     assert_script_run("agama profile import $profile_url", timeout => 300);
 }
 

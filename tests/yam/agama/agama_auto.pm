@@ -20,12 +20,7 @@ sub run {
     my $reboot_page = $testapi::distri->get_reboot();
     $reboot_page->expect_is_shown();
 
-    if (!is_leap()) {
-        # While the work on Agama settles, on leap
-        # Leave log collection for the post_fail_hook
-        # see also https://progress.opensuse.org/issues/182102
-        $self->upload_agama_logs() unless is_hyperv();
-    }
+    $self->upload_agama_logs() unless is_hyperv();
 
     (is_s390x() || is_ppc64le() || is_vmware()) ?
       # reboot via console
