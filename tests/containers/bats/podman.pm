@@ -86,6 +86,8 @@ sub run {
     run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
     # This test is flaky and will fail if system is "full"
     run_command "rm -f test/system/320-system-df.bats";
+    # This tests needs criu, available only on Tumbleweed
+    run_command "rm -f test/system/520-checkpoint.bats" unless is_tumbleweed;
 
     # Compile helpers used by the tests
     run_command "make podman-testing || true", timeout => 600;
