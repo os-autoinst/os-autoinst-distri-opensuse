@@ -276,6 +276,9 @@ sub restore_prev_config {
 }
 
 sub run {
+    # the module does not work with encrypted drives
+    # it needs to exit as it can be loaded via yaml schedule
+    return if get_var('FLAVOR', '') =~ /encrypt/i;
     my $self = shift;
     select_serial_terminal;
     is_efi_boot or die "Image did not boot in UEFI mode!\n";
