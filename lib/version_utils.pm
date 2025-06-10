@@ -835,6 +835,7 @@ Returns true if the SUT uses GRUB2 as bootloader
 
 sub is_bootloader_grub2 {
     return 1 if get_var('FLAVOR', '') =~ /Image-ContainerHost$/ && check_var("VERSION", "Staging:F");
+    return 1 if get_var('FLAVOR', '') =~ /(JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
     return 0 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
       && check_var('UEFI', '1') && !is_upgrade
       && (!is_sle && !is_leap || is_microos);
@@ -849,6 +850,7 @@ Returns true if the SUT uses systemd-boot as bootloader
 sub is_bootloader_sdboot {
     # the BOOTLOADER variable probably should be set in main.pm by default
     return 0 if get_var('FLAVOR', '') =~ /Image-ContainerHost$/ && check_var("VERSION", "Staging:F");
+    return 0 if get_var('FLAVOR', '') =~ /(JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
     return 1 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
       && check_var('UEFI', '1') && !is_upgrade
       && is_microos;
@@ -862,6 +864,7 @@ Returns true if the SUT uses GRUB2-BLS as bootloader
 
 sub is_bootloader_grub2_bls {
     return 0 if get_var('FLAVOR', '') =~ /Image-ContainerHost$/ && check_var("VERSION", "Staging:F");
+    return 0 if get_var('FLAVOR', '') =~ /(JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
     # the BOOTLOADER variable probably should be set in main.pm by default
     return 1 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
       && check_var('UEFI', '1') && !is_upgrade
