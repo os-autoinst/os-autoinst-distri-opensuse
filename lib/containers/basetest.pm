@@ -12,7 +12,6 @@ use warnings;
 use containers::docker;
 use containers::podman;
 use containers::containerd_crictl;
-use containers::containerd_nerdctl;
 use Mojo::Base 'opensusebasetest';
 
 sub containers_factory {
@@ -27,9 +26,6 @@ sub containers_factory {
     }
     elsif ($runtime eq 'containerd_crictl') {
         $engine = containers::containerd_crictl->new();
-    }
-    elsif ($runtime eq 'containerd_nerdctl') {
-        $engine = containers::containerd_nerdctl->new();
     }
     else {
         die("Unknown runtime '$runtime'.");

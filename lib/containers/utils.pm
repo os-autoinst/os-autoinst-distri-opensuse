@@ -93,11 +93,7 @@ sub runtime_smoke_tests {
     record_info('Smoke', "Smoke test running image: $image on runtime: $runtime.");
 
     # Pull image from registry
-    if ($runtime =~ /nerdctl/) {
-        assert_script_run("$runtime image pull --insecure-registry $image");
-    } else {
-        assert_script_run("$runtime pull $image");
-    }
+    assert_script_run("$runtime pull $image");
 
     # List locally available images
     # if we miss $image the test will fail later
@@ -116,7 +112,7 @@ sub runtime_smoke_tests {
         assert_script_run("$runtime exec sleeper echo 'Hello'");
 
         # Test update command
-        test_update_cmd(runtime => $runtime, container => 'sleeper') unless ($runtime eq "nerdctl");
+        test_update_cmd(runtime => $runtime, container => 'sleeper');
 
         # Stop the container
         assert_script_run("$runtime stop sleeper");
