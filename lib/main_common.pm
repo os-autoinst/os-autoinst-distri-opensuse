@@ -2149,6 +2149,13 @@ sub load_x11_remote {
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_client')) {
         loadtest 'microos/workloads/x11-container/x11_client';
     }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_server')) {
+        loadtest 'transactional/host_config';
+        loadtest 'microos/workloads/x11-container/x11_helm_server';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_client')) {
+        loadtest 'microos/workloads/x11-container/x11_helm_client';
+    }
 }
 
 
@@ -2182,7 +2189,7 @@ sub load_common_x11 {
     elsif (check_var('REGRESSION', 'remote')) {
         if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
             loadtest "x11/remote_desktop/windows_client_boot";
-        } elsif (check_var("REMOTE_DESKTOP_TYPE", "x11_server")) {
+        } elsif (check_var("REMOTE_DESKTOP_TYPE", "x11_server") || check_var("REMOTE_DESKTOP_TYPE", "x11_helm_server")) {
             loadtest 'microos/disk_boot';
         }
         else {

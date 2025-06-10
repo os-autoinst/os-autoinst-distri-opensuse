@@ -1,0 +1,24 @@
+# Default values for kiosk.
+# This is a YAML-formatted file.
+X11:
+  image:
+    repository: registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/xorg
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: notaskbar
+pulseaudio:
+  image:
+    repository: registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/pulseaudio
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "17.0"
+workload:
+  # Page to load if using firefox as the workload
+  url: "https://freesound.org/people/kevp888/sounds/796468/"
+  # Additional environment variables to passthrough into the workload
+  env: []
+  # These can be used to provide a custom workload
+  image:
+    repository: registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/firefox-esr
+    pullPolicy: Always
+    tag: "128.11"
