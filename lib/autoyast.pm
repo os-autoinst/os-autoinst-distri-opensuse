@@ -29,7 +29,6 @@ use File::Path 'make_path';
 use LWP::Simple 'head';
 use Mojo::Util 'trim';
 use Socket;
-
 use xml_utils;
 
 our @EXPORT = qw(
@@ -799,11 +798,21 @@ sub generate_json_profile {
     my $profile_name = "generated_profile.json";
     my $profile_path = get_required_var('CASEDIR') . "/data/" . $profile;
 
+    # We need to make sure go jsonnet was properly installed on worker.
+`zypper --non-interactive in golang-github-google-jsonnet` if `rpm -q golang-github-google-jsonnet` =~ /package golang-github-google-jsonnet is not installed/;
+
     my @profile_options = map { "--tla-" . (/true|false/ ? "code" : "str") . " $_ " }
       split(' ', trim(get_var('AGAMA_PROFILE_OPTIONS')));
     diag "jsonnet @profile_options $profile_path";
     record_info("JSONNET Command", "jsonnet @profile_options $profile_path");
-    my $profile_content = `jsonnet @profile_options $profile_path`;
+
+    my $profile_content = `jsonnet @profile_options $profile_path 2>&1`;
+    my $exit_code = $?;
+    if ($exit_code != 0) {
+        my $real_exit_code = $exit_code >> 8;
+        die "jsonnet command failed with exit code: $real_exit_code\nOutput: $profile_content";
+    }
+
     record_info("Profile", $profile_content);
 
     save_tmp_file($profile_name, $profile_content);
