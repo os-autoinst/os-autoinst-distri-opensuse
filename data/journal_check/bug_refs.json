@@ -494,11 +494,11 @@
         "type": "bug"
     },
     "bsc#1218471": {
-        "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
+        "description": "pam_wtmpdb\\(login:session\\): (Failed to execute statement|Updating logout time failed): database is locked",
         "products": {
             "sle-micro": ["6.0", "6.1", "6.2"]
         },
-        "type": "bug"
+        "type": "ignore"
     },
     "bsc#1231391": {
         "description": "pam_wtmpdb\\(login:session\\): (open_database_rw:.*unable to open database file|Cannot get ID from open session!)",
