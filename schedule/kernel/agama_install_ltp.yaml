@@ -1,0 +1,20 @@
+name: agama_install_ltp
+description:    >
+    Universal installation schedule for Agama to prepare bare metal using IPXE or
+    prepare PowerVM and install LTP
+schedule:
+    - '{{boot}}'
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - kernel/install_ltp
+    - kernel/shutdown_ltp
+conditional_schedule:
+    boot:
+        IPXE:
+            1:
+                - installation/bootloader_start
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
