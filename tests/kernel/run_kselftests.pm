@@ -29,14 +29,16 @@ sub prepare_kselftests_from_git
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
-    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
-    assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 7200);
+    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel kernel-source');
+    assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
+
+    assert_script_run("cd ./linux");
 
     if ($git_tag ne '') {
+        assert_script_run("git fetch --unshallow --tags", 7200);
         assert_script_run("git checkout $git_tag");
     }
 
-    assert_script_run("cd ./linux");
     assert_script_run("make headers");
 }
 
@@ -69,6 +71,7 @@ sub prepare_kselftests_from_ibs
 sub run
 {
     select_serial_terminal;
+    record_info('KERNEL VERSION', script_output('uname -a'));
 
     my $kselftest_git = get_var('KSELFTEST_FROM_GIT', 0);
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
