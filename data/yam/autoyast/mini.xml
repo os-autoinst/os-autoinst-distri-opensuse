@@ -14,6 +14,21 @@
           <version>{{VERSION}}</version>
           <arch>{{ARCH}}</arch>
         </addon>
+	<addon>
+          <name>sle-module-server-applications</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+	<addon>
+          <name>sle-module-python3</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+	<addon>
+          <name>sle-module-systems-management</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
       </addons>
     </suse_register>
     <bootloader>
@@ -28,6 +43,13 @@
         <products config:type="list">
             <product>SLES</product>
         </products>
+	<patterns t="list">
+            <pattern>apparmor</pattern>
+            <pattern>base</pattern>
+            <pattern>enhanced_base</pattern>
+            <pattern>minimal_base</pattern>
+            <pattern>yast2_basis</pattern>
+        </patterns>
     </software>
     <users config:type="list">
         <user>
