@@ -46,7 +46,7 @@ sub install_kselftest_suite
 {
     my ($suite) = @_;
 
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
+    assert_script_run("make -j `nproc` -C tools/testing/selftests TARGETS=$suite O=/lib/modules/$(uname -r)/build install", 7200);
     assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     assert_script_run("./run_kselftest.sh -l");
     assert_script_run("cd -");
