@@ -13,21 +13,21 @@ buildah:
     BATS_SKIP_ROOT: from
     BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP7:
-    BATS_SKIP: bud namespaces run
+    BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP6:
-    BATS_SKIP: bud namespaces run
+    BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP5:
-    BATS_SKIP: bud namespaces run
+    BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
   sle-15-SP4:
-    BATS_SKIP: bud namespaces run
+    BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
-    BATS_SKIP_USER: add basic commit copy overlay rmi sbom squash
+    BATS_SKIP_USER: add basic commit copy overlay rmi squash
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
