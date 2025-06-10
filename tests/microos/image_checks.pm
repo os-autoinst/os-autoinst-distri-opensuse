@@ -34,16 +34,14 @@ sub run {
     die 'GPT has errors' if script_output("sfdisk --list-free /dev/$disk 2>&1 >/dev/null", proceed_on_failure => 0) ne '';
 
     # Verify that there is no unpartitioned space left
+    # 0 sectors is default and expected value in most of the images
     my $left_sectors = 0;
-    if ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64 && get_var('FLAVOR', '') !~ m/qcow|SelfInstall/) {
+    if ((is_sle_micro("6.2+") || is_leap_micro("6.2+")) && is_aarch64 && !(get_var('FLAVOR', '') =~ /qcow/i)) {
+        $left_sectors = 4062;
+    } elsif ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64 && get_var('FLAVOR', '') !~ m/qcow|SelfInstall/) {
         $left_sectors = 2048;
-    } elsif ((is_sle_micro("6.0+") or is_leap_micro("6.0+")) && is_aarch64) {
-        $left_sectors = 0 if (get_var("HDD_1") =~ /qcow2/);
-        $left_sectors = 4062 if (get_var("ISO") =~ /SelfInstall/);
-        record_soft_failure "bsc#1220722: no unpartitioned space left on aarch64";
     } elsif (is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) {
         $left_sectors = 1792;
-        record_soft_failure "bsc#1220722: no unpartitioned space left on aarch64";
     }
 
     validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* $left_sectors sectors/);
