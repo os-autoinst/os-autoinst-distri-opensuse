@@ -65,6 +65,7 @@ sub run {
     run_command "podman system reset -f";
     run_command "modprobe ip6_tables";
     run_command "modprobe null_blk nr_devices=1 || true";
+    run_command "modprobe xfs || true";
 
     record_info("podman version", script_output("podman version"));
     record_info("podman info", script_output("podman info"));
