@@ -38,6 +38,16 @@ sub set_fake_scc_url {
     assert_screen 'yast2-wsl-firstboot-welcome';
 }
 
+sub enter_root_password {
+
+    for (1 .. 2) {
+        wait_still_screen stilltime => 1, timeout => 5;
+        wait_screen_change { type_string "$password", max_interval => 125, wait_screen_change => 2 };
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        wait_still_screen stilltime => 3, timeout => 10;
+    }
+}
+
 sub enter_user_details {
     my $creds = shift;
 
@@ -45,13 +55,7 @@ sub enter_user_details {
         if (defined($_)) {
             wait_still_screen stilltime => 1, timeout => 5;
             wait_screen_change { type_string "$_", max_interval => 125, wait_screen_change => 2 };
-            # use tab if yast-firstboot and ret if jeos-firstboot
-            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
-                wait_screen_change(sub { send_key 'tab' }, 10);
-            }
-            else {
-                wait_screen_change(sub { send_key 'ret' }, 10);
-            }
+            wait_screen_change(sub { send_key 'tab' }, 10);
             wait_still_screen stilltime => 3, timeout => 10;
         } else {
             wait_screen_change(sub { send_key 'tab' }, 10);
@@ -118,15 +122,23 @@ sub register_via_scc {
 
     my $reg_code = get_required_var('SCC_REGCODE');
 
-    wait_screen_change(sub { send_key 'alt-c' }, 10);
-    wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
-    send_key 'alt-n';
-    assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
-    send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
-    assert_screen 'wsl-registration-repository-offer', timeout => 240;
-    send_key 'alt-y';
-    assert_screen 'wsl-extension-module-selection';
-    send_key 'alt-n';
+    # Legacy download (yast) vs modern download (jeos)
+    if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+        wait_screen_change(sub { send_key 'alt-c' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'alt-n';
+        assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
+        send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
+        assert_screen 'wsl-registration-repository-offer', timeout => 240;
+        send_key 'alt-y';
+        assert_screen 'wsl-extension-module-selection';
+        send_key 'alt-n';
+    }
+    else {
+        wait_screen_change(sub { send_key 'down' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+    }
 }
 
 sub wsl_gui_pattern {
@@ -195,11 +207,17 @@ sub run {
         license;
         assert_screen 'wsl-select-timezone';
         send_key 'ret';
-        assert_screen 'local-user-credentials';
-        enter_user_details([$password, $password]);
-        assert_screen 'wsl-sled-or-sles';
+        # Enter root password
+        assert_screen 'wsl-jeos-root-password';
+        enter_root_password
+          # Choose SLES or SLED
+          assert_screen 'wsl-sled-or-sles';
         wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
         send_key 'ret';
+        # Registration
+        register_via_scc;
+        # User credentials
+        enter_user_details;
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
