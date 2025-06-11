@@ -45,7 +45,13 @@ sub enter_user_details {
         if (defined($_)) {
             wait_still_screen stilltime => 1, timeout => 5;
             wait_screen_change { type_string "$_", max_interval => 125, wait_screen_change => 2 };
-            wait_screen_change(sub { send_key 'tab' }, 10);
+            # use tab if yast-firstboot and ret if jeos-firstboot
+            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+                wait_screen_change(sub { send_key 'tab' }, 10);
+            }
+            else {
+                wait_screen_change(sub { send_key 'ret' }, 10);
+            }
             wait_still_screen stilltime => 3, timeout => 10;
         } else {
             wait_screen_change(sub { send_key 'tab' }, 10);
@@ -189,6 +195,8 @@ sub run {
         license;
         assert_screen 'wsl-select-timezone';
         send_key 'ret';
+        assert_screen 'local-user-credentials';
+        enter_user_details([$realname, undef, $password, $password]);
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
