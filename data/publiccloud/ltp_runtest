@@ -5,24 +5,6 @@
 # Which is the HEAD of ltp-stable package from obs:
 # https://build.opensuse.org/projects/benchmark:ltp:stable/packages/ltp-stable/files/_service
 
-# #!/bin/bash
-#
-# set -euo pipefail
-#
-# DATA=()
-# TESTS=()
-#
-# while read -r LINE; do
-# 	[[ -z $LINE ]] && continue
-# 	DATA+=("$LINE")
-# 	TESTS+=("${LINE#* }")  # remove up to first ' ' (to account for different test parameters)
-# done < <(cat runtest/{commands,containers,controllers,syscalls,cve})
-#
-# DUPS=("$(printf "%s\n" "${TESTS[@]}" | sort | uniq -d)")
-# DUPS_PATTERN=$(printf "%s|" "${DUPS[@]}")
-#
-# printf "%s\n" "${DATA[@]}" | grep -v -E "${DUPS_PATTERN%?}"  # (without trailing '|')
-
 ar_sh export TCdat=$LTPROOT/testcases/bin; ar01.sh
 ld01_sh ld01.sh
 ldd01_sh ldd01.sh
