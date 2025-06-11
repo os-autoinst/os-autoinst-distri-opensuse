@@ -4,7 +4,6 @@
   },
   product: {
     id: 'SLES',
-    registrationCode: 'xxxx',
    },
   root: {
     hashedPassword: true,
@@ -19,6 +18,18 @@
        },
      ],
    },
+  storage: {
+    drives: [
+      {
+        search: {
+          condition: { size: { greater: '30 GiB'} },
+        },
+        partitions: [
+          { generate: 'default' },
+        ],
+      },
+    ],
+  },
   user: {
     fullName: 'Bernhard M. Wiedemann',
     hashedPassword: true,
