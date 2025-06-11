@@ -13,7 +13,7 @@ use y2_base 'save_upload_y2logs';
 
 sub post_fail_hook {
     my ($self) = @_;
-    select_console 'root-console';
+    select_console 'install-shell';
     y2_base::save_upload_y2logs($self, skip_logs_investigation => 1);
 }
 
