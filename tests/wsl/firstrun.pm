@@ -209,9 +209,9 @@ sub run {
         send_key 'ret';
         # Enter root password
         assert_screen 'wsl-jeos-root-password';
-        enter_root_password
-          # Choose SLES or SLED
-          assert_screen 'wsl-sled-or-sles';
+        enter_root_password;
+        # Choose SLES or SLED
+        assert_screen 'wsl-sled-or-sles';
         wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
         send_key 'ret';
         # Registration
