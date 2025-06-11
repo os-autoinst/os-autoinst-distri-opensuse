@@ -21,7 +21,8 @@ sub run_tests {
 
     return if check_var($skip_tests, "all");
 
-    my $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", script_output("buildah info --format '{{ .store.GraphDriverName }}'"));
+    my $storage_driver = $rootless ? "vfs" : script_output("buildah info --format '{{ .store.GraphDriverName }}'");
+    $storage_driver = get_var("BUILDAH_STORAGE_DRIVER", $storage_driver);
     record_info("storage driver", $storage_driver);
 
     my $oci_runtime = get_var('OCI_RUNTIME', script_output("buildah info --format '{{ .host.OCIRuntime }}'"));
