@@ -84,6 +84,8 @@ sub run {
     # Patch tests
     run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
+    # This test needs xfs & lots of space and fails on 16.0 RC1
+    run_command "rm -f test/system/161-volume-quotas.bats";
     # This test is flaky and will fail if system is "full"
     run_command "rm -f test/system/320-system-df.bats";
 
