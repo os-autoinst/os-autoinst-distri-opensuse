@@ -17,6 +17,7 @@ use transactional qw(trup_call);
 use serial_terminal qw(select_serial_terminal);
 use Mojo::File qw(path);
 use utils qw(file_content_replace zypper_call);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     select_serial_terminal;
@@ -34,6 +35,9 @@ sub run {
     my $sysext_root = "$shared_dir/sysexts";
     my $sysext_dir = "$sysext_root/etc/extensions";
     my $overlay = "$shared_dir/sysexts.tar.gz";
+
+    # Define timeouts based on the architecture
+    my $timeout = (is_aarch64) ? 480 : 240;
 
     # Set SELinux in permissive mode, as there is an issue with setfiles
     # It will be removed as soon as the issue will be fixed
@@ -68,11 +72,11 @@ sub run {
 
     # Generate RAW image
     record_info('QCOW2', 'Generate and upload QCOW2 image');
-    assert_script_run("elemental3-toolkit --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device", 240);
+    assert_script_run("elemental3-toolkit --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device", $timeout);
 
     # Generate and upload QCOW2 image
     assert_script_run("losetup -d $device");
-    assert_script_run("qemu-img convert -c -p -f raw -O qcow2 $shared_dir/$img_filename.raw $shared_dir/$img_filename.qcow2", 240);
+    assert_script_run("qemu-img convert -c -p -f raw -O qcow2 $shared_dir/$img_filename.raw $shared_dir/$img_filename.qcow2", $timeout);
     upload_asset("$shared_dir/$img_filename.qcow2", 1);
 }
 
