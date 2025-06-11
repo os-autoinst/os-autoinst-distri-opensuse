@@ -5,9 +5,9 @@ aardvark-dns:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
   opensuse-Tumbleweed:
-    BATS_SKIP: bud run sbom
-    BATS_SKIP_ROOT: from
-    BATS_SKIP_USER: add basic commit copy overlay rmi squash
+    BATS_SKIP: bud sbom
+    BATS_SKIP_ROOT:
+    BATS_SKIP_USER: add basic commit copy overlay rmi run squash
   sle-16.0:
     BATS_SKIP: bud run sbom
     BATS_SKIP_ROOT: from
