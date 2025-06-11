@@ -3,7 +3,9 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+# Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#          Deploy on AWS, two node HANA cluster with cloud native fencing.
+#          System uses sapconf
 provider: 'aws'
 apiver: 3
 terraform:
