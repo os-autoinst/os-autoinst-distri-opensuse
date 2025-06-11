@@ -197,6 +197,9 @@ sub run {
         send_key 'ret';
         assert_screen 'local-user-credentials';
         enter_user_details([$password, $password]);
+        assert_screen 'wsl-sled-or-sles';
+        wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
