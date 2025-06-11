@@ -73,6 +73,35 @@ sub create_infofile {
     return shorten_url(autoinst_url . "/files/$path");
 }
 
+sub prepare_agama_boot_params {
+    my @params = ();
+
+    # add mandatory boot params
+    push @params, 'cio_ignore=all,!condev,!0.0.0150';
+    push @params, 'rd.zdev=dasd,0.0.0150' if (get_var('S390_DISK') ne 'ZFCP');
+    push @params, 'hvc_iucv=8';
+    push @params, "live.password=$testapi::password";
+
+    # override default boot params
+    if (get_var('BOOTPARAMS')) {
+        push @params, split ' ', trim(get_var('BOOTPARAMS'));
+        return @params;
+    }
+
+    # add default boot params
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        my $profile_url = ($inst_auto =~ /\.libsonnet/) ?
+          generate_json_profile($inst_auto) :
+          expand_agama_profile($inst_auto);
+        set_var('INST_AUTO', $profile_url);
+        push @params, "inst.auto=\"$profile_url\"";
+        push @params, "inst.finish=stop";
+    }
+    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') eq 'Online';
+
+    return @params;
+}
+
 sub prepare_parmfile {
     my ($repo) = @_;
     my $params = '';
@@ -95,6 +124,9 @@ sub prepare_parmfile {
                   shorten_url($host . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img") :
                   $host . '/' . get_var('REPO_999'));
             $params .= $root_line;
+
+            my @boot_params = prepare_agama_boot_params;
+            $params .= " " . join " ", @boot_params;
         }
         else {
             $params .= " install=" . $instsrc . $repo . " ";
