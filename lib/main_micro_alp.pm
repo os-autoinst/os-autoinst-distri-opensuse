@@ -294,6 +294,7 @@ sub load_rcshell_tests {
 sub load_journal_check_tests {
     # Enclosing test cases
     loadtest 'console/journal_check';
+    loadtest 'console/coredump_collect';
     loadtest 'shutdown/shutdown';
 }
 
