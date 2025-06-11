@@ -59,7 +59,7 @@ sub run {
     my $wiz_name = (is_sle('15-SP5+') and get_var('BONE')) ? "bone-installation-wizard" : "sap-installation-wizard";
     my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' $wiz_name");
 
-    # initial workaround for 15-SP7 and b1 installer 2502
+    # initial workaround for 15-SP7 and b1 installer 2505
     $self->b1_workaround_os_version;
 
     # start wizard
@@ -153,10 +153,10 @@ sub run {
         assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error sap-wizard-missing-32bit-client)], $timeout;
         send_key $cmd{ok};
         if (match_has_tag 'sap-wizard-installation-summary') {
-            assert_screen 'generic-desktop', 600;
+            assert_screen 'generic-desktop', 1200;
         } elsif (match_has_tag 'sap-wizard-missing-32bit-client') {
             record_soft_failure "bsc#1227390 - Missing 32-bit client happened";
-            assert_screen 'generic-desktop', 600;
+            assert_screen 'generic-desktop', 1200;
         } else {
             # Wait for SAP wizard to finish writing logs
             check_screen 'generic-desktop', 90;
