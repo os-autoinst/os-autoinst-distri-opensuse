@@ -196,7 +196,7 @@ sub run {
         assert_screen 'wsl-select-timezone';
         send_key 'ret';
         assert_screen 'local-user-credentials';
-        enter_user_details([$realname, undef, $password, $password]);
+        enter_user_details([$password, $password]);
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
