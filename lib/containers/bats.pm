@@ -277,6 +277,7 @@ sub bats_post_hook {
     script_run('df -h > df-h.txt');
     script_run('dmesg > dmesg.txt');
     script_run('findmnt > findmnt.txt');
+    script_run('lsmod > lsmod.txt');
     script_run('rpm -qa | sort > rpm-qa.txt');
     script_run('sysctl -a > sysctl.txt');
     script_run('systemctl > systemctl.txt');
@@ -354,7 +355,7 @@ sub bats_tests {
     run_command "echo $log_file .. > $log_file";
     run_command "echo '# $package $version $os_version' >> $log_file";
     push @commands, $cmd;
-    my $ret = script_run $cmd, 9000;
+    my $ret = script_run($cmd, timeout => 7000);
 
     unless (get_var("BATS_TESTS")) {
         $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
