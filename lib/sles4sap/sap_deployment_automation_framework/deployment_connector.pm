@@ -212,6 +212,8 @@ Deployment ID returned from both jobs: 123456 - because it matches with existing
 
 sub find_deployment_id {
     my (%args) = @_;
+    # For reusing already deployed infrastructure - check function description
+    return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
 
     # Lists VMs in cloud which contain 'deployment_id' tag and displays only tag values => list of all deployments
