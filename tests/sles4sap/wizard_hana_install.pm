@@ -18,7 +18,7 @@ use version_utils qw(package_version_cmp is_sle);
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
-    my $timeout = bmwqemu::scale_timeout(3600);
+    my $timeout = bmwqemu::scale_timeout(7200);
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
 
