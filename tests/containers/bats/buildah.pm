@@ -12,8 +12,8 @@ use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils qw(is_sle is_tumbleweed);
 use containers::bats;
-
 
 sub run_tests {
     my %params = @_;
@@ -50,6 +50,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
+    push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=15-SP6'));
 
     $self->bats_setup(@pkgs);
 
