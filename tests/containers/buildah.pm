@@ -26,8 +26,8 @@ use Utils::Backends qw(is_svirt);
 
 sub run_tests {
     my $runtime = shift;
-
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
+    record_info('buildah info', script_output("buildah info"));
     record_info('Test', "Pull image $image");
     assert_script_run("buildah pull $image", timeout => 300);
     validate_script_output('buildah images', sub { /\/tumbleweed/ });
@@ -102,10 +102,7 @@ sub run {
         zypper_call('install skopeo');
     }
     record_info('Version', script_output('buildah --version'));
-
-    # Run tests as root
-    record_info('Test as root');
-    run_tests($runtime);
+    record_info('buildah info', script_output("buildah info"));
 
     # Run tests as user
     if ($runtime eq "podman" && !is_public_cloud && !is_svirt) {
@@ -114,6 +111,11 @@ sub run {
         run_tests($runtime);
         select_serial_terminal;
     }
+
+    # Run tests as root
+    record_info('Test as root');
+    run_tests($runtime);
+
 }
 
 1;
