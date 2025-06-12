@@ -3,7 +3,9 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+# Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#          Deploy on GCP, two node HANA cluster with cloud native fencing.
+#          System uses saptune
 provider: 'gcp'
 apiver: 3
 terraform:
@@ -19,7 +21,6 @@ terraform:
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     hana_data_disk_type: '%HANA_DATA_DISK_TYPE%'
     hana_log_disk_type: '%HANA_LOG_DISK_TYPE%'
-
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'

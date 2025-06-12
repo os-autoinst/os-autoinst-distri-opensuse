@@ -3,7 +3,8 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+# Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#          Deploy on Azure, two node HANA cluster with cloud native MSI fencing.
 provider: 'azure'
 apiver: 3
 terraform:
@@ -17,9 +18,10 @@ terraform:
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     vnet_address_range: '%MAIN_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
-    hana_cluster_fencing_mechanism: '%FENCING%'
-    drbd_cluster_fencing_mechanism: '%FENCING%'
-    netweaver_cluster_fencing_mechanism: '%FENCING%'
+    hana_cluster_fencing_mechanism: 'native'
+    drbd_cluster_fencing_mechanism: 'native'
+    netweaver_cluster_fencing_mechanism: 'native'
+    iscsi_enabled: false
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'

@@ -3,7 +3,9 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+# Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#          Deploy on GCP, two node HANA cluster with cloud native fencing.
+#          Deployment create a network peering the the IBSm
 provider: 'gcp'
 apiver: 3
 terraform:
