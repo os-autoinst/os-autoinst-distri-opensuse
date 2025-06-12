@@ -425,9 +425,10 @@ sub bats_sources {
     }
 
     run_command "cd $test_dir";
-    run_command "git clone --branch $branch https://github.com/$github_org/$package.git", timeout => 300;
+    run_command "git clone https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
     run_command "cd $test_dir";
+    run_command "git checkout $branch";
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
