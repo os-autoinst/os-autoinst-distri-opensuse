@@ -23,13 +23,13 @@ local resize() = {
         {
           search: '/dev/vda3',
           filesystem: { path: 'swap' },
-          size: '1 GiB'
+          size: '1 GiB',
         },
         {
           filesystem: { path: '/home' },
           encryption: {
-            luks2: { password: 'nots3cr3t' }
-          }
+            luks2: { password: 'nots3cr3t' },
+          },
         },
       ],
     },
@@ -182,7 +182,44 @@ local raid(level='raid0', uefi=false) = {
     },
   ],
 };
+
+local iscsi_activation_non_root() = {
+  drives: [
+    {
+      partitions: [
+        {
+          filesystem: {
+            path: '/',
+            type: 'btrfs',
+          },
+          size: {
+            max: '20 GiB',
+            min: '20 GiB',
+          },
+        },
+        {
+          filesystem: {
+            type: 'swap',
+          },
+          size: {
+            max: '1 GiB',
+            min: '1 GiB',
+          },
+        },
+      ],
+      search: '/dev/vda',
+    },
+    {
+      filesystem: {
+        path: '/home',
+        type: 'ext4',
+      },
+      search: 'iqn.2016-02.openqa.de:for.openqa',
+    },
+  ],
+};
 {
+  iscsi_activation_non_root: iscsi_activation_non_root(),
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
