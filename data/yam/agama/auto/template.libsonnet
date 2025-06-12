@@ -1,5 +1,6 @@
 local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
+local iscsi_lib = import 'lib/iscsi.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
@@ -7,6 +8,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
+         iscsi=false,
          localization='',
          packages='',
          patterns='',
@@ -23,6 +25,7 @@ function(bootloader=false,
          user=true) {
   [if bootloader == true then 'bootloader']: base_lib['bootloader'],
   [if localization == true then 'localization']: base_lib['localization'],
+  [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
   [if patterns != '' || packages != '' then 'software']: std.prune({
     patterns: if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
@@ -42,12 +45,6 @@ function(bootloader=false,
     [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
     [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
   },
-  [if std.startsWith(storage, 'raid') then 'storage']: storage_lib[storage],
-  [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
-  [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
-  [if storage == 'lvm_tpm_fde' then 'storage']: storage_lib['lvm_tpm_fde'],
-  [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
-  [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
-  [if storage == 'whole_disk_and_boot_unattended' then 'storage']: storage_lib['whole_disk_and_boot_unattended'],
+  [if storage != '' then 'storage']: storage_lib[storage],
   [if user == true then 'user']: base_lib['user'],
 }
