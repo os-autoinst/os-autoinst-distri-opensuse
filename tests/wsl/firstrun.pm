@@ -224,7 +224,10 @@ sub run {
         # Registration
         register_via_scc;
         # User credentials
-        enter_user_details;
+        assert_screen 'local-user-credentials';
+        enter_user_details([$realname, undef, $password, $password]);
+        send_key 'ret';
+
 
     } else {
         #1) skip registration, we cannot register against proxy SCC
