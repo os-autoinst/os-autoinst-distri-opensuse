@@ -23,13 +23,13 @@ local resize() = {
         {
           search: '/dev/vda3',
           filesystem: { path: 'swap' },
-          size: '1 GiB'
+          size: '1 GiB',
         },
         {
           filesystem: { path: '/home' },
           encryption: {
-            luks2: { password: 'nots3cr3t' }
-          }
+            luks2: { password: 'nots3cr3t' },
+          },
         },
       ],
     },
@@ -182,7 +182,52 @@ local raid(level='raid0', uefi=false) = {
     },
   ],
 };
+
+local home_on_iscsi() = {
+  boot: {
+    configure: true,
+  },
+  drives: [
+    {
+      search: '/dev/sda',
+      partitions: [
+        {
+          search: '*',
+          delete: true,
+        },
+        {
+          filesystem: {
+            path: '/home',
+            type: 'xfs',
+          },
+        },
+      ],
+    },
+    {
+      search: '/dev/vda',
+      partitions: [
+        {
+          search: '*',
+          delete: true,
+        },
+        {
+          filesystem: {
+            path: '/',
+            type: 'btrfs',
+          },
+          size: '20 GiB',
+        },
+        {
+          filesystem: { path: 'swap' },
+          size: '1 GiB',
+        },
+      ],
+    },
+  ],
+};
+
 {
+  home_on_iscsi: home_on_iscsi(),
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
