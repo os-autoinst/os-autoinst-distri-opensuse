@@ -51,7 +51,6 @@ sub run {
     # Download aardvark sources
     my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
     bats_sources $aardvark_version;
-    bats_patches;
 
     my $errors = run_tests;
     die "ardvark-dns tests failed" if ($errors);
