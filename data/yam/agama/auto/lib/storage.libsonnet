@@ -156,7 +156,50 @@ local raid(level='raid0', uefi=false) = {
     },
   ],
 };
+
+local iSCSI_home() = {
+  drives: [
+    {
+      search: '*',
+      partitions: [
+        { delete: true, search: '*' },
+        {
+          filesystem: {
+            path: '/',
+            type: 'btrfs',
+          },
+          size: {
+            min: '20 GiB',
+          },
+        },
+        {
+          filesystem: {
+            path: 'swap',
+          },
+          size: {
+            min: '2 GiB',
+          },
+        },
+      ],
+    },
+    {
+      search: '/dev/disk/by-path/ip-192.168.1.1:3260-iscsi-iqn.2001-05.com.doe:test1-lun-0',
+      partitions: [
+        {
+          filesystem: {
+            path: '/home',
+            type: 'xfs',
+          },
+          size: {
+            min: '10 GiB',
+          },
+        },
+      ],
+    },
+  ],
+};
 {
+  iscsi_home: iSCSI_home(),
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
