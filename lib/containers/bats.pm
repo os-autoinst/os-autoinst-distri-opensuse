@@ -26,7 +26,6 @@ use YAML::PP;
 use File::Basename;
 
 our @EXPORT = qw(
-  bats_patches
   bats_post_hook
   bats_setup
   bats_sources
@@ -429,6 +428,9 @@ sub bats_sources {
     $test_dir .= $package;
     run_command "cd $test_dir";
     run_command "git checkout $branch";
+
+    bats_patches;
+
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
