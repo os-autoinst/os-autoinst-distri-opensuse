@@ -18,6 +18,7 @@ The tests rely on some variables:
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark-dns` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_PATCHES` | List of github PR id's containing upstream test patches |
+| `BATS_TEST_PACKAGES` | List of optional package URL's |
 | `BATS_TEST_REPOS` | List of optional test repositories |
 | `BATS_TESTS` | Run only the specified tests |
 | `BATS_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
@@ -29,6 +30,8 @@ The tests rely on some variables:
 NOTES
 - `BATS_REPO` can be `SUSE#branch` or a tag `v1.2.3`
 - `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
+- `BATS_TEST_PACKAGES` may be used to test candidate kernels (KOTD, PTF, etc) and other packages.
+- `BATS_TEST_REPOS` may be used to test candidate packages outside the usual maintenance workflow.
 
 ### Summary of the `BATS_SKIP` variables
 
