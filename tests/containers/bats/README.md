@@ -18,6 +18,7 @@ The tests rely on some variables:
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark-dns` `buildah` `netavark` `podman` `runc` `skopeo` |
 | `BATS_PATCHES` | List of github PR id's containing upstream test patches |
+| `BATS_TEST_REPOS` | List of optional test repositories |
 | `BATS_TESTS` | Run only the specified tests |
 | `BATS_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
