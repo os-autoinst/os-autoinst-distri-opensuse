@@ -48,19 +48,18 @@ sub install_klp_product {
     if ($livepatch_repo) {
         zypper_ar("$utils::OPENQA_HTTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
-    elsif (is_sle) {
+    elsif (is_sle('<16')) {
         zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
         zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     }
 
+    my $livepatch_pack = 'kernel-default-livepatch';
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $livepatch_pack = 'kernel-rt-livepatch';
+    }
+
     # Enable live patching
     if (is_sle_micro) {
-        my $livepatch_pack = 'kernel-default-livepatch';
-
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            $livepatch_pack = 'kernel-rt-livepatch';
-        }
-
         $livepatch_pack .= "-$kver" if defined($kver);
         assert_script_run 'cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf.orig';
         assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
@@ -68,6 +67,9 @@ sub install_klp_product {
         assert_script_run 'echo "LIVEPATCH_KERNEL=\'always\'" >> /etc/sysconfig/livepatching';
         install_package($livepatch_pack, trup_continue => 1, trup_reboot => 1)
           unless (is_sle_micro('=6.0') || is_sle_micro('=6.1')) && $livepatch_pack eq 'kernel-rt-livepatch-6.4.0-10.1';
+    }
+    elsif (is_sle('16+')) {
+        install_package($livepatch_pack);
     } else {
         zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
         zypper_call("mr -e kgraft-update") unless $livepatch_repo;
