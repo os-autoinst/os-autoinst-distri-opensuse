@@ -22,7 +22,7 @@ sub run {
     select_console('root-console');
 
     if ($role eq 'nfs_client') {
-        set_kdump_config($local_nfs3);
+        set_kdump_config('KDUMP_SAVEDIR', $local_nfs3);
     }
 
     barrier_wait("KDUMP_PROVISIONED");
