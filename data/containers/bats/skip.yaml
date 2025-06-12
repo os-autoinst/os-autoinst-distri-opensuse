@@ -4,27 +4,41 @@ aardvark-dns:
   sle-16.0:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
+  # Note on patches:
+  # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: sbom
     BATS_SKIP_ROOT:
     BATS_SKIP_USER: bud run
   sle-16.0:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud run sbom
     BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
   sle-15-SP7:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-15-SP6:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-15-SP5:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-15-SP4:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud namespaces run sbom
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
