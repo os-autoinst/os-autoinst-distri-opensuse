@@ -205,8 +205,9 @@ sub set_bootscript_agama_cmdline_extra {
     }
 
     # Support passing EXTRA_PXE_CMDLINE and EXTRABOOTPARAMS to bootscripts (inherited from set_bootscript_cmdline_extra)
-    $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE', '');
-    $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
+    $cmdline_extra .= ' ' . get_var('EXTRA_PXE_CMDLINE', '');
+    $cmdline_extra .= ' ' . get_var('EXTRABOOTPARAMS', '');
+    $cmdline_extra .= ' ' . get_var('AGAMA_NETWORK_PARAMS', '');
 
     return $cmdline_extra;
 }

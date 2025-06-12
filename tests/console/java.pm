@@ -57,6 +57,8 @@ sub run {
 
     if (is_tumbleweed) {
         $cmd .= 'java-*-devel';
+    } elsif (is_sle('16.0+') || is_leap('16.0+')) {
+        $cmd .= "java-21-openjdk{,-demo,-devel}";
     } elsif (is_sle('15-SP6+') || is_leap('15.6+')) {
         $cmd .= "java-21-openjdk{,-demo,-devel} $pkgs_legacy";
     } elsif (is_sle('15+') || is_sle('=12-SP5') || is_leap) {

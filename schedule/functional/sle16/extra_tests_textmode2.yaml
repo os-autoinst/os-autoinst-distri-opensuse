@@ -1,0 +1,34 @@
+name:           extra_tests_textmode2
+description:    >
+    Maintainer: qe-core.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - locale/keymap_or_locale
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/hostname
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/systemd_wo_udev
+    - console/curl_https
+    - console/ansible
+    - console/glibc_sanity
+    - console/glibc_tunables
+    - console/zypper_in
+    - console/zypper_log
+    - console/vim
+    - console/firewall_enabled
+    - console/sshd
+    - console/ssh_cleanup
+    - console/mtab
+    - console/zypper_lifecycle
+    - console/nginx
+    - console/orphaned_packages_check
+    - console/consoletest_finish
+    - console/zypper_log_packages
+    - shutdown/shutdown

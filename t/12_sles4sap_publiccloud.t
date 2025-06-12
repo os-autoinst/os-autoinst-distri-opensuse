@@ -844,6 +844,18 @@ subtest '[create_playbook_section_list] ptf' => sub {
 };
 
 
+subtest '[create_playbook_section_list] IBSm' => sub {
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(
+        ibsm_ip => 'Giovanni',
+        download_hostname => 'Petronio',
+        repos => 'Russo');
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*ibsm\.yaml.*/ } @$ansible_playbooks), 'IBSm playbook is called');
+};
+
+
 subtest '[enable_replication]' => sub {
     my $self = sles4sap_publiccloud->new();
     $self->{my_instance}->{instance_id} = 'vmhana01';

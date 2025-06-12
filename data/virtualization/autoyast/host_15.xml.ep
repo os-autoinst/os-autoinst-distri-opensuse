@@ -240,9 +240,6 @@
       % if ($get_var->('VERSION') gt '15-SP5') {
       <package>libvirt-daemon-proxy</package>
       % }
-      % if ($get_var->('VERSION') eq '15-SP7') {
-      <package>libvirt-daemon-config-nwfilter</package>
-      % }
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>
@@ -329,7 +326,7 @@ lsblk
       <script>
         <filename>configure_xen_modular_libvirt_log.sh</filename>
         <source><![CDATA[
-for drv in xen network nodedev nwfilter secret storage proxy lock
+for drv in xen network nodedev secret storage proxy lock
 do
 cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
 log_level = 1
@@ -345,7 +342,7 @@ done
       <script>
         <filename>configure_kvm_modular_libvirt_log.sh</filename>
         <source><![CDATA[
-for drv in qemu log network nodedev nwfilter secret storage proxy lock 
+for drv in qemu log network nodedev secret storage proxy lock
 do
 cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
 log_level = 1

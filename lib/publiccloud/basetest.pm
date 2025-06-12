@@ -131,10 +131,6 @@ sub finalize {
         }
     }
 
-    if ($self->{run_args} && $self->{run_args}->{my_instance} && $self->{result} && $self->{result} eq 'fail') {
-        $self->{run_args}->{my_instance}->upload_supportconfig_log();
-    }
-
     # currently we have two cases when teardown of instance will be skipped:
     # 1. Job should have 'PUBLIC_CLOUD_NO_TEARDOWN' variable
     if (get_var('PUBLIC_CLOUD_NO_TEARDOWN')) {
@@ -192,6 +188,9 @@ sub _upload_logs {
         $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . $instance_log, timeout => 0, quiet => 1);
         $self->{run_args}->{my_instance}->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
     }
+
+    $self->{run_args}->{my_instance}->upload_supportconfig_log();
+
     return 1;
 }
 

@@ -21,7 +21,7 @@ use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_jeos is_opensuse is_public_cloud);
+use version_utils qw(is_sle is_jeos is_opensuse is_public_cloud is_leap);
 
 sub run() {
     select_serial_terminal;
@@ -47,8 +47,17 @@ sub run() {
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
-    # configure dovecot
-    assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf";
+    # Configure dovecot for sle16 and tumbleweed, see https://progress.opensuse.org/issues/182768
+    my $dovecot24 = !is_sle('<16') && !is_leap('<16.0');
+    if ($dovecot24) {
+        assert_script_run('cd /etc/dovecot');
+        assert_script_run('rm dovecot.conf');
+        # The sample configre files are downloaded from https://github.com/dovecot/tools/blob/main/dovecot-2.4.0-example-config.tar.gz
+        assert_script_run('curl -o dovecot.tar ' . data_url('dovecot.tar'));
+        assert_script_run('tar xf dovecot.tar');
+        assert_script_run('cd');
+    }
+    assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf" unless $dovecot24;
     assert_script_run "sed -i -e 's/#mail_access_groups =/mail_access_groups = mail/g' /etc/dovecot/conf.d/10-mail.conf";
     assert_script_run "sed -i -e 's/#ssl_cert =/ssl_cert =/g' /etc/dovecot/conf.d/10-ssl.conf";
     assert_script_run "sed -i -e 's/#ssl_key =/ssl_key =/g' /etc/dovecot/conf.d/10-ssl.conf";
@@ -75,6 +84,7 @@ sub run() {
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
+    assert_script_run "postconf -e 'smtpd_tls_security_level = encrypt'" if $dovecot24;
     assert_script_run "postconf -e 'smtpd_tls_key_file = /etc/ssl/private/dovecot.pem'";
     assert_script_run "postconf -e 'smtpd_tls_cert_file = /etc/ssl/private/dovecot.crt'";
     assert_script_run "sed -i -e 's/#tlsmgr/tlsmgr/g' /etc/postfix/master.cf";
@@ -82,6 +92,7 @@ sub run() {
     assert_script_run "postconf -e 'smtpd_sasl_path = private/auth'";
     assert_script_run "postconf -e 'smtpd_sasl_type = dovecot'";
     assert_script_run "postconf -e 'myhostname = localhost'";
+    assert_script_run "postconf -e 'home_mailbox = Maildir/'" if $dovecot24;
 
     # start/restart services
     systemctl 'start dovecot';

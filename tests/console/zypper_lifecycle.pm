@@ -74,6 +74,7 @@ sub run {
     zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
     # force reinstall release notes, package must not come from expected SLE-Product repo e.g. GMC
     zypper_call('in -f release-notes*');
+    zypper_call('in zypper-lifecycle-plugin') if (is_sle('>=16'));
 
     select_user_serial_terminal;
     my $overview = script_output('zypper lifecycle', 600);
@@ -100,7 +101,7 @@ sub run {
 
     die "Got malformed repo list:\nOutput: '$output'" unless $base_repos;
 
-    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 300;
+    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 600;
     # Parse package name
     if ($output =~ /name="(?<package>[^"]+)"/) {
         $package = $+{package};

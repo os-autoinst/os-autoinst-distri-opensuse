@@ -38,8 +38,8 @@ sub set_svirt_domain_elements {
                   "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
                   "/assets/iso/" . get_required_var('ISO'));
             $cmdline .= " live.password=$testapi::password";
-            $cmdline .= " ip=dhcp";
-            $cmdline .= " rd.neednet";
+            # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+            $cmdline .= ' ' . get_var('AGAMA_NETWORK_PARAMS') if get_var('AGAMA_NETWORK_PARAMS');
         } else {
             $cmdline .= "install=$repo";
             $cmdline .= remote_install_bootmenu_params;

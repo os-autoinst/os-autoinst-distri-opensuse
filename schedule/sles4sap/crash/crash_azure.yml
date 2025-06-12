@@ -6,4 +6,3 @@ vars:
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
     - sles4sap/crash/crash_azure
-

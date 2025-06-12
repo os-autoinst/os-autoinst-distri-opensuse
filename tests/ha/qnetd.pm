@@ -13,9 +13,20 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster;
+use hacluster qw(choose_node
+  $default_timeout
+  ensure_resource_running
+  get_cluster_name
+  get_ip
+  is_node
+  prepare_console_for_fencing
+  save_state
+  wait_for_idle_cluster
+  wait_until_resources_started
+);
 use utils qw(zypper_call exec_and_insert_password);
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 sub handle_diskless_sbd_scenario_cluster_node {
     my $cluster_name = get_cluster_name;
@@ -162,6 +173,13 @@ sub run {
 
     # The following barrier prevents the QNetd server from stopping before the cluster nodes complete their tests
     barrier_wait("QNETD_TESTS_DONE_$cluster_name") if check_var('QDEVICE_TEST_ROLE', 'qnetd_server');
+}
+
+# Avoid calling hacluster::post_run_hook(). It will fail on node 2 which gets fenced
+# But collect SELinux AVCs on node 1 and server
+sub post_run_hook {
+    my ($self) = @_;
+    record_avc_selinux_alerts() if (is_sle('16+') && !is_node(2));
 }
 
 1;

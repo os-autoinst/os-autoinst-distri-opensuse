@@ -21,7 +21,7 @@ use registration qw(add_suseconnect_product remove_suseconnect_product);
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {
     my ($self) = @_;
-    my $not_installed_pkg = 'iftop';
+    my $not_installed_pkg = is_sle(">=16.0") ? 'tmux' : 'iftop';    # iftop is not available on SLES16
 
     select_console 'root-console';
     zypper_call("rm $not_installed_pkg") if (script_run("which $not_installed_pkg") == 0);

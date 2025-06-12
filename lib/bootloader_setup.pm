@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro is_bootloader_grub2);
 use mm_network;
 use Utils::Backends;
 
@@ -309,26 +309,33 @@ sub boot_local_disk {
 }
 
 sub boot_into_snapshot {
-    send_key_until_needlematch('boot-menu-snapshot', 'down', 11, 5);
-    send_key 'ret';
-    # assert needle to make sure grub2 page show up
-    assert_screen('grub2-page', 60);
-    # assert needle to avoid send down key early in grub_test_snapshot.
-    if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
-        send_key_until_needlematch('snap-default', 'down', 61, 5);
-    }
-    # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
-    if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
-        send_key_until_needlematch('snap-before-update', 'down', 61, 5);
+    if (is_bootloader_grub2()) {
+        send_key_until_needlematch('boot-menu-snapshot', 'down', 11, 5);
+        send_key 'ret';
+        # assert needle to make sure grub2 page show up
+        assert_screen('grub2-page', 60);
+        # assert needle to avoid send down key early in grub_test_snapshot.
+        if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
+            send_key_until_needlematch('snap-default', 'down', 61, 5);
+        }
+        # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
+        if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
+            send_key_until_needlematch('snap-before-update', 'down', 61, 5);
+            save_screenshot;
+        }
+        # in an online migration
+        send_key_until_needlematch('snap-before-migration', 'down', 61, 5) if (get_var('ONLINE_MIGRATION'));
         save_screenshot;
+        send_key 'ret';
+        # avoid timeout for booting to HDD
+        save_screenshot;
+        send_key 'ret';
+    } else {
+        assert_screen('grub2-bls');
+        send_key 'down';
+        save_screenshot;
+        send_key 'ret';
     }
-    # in an online migration
-    send_key_until_needlematch('snap-before-migration', 'down', 61, 5) if (get_var('ONLINE_MIGRATION'));
-    save_screenshot;
-    send_key 'ret';
-    # avoid timeout for booting to HDD
-    save_screenshot;
-    send_key 'ret';
 }
 
 sub select_bootmenu_option {

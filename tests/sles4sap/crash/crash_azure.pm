@@ -13,6 +13,7 @@ use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
+use utils 'script_retry';
 
 use constant DEPLOY_PREFIX => 'clne';
 
@@ -60,10 +61,11 @@ sub run {
         name => $vm,
         image => $os_ver,
         username => 'cloudadmin',
+        crash_mode => 1,
         region => $provider->provider_client->region);
     $vm_create_args{security_type} = 'Standard' if is_sle '<=12-SP5';
 
-    az_vm_create_crash(%vm_create_args);
+    az_vm_create(%vm_create_args);
 
     my $vm_ip;
     my $ssh_cmd;
@@ -77,59 +79,51 @@ sub run {
     while ((time() - $start_time) < 300) {
         $ret = script_run("nc -vz -w 1 $vm_ip 22", quiet => 1);
         last if defined($ret) and $ret == 0;
-            sleep 10;
-    }
-    assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
-    
-    record_info('TEST STEP', 'VM reachable with SSH');
-
-    # Looping until is-system-running or timeout.
-    $start_time = time();
-    while ((time() - $start_time) < 300) {
-        $ret = script_run("$ssh_cmd sudo systemctl is-system-running");
-        last unless $ret;
         sleep 10;
     }
+    assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
+    record_info('TEST STEP', 'VM reachable with SSH');
 
-    if (my $reg_code = get_var('SCC_REGCODE_SLES4SAP')) {
-        assert_script_run(join(' ',
-                $ssh_cmd,
-                'sudo', 'registercloudguest',
-                '--force-new',
-                '-r', "\"$reg_code\"",
-                '-e "testing@suse.com"'),
-            timeout => 600);
-        assert_script_run(join(' ', $ssh_cmd, 'sudo', 'SUSEConnect -s'));
-    }
+    my %system_register_args = (
+        reg_code => get_var('SCC_REGCODE_SLES4SAP'),
+        ssh_command => $ssh_cmd);
+    ensure_system_ready_and_register(%system_register_args);
 
     # Crash test
     my $patch_output = script_output(join(' ',
-                            $ssh_cmd,
-                            'sudo', 'zypper',
-                            '--non-interactive', 'patch'), proceed_on_failure => 1);
+            $ssh_cmd,
+            'sudo', 'zypper',
+            '--non-interactive', 'patch'), proceed_on_failure => 1);
     if ($patch_output =~ /Run this command once more to install any other needed patches/) {
         record_info("Zypper Warning", "Detected request to rerun zypper patch");
-        assert_script_run(join(' ', 
+        assert_script_run(join(' ',
                 $ssh_cmd,
                 'sudo',
                 'zypper', '--non-interactive',
                 'patch'),
-                timeout => 600);
+            timeout => 600);
     }
     assert_script_run(join(' ',
-                $ssh_cmd,
-                'sudo',
-                'reboot'),
-            timeout => 600);
+            $ssh_cmd,
+            'sudo',
+            'reboot'),
+        timeout => 600);
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
     assert_script_run(join(' ',
-                $ssh_cmd,
-                'sudo',
-                "echo 'b' ",
-                ">> /proc/sysrq-trigger"),
-            timeout => 600);
+            $ssh_cmd,
+            'sudo',
+            'su -c',
+            "\"echo 'b' > /proc/sysrq-trigger &\""),
+        timeout => 600);
+    script_retry("nc -zv $vm_ip 22", retry => 10, delay => 45);
+    assert_script_run(join(' ',
+            $ssh_cmd,
+            'sudo',
+            'systemctl',
+            "--failed"),
+        timeout => 600);
 }
 
 sub test_flags {
@@ -138,8 +132,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    #az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
-    #$self->SUPER::post_fail_hook;
+    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    $self->SUPER::post_fail_hook;
 }
 
 1;

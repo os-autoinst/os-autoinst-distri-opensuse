@@ -171,4 +171,53 @@ subtest 'has_selinux' => sub {
     ok !has_selinux, "check !has_selinux for Tumbleweed with SELINUX=0";
 };
 
+subtest 'bootloader_tests' => sub {
+    use version_utils qw(get_default_bootloader);
+
+    set_var('DISTRI', 'opensuse');
+    set_var('FLAVOR', 'Server-DVD');
+    set_var('VERSION', 'Tumbleweed');
+    set_var('UEFI', '0');
+    ok get_default_bootloader eq 'grub2', "Tumbleweed no UEFI is grub2";
+
+    set_var('UEFI', '1');
+    ok get_default_bootloader eq 'grub2', "Tumbleweed on UEFI is grub2";
+
+    set_var('VERSION', 'Slowroll');
+    ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
+
+    set_var('VERSION', 'Staging:F');
+    ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
+
+    set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
+    ok get_default_bootloader eq 'grub2', "Container host image is grub2";
+
+    set_var('FLAVOR', 'JeOS-for-OpenStack-Cloud');
+    ok get_default_bootloader eq 'grub2', "JeOS-for-OpenStack-Cloud image is grub2";
+    set_var('FLAVOR', 'Server-DVD');
+
+    set_var('UPGRADE', 1);
+    ok get_default_bootloader eq 'grub2', "Upgrading Tumbleweed on UEFI is grub2";
+    set_var('UPGRADE', undef);
+
+    set_var('UEFI', '0');
+    ok get_default_bootloader eq 'grub2', "Tumbleweed non UEFI is grub2";
+
+    set_var('DISTRI', 'microos');
+    ok get_default_bootloader eq 'grub2', "Microos non UEFI is grub2";
+
+    set_var('UEFI', '1');
+    ok get_default_bootloader eq 'systemd-boot', "Microos UEFI is systemd-boot";
+
+    set_var('UPGRADE', 1);
+    ok get_default_bootloader eq 'grub2', "Old Microos UEFI is grub2";
+    set_var('UPGRADE', 0);
+
+    set_var('BOOTLOADER', 'does-not-exist');
+    dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";
+
+    set_var('BOOTLOADER', 'grub2');
+    ok get_default_bootloader eq 'grub2', "Forcing bootloader works";
+};
+
 done_testing;

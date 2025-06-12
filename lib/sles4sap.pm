@@ -26,7 +26,7 @@ use version_utils qw(is_sle has_selinux);
 use utils qw(zypper_call);
 use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
-use Utils::Logging qw(save_and_upload_log);
+use Utils::Logging qw(save_and_upload_log record_avc_selinux_alerts);
 use Carp qw(croak);
 
 our @EXPORT = qw(
@@ -1487,6 +1487,7 @@ sub modify_selinux_setenforce {
 sub post_run_hook {
     my ($self) = @_;
 
+    record_avc_selinux_alerts() if is_sle('16+');
     return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     ensure_unlocked_desktop if ($prev_console eq 'x11');

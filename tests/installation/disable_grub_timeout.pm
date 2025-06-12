@@ -15,7 +15,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_upgrade is_microos is_staging);
+use version_utils qw(is_sle is_leap is_upgrade is_microos is_staging is_bootloader_sdboot is_bootloader_grub2_bls);
 use Utils::Architectures;
 
 sub run {
@@ -70,18 +70,22 @@ sub run {
 
     send_key_until_needlematch 'inst-bootloader-options-highlighted', $bsc_1208266_needed ? $bootloader_shortcut : 'right', 20, 2;
     assert_screen 'installation-bootloader-options';
-    # Select Timeout dropdown box and disable
-    send_key 'alt-t';
-    wait_still_screen(1);
+
     my $timeout = "-1";
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle('<12-SP1');
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
-    # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
-    # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
-    if (!is_sle && !is_leap && is_staging && check_var("VERSION", "Staging:F") && (is_microos || is_uefi_boot)) {
+    # changes are for now confined to Staging:F
+    if (is_bootloader_grub2_bls || is_bootloader_sdboot) {
+        # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
+        # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
         send_key 'alt-a';
+        send_key 'spc' if $is_textmode;
+        wait_still_screen(1);
     } else {
+        # Select Timeout dropdown box and disable
+        send_key 'alt-t';
+        wait_still_screen(1);
         type_string $timeout;
     }
 

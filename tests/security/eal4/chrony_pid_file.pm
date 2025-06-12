@@ -12,11 +12,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # The chrony pid file does not exist is the expected result
     if (script_run('find / -name "*chrony*" | grep \'\\.pid\'') == 0) {

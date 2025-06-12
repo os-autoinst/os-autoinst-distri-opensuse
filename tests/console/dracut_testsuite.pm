@@ -26,7 +26,9 @@ sub run {
     add_suseconnect_product(get_addon_fullname('phub'));
     # install build and testsuite dependencies
     zypper_call('in cargo rust nbd dbus-broker strace rpm-build dhcp-server dhcp-client dash asciidoc libkmod-devel git qemu-kvm qemu tgt iscsiuio open-iscsi ShellCheck tree');
+    assert_script_run 'for r in `zypper lr|awk \'/Basesystem.*Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
     zypper_call('si dracut');
+    assert_script_run 'for r in `zypper lr|awk \'/Basesystem.*Source-Pool/ {print $5}\'`;do zypper mr -d --no-refresh $r;done';
     my $version = script_output(q(rpm -q dracut|awk -F"[-.]" '{print$2}'|cut -c2-3));
     assert_script_run('mkdir /tmp/logs');
     assert_script_run('cd /usr/src/packages/SPECS');

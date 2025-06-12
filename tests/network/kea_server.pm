@@ -46,20 +46,15 @@ sub run {
     my $lease_file = '/var/lib/kea/kea-leases4.csv';
     record_info("Lease file", script_output("cat $lease_file"));
     die("Lease file only has header, no lease assigned") if script_output("wc -l < $lease_file") < 2;
-
-    unless (is_sle('>=16') || is_tumbleweed) {
-        my $dhcp_log = script_output("grep -E 'DHCP(DISCOVER|OFFER|REQUEST|ACK)' /var/log/kea.log");
-        record_info("DHCP handshake", $dhcp_log);
-        assert_script_run("grep -Pz '(?s)(?=.*DHCPDISCOVER)(?=.*DHCPOFFER)(?=.*DHCPREQUEST)(?=.*DHCPACK)' /var/log/kea.log", fail_message => "Missing one or more DHCP handshake keywords in kea log");
-    } else {
-        record_soft_failure("bsc#1243797 - kea is not logging in kea.log");
-    }
+    my $dhcp_log = script_output("grep -E 'DHCP(DISCOVER|OFFER|REQUEST|ACK)' /var/log/kea/kea.log");
+    record_info("DHCP handshake", $dhcp_log);
+    assert_script_run("grep -Pz '(?s)(?=.*DHCPDISCOVER)(?=.*DHCPOFFER)(?=.*DHCPREQUEST)(?=.*DHCPACK)' /var/log/kea/kea.log", fail_message => "Missing one or more DHCP handshake keywords in kea log");
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
-    upload_logs('/var/log/kea.log');
+    upload_logs('/var/log/kea/kea.log');
 }
 
 1;

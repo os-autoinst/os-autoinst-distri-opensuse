@@ -9,7 +9,7 @@ use opensusebasetest qw(handle_uefi_boot_disk_workaround);
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_livecd);
+use version_utils qw(is_sle is_livecd is_bootloader_grub2_bls);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 use Utils::Backends;
 
@@ -37,7 +37,7 @@ sub grub_test {
     unlock_bootloader;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
-    assert_screen('grub2', $timeout);
+    assert_screen(is_bootloader_grub2_bls ? 'grub2-bls' : 'grub2', $timeout);
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
