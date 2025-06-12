@@ -257,7 +257,16 @@ sub determine_crash_memory {
 # Activate kdump using command line tools
 sub activate_kdump_cli {
     if (is_sle('16+')) {
+        # Enable fadump in configuration file if requested
+        set_kdump_config("KDUMP_FADUMP", "true") if get_var('FADUMP');
+
+        # Set custom crashkernel if requested
+        my $crash_memory = determine_crash_memory;
+        set_kdump_config("KDUMP_CRASHKERNEL", "crashkernel=${crash_memory}M") if get_var('CRASH_MEMORY');
+
+        # Apply configuration
         assert_script_run('kdumptool commandline -u');
+        record_info('COMMANDLINE', script_output('kdumptool commandline'));
     }
     else {
         # Skip configuration, if is kdump already enabled and no special memory settings is required
@@ -281,6 +290,7 @@ sub activate_kdump_cli {
         assert_script_run('yast2 kdump fadump enable', 180) if get_var('FADUMP');
         assert_script_run('yast kdump show', 180);
     }
+    record_info('SYSCONFIG', script_output('cat /etc/sysconfig/kdump'));
     systemctl('enable kdump');
 }
 
@@ -531,6 +541,35 @@ sub full_kdump_check {
     if ($stage eq 'after') {
         check_ssh_files();
     }
+}
+
+=head2 set_kdump_config
+
+ set_kdump_config($option, $value);
+
+This function modifies a configuration option within the F</etc/sysconfig/kdump> file.
+
+=over 4
+
+=item B<$option>
+
+Name of the configuration option in the kdump configuration file.
+
+=item B<$value>
+
+Value for the configuration option.
+
+=back
+
+=cut
+
+sub set_kdump_config {
+    my ($option, $value) = @_;
+
+    record_info("SET CONFIG", "$option=\"$value\"");
+    my $command = "sed -i 's/^$option=.*/$option=\"$value\"/' /etc/sysconfig/kdump";
+
+    assert_script_run($command);
 }
 
 1;
