@@ -7,6 +7,7 @@
 provider: 'azure'
 apiver: 3
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     az_region: '%REGION%'
     deployment_name: '%DEPLOYMENTNAME%'
