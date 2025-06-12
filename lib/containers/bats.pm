@@ -202,6 +202,10 @@ sub bats_setup {
         run_command "zypper addrepo $repo";
     }
 
+    foreach my $pkg (split(/\s+/, get_var("BATS_TEST_PACKAGES", ""))) {
+        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
+    }
+
     install_bats;
 
     enable_modules if is_sle;
