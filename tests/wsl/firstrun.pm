@@ -55,10 +55,17 @@ sub enter_user_details {
         if (defined($_)) {
             wait_still_screen stilltime => 1, timeout => 5;
             wait_screen_change { type_string "$_", max_interval => 125, wait_screen_change => 2 };
-            wait_screen_change(sub { send_key 'tab' }, 10);
+            # Account for yast (legacy) vs jeos (modern) firstboot
+            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+                wait_screen_change(sub { send_key 'tab' }, 10);
+            }
+            wait_screen_change(sub { send_key 'down' }, 10);
             wait_still_screen stilltime => 3, timeout => 10;
         } else {
-            wait_screen_change(sub { send_key 'tab' }, 10);
+            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+                wait_screen_change(sub { send_key 'tab' }, 10);
+            }
+            wait_screen_change(sub { send_key 'down' }, 10);
             next;
         }
     }
