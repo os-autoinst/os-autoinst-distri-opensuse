@@ -48,6 +48,7 @@ function(bootloader=false,
   [if storage == 'lvm_tpm_fde' then 'storage']: storage_lib['lvm_tpm_fde'],
   [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
   [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
+  [if storage == 'resize' then 'storage']: storage_lib['resize'],
   [if storage == 'whole_disk_and_boot_unattended' then 'storage']: storage_lib['whole_disk_and_boot_unattended'],
   [if user == true then 'user']: base_lib['user'],
 }

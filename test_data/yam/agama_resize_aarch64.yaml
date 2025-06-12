@@ -1,0 +1,23 @@
+---
+disks:
+  - name: vda
+    table_type: gpt
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: vda2
+        mounting_options:
+          mount_point: /
+        size: 12.5G
+      - name: vda3
+        mounting_options:
+          should_mount: 1
+          mount_point: SWAP
+        size: 1G
+      - name: vda4
+        type: part
+        size: 25.4G
+        children:
+          - name: cr_home
+            size: 25.4G
+            type: crypt
+            mountpoint: /home

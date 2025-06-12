@@ -7,7 +7,7 @@ schedule:
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
-  - yam/agama/boot_full_disk_encryption
+  - yam/agama/boot_encrypted_partitions
   - installation/first_boot
   - console/validate_encrypt
 test_data:

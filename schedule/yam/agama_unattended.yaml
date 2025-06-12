@@ -1,7 +1,7 @@
 ---
-name: agama_auto
+name: agama_unattended
 description: >
-  Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
+  Default unattended installation.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/agama_auto
@@ -11,3 +11,6 @@ schedule:
   - yam/validate/validate_first_user
   - yam/validate/validate_hostname
   - console/validate_repos
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
