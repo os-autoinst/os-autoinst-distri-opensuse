@@ -20,6 +20,7 @@ use Regexp::Common qw(net);
 use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
+use publiccloud::utils qw(get_credentials);
 use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
@@ -123,6 +124,57 @@ sub log_command_output {
     return $result;
 }
 
+=head2 export_credentials
+
+    export_credentials();
+
+Exports Azure credentials retrieved from login server defined in.
+Please note that B<get_credentials> function requires following OpenQA settings:
+  PUBLIC_CLOUD_CREDENTIALS_URL
+  PUBLIC_CLOUD_NAMESPACE
+  _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER
+  _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD
+
+Credentials can be provided as well using openQA settings:
+  _SECRET_AZURE_SDAF_APP_ID
+  _SECRET_AZURE_SDAF_APP_PASSWORD
+  _SECRET_AZURE_SDAF_TENANT_ID
+  PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
+=cut
+
+sub export_credentials {
+    my $temp_file = '/tmp/az_login_tmp';
+    my $data;
+
+    if (get_var('_SECRET_AZURE_SDAF_APP_ID') &&
+        get_var('_SECRET_AZURE_SDAF_APP_PASSWORD') &&
+        get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') &&
+        get_var('_SECRET_AZURE_SDAF_TENANT_ID')) {
+        $data = {
+            client_id => get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
+            client_secret => get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
+            tenant_id => get_required_var('_SECRET_AZURE_SDAF_TENANT_ID'),
+            # Keeping the same OpenQA setting name consistent with other deployments
+            subscription_id => get_required_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
+        };
+    } else {
+        $data = get_credentials('azure.json');
+    }
+
+    my @variables = (
+        "export ARM_CLIENT_ID=$data->{client_id}",
+        "export ARM_CLIENT_SECRET=$data->{client_secret}",
+        "export ARM_TENANT_ID=$data->{tenant_id}",
+        "export ARM_SUBSCRIPTION_ID=$data->{subscription_id}"
+    );
+
+    # Write variables into temporary file using openQA infrastructure to avoid exposing variable values.
+    write_sut_file($temp_file, join("\n", @variables));
+    # Source file and load variables
+    assert_script_run("source $temp_file");
+    return ($data);
+}
+
 =head2 az_login
 
  az_login();
@@ -130,15 +182,32 @@ sub log_command_output {
 Logs into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables.
 To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.
 
-SPN credentials are defined by secret OpenQA parameters:
+Credentials are by default provided using secure server.
+Below are required OpenQA settings:
 
 =over
 
-=item * B<_SECRET_AZURE_SDAF_APP_ID>
+=item * B<PUBLIC_CLOUD_NAMESPACE> - namespace dedicated for the project
 
-=item * B<_SECRET_AZURE_SDAF_APP_PASSWORD>
+=item * B<PUBLIC_CLOUD_CREDENTIALS_URL> URL of the secure server
 
-=item * B<_SECRET_AZURE_SDAF_TENANT_ID>
+=item * B<_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER> Secure server user name
+
+=item * B<_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD> Secure server password
+
+=back
+
+Can be also supplied via secret OpenQA parameters:
+
+=over
+
+=item * B<_SECRET_AZURE_SDAF_APP_ID> SPN app id
+
+=item * B<_SECRET_AZURE_SDAF_APP_PASSWORD> SPN app password
+
+=item * B<_SECRET_AZURE_SDAF_TENANT_ID> Tenant ID
+
+=item * B<PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID> Subscription ID
 
 =back
 
@@ -148,27 +217,11 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 =cut
 
 sub az_login {
-    my $temp_file = '/tmp/az_login_tmp';
-    my @variables = (
-        'export ARM_CLIENT_ID=' . get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
-        'export ARM_CLIENT_SECRET=' . get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
-        'export ARM_TENANT_ID=' . get_required_var('_SECRET_AZURE_SDAF_TENANT_ID'),
-    );
-
-    # Write variables into temporary file using openQA infrastructure to avoid exposing variable values.
-    write_sut_file($temp_file, join("\n", @variables));
-    # Source file and load variables
-    assert_script_run("source $temp_file");
-
+    my $credentials = export_credentials();
     my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID}; do sleep 10; done';
     assert_script_run($login_cmd, timeout => 30);
-
-    my $subscription_id = script_output('az account show -o tsv --query id');
-    record_info('AZ login', "Subscription id: $subscription_id");
-
-    # Remove temp file with credentials.
-    assert_script_run("rm $temp_file");
-    return ($subscription_id);
+    record_info('AZ login', "Subscription id: $credentials->{subscription_id}");
+    return ($credentials->{subscription_id});
 }
 
 =head2 create_sdaf_os_var_file
@@ -461,6 +514,7 @@ sub sdaf_execute_deployment {
 
     # Variable is specific to each deployment type and will be changed during the course of whole deployment process.
     # It is used by SDAF internally, so keep it set in OS env
+    export_credentials();
     set_os_variable('parameterFile', $tfvars_filename);
 
     # SDAF has to be executed from the profile directory
