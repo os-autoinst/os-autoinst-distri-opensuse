@@ -54,8 +54,6 @@ NOTES
 ## Workflow
 
 - To debug SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
-- To debug runtime issues you may clone a job with `OCI_RUNTIME=crun`.  The default OCI runtime is `runc` on all openSUSE & SUSE products except SLEM 6.0 & 6.1
-- To debug buildah issues you may clone a job with `BUILDAH_STORAGE_DRIVER=vfs`
 - To debug individual tests you may clone a job with `BATS_TESTS`
 - You can also test individual tests from the latest version in the `main` branch with `BATS_URL=main`
 - The BATS output is collected in the log files with the `.tap` extension
@@ -86,15 +84,15 @@ NOTES
 
 ## openQA jobs
 
-| Product             | aardvark         | buildah          | netavark         | podman           | runc             | skopeo |
+| Product               | aardvark         | buildah            | netavark         | podman             | runc             | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| openSUSE Tumbleweed | [![tw_al]][tw_a] | [![tw_bl]][tw_b] | [![tw_nl]][tw_n] | [![tw_pl]][tw_p] | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
-| Latest SLES 16      | [![logo]][s16_a] | [![logo]][s16_b] | [![logo]][s16_n] | [![logo]][s16_p] | [![logo]][s16_r] | [![logo]][s16_s] |
-| Latest SLES 15      |                  | [![logo]][s15_b] | [![logo]][s15_n] | [![logo]][s15_p] | [![logo]][s15_r] | [![logo]][s15_s] |
-| SLES 15 SP7         |                  | [![logo]][sp7_b] | [![logo]][sp7_n] | [![logo]][sp7_p] | [![logo]][sp7_r] | [![logo]][sp7_s] |
-| SLES 15 SP6         |                  | [![logo]][sp6_b] | [![logo]][sp6_n] | [![logo]][sp6_p] | [![logo]][sp6_r] | [![logo]][sp6_s] |
-| SLES 15 SP5         |                  | [![logo]][sp5_b] | [![logo]][sp5_n] |                  | [![logo]][sp5_r] | [![logo]][sp5_s] |
-| SLES 15 SP4         |                  | [![logo]][sp4_b] |                  |                  | [![logo]][sp4_r] | [![logo]][sp4_s] |
+| openSUSE Tumbleweed   | [![tw_al]][tw_a] | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n] | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
+| openSUSE TW with crun |                  | [![tw_blc]][tw_bc] |                  | [![tw_plc]][tw_pc] |                  |                  |
+| Latest SLES 16        | [![logo]][s16_a] | [![logo]][s16_b]   | [![logo]][s16_n] | [![logo]][s16_p]   | [![logo]][s16_r] | [![logo]][s16_s] |
+| SLES 15 SP7           |                  | [![logo]][sp7_b]   | [![logo]][sp7_n] | [![logo]][sp7_p]   | [![logo]][sp7_r] | [![logo]][sp7_s] |
+| SLES 15 SP6           |                  | [![logo]][sp6_b]   | [![logo]][sp6_n] | [![logo]][sp6_p]   | [![logo]][sp6_r] | [![logo]][sp6_s] |
+| SLES 15 SP5           |                  | [![logo]][sp5_b]   | [![logo]][sp5_n] |                    | [![logo]][sp5_r] | [![logo]][sp5_s] |
+| SLES 15 SP4           |                  | [![logo]][sp4_b]   |                  |                    | [![logo]][sp4_r] | [![logo]][sp4_s] |
 
 [logo]: logo.svg
 
@@ -102,10 +100,14 @@ NOTES
 [tw_a]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 [tw_bl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
 [tw_b]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
+[tw_blc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
+[tw_bc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
 [tw_nl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
 [tw_n]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
 [tw_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
 [tw_p]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
+[tw_plc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
 [tw_rl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
 [tw_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
 [tw_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
@@ -147,19 +149,35 @@ NOTES
 
 ## Skipped tests
 
+Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
+
+### aardvark-dns
+
+| tests | reason |
+| --- | --- |
+| half of them | openQA network setup |
+
 ### buildah
 
-| test | reason |
+| tests | reason |
 | --- | --- |
-| lots of them | https://github.com/containers/buildah/issues/6071 |
+| [from] & [run] | https://github.com/containers/buildah/issues/6071 |
+| others | Waiting for runc 1.2.x |
+
+[from]: https://github.com/containers/buildah/blob/main/tests/from.bats
+[run]: https://github.com/containers/buildah/blob/main/tests/run.bats
 
 ### podman
 
 | test | reason |
 | --- | --- |
+| [130-kill] | flaky test that fails on user/remote scenario |
+| [200-pod] | flaky test that fails on root/local scenario |
 | [252-quadlet] | unknown |
 | [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
 
+[130-kill]: https://github.com/containers/podman/blob/main/test/system/130-kill.bats
+[200-pod]: https://github.com/containers/podman/blob/main/test/system/200-pod.bats
 [252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
 [505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
 
@@ -167,7 +185,7 @@ NOTES
 
 | test | reason |
 | --- | --- |
-| [cgroups] | `io.bfq.weight: operation not supported` |
+| [cgroups] | https://github.com/opencontainers/runc/issues/4781 |
 
 [cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
 
