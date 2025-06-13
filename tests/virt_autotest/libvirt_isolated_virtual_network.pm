@@ -27,17 +27,21 @@ sub run_test {
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_isolated_cfg_name);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("stop named.service") if (is_sle('>=15-SP6') && is_sle('<16') && check_var('VIRT_AUTOTEST', 1));
     #Create ISOLATED NETWORK
     assert_script_run("virsh net-create vnet_isolated.xml");
     save_screenshot;
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
     #Resume named.service, refer to poo#175287
-    systemctl("start named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("start named.service") if (is_sle('>=15-SP6') && is_sle('<16') && check_var('VIRT_AUTOTEST', 1));
 
-    my ($mac, $model, $affecter, $exclusive, $skip_type);
-    my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
+    my ($gate, $mac, $model, $affecter, $exclusive, $skip_type, $net);
+    $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
+    $affecter = "";
+    $exclusive = "network --current";
+    $net = 'vnet_isolated';
+    $model = (is_xen_host) ? 'netfront' : 'virtio';
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
         #Just only 15-SP5 PV guest system have a rebooting problem due to bsc#1206250
@@ -46,24 +50,13 @@ sub run_test {
         ensure_online($guest, $skip_type => 1);
         save_screenshot;
 
-        if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter = "--persistent";
-            $exclusive = "bridge --live --persistent";
-        } else {
-            $affecter = "";
-            $exclusive = "network --current";
-        }
-
         $mac = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-        $model = (is_xen_host) ? 'netfront' : 'virtio';
-
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live $affecter", 60);
 
         #Wait for guests attached interface from virtual isolated network
         sleep 30;
-        my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_isolated';
         test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => $net);
 
         assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
