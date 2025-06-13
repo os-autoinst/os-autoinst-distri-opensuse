@@ -65,6 +65,7 @@ sub enable_docker {
     }
 
     record_info("docker info", script_output("docker info"));
+    record_info("docker version", script_output("docker version"));
 }
 
 sub run {

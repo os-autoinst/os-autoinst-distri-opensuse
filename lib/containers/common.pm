@@ -156,6 +156,7 @@ sub install_docker_when_needed {
     systemctl('status docker', timeout => 120);
     install_oci_runtime("docker") if ($host_os =~ /sle|opensuse/);
     record_info('docker', script_output('docker info'));
+    record_info('version', script_output('docker version'));
 }
 
 sub install_buildah_when_needed {
