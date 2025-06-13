@@ -1426,7 +1426,6 @@ method=$_configmethod
 address1=$args{_ipaddr}
 [bridge]
 stp=$args{_bridge_stp}
-forward-delay=$args{_bridge_forwarddelay}
 EOF
 ");
     }
@@ -1451,8 +1450,7 @@ zone=$args{_zone}
 slave-type=bridge
 master=$args{_bridge_port}
 [ipv4]
-method=$_configmethod
-address1=$args{_ipaddr}
+method=disabled
 EOF
 ");
     }
@@ -1502,13 +1500,15 @@ sub activate_guest_network_bridge_device {
     }
     else {
         if (is_networkmanager) {
-            script_retry("nmcli connection up $args{_bridge_device}", timeout => 60, delay => 15, retry => 3, die => 0);
-            script_retry("nmcli connection up $args{_host_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+            enter_cmd("nmcli connection up $args{_bridge_device}");
+            wait_still_screen(60);
+	    enter_cmd("nmcli connection up $args{_host_device}");
+	    wait_still_screen(60);
         }
         else {
             script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
         }
-        type_string("reset\n");
+        reset_consoles;
         select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
         $_detect_active_route = script_output("ip route show default | grep -i $args{_bridge_device}", proceed_on_failure => 1);
         $_detect_inactive_route = script_output("ip route show default | grep -i $args{_host_device}", proceed_on_failure => 1);
