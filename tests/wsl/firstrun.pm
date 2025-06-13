@@ -38,6 +38,16 @@ sub set_fake_scc_url {
     assert_screen 'yast2-wsl-firstboot-welcome';
 }
 
+sub enter_root_password {
+
+    for (1 .. 2) {
+        wait_still_screen stilltime => 1, timeout => 5;
+        wait_screen_change { type_string "$password", max_interval => 125, wait_screen_change => 2 };
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        wait_still_screen stilltime => 3, timeout => 10;
+    }
+}
+
 sub enter_user_details {
     my $creds = shift;
 
@@ -45,10 +55,17 @@ sub enter_user_details {
         if (defined($_)) {
             wait_still_screen stilltime => 1, timeout => 5;
             wait_screen_change { type_string "$_", max_interval => 125, wait_screen_change => 2 };
-            wait_screen_change(sub { send_key 'tab' }, 10);
+            # Account for yast (legacy) vs jeos (modern) firstboot
+            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+                wait_screen_change(sub { send_key 'tab' }, 10);
+            }
+            wait_screen_change(sub { send_key 'down' }, 10);
             wait_still_screen stilltime => 3, timeout => 10;
         } else {
-            wait_screen_change(sub { send_key 'tab' }, 10);
+            if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+                wait_screen_change(sub { send_key 'tab' }, 10);
+            }
+            wait_screen_change(sub { send_key 'down' }, 10);
             next;
         }
     }
@@ -59,30 +76,42 @@ sub license {
     # If we are enabling SLED, this screen will be checked
     # a second time after installing modules. That's the reason of the timeout
     assert_screen 'wsl-license', timeout => 240;
-    send_key 'alt-n';
+    # Different approaches for yast and jeos firstboot
+    if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+        send_key 'alt-n';
+    }
+    else {
+        send_key 'ret';
+    }
 
     if (is_sle) {
-        # license warning
-        assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
-        if (match_has_tag 'wsl-license-not-accepted') {
-            send_key 'ret';
-        }
-        else {
-            # When activating SLED, license agreement for workstation module appears,
-            # and this time the popup shows Yes or No options
+        if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+            # license warning
+            assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
+            if (match_has_tag 'wsl-license-not-accepted') {
+                send_key 'ret';
+            }
+            else {
+                # When activating SLED, license agreement for workstation module appears,
+                # and this time the popup shows Yes or No options
+                send_key 'alt-n';
+            }
+            # Accept license
+            # assert_screen 'wsl-license' or wsl-liscense-beta;
+            if (check_var("BETA", "1")) {
+                assert_screen 'wsl-license-beta', timeout => 240;
+            }
+            else {
+                assert_screen 'wsl-license', timeout => 240;
+            }
+            send_key 'alt-a';
+            assert_screen 'license-accepted';
             send_key 'alt-n';
         }
-        # Accept license
-        # assert_screen 'wsl-license' or wsl-liscense-beta;
-        if (check_var("BETA", "1")) {
-            assert_screen 'wsl-license-beta', timeout => 240;
-        }
         else {
-            assert_screen 'wsl-license', timeout => 240;
+            assert_screen 'wsl-agree-license';
+            send_key 'ret';
         }
-        send_key 'alt-a';
-        assert_screen 'license-accepted';
-        send_key 'alt-n';
     }
 }
 
@@ -100,15 +129,23 @@ sub register_via_scc {
 
     my $reg_code = get_required_var('SCC_REGCODE');
 
-    wait_screen_change(sub { send_key 'alt-c' }, 10);
-    wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
-    send_key 'alt-n';
-    assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
-    send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
-    assert_screen 'wsl-registration-repository-offer', timeout => 240;
-    send_key 'alt-y';
-    assert_screen 'wsl-extension-module-selection';
-    send_key 'alt-n';
+    # Legacy download (yast) vs modern download (jeos)
+    if (check_var('WSL_MSSTORE_LEGACY', '1')) {
+        wait_screen_change(sub { send_key 'alt-c' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'alt-n';
+        assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
+        send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
+        assert_screen 'wsl-registration-repository-offer', timeout => 240;
+        send_key 'alt-y';
+        assert_screen 'wsl-extension-module-selection';
+        send_key 'alt-n';
+    }
+    else {
+        wait_screen_change(sub { send_key 'down' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+    }
 }
 
 sub wsl_gui_pattern {
@@ -124,7 +161,7 @@ sub wsl_gui_pattern {
 
 sub run {
     # WSL installation is in progress
-    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 480;
+    assert_screen [qw(yast2-wsl-firstboot-welcome jeos-wsl-firstboot-welcome wsl-installing-prompt)], 480;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         # The new process of installing, appears in an already maximized window,
@@ -162,6 +199,36 @@ sub run {
         click_lastmatch if (check_screen('wsl-onedrive-popup'));
         # Back to CLI
         assert_screen 'wsl-linux-prompt';
+    } elsif (match_has_tag 'jeos-wsl-firstboot-welcome') {
+        # put in jeos test logic
+        assert_screen(['window-max', 'window-minimize']);
+        assert_and_click 'window-max' if match_has_tag 'window-max';
+        assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
+        wait_still_screen stilltime => 3, timeout => 10;
+        send_key 'ret';
+        assert_screen 'wsl-select-system-locale';
+        send_key 'ret';
+        assert_screen 'wsl-select-keyboard-layout';
+        send_key 'ret';
+        # License handling
+        license;
+        assert_screen 'wsl-select-timezone';
+        send_key 'ret';
+        # Enter root password
+        assert_screen 'wsl-jeos-root-password';
+        enter_root_password;
+        # Choose SLES or SLED
+        assert_screen 'wsl-sled-or-sles';
+        wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+        # Registration
+        register_via_scc;
+        # User credentials
+        assert_screen 'local-user-credentials';
+        enter_user_details([$realname, undef, $password, $password]);
+        send_key 'ret';
+
+
     } else {
         #1) skip registration, we cannot register against proxy SCC
         assert_and_click 'window-max';
