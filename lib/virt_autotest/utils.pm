@@ -97,6 +97,7 @@ our @EXPORT = qw(
   reboot_virtual_machine
   reconnect_console_if_not_good
   get_guest_settings
+  create_host_bridge
 );
 
 my %log_cursors;
@@ -106,6 +107,24 @@ sub trim {
     my $text = shift;
     $text =~ s/^\s+|\s+$//g;
     return $text;
+}
+
+#create host bridge network interface for sles16 via python script
+sub create_host_bridge {
+    my $host_bridge = "br0";
+    my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
+
+    if (is_sle('=16') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
+        #install required packages python313-psutil and python313-dbus-python
+        zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
+        my $wait_script = "180";
+        my $script_name = "create_bridge.py";
+        my $script_url = data_url("virt_autotest/$script_name");
+        my $download_script = "curl -s -o ~/$script_name $script_url";
+        script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
+        script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+    }
 }
 
 #return 1 if test is expected to run on XEN hypervisor
@@ -687,8 +706,10 @@ sub ensure_default_net_is_active {
 
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
+    my $guestname = (split /\./, $hostname)[0];
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
     assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    assert_script_run "echo '$address $guestname # virtualization' >> /etc/hosts";
 }
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
