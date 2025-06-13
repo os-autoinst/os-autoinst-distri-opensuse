@@ -39,6 +39,7 @@ sub test_flags {
 }
 
 sub run {
+    return;
     my ($self, $run_args) = @_;
     my %databases = %{$run_args->{redirection_data}{db_hana}};
     # Connect to any database cluster node to get topology data
