@@ -11,7 +11,7 @@ use warnings;
 use testapi;
 use power_action_utils qw(power_action);
 use serial_terminal qw(select_serial_terminal);
-use Utils::Architectures;
+use Utils::Architectures qw(is_aarch64);
 
 =head2 wait_kubectl_cmd
 
@@ -24,7 +24,9 @@ Wait for kubectl command to be available.
 sub wait_kubectl_cmd {
     my $starttime = time;
     my $ret = undef;
-    my $timeout = 240;
+
+    # Define timeouts based on the architecture
+    my $timeout = (is_aarch64) ? 480 : 240;
 
     while ($ret = script_run('which kubectl', ($timeout / 10))) {
         my $timerun = time - $starttime;
@@ -54,8 +56,10 @@ sub wait_k8s_running {
     my ($regex) = shift;
     my $starttime = time;
     my $ret = undef;
-    my $timeout = 300;
     my $chk_cmd = 'kubectl get pod -A 2>&1';
+
+    # Define timeouts based on the architecture
+    my $timeout = (is_aarch64) ? 480 : 240;
 
     while ($ret = script_run("! ($chk_cmd | grep -E -i -v -q '$regex')", ($timeout / 10))) {
         my $timerun = time - $starttime;
