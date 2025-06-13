@@ -7,7 +7,7 @@
 #          Deploy on AWS, two node HANA cluster with cloud native fencing.
 #          Deployment create a network peering the the IBSm
 provider: 'aws'
-apiver: 3
+apiver: 4
 terraform:
   bin: '%TERRAFORM_RUNNER%'
   variables:
@@ -41,17 +41,18 @@ ansible:
     primary_site: 'goofy'
     secondary_site: 'miky'
     use_sap_hana_sr_angi: '%USE_SR_ANGI%'
-  create:
-    - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
-    - ibsm.yaml -e ibsm_ip='%IBSM_IP%' -e download_hostname='%DOWNLOAD_HOSTNAME%' -e repos='%REPOS%'
-    - fully-patch-system.yaml
-    - pre-cluster.yaml
-    - sap-hana-preconfigure.yaml
-    - sap-hana-storage.yaml
-    - sap-hana-download-media.yaml
-    - sap-hana-install.yaml
-    - sap-hana-system-replication.yaml
-    - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml
-  destroy:
-    - deregister.yaml
+  sequences:
+    create:
+      - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
+      - ibsm.yaml -e ibsm_ip='%IBSM_IP%' -e download_hostname='%DOWNLOAD_HOSTNAME%' -e repos='%REPOS%'
+      - fully-patch-system.yaml
+      - pre-cluster.yaml
+      - sap-hana-preconfigure.yaml
+      - sap-hana-storage.yaml
+       - sap-hana-download-media.yaml
+      - sap-hana-install.yaml
+      - sap-hana-system-replication.yaml
+      - sap-hana-system-replication-hooks.yaml
+      - sap-hana-cluster.yaml
+    destroy:
+      - deregister.yaml
