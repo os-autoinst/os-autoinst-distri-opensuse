@@ -43,7 +43,16 @@ sub run() {
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
+        # JeOS comes without docs, and dovecot-openssl.cnf needed by the tests comes in docs
+        assert_script_run("sed -ie 's/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/' /etc/zypp/zypp.conf") if is_jeos;
+        assert_script_run("sed -ie 's/solver.onlyRequires = true/solver.onlyRequires = false/' /etc/zypp/zypp.conf") if is_jeos;
+
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
+
+        # revert back to default behavior of zypper
+        assert_script_run("sed -ie 's/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/' /etc/zypp/zypp.conf") if is_jeos;
+        assert_script_run("sed -ie 's/solver.onlyRequires = false/solver.onlyRequires = true/' /etc/zypp/zypp.conf") if is_jeos;
+
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
@@ -76,6 +85,7 @@ sub run() {
     my $dovecot_path;
     if (is_jeos) {
         $dovecot_path = "/usr/share/dovecot";
+        assert_script_run "cp /usr/share/doc/packages/dovecot/dovecot-openssl.cnf /usr/share/dovecot/";
     } else {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
