@@ -72,7 +72,7 @@ sub run {
         $self->close_powershell;
         $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
         assert_and_click 'wsl-suse-startup-search';
-        if (check_var('DISTRI', 'sle')) {
+        if (check_var('DISTRI', 'sle') || is_aarch64) {
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
@@ -82,7 +82,7 @@ sub run {
             cmd => "wsl --install --distribution $WSL_version",
             timeout => 300,
         );
-        if (check_var('DISTRI', 'sle')) {
+        if (check_var('DISTRI', 'sle') || is_aarch64) {
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
