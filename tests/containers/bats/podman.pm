@@ -77,15 +77,12 @@ sub run {
     # Download podman sources
     my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
     bats_sources $podman_version;
-    bats_patches;
 
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 
     # Patch tests
     run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
-    # This test needs xfs & lots of space and fails on 16.0 RC1
-    run_command "rm -f test/system/161-volume-quotas.bats";
     # This test is flaky and will fail if system is "full"
     run_command "rm -f test/system/320-system-df.bats";
     # This tests needs criu, available only on Tumbleweed

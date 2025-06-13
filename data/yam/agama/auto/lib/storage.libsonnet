@@ -10,6 +10,32 @@ local root_filesystem(filesystem) = {
   ],
 };
 
+local resize() = {
+  drives: [
+    {
+      search: '/dev/vda',
+      partitions: [
+        {
+          search: '/dev/vda2',
+          filesystem: { path: '/' },
+          size: '12.5 GiB',
+        },
+        {
+          search: '/dev/vda3',
+          filesystem: { path: 'swap' },
+          size: '1 GiB'
+        },
+        {
+          filesystem: { path: '/home' },
+          encryption: {
+            luks2: { password: 'nots3cr3t' }
+          }
+        },
+      ],
+    },
+  ],
+};
+
 local lvm(encrypted=false, encryption='luks2') = {
   drives: [
     {
@@ -162,6 +188,7 @@ local raid(level='raid0', uefi=false) = {
   lvm_tpm_fde: lvm(true, 'tpmFde'),
   raid0: raid('raid0'),
   raid0_uefi: raid('raid0', true),
+  resize: resize(),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
   whole_disk_and_boot_unattended: whole_disk_and_boot_unattended(),

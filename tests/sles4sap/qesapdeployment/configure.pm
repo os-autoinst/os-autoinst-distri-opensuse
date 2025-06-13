@@ -30,6 +30,12 @@ sub run {
     }
 
     my %variables;
+    $variables{TERRAFORM_RUNNER} = get_var('QESAPDEPLOY_TERRAFORM_RUNNER', 'terraform');
+    script_run(join(' ',
+            'which', $variables{TERRAFORM_RUNNER}, '&&',
+            $variables{TERRAFORM_RUNNER}, '--version', '||',
+            'echo', "\"'" . $variables{TERRAFORM_RUNNER} . "' tool not available in the path\""));
+
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = qesap_calculate_deployment_name('qesapval');
     if (get_var('QESAPDEPLOY_CLUSTER_OS_VER')) {

@@ -5,20 +5,37 @@
 
 # Package: update-alternatives
 # Summary: console/update_alternatives test for bsc#969171
-# - Run "stat -c"%N" -L /etc/alternatives/*" to check for broken links
-# - Capture an screenshot
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Logging 'save_and_upload_log';
+
+my $broken = '/tmp/broken-symlinks.txt';
 
 sub run {
-    select_console('user-console');
-    # call stat on all files in /etc/alternatices and report to stderr broken links
-    assert_script_run('find /etc/alternatives -type l | xargs -r stat -c"%N" -L >/dev/null');
-    save_screenshot;
+    select_serial_terminal;
+
+    return if script_run('which update-alternatives');
+
+    assert_script_run('update-alternatives --version');
+    assert_script_run('update-alternatives --get-selections');
+
+    # find broken links in /etc/alternatives
+    script_output("find /etc/alternatives -xtype l | tee $broken");
+    if (script_run("test -s $broken") == 0) {
+        shift->result('fail');
+    }
+}
+
+sub post_fail_hook {
+    select_console('log-console');
+    save_and_upload_log("stat -c '%N' \$(cat $broken)", $broken);
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

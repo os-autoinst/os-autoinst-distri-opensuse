@@ -45,6 +45,29 @@ sub run_tests {
     return ($ret);
 }
 
+sub enable_docker {
+    run_command 'systemctl enable --now docker';
+    run_command "usermod -aG docker $testapi::username";
+
+    # Needed to avoid:
+    # WARNING: COMMAND_FAILED: '/sbin/iptables -t nat -F DOCKER' failed: iptables: No chain/target/match by that name.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1196801
+    run_command 'systemctl restart firewalld';
+
+    # Running podman as root with docker installed may be problematic as netavark uses nftables
+    # while docker still uses iptables.
+    # Use workaround suggested in:
+    # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
+    # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
+    if (script_run("iptables -L -v | grep -q DOCKER") == 0) {
+        run_command "iptables -I DOCKER-USER -j ACCEPT";
+        run_command "ip6tables -I DOCKER-USER -j ACCEPT";
+    }
+
+    record_info("docker info", script_output("docker info"));
+    record_info("docker version", script_output("docker version"));
+}
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -58,6 +81,8 @@ sub run {
     record_info("buildah info", script_output("buildah info"));
     record_info("buildah package version", script_output("rpm -q buildah"));
 
+    enable_docker;
+
     switch_to_user;
 
     record_info("buildah rootless", script_output("buildah info"));
@@ -65,7 +90,6 @@ sub run {
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     bats_sources $buildah_version;
-    bats_patches;
 
     # Patch mkdir to always use -p
     run_command "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";

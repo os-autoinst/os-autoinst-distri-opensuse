@@ -4,29 +4,43 @@ aardvark-dns:
   sle-16.0:
     BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
 buildah:
+  # Note on patches:
+  # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: sbom
     BATS_SKIP_ROOT:
-    BATS_SKIP_USER: bud run
+    BATS_SKIP_USER:
   sle-16.0:
+    BATS_PATCHES:
+    - 6226
     BATS_SKIP: bud run sbom
     BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
   sle-15-SP7:
-    BATS_SKIP: bud namespaces run sbom
-    BATS_SKIP_ROOT:
+    BATS_PATCHES:
+    - 6226
+    BATS_SKIP: bud namespaces
+    BATS_SKIP_ROOT: run
     BATS_SKIP_USER:
   sle-15-SP6:
-    BATS_SKIP: bud namespaces run sbom
-    BATS_SKIP_ROOT:
+    BATS_PATCHES:
+    - 6226
+    BATS_SKIP: bud namespaces
+    BATS_SKIP_ROOT: run
     BATS_SKIP_USER:
   sle-15-SP5:
-    BATS_SKIP: bud namespaces run sbom
-    BATS_SKIP_ROOT:
+    BATS_PATCHES:
+    - 6226
+    BATS_SKIP: bud namespaces
+    BATS_SKIP_ROOT: run
     BATS_SKIP_USER:
   sle-15-SP4:
-    BATS_SKIP: bud namespaces run sbom
-    BATS_SKIP_ROOT:
+    BATS_PATCHES:
+    - 6226
+    BATS_SKIP: bud namespaces
+    BATS_SKIP_ROOT: run
     BATS_SKIP_USER:
 netavark:
   # Note on patches:
@@ -53,6 +67,7 @@ podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
   # https://github.com/containers/podman/pull/25792 is needed for 080-pause
+  # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
@@ -69,6 +84,7 @@ podman:
   sle-16.0:
     BATS_PATCHES:
     - 25792
+    - 25858
     - 25918
     - 25942
     - 26017

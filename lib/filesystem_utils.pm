@@ -476,10 +476,12 @@ sub validate_lsblk {
     my $dev = $args{device};
     my $type = $args{type};
     my $has_mountpoints_col = $args{has_mountpoints_col};
+    my $size = $args{size};
 
     my $validation_test_data = create_lsblk_validation_test_data(
         device => $dev,
-        has_mountpoints_col => $has_mountpoints_col);
+        has_mountpoints_col => $has_mountpoints_col,
+        size => $size);
 
     my $blockdev = lsblk_command(
         output => join(',', (keys %{$validation_test_data}, 'type')),

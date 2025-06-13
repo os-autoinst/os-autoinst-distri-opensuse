@@ -22,12 +22,10 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
-use containers::common qw(install_packages);
 use YAML::PP;
 use File::Basename;
 
 our @EXPORT = qw(
-  bats_patches
   bats_post_hook
   bats_setup
   bats_sources
@@ -200,6 +198,14 @@ sub bats_setup {
 
     push @commands, "### RUN AS root";
 
+    foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
+        run_command "zypper addrepo $repo";
+    }
+
+    foreach my $pkg (split(/\s+/, get_var("BATS_TEST_PACKAGES", ""))) {
+        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
+    }
+
     install_bats;
 
     enable_modules if is_sle;
@@ -209,8 +215,7 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @commands, "zypper -n install @pkgs";
-    install_packages(@pkgs);
+    run_command "zypper --gpg-auto-import-keys -n install @pkgs";
 
     configure_oci_runtime $oci_runtime;
 
@@ -423,9 +428,13 @@ sub bats_sources {
     }
 
     run_command "cd $test_dir";
-    run_command "git clone --branch $branch https://github.com/$github_org/$package.git", timeout => 300;
+    run_command "git clone https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
     run_command "cd $test_dir";
+    run_command "git checkout $branch";
+
+    bats_patches;
+
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";

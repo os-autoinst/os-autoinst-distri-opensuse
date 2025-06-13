@@ -7,6 +7,7 @@
 provider: 'gcp'
 apiver: 3
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     project: 'ei-sle-qa-sap-8469'
     region: '%REGION%'

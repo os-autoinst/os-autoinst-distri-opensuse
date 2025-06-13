@@ -97,6 +97,7 @@ sub run {
     systemctl "enable --now docker";
 
     record_info("docker root", script_output("docker info"));
+    record_info("docker version", script_output("docker version"));
     record_info("podman root", script_output("podman info"));
 
     # Needed to avoid:
