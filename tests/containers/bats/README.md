@@ -162,10 +162,12 @@ Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 | tests | reason |
 | --- | --- |
 | [from] & [run] | https://github.com/containers/buildah/issues/6071 |
+| [sbom] | https://github.com/containers/buildah/issues/5617 |
 | others | Waiting for runc 1.2.x |
 
 [from]: https://github.com/containers/buildah/blob/main/tests/from.bats
 [run]: https://github.com/containers/buildah/blob/main/tests/run.bats
+[sbom]: https://github.com/containers/buildah/blob/main/tests/sbom.bats
 
 ### podman
 

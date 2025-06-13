@@ -93,6 +93,8 @@ sub run {
 
     # Patch mkdir to always use -p
     run_command "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
+    # This test is flaky and depends on 3rd party images
+    run_command "rm -f tests/sbom.bats";
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
