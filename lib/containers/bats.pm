@@ -192,7 +192,6 @@ EOF
 
 sub bats_setup {
     my ($self, @pkgs) = @_;
-    my $reboot_needed = 0;
 
     $package = get_required_var("BATS_PACKAGE");
 
@@ -242,19 +241,16 @@ sub bats_setup {
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
         fix_tmp;
-        $reboot_needed = 1;
     }
 
     # Switch to cgroup v2 if not already active
     if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
-        $reboot_needed = 1;
     }
 
-    if ($reboot_needed) {
-        power_action('reboot', textmode => 1);
-        $self->wait_boot();
-    }
+    power_action('reboot', textmode => 1);
+    $self->wait_boot();
+    push @commands, "reboot";
 
     select_serial_terminal;
 
