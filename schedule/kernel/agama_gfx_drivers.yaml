@@ -3,7 +3,7 @@ name: agama-gfx-usb-drivers
 vars:
     AGAMA: 1
     AGAMA_PRODUCT_ID: SLES
-    INST_AUTO: yam/agama/auto/sles_default.jsonnet
+    INST_AUTO: kernel/agama_auto/sle16.jsonnet
 schedule:
 - installation/ipxe_install
 - installation/agama_reboot
@@ -14,7 +14,6 @@ schedule:
 - console/hostname
 - console/textinfo
 - console/consoletest_finish
-- x11/glxgears
 - kernel/usb_nic
 - kernel/usb_drive
 - shutdown/shutdown
