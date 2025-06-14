@@ -142,6 +142,12 @@ sub run {
         assert_script_run 'semanage boolean -m --on selinuxuser_execmod';
         assert_script_run 'semanage boolean -m --on unconfined_service_transition_to_unconfined_user';
         assert_script_run 'semanage permissive -a snapper_grub_plugin_t';
+
+        # This is a workaround for bsc#1244495
+        assert_script_run 'semanage permissive -a cluster_t';
+        assert_script_run 'semanage permissive -a sap_unconfined_t';
+        record_soft_failure("bsc#1244495: Workaround by defining selinux policy");
+
         restorecon_rootfs();
     }
 
