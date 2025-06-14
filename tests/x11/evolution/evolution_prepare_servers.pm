@@ -44,6 +44,14 @@ sub run() {
             systemctl 'start postfix';
         }
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
+        # JeOS doesn't pull in recommends by default, we need to change it for the fts plugin
+        assert_script_run("sed -ie 's/solver.onlyRequires = true/solver.onlyRequires = false/' /etc/zypp/zypp.conf") if is_jeos;
+
+        zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
+
+        # revert back to default behavior of zypper
+        assert_script_run("sed -ie 's/solver.onlyRequires = false/solver.onlyRequires = true/' /etc/zypp/zypp.conf") if is_jeos;
+
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
