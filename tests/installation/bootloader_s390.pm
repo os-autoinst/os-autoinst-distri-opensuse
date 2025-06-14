@@ -265,6 +265,8 @@ sub create_encrypted_part_dasd {
 }
 
 sub format_dasd {
+    # agama bring dasd online through the jsonnet profile
+    return if get_var('AGAMA');
     my $self = shift;
     my $r;
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
@@ -272,14 +274,11 @@ sub format_dasd {
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
 
-    # agama dasd is already online due it is specified in parmfile
-    unless (get_var('AGAMA')) {
-        # bring dasd online
-        # exit status 0 -> everything ok
-        # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-        $r = script_run("dasd_configure $dasd_path 1");
-        die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
-    }
+    # bring dasd online
+    # exit status 0 -> everything ok
+    # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
+    $r = script_run("dasd_configure $dasd_path 1");
+    die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
 
     # make sure that there is a dasda device
     $r = script_run("lsdasd");
@@ -299,15 +298,12 @@ sub format_dasd {
         die "dasdfmt died with exit code $r" unless (defined($r) && $r == 0);
     }
 
-    # until Agama get better UI for DASD, activation will be done via parmfile (bsc#1238891#c9)
-    unless (is_agama) {
-        # bring DASD down again to test the activation during the installation
-        if (script_run("timeout --preserve-status 20 bash -x /sbin/dasd_configure $dasd_path 0") != 0) {
-            record_soft_failure('bsc#1151436');
-            script_run('dasd_reload');
-            assert_script_run('dmesg');
-            assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
-        }
+    # bring DASD down again to test the activation during the installation
+    if (script_run("timeout --preserve-status 20 bash -x /sbin/dasd_configure $dasd_path 0") != 0) {
+        record_soft_failure('bsc#1151436');
+        script_run('dasd_reload');
+        assert_script_run('dmesg');
+        assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
     }
 }
 
