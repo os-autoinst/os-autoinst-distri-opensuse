@@ -15,6 +15,21 @@
                 <arch>{{ARCH}}</arch>
             </addon>
         </addons>
+	<addon>
+          <name>sle-module-server-applications</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-python3</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-systems-management</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
     </suse_register>
     <bootloader>
         <global>
@@ -69,6 +84,13 @@
         <packages config:type="list">
             <package>openssh</package>
         </packages>
+	<patterns t="list">
+            <pattern>apparmor</pattern>
+            <pattern>base</pattern>
+            <pattern>enhanced_base</pattern>
+            <pattern>minimal_base</pattern>
+            <pattern>yast2_basis</pattern>
+        </patterns>
         <products config:type="list">
             <product>SLES</product>
         </products>
