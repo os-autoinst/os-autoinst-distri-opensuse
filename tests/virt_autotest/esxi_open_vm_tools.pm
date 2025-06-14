@@ -136,8 +136,9 @@ sub do_networking_tests {
 
     # Check if guest is booted and ssh service is started, not needed for sle-micro
     if (check_var('DISTRI', 'sle')) {
-        die "SSH is not reacheble" if (script_retry("nmap $vm_ip -PN -p ssh | grep open", delay => 10, retry => 12, timeout => 360) != 0);
+        die "SSH is not reachable" if (script_retry("nmap $vm_ip -PN -p ssh | grep open", delay => 10, retry => 12, timeout => 360) != 0);
     }
+
     if (is_sle('15+')) {
         assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $openqa_url);
         assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $external_url);
