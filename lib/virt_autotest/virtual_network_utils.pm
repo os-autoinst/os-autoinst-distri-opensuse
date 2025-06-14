@@ -30,7 +30,16 @@ our @EXPORT
   restore_guests restore_network destroy_vir_network restore_libvirt_default pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
   hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
-  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status);
+  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status get_guest_interface);
+
+sub get_guest_interface {
+    my ($guest) = @_;
+
+    # get the bridge source from guest
+    my $cmd = qq(virsh domiflist "$guest" | grep -Po '(?<=\\s)(br\\d+)');
+    my $guest_interface_source = script_output($cmd);
+    return $guest_interface_source;
+}
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -128,9 +137,14 @@ sub test_network_interface {
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
+    my $nic = "";
     $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
-    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    if ($guest =~ /sles-16/i) {
+        $nic = script_output(qq(ssh root\@$guest ip -o link | grep -i $mac | awk '{gsub(/:/, "", \$2); print \$2}'));
+    } else {
+        $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    }
     die "$mac not found in guest $guest" unless $nic;
     if (get_var('TEST', '') =~ m/qam-(kvm|xen)-install-and-features-test/ || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");

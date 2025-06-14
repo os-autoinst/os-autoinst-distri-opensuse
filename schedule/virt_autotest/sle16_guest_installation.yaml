@@ -2,6 +2,7 @@ name:          sle16-virt-guest-installation
 description:    >
   Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
 schedule:
+<<<<<<< HEAD
   - installation/ipxe_install
   - installation/agama_reboot
   - virt_autotest/login_console
@@ -18,3 +19,22 @@ conditional_schedule:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
         - virt_autotest/sev_es_guest_verification
+=======
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - virt_autotest/login_console
+    - virt_autotest/prepare_non_transactional_server
+    - virt_autotest/unified_guest_installation
+    - virt_autotest/set_config_as_glue
+    - virt_autotest/uefi_guest_verification
+    - '{{virtual_network_test}}'
+conditional_schedule:
+    virtual_network_test:
+        ENABLE_VIR_NET:
+            1:
+                - virt_autotest/libvirt_virtual_network_init
+                - virt_autotest/libvirt_host_bridge_virtual_network
+                - virt_autotest/libvirt_nated_virtual_network
+                - virt_autotest/libvirt_routed_virtual_network
+                - virt_autotest/libvirt_isolated_virtual_network
+>>>>>>> e72290f18 (Enable virtual network management automation test for sle16)
