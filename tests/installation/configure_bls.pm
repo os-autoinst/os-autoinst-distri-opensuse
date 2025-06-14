@@ -47,7 +47,6 @@ sub run {
         send_key_until_needlematch 'inst-bootloader-settings-first_tab_highlighted', 'tab';
 
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
-        # changes are for now confined to Staging:F
         if (!is_sle && !is_leap && (is_bootloader_grub2_bls || is_bootloader_sdboot)) {
             # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
             # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
