@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Architectures;
+use Utils::Logging qw(tar_and_upload_log);
 
 sub run {
     my ($self) = @_;
@@ -119,6 +120,13 @@ EOF
 
     # Clean up
     assert_script_run('cd && rm -rf mytestproj');
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    select_console('log-console');
+    tar_and_upload_log('/var/log/apache2', '/tmp/apache-logs.tar.bz2');
+    $self->SUPER::post_fail_hook;
 }
 
 1;
