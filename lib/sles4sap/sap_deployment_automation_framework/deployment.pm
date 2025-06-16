@@ -14,6 +14,7 @@ use version;
 use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
+use utils qw(upload_y2logs);
 use Utils::Git qw(git_clone);
 use File::Basename;
 use Regexp::Common qw(net);
@@ -54,6 +55,7 @@ our @EXPORT = qw(
   sdaf_deployment_reused
   validate_components
   get_fencing_mechanism
+  sdaf_upload_logs
 );
 
 our $output_log_file = '';
@@ -1171,5 +1173,77 @@ sub get_fencing_mechanism {
     die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
     return ($supported_fencing_values{$fencing_type});
 }
+
+=head3 sdaf_upload_logs
+
+    sdaf_upload_logs(hostname => $hostname)
+
+    Collect and upload SDAF logs present and generated locally on SUT.
+
+=over
+
+=item B<hostname> - SUT hostname
+
+=back
+=cut
+
+sub sdaf_upload_logs {
+    my (%args) = @_;
+    my $hostname = $args{hostname};
+    my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
+    my $crm_cfg_log = "/tmp/${hostname}_crm_cfg.txt";
+    my $crm_report_log = "/var/log/${hostname}_crm_report";
+    my $packages_list = '/tmp/packages.list';
+    my $iscsi_devs = '/tmp/iscsi_devices.list';
+
+    record_info('Uploading crm report log');
+    script_run("sudo crm report -E $bootstrap_log $crm_report_log", timeout => 300);
+    upload_logs("${crm_report_log}.tar.gz");
+
+    record_info('Uploading crm configure log');
+    script_run("sudo crm configure show > $crm_cfg_log", timeout => 120);
+    upload_logs("$crm_cfg_log");
+
+    # Extract YaST logs and upload them
+    upload_y2logs(failok => 1);
+
+    # Upload zypper log
+    upload_logs('/var/log/zypper.log');
+
+    # Generate the packages list
+    script_run "rpm -qa > $packages_list";
+    upload_logs("$packages_list", failok => 1);
+
+    # iSCSI devices and their real paths
+    script_run "ls -l /dev/disk/by-path/ > $iscsi_devs";
+    upload_logs($iscsi_devs, failok => 1);
+
+    # Uploading HANA install logs
+    record_info('Uploading HANA hdbinst hdblcm logs');
+    foreach my $log ('hdbinst.log', 'hdblcm.log') {
+        if (!script_run("ls $log")) {
+            upload_logs("$log");
+        }
+    }
+
+    # Uploading NW install logs
+    record_info('Uploading NW ERS/SCS install logs');
+    my $sap_sid = get_required_var('SAP_SID');
+    my $nw_log = script_run("ls /var/tmp/$sap_sid | grep $sap_sid");
+    if (!script_run("ls /var/tmp/QES | grep $sap_sid")) {
+        my $nw_log = script_output("ls /var/tmp/$sap_sid | grep $sap_sid | grep 'zip'");
+        upload_logs("/var/tmp/$sap_sid/$nw_log");
+    }
+
+    # Uploading supportconfig log (it is time consuming)
+    record_info('Uploading supportconfig log');
+    script_run("sudo supportconfig -B $hostname", timeout => 1800);
+    # Sometimes the tar ball is scc_${hostname}_xxx-xxx-xxx-*.txz
+    if (!script_run("ls /var/log/scc_${hostname}*.txz")) {
+        my $supportconfig_log = script_output("ls /var/log/scc_${hostname}*.txz");
+        upload_logs("$supportconfig_log");
+    }
+}
+
 
 1;
