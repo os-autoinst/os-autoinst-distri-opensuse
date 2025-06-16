@@ -24,7 +24,7 @@ sub run {
     zypper_call 'in -t pattern apparmor';
     if (is_jeos) {
         record_info 'JeOS', 'Some packages needed by the tests are not pre-installed by default in JeOS.';
-        zypper_call 'in apparmor-utils screen nscd netpbm';
+        zypper_call('in apparmor-utils samba screen netpbm');
     }
     services::apparmor::start_service;
     services::apparmor::enable_service;
