@@ -109,22 +109,6 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
-      15-SP1:
-        - console/osinfo_db
-        - console/libgcrypt
-        - console/zziplib
-        - console/journald_fss
-        - console/nginx
-        - console/valgrind
-        - '{{arch_specific}}'
-      15:
-        - console/osinfo_db
-        - console/libgcrypt
-        - console/zziplib
-        - console/journald_fss
-        - console/nginx
-        - console/valgrind
-        - '{{arch_specific}}'
       12-SP5:
         - console/curl_ipv6
         - console/wget_ipv6
@@ -135,16 +119,10 @@ conditional_schedule:
         - console/valgrind
         - '{{arch_12sp5}}'
         - '{{arch_systemtap}}'
-      12-SP4:
-        - console/osinfo_db
-        - console/journald_fss
-        - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
         - '{{arch_specific}}'
-      12-SP2:
-        - console/journald_fss
   arch_specific:
     ARCH:
       x86_64:
