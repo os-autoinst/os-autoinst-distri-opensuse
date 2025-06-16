@@ -18,11 +18,16 @@ use publiccloud::utils;
 use containers::k8s;
 
 sub run {
+    my ($self, $args) = @_;
+
     select_serial_terminal;
 
-    install_kubectl();
+    my $k8s_version = $args->{k8s_version};
+    install_kubectl($k8s_version);
     # Record kubectl version and check if the tool itself is healthy
-    record_info("kubectl", script_output("kubectl version --client --output=json"));
+    my $version = script_output("kubectl version --client --output=json");
+    record_info("kubectl", $version);
+    die "Invalid version" if ($version !~ /v\Q$k8s_version\E/);
 
     # Prepare the webserver testdata
     assert_script_run('mkdir -p /srv/www/kubectl');
@@ -130,12 +135,18 @@ sub run {
     record_info('Balancer IP', $ip);
     validate_script_output_retry("curl http://$ip:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
 
+    assert_script_run('kubectl delete job sayhello');
+    assert_script_run('kubectl delete job gimme-date');
     assert_script_run('kubectl delete -f service.yml');
-
     assert_script_run('kubectl delete -f deployment.yml');
 }
 
-sub post_fail_hook {
+sub uninstall_kubectl {
+    my $package = script_output('rpm -qf $(command -v kubectl)');
+    zypper_call("rm $package");
+}
+
+sub cleanup {
     # Try to collect as much information about kubernetes as possible
     script_run('kubectl describe deployments');
     script_run('kubectl describe services');
@@ -143,6 +154,22 @@ sub post_fail_hook {
     # Cleanup
     script_run('kubectl delete -f service.yml');
     script_run('kubectl delete -f deployment.yml');
+    script_run('kubectl delete job sayhello');
+    script_run('kubectl delete job gimme-date');
+
+    uninstall_kubectl if get_var("KUBERNETES_VERSIONS");
+}
+
+sub post_fail_hook {
+    cleanup;
+}
+
+sub post_run_hook {
+    cleanup;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;
