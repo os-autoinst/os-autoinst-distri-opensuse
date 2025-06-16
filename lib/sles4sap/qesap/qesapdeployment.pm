@@ -810,7 +810,7 @@ sub qesap_prepare_env {
     my @exec_rc = qesap_execute(cmd => 'configure', logname => 'qesap_configure.log.txt', verbose => 1);
 
     if ($args{provider} eq 'EC2') {
-        my $data = get_credentials('aws.json');
+        my $data = get_credentials(url_suffix => 'aws.json');
         qesap_aws_create_config(region => $args{region});
         qesap_aws_create_credentials(
             conf_trgt => $paths{qesap_conf_trgt},

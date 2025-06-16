@@ -29,7 +29,7 @@ has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
     my ($self) = @_;
-    my $data = get_credentials('gce.json', CREDENTIALS_FILE);
+    my $data = get_credentials(url_suffix => 'gce.json', output_json => CREDENTIALS_FILE);
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');
