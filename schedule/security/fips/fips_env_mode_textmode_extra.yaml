@@ -10,6 +10,7 @@ schedule:
     - console/aide_check
     - console/gpg
     - console/journald_fss
+    - fips/openssh/ssh_keyscan_fips
     - console/git
     - console/clamav
     - console/openvswitch_ssl
