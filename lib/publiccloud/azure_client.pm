@@ -21,7 +21,7 @@ has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY'
 
 sub init {
     my ($self) = @_;
-    my $data = get_credentials('azure.json');
+    my $data = get_credentials(url_suffix => 'azure.json');
     $self->subscription($data->{subscription_id});
     define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
     define_secret_variable("ARM_CLIENT_ID", $data->{client_id});

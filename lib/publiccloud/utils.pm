@@ -13,6 +13,7 @@ use Exporter;
 use Mojo::UserAgent;
 use Mojo::URL;
 use Mojo::JSON 'encode_json';
+use Carp qw(croak);
 
 use strict;
 use warnings;
@@ -260,15 +261,36 @@ sub validate_repo {
     die "Unexpected URL \"$maintrepo\"";
 }
 
-# Get credentials from the Public Cloud micro service, which requires user
-# and password. The resulting json will be stored in a file.
+=head2 get_credentials
+    get_credentials(url_suffix => 'some_csp.json'[, namespace => 'some_name', output_json => './local_credentials.json'])
+
+Get credentials from the Public Cloud micro service, which requires user
+and password. The resulting json will be optionally stored in a file.
+This function also get input from these variables:
+ - PUBLIC_CLOUD_CREDENTIALS_URL
+ - _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER
+ - _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD
+ 
+=over
+
+=item B<url_suffix> - last part of the micro service url
+
+=item B<output_json> - (optional) save the credential to json file with provided filename.
+
+=item B<namespace> - (optional) credential namespace on the micro service. If not provided read from PUBLIC_CLOUD_NAMESPACE
+
+=back
+=cut
+
 sub get_credentials {
-    my ($url_sufix, $output_json) = @_;
+    my (%args) = @_;
+    croak 'Missing mandatory url_suffix argument' unless $args{url_suffix};
+    $args{namespace} //= get_required_var('PUBLIC_CLOUD_NAMESPACE');
+
     my $base_url = get_required_var('PUBLIC_CLOUD_CREDENTIALS_URL');
-    my $namespace = get_required_var('PUBLIC_CLOUD_NAMESPACE');
     my $user = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER');
     my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD');
-    my $url = $base_url . '/' . $namespace . '/' . $url_sufix;
+    my $url = $base_url . '/' . $args{namespace} . '/' . $args{url_suffix};
 
     my $url_auth = Mojo::URL->new($url)->userinfo("$user:$pwd");
     my $ua = Mojo::UserAgent->new;
@@ -277,10 +299,10 @@ sub get_credentials {
     my $res = $tx->result;
     die("Fetching CSP credentials failed: " . $res->message) unless ($res->is_success);
     my $data_structure = $res->json;
-    if ($output_json) {
+    if ($args{output_json}) {
         # Note: tmp files are job-specific files in the pool directory on the worker and get cleaned up after job execution
         save_tmp_file('creds.json', encode_json($data_structure));
-        assert_script_run('curl ' . autoinst_url . '/files/creds.json -o ' . $output_json);
+        assert_script_run('curl ' . autoinst_url . '/files/creds.json -o ' . $args{output_json});
     }
     return $data_structure;
 }
