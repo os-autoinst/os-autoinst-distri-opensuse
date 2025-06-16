@@ -131,6 +131,7 @@ schedule:
     - console/man_pages
     - console/ping
     - console/arping
+    - console/wireshark_cli
     - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
