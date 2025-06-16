@@ -51,12 +51,10 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 
 # Debug variables
 # - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
-# - BTRFS_DUMP: enable btrfs dump, value=<device name>. e.g /dev/loop0
 # - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
 # - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
 #     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
 my $INJECT_INFO = get_var('INJECT_INFO', '');
-my $BTRFS_DUMP = get_var('BTRFS_DUMP', 0);
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 
 # Heartbeat mode variables
@@ -88,7 +86,7 @@ sub run {
     my $result_args;
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
-        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
+        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
         $status = $result_args->{status};
         $time = $result_args->{time};
         $status_log_content = $result_args->{output};
@@ -100,7 +98,7 @@ sub run {
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
-            copy_all_log($category, $num, $FSTYPE, $BTRFS_DUMP, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL) if ($status =~ /FAILED/);
+            copy_all_log($category, $num, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL) if ($status =~ /FAILED/);
         }
         else {
             # Here script already know the SUT crashed/hanged.
