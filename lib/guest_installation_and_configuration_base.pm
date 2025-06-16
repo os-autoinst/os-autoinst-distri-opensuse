@@ -40,6 +40,7 @@ use virt_autotest::virtual_network_utils;
 use version_utils;
 use Utils::Systemd;
 use mm_network;
+use Utils::Architectures;
 use guest_installation_and_configuration_metadata;
 
 our $AUTOLOAD;
@@ -2476,11 +2477,15 @@ sub validate_guest_installation_automation_file {
         }
     }
     elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
-        if (script_run("agama --insecure profile validate $self->{guest_installation_automation_file}") != 0) {
-            record_info("Autoagama file validation failed for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"), result => 'fail');
-        }
-        else {
-            record_info("Autoagama file validation succeeded for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"));
+        unless (is_x86_64) {
+            record_info("Skip autoagama file validation for non-x86 arch due to no agama-cli pkg.");
+        } else {
+            if (script_run("agama --insecure profile validate $self->{guest_installation_automation_file}") != 0) {
+                record_info("Autoagama file validation failed for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"), result => 'fail');
+            }
+            else {
+                record_info("Autoagama file validation succeeded for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"));
+            }
         }
     }
     return $self;
