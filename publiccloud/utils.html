@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#ssh_add_suseconnect_product">ssh_add_suseconnect_product</a></li>
       <li><a href="#ssh_remove_suseconnect_product">ssh_remove_suseconnect_product</a></li>
+      <li><a href="#get_credentials-get_credentials-url_suffix-some_csp.json-namespace-some_name-output_json-.-local_credentials.json">get_credentials get_credentials(url_suffix =&gt; &#39;some_csp.json&#39;[, namespace =&gt; &#39;some_name&#39;, output_json =&gt; &#39;./local_credentials.json&#39;])</a></li>
       <li><a href="#gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</a></li>
       <li><a href="#ssh_update_transactional_system">ssh_update_transactional_system</a></li>
     </ul>
@@ -33,6 +34,26 @@
 <pre><code>ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
 
 <p>Deregister addon in SUT</p>
+
+<h2 id="get_credentials-get_credentials-url_suffix-some_csp.json-namespace-some_name-output_json-.-local_credentials.json">get_credentials get_credentials(url_suffix =&gt; &#39;some_csp.json&#39;[, namespace =&gt; &#39;some_name&#39;, output_json =&gt; &#39;./local_credentials.json&#39;])</h2>
+
+<p>Get credentials from the Public Cloud micro service, which requires user and password. The resulting json will be optionally stored in a file. This function also get input from these variables: - PUBLIC_CLOUD_CREDENTIALS_URL - _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER - _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD</p>
+
+<dl>
+
+<dt id="url_suffix---last-part-of-the-micro-service-url"><b>url_suffix</b> - last part of the micro service url</dt>
+<dd>
+
+</dd>
+<dt id="output_json---optional-save-the-credential-to-json-file-with-provided-filename"><b>output_json</b> - (optional) save the credential to json file with provided filename.</dt>
+<dd>
+
+</dd>
+<dt id="namespace---optional-credential-namespace-on-the-micro-service.-If-not-provided-read-from-PUBLIC_CLOUD_NAMESPACE"><b>namespace</b> - (optional) credential namespace on the micro service. If not provided read from PUBLIC_CLOUD_NAMESPACE</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</h2>
 
