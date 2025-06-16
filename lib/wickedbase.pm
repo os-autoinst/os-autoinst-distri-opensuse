@@ -1236,6 +1236,31 @@ sub reboot {
     $self->check_logs();
 }
 
+sub is_selinux_enabled() {
+    return 0 if (script_run('test -f /var/log/audit/audit.log') != 0);
+    return script_run(q(command -v sestatus 2>&1 > /dev/null && sestatus | grep -P '^SELinux status:\s+enabled')) == 0;
+}
+
+sub selinux_info_pre() {
+    my $self = shift;
+
+    return unless $self->is_selinux_enabled;
+
+    $self->{selinux_log_length_start} = script_output('ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -i 2> /dev/null | wc -l', timeout => 300, proceed_on_failure => 1);
+}
+
+sub selinux_info_post() {
+    my $self = shift;
+
+    return unless $self->is_selinux_enabled;
+
+    my $len = $self->{selinux_log_length_start} // 0;
+    my $output = script_output('ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -i 2> /dev/null | tail -n +' . $len, timeout => 300, proceed_on_failure => 1);
+    $output = trim($output);
+
+    record_info('AVC', $output) if length($output) > 0;
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
@@ -1248,6 +1273,7 @@ sub post_run {
     $self->check_logs() unless $self->{skip_check_logs_on_post_run};
     $self->check_coredump();
     $self->valgrind_postrun();
+    $self->selinux_info_post();
     $self->upload_wicked_logs('post');
 
     if (get_var('IS_WICKED_REF')) {
@@ -1283,6 +1309,7 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 
     $self->valgrind_prerun();
+    $self->selinux_info_pre();
     $self->do_barrier('pre_run');
 }
 
