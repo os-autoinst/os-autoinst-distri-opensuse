@@ -80,6 +80,8 @@ sub run() {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
 
+    # Provision our own dovecot-openssl.cnf see https://bugzilla.suse.com/show_bug.cgi?id=1244597
+    assert_script_run("cp /etc/dovecot/dovecot-openssl.cnf $dovecot_path") if $dovecot24;
     assert_script_run "(cd $dovecot_path; bash mkcert.sh)";
 
     # configure postfix
