@@ -37,6 +37,7 @@ schedule:
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
+  - sles4sap/configure_selinux_policy
   - ha/firewall_disable
   - ha/iscsi_client
   - ha/iscsi_client_setup
