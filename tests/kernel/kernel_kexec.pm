@@ -18,7 +18,7 @@ sub run {
     # clear console to prevent linux-login to match before reboot
     clear_console;
     # Copy kernel image and rename it
-    my $kernel_orig = script_output('find /boot -maxdepth 1 -name "*$(uname -r)" | grep -iP "image|vmlinu"', 120);
+    my $kernel_orig = script_output('find /boot -maxdepth 1 -name "*$(uname -r)" | grep -iP "image|vmlinu"', 600);
     (my $kernel_new = $kernel_orig) =~ s/-default$/-kexec/;
     assert_script_run("cp $kernel_orig $kernel_new");
 
