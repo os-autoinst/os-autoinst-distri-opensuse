@@ -7,7 +7,7 @@
 use base Yam::Agama::patch_agama_base;
 use strict;
 use warnings;
-use testapi qw(assert_script_run data_url get_required_var select_console script_run);
+use testapi qw(assert_script_run data_url get_required_var select_console script_run get_var);
 use autoyast qw(expand_agama_profile generate_json_profile);
 
 sub run {
@@ -17,7 +17,12 @@ sub run {
       expand_agama_profile($profile);
 
     select_console 'install-shell';
-    assert_script_run("agama profile import $profile_url", timeout => 300);
+
+    # Workaround to import profile in each Agama version
+    my $command = script_run('agama config load --help | grep URL_OR_PATH') == '0' ?
+      "agama config load $profile_url" : "agama profile import $profile_url";
+
+    assert_script_run($command, timeout => 300);
 }
 
 1;
