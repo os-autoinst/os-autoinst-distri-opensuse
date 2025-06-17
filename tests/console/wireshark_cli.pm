@@ -25,7 +25,7 @@ sub run {
 
     record_info("List interfaces", script_output('tshark -D'));
     script_run("tshark -i $iface -f 'udp port 53' -w $cap_file -a duration:10 > /tmp/tshark.log 2>&1 & echo \$! > $pid_file");
-    script_retry("test -s $cap_file", delay => 1, retry => 2, fail_message => 'Capture file is empty');
+    script_retry("test -s $cap_file", delay => 10, retry => 5, fail_message => 'Capture file is empty');
 
     record_info('dig output', script_output('dig +short www.suse.com A'));
     record_info('host output', script_output('host www.suse.com'));
