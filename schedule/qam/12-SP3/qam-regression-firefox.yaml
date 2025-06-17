@@ -11,7 +11,6 @@ schedule:
 - x11/firefox/firefox_changesaving
 - x11/firefox/firefox_fullscreen
 - x11/firefox/firefox_localfiles
-- x11/firefox/firefox_headers
 - x11/firefox/firefox_pdf
 - x11/firefox/firefox_pagesaving
 - x11/firefox/firefox_private
