@@ -17,6 +17,7 @@ use Utils::Backends;
 use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
+use scheduler 'get_test_suite_data';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -58,6 +59,17 @@ sub prepare_boot_params {
     return @params;
 }
 
+sub validate_rescue_system {
+    assert_screen('inst-console', 30);
+    select_console 'install-shell';
+    my $test_data = get_test_suite_data();
+    my @needed_tools = @{$test_data->{tools}};
+    foreach my $tool (@needed_tools) {
+        assert_script_run("ls $tool", fail_message => "$tool is missing!");
+    }
+}
+
+
 sub run {
     my $self = shift;
 
@@ -86,15 +98,21 @@ sub run {
 
     $grub_menu->expect_is_shown();
     $grub_menu->select_check_installation_medium_entry() if get_var('AGAMA_GRUB_CHECK_MEDIUM');
+    $grub_menu->select_rescue_system_entry() if get_var('AGAMA_GRUB_RESCUE_SYSTEM');
     $grub_menu->edit_current_entry();
     $grub_entry_edition->move_cursor_to_end_of_kernel_line();
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
 
-    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
-        wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
-    } else {
-        $agama_up_an_running->expect_is_shown();
+    if (get_var('AGAMA_GRUB_RESCUE_SYSTEM')) {
+        validate_rescue_system();
+    }
+    else {
+        if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
+            wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
+        } else {
+            $agama_up_an_running->expect_is_shown();
+        }
     }
 }
 
