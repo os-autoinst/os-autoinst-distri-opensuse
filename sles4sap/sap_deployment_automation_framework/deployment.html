@@ -15,6 +15,7 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#log_command_output">log_command_output</a></li>
+      <li><a href="#export_credentials">export_credentials</a></li>
       <li><a href="#az_login">az_login</a></li>
       <li><a href="#create_sdaf_os_var_file">create_sdaf_os_var_file</a></li>
       <li><a href="#set_os_variable">set_os_variable</a></li>
@@ -98,23 +99,52 @@ tee - writes output also into the log file</code></pre>
 </li>
 </ul>
 
+<h2 id="export_credentials">export_credentials</h2>
+
+<pre><code>export_credentials();</code></pre>
+
+<p>Exports Azure credentials retrieved from login server defined in. Please note that <b>get_credentials</b> function requires following OpenQA settings: PUBLIC_CLOUD_CREDENTIALS_URL PUBLIC_CLOUD_NAMESPACE _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD</p>
+
+<p>Credentials can be provided as well using openQA settings: _SECRET_AZURE_SDAF_APP_ID _SECRET_AZURE_SDAF_APP_PASSWORD _SECRET_AZURE_SDAF_TENANT_ID PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID</p>
+
 <h2 id="az_login">az_login</h2>
 
 <pre><code>az_login();</code></pre>
 
 <p>Logs into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables. To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.</p>
 
-<p>SPN credentials are defined by secret OpenQA parameters:</p>
+<p>Credentials are by default provided using secure server. Below are required OpenQA settings:</p>
 
 <ul>
 
-<li><p><b>_SECRET_AZURE_SDAF_APP_ID</b></p>
+<li><p><b>PUBLIC_CLOUD_NAMESPACE</b> - namespace dedicated for the project</p>
 
 </li>
-<li><p><b>_SECRET_AZURE_SDAF_APP_PASSWORD</b></p>
+<li><p><b>PUBLIC_CLOUD_CREDENTIALS_URL</b> URL of the secure server</p>
 
 </li>
-<li><p><b>_SECRET_AZURE_SDAF_TENANT_ID</b></p>
+<li><p><b>_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER</b> Secure server user name</p>
+
+</li>
+<li><p><b>_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD</b> Secure server password</p>
+
+</li>
+</ul>
+
+<p>Can be also supplied via secret OpenQA parameters:</p>
+
+<ul>
+
+<li><p><b>_SECRET_AZURE_SDAF_APP_ID</b> SPN app id</p>
+
+</li>
+<li><p><b>_SECRET_AZURE_SDAF_APP_PASSWORD</b> SPN app password</p>
+
+</li>
+<li><p><b>_SECRET_AZURE_SDAF_TENANT_ID</b> Tenant ID</p>
+
+</li>
+<li><p><b>PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID</b> Subscription ID</p>
 
 </li>
 </ul>
