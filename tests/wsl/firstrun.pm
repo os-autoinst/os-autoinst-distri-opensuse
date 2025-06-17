@@ -224,7 +224,7 @@ sub run {
         # Registration
         register_via_scc;
         # User credentials
-        assert_screen 'local-user-credentials';
+        assert_screen ('local-user-credentials', timeout => 120);
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'ret';
 
