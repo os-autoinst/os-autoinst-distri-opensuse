@@ -158,7 +158,7 @@ sub export_credentials {
             subscription_id => get_required_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
         };
     } else {
-        $data = get_credentials('azure.json');
+        $data = get_credentials(url_suffix => 'azure.json');
     }
 
     my @variables = (
