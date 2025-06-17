@@ -82,6 +82,7 @@ LoadModule dav_svn_module   /usr/lib64/apache2/mod_dav_svn.so
 EOF
 ");
 
+    assert_script_run 'semanage fcontext -a -e /var/www/svn "/srv/www/svn(/.*)?"' if has_selinux;
     systemctl('restart apache2');
     systemctl('status apache2');
 
