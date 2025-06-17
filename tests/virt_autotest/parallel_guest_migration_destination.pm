@@ -81,12 +81,13 @@ Prepare host for guest migration test, including virtualization, package and sec
 =cut
 
 sub prepare_host {
-    my $self = shift;
+    my ($self, %args) = @_;
+    $args{keyfile} //= $parallel_guest_migration_base::_host_params{ssh_keyfile};
 
     $self->set_test_run_progress;
-    $self->check_host_virtualization;
-    $self->check_host_package;
-    $self->config_host_security;
+    $self->check_host_virtualization(_keyfile => $args{keyfile});
+    $self->check_host_package(_keyfile => $args{keyfile});
+    $self->config_host_security(_keyfile => $args{keyfile});
 }
 
 =head2 prepare_guest
@@ -95,15 +96,16 @@ Prepare host for migration test, including initialization, shared storage and ne
 =cut
 
 sub prepare_guest {
-    my $self = shift;
+    my ($self, %args) = @_;
+    $args{keyfile} //= $parallel_guest_migration_base::_guest_params{ssh_keyfile};
 
-    $self->set_test_run_progress(token => 'start');
-    $self->config_host_shared_storage(role => 'client');
-    $self->guest_under_test(role => 'dst');
+    $self->set_test_run_progress(_token => 'start');
+    $self->config_host_shared_storage(_role => 'client');
+    $self->guest_under_test(_role => 'dst');
     $self->initialize_test_result;
-    $self->initialize_guest_matrix(role => 'dst');
+    $self->initialize_guest_matrix(_role => 'dst');
     $self->create_guest_network;
-    $self->set_test_run_progress(token => 'end');
+    $self->set_test_run_progress(_token => 'end');
 }
 
 =head2 prepare_log
@@ -135,18 +137,18 @@ sub guest_migration_test {
     $self->set_test_run_progress;
     my @guest_migration_test = split(/,/, get_var('GUEST_MIGRATION_TEST'));
     # Remove 'virsh_live_native_p2p_manual_postcopy' if present and record a soft failure
-    @guest_migration_test = $self->filter_migration_tests(migration_tests => \@guest_migration_test) if (is_sle('=15-sp6'));
-    my $full_test_matrix = is_kvm_host ? $parallel_guest_migration_base::guest_migration_matrix{kvm} : $parallel_guest_migration_base::guest_migration_matrix{xen};
+    @guest_migration_test = $self->filter_migration_tests(_migration_tests => \@guest_migration_test) if (is_sle('=15-sp6'));
+    my $full_test_matrix = (is_kvm_host ? $parallel_guest_migration_base::_guest_migration_matrix{kvm} : $parallel_guest_migration_base::_guest_migration_matrix{xen});
     @guest_migration_test = keys(%$full_test_matrix) if (scalar @guest_migration_test == 0);
     my $localip = get_required_var('LOCAL_IPADDR');
     my $peerip = get_required_var('PEER_IPADDR');
     my $localuri = virt_autotest::domain_management_utils::construct_uri();
     my $peeruri = virt_autotest::domain_management_utils::construct_uri(host => $peerip);
-    my $migration = $self->check_host_os(role => 'dst');
+    my $migration = $self->check_host_os(_role => 'dst');
     my $counter = 0;
     my $nextcounter = $counter + 1;
 
-    foreach my $guest (keys %parallel_guest_migration_base::guest_matrix) {
+    foreach my $guest (keys %parallel_guest_migration_base::_guest_matrix) {
         foreach my $test (@guest_migration_test) {
             my $ret = 0;
             my $command = $full_test_matrix->{$test};
@@ -164,20 +166,20 @@ sub guest_migration_test {
             record_info("Start $test on $guest", "Migration command is $command");
 
             barrier_wait("DO_GUEST_MIGRATION_DONE_$counter");
-            $self->create_barrier(signal => "DO_GUEST_MIGRATION_DONE_$nextcounter");
+            $self->create_barrier(_signal => "DO_GUEST_MIGRATION_DONE_$nextcounter");
             $ret = $self->check_migration_result(guest => $guest, virttool => $virttool, peer => $peerip, offline => $offline);
             if ($ret == 0) {
                 $ret = $self->test_after_migration(guest => $guest, virttool => $virttool, persistent => $persistent, offline => $offline);
-                $ret |= $self->do_guest_migration(guest => $guest, test => $test, command => $command, offline => $offline, cando => ($migration == 0 ? 1 : 0));
+                $ret |= $self->do_guest_migration(guest => $guest, test => $test, command => $command, offline => $offline, cando => (($migration == 0) ? 1 : 0));
                 collect_host_and_guest_logs($guest, '', '', "_$guest" . "_$test") if ($ret != 0 and get_var('INTERVAL_LOG', ''));
             }
             $test_stop_time = time();
-            $parallel_guest_migration_base::test_result{$guest}{$command}{test_time} = strftime("\%H:\%M:\%S", gmtime($test_stop_time - $test_start_time));
-            record_info("End $test on $guest", "Total test time is $parallel_guest_migration_base::test_result{$guest}{$command}{test_time}");
+            $parallel_guest_migration_base::_test_result{$guest}{$command}{test_time} = strftime("\%H:\%M:\%S", gmtime($test_stop_time - $test_start_time));
+            record_info("End $test on $guest", "Total test time is $parallel_guest_migration_base::_test_result{$guest}{$command}{test_time}");
             virt_autotest::domain_management_utils::remove_guest(guest => $guest) if ($ret != 0 or !($command =~ /undefinesource/i) or $offline == 1 or ($ret == 0 and $migration != 0));
 
             barrier_wait("DO_GUEST_MIGRATION_READY_$counter");
-            $self->create_barrier(signal => "DO_GUEST_MIGRATION_READY_$nextcounter");
+            $self->create_barrier(_signal => "DO_GUEST_MIGRATION_READY_$nextcounter");
             $counter = $nextcounter;
             $nextcounter += 1;
             cleanup_host_and_guest_logs if (get_var('INTERVAL_LOG', ''));
@@ -200,7 +202,7 @@ sub check_migration_result {
 
     my $ret1 = 1;
     my $ret2 = 1;
-    $self->initialize_guest_matrix(role => 'dst', guest => $args{guest});
+    $self->initialize_guest_matrix(_role => 'dst', _guest => $args{guest});
     virt_autotest::domain_management_utils::show_guest(guest => $args{guest}, virttool => $args{virttool});
     my $guest_state = virt_autotest::domain_management_utils::check_guest_state(guest => $args{guest}, virttool => $args{virttool});
     if (!$guest_state) {
@@ -208,19 +210,19 @@ sub check_migration_result {
     }
     else {
         if ($args{offline} == 1) {
-            $ret1 = $args{virttool} eq 'virsh' ? $self->start_guest(guest => $args{guest}, wait => 0) : 1;
+            $ret1 = (($args{virttool} eq 'virsh') ? $self->start_guest(_guest => $args{guest}, _wait => 0) : 1);
             if ($args{virttool} eq 'xl') {
                 record_info("xl does not support offline migration", "Guest $args{guest} can not be migrated offline by using xl migrate", result => 'fail');
             }
             else {
-                $ret1 |= $self->wait_guest(guest => $args{guest}, checkip => 0);
+                $ret1 |= $self->wait_guest(_guest => $args{guest}, _checkip => 0);
             }
         }
         else {
-            $ret1 = $self->wait_guest(guest => $args{guest}, checkip => 0);
+            $ret1 = $self->wait_guest(_guest => $args{guest}, _checkip => 0);
         }
 
-        $ret2 = $self->wait_guest(guest => $args{guest}) if ($ret1 != 0 and !($args{offline} == 1 and $args{virttool} eq 'xl') and ($parallel_guest_migration_base::guest_matrix{$args{guest}}{staticip} ne 'yes'));
+        $ret2 = $self->wait_guest(_guest => $args{guest}) if ($ret1 != 0 and !($args{offline} == 1 and $args{virttool} eq 'xl') and ($parallel_guest_migration_base::_guest_matrix{$args{guest}}{staticip} ne 'yes'));
         if ($ret1 == 0) {
             record_info("Guest $args{guest} migration succeeded", "Guest $args{guest} migration from $args{peer} succeeded");
         }
@@ -231,7 +233,7 @@ sub check_migration_result {
             record_info("Guest $args{guest} migration failed", "Guest $args{guest} in wrong state after migration from $args{peer}", result => 'fail');
         }
     }
-    return $ret1 == 0 ? $ret1 : $ret2;
+    return (($ret1 == 0) ? $ret1 : $ret2);
 }
 
 =head2 test_after_migration
@@ -250,16 +252,16 @@ sub test_after_migration {
     die("Guest to be checked must be given") if (!$args{guest});
 
     my $ret = 0;
-    $ret |= $self->config_ssh_pubkey_auth(addr => $args{guest}, overwrite => 0, host => 0);
+    $ret |= $self->config_ssh_pubkey_auth(_addr => $args{guest}, _keyfile => $parallel_guest_migration_base::_guest_params{ssh_keyfile}, _overwrite => 0, _host => 0);
     if ($ret == 0) {
         check_guest_health($args{guest});
-        $ret = $self->test_guest_network(guest => $args{guest});
-        $ret |= $self->test_guest_storage(guest => $args{guest});
+        $ret = $self->test_guest_network(_guest => $args{guest}, _keyfile => $parallel_guest_migration_base::_guest_params{ssh_keyfile});
+        $ret |= $self->test_guest_storage(_guest => $args{guest}, _keyfile => $parallel_guest_migration_base::_guest_params{ssh_keyfile});
     }
 
     if (get_var('GUEST_ADMINISTRATION', '') and $args{persistent} == 1) {
-        $ret |= $self->do_guest_administration(guest => $args{guest}, virttool => $args{virttool});
-        $ret |= $self->wait_guest_ssh(guest => $args{guest});
+        $ret |= $self->do_guest_administration(_guest => $args{guest}, _virttool => $args{virttool});
+        $ret |= $self->wait_guest_ssh(_guest => $args{guest});
     }
     return $ret;
 }
@@ -282,20 +284,20 @@ sub do_guest_migration {
     my $ret = 1;
     if ($args{cando} == 1) {
         virt_autotest::domain_management_utils::shutdown_guest(guest => $args{guest}) if ($args{offline} == 1);
-        $ret = $args{test} =~ /manual_postcopy/i ? $self->virsh_migrate_manual_postcopy(guest => $args{guest}, command => $args{command}) : script_run($args{command}, timeout => 120);
+        $ret = (($args{test} =~ /manual_postcopy/i) ? $self->virsh_migrate_manual_postcopy(_guest => $args{guest}, _command => $args{command}) : script_run($args{command}, timeout => 120));
 
         if ($ret != 0) {
             record_info("Failed $args{test} migration", "Failed to migration back with $args{command}", result => 'fail');
             save_screenshot;
         }
         else {
-            $parallel_guest_migration_base::test_result{$args{guest}}{$args{command}}{status} = 'PASSED';
+            $parallel_guest_migration_base::_test_result{$args{guest}}{$args{command}}{status} = 'PASSED';
             record_info("Passed $args{test} migration", "Guest migration back succeeded with $args{command}");
         }
     }
     else {
         $ret = 0;
-        $parallel_guest_migration_base::test_result{$args{guest}}{$args{command}}{status} = 'SKIPPED';
+        $parallel_guest_migration_base::_test_result{$args{guest}}{$args{command}}{status} = 'SKIPPED';
         record_info("SKIPPED $args{test} migration", "Guest migration back with $args{command} skipped");
     }
     return $ret;
