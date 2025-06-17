@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Domain management utilities providied by various tools,
-# for example, libvirt, xl and etc.
+# for example, libvirt, xl and etc. Also utilities to manage guest
+# naming or services.
 #
 # Maintainer: Wayne Chen <wchen@suse.com>, qe-virt <qe-virt@suse.de>
 package virt_autotest::domain_management_utils;
@@ -12,7 +13,7 @@ package virt_autotest::domain_management_utils;
 use strict;
 use warnings;
 use testapi;
-use virt_autotest::utils qw(is_kvm_host is_xen_host);
+use virt_autotest::utils qw(is_kvm_host is_xen_host add_guest_to_hosts);
 use utils qw(script_retry);
 use Carp;
 
@@ -23,6 +24,8 @@ our @EXPORT = qw(
   shutdown_guest
   show_guest
   check_guest_state
+  register_guest_name
+  manage_guest_service
 );
 
 =head2 construct_uri
@@ -41,14 +44,14 @@ sub construct_uri {
     $args{port} //= '';
     $args{path} //= 'system';
     $args{extra} //= '';
-    $args{driver} = is_kvm_host ? "qemu" : "xen" if (!$args{driver});
+    $args{driver} = (is_kvm_host ? "qemu" : "xen") if (!$args{driver});
 
     my $uri = "";
     if ($args{host} eq 'localhost') {
         $uri = "$args{driver}:///$args{path}";
     }
     else {
-        $uri = $args{transport} ? "$args{driver}+$args{transport}://" : "$args{driver}://";
+        $uri = ($args{transport} ? "$args{driver}+$args{transport}://" : "$args{driver}://");
         $uri .= "$args{user}@" if ($args{user});
         $uri .= $args{host};
         $uri .= ":$args{port}" if ($args{port});
@@ -96,7 +99,7 @@ sub create_guest {
             record_info("Failed to create guest $guest from $args{confdir}/$guest.xml", "Failed to create guest $guest using virsh define/start --file $args{confdir}/$guest.xml --validate", result => 'fail') if ($temp != 0);
         }
         elsif ($args{virttool} eq 'xl') {
-            $temp = script_run("ls $args{confdir}/$guest.cfg") == 0 ? 0 : script_run("virsh $uri domxml-to-native --xml $args{confdir}/$guest.xml --format xen-xl > $args{confdir}/$guest.cfg");
+            $temp = ((script_run("ls $args{confdir}/$guest.cfg") == 0) ? 0 : script_run("virsh $uri domxml-to-native --xml $args{confdir}/$guest.xml --format xen-xl > $args{confdir}/$guest.cfg"));
             $temp |= script_run("xl -vvv create $args{confdir}/$guest.cfg");
             record_info("Guest $guest creating failed", "Failed to create guest $guest using xl -vvv create $args{confdir}/$guest.cfg", result => 'fail') if ($temp != 0);
         }
@@ -193,7 +196,7 @@ sub remove_guest {
     foreach my $guest (split(/ /, $args{guest})) {
         my $temp = 1;
         script_run("virsh $uri destroy $guest");
-        $temp = script_run("virsh $uri list --all | grep \"$guest \"") == 0 ? script_run("virsh $uri undefine $guest || virsh $uri undefine $guest --keep-nvram") : 0;
+        $temp = ((script_run("virsh $uri list --all | grep \"$guest \"") == 0) ? script_run("virsh $uri undefine $guest || virsh $uri undefine $guest --keep-nvram") : 0);
         $temp |= script_run("xl -vvv destroy $guest") if (is_xen_host and script_run("xl list | grep \"$guest \"") == 0);
         $ret |= $temp;
         save_screenshot;
@@ -236,7 +239,7 @@ sub show_guest {
     else {
         foreach my $guest (split(/ /, $args{guest})) {
             my $temp = 1;
-            $temp = $args{virttool} eq 'virsh' ? script_run("virsh $uri list --all | grep \"$guest \"") : script_run("xl -vvv list | grep \"$guest \"");
+            $temp = (($args{virttool} eq 'virsh') ? script_run("virsh $uri list --all | grep \"$guest \"") : script_run("xl -vvv list | grep \"$guest \""));
             $ret |= $temp;
             save_screenshot;
             record_info("Guest $guest xml config", script_output("virsh $uri dumpxml $guest", proceed_on_failure => 1));
@@ -270,8 +273,100 @@ sub check_guest_state {
 
     my $uri = "--connect=" . construct_uri(driver => $args{driver}, transport => $args{transport}, user => $args{user}, host => $args{host}, port => $args{port}, path => $args{path}, extra => $args{extra});
     my $state = "";
-    $state = $args{virttool} eq 'virsh' ? script_output("virsh $uri list --all | grep \"$args{guest} \" | awk \'{print \$3\$4}\'", proceed_on_failure => 1) : script_output("xl list | grep \"$args{guest} \" | awk \'{print \$5}\'", proceed_on_failure => 1);
+    $state = (($args{virttool} eq 'virsh') ? script_output("virsh $uri list --all | grep \"$args{guest} \" | awk \'{print \$3\$4}\'", proceed_on_failure => 1) : script_output("xl list | grep \"$args{guest} \" | awk \'{print \$5}\'", proceed_on_failure => 1));
     return $state;
+}
+
+=head2 register_guest_name
+
+Configure guest hostname or write corresponding record into /etc/hosts based on
+whether dns service is being used or not. Multiple guests and corresponding ip
+addresses and domain names can be passed in as strings separated by space. Other
+arguments include keyfile (key file for passwordless ssh connection) and usedns
+(0 or 1). 
+=cut
+
+sub register_guest_name {
+    my (%args) = @_;
+    $args{guest} //= '';
+    $args{ipaddr} //= '';
+    $args{keyfile} //= '/root/.ssh/id_rsa';
+    $args{usedns} //= 0;
+    $args{domainname} //= '';
+    croak("Guest and ip address must be given") if (!$args{guest} or !$args{ipaddr});
+
+    my $ret = 0;
+    my %guest_matrix = ();
+    foreach (0 .. scalar(split(/ /, $args{guest})) - 1) {
+        $guest_matrix{(split(/ /, $args{guest}))[$_]}{ipaddr} = (split(/ /, $args{ipaddr}))[$_];
+        $guest_matrix{(split(/ /, $args{guest}))[$_]}{domainname} = (split(/ /, $args{domainname}))[$_];
+    }
+
+    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    foreach (keys %guest_matrix) {
+        my $temp = 1;
+        my $hostname = $_ . '.' . $guest_matrix{$_}{domainname};
+        if ($args{usedns}) {
+            if (script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} ls") == 0) {
+                $temp = assert_script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"echo -e $hostname > /etc/hostname\;hostnamectl hostname $hostname;sync\"");
+            }
+            else {
+                enter_cmd("clear", wait_still_screen => 3);
+                enter_cmd("timeout --kill-after=1 --signal=9 30 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"echo -e $hostname > /etc/hostname\;hostnamectl hostname $hostname;sync\"", wait_still_screen => 3);
+                $temp = (check_screen("password-prompt", 60) ? 0 : 1);
+                enter_cmd(get_var('_SECRET_GUEST_PASSWORD', ''), wait_screen_change => 50, max_interval => 1);
+                $temp |= (wait_still_screen(35) ? 0 : 1);
+            }
+        }
+        else {
+            $temp = add_guest_to_hosts($_, $guest_matrix{$_}{ipaddr});
+        }
+        save_screenshot;
+        record_info("Guest $_ register name failed", "Either setting hostname or writing /etc/hosts failed", result => 'fail') if ($temp != 0);
+        $ret |= $temp;
+    }
+    return $ret;
+}
+
+=head2 manage_guest_service
+
+Manage service/target/socket unit in guest by using systemctl command. Multiple
+guests and corresponding ip addresses can be passed in as strings separated by
+space. Other arguments include keyfile (key file for passwordless ssh connection
+), operation (systemctl subcommand) and unit to be manipulated.
+=cut
+
+sub manage_guest_service {
+    my (%args) = @_;
+    $args{guest} //= '';
+    $args{ipaddr} //= '';
+    $args{keyfile} //= '/root/.ssh/id_rsa';
+    $args{operation} //= 'status';
+    $args{unit} //= 'default.target';
+    croak("Guest and ip aaddress must be given") if (!$args{guest} or !$args{ipaddr});
+
+    my $ret = 0;
+    my %guest_matrix = ();
+    $guest_matrix{(split(/ /, $args{guest}))[$_]}{ipaddr} = (split(/ /, $args{ipaddr}))[$_] foreach (0 .. scalar(split(/ /, $args{guest})) - 1);
+
+    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    foreach (keys %guest_matrix) {
+        my $temp = 1;
+        if (script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} ls") == 0) {
+            $temp = assert_script_run("timeout --kill-after=1 --signal=9 30 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"systemctl $args{operation} $args{unit}\"");
+        }
+        else {
+            enter_cmd("clear", wait_still_screen => 3);
+            enter_cmd("timeout --kill-after=1 --signal=9 60 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"systemctl $args{operation} $args{unit}\"", wait_still_screen => 3);
+            $temp = (check_screen("password-prompt", 60) ? 0 : 1);
+            enter_cmd(get_var('_SECRET_GUEST_PASSWORD', ''), wait_screen_change => 50, max_interval => 1);
+            $temp |= (wait_still_screen(35) ? 0 : 1);
+        }
+        save_screenshot;
+        record_info("Guest $_ manage service failed", "Failed to systemctl $args{operation} $args{unit} on guest $_", result => 'fail') if ($temp != 0);
+        $ret |= $temp;
+    }
+    return $ret;
 }
 
 1;

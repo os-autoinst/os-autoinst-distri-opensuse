@@ -64,7 +64,7 @@ sub run_test {
     $self->prepare_host;
     barrier_wait('HOST_PREPARATION_DONE');
 
-    $self->prepare_guest;
+    $self->prepare_guest(keyfile => $parallel_guest_migration_base::_guest_params{ssh_keyfile});
     barrier_wait('GUEST_PREPARATION_SOURCE_DONE');
 
     script_run("echo -e \"Wait destination prepare_guest ends\\n\"") while ($self->get_test_run_progress !~ /prepare_guest_end/i);
@@ -85,17 +85,18 @@ https://susedoc.github.io/doc-sle/main/single-html/SLES-virtualization/#sec-libv
 =cut
 
 sub prepare_host {
-    my $self = shift;
+    my ($self, %args) = @_;
+    $args{keyfile} //= $parallel_guest_migration_base::_host_params{ssh_keyfile};
 
     $self->set_test_run_progress;
-    $self->check_host_architecture;
-    $self->check_host_os;
-    $self->check_host_virtualization;
-    $self->check_host_package;
-    $self->check_host_uid;
-    $self->check_host_gid;
-    $self->config_host_shared_storage(role => 'server');
-    $self->config_host_security;
+    $self->check_host_architecture(_keyfile => $args{keyfile});
+    $self->check_host_os(_keyfile => $args{keyfile});
+    $self->check_host_virtualization(_keyfile => $args{keyfile});
+    $self->check_host_package(_keyfile => $args{keyfile});
+    $self->check_host_uid(_keyfile => $args{keyfile});
+    $self->check_host_gid(_keyfile => $args{keyfile});
+    $self->config_host_shared_storage(_role => 'server');
+    $self->config_host_security(_keyfile => $args{keyfile});
 }
 
 =head2 prepare_guest
@@ -106,29 +107,30 @@ https://susedoc.github.io/doc-sle/main/single-html/SLES-virtualization/#sec-libv
 =cut
 
 sub prepare_guest {
-    my $self = shift;
+    my ($self, %args) = @_;
+    $args{keyfile} //= $parallel_guest_migration_base::_guest_params{ssh_keyfile};
 
-    $self->set_test_run_progress(token => 'start');
-    my $guest = $self->guest_under_test(role => 'src');
+    $self->set_test_run_progress(_token => 'start');
+    my $guest = $self->guest_under_test(_role => 'src');
     $self->initialize_test_result;
     unless (get_var('SKIP_GUEST_INSTALL', '')) {
-        $self->save_guest_asset(guest => $guest);
+        $self->save_guest_asset(_guest => $guest);
         virt_autotest::domain_management_utils::remove_guest(guest => $guest);
     }
     else {
-        $self->restore_guest_asset(guest => $guest);
+        $self->restore_guest_asset(_guest => $guest);
     }
-    $self->config_guest_clock(guest => $guest);
-    $self->config_guest_storage(guest => $guest);
+    $self->config_guest_clock(_guest => $guest);
+    $self->config_guest_storage(_guest => $guest);
     virt_autotest::domain_management_utils::create_guest(guest => $guest, start => 0);
-    $self->config_guest_console(guest => $guest);
-    $self->check_guest_network_config(guest => $guest);
+    $self->config_guest_console(_guest => $guest);
+    $self->check_guest_network_config(_guest => $guest);
     $self->create_guest_network;
-    $self->start_guest(guest => $guest);
+    $self->start_guest(_guest => $guest);
     virt_autotest::domain_management_utils::show_guest();
-    $self->initialize_guest_matrix(role => 'src');
-    $self->config_ssh_pubkey_auth(addr => $guest, overwrite => 0, host => 0);
-    $self->set_test_run_progress(token => 'end');
+    $self->initialize_guest_matrix(_role => 'src');
+    $self->config_ssh_pubkey_auth(_addr => $guest, _keyfile => $args{keyfile}, _overwrite => 0, _host => 0);
+    $self->set_test_run_progress(_token => 'end');
 }
 
 =head2 prepare_log
@@ -165,8 +167,8 @@ sub guest_migration_test {
     $self->set_test_run_progress;
     my @guest_migration_test = split(/,/, get_var('GUEST_MIGRATION_TEST', ''));
     # Remove 'virsh_live_native_p2p_manual_postcopy' if present and record a soft failure
-    @guest_migration_test = $self->filter_migration_tests(migration_tests => \@guest_migration_test) if (is_sle('=15-sp6'));
-    my $full_test_matrix = is_kvm_host ? $parallel_guest_migration_base::guest_migration_matrix{kvm} : $parallel_guest_migration_base::guest_migration_matrix{xen};
+    @guest_migration_test = $self->filter_migration_tests(_migration_tests => \@guest_migration_test) if (is_sle('=15-sp6'));
+    my $full_test_matrix = (is_kvm_host ? $parallel_guest_migration_base::_guest_migration_matrix{kvm} : $parallel_guest_migration_base::_guest_migration_matrix{xen});
     @guest_migration_test = keys(%$full_test_matrix) if (scalar @guest_migration_test == 0);
     my $localip = get_required_var('LOCAL_IPADDR');
     my $peerip = get_required_var('PEER_IPADDR');
@@ -174,7 +176,7 @@ sub guest_migration_test {
     my $peeruri = virt_autotest::domain_management_utils::construct_uri(host => $peerip);
     my $counter = 0;
 
-    foreach my $guest (keys %parallel_guest_migration_base::guest_matrix) {
+    foreach my $guest (keys %parallel_guest_migration_base::_guest_matrix) {
         while (my ($testindex, $test) = each(@guest_migration_test)) {
             my $ret = 0;
             my $command = $full_test_matrix->{$test};
@@ -189,7 +191,7 @@ sub guest_migration_test {
             record_info("Start $test on $guest", "Migration command is $command");
             my $test_start_time = time();
             my $test_stop_time = $test_start_time;
-            $self->pre_guest_migration(guest => $guest, virttool => $virttool, first => ($testindex == 0 ? 1 : 0));
+            $self->pre_guest_migration(guest => $guest, virttool => $virttool, first => (($testindex == 0) ? 1 : 0));
             $ret = $self->do_guest_migration(guest => $guest, test => $test, command => $command, offline => $offline);
             collect_host_and_guest_logs($guest, '', '', "_$guest" . "_$test") if ($ret != 0 and get_var('INTERVAL_LOG', ''));
 
@@ -198,10 +200,10 @@ sub guest_migration_test {
             barrier_wait("DO_GUEST_MIGRATION_READY_$counter");
             $counter += 1;
             $test_stop_time = time();
-            $parallel_guest_migration_base::test_result{$guest}{$command}{test_time} = strftime("\%H:\%M:\%S", gmtime($test_stop_time - $test_start_time));
-            record_info("End $test on $guest", "Total test time is $parallel_guest_migration_base::test_result{$guest}{$command}{test_time}");
-            $virttool = $testindex < scalar @guest_migration_test - 1 ? $guest_migration_test[$testindex + 1] =~ /(xl|virsh)/i && $1 : 'virsh';
-            $self->post_guest_migration(guest => $guest, virttool => $virttool, last => ($testindex == scalar @guest_migration_test - 1 ? 1 : 0));
+            $parallel_guest_migration_base::_test_result{$guest}{$command}{test_time} = strftime("\%H:\%M:\%S", gmtime($test_stop_time - $test_start_time));
+            record_info("End $test on $guest", "Total test time is $parallel_guest_migration_base::_test_result{$guest}{$command}{test_time}");
+            $virttool = (($testindex < scalar @guest_migration_test - 1) ? ($guest_migration_test[$testindex + 1] =~ /(xl|virsh)/i && $1) : 'virsh');
+            $self->post_guest_migration(guest => $guest, virttool => $virttool, last => (($testindex == scalar @guest_migration_test - 1) ? 1 : 0));
             cleanup_host_and_guest_logs if (get_var('INTERVAL_LOG', ''));
         }
     }
@@ -226,15 +228,15 @@ sub pre_guest_migration {
             virt_autotest::domain_management_utils::remove_guest(guest => $args{guest});
             virt_autotest::domain_management_utils::create_guest(guest => $args{guest}, virttool => $args{virttool}, start => 0);
         }
-        $self->start_guest(guest => $args{guest}, virttool => $args{virttool});
+        $self->start_guest(_guest => $args{guest}, _virttool => $args{virttool});
     }
     if (get_var('GUEST_ADMINISTRATION', '')) {
-        $self->do_guest_administration(guest => $args{guest}, virttool => $args{virttool});
+        $self->do_guest_administration(_guest => $args{guest}, _virttool => $args{virttool});
         virt_autotest::domain_management_utils::remove_guest(guest => $args{guest});
         virt_autotest::domain_management_utils::create_guest(guest => $args{guest}, virttool => $args{virttool}, start => 0);
-        $self->start_guest(guest => $args{guest}, virttool => $args{virttool});
+        $self->start_guest(_guest => $args{guest}, _virttool => $args{virttool});
     }
-    $self->initialize_guest_matrix(role => 'src', guest => $args{guest});
+    $self->initialize_guest_matrix(_role => 'src', _guest => $args{guest});
 }
 
 =head2 do_guest_migration
@@ -252,13 +254,13 @@ sub do_guest_migration {
     die("Guest and test/command to be executed must be given") if (!$args{guest} or !$args{test} or !$args{command});
 
     virt_autotest::domain_management_utils::shutdown_guest(guest => $args{guest}) if ($args{offline} == 1);
-    my $ret = $args{test} =~ /manual_postcopy/i ? $self->virsh_migrate_manual_postcopy(guest => $args{guest}, command => $args{command}) : script_run($args{command}, timeout => 120);
+    my $ret = (($args{test} =~ /manual_postcopy/i) ? $self->virsh_migrate_manual_postcopy(_guest => $args{guest}, _command => $args{command}) : script_run($args{command}, timeout => 120));
     if ($ret != 0) {
         record_info("Failed $args{test} migration", "Guest migration failed with $args{command}", result => 'fail');
         save_screenshot;
     }
     else {
-        $parallel_guest_migration_base::test_result{$args{guest}}{$args{command}}{status} = 'PASSED';
+        $parallel_guest_migration_base::_test_result{$args{guest}}{$args{command}}{status} = 'PASSED';
         record_info("Passed $args{test} migration", "Guest migration succeeded with $args{command}");
     }
     return $ret;
@@ -280,7 +282,7 @@ sub post_guest_migration {
     virt_autotest::domain_management_utils::remove_guest(guest => $args{guest});
     if ($args{last} == 0) {
         virt_autotest::domain_management_utils::create_guest(guest => $args{guest}, virttool => $args{virttool}, start => 0);
-        $self->start_guest(guest => $args{guest}, virttool => $args{virttool});
+        $self->start_guest(_guest => $args{guest}, _virttool => $args{virttool});
     }
 }
 

@@ -24,6 +24,7 @@ use File::Basename;
 use LWP::Simple 'head';
 use Utils::Architectures;
 use IO::Socket::INET;
+use mm_network;
 use Carp;
 
 our @EXPORT = qw(
@@ -687,7 +688,9 @@ sub ensure_default_net_is_active {
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
-    assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    my $ret = assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    record_info("Content of /etc/hosts", script_output("cat /etc/hosts"));
+    return $ret;
 }
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
@@ -804,15 +807,16 @@ sub start_guests {
 
 #Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.
 sub setup_common_ssh_config {
-    my $ssh_config_file = shift;
+    my %args = @_;
+    $args{ssh_config_file} //= '/root/.ssh/config';
+    $args{ssh_id_file} //= '';
 
-    $ssh_config_file //= '/root/.ssh/config';
-    if (script_run("test -f $ssh_config_file") ne 0) {
-        script_run "mkdir -p " . dirname($ssh_config_file);
-        assert_script_run("touch $ssh_config_file");
+    if (script_run("test -f $args{ssh_config_file}") ne 0) {
+        script_run "mkdir -p " . dirname($args{ssh_config_file});
+        assert_script_run("touch $args{ssh_config_file}");
     }
-    if (script_run("grep \"Host \\\*\" $ssh_config_file") ne 0) {
-        type_string("cat >> $ssh_config_file <<EOF
+    if (script_run("grep \"Host \\\*\" $args{ssh_config_file}") ne 0) {
+        type_string("cat >> $args{ssh_config_file} <<EOF
 Host *
     UserKnownHostsFile /dev/null
     StrictHostKeyChecking no
@@ -820,8 +824,11 @@ Host *
 EOF
 ");
     }
-    assert_script_run("chmod 600 $ssh_config_file");
-    record_info("Content of $ssh_config_file after common ssh config setup", script_output("cat $ssh_config_file;ls -lah $ssh_config_file"));
+    if ($args{ssh_id_file} and script_run("grep \"IdentityFile $args{ssh_id_file}\" $args{ssh_config_file}") ne 0) {
+        assert_script_run("sed -i -r \'/^Host \\*/a \\    IdentityFile $args{ssh_id_file}\' $args{ssh_config_file}");
+    }
+    assert_script_run("chmod 600 $args{ssh_config_file}");
+    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{sh_config_file}"));
     return;
 }
 
