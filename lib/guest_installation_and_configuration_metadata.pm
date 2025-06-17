@@ -5,21 +5,30 @@
 #
 # Summary: This module provides metadata which will be used by guest installation
 # and configuration program using guest_installation_and_configuration_base.pm
-# as base module at the lowest level. Metadata includes global %guest_params which
+# as base module at the lowest level. Metadata includes global %_guest_params which
 # contains all parameters and arguments to generate virt-install command for guest
-# installation and global %guest_network_matrix which contains all supported types
-# of network configuration to create guest network.
+# installation, global %_host_params which contains all parameters for host setup
+# and common configuration and  global %_guest_network_matrix which contains all
+# supported types of network configuration to create guest network.
 #
 # Maintainer: Wayne Chen <wchen@suse.com> or <qe-virt@suse.de>
 package guest_installation_and_configuration_metadata;
 
 use strict;
 use warnings;
+use testapi;
+use Exporter qw(import);
+
+our @EXPORT = qw(
+  %_host_params
+  %_guest_params
+  %_guest_network_matrix
+);
 
 # Global data structure %guest_params to specify desired guest to be configured
 # and installed. Specifying desired guest by placing guest profile in xml format
 # in data/virt_autotest/guest_params_xml_files folder.
-our %guest_params = (
+our %_guest_params = (
     'guest_os_name' => '',    # [guest_os_name]:sles,opensuse,oraclelinux or others.Not virt-install argument.
     'guest_os_word_length' => '',    # [guest_os_word_length]:64 or 32.Not virt-install argument.
     'guest_version' => '',    # [guest_version]:15-sp3 or others.not virt-install argument.
@@ -248,7 +257,9 @@ our %guest_params = (
 # Global data structure %host_params contains all parameters not pertinent to
 # any specific guest and only relating to operations on host. All parameters
 # in this structure are only initialized once in a single test run.
-our %host_params = (
+our %_host_params = (
+    'common_log_folder' => get_var('COMMON_LOG_FOLDER', '/var/log/') . 'guest_installation_and_configuration',    # Common folder for storing logs
+    'common_environment_prepared' => get_var('COMMON_ENV_PREPARED', 'false'),    # Whether common environment prepartion is done (true or false)
     'host_sutip' => '',    # This is get_required_var('SUT_IP')
     'host_ipaddr' => '',    # This is ip addr of default host network device
     'host_name' => '',    # This is script_output('hostname')
@@ -256,6 +267,7 @@ our %host_params = (
     'host_version_major' => '',    # Major version of host os release from /etc/os-release on host
     'host_version_minor' => '',    # Minor version of host os release from /etc/os-release on host
     'host_version_id' => '',    # Version ID of host os release from /etc/os-release on host
+    'ssh_key_file' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa'),    # SSH key file used for guest installation and login
     'ssh_public_key' => '',    # Public key used for ssh login to guest
     'ssh_private_key' => '',    # Private key used for ssh login to guest
     'ssh_command' => ''    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
@@ -265,10 +277,10 @@ our %host_params = (
 # used for guest configuring and installing. Virtual networks, including nat,
 # route, bridge and default modes, and bridge networks, including host and bridge
 # modes, are covered.
-our %guest_network_matrix = (
+our %_guest_network_matrix = (
     vnet => {    # Virtual networks to be created by using virsh net-define. [guest_network_type] = vnet
         nat => {    # Virtual network in NAT mode. [guest_network_mode] = nat
-            device => 'virbr124',
+            device => 'vn_nat_vbr124',
             ipaddr => '192.168.124.1',
             netmask => '255.255.255.0',
             masklen => '24',
@@ -276,7 +288,7 @@ our %guest_network_matrix = (
             endaddr => '192.168.124.254'
         },
         route => {    # Virtual network in ROUTE mode. [guest_network_mode] = route
-            device => 'virbr125',
+            device => 'vn_route_vbr125',
             ipaddr => '192.168.125.1',
             netmask => '255.255.255.0',
             masklen => '24',

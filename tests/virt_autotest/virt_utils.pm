@@ -327,18 +327,15 @@ sub generate_guest_asset_name {
     if (get_var('CASEDIR') and get_var('BUILD') !~ /^\d+[\._]?\d*$/) {
         die "Downloading guest assets is not allowed without a particular build number. Please trigger job with BUILD=<build_number> or with SKIP_GUEST_INSTALL=1 not to download guest assets from openqa server";
     }
-    else {
-        $build_num = get_required_var('BUILD');
-    }
 
     my $composed_name
       = 'guest_'
       . $guest
       . '_on-host_'
       . get_required_var('DISTRI') . '-'
-      . get_required_var('VERSION')
+      . get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))
       . '_build'
-      . $build_num . '_'
+      . (get_var('VERSION_TO_INSTALL') ? 'gm' : get_required_var('BUILD')) . '_'
       . lc(get_required_var('SYSTEM_ROLE')) . '_'
       . get_required_var('ARCH');
 
