@@ -136,8 +136,6 @@ sub run {
     reset_container_network_if_needed($engine);
 
     assert_script_run('source bci/bin/activate') if ($bci_virtualenv);
-    assert_script_run("source /etc/os-release");
-    assert_script_run('export OS_PRETTY_NAME=$PRETTY_NAME');
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
