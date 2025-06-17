@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use Utils::Architectures;
 use Utils::Logging qw(tar_and_upload_log);
+use version_utils qw(has_selinux);
 
 sub run {
     my ($self) = @_;
@@ -80,11 +81,12 @@ LoadModule dav_svn_module   /usr/lib64/apache2/mod_dav_svn.so
 </IfModule>
 EOF
 ");
+    assert_script_run 'semanage fcontext -a -t httpd_sys_rw_content_t "/srv/svn(/.*)?"' if has_selinux;
     systemctl('restart apache2');
     systemctl('status apache2');
 
     # Create test repository
-    assert_script_run('mkdir -p /srv/svn/ && cd /srv/svn/');
+    assert_script_run('mkdir -pZ /srv/svn/ && cd /srv/svn/');
     assert_script_run('svnadmin create repos');
     assert_script_run('chown -R wwwrun:wwwrun repos');
     # Layout test repo
