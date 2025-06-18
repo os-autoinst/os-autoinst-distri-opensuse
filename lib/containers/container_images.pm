@@ -102,7 +102,7 @@ sub test_opensuse_based_image {
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($host_version, $host_sp, $host_id) = get_os_release();
-    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --rm --entrypoint '' $image");
 
     record_info "Host", "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
@@ -114,7 +114,7 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'cat /etc/os-release' | grep PRETTY_NAME | cut -d= -f2",
+            validate_script_output("$runtime run --rm --entrypoint /bin/bash $image -c 'cat /etc/os-release' | grep PRETTY_NAME | cut -d= -f2",
                 sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
@@ -148,7 +148,7 @@ sub test_zypper_on_container {
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    validate_script_output_retry("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
+    validate_script_output_retry("$runtime run --rm -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
     assert_script_run("$runtime run -t -d --name 'refreshed' --entrypoint '' $image bash", timeout => 300);
     script_retry("$runtime exec refreshed zypper -nv --gpg-auto-import-keys ref", timeout => 600, retry => 3, delay => 120);
     assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
