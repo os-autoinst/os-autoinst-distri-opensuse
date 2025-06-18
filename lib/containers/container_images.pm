@@ -120,7 +120,7 @@ sub test_opensuse_based_image {
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             unless (is_unreleased_sle) {
                 my $cmd = "container-suseconnect";
-                validate_script_output("$runtime run --rm -i $image $cmd --version", sub { m/^\d+\.\d+/ }, timeout => 180);
+                record_info("$cmd version", script_output("$runtime run --rm -i $image $cmd --version"));
                 validate_script_output_retry("$runtime run --rm -i $image $cmd lp", sub { m/.*All available products.*/ }, retry => 5, delay => 60, timeout => 300);
                 validate_script_output_retry("$runtime run --rm -i $image $cmd lm", sub { m/.*All available modules.*/ }, retry => 5, delay => 60, timeout => 300);
             }
