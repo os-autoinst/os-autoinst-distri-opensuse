@@ -13,6 +13,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
+use Utils::Architectures 'is_aarch64';
 use power_action_utils "power_action";
 use security::config;
 
@@ -65,7 +66,8 @@ sub run {
     assert_script_run("pk12util -d $work_dir -i $cert_p12 -K $security::config::cdb_pw -W $security::config::key_pw");
     assert_script_run("ls $work_dir | tee /dev/$serialdev");
 
-    my $kern = script_output("ls /boot/vmlinuz-*-default");
+    my $kern_name = is_aarch64 ? "Image" : "vmlinuz";
+    my $kern = script_output("ls /boot/$kern_name-*-default");
 
     # Remove existing signature and sign with new one to ensure it will boot
     # with MOK signed kernel
