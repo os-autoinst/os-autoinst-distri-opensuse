@@ -15,7 +15,8 @@ use utils qw(write_sut_file);
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(get_os_variable validate_components get_fencing_mechanism);
 use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file);
-use sles4sap::sap_deployment_automation_framework::naming_conventions qw(generate_resource_group_name);
+use sles4sap::sap_deployment_automation_framework::naming_conventions
+  qw(generate_resource_group_name get_sizing_filename);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 
 =head1 SYNOPSIS
@@ -119,7 +120,7 @@ sub define_sap_systems_environment {
     my %result = (
         header => q|### Environment definitions ###|,
         resourcegroup_name => qq|"$args{resource_group}"|,
-        custom_disk_sizes_filename => q|"custom_sizes.json"|,
+        custom_disk_sizes_filename => '"' . get_sizing_filename() . '"',
         environment => qq|"$args{environment}"|,
         location => qq|"$args{location}"|,
         # upgrade_packages defines if all packages should be upgraded after installation
@@ -227,7 +228,7 @@ sub define_database_tier {
         database_server_count => '1',
         # Enable HanaSR setup
         database_high_availability => $args{high_availability},
-        # Custom disk sizing file located in '/data/sles4sap/sap_deployment_automation_framework/custom_sizes.json'
+        # Custom disk sizing file located in '/data/sles4sap/sap_deployment_automation_framework/*.json'
         database_size => q|"Custom"|,
         # Hana DB instance number
         database_instance_number => q|"00"|,

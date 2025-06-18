@@ -44,6 +44,7 @@ our @EXPORT = qw(
   get_workload_vnet_code
   get_sdaf_inventory_path
   get_sut_sshkey_path
+  get_sizing_filename
 );
 
 =head2 %sdaf_region_matrix
@@ -423,4 +424,19 @@ sub get_sut_sshkey_path {
 
     # file name is hard coded in SDAF
     return "$args{config_root_path}/sshkey";
+}
+
+=head2 get_sizing_filename
+
+    get_sizing_filename();
+
+Returns custom sizing file name located in B<data/sles4sap/sap_deployment_automation_framework> according to deployment
+type specified in OpenQA setting B<SDAF_DEPLOYMENT_SCENARIO>.
+
+=cut
+
+sub get_sizing_filename {
+    get_var('SDAF_DEPLOYMENT_SCENARIO') =~ 'ensa' ?
+      return 'custom_sizes_S4HANA.json' :    # Customized for S4Hana deployment - required for ENSA2
+      return 'custom_sizes_default.json';    # Minimal Hana sizing - good for sindgle DB, HanaSR or standard NW 7.5 setup
 }

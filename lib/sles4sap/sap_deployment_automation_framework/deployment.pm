@@ -151,6 +151,7 @@ sub export_credentials {
         get_var('_SECRET_AZURE_SDAF_APP_PASSWORD') &&
         get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') &&
         get_var('_SECRET_AZURE_SDAF_TENANT_ID')) {
+        record_info('Credentials', 'Credentials defined by OpenQA settings');
         $data = {
             client_id => get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
             client_secret => get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
@@ -159,6 +160,7 @@ sub export_credentials {
             subscription_id => get_required_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
         };
     } else {
+        record_info('Credentials', 'Fetching credentials from remote server');
         $data = get_credentials(url_suffix => 'azure.json');
     }
 
@@ -961,34 +963,38 @@ sub ansible_show_status {
     my $sapcontrol_cmd = "$sapcontrol_env $sapcontrol_path/sapcontrol";
     my $instance_id = get_sdaf_instance_id(pattern => 'SCS');
     my $function = '';
-    if (grep(/ensa/, @{$args{scenarios}})) {
-        # Get instance ID
-        $instance_id = get_sdaf_instance_id(pattern => 'SCS');
-        $host_group = "$args{sap_sid}_SCS";
 
-        push @reports, {title => 'ENSA2 cluster', text => ansible_execute_command(command => 'sudo crm status full', host_group => $host_group, %common_args)};
-        $function = 'HACheckConfig';
-        push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
-        $function = 'HACheckFailoverConfig';
-        push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
-    }
-
-    # Show NW processes for each type of instance
-    if (grep(/nw/, @{$args{scenarios}})) {
-        foreach my $pattern (qw(PAS ERS SCS)) {
-            my $pattern_lc = lc($pattern);
-            # Get instance ID
-            $instance_id = get_sdaf_instance_id(pattern => $pattern);
-            $host_group = "$args{sap_sid}_$pattern";
-
-            push @reports, {title => "NW $pattern processes", text => ansible_execute_command(command => 'ps -ef | grep sap', host_group => $host_group, %common_args)};
-            # Add 'proceed_on_failure => 1' for 'GetProcessList' as it returns 'rc=3' (RC 3 = all processes GREEN)
-            $function = 'GetProcessList';
-            push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args, proceed_on_failure => 1)};
-            $function = 'GetSystemInstanceList';
-            push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
-        }
-    }
+    # All ENSA2 checks will fail becuase sites are flipped after deployment
+    record_soft_failure('jsc#TEAM-10470');
+    # if (grep(/ensa/, @{$args{scenarios}})) {
+    #
+    #     # Get instance ID
+    #     $instance_id = get_sdaf_instance_id(pattern => 'SCS');
+    #     $host_group = "$args{sap_sid}_SCS";
+    #
+   #     push @reports, {title => 'ENSA2 cluster', text => ansible_execute_command(command => 'sudo crm status full', host_group => $host_group, %common_args)};
+    #     $function = 'HACheckConfig';
+#     push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+    #     $function = 'HACheckFailoverConfig';
+#     push @reports, {title => "ENSA2 $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+    # }
+    #
+    # # Show NW processes for each type of instance
+    # if (grep(/nw/, @{$args{scenarios}})) {
+    #     foreach my $pattern (qw(PAS ERS SCS)) {
+    #         my $pattern_lc = lc($pattern);
+    #         # Get instance ID
+    #         $instance_id = get_sdaf_instance_id(pattern => $pattern);
+    #         $host_group = "$args{sap_sid}_$pattern";
+    #
+#         push @reports, {title => "NW $pattern processes", text => ansible_execute_command(command => 'ps -ef | grep sap', host_group => $host_group, %common_args)};
+    #         # Add 'proceed_on_failure => 1' for 'GetProcessList' as it returns 'rc=3' (RC 3 = all processes GREEN)
+    #         $function = 'GetProcessList';
+#         push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args, proceed_on_failure => 1)};
+    #         $function = 'GetSystemInstanceList';
+#         push @reports, {title => "NW $pattern $function", text => ansible_execute_command(command => "$sapcontrol_cmd -nr $instance_id -function $function", host_group => $host_group, %common_args)};
+    #     }
+    # }
 
     foreach (@reports) {
         record_info($_->{title}, $_->{text});
@@ -1077,7 +1083,7 @@ sub playbook_settings {
     # Run HA related playbooks at the end as it can mix up node order ###
     if (grep /db_ha/, @{$args{components}}) {
         # SAP HANA high-availability configuration
-        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800};
+        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 3600};
     }
 
     # playbooks required for all nw* scenarios

@@ -147,4 +147,12 @@ subtest '[get_sut_sshkey_path]' => sub {
     dies_ok { get_sut_sshkey_path() } 'Fail with missing config root path argument';
 };
 
+subtest '[get_sizing_filename]' => sub {
+    set_var('SDAF_DEPLOYMENT_SCENARIO', 'db,nw');
+    is get_sizing_filename(), 'custom_sizes_default.json', 'Return correct default file';
+
+    set_var('SDAF_DEPLOYMENT_SCENARIO', 'db,nw,ensa');
+    is get_sizing_filename(), 'custom_sizes_S4HANA.json', 'Return filename for ENSA2 scenario';
+};
+
 done_testing;
