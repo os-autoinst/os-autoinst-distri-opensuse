@@ -34,6 +34,7 @@ use xml_utils;
 
 our @EXPORT = qw(
   detect_profile_directory
+  create_file_as_profile_companion
   expand_template
   expand_version
   adjust_network_conf
@@ -842,6 +843,22 @@ sub upload_profile {
     $path =~ s/\//-/g;
 
     copy(hashed_string($file_path), 'ulogs/' . $path);
+}
+
+=head2 create_file_as_profile_companion
+
+ create_file_as_profile_companion()
+
+ It gets the content of the file dummy.xml
+ and puts it in the same path as the jsonnet profile
+
+=cut
+
+sub create_file_as_profile_companion {
+    my $path = 'dummy.xml';
+    my $content = get_test_data('yam/autoyast/dummy.xml');
+    save_tmp_file($path, $content);
+    record_info("Profile companion", "Content:\n$content\n\nLocal URL: " . autoinst_url("/files/$path"));
 }
 
 =head2 inject_registration

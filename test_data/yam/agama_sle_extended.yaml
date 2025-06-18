@@ -1,2 +1,7 @@
 ---
 hostname: suselinux
+files:
+  - path: '/usr/local/share/dummy.xml'
+    mode: '644'
+    owner: 'root'
+    sha256sum: '5f925f748a27b757853767477ec0e0e6f04b1727f3607c7f622a2a1e4bd2a0e5'
