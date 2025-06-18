@@ -151,6 +151,7 @@ sub export_credentials {
         get_var('_SECRET_AZURE_SDAF_APP_PASSWORD') &&
         get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') &&
         get_var('_SECRET_AZURE_SDAF_TENANT_ID')) {
+        record_info('Credentials', 'Credentials defined by OpenQA settings');
         $data = {
             client_id => get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
             client_secret => get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
@@ -159,6 +160,7 @@ sub export_credentials {
             subscription_id => get_required_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
         };
     } else {
+        record_info('Credentials', 'Fetching credentials from remote server');
         $data = get_credentials(url_suffix => 'azure.json');
     }
 
@@ -1077,7 +1079,7 @@ sub playbook_settings {
     # Run HA related playbooks at the end as it can mix up node order ###
     if (grep /db_ha/, @{$args{components}}) {
         # SAP HANA high-availability configuration
-        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800};
+        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 3600};
     }
 
     # playbooks required for all nw* scenarios
