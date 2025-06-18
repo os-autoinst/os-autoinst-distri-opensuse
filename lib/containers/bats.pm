@@ -40,6 +40,16 @@ my $test_dir = "/var/tmp/";
 my $package;
 my $settings;
 
+# Subdirectory in repo containing BATS tests
+my %tests_dir = (
+    "aardvark-dns" => "test",
+    buildah => "tests",
+    netavark => "test",
+    podman => "test/system",
+    runc => "tests/integration",
+    skopeo => "systemtest",
+);
+
 my @commands = ();
 
 sub run_command {
@@ -323,16 +333,6 @@ sub bats_tests {
     $env{PATH} = '/usr/local/bin:$PATH:/usr/sbin:/sbin';
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
-    # Subdirectory in repo containing BATS tests
-    my %tests_dir = (
-        "aardvark-dns" => "test",
-        buildah => "tests",
-        netavark => "test",
-        podman => "test/system",
-        runc => "tests/integration",
-        skopeo => "systemtest",
-    );
-
     my @tests;
     foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
@@ -381,6 +381,8 @@ sub bats_patches {
         @patches = @{$settings->{BATS_PATCHES}};
     }
 
+    # With --include we restrict the patch to the package tests dir
+    my $apply_opts = "-3 --ours --include '$tests_dir{$package}/*'";
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
@@ -390,7 +392,7 @@ sub bats_patches {
         } else {
             run_command "curl $curl_opts -O $url", timeout => 900;
         }
-        run_command "git apply -3 --ours " . basename($url);
+        run_command "git apply $apply_opts " . basename($url);
     }
 }
 
