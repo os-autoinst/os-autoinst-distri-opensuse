@@ -27,7 +27,7 @@ use strict;
 use warnings;
 use utils;
 use registration 'is_phub_ready';
-use version_utils 'is_sle';
+use version_utils;
 
 sub run {
     my $self = shift;
@@ -36,11 +36,22 @@ sub run {
     # Package 'hostapd' requires PackageHub is available
     return if (!is_phub_ready() && is_sle('<16'));
 
-    zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip dhcp-client';
+    # Package hostapd requires qa head repo, refer bsc#1243267
+    if (is_sle('>=16.0')) {
+        my $qa_head_repo = 'https://download.suse.de/ibs/QA:/Head/SLES-' . get_required_var('VERSION') . '/?ssl_verify=no';
+        zypper_ar("$qa_head_repo", name => 'qa-head-repo', no_gpg_check => 1);
+    }
+    zypper_call 'in dhcp-client' if (is_sle('<16.0') || is_opensuse);
+    zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
     assert_script_run 'cd $(mktemp -d)';
     assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
     $self->adopt_apparmor;
-    script_run('./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+    if (is_sle('>=16.0')) {
+        script_run('./wpa_supplicant_wo_dhcp_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+    }
+    else {
+        script_run('./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+    }
     validate_script_output("cat wpa-supplicant_test.txt", qr/WPA_SUPPLICANT_TEST: PASSED/);
 }
 
