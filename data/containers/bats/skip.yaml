@@ -97,6 +97,7 @@ podman:
     BATS_PATCHES:
     - 21875
     - 25792
+    - 25942
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
@@ -106,6 +107,7 @@ podman:
     BATS_PATCHES:
     - 21875
     - 25792
+    - 25942
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
