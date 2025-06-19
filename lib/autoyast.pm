@@ -804,6 +804,7 @@ sub generate_json_profile {
     diag "jsonnet @profile_options $profile_path";
     record_info("JSONNET Command", "jsonnet @profile_options $profile_path");
     my $profile_content = `jsonnet @profile_options $profile_path`;
+    die "Error generating jsonnet profile" if ($? != 0);
     record_info("Profile", $profile_content);
 
     save_tmp_file($profile_name, $profile_content);
