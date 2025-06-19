@@ -565,9 +565,10 @@ Value for the configuration option.
 
 sub set_kdump_config {
     my ($option, $value) = @_;
+    my $escaped_value = quotemeta($value);
 
     record_info("SET CONFIG", "$option=\"$value\"");
-    my $command = "sed -i 's/^$option=.*/$option=\"$value\"/' /etc/sysconfig/kdump";
+    my $command = "sed -i 's/^$option=.*/$option=\"$escaped_value\"/' /etc/sysconfig/kdump";
 
     assert_script_run($command);
 }
