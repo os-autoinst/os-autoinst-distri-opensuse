@@ -18,7 +18,7 @@ conditional_schedule:
     WSL_JEOS_FIRSTBOOT:
       '1':
         - jeos/firstrun
-      '':
+      null:
         - wsl/firstrun
 
 schedule:
