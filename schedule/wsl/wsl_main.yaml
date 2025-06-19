@@ -15,10 +15,10 @@ conditional_schedule:
   # Different modules used for legacy and modern wsl installations.
   # Legacy is yast-firstboot and modern is jeos-firstboot.
   wsl_firstrun:
-    WSL_JEOS_FIRSTBOOT:
-      '1':
+    WSL_FIRSTBOOT:
+      'jeos':
         - jeos/firstrun
-      null:
+      'yast':
         - wsl/firstrun
 
 schedule:
