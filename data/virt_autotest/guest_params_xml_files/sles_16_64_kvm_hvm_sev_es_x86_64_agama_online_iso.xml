@@ -33,7 +33,7 @@
     <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyS0,115200 linuxrc.log=/dev/ttyS0 linuxrc.core=/dev/ttyS0 linuxrc.debug=4,trace</guest_installation_fine_grained_kernel_args>
     <guest_installation_fine_grained_kernel_args_overwrite/>
     <guest_installation_fine_grained_others/>
-    <guest_os_variant>sle15sp7</guest_os_variant>
+    <guest_os_variant>sles16</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>
