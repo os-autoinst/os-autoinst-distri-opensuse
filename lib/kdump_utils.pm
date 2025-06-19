@@ -256,6 +256,7 @@ sub determine_crash_memory {
 
 # Activate kdump using command line tools
 sub activate_kdump_cli {
+    set_kdump_config('KDUMP_SAVEDIR', get_var('KDUMP_SAVEDIR')) if get_var('KDUMP_SAVEDIR');
     if (is_sle('16+')) {
         # Enable fadump in configuration file if requested
         set_kdump_config("KDUMP_FADUMP", "true") if get_var('FADUMP');
