@@ -22,6 +22,7 @@ sub run {
     barrier_create("NFS_NFSTEST_START", $nodes);
     barrier_create("NFS_NFSTEST_END", $nodes);
     if (check_var('KDUMP_OVER_NFS', '1')) {
+        barrier_create("KDUMP_WICKED_TEMP", $nodes);
         barrier_create("KDUMP_MULTIMACHINE", $nodes);
     }
     record_info("barriers initializoped");

@@ -30,6 +30,14 @@ sub run {
 
     select_console('root-console');
 
+    #Specific wicked workaround for SLE15 - allow connection from all hosts
+    if ($role eq 'nfs_server') {
+        assert_script_run("echo '/nfs/shared_nfs3 10.0.2.0/24(rw,sync,no_subtree_check,no_root_squash)' > /etc/exports");
+        assert_script_run("exportfs -ra");
+    }
+
+    barrier_wait('KDUMP_WICKED_TEMP');
+
     if ($role eq 'nfs_client') {
         assert_script_run("mkdir -p /var/crash");
         assert_script_run("echo \"$nfs_server:/nfs/shared_nfs3 /var/crash nfs nfsvers=3,sync,nofail,x-systemd.automount 0 0\" >> /etc/fstab");
