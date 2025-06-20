@@ -14,9 +14,11 @@ use migration 'reset_consoles_tty';
 
 sub run {
     # Restore the original value of the variables
-    foreach my $var (qw(VERSION SCC_ADDONS)) {
-        set_var($var, get_var($var . "_ENV"));
-        record_info($var, $var . '=' . get_var($var));
+    foreach my $var (qw(AGAMA SCC_ADDONS VERSION)) {
+        if (get_var($var . "_ENV")) {
+            set_var($var, get_var($var . "_ENV"));
+            record_info($var, $var . '=' . get_var($var));
+        }
     }
 
     # tty assignation might differ between product versions
