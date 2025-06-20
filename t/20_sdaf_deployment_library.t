@@ -626,6 +626,9 @@ subtest '[sdaf_upload_logs]' => sub {
     $ms_sdaf->redefine(script_output => sub { return 'log_file'; });
     $ms_sdaf->redefine(upload_logs => sub { return; });
 
+    my $basetest = Test::MockModule->new('basetest');
+    $autotest::current_test = new basetest;
+
     set_var('SUPPORTCONGFIG', undef);
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 
