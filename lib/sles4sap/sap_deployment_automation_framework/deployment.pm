@@ -1260,11 +1260,11 @@ sub sdaf_upload_logs {
     upload_logs("$crm_cfg_log");
 
     # Upload zypper log
-    upload_logs('/var/log/zypper.log', log_name => "upload_logs-${hostname}_zypper.log");
+    upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log");
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
-    upload_logs("$packages_list", log_name => "${hostname}_${packages_list}", failok => 1);
+    upload_logs("$packages_list", failok => 1);
 
     # iSCSI devices and their real paths
     script_run "ls -l /dev/disk/by-path/ > $iscsi_devs";
