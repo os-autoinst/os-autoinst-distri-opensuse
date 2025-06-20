@@ -11,7 +11,6 @@ use Data::Dumper;
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment;
 
-
 sub undef_variables {
     my @openqa_variables = qw(
       _SECRET_AZURE_SDAF_APP_ID
@@ -607,13 +606,31 @@ subtest '[get_fencing_mechanism] Mandatory Settings' => sub {
     dies_ok { get_fencing_mechanism() } 'Croak with "SDAF_FENCING_MECHANISM" not being set';
 };
 
-
 subtest '[get_fencing_mechanism] Unsupported values' => sub {
     for my $bad_value ('msii', 'amsi', 'iscsi', 'sbdf', '', ' ') {
         set_var('SDAF_FENCING_MECHANISM', $bad_value);
         dies_ok { get_fencing_mechanism() } "Croak with unsupported 'SDAF_FENCING_MECHANISM' value: '$bad_value'";
         set_var('SDAF_FENCING_MECHANISM', undef);
     }
+};
+
+subtest '[sdaf_upload_logs]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %arguments = (
+        hostname => 'QAS-hostname',
+        sap_sid => 'QAS'
+    );
+
+    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { return; });
+    $ms_sdaf->redefine(script_output => sub { return 'log_file'; });
+    $ms_sdaf->redefine(upload_logs => sub { return; });
+
+    set_var('SUPPORTCONGFIG', undef);
+    ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
+
+    set_var('SUPPORTCONGFIG', '1');
+    ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 };
 
 done_testing;
