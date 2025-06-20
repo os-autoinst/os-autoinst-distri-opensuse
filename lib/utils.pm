@@ -1212,7 +1212,10 @@ sub set_hostname {
 
                 next if ($indx == 0 && $dev eq 'DEVICE');
                 next if ($dev eq 'lo');
-                next if !($line =~ /connected/);
+                # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
+                # Try to connect if interface status is disconnected.
+                script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
+                next if !($line =~ /\bconnected\b/);
 
                 # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
                 script_run("nmcli general logging level DEBUG");
