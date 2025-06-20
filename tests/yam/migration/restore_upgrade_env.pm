@@ -18,6 +18,10 @@ sub run {
         set_var($var, get_var($var . "_ENV"));
         record_info($var, $var . '=' . get_var($var));
     }
+    if (get_var('AGAMA_ENV')) {
+        set_var('AGAMA', get_var('AGAMA_ENV'));
+	record_info('AGAMA=', get_var('AGAMA_ENV'));
+    }
 
     # tty assignation might differ between product versions
     reset_consoles_tty();

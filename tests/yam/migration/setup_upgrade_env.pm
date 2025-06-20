@@ -24,12 +24,17 @@ sub run {
     # Save the original value of the variables in order to restore it later if needed
     set_var('VERSION_ENV', get_var('VERSION'));
     set_var('SCC_ADDONS_ENV', get_var('SCC_ADDONS'));
+    set_var('AGAMA_ENV', get_var('AGAMA'));
 
     # Change variables to the other version that we want to migrate from/to
     set_var('VERSION', $version);
     record_info('VERSION', 'VERSION=' . get_var('VERSION'));
     set_var('SCC_ADDONS', $scc_addons);
     record_info('SCC_ADDONS', 'SCC_ADDONS=' . get_var('SCC_ADDONS'));
+    if (get_var('AGAMA')) {
+        set_var('AGAMA', 0);
+        record_info('AGAMA', 'AGAMA=' . get_var('AGAMA'));
+    }
 
     # tty assignation might differ between product versions
     reset_consoles_tty();
