@@ -39,7 +39,11 @@
       <li><a href="#sdaf_register_byos">sdaf_register_byos</a></li>
       <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
       <li><a href="#validate_components">validate_components</a></li>
-      <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a></li>
+      <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a>
+        <ul>
+          <li><a href="#sdaf_upload_logs">sdaf_upload_logs</a></li>
+        </ul>
+      </li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment.pm</h1>
@@ -545,6 +549,24 @@ tee - writes output also into the log file</code></pre>
 
 </li>
 </ul>
+
+<h3 id="sdaf_upload_logs">sdaf_upload_logs</h3>
+
+<pre><code>sdaf_upload_logs(hostname =&gt; $hostname, sap_sid =&gt; $sap_sid)
+
+Collect and upload SDAF logs present and generated locally on SUT.</code></pre>
+
+<dl>
+
+<dt id="hostname---SUT-hostname"><b>hostname</b> - SUT hostname</dt>
+<dd>
+
+</dd>
+<dt id="sap_sid---sap-sid"><b>sap_sid</b> - sap sid</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
