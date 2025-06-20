@@ -23,7 +23,7 @@ sub run {
     my $slave = get_required_var('IBTEST_IP2');
 
     my $role = get_required_var('IBTEST_ROLE');
-    my $packages = "rdma-core rdma-ndd iputils python";
+    my $packages = "rdma-core rdma-ndd iputils";
     my $packages_master = $packages . " git-core twopence-shell-client bc";
 
 
