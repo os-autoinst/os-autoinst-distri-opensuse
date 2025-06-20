@@ -69,6 +69,8 @@ our @EXPORT = qw(
   az_keyvault_list
   az_keyvault_secret_list
   az_keyvault_secret_show
+  az_get_publicip
+  ensure_system_ready_and_register
 );
 
 
@@ -427,6 +429,20 @@ sub az_network_publicip_get {
     return script_output($az_cmd);
 }
 
+#az vm show --show-details --resource-group $MY_RESOURCE_GROUP_NAME --name $MY_VM_NAME --query publicIps --output tsv
+sub az_get_publicip {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    my $az_cmd = join(' ', 'az vm show',
+        '--show-details',
+        '--resource-group', $args{resource_group},
+        "--name", $args{name},
+        "--query publicIps",
+        '-o tsv');
+    return script_output($az_cmd);
+}
+
 =head2 az_network_nat_gateway_create
 
     az_network_nat_gateway_create(
@@ -743,35 +759,46 @@ Create a virtual machine
 
 sub az_vm_create {
     my (%args) = @_;
-    foreach (qw(resource_group name image)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
 
+    # Validate required arguments
+    foreach (qw(resource_group name image)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
 
     my @vm_create = ('az vm create');
 
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
     push @vm_create, '--image', $args{image};
-    push @vm_create, '--public-ip-address';
-    push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
 
+    # Default size if not provided
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
 
     push @vm_create, '-l', $args{region} if $args{region};
-    push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
-
     push @vm_create, '--admin-username', $args{username} if $args{username};
-    push @vm_create, '--nsg', $args{nsg} if $args{nsg};
-    push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
-    push @vm_create, '--nics', $args{nic} if $args{nic};
-    push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
-    push @vm_create, '--subnet', $args{snet} if $args{snet};
-    push @vm_create, '--security-type', $args{security_type} if $args{security_type};
-    if ($args{ssh_pubkey}) {
-        push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
+
+    # Parameters specific to az_vm_create
+    unless ($args{crash_mode}) {
+        push @vm_create, '--public-ip-address', $args{public_ip} ? $args{public_ip} : '""';
+        push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
+        push @vm_create, '--nsg', $args{nsg} if $args{nsg};
+        push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
+        push @vm_create, '--nics', $args{nic} if $args{nic};
+        push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
+        push @vm_create, '--subnet', $args{snet} if $args{snet};
+        push @vm_create, '--security-type', $args{security_type} if $args{security_type};
+
+        if ($args{ssh_pubkey}) {
+            push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
+        } else {
+            push @vm_create, '--authentication-type ssh --generate-ssh-keys';
+        }
     } else {
-        push @vm_create, '--authentication-type ssh --generate-ssh-keys';
+        # Parameters specific to az_vm_create_crash
+        push @vm_create, '--generate-ssh-keys';
+        push @vm_create, '--assign-identity';
+        push @vm_create, '--public-ip-sku Standard';
     }
 
     assert_script_run(join(' ', @vm_create), timeout => 900);
@@ -1816,4 +1843,33 @@ sub az_keyvault_secret_show {
 
     return decode_json(script_output(join(' ', @az_cmd))) if $args{output} eq 'json';
     return script_output(join(' ', @az_cmd));
+}
+
+=over
+
+=item B<reg_code> registration code.
+
+=back
+=cut
+
+sub ensure_system_ready_and_register {
+    my (%args) = @_;
+    my $start_time = time();
+    my $ret;
+
+    while ((time() - $start_time) < 300) {
+        $ret = script_run('$ssh_cmd sudo systemctl is-system-running');
+        last unless $ret;
+        sleep 10;
+    }
+    if ($args{reg_code}) {
+        assert_script_run(join(' ',
+                $args{ssh_command},
+                'sudo', 'registercloudguest',
+                '--force-new',
+                '-r', '\'$reg_code\'',
+                '-e ', 'testing@suse.com'),
+            timeout => 600);
+        assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
+    }
 }
