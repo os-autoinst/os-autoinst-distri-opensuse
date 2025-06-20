@@ -1077,7 +1077,7 @@ sub playbook_settings {
     # Run HA related playbooks at the end as it can mix up node order ###
     if (grep /db_ha/, @{$args{components}}) {
         # SAP HANA high-availability configuration
-        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 1800};
+        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 3600};
     }
 
     # playbooks required for all nw* scenarios
