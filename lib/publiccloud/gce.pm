@@ -122,7 +122,7 @@ sub get_gcp_guest_os_features {
     );
 
     my $os_version;
-    if ($file =~ /(SLES\d+-SP\d+)/i) {
+    if ($file =~ /SLES\d+(\.|-SP)\d+/i) {
         $os_version = uc($1);
     }
 
