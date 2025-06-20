@@ -13,7 +13,8 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
-use utils qw(zypper_call);
+use utils qw(zypper_call reconnect_mgmt_console);
+use Utils::Backends qw(is_pvm);
 use version_utils qw(is_sle);
 
 sub stonith_iptables {
@@ -25,11 +26,12 @@ sub stonith_iptables {
         if (is_node(1)) {
             # Wait for the stonith match, then flush the rules for the next test
             script_run "until grep -qi offline <($crm_mon_cmd) ; do sleep 1; done", 60;
-            assert_script_run "iptables -F && iptables -X";
+            assert_script_run("iptables -F && iptables -X", 180);
         }
 
         # Node 2 should reboot
         if (is_node(2)) {
+            reconnect_mgmt_console if is_pvm;
             # Wait for boot and reconnect to root console
             $self->wait_boot;
             select_console 'root-console';
@@ -60,6 +62,14 @@ sub run {
         assert_script_run "crm configure clone promotable-1 stateful-1 meta promotable=true";
         assert_script_run "crm resource param stonith-sbd set pcmk_delay_max 15";
         assert_script_run "crm configure property priority-fencing-delay=30";
+        # Workaround for bsc#1244437
+        if (is_sle('16+') and get_var("WORKAROUND_BSC1244437")) {
+            assert_script_run "crm configure location force_primary promotable-1 100: " . get_hostname;
+            record_soft_failure 'bsc#1244437 - Priority Fencing Delay configuration requires a cluster restart in 16';
+            assert_script_run "crm cluster restart --all";
+            wait_until_resources_started;
+            check_cluster_state;
+        }
     }
 
     # Informing nodes that the cluster configuration is ready
