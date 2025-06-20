@@ -55,6 +55,9 @@ sub prepare_boot_params {
     # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
     push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
 
+    # additional parameters requiring parsing
+    push @params, 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
+
     return @params;
 }
 
