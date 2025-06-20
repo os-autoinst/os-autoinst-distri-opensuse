@@ -231,16 +231,17 @@ sub load_image_tests_in_openshift {
 }
 
 sub load_kubectl_tests {
+    my $run_args = OpenQA::Test::RunArgs->new();
     my @k8s_versions = split('\s+', get_var("KUBERNETES_VERSIONS", ""));
     if (@k8s_versions) {
+        loadtest('containers/kubectl_versions', run_args => $run_args);
         foreach my $k8s_version (@k8s_versions) {
             my $run_args = OpenQA::Test::RunArgs->new();
             $run_args->{k8s_version} = $k8s_version;
             loadtest('containers/kubectl', run_args => $run_args, name => "kubectl_" . $k8s_version);
         }
     } else {
-        my $run_args = OpenQA::Test::RunArgs->new();
-        loadtest('containers/kubectl', run_args => $run_args) if (/kubectl/i);
+        loadtest('containers/kubectl', run_args => $run_args);
     }
 }
 

@@ -27,7 +27,15 @@ sub run {
     # Record kubectl version and check if the tool itself is healthy
     my $version = script_output("kubectl version --client --output=json");
     record_info("kubectl", $version);
-    die "Invalid version" if ($version !~ /v\Q$k8s_version\E/);
+    if ($version !~ /v\Q$k8s_version\E/) {
+        # NOTE: Remove when bsc is resolved
+        if ($k8s_version eq "1.23" || $k8s_version eq "1.26") {
+            record_soft_failure('bsc#1245087 - Installation of kubernetes-client 1.23 & 1.26 installs next available version instead');
+            return;
+        } else {
+            die "Invalid version";
+        }
+    }
 
     # Prepare the webserver testdata
     assert_script_run('mkdir -p /srv/www/kubectl');
@@ -142,8 +150,7 @@ sub run {
 }
 
 sub uninstall_kubectl {
-    my $package = script_output('rpm -qf $(command -v kubectl)');
-    zypper_call("rm $package");
+    zypper_call("rm kubernetes*");
 }
 
 sub cleanup {
