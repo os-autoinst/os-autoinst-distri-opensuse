@@ -92,6 +92,10 @@ sub run {
             $self->run_in_powershell(
                 cmd => "wsl --install --web-download --distribution $WSL_version",
                 timeout => 300,
+                code => sub {
+                    # change to jeos-wsl-firstboot-welcome
+                    assert_screen("jeos-wsl-firstboot-welcome", timeout => 300);
+                }
             );
             # Web-download requires manual firstboot start
             # $self->run_in_powershell(
