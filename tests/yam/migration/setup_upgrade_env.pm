@@ -22,14 +22,23 @@ sub run {
             get_var('SCC_ADDONS')));
 
     # Save the original value of the variables in order to restore it later if needed
-    set_var('VERSION_ENV', get_var('VERSION'));
-    set_var('SCC_ADDONS_ENV', get_var('SCC_ADDONS'));
+    foreach my $var (qw(AGAMA SCC_ADDONS VERSION)) {
+        set_var($var . "_ENV", get_var($var)) if (get_var($var));
+    }
 
     # Change variables to the other version that we want to migrate from/to
-    set_var('VERSION', $version);
-    record_info('VERSION', 'VERSION=' . get_var('VERSION'));
-    set_var('SCC_ADDONS', $scc_addons);
-    record_info('SCC_ADDONS', 'SCC_ADDONS=' . get_var('SCC_ADDONS'));
+    my $agama = '0';
+    my %vars_to_set = (
+        VERSION => $version,
+        SCC_ADDONS => $scc_addons,
+        AGAMA => $agama
+    );
+    while (my ($var_name, $var_value) = each %vars_to_set) {
+        if (get_var($var_name)) {
+            set_var($var_name, $var_value);
+            record_info($var_name, "$var_name=" . get_var($var_name));
+        }
+    }
 
     # tty assignation might differ between product versions
     reset_consoles_tty();
