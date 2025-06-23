@@ -230,6 +230,15 @@ sub run {
         assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
+        # In WSL, the new process of installing, appears in an already maximized window,
+        # but sometimes it loses focus. So I created another needle to check if
+        # the window is already maximized and click somewhere else to bring it to focus.
+        if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+            assert_screen(['window-max', 'window-minimize']);
+            assert_and_click 'window-max' if match_has_tag 'window-max';
+            assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
+            wait_still_screen stilltime => 3, timeout => 10;
+        }
         send_key 'ret';
     }
 
