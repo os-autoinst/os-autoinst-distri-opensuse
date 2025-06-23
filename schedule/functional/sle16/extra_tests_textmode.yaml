@@ -22,10 +22,6 @@ conditional_schedule:
         ARCH:
             x86_64:
                 - console/wpa_supplicant
-    prepare_systemd_and_testsuite:
-        ARCH:
-            x86_64:
-                - systemd_testsuite/prepare_systemd_and_testsuite
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -102,7 +98,6 @@ schedule:
     - console/libgit2
     - network/cifs
     - '{{wpa_supplicant}}'
-    - '{{prepare_systemd_and_testsuite}}'
     - console/osinfo_db
     - console/journalctl
     - console/tar
