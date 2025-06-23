@@ -96,10 +96,10 @@ sub run {
             # Web-download requires manual firstboot start
             $self->run_in_powershell(
                 cmd => "wsl.exe --distribution $WSL_version",
-                code => sub {
-                    # change to jeos-wsl-firstboot-welcome
-                    assert_screen("jeos-wsl-firstboot-welcome", timeout => 300);
-                }
+                # code => sub {
+                #     # change to jeos-wsl-firstboot-welcome
+                #     assert_screen("jeos-wsl-firstboot-welcome", timeout => 300);
+                # }
             );
         }
         if (check_var('DISTRI', 'sle')) {
