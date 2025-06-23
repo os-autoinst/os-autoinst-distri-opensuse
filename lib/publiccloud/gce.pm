@@ -108,7 +108,7 @@ sub get_gcp_guest_os_features {
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
         ],
-        'SLES-16.0' => [
+        'SLES16.0' => [
             'GVNIC',
             'IDPF',
             'SEV_CAPABLE',
@@ -124,6 +124,7 @@ sub get_gcp_guest_os_features {
     my $os_version;
     if ($file =~ /SLES\d+-SP\d+|SLES-\d+\.\d+/i) {
         $os_version = uc($&);
+        $os_version =~ s/-// if $os_version =~ /^SLES-16\.\d+$/;
     }
 
     die "Unsupported OS: $os_version" unless ($os_version && exists $guest_os_features{$os_version});
