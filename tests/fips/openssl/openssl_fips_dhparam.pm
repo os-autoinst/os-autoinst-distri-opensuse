@@ -32,6 +32,9 @@ sub run_fips_dhparam_tests {
     # SLE Micro doesn't have user created by default
     create_user if is_transactional;
 
+    select_console 'user-console';
+    validate_script_output "update-crypto-policies --show", sub { m/FIPS/ };
+
     assert_script_run "$openssl_binary req -newkey rsa:2048 -nodes -keyout generatedkey.key -x509 -days 365 -out generatedcert.crt -subj \"/C=DE/L=Nue/O=SUSE/CN=security.suse.de\"", timeout => 300;
     assert_script_run "$openssl_binary dhparam -out dhparams_2048.pem 2048";
     clear_console;
