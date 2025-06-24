@@ -12,7 +12,7 @@
 #   - mail - Setup dovecot and postfix servers as backend for mail servers.:
 #         - Based on configurations from tests/x11/evolution/evolution_prepare_servers.pm by Petr Cervinka <pcervinka@suse.com>
 #         - Stop packagekit service
-#         - Install dovecot if DOVECOT_REPO is defined
+#         - Install dovecot, on SLED from Server Applications module
 #         - Configure dovecot enabling ssl and for use of plain login
 #         - Enable postix smtp auth in dovecot and generate certificates
 #         - Configure postfix enabling tls, smtpd sasl and hostname as localhost
@@ -61,13 +61,14 @@ sub setup_ftp_server {
 }
 
 sub setup_mail_server {
-    if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
-        my $mail_server_repo = get_required_var("DOVECOT_REPO");
-        zypper_call("ar ${mail_server_repo} dovecot_repo");
+    if (check_var('SLE_PRODUCT', 'sled')) {
+        my $version = get_var('VERSION');
+        # Add server-applications to get dovecot, dovecot or server applications repo is not available on SLE Desktop
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/$version/x86_64/update/ sle-module-server-applications:${version}::pool");
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/$version/x86_64/product/ sle-module-server-applications:${version}::update");
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot");
-        zypper_call("rr dovecot_repo");
-        save_screenshot;
+        zypper_call("rr sle-module-server-applications:${$version}::pool sle-module-server-applications:${version}::update");
     } else {
         zypper_call("in dovecot");
     }

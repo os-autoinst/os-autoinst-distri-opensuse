@@ -6,8 +6,7 @@
 # Package: dovecot postfix openssl
 # Summary: Setup dovecot and postfix servers as backend for evolution
 # - Stop packagekit service
-# - Install dovecot if DOVECOT_REPO is defined or it is sled. Otherwise, install
-#   dovecot and postfix and start the later
+# - Install on SLED dovecot from Server Apllications module else install dovecot and postfix
 # - Configure dovecot enabling ssl and for use of plain login
 # - Enable postix smtp auth in dovecot and generate certificates
 # - Configure postfix enabling tls, smtpd sasl and hostname as localhost
