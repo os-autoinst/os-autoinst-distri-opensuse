@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     # Install libgpiod tools
-    zypper_call 'in libgpiod';
+    zypper_call 'in libgpiod-utils';
 
     # Record libgpiod version
     record_info('Version', script_output('gpiodetect --version | head -n1'));
@@ -48,22 +48,23 @@ sub run {
     validate_script_output "gpiodetect", sub { m/$gpiochipX \[gpio-mockup-A\] \(32 lines\)/ };
     # Record all gpioinfo
     record_info('gpioinfo', script_output('gpioinfo'));
-    validate_script_output "gpioinfo $gpiochipX", sub { m/$gpiochipX - 32 lines/ };
+    validate_script_output "gpioinfo -c $gpiochipX", sub { m/$gpiochipX - 32 lines/ };
     # Check gpio 31 is an unused input (default)
-    validate_script_output "gpioinfo $gpiochipX | grep 31", sub { m/line  31:      unnamed       unused   input  active-high/ };
+    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:	unnamed         	input/ };
     # Set GPIO 31, as output, value 1, for 40 seconds
-    assert_script_run("gpioset --mode=time -s 45 -b $gpiochipX 31=1");
+    assert_script_run("gpioset --daemonize -c $gpiochipX 31=1");
     # Check it is used by gpioset and set as output
-    validate_script_output "gpioinfo $gpiochipX | grep 31", sub { m/line  31:      unnamed    "gpioset"  output  active-high \[used\]/ };
-    sleep 45;
-    # After 20 seconds, the gpio should be released (but may remain as output)
-    validate_script_output "gpioinfo $gpiochipX | grep 31", sub { m/line  31:      unnamed       unused  output  active-high/ };
+    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:	unnamed         	output consumer=gpioset/ };
+    # Stop daemonized gpioset
+    assert_script_run("pkill gpioset");
+    # Now, the gpio should be released (but remains as output)
+    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:	unnamed         	output/ };
     # Read gpio 31 (set gpio as input)
-    validate_script_output "gpioget $gpiochipX 31", sub { m/0/ };
+    validate_script_output "gpioget -c $gpiochipX 31", sub { m/"31"=inactive/ };
     # Read gpio 31 again, with 'active low' option
-    validate_script_output "gpioget -l $gpiochipX 31", sub { m/1/ };
+    validate_script_output "gpioget -l -c $gpiochipX 31", sub { m/"31"=active/ };
     # Check gpio is an input again
-    validate_script_output "gpioinfo $gpiochipX | grep 31", sub { m/line  31:      unnamed       unused   input  active-high/ };
+    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:	unnamed         	input/ };
     # Remove the fake $gpiochipX
     assert_script_run("modprobe -r gpio_mockup");
 }
