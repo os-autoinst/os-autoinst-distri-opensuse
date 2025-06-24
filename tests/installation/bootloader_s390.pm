@@ -101,6 +101,7 @@ sub prepare_parmfile {
             $params .= ' rd.zdev=dasd,0.0.0150' if (get_var('FORMAT_DASD') ne 'never');
             $params .= ' hvc_iucv=8';
             $params .= " live.password=$testapi::password";
+            $params .= ' inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
         }
         else {
             $params .= " install=" . $instsrc . $repo . " ";

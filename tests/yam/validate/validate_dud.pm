@@ -9,7 +9,7 @@
 
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base "consoletest";
+use base Yam::Agama::agama_base;
 use strict;
 use warnings;
 use testapi;

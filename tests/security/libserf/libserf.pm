@@ -75,16 +75,17 @@ LoadModule dav_svn_module   /usr/lib64/apache2/mod_dav_svn.so
 <IfModule mod_dav_svn.c>
 <Location /repos>
     DAV svn
-    SVNPath /srv/svn/repos
+    SVNPath /srv/www/svn/repos
 </Location>
 </IfModule>
 EOF
 ");
+
     systemctl('restart apache2');
     systemctl('status apache2');
 
     # Create test repository
-    assert_script_run('mkdir -p /srv/svn/ && cd /srv/svn/');
+    assert_script_run('mkdir -pZ /srv/www/svn/ && cd /srv/www/svn/');
     assert_script_run('svnadmin create repos');
     assert_script_run('chown -R wwwrun:wwwrun repos');
     # Layout test repo
@@ -95,7 +96,7 @@ EOF
     assert_script_run('echo "testopts1" > options/testopts1.cfg');
     assert_script_run('echo "mainfile1" > main/mainfile1.cfg');
     # Import test repo
-    validate_script_output('svn import /tmp/mytestproj/ file:///srv/svn/repos/mytestproj -m "Init commit"', sub { m/Committed/ });
+    validate_script_output('svn import /tmp/mytestproj/ file:///srv/www/svn/repos/mytestproj -m "Init commit"', sub { m/Committed/ });
     # Check the repo
     enter_cmd('svn ls https://localhost/repos');
     wait_still_screen(5);
