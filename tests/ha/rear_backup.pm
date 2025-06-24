@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(file_content_replace quit_packagekit zypper_call);
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -24,7 +25,8 @@ sub run {
     # Disable packagekit and install ReaR
     get_var('USE_YAST_REAR') ? select_console 'root-console' : select_serial_terminal;
     quit_packagekit;
-    zypper_call 'in yast2-rear';
+    zypper_call 'in ' . (is_sle('>=16') ? 'rear29a' : 'yast2-rear');
+    assert_script_run('test -d "/etc/rear"');
 
     # Configure ReaR by using YaST module
     if (get_var('USE_YAST_REAR')) {
@@ -47,7 +49,8 @@ sub run {
         my $local_conf = '/etc/rear/local.conf';
         assert_script_run("curl -f -v " . data_url('ha/rear_local.conf') . " -o $local_conf");
         file_content_replace("$local_conf", q(%BACKUP_URL%) => $backup_url);
-        my $backup_rc = script_run('rear -d -D mkbackup', timeout => $timeout);
+        my $rear_cmd = 'rear -d -D mkbackup';
+        my $backup_rc = script_run($rear_cmd, timeout => $timeout);
         die 'Unexpected error in mkbackup command' unless defined $backup_rc;
         unless ($backup_rc == 0) {
             # Check for bsc#1180946
@@ -58,7 +61,7 @@ sub run {
                 assert_script_run("echo \"MODULES=( 'all_modules' )\" >> $local_conf");
             }
             # Retry the mkbackup command
-            assert_script_run('rear -d -D mkbackup', timeout => $timeout);
+            assert_script_run($rear_cmd, timeout => $timeout);
         }
     }
 
