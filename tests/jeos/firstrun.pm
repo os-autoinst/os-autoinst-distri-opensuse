@@ -278,6 +278,13 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
+    # In WSL: Choose SLES or SLED
+    if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+        assert_screen 'wsl-sled-or-sles';
+        wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+    }
+
     # handle registration notice
     if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
