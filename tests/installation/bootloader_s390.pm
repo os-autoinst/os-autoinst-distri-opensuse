@@ -95,6 +95,7 @@ sub prepare_parmfile {
                   shorten_url($host . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img") :
                   $host . '/' . get_var('REPO_999'));
             $params .= $root_line;
+            $params .= ' inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
         }
         else {
             $params .= " install=" . $instsrc . $repo . " ";
