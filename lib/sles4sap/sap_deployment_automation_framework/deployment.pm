@@ -1260,7 +1260,7 @@ sub sdaf_upload_logs {
     upload_logs("$crm_cfg_log");
 
     # Upload zypper log
-    upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log");
+    upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log", failok => 1);
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
