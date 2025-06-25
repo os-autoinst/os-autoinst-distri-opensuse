@@ -23,7 +23,7 @@ use isotovideo;
 use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
 use publiccloud::ssh_interactive 'select_host_console';
-use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
+use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs record_avc_selinux_alerts);
 use serial_terminal 'select_serial_terminal';
 
 # Base class for all openSUSE tests
@@ -82,6 +82,7 @@ this method.
 
 sub post_run_hook {
     my ($self) = @_;
+    $self->record_avc_selinux_alerts();
     # overloaded in x11 and console
 }
 
@@ -893,6 +894,8 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
+    # this is just an ugly hack as reset_consoles does not clear up the last current console holder
+    $autotest::selected_console = undef;
     select_console('sol', await_console => 0) if is_ipmi;
     if (reconnect_s390(textmode => $textmode, ready_time => $ready_time, enable_root_ssh => $enable_root_ssh)) {
     }
@@ -1011,6 +1014,8 @@ sub post_fail_hook {
     # Upload basic health check log
     select_serial_terminal();
     export_healthcheck_basic;
+
+    $self->record_avc_selinux_alerts();
 
     # set by x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {
