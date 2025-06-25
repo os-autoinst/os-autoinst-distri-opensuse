@@ -16,24 +16,18 @@ use utils 'zypper_call';
 
 sub irc_login_send_message {
     my ($name) = @_;
-
     my @tags = ("$name-connection-complete-dialog", "$name-SASL-only-error");
     assert_screen \@tags;
     if (match_has_tag("$name-connection-complete-dialog")) {
         wait_still_screen;
-        # start to change the channel name
         assert_and_click "$name-join-channel";
-        # clear original '#hexchat' channel name
+        # clear the original '#hexchat' channel name
         wait_still_screen 2;
         wait_screen_change { send_key 'ctrl-a' };
         wait_screen_change { send_key "delete" };
-
-        # change name to '#openqa-test_irc_from_openqa' and join this channel
         enter_cmd "#openqa-test_irc_from_openqa";
         assert_screen "$name-join-openqa-test_irc_from_openqa";
         assert_and_click "$name-join-channel-OK";
-
-        # send a test message in IRC channel
         assert_screen "$name-main-window";
         enter_cmd "hello, this is openQA running $name with FIPS Enabled!";
         assert_screen "$name-message-sent-to-channel";
@@ -41,36 +35,32 @@ sub irc_login_send_message {
         assert_screen "$name-quit";
     }
     elsif (match_has_tag("$name-SASL-only-error")) {
-        record_info('SASL required', 'The public IP of the current worker has been blacklisted on Libera, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
+        record_info('SASL required', 'The public IP of the current worker has been blacklisted, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
     }
+}
+
+sub enable_ssl_for_network {
+    my ($name) = @_;
+    assert_and_click "$name-edit-button";
+    assert_screen ["$name-use-ssl-button", "$name-ssl-on"];
+    match_has_tag("$name-ssl-on") or assert_and_click "$name-use-ssl-button";
+    assert_and_click "$name-close-button";
 }
 
 sub run {
     select_console "root-console";
-
-    my $name = ('hexchat');
+    my $name = 'hexchat';
     zypper_call("in $name");
-
     select_console "x11";
-
-    if (my $url = get_var("XCHAT_URL")) {
-        # Start up hexchat client and try to login into server
-        x11_start_program("$name --url=$url", valid => 0);
+    my $server_address = get_var("XCHAT_URL");
+    if ($server_address) {
+        x11_start_program("$name --url=$server_address", valid => 0);
         irc_login_send_message($name);
     }
     else {
         x11_start_program("$name", target_match => "$name-network-select");
         enter_cmd "Rizon";
-
-        # use ssl for all servers on this network
-        assert_and_click "$name-edit-button";
-        assert_screen ["$name-use-ssl-button", "$name-ssl-on"];
-        # make sure SSL is enabled
-        if (!match_has_tag("$name-ssl-on")) {
-            assert_and_click "$name-use-ssl-button";
-        }
-        assert_and_click "$name-close-button";
-        # start connect to server
+        enable_ssl_for_network($name);
         assert_and_click "$name-connect-button";
         irc_login_send_message($name);
     }
