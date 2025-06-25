@@ -12,6 +12,7 @@
 # PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
 # USE_SAPCONF - (true/false) set 'false' to use saptune
 # FENCING_MECHANISM - (sbd/native) choose fencing mechanism
+# ISCSI_ENABLED - (true/false) choose if to deploy iscsi server
 # QESAP_SCC_NO_REGISTER - define variable in openqa to skip SCC registration via ANSIBLE
 # HANA_MEDIA - Hana install media directory
 # HANA_ACCOUNT - Azure Storage name
@@ -81,6 +82,7 @@ sub run {
     die "HA cluster needs at least 2 nodes. Check 'NODE_COUNT' parameter." if ($ha_enabled && (get_var('NODE_COUNT') <= 1));
 
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
+    set_var('ISCSI_ENABLED', check_var('FENCING_MECHANISM', 'sbd') ? 'true' : 'false');
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
     # Within the qe-sap-deployment terraform code, in each differend CSP implementation,

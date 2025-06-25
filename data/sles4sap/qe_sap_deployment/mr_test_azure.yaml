@@ -27,4 +27,5 @@ terraform:
     hana_ha_enabled: '%HA_CLUSTER%'
     hana_vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
+    iscsi_enabled: '%ISCSI_ENABLED%'
 

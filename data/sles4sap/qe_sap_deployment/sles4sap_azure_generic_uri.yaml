@@ -34,6 +34,7 @@ terraform:
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     drbd_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     netweaver_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
+    iscsi_enabled: '%ISCSI_ENABLED%'
 
 ansible:
   az_storage_account_name: '%HANA_ACCOUNT%'
