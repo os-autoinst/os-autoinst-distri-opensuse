@@ -25,6 +25,16 @@ use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
 
+sub set_agama_version {
+    select_console 'install-shell';
+
+    my $info_file = script_output("cat /var/log/build/info");
+    if ($info_file =~ /^Image.version:\s+(?<major_version>\d+)\./m) {
+        set_var("AGAMA_VERSION", $+{'major_version'});
+        record_info('AGAMA_VERSION', $+{'major_version'});
+    }
+}
+
 sub prepare_boot_params {
     my @params = ();
 
@@ -74,10 +84,12 @@ sub run {
             record_info('bootloader_zkvm');
             $self->bootloader_zkvm::run();
         }
+        set_agama_version();
         return;
     }
     elsif (is_pvm_hmc()) {
         $self->bootloader_pvm::boot_pvm();
+        set_agama_version();
         return;
     }
 
@@ -99,6 +111,7 @@ sub run {
     } else {
         $agama_up_an_running->expect_is_shown();
     }
+    set_agama_version();
 }
 
 sub post_fail_hook {
