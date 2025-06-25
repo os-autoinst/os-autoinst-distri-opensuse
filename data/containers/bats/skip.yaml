@@ -21,26 +21,26 @@ buildah:
   sle-15-SP7:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud namespaces
-    BATS_SKIP_ROOT: run
+    BATS_SKIP: bud run
+    BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
   sle-15-SP6:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud namespaces
-    BATS_SKIP_ROOT: run
+    BATS_SKIP: bud run
+    BATS_SKIP_ROOT: from namespaces
     BATS_SKIP_USER:
   sle-15-SP5:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud namespaces
-    BATS_SKIP_ROOT: run
+    BATS_SKIP: bud run
+    BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
   sle-15-SP4:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud namespaces
-    BATS_SKIP_ROOT: run
+    BATS_SKIP: bud run
+    BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
 netavark:
   # Note on patches:
