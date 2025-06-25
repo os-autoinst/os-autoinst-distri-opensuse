@@ -11,6 +11,14 @@ use Scalar::Util qw(reftype);
 use List::Util qw(any none);
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 
+sub undef_variables {
+    my @openqa_variables = qw(
+      SDAF_DEPLOYER_RESOURCE_GROUP
+      SDAF_DEPLOYER_VNET_CODE
+    );
+    set_var($_, '') foreach @openqa_variables;
+}
+
 subtest '[get_deployer_vm_name] Test expected failures' => sub {
     my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
     $mock_function->redefine(diag => sub { return; });
@@ -188,6 +196,8 @@ subtest '[destroy_resources]' => sub {
     @destroy_list = ('Gihren', 'Garma', 'Dozle');
     destroy_deployer_vm();
     is $destroy_called, 1, 'Destroy defined resources on first loop';
+
+    undef_variables;
 };
 
 subtest '[destroy_resources] Test retry function' => sub {
@@ -201,6 +211,7 @@ subtest '[destroy_resources] Test retry function' => sub {
 
     destroy_deployer_vm();
     is $loop_no, 3, 'Pass on third attempt';
+    undef_variables;
 };
 
 subtest '[destroy_orphaned_resources]' => sub {
@@ -269,6 +280,26 @@ subtest '[find_deployment_id] Infinite loop check' => sub {
     $mock_function->redefine(get_current_job_id => sub { return '5'; });
 
     dies_ok { find_deployment_id() } 'Detect infinite loop';
+};
+
+subtest '[destroy_orphaned_peerings]' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock_function->redefine(az_network_peering_delete => sub { return; });
+    $mock_function->redefine(az_network_vnet_get => sub { return ['Zabi-VNET']; });
+    $mock_function->redefine(az_group_exists => sub { return 'true' if grep /^existing$/, @_; return 'false' });
+    $mock_function->redefine(az_network_peering_list => sub { return [
+                {"workload_resource_group" => "not_existing", "peering_name" => "Iron_blooded_orphans"},
+                {"workload_resource_group" => "existing", "peering_name" => "EarthFederation"}];
+    });
+
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Karaba');
+    set_var('SDAF_DEPLOYER_VNET_CODE', 'Zabi');
+
+    ok(grep(/Iron_blooded_orphans/, @{destroy_orphaned_peerings()}), 'Delete orphaned peering');
+    ok(!grep(/EarthFederation/, @{destroy_orphaned_peerings()}), 'Do not delete orphaned peering');
+
+    undef_variables;
 };
 
 done_testing();

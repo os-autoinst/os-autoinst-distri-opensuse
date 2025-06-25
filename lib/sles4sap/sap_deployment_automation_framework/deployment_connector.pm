@@ -32,7 +32,7 @@ use utils qw(write_sut_file);
 use Carp qw(croak);
 use Time::Piece;
 use mmapi qw(get_parents get_job_autoinst_vars get_children get_job_info get_current_job_id);
-use sles4sap::azure_cli qw(az_resource_delete az_resource_list az_vm_list);
+use sles4sap::azure_cli;
 use Data::Dumper;
 use Mojo::URL;
 use Mojo::UserAgent;
@@ -45,6 +45,7 @@ our @EXPORT = qw(
   find_deployer_resources
   destroy_deployer_vm
   destroy_orphaned_resources
+  destroy_orphaned_peerings
   no_cleanup_tag
 );
 
@@ -411,6 +412,43 @@ sub destroy_orphaned_resources {
     return unless @orphaned_resources;
     record_info('az destroy', "Following orphaned resources will be destroyed:\n" . join("\n", @orphaned_resources));
     destroy_resources(timeout => $args{timeout}, resource_cleanup_list => \@orphaned_resources);
+}
+
+=head2 destroy_orphaned_peerings
+
+    destroy_orphaned_peerings();
+
+Searches for network peerings in B<Disconnected> state. Destroys a peering if its resource group does not exist anymore.
+Returns B<ARRAYREF> with all peerings deleted.
+
+=cut
+
+sub destroy_orphaned_peerings {
+    my $query = q|[?peeringState=='Disconnected' && tags.| . no_cleanup_tag() .
+      q| == null].{peering_name:name, workload_resource_group:remoteVirtualNetwork.resourceGroup}|;
+    my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
+    my $vnet_name = @{az_network_vnet_get(resource_group => $deployer_resource_group,
+            query => '[?contains(name, \'' . get_required_var('SDAF_DEPLOYER_VNET_CODE') . '\')].name')}[0];
+    # This makes list of peerings in `DISCONNECTED` state
+    my $disconnected_peerings = az_network_peering_list(
+        resource_group => $deployer_resource_group,
+        vnet => $vnet_name,
+        query => $query
+    );
+    my @deleted_peerings;
+
+    for my $peering (@{$disconnected_peerings}) {
+        # Do not delete peering if group it belongs to still exists
+        next if az_group_exists(resource_group => $peering->{workload_resource_group}, quiet => 'yes') eq 'true';
+        az_network_peering_delete(
+            resource_group => $deployer_resource_group,
+            vnet => $vnet_name,
+            name => $peering->{peering_name});
+        push @deleted_peerings, $peering->{peering_name};
+    }
+
+    record_info('Peer clean', "Following orphaned peerings were deleted:\n" . join("\n", @deleted_peerings) . "\n");
+    return (\@deleted_peerings);
 }
 
 =head2 no_cleanup_tag

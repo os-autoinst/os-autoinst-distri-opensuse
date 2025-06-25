@@ -1065,4 +1065,16 @@ subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" argument
     is $result, 'SUper$ecretStuffAnD_even_m0re_secret$tuFF', 'Decode JSON output';
 };
 
+subtest '[az_group_exists] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return; });
+
+    az_group_exists(resource_group => 'Pantalone');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az group exists/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+};
+
 done_testing;
