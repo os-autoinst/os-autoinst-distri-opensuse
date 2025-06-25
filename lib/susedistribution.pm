@@ -485,7 +485,7 @@ sub init_consoles {
     {
         $self->add_console('install-shell', 'tty-console', {tty => is_agama() ? 8 : 2});
         $self->add_console('installation', 'tty-console', {tty =>
-                  check_var('VIDEOMODE', 'text') ? 1 : is_agama() && get_var('AGAMA_DEV') ? 2 : 7});
+                  check_var('VIDEOMODE', 'text') ? 1 : is_agama() ? 2 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
         $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
