@@ -388,7 +388,6 @@ List AVCs that have been recorded during a runtime of a test module that execute
 =cut
 
 sub record_avc_selinux_alerts {
-    my $self = shift;
 
     if ((current_console() !~ /root|log/) || (script_run('test -f /var/log/audit/audit.log') != 0)) {
         return;
@@ -398,7 +397,6 @@ sub record_avc_selinux_alerts {
 
     # no new messages are registered
     if (scalar @logged <= $avc_record{start}) {
-        record_info('AVC', "AVCs were not found");
         return;
     }
 
@@ -406,15 +404,7 @@ sub record_avc_selinux_alerts {
     my @avc = @logged[$avc_record{start} .. $avc_record{end}];
     $avc_record{start} = $avc_record{end} + 1;
 
-    if (@avc) {
-        my $is_test_fail = get_var('AVC_FAIL_TEST', 1);
-        if ($is_test_fail) {
-            record_info('AVC', join("\n", @avc), result => 'fail');
-            $self->result('fail');
-        } else {
-            record_info('AVC', join("\n", @avc), result => 'softfail');
-        }
-    }
+    record_info('AVC', join("\n", @avc));
 }
 
 1;

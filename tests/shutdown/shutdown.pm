@@ -23,10 +23,6 @@ sub test_flags {
     return {fatal => 1};
 }
 
-sub post_run_hook {
-    ;
-}
-
 sub post_fail_hook {
     my ($self) = shift;
     check_bsc1215132();
