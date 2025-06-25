@@ -9,6 +9,7 @@ schedule:
   - virt_autotest/set_config_as_glue
   - '{{uefi_guest_verification}}'
   - '{{sev-es_guest_verification}}'
+  - '{{snapshot}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -22,3 +23,8 @@ conditional_schedule:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
         - virt_autotest/sev_es_guest_verification
+  snapshot:
+    ENABLE_SNAPSHOT:
+      1:
+        - virt_autotest/virsh_internal_snapshot
+        - virt_autotest/virsh_external_snapshot
