@@ -38,12 +38,4 @@ sub containers_factory {
     return $engine;
 }
 
-sub post_fail_hook {
-    shift->SUPER::post_fail_hook;
-}
-
-sub post_run_hook {
-    shift->SUPER::post_run_hook;
-}
-
 1;
