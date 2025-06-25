@@ -76,6 +76,7 @@ sub run
     my $kselftest_git = get_var('KSELFTEST_FROM_GIT', 0);
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
     my @kselftests_suite = split(',', $kselftests_suite);
+    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
 
     if (get_var('KSELFTEST_FROM_GIT')) {
         prepare_kselftests_from_git();
@@ -85,7 +86,7 @@ sub run
             assert_script_run("cd ./tools/testing/selftests/kselftest_install");
             #required by the TAP openQA parser
             assert_script_run("echo t/$i.t .. > $i.tap");
-            assert_script_run("./run_kselftest.sh -c $i >> $i.tap", 7200);
+            assert_script_run("./run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
             parse_extra_log(TAP => "$i.tap");
             assert_script_run("cd -");
         }
@@ -94,7 +95,7 @@ sub run
 
         foreach my $i (@kselftests_suite) {
             assert_script_run("echo t/$i.t .. > $i.tap");
-            assert_script_run("/usr/share/kselftests/run_kselftest.sh -c $i >> $i.tap", 7200);
+            assert_script_run("/usr/share/kselftests/run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
             parse_extra_log(TAP => "$i.tap");
         }
     }
