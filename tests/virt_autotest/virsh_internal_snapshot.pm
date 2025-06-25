@@ -26,8 +26,11 @@ sub run_test {
             next;
         }
         if (script_output("virsh dumpxml $guest | xmlstarlet sel -t -v ///loader/\@type", proceed_on_failure => 1) eq 'pflash') {
-            record_info("Skip internal snapshot on $guest", "VM with pflash based firmware are not supported to make internal snapshots.");
-            next;
+            if (script_output("virsh dumpxml $guest | xmlstarlet sel -t -v ///nvram/\@format", proceed_on_failure => 1) ne 'qcow2') {
+                # See claim in https://bugzilla.suse.com/show_bug.cgi?id=1244488#c14
+                record_info("Skip internal snapshot on $guest", "VM with pflash type firmware requires qcow2 based nvram to support internal snapshots.");
+                next;
+            }
         }
 
         my $type = check_guest_disk_type($guest);
