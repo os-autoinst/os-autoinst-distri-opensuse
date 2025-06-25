@@ -207,8 +207,13 @@ sub bats_setup {
 
     push @commands, "### RUN AS root";
 
-    foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
-        run_command "zypper addrepo $repo";
+    if (get_var("BATS_TEST_REPOS", "")) {
+        run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
+        run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+
+        foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
+            run_command "zypper addrepo $repo";
+        }
     }
 
     foreach my $pkg (split(/\s+/, get_var("BATS_TEST_PACKAGES", ""))) {
