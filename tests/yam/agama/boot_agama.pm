@@ -31,8 +31,9 @@ sub set_agama_version {
     my $info_file = script_output("cat /var/log/build/info");
     if ($info_file =~ /^Image.version:\s+(?<major_version>\d+)\./m) {
         set_var("AGAMA_VERSION", $+{'major_version'});
-        record_info('AGAMA_VERSION', $+{'major_version'});
+        record_info('AGAMAVERSION', $+{'major_version'});
     }
+    select_console 'installation';
 }
 
 sub prepare_boot_params {
