@@ -46,6 +46,7 @@ our @EXPORT = qw(
   set_nic_dhcp_auto
   all_nics_have_ip
   reload_connections_until_all_ips_assigned
+  setup_dhcp_server_network
 );
 
 =head2 setup_static_network
@@ -480,6 +481,52 @@ sub reload_connections_until_all_ips_assigned {
         if ($elapsed_time >= $args{timeout}) {
             die "Failed to obtain IPs for all interfaces within $args{timeout} seconds";
         }
+    }
+}
+
+sub setup_dhcp_server_network {
+    my (%args) = @_;
+
+    my $server_ip = $args{server_ip} // '10.0.2.101';
+    my $subnet = $args{subnet} // '/24';
+    my $gateway = $args{gateway} // '10.0.2.2';
+    my @nics = @{$args{nics}};
+
+    my $nic0 = $nics[0];
+
+    record_info("SETUP_SERVER_NETWORK");
+
+    # Bring down all non-loopback interfaces except the first one
+    foreach my $nic (@nics[1 .. $#nics]) {
+        record_info("Non-loopback interface $nic detected, bringing it down...");
+        assert_script_run("ip link set $nic down");
+    }
+
+    delete_all_existing_connections();
+
+    my $netmask = cidr_to_netmask($subnet);
+
+    if (is_nm_used()) {
+        assert_script_run "nmcli con add type ethernet ifname $nic0 con-name $nic0";
+        assert_script_run "nmcli con modify $nic0 ipv4.addresses ${server_ip}${subnet} ipv4.gateway $gateway ipv4.routes '0.0.0.0/0 $gateway' ipv4.method manual";
+        assert_script_run "nmcli con modify $nic0 connection.autoconnect yes";
+        assert_script_run "nmcli con up $nic0";
+    }
+
+    if (is_wicked_used()) {
+        my $ifcfg_file = "/etc/sysconfig/network/ifcfg-$nic0";
+        my $route_file = "/etc/sysconfig/network/ifroute-$nic0";
+
+        assert_script_run "echo 'BOOTPROTO=static' > $ifcfg_file";
+        assert_script_run "echo 'STARTMODE=auto' >> $ifcfg_file";
+        assert_script_run "echo 'IPADDR=$server_ip' >> $ifcfg_file";
+        assert_script_run "echo 'GATEWAY=$gateway' >> $ifcfg_file";
+        assert_script_run "echo 'NETMASK=$netmask' >> $ifcfg_file";
+
+        script_run "rm -f $route_file";
+        assert_script_run "echo 'default $gateway dev $nic0' > $route_file";
+
+        systemctl 'restart wicked';
     }
 }
 
