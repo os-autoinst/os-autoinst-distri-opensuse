@@ -49,12 +49,6 @@ sub run {
 
     prepare_blktests_config($devices);
 
-    #temp override of $tests and $devices
-    if (is_sle(">=16")) {
-        $tests = 'scsi,dm,loop';
-        #$devices = '/dev/sdb';
-    }
-
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
