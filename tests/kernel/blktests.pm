@@ -60,6 +60,10 @@ sub run {
     script_run('chmod +x post_process');
     script_run('./post_process');
 
+    record_info('results', script_output('ls ./results'));
+    script_run('tar -zcvf results.tar.gz results');
+    upload_logs('results.tar.gz');
+
     if ($devices ne 'none') {
         my @all_dev = split(' ', $devices);
         foreach my $i (@all_dev) {
@@ -70,9 +74,6 @@ sub run {
 
     parse_extra_log('XUnit', 'nodev_results.xml');
     #parse_extra_log('XUnit', 'nullb0_results.xml');
-
-    script_run('tar -zcvf results.tar.gz results');
-    upload_logs('results.tar.gz');
 }
 
 sub test_flags {
