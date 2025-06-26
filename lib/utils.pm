@@ -84,6 +84,8 @@ our @EXPORT = qw(
   exec_and_insert_password
   shorten_url
   reconnect_mgmt_console
+  check_nm_connectivity
+  restart_network
   set_hostname
   show_tasks_in_blocked_state
   show_oom_info
@@ -1160,6 +1162,77 @@ sub print_ip_info {
     script_run('ip neigh');
 }
 
+=head2 check_nm_connectivity
+
+  check_nm_connectivity();
+
+helper function to check NetworkManager connectivity
+
+=cut
+
+sub check_nm_connectivity {
+    my $attempts = shift // 5;
+    my $state;
+
+    for (my $i = 0; $i < $attempts; $i++) {
+        $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
+        last if $state =~ /full/;
+        sleep 1;
+    }
+    return $state;
+}
+
+=head2 restart_network
+
+  restart_network();
+
+helper function to restart network
+
+=cut
+
+sub restart_network {
+    if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
+        my $state = check_nm_connectivity(1);
+
+        if (!($state =~ /full/)) {
+            systemctl('restart NetworkManager');
+        }
+
+        if ($state =~ /full/) {
+            my @devs = split("\n", script_output('nmcli device'));
+
+            foreach my $indx (keys @devs) {
+                my $line = $devs[$indx];
+
+                if (!($line =~ /^([a-z0-9_-]+)/i)) {
+                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
+                    next;
+                }
+                my $dev = $1;
+
+                next if ($indx == 0 && $dev eq 'DEVICE');
+                next if ($dev eq 'lo');
+
+                # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
+                # Try to connect if interface status is disconnected.
+                script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
+
+                next if !($line =~ /\bconnected\b/);
+
+                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+                script_run("nmcli general logging level DEBUG");
+                assert_script_run("nmcli -w 120 device disconnect $dev");
+                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
+                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
+                assert_script_run 'nmcli device connect ' . $dev;
+            }
+        }
+        check_nm_connectivity();
+    } else {
+        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+    }
+}
+
 =head2 set_hostname
 
  set_hostname($hostname);
@@ -1185,54 +1258,7 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
 
-    if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        my $state = script_output 'nmcli networking connectivity check', proceed_on_failure => 1;
-
-        if (!($state =~ /full/)) {
-            systemctl('restart NetworkManager');
-
-            for (my $i = 0; $i < 10; $i++) {
-                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
-                last if $state =~ /full/;
-                sleep 1;
-            }
-        }
-
-        if ($state =~ /full/) {
-            my @devs = split("\n", script_output('nmcli device'));
-
-            foreach my $indx (keys @devs) {
-                my $line = $devs[$indx];
-
-                if (!($line =~ /^([a-z0-9_-]+)/i)) {
-                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
-                    next;
-                }
-                my $dev = $1;
-
-                next if ($indx == 0 && $dev eq 'DEVICE');
-                next if ($dev eq 'lo');
-                next if !($line =~ /connected/);
-
-                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
-                script_run("nmcli general logging level DEBUG");
-                assert_script_run("nmcli -w 120 device disconnect $dev");
-                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
-                assert_script_run 'nmcli device connect ' . $dev;
-            }
-
-            for (my $i = 0; $i < 5; $i++) {
-                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
-
-                last if $state =~ /full/;
-
-                sleep 1;
-            }
-        }
-    } else {
-        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-    }
+    restart_network();
 
     print_ip_info;
     script_run("dig +short $hostname.openqa.test");
