@@ -49,6 +49,8 @@
       <li><a href="#is_bridged_networking">is_bridged_networking</a></li>
       <li><a href="#set_bridged_networking">set_bridged_networking</a></li>
       <li><a href="#print_ip_info">print_ip_info</a></li>
+      <li><a href="#check_nm_connectivity">check_nm_connectivity</a></li>
+      <li><a href="#restart_network">restart_network</a></li>
       <li><a href="#set_hostname">set_hostname</a></li>
       <li><a href="#assert_and_click_until_screen_change">assert_and_click_until_screen_change</a></li>
       <li><a href="#handle_livecd_reboot_failure">handle_livecd_reboot_failure</a></li>
@@ -389,6 +391,18 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <pre><code>print_ip_info();</code></pre>
 
 <p>Print the interface addresses, routes and adjacent network nodes (that have been seen). Especially useful for multi-machine test debugging.</p>
+
+<h2 id="check_nm_connectivity">check_nm_connectivity</h2>
+
+<pre><code>check_nm_connectivity();</code></pre>
+
+<p>helper function to check NetworkManager connectivity</p>
+
+<h2 id="restart_network">restart_network</h2>
+
+<pre><code>restart_network();</code></pre>
+
+<p>helper function to restart network</p>
 
 <h2 id="set_hostname">set_hostname</h2>
 
