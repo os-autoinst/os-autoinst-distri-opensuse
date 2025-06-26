@@ -23,6 +23,7 @@
       <li><a href="#destroy_resources">destroy_resources</a></li>
       <li><a href="#destroy_deployer_vm">destroy_deployer_vm</a></li>
       <li><a href="#destroy_orphaned_deployers">destroy_orphaned_deployers</a></li>
+      <li><a href="#destroy_orphaned_peerings">destroy_orphaned_peerings</a></li>
       <li><a href="#no_cleanup_tag">no_cleanup_tag</a></li>
     </ul>
   </li>
@@ -178,6 +179,12 @@
 
 </li>
 </ul>
+
+<h2 id="destroy_orphaned_peerings">destroy_orphaned_peerings</h2>
+
+<pre><code>destroy_orphaned_peerings();</code></pre>
+
+<p>Searches for network peerings in <b>Disconnected</b> state. Destroys a peering if its resource group does not exist anymore. Returns <b>ARRAYREF</b> with all peerings deleted.</p>
 
 <h2 id="no_cleanup_tag">no_cleanup_tag</h2>
 

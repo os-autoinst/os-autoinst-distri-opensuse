@@ -64,6 +64,7 @@
       <li><a href="#az_keyvault_list">az_keyvault_list</a></li>
       <li><a href="#az_keyvault_secret_list">az_keyvault_secret_list</a></li>
       <li><a href="#az_keyvault_secret_show">az_keyvault_secret_show</a></li>
+      <li><a href="#az_group_exists">az_group_exists</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -1308,6 +1309,24 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 </dd>
 <dt id="save_to_file-Save-output-to-a-file-specified.-This-can-be-used-to-prevent-the-secret-being-shown-in-OpenQA-outputs.-Default:-undefined-false"><b>save_to_file</b> Save output to a file specified. This can be used to prevent the secret being shown in OpenQA outputs. Default: undefined/false</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_group_exists">az_group_exists</h2>
+
+<pre><code>az_group_exists(resource_group=&gt;&#39;resource group name&#39; [, quiet=&gt;&#39;pssst!&#39;]);</code></pre>
+
+<p>Check if specified resource group exists. Returns <b>true</b> or <b>false</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="quiet-Turn-off-verbosity-if-defined"><b>quiet</b> Turn off verbosity if defined</dt>
 <dd>
 
 </dd>
