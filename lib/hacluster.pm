@@ -1098,7 +1098,6 @@ sub pre_run_hook {
 sub post_run_hook {
     my ($self) = @_;
 
-    record_avc_selinux_alerts() if is_sle('16+');
     return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     if ($prev_console eq 'x11') {
