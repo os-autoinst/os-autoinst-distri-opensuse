@@ -69,9 +69,6 @@ sub run {
     foreach my $file (split /\n/, $output) {
         parse_extra_log('XUnit', $file);
     }
-
-    #parse_extra_log('XUnit', 'nodev_results.xml');
-    #parse_extra_log('XUnit', 'nullb0_results.xml');
 }
 
 sub test_flags {
