@@ -800,7 +800,13 @@ elsif (get_var('XFSTESTS')) {
     if (get_var('KOTD_REPO')) {
         loadtest 'kernel/update_kernel';
     }
-    prepare_target;
+    if (check_var('ARCH', 'ppc64le') && check_var('BACKEND', 'qemu')) {
+        loadtest "installation/bootloader_start";
+        loadtest "boot/boot_to_desktop";
+    }
+    else {
+        prepare_target;
+    }
     if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || (is_sle('<16') && (is_pvm || check_var('ARCH', 's390x')))) {
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {

@@ -14,6 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     select_serial_terminal;
@@ -22,12 +23,16 @@ sub run {
     # and then start the TPM2 Access Broker & Resource Manager
     quit_packagekit;
     zypper_call("in expect ibmswtpm2 tpm2.0-abrmd tpm2.0-abrmd-devel openssl tpm2-0-tss tpm2-tss-engine tpm2.0-tools");
+    if (is_sle('=15-SP6') && is_aarch64) {
+        record_soft_failure('bsc#1244639 - Force-reinstalling tpm2-0-tss on 15-SP6 aarch64.');
+        zypper_call('in -f tpm2-0-tss');
+    }
+
     zypper_call("in tpm2-openssl") unless is_sle('<15-SP6');
 
     # Add user tss, tss is the default user to start tpm2.0 service
     # However, a daemon user may be created as well during tss related
     # packages installation, we can re-use it then with some changes.
-
     my $tss_user = "tss";
     my $tss_home = script_output("cat /etc/passwd | grep $tss_user | cut -d : -f6");
 

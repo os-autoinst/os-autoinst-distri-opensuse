@@ -2,6 +2,9 @@
 
 set -xe
 
+# Disable Grub timeout
+grub2-editenv /boot/grubenv set timeout=-1
+
 # Setting root passwd
 echo "%TEST_PASSWORD%" | passwd root --stdin
 

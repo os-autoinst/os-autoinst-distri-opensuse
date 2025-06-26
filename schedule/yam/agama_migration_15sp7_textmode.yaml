@@ -1,0 +1,13 @@
+---
+name: agama_migration_15sp7_textmode.yaml
+description: >
+  Migration from SLES 15 SP7 equivalent to system role textmode.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - console/hostname

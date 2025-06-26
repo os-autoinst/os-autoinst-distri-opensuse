@@ -17,7 +17,12 @@ sub run {
       expand_agama_profile($profile);
 
     select_console 'install-shell';
-    assert_script_run("agama profile import $profile_url", timeout => 300);
+
+    # Workaround to import profile in each Agama version
+    my $command = script_run('agama config load --help | grep URL_OR_PATH') == '0' ?
+      "agama config load $profile_url" : "agama profile import $profile_url";
+
+    assert_script_run($command, timeout => 300);
 }
 
 1;

@@ -124,6 +124,7 @@ K3S_ENABLE_HELM_CONTROLLER | boolean | | During K3s installation, should Helm Co
 KERNEL_FLAVOR | string | kernel-default | Set specific kernel flavor for test scenarios
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
+KUBERNETES_VERSIONS | string | | List of Kubernetes versions to install.
 KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snapshots support, e.g. ipmi, powerVM, zVM
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.
@@ -348,7 +349,6 @@ PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be
 PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
-PUBLIC_CLOUD_FIO | boolean | false | If set, storage_perf test module is added to the job.
 PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
 PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest

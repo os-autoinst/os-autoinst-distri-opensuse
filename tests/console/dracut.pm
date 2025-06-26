@@ -23,7 +23,7 @@ sub run {
 
     validate_script_output("lsinitrd", sub { m/Image:(.*\n)+( ?)Version: dracut(-|\d+|\.|\+|\w+)+(\n( ?))+( ?)Arguments(.*\n)+( ?)dracut modules:(\w+|-|\d+|\n|( ?))+\=+\n(l|d|r|w|x|-|( ?))+\s+\d+ root\s+root(.*\n)+( ?)\=+/ });
     assert_script_run("dracut -f", 180);
-    validate_script_output("dracut --list-modules 2>&1", sub { m/.*Executing: \/usr\/bin\/dracut --list-modules\n(\w+|\n|-|d+)+/ });
+    validate_script_output("dracut --list-modules", sub { m/systemd/ });
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 200);

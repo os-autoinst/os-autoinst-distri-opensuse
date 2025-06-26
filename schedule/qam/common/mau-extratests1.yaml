@@ -9,6 +9,7 @@ schedule:
   - console/check_os_release
   - console/ping
   - console/arping
+  - console/wireshark_cli
   - console/man_pages
   - console/openvswitch
   - console/pam
@@ -79,13 +80,6 @@ conditional_schedule:
         - console/golang
         - console/redis
         - '{{arch_specific}}'
-      15-SP1:
-        - console/openssl_nodejs
-        - console/golang
-        - '{{arch_specific}}'
-      15:
-        - console/openssl_nodejs
-        - '{{arch_specific}}'
       12-SP5:
         - console/openssl_nodejs
         - '{{arch_specific}}'
@@ -118,9 +112,3 @@ conditional_schedule:
       15-SP2:
         - console/firewalld
         - console/lshw
-      15-SP1:
-        - console/firewalld
-        - console/lshw
-      15:
-        - console/lshw
-        - console/firewalld

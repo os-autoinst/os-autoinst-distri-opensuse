@@ -29,7 +29,7 @@ sub prepare_boot_params {
     my @params = ();
 
     # add mandatory boot params
-    push @params, 'console=tty' . (is_x86_64 ? 'S0' : 'AMA0'), 'console=tty';
+    push @params, 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0')), 'console=tty';
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
@@ -47,13 +47,16 @@ sub prepare_boot_params {
         set_var('INST_AUTO', $profile_url);
         push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
     }
-    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') eq 'Online';
+    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') =~ 'Online';
 
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
 
     # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
     push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
+
+    # additional parameters requiring parsing
+    push @params, 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
 
     return @params;
 }

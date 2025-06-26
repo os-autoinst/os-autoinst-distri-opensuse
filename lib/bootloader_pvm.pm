@@ -137,6 +137,7 @@ sub enter_netboot_parameters {
         type_string_slow " " . get_var('EXTRABOOTPARAMS') . " " if (get_var('EXTRABOOTPARAMS'));
         # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
         type_string_slow " " . get_var('AGAMA_NETWORK_PARAMS') . " " if (get_var('AGAMA_NETWORK_PARAMS'));
+        type_string_slow " " . 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";

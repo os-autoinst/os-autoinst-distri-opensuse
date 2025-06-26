@@ -605,7 +605,7 @@ sub load_jeos_openstack_tests {
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
-    loadtest "jeos/grub2_gfxmode";
+    loadtest "jeos/host_config";
     loadtest "jeos/build_key";
     loadtest "console/prjconf_excluded_rpms";
     unless (get_var('CI_VERIFICATION')) {
@@ -647,7 +647,7 @@ sub load_jeos_tests {
     loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
     # this test case also disables grub timeout
-    loadtest "jeos/grub2_gfxmode" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
+    loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
         # jeos/diskusage as of now works only with BTRFS
         loadtest "jeos/diskusage" if get_var('FILESYSTEM', 'btrfs') =~ /btrfs/;

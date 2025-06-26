@@ -13,8 +13,10 @@ conditional_schedule:
     ROLE:
       nfs_server:
         - kernel/nfs_server
+        - kernel/kdump_over_nfs
       nfs_client:
         - kernel/nfs_client
+        - kernel/kdump_over_nfs
     VERSION:
       Tumbleweed:
         - kernel/nfs_stress_ng

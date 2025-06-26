@@ -158,7 +158,7 @@ sub run {
         qdevice_status('split-brain-check');
         # Resource must be running in this node
         my $node_01 = choose_node(1);
-        ensure_resource_running("promotable-1", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running('promotable-1', ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
     }
 
     barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");

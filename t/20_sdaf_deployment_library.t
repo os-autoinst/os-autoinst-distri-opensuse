@@ -11,12 +11,12 @@ use Data::Dumper;
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment;
 
-
 sub undef_variables {
     my @openqa_variables = qw(
       _SECRET_AZURE_SDAF_APP_ID
       _SECRET_AZURE_SDAF_APP_PASSWORD
       _SECRET_AZURE_SDAF_TENANT_ID
+      PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
       SDAF_GIT_AUTOMATION_REPO
       SDAF_GIT_TEMPLATES_REPO
       SDAF_DEPLOYMENT_ID
@@ -167,25 +167,46 @@ subtest '[set_common_sdaf_os_env]' => sub {
     }
 };
 
-subtest '[az_login]' => sub {
+subtest '[az_login] Get credentials from server' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    set_var('_SECRET_AZURE_SDAF_APP_ID', 'some-id');
-    set_var('_SECRET_AZURE_SDAF_APP_PASSWORD', '$0me_paSSw0rdt');
-    set_var('_SECRET_AZURE_SDAF_TENANT_ID', 'some-tenant-id');
+    my $env_variable_file_content;
+    my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
+
+    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(get_credentials => sub { return \%credentrials; });
+    $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
+    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(script_output => sub { return 'Brambora'; });
+
+    az_login();
+    ok($env_variable_file_content =~ /export ARM_SUBSCRIPTION_ID=Batata/, 'File contains subscription id');
+    ok($env_variable_file_content =~ /export ARM_CLIENT_SECRET=Patata/, 'File contains client secret');
+    ok($env_variable_file_content =~ /export ARM_TENANT_ID=Zemiak/, 'File contains tenant id');
+    ok($env_variable_file_content =~ /export ARM_CLIENT_ID=Potato/, 'File contains client id');
+};
+
+subtest '[az_login] Get credentials from OpenQA settings' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    set_var('_SECRET_AZURE_SDAF_APP_ID', 'Potato');
+    set_var('_SECRET_AZURE_SDAF_APP_PASSWORD', 'Patata');
+    set_var('_SECRET_AZURE_SDAF_TENANT_ID', 'Zemiak');
+    set_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID', 'Peruna');
 
     my $env_variable_file_content;
-
     $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(script_output => sub { return 'some-subscription-id'; });
+    $ms_sdaf->redefine(script_output => sub { return 'Brambora'; });
 
     az_login();
-    is $env_variable_file_content,
-      join("\n", 'export ARM_CLIENT_ID=some-id', 'export ARM_CLIENT_SECRET=$0me_paSSw0rdt', 'export ARM_TENANT_ID=some-tenant-id'),
-      'Create temporary file correctly';
-    undef_variables();
+    ok($env_variable_file_content =~ /export ARM_SUBSCRIPTION_ID=Peruna/, 'File contains subscription id');
+    ok($env_variable_file_content =~ /export ARM_CLIENT_SECRET=Patata/, 'File contains client secret');
+    ok($env_variable_file_content =~ /export ARM_TENANT_ID=Zemiak/, 'File contains tenant id');
+    ok($env_variable_file_content =~ /export ARM_CLIENT_ID=Potato/, 'File contains client id');
+
+    undef_variables;
 };
+
 
 subtest '[sdaf_cleanup] Test correct usage' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
@@ -257,6 +278,7 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
 subtest '[sdaf_execute_deployment] Test expected failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(export_credentials => sub { return 'S3cret'; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { return 1; });
     $ms_sdaf->redefine(upload_logs => sub { return 1; });
@@ -280,6 +302,7 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     my $sdaf_command_no_log;
 
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
+    $ms_sdaf->redefine(export_credentials => sub { return 'S3cret'; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { return 0; });
     $ms_sdaf->redefine(upload_logs => sub { return 0; });
@@ -324,6 +347,7 @@ subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
     $ms_sdaf->redefine(assert_script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { return 1; });
     $ms_sdaf->redefine(upload_logs => sub { return 0; });
+    $ms_sdaf->redefine(export_credentials => sub { return; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
     $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
@@ -582,13 +606,34 @@ subtest '[get_fencing_mechanism] Mandatory Settings' => sub {
     dies_ok { get_fencing_mechanism() } 'Croak with "SDAF_FENCING_MECHANISM" not being set';
 };
 
-
 subtest '[get_fencing_mechanism] Unsupported values' => sub {
     for my $bad_value ('msii', 'amsi', 'iscsi', 'sbdf', '', ' ') {
         set_var('SDAF_FENCING_MECHANISM', $bad_value);
         dies_ok { get_fencing_mechanism() } "Croak with unsupported 'SDAF_FENCING_MECHANISM' value: '$bad_value'";
         set_var('SDAF_FENCING_MECHANISM', undef);
     }
+};
+
+subtest '[sdaf_upload_logs]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %arguments = (
+        hostname => 'QAS-hostname',
+        sap_sid => 'QAS'
+    );
+
+    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { return; });
+    $ms_sdaf->redefine(script_output => sub { return 'log_file'; });
+    $ms_sdaf->redefine(upload_logs => sub { return; });
+
+    my $basetest = Test::MockModule->new('basetest');
+    $autotest::current_test = new basetest;
+
+    set_var('SUPPORTCONGFIG', undef);
+    ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
+
+    set_var('SUPPORTCONGFIG', '1');
+    ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 };
 
 done_testing;

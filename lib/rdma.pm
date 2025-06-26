@@ -38,6 +38,7 @@ sub install_rdma_dependency {
       librdmacm-utils
       infiniband-diags
       libibverbs-utils
+      kernel-default-extra
     );
     my $packages = join(' ', @deps);
     script_run('zypper --gpg-auto-import-keys ref');

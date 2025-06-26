@@ -29,6 +29,7 @@ sub run {
     my $sap_sid = $nw_install_data->{instance_sid};
     my $sap_dir = $nw_install_data->{sap_directory};
 
+    my $mutex = 'nfs_server_ready';
     if (check_var('SUPPORT_SERVER', '1')) {
         # The supportserver will host the NFS server and the nodes will use it as clients
         my ($cluster_name, $num_nodes) = (get_cluster_info()->{cluster_name}, get_cluster_info()->{num_nodes});
@@ -36,7 +37,6 @@ sub run {
         # NFS Server config
         systemctl('stop nfs-server');
         systemctl('start rpcbind');
-        mutex_lock('support_server_ready');
         my $nfs_permissions = get_required_var('NFS_PERMISSIONS');
         record_info('NFS prep', 'Preparing SAP related exports');
         assert_script_run("mkdir -p $nfs_root/$sap_sid/{$create_directories}");
@@ -45,10 +45,12 @@ sub run {
         systemctl('restart nfs-server');
         systemctl('restart rpcbind');
         systemctl('is-active nfs-server -a rpcbind');
+        mutex_create($mutex);
 
     } else {
         # On the node side, wait for the supportserver to set the NFS server up,
         # add then mount the NFS on the client nodes.
+        mutex_wait($mutex);
         record_info('NFS mounts', 'Preparing shared NFS filesystems');
         assert_script_run("mkdir -p /sapmnt $sap_dir/{$create_directories}");
         assert_script_run("echo 'ns:$nfs_root/$sap_sid/sapmnt /sapmnt nfs defaults 0 0' >> /etc/fstab");

@@ -3,7 +3,7 @@ description: >
     This is for EAL4 tests
 schedule:
     - installation/bootloader_start
-    - boot/boot_to_desktop
+    - security/boot_disk
     - security/eal4/setup_eal4_env
     - '{{disable_root_ssh}}'
     - security/eal4/accessible_network_interface

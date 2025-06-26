@@ -256,6 +256,7 @@ sub determine_crash_memory {
 
 # Activate kdump using command line tools
 sub activate_kdump_cli {
+    set_kdump_config('KDUMP_SAVEDIR', get_var('KDUMP_SAVEDIR')) if get_var('KDUMP_SAVEDIR');
     if (is_sle('16+')) {
         # Enable fadump in configuration file if requested
         set_kdump_config("KDUMP_FADUMP", "true") if get_var('FADUMP');
@@ -565,9 +566,10 @@ Value for the configuration option.
 
 sub set_kdump_config {
     my ($option, $value) = @_;
+    my $escaped_value = quotemeta($value);
 
     record_info("SET CONFIG", "$option=\"$value\"");
-    my $command = "sed -i 's/^$option=.*/$option=\"$value\"/' /etc/sysconfig/kdump";
+    my $command = "sed -i 's/^$option=.*/$option=\"$escaped_value\"/' /etc/sysconfig/kdump";
 
     assert_script_run($command);
 }

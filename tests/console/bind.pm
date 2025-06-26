@@ -101,15 +101,17 @@ sub run {
         for (1 .. 3) {
             eval {
                 if (package_version_cmp($bind_version, '9.18.33') <= 0) {
-                    assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' /tmp/test-suite.txt; echo $TFAIL)';
+                    assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
+                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
                 }
                 elsif (package_version_cmp($bind_version, '9.20.9') < 0) {
-                    assert_script_run 'TFAIL=$(awk \'/^FAIL:/ {print$2}\' /tmp/test-suite.txt; echo $TFAIL)';
+                    assert_script_run 'TFAIL=$(awk \'/^FAIL:/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
+                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
                 }
                 else {
-                    assert_script_run 'TFAIL=$(awk \'/^FAILED/ {print$2}\' /tmp/test-suite.txt; echo $TFAIL)';
+                    assert_script_run 'TFAIL=$(awk \'/^FAILED/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
+                    assert_script_run "for t in \$TFAIL; do $bind_cmd \$t; done", 2000;
                 }
-                assert_script_run "for t in \$TFAIL; do $bind_cmd \$t; done", 2000;
             };
             last unless ($@);
             record_info "Retry $_", "Failed bind test retry: $_ of 3";

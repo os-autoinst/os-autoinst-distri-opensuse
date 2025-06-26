@@ -27,7 +27,7 @@
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>http://openqa.suse.de/assets/hdd/SLES16-Minimal-VM.x86_64-kvm-and-xen-Build12345.qcow2</guest_installation_media>
-    <guest_os_variant>sle15sp7</guest_os_variant>
+    <guest_os_variant>sles16</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>

@@ -12,6 +12,6 @@ ok system(qq{git grep -I -l '[#/ ]*SPDX-License-Identifier ' ':!t/01_style.t'}) 
 $out = qx{git grep -ne "check_var('ARCH',.*)" -e "check_var('BACKEND',.*)" ':!lib/Utils/Architectures.pm' ':!lib/Utils/Backends.pm' 'lib' 'tests'};
 ok $? != 0 && $out eq '', 'No check_var function to verify ARCH/BACKEND types' or diag $out;
 ok system(qq{git grep -I -l \\( -e "egrep" -e "fgrep" \\) ':!t/01_style.t' ':!CONTRIBUTING.md'}) != 0, 'No usage of the deprecated egrep and fgrep commands';
-$out = qx{git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs egrep -L '(luks|encryption).*password.*nots3cr3t'};
+$out = qx{git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs grep -E -L '(luks|encryption).*password.*nots3cr3t'};
 ok $? != 0 && $out eq '', 'No plain password on data directory' or diag $out;
 done_testing;

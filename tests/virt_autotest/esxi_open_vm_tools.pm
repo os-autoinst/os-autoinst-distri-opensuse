@@ -16,6 +16,7 @@ use virt_autotest::esxi_utils;
 use Time::Local;
 use Utils::Backends qw(is_qemu is_svirt);
 use version_utils qw(is_sle);
+use package_utils 'install_package';
 
 my $ssh_vm;
 my $scp_vm;
@@ -136,8 +137,11 @@ sub do_networking_tests {
 
     # Check if guest is booted and ssh service is started, not needed for sle-micro
     if (check_var('DISTRI', 'sle')) {
-        die "SSH is not reacheble" if (script_retry("nmap $vm_ip -PN -p ssh | grep open", delay => 10, retry => 12, timeout => 360) != 0);
+        # If nmap is not installed, install it
+        install_package('nmap') if (script_run('command -v nmap'));
+        die "SSH is not reachable" if (script_retry("nmap $vm_ip -PN -p ssh | grep open", delay => 10, retry => 12, timeout => 360) != 0);
     }
+
     if (is_sle('15+')) {
         assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $openqa_url);
         assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $external_url);

@@ -45,6 +45,15 @@ sub run {
     while (my ($query, $output) = each %records) {
         my $dig = script_output("dig \@127.0.0.1 $query");
         if ($dig !~ m/$output/) {
+            # retry when query failed
+            my $count = 1;
+            if ($dig =~ m/status: SERVFAIL/) {
+                die "query: $query returned status: SERVFAIL after ${count}th attempt" if $count > 19;
+                $count++;
+                record_info("Retry $count", 'Do query again due to status: SERVFAIL');
+                sleep 2;
+                redo;
+            }
             die "expected output not foud. query: $query, expected match: $output";
         }
     }

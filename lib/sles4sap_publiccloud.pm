@@ -999,7 +999,6 @@ sub create_playbook_section_list {
             "-e sas_token='$args{ptf_token}'",
             "-e container=$args{ptf_container}",
             "-e storage=$args{ptf_account}");
-        push @playbook_list, 'additional_fence_agent_tasks.yaml';
     }
 
     my $hana_cluster_playbook = 'sap-hana-cluster.yaml';

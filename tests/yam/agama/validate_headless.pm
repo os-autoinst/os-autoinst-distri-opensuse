@@ -11,7 +11,7 @@ use testapi qw(assert_script_run select_console);
 use utils qw(systemctl);
 
 sub run {
-    select_console 'root-console';
+    select_console 'install-shell';
 
     # verify we are not in graphic target.
     systemctl('is-active graphical.target', expect_false => 1);

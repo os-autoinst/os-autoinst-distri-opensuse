@@ -24,6 +24,12 @@ use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_transactional is_sle_micro);
 
+sub is_older_product {
+    return 1 if is_sle('<16');
+    return 1 if is_sle_micro('<6.2');
+    return 0;    # default for Tumbleweed and newer SLE Micro
+}
+
 sub run {
     select_serial_terminal;
 
@@ -54,7 +60,8 @@ sub run {
     validate_script_output("$cmd", sub { m/Unknown mac type|no matching MAC found/ }, proceed_on_failure => 1);
 
     # Verify ssh doesn't support DSA public key in fips mode
-    my $message = is_sle('>=16') ? "unknown key type dsa" : "Key type dsa not alowed in FIPS mode";
+    # exact message depends on the product version
+    my $message = is_older_product ? "Key type dsa not alowed in FIPS mode" : "unknown key type dsa";
     validate_script_output('ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/$message/ }, proceed_on_failure => 1);
 
     # Although there is StrictHostKeyChecking=no option, but the fingerprint

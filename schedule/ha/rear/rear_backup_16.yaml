@@ -1,0 +1,23 @@
+---
+name: rear_backup
+description: >
+  Generate backup files for ReaR tests for SLES 16.
+vars:
+  DESKTOP: 'textmode'
+  INSTALLONLY: '1'
+  SCC_ADDONS: 'ha'
+  SCC_REGISTER: 'installation'
+  SYSTEM_ROLE: 'textmode'
+  HOSTNAME: 'reartest'
+  AGAMA_PRODUCT_ID: SLES
+  INST_AUTO: ha/agama/sles_ha_default.jsonnet
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - boot/boot_to_desktop
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/consoletest_setup
+  - ha/rear_backup
+  - console/scc_deregistration

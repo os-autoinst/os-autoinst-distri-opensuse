@@ -17,7 +17,16 @@ sub run {
     x11_start_program('xterm');
     become_root;
     script_run('virt-install --name TESTING --osinfo detect=on,require=off --memory 512 --disk none --boot cdrom --graphics vnc &', 0);
-    wait_still_screen(15);
+    save_screenshot;
+    # Choose either of the two options to turn off the pop up
+    if (check_screen('allow-inhibiting-shortcuts', 10)) {
+        send_key('left');
+        send_key('ret');
+    }
+    wait_still_screen;
+    # Close or at least deactivate the current window in case it would cover vncviewer later
+    send_key 'alt-f4';
+    wait_still_screen;
     x11_start_program('vncviewer :0', target_match => 'virtman-gnome_virt-install', match_timeout => 100);
     # closing all windows
     send_key 'alt-f4' for (0 .. 2);

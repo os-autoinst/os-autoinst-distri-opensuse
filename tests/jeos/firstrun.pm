@@ -132,8 +132,8 @@ sub verify_partition_label {
 
 sub verify_selinux {
     if (has_selinux_by_default) {
-        # SELinux is default, should be enabled
-        validate_script_output("sestatus", sub { m/SELinux status:.*enabled/ });
+        # SELinux is default, should be enabled and in enforcing mode
+        validate_script_output('sestatus', sub { m/SELinux status: .*enabled/ && m/Current mode: .*enforcing/ }, fail_message => 'SELinux is NOT enabled and set to enforcing');
     } else {
         # SELinux is not default, but might be supported
         my $selinux_supported = script_run("grep -qw selinux /sys/kernel/security/lsm") == 0;
@@ -304,7 +304,7 @@ sub run {
         type_password;
         send_key "ret";
         # Disk encryption is gonna take time
-        assert_screen 're-encrypt-finished', 600 unless is_sle_micro('>=6.2');
+        assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2');
     }
 
     if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {

@@ -6,8 +6,7 @@
 # Package: dovecot postfix openssl
 # Summary: Setup dovecot and postfix servers as backend for evolution
 # - Stop packagekit service
-# - Install dovecot if DOVECOT_REPO is defined or it is sled. Otherwise, install
-#   dovecot and postfix and start the later
+# - Install on SLED dovecot from Server Apllications module else install dovecot and postfix
 # - Configure dovecot enabling ssl and for use of plain login
 # - Enable postix smtp auth in dovecot and generate certificates
 # - Configure postfix enabling tls, smtpd sasl and hostname as localhost
@@ -80,6 +79,8 @@ sub run() {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
 
+    # Provision our own dovecot-openssl.cnf see https://bugzilla.suse.com/show_bug.cgi?id=1244597
+    assert_script_run("cp /etc/dovecot/dovecot-openssl.cnf $dovecot_path") if $dovecot24;
     assert_script_run "(cd $dovecot_path; bash mkcert.sh)";
 
     # configure postfix

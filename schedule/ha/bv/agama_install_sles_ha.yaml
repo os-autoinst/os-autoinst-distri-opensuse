@@ -19,6 +19,7 @@ conditional_schedule:
       qemu:
         - yam/agama/boot_agama
         - yam/agama/agama_auto
+        - boot/boot_to_desktop
       pvm_hmc:
         - installation/bootloader
         - installation/agama_reboot

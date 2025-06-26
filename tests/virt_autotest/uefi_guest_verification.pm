@@ -23,12 +23,17 @@ use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
 use version_utils qw(is_sle is_alp);
+use Utils::Architectures;
 
 sub run_test {
     my $self = shift;
 
     $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
+
+    # No machine type on aarch64 supports power management, or secure boot
+    return $self if (is_aarch64);
+
     if (is_kvm_host) {
         if (is_sle) {
             record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
@@ -36,6 +41,7 @@ sub run_test {
         elsif (is_alp) {
             # The current default uefi firmware in alp kvm container supports secure boot,
             # but does not support PXE/HTTP boot, and pm is not well supported either.
+            # Secure boot is supported with q35 machine type only
             $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
         }
         #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);

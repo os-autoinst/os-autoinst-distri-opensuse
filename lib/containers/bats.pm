@@ -40,6 +40,16 @@ my $test_dir = "/var/tmp/";
 my $package;
 my $settings;
 
+# Subdirectory in repo containing BATS tests
+my %tests_dir = (
+    "aardvark-dns" => "test",
+    buildah => "tests",
+    netavark => "test",
+    podman => "test/system",
+    runc => "tests/integration",
+    skopeo => "systemtest",
+);
+
 my @commands = ();
 
 sub run_command {
@@ -192,14 +202,18 @@ EOF
 
 sub bats_setup {
     my ($self, @pkgs) = @_;
-    my $reboot_needed = 0;
 
     $package = get_required_var("BATS_PACKAGE");
 
     push @commands, "### RUN AS root";
 
-    foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
-        run_command "zypper addrepo $repo";
+    if (get_var("BATS_TEST_REPOS", "")) {
+        run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
+        run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+
+        foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
+            run_command "zypper addrepo $repo";
+        }
     }
 
     foreach my $pkg (split(/\s+/, get_var("BATS_TEST_PACKAGES", ""))) {
@@ -242,19 +256,16 @@ sub bats_setup {
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
         fix_tmp;
-        $reboot_needed = 1;
     }
 
     # Switch to cgroup v2 if not already active
     if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
-        $reboot_needed = 1;
     }
 
-    if ($reboot_needed) {
-        power_action('reboot', textmode => 1);
-        $self->wait_boot();
-    }
+    power_action('reboot', textmode => 1);
+    $self->wait_boot();
+    push @commands, "reboot";
 
     select_serial_terminal;
 
@@ -327,16 +338,6 @@ sub bats_tests {
     $env{PATH} = '/usr/local/bin:$PATH:/usr/sbin:/sbin';
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
-    # Subdirectory in repo containing BATS tests
-    my %tests_dir = (
-        "aardvark-dns" => "test",
-        buildah => "tests",
-        netavark => "test",
-        podman => "test/system",
-        runc => "tests/integration",
-        skopeo => "systemtest",
-    );
-
     my @tests;
     foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
@@ -385,6 +386,8 @@ sub bats_patches {
         @patches = @{$settings->{BATS_PATCHES}};
     }
 
+    # With --include we restrict the patch to the package tests dir
+    my $apply_opts = "-3 --ours --include '$tests_dir{$package}/*'";
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
@@ -394,7 +397,7 @@ sub bats_patches {
         } else {
             run_command "curl $curl_opts -O $url", timeout => 900;
         }
-        run_command "git apply -3 --ours " . basename($url);
+        run_command "git apply $apply_opts " . basename($url);
     }
 }
 

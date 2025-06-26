@@ -41,6 +41,7 @@ sub init {
     $self->{rct_item_ltss} = 'SLES-LTSS';
     $self->{rct_item_live} = 'sle-module-live-patching';
     $self->{rct_item_phub} = 'PackageHub';
+    $self->{rct_item_sysm} = 'sle-module-systems-management';
     return $self;
 }
 

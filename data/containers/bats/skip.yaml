@@ -9,13 +9,13 @@ buildah:
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: sbom
+    BATS_SKIP:
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-16.0:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud run sbom
+    BATS_SKIP: bud run
     BATS_SKIP_ROOT: from
     BATS_SKIP_USER:
   sle-15-SP7:
@@ -97,6 +97,7 @@ podman:
     BATS_PATCHES:
     - 21875
     - 25792
+    - 25942
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
@@ -106,6 +107,7 @@ podman:
     BATS_PATCHES:
     - 21875
     - 25792
+    - 25942
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL:
     BATS_SKIP_ROOT_REMOTE:
