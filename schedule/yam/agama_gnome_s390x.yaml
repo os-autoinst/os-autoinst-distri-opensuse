@@ -4,6 +4,7 @@ description: >
   Perform desktop installation with interactive and unattended for s390x.
 schedule:
   - yam/agama/boot_agama
+  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
