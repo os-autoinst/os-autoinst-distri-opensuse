@@ -21,6 +21,7 @@ use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
+# import here register via scc module from wsl/firstrun
 
 my $user_created = 0;
 
@@ -279,14 +280,16 @@ sub run {
     enter_root_passwd;
 
     # In WSL: Choose SLES or SLED
+    # And register via SCC
     if (check_var('WSL_FIRSTBOOT', 'jeos')) {
         assert_screen 'wsl-sled-or-sles';
         wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
         send_key 'ret';
+        register_via_scc;
     }
 
-    # handle registration notice
-    if (is_sle || is_sle_micro) {
+    # handle registration notice. Not in WSL.
+    if ((is_sle || is_sle_micro) && !check_var('WSL_FIRSTBOOT', 'jeos')) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }

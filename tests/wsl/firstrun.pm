@@ -100,15 +100,23 @@ sub register_via_scc {
 
     my $reg_code = get_required_var('SCC_REGCODE');
 
-    wait_screen_change(sub { send_key 'alt-c' }, 10);
-    wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
-    send_key 'alt-n';
-    assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
-    send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
-    assert_screen 'wsl-registration-repository-offer', timeout => 240;
-    send_key 'alt-y';
-    assert_screen 'wsl-extension-module-selection';
-    send_key 'alt-n';
+    # Legacy download (yast) vs modern download (jeos)
+    if (check_var('WSL_FIRSTBOOT', 'yast')) {
+        wait_screen_change(sub { send_key 'alt-c' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'alt-n';
+        assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
+        send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
+        assert_screen 'wsl-registration-repository-offer', timeout => 240;
+        send_key 'alt-y';
+        assert_screen 'wsl-extension-module-selection';
+        send_key 'alt-n';
+    }
+    else {
+        wait_screen_change(sub { send_key 'down' }, 10);
+        wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+    }
 }
 
 sub wsl_gui_pattern {
