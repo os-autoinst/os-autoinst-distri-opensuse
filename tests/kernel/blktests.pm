@@ -64,15 +64,13 @@ sub run {
     script_run('tar -zcvf results.tar.gz results');
     upload_logs('results.tar.gz');
 
-    if ($devices ne 'none') {
-        my @all_dev = split(' ', $devices);
-        foreach my $i (@all_dev) {
-            $i =~ s/\/dev\///;
-            parse_extra_log('XUnit', "${i}_results.xml");
-        }
+    record_info('XML', script_output('ls ./'));
+    my $output = script_output('find /usr/lib/blktests -name "*_results.xml" 2>/dev/null || true');
+    foreach my $file (split /\n/, $output) {
+        parse_extra_log('XUnit', $file);
     }
 
-    parse_extra_log('XUnit', 'nodev_results.xml');
+    #parse_extra_log('XUnit', 'nodev_results.xml');
     #parse_extra_log('XUnit', 'nullb0_results.xml');
 }
 
