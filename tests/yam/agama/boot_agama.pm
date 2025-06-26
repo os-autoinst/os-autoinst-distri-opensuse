@@ -47,7 +47,7 @@ sub prepare_boot_params {
         set_var('INST_AUTO', $profile_url);
         push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
     }
-    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') =~ 'Online';
+    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('SCC_URL') && get_var('FLAVOR') =~ /^(Online.*|agama-installer)$/;
 
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
