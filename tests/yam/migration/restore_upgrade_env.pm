@@ -14,7 +14,7 @@ use migration 'reset_consoles_tty';
 
 sub run {
     # Restore the original value of the variables
-    foreach my $var (qw(AGAMA SCC_ADDONS VERSION)) {
+    foreach my $var (qw(AGAMA SCC_ADDONS SCC_URL VERSION)) {
         if (get_var($var . "_ENV")) {
             set_var($var, get_var($var . "_ENV"));
             record_info($var, $var . '=' . get_var($var));
