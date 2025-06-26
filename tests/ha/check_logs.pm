@@ -43,7 +43,7 @@ sub run {
 }
 
 sub post_run_hook {
-    record_avc_selinux_alerts() if is_sle('16+');
+    shift->record_avc_selinux_alerts() if is_sle('16+');
 }
 
 # Specific test_flags for this test module
