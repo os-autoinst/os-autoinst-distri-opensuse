@@ -62,8 +62,6 @@ sub run {
         script_run("./check --quick=$quick --exclude=$exclude $i", 480);
     }
 
-    # below part is Work-in-progress, please see:
-    # https://progress.opensuse.org/issues/64872
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
     script_run('chmod +x post_process');
     script_run('./post_process');
