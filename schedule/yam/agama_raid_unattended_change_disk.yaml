@@ -1,0 +1,13 @@
+---
+name: agama_raid_unattended_change_disk
+description: >
+  Perform unattended installation with RAID and modify the RAID disk of swap.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_md_raid
+  - console/validate_raid
+  - yam/validate/modify_raid_swap
+  - yam/validate/validate_raid_swap

@@ -1,0 +1,10 @@
+---
+name: agama_sles_modify_raid_disk
+description: >
+  Boot the image and modify the RAID disk of swap and validate it.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - yam/validate/modify_raid_swap
+  - yam/validate/validate_raid_swap

@@ -98,7 +98,7 @@ local whole_disk_and_boot_unattended() = {
 local mdroot_partition = {
   alias: 'mdroot',
   id: 'raid',
-  size: '7.81 GiB',
+  size: '6 GiB',
 };
 
 local mdswap_partition = {
