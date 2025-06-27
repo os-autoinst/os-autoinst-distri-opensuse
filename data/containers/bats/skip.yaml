@@ -15,8 +15,8 @@ buildah:
   sle-16.0:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud run
-    BATS_SKIP_ROOT: from
+    BATS_SKIP:
+    BATS_SKIP_ROOT: bud
     BATS_SKIP_USER:
   sle-15-SP7:
     BATS_PATCHES:
