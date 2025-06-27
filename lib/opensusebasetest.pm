@@ -338,6 +338,9 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
     # Device selection: HD or CDROM
     send_key_until_needlematch 'tianocore-select_HD', 'down';
+    if (get_var('USBBOOT')){
+        send_key 'down';
+    }
     wait_screen_change { send_key 'ret' };
     # cycle to last entry by going up in the next steps
     # <EFI>
