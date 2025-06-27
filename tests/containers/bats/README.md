@@ -187,8 +187,10 @@ Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 
 | test | reason |
 | --- | --- |
+| [run] | https://github.com/opencontainers/runc/issues/4732 |
 | [cgroups] | https://github.com/opencontainers/runc/issues/4781 |
 
+[run]: https://github.com/opencontainers/runc/blob/main/tests/integration/run.bats
 [cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
 
 ## Tools
