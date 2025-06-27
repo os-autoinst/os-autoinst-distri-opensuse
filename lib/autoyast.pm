@@ -809,6 +809,7 @@ sub generate_json_profile {
 
     save_tmp_file($profile_name, $profile_content);
     my $profile_url = autoinst_url("/files/$profile_name");
+    diag $profile_url;
     upload_profile(path => $profile_name, profile => $profile_content);
     return $profile_url;
 }
