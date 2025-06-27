@@ -261,6 +261,22 @@ sub prepare_guest_for_sriov_passthrough {
         wait_guest_online($vm);
     }
 
+    # Workaround for bug: 1230913
+    # Define the list of VMs that require special handling
+    my @exception_vms = ("sles15sp2", "sles15sp2HVM", "sles15sp2PV", "sles15sp3HVM", "sles15sp3PV");
+
+    # Check if the current system is SLE 15 SP2 and if the current VM is in the special handling list
+    if (is_sle('=15-sp2') && grep { $_ eq $vm } @exception_vms) {
+        # Configure the DHCP client ID for the specified VM
+       # If the file /etc/sysconfig/network/ifcfg-eth0 does not contain a DHCLIENT_CLIENT_ID configuration, generate a UUID and add it to the configuration file
+        my $result = script_run("ssh root\@$vm 'grep -q \"^DHCLIENT_CLIENT_ID=\" /etc/sysconfig/network/ifcfg-eth0 || { uuid=\$(uuidgen); sed -i \"1iDHCLIENT_CLIENT_ID=\\\"\$uuid\\\"\" /etc/sysconfig/network/ifcfg-eth0; }'", 90);
+        die "Failed to configure DHCP client ID" if $result != 0;
+        assert_script_run "virsh reboot $vm";
+
+        # Record a soft failure to mark the known issue
+        record_soft_failure('bsc#1230913 - After rebooting a VM following a hotplug, eth0 takes the IP of eth1');
+    }
+
     #passwordless access to guest
     save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
 
