@@ -2976,6 +2976,7 @@ sub verify_guest_agama_installation_done {
         while ($_wait_timeout > 0) {
             if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"journalctl -u agama | grep \'Install phase done\'\"", timeout => 150) == 0) {
                 record_info("Guest $self->{guest_name} agama install phase done", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}");
+                $self->record_guest_installation_result('AGAMA_INSTALL_PHASE_DONE');
                 return $self;
             }
             sleep 20;
@@ -3109,6 +3110,12 @@ sub check_guest_installation_result_via_ssh {
                     $self->record_guest_installation_result('FAILED');
                 }
             }
+        }
+        elsif (is_agama_guest(guest => $self->{guest_name}) and !($self->is_guest_installation_done)) {
+            $self->detach_guest_installation_screen;
+            $self->monitor_guest_agama_installation;
+            $_guest_transient_hostname_via_name = "TO_BE_CHECKED_FURTHER";
+            $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
         }
     }
     return $_guest_transient_hostname_via_name;
@@ -3423,6 +3430,31 @@ sub record_guest_installation_result {
     $self->{stop_run} = time();
     $self->{stop_timestamp} = localtime($self->{stop_run});
     return $self;
+}
+
+=head2 is_guest_installation_done
+
+  is_guest_installation_done($self)
+
+Check whether guest installation finishes completely and has final successful
+or failing result. Take agama guest as an example, AGAMA_INSTALL_PHASE_DONE
+does not and should not indicates a complete successful or failing installation
+. It only passes the initial configuration and installation by employing agama.
+Final result can only be determined after rebooting and detecting system. 
+
+=cut
+
+sub is_guest_installation_done {
+    my $self = shift;
+
+    $self->reveal_myself;
+    if ($self->{guest_installation_result} ne '') {
+        if (is_agama_guest(guest => $self->{guest_name}) and ($self->{guest_installation_result} eq 'AGAMA_INSTALL_PHASE_DONE')) {
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
 }
 
 =head2 collect_guest_installation_logs_via_ssh
