@@ -14,7 +14,7 @@ use warnings;
 use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network);
+use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network is_running_in_isolated_network get_default_dns);
 use utils;
 use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional);
 use containers::common;
@@ -22,20 +22,16 @@ use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
 use transactional qw(trup_call process_reboot);
 
-my $server_ip = "10.0.2.101";
-my $subnet = "/24";
-my $gateway = "10.0.2.2";
-my $dns_string = get_var "DNS", "10.100.2.10,10.100.2.8";
-my @dns = defined($dns_string) && $dns_string ne "" ? split(",", $dns_string) : ();
-
-sub is_running_in_isolated_network {
-    return defined get_var('NICVLAN');
-}
-
 sub setup_networking_in_isolated_network {
     my ($self, $nics_ref) = @_;
     my @nics = @$nics_ref;
     my $nic0 = $nics[0];
+
+    my $server_ip = "10.0.2.101";
+    my $subnet = "/24";
+    my $gateway = "10.0.2.2";
+    my $dns_string = get_var("DNS", get_default_dns());
+    my @dns = defined($dns_string) && $dns_string ne "" ? split(",", $dns_string) : ();
 
     setup_dhcp_server_network(
         server_ip => $server_ip,
