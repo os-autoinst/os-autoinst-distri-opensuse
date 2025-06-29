@@ -47,6 +47,8 @@ our @EXPORT = qw(
   all_nics_have_ip
   reload_connections_until_all_ips_assigned
   setup_dhcp_server_network
+  is_running_in_isolated_network
+  get_default_dns
 );
 
 =head2 setup_static_network
@@ -527,6 +529,47 @@ sub setup_dhcp_server_network {
         assert_script_run "echo 'default $gateway dev $nic0' > $route_file";
 
         systemctl 'restart wicked';
+    }
+}
+
+=head2 is_running_in_isolated_network
+
+Checks if the test is running in an isolated network environment.
+
+This function determines if the test is running in an isolated network setup by checking the network type and NIC VLAN configuration.
+
+  is_running_in_isolated_network();
+
+=cut
+
+sub is_running_in_isolated_network {
+    my $is_tap = defined get_var('NICTYPE') && get_var('NICTYPE') eq 'tap';
+    my $is_nicvlan = defined get_var('NICVLAN') && get_var('NICVLAN') ne '' && get_var('NICVLAN') ne '0';
+    return ($is_tap && $is_nicvlan);
+}
+
+=head2 get_default_dns
+
+Returns the default DNS servers based on the OPENQA_HOSTNAME environment variable.
+This function checks the OPENQA_HOSTNAME variable to determine which DNS servers to return. If the hostname matches a specific pattern, it returns a predefined set of private or public DNS servers.
+
+  get_default_dns();
+
+=cut
+
+sub get_default_dns {
+    my $private_dns = get_var('PRIVATE_DNS', '10.100.2.10,10.100.2.8');
+    my $public_dns = get_var('PUBLIC_DNS', '8.8.8.8,8.8.4.4');
+
+    my $openqa_host = get_var('OPENQA_HOSTNAME');
+
+    if ($openqa_host =~ /openqa.suse.de/) {    # OSD hostname
+        return $private_dns;
+    } elsif ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3
+        return $public_dns;
+    } else {
+        record_info("DNS Warning", "Unknown OPENQA_HOSTNAME: $openqa_host, using public DNS");
+        return $public_dns;    # Default to public DNS if unknown host
     }
 }
 
