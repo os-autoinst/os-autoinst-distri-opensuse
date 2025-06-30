@@ -341,7 +341,9 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
     # cycle to last entry by going up in the next steps
     # <EFI>
-    send_key 'up';
+    wait_screen_change { send_key 'up' };
+    check_screen 'overlays-folder';
+    wait_screen_change { send_key 'up' } if match_has_tag 'overlays-folder';    # As we are in the overlays folder
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # <sles> or <opensuse>
