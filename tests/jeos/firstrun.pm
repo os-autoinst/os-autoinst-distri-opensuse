@@ -21,7 +21,7 @@ use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
-# import here register via scc module from wsl/firstrun
+use wsl qw(wsl_choose_sles register_via_scc);
 
 my $user_created = 0;
 
@@ -281,12 +281,8 @@ sub run {
 
     # In WSL: Choose SLES or SLED
     # And register via SCC
-    if (check_var('WSL_FIRSTBOOT', 'jeos')) {
-        assert_screen 'wsl-sled-or-sles';
-        wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
-        send_key 'ret';
-        register_via_scc;
-    }
+    wsl_choose_sles;
+    register_via_scc;
 
     # handle registration notice. Not in WSL.
     if ((is_sle || is_sle_micro) && !check_var('WSL_FIRSTBOOT', 'jeos')) {
@@ -309,6 +305,11 @@ sub run {
         # All options used up, so no need to press 'Done' explicitly anymore.
 
         # Continues below to verify that /etc/issue shows the recovery key
+    }
+
+    # Create user in WSL
+    if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+        create_user_in_ui;
     }
 
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
