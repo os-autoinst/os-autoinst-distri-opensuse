@@ -33,11 +33,11 @@ sub run {
 
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
-    my $tests = get_required_var('BLK_TESTS');
-    my $quick = get_required_var('BLK_QUICK');
-    my $exclude = get_required_var('BLK_EXCLUDE');
-    my $config = get_var('BLK_CONFIG');
-    my $devices = get_required_var('BLK_DEVICE_ONLY');
+    my $tests = get_required_var('BLKTESTS');
+    my $quick = get_var('BLKTESTS_QUICK', 60);
+    my $exclude = get_var('BLKTESTS_EXCLUDE');
+    my $config = get_var('BLKTESTS_CONFIG');
+    my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
 
@@ -49,12 +49,6 @@ sub run {
 
     prepare_blktests_config($devices);
 
-    #temp override of $tests and $devices
-    if (is_sle(">=16")) {
-        $tests = 'scsi,dm,loop';
-        #$devices = '/dev/sdb';
-    }
-
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
@@ -62,25 +56,19 @@ sub run {
         script_run("./check --quick=$quick --exclude=$exclude $i", 480);
     }
 
-    # below part is Work-in-progress, please see:
-    # https://progress.opensuse.org/issues/64872
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
     script_run('chmod +x post_process');
     script_run('./post_process');
 
-    if ($devices ne 'none') {
-        my @all_dev = split(' ', $devices);
-        foreach my $i (@all_dev) {
-            $i =~ s/\/dev\///;
-            parse_extra_log('XUnit', "${i}_results.xml");
-        }
-    }
-
-    parse_extra_log('XUnit', 'nodev_results.xml');
-    #parse_extra_log('XUnit', 'nullb0_results.xml');
-
+    record_info('results', script_output('ls ./results'));
     script_run('tar -zcvf results.tar.gz results');
     upload_logs('results.tar.gz');
+
+    record_info('XML', script_output('ls ./'));
+    my $output = script_output('find /usr/lib/blktests -name "*_results.xml" 2>/dev/null || true');
+    foreach my $file (split /\n/, $output) {
+        parse_extra_log('XUnit', $file);
+    }
 }
 
 sub test_flags {
