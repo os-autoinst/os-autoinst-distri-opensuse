@@ -2574,6 +2574,9 @@ sub load_hypervisor_tests {
         ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH => {
             modules => ['virt_autotest/sriov_network_card_pci_passthrough'],
         },
+        ENABLE_SEV_SNP_GUEST_VERIFICATION => {
+            modules => ['virt_autotest/sev_snp_guest_verification'],
+        },
     );
 
     for my $test (keys %virt_features) {
@@ -2584,6 +2587,10 @@ sub load_hypervisor_tests {
         # The LTSS for SUSE 15-SP1 has ended. Due to a bug (bsc#1230913), also skip 15-SP2.
         if ($test eq 'ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH') {
             next unless is_sle('>=15-sp3');
+        }
+        # SEV-SNP tests are available from SLE15-SP7 onwards and SLE16+
+        if ($test eq 'ENABLE_SEV_SNP_GUEST_VERIFICATION') {
+            next unless (is_sle('>=15-sp7') || is_sle('>=16'));
         }
         check_and_load_mu_virt_features($test, $modules, $hypervisor);
     }
