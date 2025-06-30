@@ -13,6 +13,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use Utils::Architectures 'is_s390x';
 
 sub run {
     select_serial_terminal;
@@ -23,7 +24,9 @@ sub run {
     # On some architectures fields like "product" or "vendor" or section "*-pci" might not exist, so trying a common base.
     assert_script_run("lshw -sanitize | grep -A5 'description'");
     assert_script_run("lshw -sanitize | grep -A5 '\\*-memory\$'");
-    assert_script_run("lshw -sanitize | grep -A5 '\\*-network'");
+    # On s390x, network devices are shown as *-device
+    # See https://progress.opensuse.org/issues/184138
+    assert_script_run("lshw -sanitize | grep -A5 '\\*-network'") unless is_s390x;
     assert_script_run("lshw -html -sanitize");
     assert_script_run("lshw -xml -sanitize");
     assert_script_run("lshw -json -sanitize");
