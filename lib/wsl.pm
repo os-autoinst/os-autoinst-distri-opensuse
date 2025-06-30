@@ -10,7 +10,7 @@ use Mojo::Base qw(Exporter);
 use testapi;
 use version_utils qw(is_sle);
 
-our @EXPORT = qw(is_sut_reg is_fake_scc_url_needed);
+our @EXPORT = qw(is_sut_reg is_fake_scc_url_needed wsl_choose_sles register_via_scc);
 
 sub is_sut_reg {
     return is_sle && get_var('SCC_REGISTER') =~ /^yast$/i;

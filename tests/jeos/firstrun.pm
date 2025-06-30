@@ -246,7 +246,7 @@ sub run {
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
     # system locale is present in WSL with jeos-firstboot
-    if (is_community_jeos || is_sle('=12-sp5') || check_var('WSL_FIRSTBOOT', 'jeos')) {
+    if (is_community_jeos || is_sle('=12-sp5') || get_var('WSL_VERSION')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
@@ -285,7 +285,7 @@ sub run {
     register_via_scc;
 
     # handle registration notice. Not in WSL.
-    if ((is_sle || is_sle_micro) && !check_var('WSL_FIRSTBOOT', 'jeos')) {
+    if ((is_sle || is_sle_micro) && !get_var('WSL_VERSION')) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }
@@ -308,7 +308,7 @@ sub run {
     }
 
     # Create user in WSL
-    if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+    if (get_var('WSL_VERSION')) {
         create_user_in_ui;
     }
 
