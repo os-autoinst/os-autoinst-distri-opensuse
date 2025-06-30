@@ -23,6 +23,7 @@ requires 'File::Path';
 requires 'File::Temp';
 requires 'IO::File';
 requires 'IO::Socket::INET';
+requires 'Inline::Python';
 requires 'LWP::Simple';
 requires 'List::MoreUtils';
 requires 'List::Util';
