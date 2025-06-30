@@ -68,27 +68,12 @@ sub run {
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sle|opensuse/) {
-        my $host_version = get_var('HOST_VERSION');
-        # Normalize the version string to match SUSE:CA repo layout
-        if ($host_version =~ /^(\d+)-SP(\d+)$/) {
-            $host_version = "SLE_${1}_SP${2}";    # e.g., 15-SP4 → SLE_15_SP4
-        } elsif ($host_version =~ /^\d+\.\d+$/) {
-            # SLE 16.0 → keep as "16.0"
-            # Do nothing, already correct
-        } else {
-            record_info("Unexpected HOST_VERSION", "Unexpected HOST_VERSION format: $host_version. Using default repository.", result => "softfail");
-        }
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
         if (script_run('rpm -qi ca-certificates-suse') == 1) {
-            if ($host_version) {
-                zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$host_version/SUSE:CA.repo");
-            } else {
-                zypper_call("ar --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
-                zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
-            }
-            zypper_call("in ca-certificates-suse");
+            zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
+            zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
         }
     }
     else {
