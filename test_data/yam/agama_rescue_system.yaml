@@ -1,0 +1,6 @@
+---
+tools:
+    - /usr/bin/chroot
+    - /sbin/fsck.btrfs
+    - /sbin/fsck.ext4
+    - /sbin/fsck.xfs

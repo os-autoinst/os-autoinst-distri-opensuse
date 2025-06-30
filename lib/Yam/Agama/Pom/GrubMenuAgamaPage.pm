@@ -34,6 +34,11 @@ sub select_check_installation_medium_entry {
     send_key_until_needlematch('grub-menu-agama-mediacheck-highlighted', 'down');
 }
 
+sub select_rescue_system_entry {
+    my ($self) = @_;
+    send_key_until_needlematch('grub-menu-agama-rescue-system-highlighted', 'down');
+}
+
 sub edit_current_entry { shift->{grub_menu_base}->edit_current_entry() }
 
 1;
