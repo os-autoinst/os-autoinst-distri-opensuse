@@ -187,7 +187,7 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
 
     set_var('VERSION', 'Staging:F');
-    ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
+    ok get_default_bootloader eq 'grub2', "Tumbleweed/Staging:F on UEFI is grub2";
 
     set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
     ok get_default_bootloader eq 'grub2', "Container host image is grub2";
@@ -207,6 +207,7 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'grub2', "Microos non UEFI is grub2";
 
     set_var('UEFI', '1');
+    set_var('VERSION', 'Staging:F');
     ok get_default_bootloader eq 'systemd-boot', "Microos UEFI is systemd-boot";
 
     set_var('UPGRADE', 1);
