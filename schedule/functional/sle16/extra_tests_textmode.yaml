@@ -18,6 +18,14 @@ conditional_schedule:
                 - network/snmp
             aarch64:
                 - network/snmp
+    lshw:
+        ARCH:
+            aarch64:
+                - console/lshw
+            x86_64:
+                - console/lshw
+            ppc64le:
+                - console/lshw
     wpa_supplicant:
         ARCH:
             x86_64:
@@ -87,7 +95,7 @@ schedule:
     - console/rpcbind
     - console/timezone
     - console/procps
-    - console/lshw
+    - '{{lshw}}'
     - console/kmod
     - console/suse_module_tools
     - console/firewalld
