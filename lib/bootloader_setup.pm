@@ -1137,8 +1137,20 @@ sub tianocore_disable_secureboot {
 
     assert_screen 'grub2';
     send_key 'c';
-    sleep 2;
+    sleep 5;
     enter_cmd "exit";
+
+    # There might be a boot menu before the mainmenu.
+    # Wait until the main menu appears and move to the EFI firmware setup, if the boot menu is present
+    while (!check_screen('tianocore-mainmenu')) {
+        wait_still_screen();
+        if (check_screen('tianocore-bootmenu')) {
+            send_key 'down';
+            assert_screen 'tianocore-bootmenu-EFI-fimware-selected';
+            send_key 'ret';
+        }
+    }
+
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 6, 5);
