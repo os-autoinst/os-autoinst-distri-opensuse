@@ -49,7 +49,7 @@ ansible:
       - pre-cluster.yaml
       - sap-hana-preconfigure.yaml
       - sap-hana-storage.yaml
-       - sap-hana-download-media.yaml
+      - sap-hana-download-media.yaml
       - sap-hana-install.yaml
       - sap-hana-system-replication.yaml
       - sap-hana-system-replication-hooks.yaml
