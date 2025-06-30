@@ -899,8 +899,13 @@ sub specific_bootmenu_params {
         push @params, "autoupgrade=1";
     }
 
-    if (my $agama_auto = get_var('INST_AUTO')) {
-        my $url = ($agama_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($agama_auto) : autoyast::expand_agama_profile($agama_auto);
+    # override default boot params
+    if (get_var('BOOTPARAMS')) {
+        push @params, split ' ', trim(get_var('BOOTPARAMS'));
+    }
+
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        my $url = ($inst_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($inst_auto) : autoyast::expand_agama_profile($inst_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
         push @params, "inst.auto=$url inst.finish=stop";
     }
