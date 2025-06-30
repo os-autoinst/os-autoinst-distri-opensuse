@@ -34,8 +34,8 @@ sub run {
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
     my $tests = get_required_var('BLK_TESTS');
-    my $quick = get_required_var('BLK_QUICK');
-    my $exclude = get_required_var('BLK_EXCLUDE');
+    my $quick = get_var('BLK_QUICK', 60);
+    my $exclude = get_var('BLK_EXCLUDE');
     my $config = get_var('BLK_CONFIG');
     my $devices = get_required_var('BLK_DEVICE_ONLY');
 
