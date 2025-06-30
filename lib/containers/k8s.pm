@@ -169,11 +169,20 @@ sub install_kubectl {
 }
 
 =head2 install_helm
-Installs helm from our repositories
+Installs helm from our upstream or repositories
 =cut
 
 sub install_helm {
-    zypper_call("in helm");
+    if (get_var('HELM_INSTALL_UPSTREAM')) {
+        assert_script_run("curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3");
+        assert_script_run("chmod 700 get_helm.sh");
+        assert_script_run("./get_helm.sh");
+    } elsif (is_transactional) {
+        trup_call("pkg install helm");
+        check_reboot_changes;
+    } else {
+        zypper_call("in helm");
+    }
     record_info('helm', script_output("helm version"));
 }
 
