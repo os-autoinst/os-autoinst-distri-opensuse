@@ -2419,9 +2419,10 @@ sub ensure_ca_certificates_suse_installed {
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
         zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
         if (is_sle_micro) {
+            transactional::trup_call("--continue run zypper --gpg-auto-import-keys refresh");
             transactional::trup_call('--continue pkg install ca-certificates-suse');
         } else {
-            zypper_call("in ca-certificates-suse");
+            zypper_call("--gpg-auto-import-keys in ca-certificates-suse");
         }
     }
 }
