@@ -87,19 +87,21 @@ sub run {
 
     # Kill sapinstance process
     my $process_name;
-    $process_name = 'en.sap' if $instance_type eq 'ASCS';
-    $process_name = 'er.sap' if $instance_type eq 'ERS';
+    # There is a different naming between ENSA2 and regular installation
+    # Note 'pgrep' does not accept regexes as regular grep
+    $process_name = '"en.sap|enq.sap"' if $instance_type eq 'ASCS';
+    $process_name = '"er.sap|enqr.sap"' if $instance_type eq 'ERS';
     die "Unknown instance type: '$instance_type'" unless $process_name;
 
     record_info('PROC list', script_output("ps -ef | grep $process_name"));    # Show SAP processes running
-    my $pid = script_output("pgrep $process_name");
+    my $pid = script_output("pgrep -f $process_name");
     die "Sapinstance $instance_type process ID not found" unless $pid;
     record_info('KILL INST', "Killing $instance_type sapinstance process");
     assert_script_run("kill -9 $pid");
 
     # Check if sapinstance process was killed
     record_info('PROC list', script_output("ps -ef | grep $process_name"));
-    script_retry("pgrep $process_name",
+    script_retry("pgrep -f $process_name",
         expect => 1,    # pgrep returns 1 if process was not found
         delay => 1,    # short delay in case process gets up too quickly
         timeout => 30,    # 30 sec is plenty
