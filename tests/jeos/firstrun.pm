@@ -230,12 +230,22 @@ sub run {
         assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
+        # In WSL, the new process of installing, appears in an already maximized window,
+        # but sometimes it loses focus. So I created another needle to check if
+        # the window is already maximized and click somewhere else to bring it to focus.
+        if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+            assert_screen(['window-max', 'window-minimize']);
+            assert_and_click 'window-max' if match_has_tag 'window-max';
+            assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
+            wait_still_screen stilltime => 3, timeout => 10;
+        }
         send_key 'ret';
     }
 
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    if (is_community_jeos || is_sle('=12-sp5')) {
+    # system locale is present in WSL with jeos-firstboot
+    if (is_community_jeos || is_sle('=12-sp5') || check_var('WSL_FIRSTBOOT', 'jeos')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
@@ -267,6 +277,13 @@ sub run {
 
     # Enter password & Confirm
     enter_root_passwd;
+
+    # In WSL: Choose SLES or SLED
+    if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+        assert_screen 'wsl-sled-or-sles';
+        wait_screen_change { type_string "SLES", max_interval => 125, wait_screen_change => 2 };
+        send_key 'ret';
+    }
 
     # handle registration notice
     if (is_sle || is_sle_micro) {
