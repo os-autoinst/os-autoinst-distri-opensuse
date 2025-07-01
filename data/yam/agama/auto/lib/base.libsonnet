@@ -2,6 +2,10 @@
   bootloader: {
     stopOnBootMenu: true
   },
+  files: [{
+     destination: '/usr/local/share/dummy.xml',
+     url: 'dummy.xml'
+  }],
   localization: {
     language: 'cs_CZ.UTF-8',
     keyboard: 'cz',
