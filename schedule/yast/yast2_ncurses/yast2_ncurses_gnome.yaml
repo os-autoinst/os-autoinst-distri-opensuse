@@ -40,7 +40,6 @@ conditional_schedule:
         - console/yast2_dns_server_service_inactive_disabled
         - console/yast2_dns_server_service_keep_inactive_disabled
         - console/yast2_nfs_server
-        - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
       aarch64:
         - console/yast2_lan
@@ -62,7 +61,6 @@ conditional_schedule:
         - console/yast2_dns_server_service_active_disabled
         - console/yast2_dns_server_service_inactive_disabled
         - console/yast2_dns_server_service_keep_inactive_disabled
-        - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
 test_data:
   yast2_lan_hostname:
