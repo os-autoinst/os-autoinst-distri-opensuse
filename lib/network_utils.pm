@@ -493,6 +493,7 @@ sub setup_dhcp_server_network {
     my $subnet = $args{subnet} // '/24';
     my $gateway = $args{gateway} // '10.0.2.2';
     my @nics = @{$args{nics}};
+    my @dns = @{$args{dns}};
 
     my $nic0 = $nics[0];
 
@@ -528,6 +529,11 @@ sub setup_dhcp_server_network {
         script_run "rm -f $route_file";
         assert_script_run "echo 'default $gateway dev $nic0' > $route_file";
 
+        if (@dns) {
+            my $dns = join(",", @dns);
+            assert_script_run "sed s/.*NETCONFIG_DNS_STATIC_SERVERS=.*/NETCONFIG_DNS_STATIC_SERVERS='$dns'/g -i /etc/sysconfig/network/config";
+        }
+
         systemctl 'restart wicked';
     }
 }
@@ -543,9 +549,7 @@ This function determines if the test is running in an isolated network setup by 
 =cut
 
 sub is_running_in_isolated_network {
-    my $is_tap = defined get_var('NICTYPE') && get_var('NICTYPE') eq 'tap';
-    my $is_nicvlan = defined get_var('NICVLAN') && get_var('NICVLAN') ne '' && get_var('NICVLAN') ne '0';
-    return ($is_tap && $is_nicvlan);
+    return check_var('NICTYPE', 'tap') && get_var('NICVLAN');
 }
 
 =head2 get_default_dns

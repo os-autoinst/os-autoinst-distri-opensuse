@@ -31,13 +31,14 @@ sub setup_networking_in_isolated_network {
     my $subnet = "/24";
     my $gateway = "10.0.2.2";
     my $dns_string = get_var("DNS", get_default_dns());
-    my @dns = defined($dns_string) && $dns_string ne "" ? split(",", $dns_string) : ();
+    my @dns = ($dns_string ne "") ? split(",", $dns_string) : ();
 
     setup_dhcp_server_network(
         server_ip => $server_ip,
         subnet => $subnet,
         gateway => $gateway,
-        nics => \@nics
+        nics => \@nics,
+        dns => \@dns
     );
 
     set_resolv(nameservers => \@dns);
