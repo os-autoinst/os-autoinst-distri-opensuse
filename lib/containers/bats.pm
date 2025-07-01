@@ -371,7 +371,7 @@ sub bats_tests {
 
     parse_extra_log(TAP => $log_file);
 
-    run_command "rm -rf $tmp_dir || true";
+    run_command "sudo rm -rf $tmp_dir || true";
 
     return ($ret);
 }
@@ -386,8 +386,6 @@ sub bats_patches {
         @patches = @{$settings->{BATS_PATCHES}};
     }
 
-    # With --include we restrict the patch to the package tests dir
-    my $apply_opts = "-3 --ours --include '$tests_dir{$package}/*'";
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
         record_info("patch", $url);
@@ -397,7 +395,14 @@ sub bats_patches {
         } else {
             run_command "curl $curl_opts -O $url", timeout => 900;
         }
-        run_command "git apply $apply_opts " . basename($url);
+        # Some patches (e.g., podman's 25942) fail to apply cleanly due to missing files so
+        # try `git apply` first and if it fails use `--include` to restrict the patch scope
+        # to the package tests directory.  Remove this when `git-apply` has a new option to
+        # ignore missing files.
+        my $file = basename($url);
+        my $apply_cmd = "git apply -3 --ours $file";
+        $apply_cmd .= " || git apply -3 --ours --include '$tests_dir{$package}/*' $file";
+        run_command $apply_cmd;
     }
 }
 

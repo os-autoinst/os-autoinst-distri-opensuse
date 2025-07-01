@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Test vsftpd with ssl enabled
@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub check_hash {
     my ($expected_hash, $calculated_hash) = @_;
@@ -34,14 +35,38 @@ sub run {
     my $ftp_served_dir = 'served';
     my $ftp_received_dir = 'received';
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install lftp
-    zypper_call('in lftp');
-    enter_cmd('echo "set ssl:verify-certificate no" >> /etc/lftp.conf');
+    zypper_call 'in lftp';
+    enter_cmd 'echo "set ssl:verify-certificate no" >> /etc/lftp.conf';
+
+    # expect error on failed login
+    validate_script_output("lftp -d -u foo,bar -e 'set ftp:ssl-force true' -e ls localhost",
+        sub { m/Login failed: 530 Login incorrect./s }, proceed_on_failure => 1);
+
+    # expect error on failed command
+    validate_script_output("lftp -d -u $user,$pwd -e suseTESTING localhost",
+        sub { /Unknown command/mg }, proceed_on_failure => 1);
+    #script_output("lftp -d -u $user,$pwd -e 'set ftp:ssl-force true' localhost", expect => 'Command failed');
+
+    # create a batch of commands to be executed by lftp
+    my $lftp_script_file = qq{
+        open -u $user,$pwd localhost
+        set ftp:ssl-force true
+        mkdir test
+        cd test
+        cd ..
+        queue ls
+        queue rmdir test
+        bye
+    };
+    assert_script_run("echo '$lftp_script_file' > lftp_script_file.txt");
+    # run lftp in batch mode
+    assert_script_run("lftp -f lftp_script_file.txt");
 
     # Login to ftp server for downloading/uploading, first create a file for uploading
-    assert_script_run('echo "QE Security" > f2.txt');
+    assert_script_run 'echo "QE Security" > f2.txt';
     enter_cmd("lftp -d -u $user,$pwd -e 'set ftp:ssl-force true' localhost");
 
     # Download file from server

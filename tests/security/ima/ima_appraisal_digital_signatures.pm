@@ -11,9 +11,10 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
+use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use security::config;
+use security::secureboot qw(handle_secureboot);
 
 sub run {
     my ($self) = @_;
@@ -27,12 +28,9 @@ sub run {
     my $cert_der = '/root/certs/ima_cert.der';
 
     add_grub_cmdline_settings("ima_appraise=fix", update_grub => 1);
-
-    # We need re-enable the secureboot after removing "ima_appraise=fix" kernel parameter
+    my $sb_state = script_output('mokutil --sb-state');
     power_action("reboot", textmode => 1);
-    $self->wait_grub(bootloader_time => 200);
-    $self->tianocore_disable_secureboot;
-    $self->wait_boot(textmode => 1);
+    handle_secureboot($self, $sb_state);
     select_serial_terminal;
 
     my @sign_cmd = (
@@ -58,8 +56,7 @@ sub run {
 
     if (script_run("grep CONFIG_INTEGRITY_TRUSTED_KEYRING=y /boot/config-`uname -r`") == 0) {
         record_soft_failure("bsc#1157432 for SLE15SP2+: CA could not be loaded into the .ima or .evm keyring");
-    }
-    else {
+    } else {
         # Prepare mok ceritificate file
         assert_script_run "mkdir -p /etc/keys/ima";
         assert_script_run "cp $cert_der /etc/keys/ima/";
@@ -67,11 +64,9 @@ sub run {
         assert_script_run "wget --quiet " . data_url("ima/ima_appraisal_ds_policy" . " -O /etc/sysconfig/ima-policy");
 
         replace_grub_cmdline_settings('ima_appraise=fix', '', update_grub => 1);
-
         power_action('reboot', textmode => 1);
-        $self->wait_grub(bootloader_time => 200);
-        $self->tianocore_disable_secureboot('re_enable');
-        $self->wait_boot(textmode => 1);
+        handle_secureboot($self, $sb_state, 're_enable');
+
         select_serial_terminal;
         assert_script_run "dmesg | grep IMA:.*completed";
 

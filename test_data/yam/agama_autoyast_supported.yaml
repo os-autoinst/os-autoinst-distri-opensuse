@@ -1,7 +1,10 @@
 ---
-hostname: suselinux
 files:
   - path: '/usr/local/share/dummy.xml'
     mode: '644'
     owner: 'root'
     sha256sum: '5f925f748a27b757853767477ec0e0e6f04b1727f3607c7f622a2a1e4bd2a0e5'
+  - path: '/etc/mongod.conf'
+    mode: '644'
+    owner: 'root'
+    sha256sum: 'c7ed38f682068cdacf04c61783c3bdf034cd8703de0aa6a0b8c6796f5be3e62b'

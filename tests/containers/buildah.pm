@@ -41,8 +41,8 @@ sub run_tests {
     # network failure
     if ($runtime eq 'podman') {
         record_info('Test', "Install random package in the container");
-        assert_script_run("buildah run $container -- zypper in -y python3", timeout => 300);
-        assert_script_run("buildah run $container -- python3 --version");
+        assert_script_run("buildah run $container -- zypper in -y cowsay", timeout => 300);
+        assert_script_run("buildah run $container -- cowsay hello world");
     }
 
     record_info('Test', "Add environment variable to the container");

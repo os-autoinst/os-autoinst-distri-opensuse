@@ -10,3 +10,4 @@ schedule:
   - yam/validate/validate_hostname
   - yam/validate/validate_packages
   - yam/validate/validate_post_partitioning
+  - yam/validate/validate_deployed_files

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2024 SUSE LLC
+# Copyright 2017-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-compose
@@ -72,7 +72,13 @@ sub run {
 
     my $engine = $self->containers_factory($runtime);
 
-    install_packages('docker-compose');
+    my @pkgs = ('docker-compose');
+    # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1244448
+    # docker-compose package pulls all docker dependencies when used with podman
+    # Note: When `CONTAINER_RUNTIMES=podman,docker` we don't care and it allows
+    # us to test how both runtimes behave when installed together.
+    push @pkgs, 'podman-docker' if check_var("CONTAINER_RUNTIMES", "podman");
+    install_packages(@pkgs);
 
     validate_script_output("$runtime compose version", qr/version 2/);
 

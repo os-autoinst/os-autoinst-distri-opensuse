@@ -382,7 +382,6 @@ sub prepare_ssh_tunnel {
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
     # Permit root passwordless login and TCP forwarding over SSH
-    $instance->ssh_assert_script_run('sudo cat /etc/ssh/sshd_config');
     $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
     $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');

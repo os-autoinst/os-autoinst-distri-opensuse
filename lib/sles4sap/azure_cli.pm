@@ -27,6 +27,7 @@ our @EXPORT = qw(
   az_group_create
   az_group_name_get
   az_group_delete
+  az_group_exists
   az_network_vnet_create
   az_network_vnet_get
   az_network_vnet_subnet_update
@@ -1872,4 +1873,25 @@ sub ensure_system_ready_and_register {
             timeout => 600);
         assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
     }
+}
+
+=head2 az_group_exists
+
+    az_group_exists(resource_group=>'resource group name' [, quiet=>'pssst!']);
+
+Check if specified resource group exists. Returns B<true> or B<false>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<quiet> Turn off verbosity if defined
+
+=back
+=cut
+
+sub az_group_exists {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
 }

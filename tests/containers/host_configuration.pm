@@ -14,14 +14,52 @@ use warnings;
 use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network is_running_in_isolated_network get_default_dns);
 use utils;
-use version_utils qw(check_os_release get_os_release is_sle is_sle_micro);
+use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional);
 use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
+use transactional qw(trup_call process_reboot);
+
+sub setup_networking_in_isolated_network {
+    my ($self, $nics_ref) = @_;
+    my @nics = @$nics_ref;
+    my $nic0 = $nics[0];
+
+    my $server_ip = "10.0.2.101";
+    my $subnet = "/24";
+    my $gateway = "10.0.2.2";
+    my $dns_string = get_var("DNS", get_default_dns());
+    my @dns = defined($dns_string) && $dns_string ne "" ? split(",", $dns_string) : ();
+
+    setup_dhcp_server_network(
+        server_ip => $server_ip,
+        subnet => $subnet,
+        gateway => $gateway,
+        nics => \@nics
+    );
+
+    set_resolv(nameservers => \@dns);
+
+    install_packages("ethtool");
+
+    # NICVLAN does not autonegotiate link speed and duplex, so we need to set it manually
+    set_nics_link_speed_duplex({
+            nics => \@nics,
+            speed => 1000,
+            duplex => 'full',
+            autoneg => 'off'
+    });
+
+    check_connectivity_to_host_with_retry($nic0, "conncheck.opensuse.org");
+}
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
+    setup_networking_in_isolated_network($self, [get_nics([])]) if is_running_in_isolated_network();
+
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
     my ($version, $sp, $host_distri) = get_os_release;
@@ -30,19 +68,12 @@ sub run {
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sle|opensuse/) {
-        my $host_version = get_var('HOST_VERSION');
-        $host_version = ($host_version =~ /SP/) ? ("SLE_" . $host_version =~ s/-SP/_SP/r) : $host_version;
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
         if (script_run('rpm -qi ca-certificates-suse') == 1) {
-            if ($host_version) {
-                zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$host_version/SUSE:CA.repo");
-            } else {
-                zypper_call("ar --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
-                zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
-            }
-            zypper_call("in ca-certificates-suse");
+            zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
+            zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
         }
     }
     else {

@@ -900,6 +900,7 @@ sub specific_bootmenu_params {
     }
 
     if (my $agama_auto = get_var('INST_AUTO')) {
+        autoyast::create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
         my $url = ($agama_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($agama_auto) : autoyast::expand_agama_profile($agama_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
         push @params, "inst.auto=$url inst.finish=stop";
@@ -1137,8 +1138,20 @@ sub tianocore_disable_secureboot {
 
     assert_screen 'grub2';
     send_key 'c';
-    sleep 2;
+    sleep 5;
     enter_cmd "exit";
+
+    # There might be a boot menu before the mainmenu.
+    # Wait until the main menu appears and move to the EFI firmware setup, if the boot menu is present
+    while (!check_screen('tianocore-mainmenu')) {
+        wait_still_screen();
+        if (check_screen('tianocore-bootmenu')) {
+            send_key 'down';
+            assert_screen 'tianocore-bootmenu-EFI-fimware-selected';
+            send_key 'ret';
+        }
+    }
+
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 6, 5);

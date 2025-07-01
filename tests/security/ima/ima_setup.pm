@@ -19,6 +19,12 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
+    # Check that the FS is indeed ext4
+    my $root_fs = script_output 'findmnt -n -o FSTYPE /';
+    chomp $root_fs;
+
+    $root_fs eq 'ext4' or die "Root file system is not ext4 but '$root_fs'";
+
     # Add 'iversion' to fstab mount options
     assert_script_run "awk -i inplace '{if(\$3 == \"ext4\") \$4=\$4\",iversion\"; print}' /etc/fstab";
 

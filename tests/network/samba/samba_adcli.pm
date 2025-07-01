@@ -17,6 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use Utils::Architectures;
+use mm_network qw(is_networkmanager);
 
 ## Fail fast when required variables are not present
 my $AD_hostname = get_required_var("AD_HOSTNAME");
@@ -24,6 +25,7 @@ my $AD_ip = get_required_var("AD_HOST_IP");
 my $AD_domain = get_required_var("AD_DOMAIN");
 my $AD_workgroup = get_required_var("AD_WORKGROUP");
 my $domain_joined = 0;
+my $NetworkManager = 0;
 
 sub get_supportserver_file {
     my ($filename, $location) = @_;
@@ -54,15 +56,23 @@ sub samba_sssd_install {
     get_supportserver_file("nsswitch.conf", "/etc/nsswitch.conf");
     get_supportserver_file("sssd/conf.d/suse.conf", $sssd_config_location);
     assert_script_run "chmod go-rwx $sssd_config_location";
-    assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf';
+    assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf' unless $NetworkManager;
 
     # Update the DNS configuration to use the Domain controller as primary source
-    assert_script_run("cp /etc/sysconfig/network/config{,.bak}");
     assert_script_run("cp /etc/resolv.conf{,.bak}");
-    assert_script_run("echo NETCONFIG_DNS_STATIC_SEARCHLIST='$AD_hostname' >> /etc/sysconfig/network/config");
-    assert_script_run("echo NETCONFIG_DNS_STATIC_SERVERS='$AD_ip' >> /etc/sysconfig/network/config");
-    assert_script_run('netconfig update -f');
-    validate_script_output("cat /etc/resolv.conf", qr/nameserver $AD_ip/, fail_message => "Domain controller not present in /etc/resolv.conf");
+    if ($NetworkManager) {
+        my $nm_id = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n 1");
+        assert_script_run "nmcli connection modify '$nm_id' ipv4.dns-search '$AD_hostname'";
+        assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$AD_ip'";
+        systemctl('restart NetworkManager');
+    }
+    else {
+        assert_script_run("cp /etc/sysconfig/network/config{,.bak}");
+        assert_script_run("echo NETCONFIG_DNS_STATIC_SEARCHLIST='$AD_hostname' >> /etc/sysconfig/network/config");
+        assert_script_run("echo NETCONFIG_DNS_STATIC_SERVERS='$AD_ip' >> /etc/sysconfig/network/config");
+        assert_script_run('netconfig update -f');
+        validate_script_output("cat /etc/resolv.conf", qr/nameserver $AD_ip/, fail_message => "Domain controller not present in /etc/resolv.conf");
+    }
 
     # Ensure DNS name resolution works for the AD host
     script_retry("ping -c 2 $AD_hostname", retry => 3, timeout => 60, die => 1, fail_message => "$AD_hostname is unreachable");
@@ -94,7 +104,7 @@ sub join_domain {
     foreach my $service (qw(smb nmb winbind sssd)) {
         systemctl("enable --now $service");
     }
-    systemctl('restart nscd');
+    systemctl('restart nscd') unless $NetworkManager;
 }
 
 sub update_password {
@@ -152,6 +162,7 @@ sub run {
         return;
     }
 
+    $NetworkManager = 1 if is_networkmanager;
     samba_sssd_install();
     randomize_hostname();    # Prevent race condition with parallel test runs
     disable_ipv6();    # AD host is not reachable via IPv6 on some of our workers
@@ -177,7 +188,7 @@ sub run {
     # - test winbind (samba?) authentication
 
     # Restore the network config files, poo#156427
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
+    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
     assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
@@ -200,7 +211,7 @@ sub post_fail_hook {
         script_run("echo \"\$AD_DOMAIN_PASSWORD\" | net ads leave --domain '$AD_hostname' -U Administrator -i");
     }
     # Restore the network config files
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
+    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
     assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 

@@ -910,7 +910,7 @@ sub wait_boot {
     elsif (get_var('OFW') && (check_screen('displaymanager', 5))) {
     }
     # SLE-16 boot on ppc64le results too quick to be captured, from grub2 to login prompt
-    elsif (get_var('OFW') && is_sle('16+') && check_var('MACHINE', 'ppc64le-emu') && (check_screen('linux-login', 10))) {
+    elsif (get_var('OFW') && is_sle('16+') && is_ppc64le && (check_screen('linux-login', 10))) {
     }
     elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
