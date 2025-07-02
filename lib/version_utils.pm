@@ -863,15 +863,13 @@ can be grub2, grub2-bls or systemd-boot
 =cut
 
 sub get_bootloader {
-    my $desired_bootloader = get_var('BOOTLOADER', 'none');
-    if ($desired_bootloader eq 'none') {
-        return 'grub2' if !check_var('UEFI', 1);
-        return 'grub2' if is_upgrade;
-        return 'systemd-boot' if check_var("VERSION", "Staging:F") && is_microos
-          && !(get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
-    } else {
-        return get_var('BOOTLOADER');
-    }
+    my $bootloader = get_var('BOOTLOADER');
+    return $bootloader if $bootloader;
+
+    return 'grub2' if !check_var('UEFI', 1);
+    return 'grub2' if is_upgrade;
+    return 'systemd-boot' if check_var("VERSION", "Staging:F") && is_microos
+      && !(get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
     return 'grub2';
 }
 
