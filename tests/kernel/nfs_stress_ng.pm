@@ -31,10 +31,14 @@ sub client {
     my $run_stress_ng = "stress-ng --sequential -1 --timeout $stressor_timeout --class filesystem";
     my @paths = ($local_nfs3, $local_nfs4, $local_nfs3_async, $local_nfs4_async);
 
-    # in case this is SLE we need packagehub for stress-ng, let's enable it
-    if (is_sle) {
+    # in case this is SLE15 we need packagehub for stress-ng, let's enable it
+    # in case this is SLE16+ we need QA repo
+    if (is_sle('<16')) {
         add_suseconnect_product(get_addon_fullname('phub'));
+    } elsif (is_sle('>16')) {
+        add_qa_head_repo(priority => 100);
     }
+
     zypper_call("in stress-ng");
 
     select_user_serial_terminal;
