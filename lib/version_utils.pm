@@ -53,6 +53,7 @@ use constant {
           is_bootloader_grub2
           is_bootloader_sdboot
           is_bootloader_grub2_bls
+          get_bootloader
           get_default_bootloader
           is_plasma6
           requires_role_selection
@@ -834,11 +835,7 @@ Returns true if the SUT uses GRUB2 as bootloader
 =cut
 
 sub is_bootloader_grub2 {
-    return 1 if get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
-    return 0 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
-      && check_var('UEFI', '1') && !is_upgrade
-      && (!is_sle && !is_leap || is_microos);
-    return get_var('BOOTLOADER', 'grub2') eq 'grub2';
+    return get_bootloader() eq 'grub2';
 }
 
 =head2 is_bootloader_sdboot
@@ -847,12 +844,7 @@ Returns true if the SUT uses systemd-boot as bootloader
 =cut
 
 sub is_bootloader_sdboot {
-    # the BOOTLOADER variable probably should be set in main.pm by default
-    return 0 if get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
-    return 1 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
-      && check_var('UEFI', '1') && !is_upgrade
-      && is_microos;
-    return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
+    return get_bootloader() eq 'systemd-boot';
 }
 
 =head2 is_bootloader_grub2_bls
@@ -861,17 +853,30 @@ Returns true if the SUT uses GRUB2-BLS as bootloader
 =cut
 
 sub is_bootloader_grub2_bls {
-    return 0 if get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/ && check_var("VERSION", "Staging:F");
-    # the BOOTLOADER variable probably should be set in main.pm by default
-    return 1 if !get_var('BOOTLOADER', 0) && check_var("VERSION", "Staging:F")
-      && check_var('UEFI', '1') && !is_upgrade
-      && (!is_sle && !is_leap && !is_microos);
-    return get_var('BOOTLOADER', 'grub2') eq 'grub2-bls';
+    return get_bootloader() eq 'grub2-bls';
+}
+
+=head2 get_bootloader
+
+Returns the expected bootloader based on test variables
+can be grub2, grub2-bls or systemd-boot
+=cut
+
+sub get_bootloader {
+    my $bootloader = get_var('BOOTLOADER');
+    return $bootloader if $bootloader;
+
+    return 'grub2' if !check_var('UEFI', 1);
+    return 'grub2' if is_upgrade;
+    return 'systemd-boot' if check_var("VERSION", "Staging:F") && is_microos
+      && !(get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'grub2';
 }
 
 =head2 get_default_bootloader
 
 Returns the default bootloader, can be grub2, grub2-bls or sdboot
+This is a helper function for unit tests.
 =cut
 
 sub get_default_bootloader {
