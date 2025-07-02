@@ -382,9 +382,17 @@ sub prepare_ssh_tunnel {
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
     # Permit root passwordless login and TCP forwarding over SSH
-    $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-    $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
+    if (script_run("sudo sshd -G | grep 'permitrootlogin prohibit-password'") == 0 && script_run("sshd -G | grep 'allowtcpforwarding yes'") ne 0) {
+        if (is_sle('>=16')) {
+            $instance->ssh_assert_script_run(q(echo "PermitRootLogin prohibit-password" | sudo tee /etc/ssh/sshd_config.d/10-root-login.conf));
+            $instance->ssh_assert_script_run(q(echo "AllowTcpForwarding yes" | sudo tee /etc/ssh/sshd_config.d/10-tcp-forwarding.conf));
+        } else {
+            $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+            $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
+        }
+    }
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
+    record_info('sshd -G', $instance->ssh_script_output('sudo sshd -G', proceed_on_failure => 1));
 
     permit_root_login($instance);
 
