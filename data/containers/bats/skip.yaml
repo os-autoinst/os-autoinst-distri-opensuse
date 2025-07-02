@@ -39,8 +39,8 @@ buildah:
   sle-15-SP4:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP:
-    BATS_SKIP_ROOT: bud run
+    BATS_SKIP: bud
+    BATS_SKIP_ROOT: run
     BATS_SKIP_USER:
 netavark:
   # Note on patches:
