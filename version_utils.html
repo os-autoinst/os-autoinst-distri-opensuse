@@ -71,6 +71,7 @@
       <li><a href="#is_bootloader_grub2">is_bootloader_grub2</a></li>
       <li><a href="#is_bootloader_sdboot">is_bootloader_sdboot</a></li>
       <li><a href="#is_bootloader_grub2_bls">is_bootloader_grub2_bls</a></li>
+      <li><a href="#get_bootloader">get_bootloader</a></li>
       <li><a href="#get_default_bootloader">get_default_bootloader</a></li>
       <li><a href="#is_plasma6">is_plasma6</a></li>
       <li><a href="#has_test_issues">has_test_issues</a></li>
@@ -348,9 +349,13 @@
 
 <p>Returns true if the SUT uses GRUB2-BLS as bootloader</p>
 
+<h2 id="get_bootloader">get_bootloader</h2>
+
+<p>Returns the expected bootloader based on test variables can be grub2, grub2-bls or systemd-boot</p>
+
 <h2 id="get_default_bootloader">get_default_bootloader</h2>
 
-<p>Returns the default bootloader, can be grub2, grub2-bls or sdboot</p>
+<p>Returns the default bootloader, can be grub2, grub2-bls or sdboot This is a helper function for unit tests.</p>
 
 <h2 id="is_plasma6">is_plasma6</h2>
 
