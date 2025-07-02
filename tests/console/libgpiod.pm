@@ -17,6 +17,11 @@ use Utils::Architectures;
 use version_utils qw(is_sle is_leap);
 
 sub run {
+    # Test designed for libgpiod v2.x, so only Tumbleweed and Leap >= 16.0
+    if (is_leap('<16.0')) {
+        record_info('SKIP', 'Do not test libgpiod v1.x');
+        return;
+    }
     select_console 'root-console';
 
     # Install libgpiod tools
