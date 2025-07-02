@@ -8,9 +8,10 @@
 #
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
-use base 'opensusebasetest';
+use base qw(opensusebasetest);
 use strict;
 use warnings;
+use experimental qw(switch);
 
 use testapi;
 use transactional qw(trup_call);
@@ -28,13 +29,16 @@ sub run {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $repo_to_test = get_required_var('REPO_TO_TEST');
     my $rootpwd = get_required_var('TEST_PASSWORD');
-    my @sysexts = split(',', get_required_var('SYSEXTS'));
+    my $sysext_path = get_required_var('SYSEXT_PATH');
     my $img_filename = "elemental-$build-$arch";
     my $shared_dir = '/root/shared';
     my $config_file = "$shared_dir/config.sh";
     my $sysext_root = "$shared_dir/sysexts";
     my $sysext_dir = "$sysext_root/etc/extensions";
     my $overlay = "$shared_dir/sysexts.tar.gz";
+    my $sysext_arch;
+    my $rke2_sysext_found;
+    my @sysexts;
 
     # Define timeouts based on the architecture
     my $timeout = (is_aarch64) ? 480 : 240;
@@ -54,13 +58,38 @@ sub run {
     trup_call("apply");
 
     # OS configuration script
-    assert_script_run('curl ' . data_url('elemental3/' . path($config_file)->basename) . ' -o ' . $config_file);
+    assert_script_run('curl -f ' . data_url('elemental3/' . path($config_file)->basename) . ' -o ' . $config_file);
     file_content_replace($config_file, '%TEST_PASSWORD%' => $rootpwd);
     assert_script_run("chmod 755 $config_file");
 
+    # Define architecture for the system extensions
+    given ($arch) {
+        when ('aarch64') {
+            $sysext_arch = 'arm64';
+        }
+        when ('x86_64') {
+            $sysext_arch = 'x86-64';
+        }
+    }
+
+    # Get the system extensions list
+    my @list = split(/[\r\n]+/, script_output("curl -s $sysext_path | sed -n 's/.*>\\(.*-.*-.*${sysext_arch}.raw\\)<.*/\\1/p'"));
+
+    # Clean the list
+    foreach (sort @list) {
+        # RKE2 is hard-coded but for now we don't support anything else
+        if ($_ =~ /rke2/) {
+            # Keep only the first RKE2 version found (the lower version)
+            # Higher versions can be used in another upgrade test
+            next if $rke2_sysext_found;
+            $rke2_sysext_found = 1;
+        }
+        push @sysexts, $_;
+    }
+
     # Get the system extensions
     foreach my $sysext (@sysexts) {
-        assert_script_run('curl ' . $sysext . " -o $sysext_dir/" . path($sysext)->basename, 300);
+        assert_script_run("curl -f $sysext_path$sysext -o $sysext_dir/$sysext", 300);
     }
 
     # Package the system extensions

@@ -4,7 +4,7 @@
 # Summary: Test installation and boot of Elemental ISO
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
-use base 'opensusebasetest';
+use base qw(opensusebasetest);
 use strict;
 use warnings;
 
