@@ -45,7 +45,14 @@ sub run {
         $snapshot_desc = 'after installation';
         $snapshot_type = 'single';
     }
-    assert_script_run("snapper list --type $snapshot_type | tee -a /dev/$serialdev | grep '$snapshot_desc.*important=yes'");
+    # Removed creation of the After install snapshot on sle16
+    # See https://github.com/agama-project/agama/pull/2515
+    if (is_sle('>=16')) {
+        assert_script_run("snapper list --type $snapshot_type | tee -a /dev/$serialdev | grep 'first root filesystem'");
+    }
+    else {
+        assert_script_run("snapper list --type $snapshot_type | tee -a /dev/$serialdev | grep '$snapshot_desc.*important=yes'");
+    }
 }
 
 1;
