@@ -17,14 +17,8 @@ conditional_schedule:
       nfs_client:
         - kernel/nfs_client
         - kernel/kdump_over_nfs
-    VERSION:
-      Tumbleweed:
-        - kernel/nfs_stress_ng
-      15-SP7:
-        - kernel/nfs_stress_ng
-      15-SP6:
-        - kernel/nfs_stress_ng
 schedule:
   - boot/boot_to_desktop
   - kernel/before_nfs_test
   - '{{nfstest}}'
+  - kernel/nfs_stress_ng
