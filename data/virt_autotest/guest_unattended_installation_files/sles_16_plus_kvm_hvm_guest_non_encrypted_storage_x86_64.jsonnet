@@ -16,8 +16,7 @@
     "fullName": "QE Virtualization Functional Test",
     "userName": "qevirt",
     "password": "$2a$10$v32/h9hPd9cATZgLI/a1AepB9eQuMbjvNBOxQIla19fmAMjznSczG",
-    "hashedPassword": true,
-    "autologin": false
+    "hashedPassword": true
   },
   "root": {
     "password": "$2a$10$2qfKlKzzEp9tl3mde5CmhuxsEPd3DdlfJMQ.PNSI3rqXx4KztGYT6",
@@ -58,7 +57,7 @@
         "ignoreAutoDns": false,
         "status": "up",
         "autoconnect": true,
-        "dns_searchlist": [
+        "dnsSearchlist": [
           "##Domain-Name##",
           "suse.de",
           "suse.asia",
