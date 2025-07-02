@@ -208,7 +208,7 @@ subtest 'bootloader_tests' => sub {
 
     set_var('UEFI', '1');
     set_var('VERSION', 'Staging:F');
-    ok get_default_bootloader eq 'systemd-boot', "Microos UEFI is systemd-boot";
+    ok get_default_bootloader eq 'systemd-boot', "Microos on UEFI in Staging:F is systemd-boot";
 
     set_var('UPGRADE', 1);
     ok get_default_bootloader eq 'grub2', "Old Microos UEFI is grub2";
