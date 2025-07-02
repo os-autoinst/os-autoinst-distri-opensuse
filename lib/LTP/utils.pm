@@ -14,7 +14,7 @@ use Utils::Backends;
 use autotest;
 use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
-use version_utils qw(is_jeos is_released is_sle is_leap is_tumbleweed is_rt is_transactional);
+use version_utils qw(is_jeos is_released is_sle is_sle_micro is_leap is_tumbleweed is_rt is_transactional);
 use File::Basename 'basename';
 use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
@@ -309,6 +309,10 @@ EOF
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
     script_run 'echo 1 > /proc/sys/vm/nr_hugepages';
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
+    script_run('echo NO_RUN_TO_PARITY > /sys/kernel/debug/sched/features')
+      if (is_s390x() || is_ppc64le()) &&
+      (is_sle_micro('6.2+') || is_sle('16+')) &&
+      check_var('LTP_COMMAND_FILE', 'ltp-aiodio.part4');
 }
 
 sub read_runfile {
