@@ -46,7 +46,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
     });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
 
-    my $res = qesap_aws_delete_transit_gateway_vpc_attachment(name => 'WHALE');
+    my $res = qesap_aws_delete_transit_gateway_vpc_attachment(id => 'WHALE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok $res, 'Delete of transit gateway vpc attachment is fine.';
@@ -63,7 +63,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment] timeout' => sub {
     });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
 
-    my $res = qesap_aws_delete_transit_gateway_vpc_attachment(name => 'WHALE');
+    my $res = qesap_aws_delete_transit_gateway_vpc_attachment(id => 'WHALE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok !$res, 'Delete of transit gateway vpc attachment timeout.';
