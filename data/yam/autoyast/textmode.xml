@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
+<!-- Test profile -->
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
     <suse_register>
       <do_registration config:type="boolean">true</do_registration>
@@ -24,6 +25,21 @@
         </addon>
 	<addon>
           <name>sle-module-systems-management</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-desktop-applications</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-legacy</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-module-web-scripting</name>
           <version>{{VERSION}}</version>
           <arch>{{ARCH}}</arch>
         </addon>
