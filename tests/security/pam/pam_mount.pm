@@ -1,4 +1,4 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for pam-mount, the encrypted volume should be mounted
@@ -13,12 +13,19 @@ use testapi;
 use utils qw(zypper_call script_run_interactive enter_cmd_slow);
 use Utils::Architectures qw(is_aarch64);
 use base 'consoletest';
+use version_utils 'is_sle';
 
 sub run {
     # There is some issue with script_run_interactive script,
     # it fails to match the serial console output sometimes,
     # so switch to root-console here
     select_console 'root-console';
+
+    # pam_mount is not part of SLE16
+    if (is_sle('>=16')) {
+        record_info('SKIPPING TEST', "Skipping pam_mount test because the package is not part of SLE>=16. It is not even on the wishlist of SLE 16.");
+        return;
+    }
 
     # Install runtime dependencies
     zypper_call("in pam_mount cryptsetup");
@@ -127,4 +134,3 @@ sub post_fail_hook {
 }
 
 1;
-
