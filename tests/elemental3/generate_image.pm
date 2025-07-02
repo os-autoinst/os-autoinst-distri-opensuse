@@ -30,6 +30,7 @@ sub run {
     my $repo_to_test = get_required_var('REPO_TO_TEST');
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $sysext_path = get_required_var('SYSEXT_PATH');
+    my $hdd_size = get_var('HDDSIZEGB', 30);
     my $img_filename = "elemental-$build-$arch";
     my $shared_dir = '/root/shared';
     my $config_file = "$shared_dir/config.sh";
@@ -95,8 +96,8 @@ sub run {
     # Package the system extensions
     assert_script_run("tar cvaf $overlay -C $sysext_root .");
 
-    # Create a raw image and mount it as a loop device (forced to 20GB to allow enough space for creating active partition)
-    assert_script_run("qemu-img create -f raw $shared_dir/$img_filename.raw 10G");
+    # Create a raw image and mount it as a loop device
+    assert_script_run("qemu-img create -f raw $shared_dir/$img_filename.raw ${hdd_size}G");
     my $device = script_output("losetup --find --show $shared_dir/$img_filename.raw");
 
     # Generate RAW image
