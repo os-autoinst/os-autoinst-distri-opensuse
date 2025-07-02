@@ -493,7 +493,7 @@ sub setup_dhcp_server_network {
     my $subnet = $args{subnet} // '/24';
     my $gateway = $args{gateway} // '10.0.2.2';
     my @nics = @{$args{nics}};
-    my @dns = @{$args{dns}};
+    my @dns = @{$args{dns} || []};
 
     my $nic0 = $nics[0];
 
