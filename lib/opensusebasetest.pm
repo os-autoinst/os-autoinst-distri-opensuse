@@ -483,7 +483,7 @@ sub wait_grub_to_boot_on_local_disk {
     my $switch_key = (is_opensuse && get_var('LIVECD')) || get_var('AGAMA') ? 'down' : 'up';
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', "$switch_key";
     boot_local_disk;
-    my @tags = qw(grub2 tianocore-mainmenu);
+    my @tags = qw(grub2 tianocore-mainmenu tianocore-bootmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
     # Workaround for poo#118336
@@ -512,6 +512,11 @@ sub wait_grub_to_boot_on_local_disk {
         assert_screen(\@tags, 90);
     } else {
         assert_screen(\@tags, 15);
+    }
+    if (match_has_tag('tianocore-bootmenu')) {
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        send_key "ret";
+        assert_screen(\@tags, 90);
     }
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
