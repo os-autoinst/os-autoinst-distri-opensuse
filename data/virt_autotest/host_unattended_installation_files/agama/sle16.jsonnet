@@ -95,15 +95,6 @@
           echo '{{_SECRET_RSA_PUB_KEY}}' > /root/.ssh/id_rsa.pub
         |||
       }
-    ],
-    init: [
-      {
-        name: "Setup_br0",
-        content: |||
-          #!/usr/bin/env bash
-          nohup virt-bridge-setup -m --stp no -d
-        |||
-      }
-    ]  
+    ]
   }
 }

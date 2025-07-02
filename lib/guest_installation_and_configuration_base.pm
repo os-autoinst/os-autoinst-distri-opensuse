@@ -2949,7 +2949,7 @@ already marked as 'FAILED' for this case in setup_guest_agama_installation_shell
 sub verify_guest_agama_installation_done {
     my $self = shift;
 
-    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 300);
+    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 600);
     my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     if ($self->{guest_installation_result} eq 'FAILED') {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
