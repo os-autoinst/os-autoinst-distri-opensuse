@@ -186,6 +186,39 @@ sub configure_sap_host_exporter {
     upload_logs $metrics_file;
 }
 
+sub configure_alloy {
+    # Install needed packages
+    zypper_call 'in alloy system-user-alloy';
+    zypper_call 'info --provides alloy';
+    script_run 'rpm -qf $(which alloy)';
+    script_run 'rpm -ql $(rpm -qf $(which alloy))';
+
+    systemctl 'enable --now alloy';
+    systemctl 'status alloy';
+    assert_script_run 'journalctl -u alloy';
+
+    assert_script_run 'grep CONFIG_FILE /etc/sysconfig/alloy';
+    script_run 'cat /etc/alloy/config.alloy || find /etc -type f -name "config.alloy" || find /usr/share/doc/packages/alloy -type f -name "config.alloy"';
+    script_run 'cat /usr/share/doc/packages/alloy/config.alloy';
+
+    assert_script_run(join(' ',
+            'curl',
+            '-v -fL',
+            data_url('sles4sap/config.alloy'),
+            '-o /etc/alloy/config.alloy'));
+
+    systemctl 'reload alloy';
+    systemctl 'restart alloy';
+    systemctl 'status alloy';
+    assert_script_run 'journalctl -u alloy';
+
+    assert_script_run 'curl -o alloy_curl.txt http://localhost:12345 || echo "Not working"';
+    assert_script_run 'curl -o alloy_metrics_curl.txt http://localhost:12345/metrics || echo "Not working"';
+
+    sleep 30;
+    assert_script_run 'curl -o alloy_curl.txt http://localhost:12345 || echo "Not working"';
+    assert_script_run 'curl -o alloy_metrics_curl.txt http://localhost:12345/metrics || echo "Not working"'; }
+
 sub configure_node_exporter {
     my $monitoring_port = 9100;
     my $metrics_file = '/tmp/node_exporter.metrics';
@@ -224,6 +257,10 @@ sub run {
     # Make sure that we have an opened terminal
     select_serial_terminal;
 
+    script_run 'zypper se -s prometheus';
+    script_run 'zypper se -s ha_cluster_exporter';
+
+    configure_alloy if is_sle('>=16');
     # Configure Exporters
     configure_ha_exporter if get_var('HA_CLUSTER');
     configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
