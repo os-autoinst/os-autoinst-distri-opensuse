@@ -4,11 +4,13 @@ local dasd_lib = import 'lib/dasd.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
 local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
+local software_lib = import 'lib/software.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
          dasd=false,
+         extraRepositories=false,
          files=false,
          localization='',
          packages='',
@@ -27,10 +29,11 @@ function(bootloader=false,
   [if dasd == true then 'dasd']: dasd_lib.dasd(),
   [if files == true then 'files']: base_lib['files'],
   [if localization == true then 'localization']: base_lib['localization'],
-  [if patterns != '' || packages != '' then 'software']: std.prune({
-    patterns: if patterns != '' then std.split(patterns, ','),
-    packages: if packages != '' then std.split(packages, ','),
-  }),
+  [if patterns != '' || packages != '' || extraRepositories == true then 'software']:
+    std.prune(
+      software_lib.software.mkPatternsPackages(patterns, packages) +
+      (if extraRepositories == true then { extraRepositories: software_lib.software.extraRepositories } else {}),
+    ),
   [if product != '' then 'product']: {
     [if registration_code_ha != '' then 'addons']: std.prune([
       if registration_code_ha != '' then addons_lib.addon_ha(registration_code_ha),
