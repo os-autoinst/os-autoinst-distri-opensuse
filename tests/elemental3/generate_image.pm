@@ -74,7 +74,8 @@ sub run {
     }
 
     # Get the system extensions list
-    my @list = split(/[\r\n]+/, script_output("curl -s $sysext_path | sed -n 's/.*>\\(.*-.*-.*${sysext_arch}.raw\\)<.*/\\1/p'"));
+    # NOTE: '/' is mandatory at the end of $sysext_path!
+    my @list = split(/[\r\n]+/, script_output("curl -s ${sysext_path}/ | sed -n 's/.*>\\(.*-.*-.*${sysext_arch}.raw\\)<.*/\\1/p'"));
 
     # Clean the list
     foreach (sort @list) {
@@ -90,7 +91,7 @@ sub run {
 
     # Get the system extensions
     foreach my $sysext (@sysexts) {
-        assert_script_run("curl -f $sysext_path$sysext -o $sysext_dir/$sysext", 300);
+        assert_script_run("curl -f ${sysext_path}/${sysext} -o ${sysext_dir}/${sysext}", 300);
     }
 
     # Package the system extensions
