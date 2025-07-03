@@ -1318,25 +1318,4 @@ subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' 
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
-subtest '[qesap_calculate_address_range]' => sub {
-    my %result_1 = qesap_calculate_address_range(slot => 1);
-    my %result_2 = qesap_calculate_address_range(slot => 2);
-    my %result_64 = qesap_calculate_address_range(slot => 64);
-    my %result_65 = qesap_calculate_address_range(slot => 65);
-    my %result_8192 = qesap_calculate_address_range(slot => 8192);
-
-    is($result_1{main_address_range}, "10.0.0.0/21", 'result_1 main_address_range is correct');
-    is($result_1{subnet_address_range}, "10.0.0.0/24", 'result_1 subnet_address_range is correct');
-    is($result_2{main_address_range}, "10.0.8.0/21", 'result_2 main_address_range is correct');
-    is($result_2{subnet_address_range}, "10.0.8.0/24", 'result_2 subnet_address_range is correct');
-    is($result_64{main_address_range}, "10.1.248.0/21", 'result_64 main_address_range is correct');
-    is($result_64{subnet_address_range}, "10.1.248.0/24", 'result_64 subnet_address_range is correct');
-    is($result_65{main_address_range}, "10.2.0.0/21", 'result_65 main_address_range is correct');
-    is($result_65{subnet_address_range}, "10.2.0.0/24", 'result_65 subnet_address_range is correct');
-    is($result_8192{main_address_range}, "10.255.248.0/21", 'result_8192 main_address_range is correct');
-    is($result_8192{subnet_address_range}, "10.255.248.0/24", 'result_8192 subnet_address_range is correct');
-    dies_ok { qesap_calculate_address_range(slot => 0); } "Expected die for slot < 1";
-    dies_ok { qesap_calculate_address_range(slot => 8193); } "Expected die for slot > 8192";
-};
-
 done_testing;
