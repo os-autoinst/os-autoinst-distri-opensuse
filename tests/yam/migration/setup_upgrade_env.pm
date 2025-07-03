@@ -31,14 +31,16 @@ sub run {
         AGAMA => '0',
         SCC_ADDONS => $scc_addons,
         SCC_URL => 'https://scc.suse.com',
-        VERSION => $version
+        VERSION => $version,
     );
+    my $env_content = '';
     while (my ($var_name, $var_value) = each %vars_to_set) {
         if (get_var($var_name)) {
             set_var($var_name, $var_value);
-            record_info($var_name, "$var_name=" . get_var($var_name));
+            $env_content .= "$var_name=" . get_var($var_name) . "\n";
         }
     }
+    record_info('ENV', $env_content);
 
     # tty assignation might differ between product versions
     reset_consoles_tty();
