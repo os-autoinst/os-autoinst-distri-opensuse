@@ -57,12 +57,12 @@ tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @janko
 tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
 
 # Security
-data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
-tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki
+data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
+tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda
