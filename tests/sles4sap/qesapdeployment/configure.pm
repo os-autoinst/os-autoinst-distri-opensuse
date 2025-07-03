@@ -14,6 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 use qam 'get_test_repos';
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::ibsm;
 
 sub run {
     my ($self) = @_;
@@ -99,7 +100,7 @@ sub run {
 
     # *_ADDRESS_RANGE variables are not necessary needed by all the conf.yaml templates
     # but calculate them every time is "cheap"
-    my %peering_settings = qesap_calculate_address_range(slot => get_required_var('WORKER_ID'));
+    my %peering_settings = ibsm_calculate_address_range(slot => get_required_var('WORKER_ID'));
     $variables{MAIN_ADDRESS_RANGE} = $peering_settings{main_address_range};
     if ($provider_setting eq 'AZURE') {
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
