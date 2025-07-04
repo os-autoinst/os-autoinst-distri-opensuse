@@ -18,6 +18,13 @@ sub run {
     select_console 'root-console';
     # See https://build.opensuse.org/package/show/home:lslezak:dud-test/hello-world
     validate_script_output("hello-world.sh", qr/Hello world!/);
+
+    my $agama_output = script_output("journalctl /usr/bin/agama");
+    if ($agama_output =~ /The\sprofile\sis\svalid/ms) {
+        diag "DUD profile loaded successfully";
+    } else {
+        die "Error, JSON profile in DUD file not loaded or not valid to perform unattended installation";
+    }
 }
 
 1;
