@@ -107,6 +107,8 @@ sub load_container_engine_privileged_mode {
 sub load_compose_tests {
     my ($run_args) = @_;
     return if (is_staging);
+    # SLEM 6.0 has podman 4.9.5 while SLEM 6.1 has podman 5.2.5
+    # podman with docker-compose needs podman 5.x
     my $min_slem_version = ($run_args->{runtime} eq "podman") ? "6.1" : "6.0";
     return unless (is_tumbleweed || is_sle('>=16.0') || is_sle_micro(">=$min_slem_version"));
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");

@@ -25,7 +25,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use registration;
 use utils;
 use containers::common;
-use version_utils qw(is_transactional);
+use version_utils qw(is_sle_micro is_transactional);
 
 sub basic_test {
     my ($runtime, $rootless) = @_;
@@ -73,11 +73,14 @@ sub run {
     my $engine = $self->containers_factory($runtime);
 
     my @pkgs = ('docker-compose');
-    # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1244448
-    # docker-compose package pulls all docker dependencies when used with podman
-    # Note: When `CONTAINER_RUNTIMES=podman,docker` we don't care and it allows
-    # us to test how both runtimes behave when installed together.
-    push @pkgs, 'podman-docker' if check_var("CONTAINER_RUNTIMES", "podman");
+    # podman-docker & docker-compose fails on SLEM 6.1
+    unless (is_sle_micro('=6.1')) {
+        # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1244448
+        # docker-compose package pulls all docker dependencies when used with podman
+        # Note: When `CONTAINER_RUNTIMES=podman,docker` we don't care and it allows
+        # us to test how both runtimes behave when installed together.
+        push @pkgs, 'podman-docker' if check_var("CONTAINER_RUNTIMES", "podman");
+    }
     install_packages(@pkgs);
 
     validate_script_output("$runtime compose version", qr/version 2/);
