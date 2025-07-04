@@ -13,8 +13,10 @@ use strict;
 use warnings;
 use testapi;
 use Exporter qw(import);
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file);
+use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file sdaf_upload_logs);
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use sles4sap::sap_deployment_automation_framework::inventory_tools;
 use sles4sap::console_redirection;
 
 our @EXPORT = qw(full_cleanup $serial_regexp_playbook);
@@ -96,6 +98,7 @@ sub full_cleanup {
 }
 
 sub post_fail_hook {
+    my ($self, $run_args) = @_;
     record_info('Post fail', 'Executing post fail hook');
     if (testapi::is_serial_terminal()) {
         # In case playbook/script times out, it will keep occupying the command line,
@@ -121,6 +124,63 @@ sub post_fail_hook {
             }
             else {
                 record_info('Terminated other script process');
+            }
+        }
+    }
+
+    # Update logs (except deployment VM logs) before cleanup
+    if (get_required_var('TEST') !~ /_deploy_/) {
+        # Upload logs appearing in deployer VM
+        record_info('Upload logs appearing in deloyer VM');
+        # Prepare deployer logs path
+        my $sap_sid = get_required_var('SAP_SID');
+        my $config_root_path = get_sdaf_config_path(
+            deployment_type => 'sap_system',
+            vnet_code => get_workload_vnet_code(),
+            env_code => get_required_var('SDAF_ENV_CODE'),
+            sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
+            sap_sid => $sap_sid);
+        my $logs_dir = $config_root_path . '/logs/';
+        connect_target_to_serial();
+
+        # Upload deployer logs
+        my $qesap_log_find = "find $logs_dir -type f -name '*.zip' 2>/dev/null";
+        foreach my $log (split(/\n/, script_output($qesap_log_find, proceed_on_failure => 1))) {
+            record_info("Upload file $log");
+            upload_logs($log, failok => 1);
+        }
+
+        # Upload logs appearing in SUTs
+        record_info('Upload logs appearing in SUTs');
+        # Prepare redirection data, reset $run_args in case of post_fail_hook being invoked before $run_args is set
+        my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
+        my $inventory_data = read_inventory_file($inventory_path);
+        my $private_key_src_path = get_sut_sshkey_path(config_root_path => $config_root_path);
+        $run_args->{sdaf_inventory} = $inventory_data;
+        $run_args->{redirection_data} = create_redirection_data(inventory_data => $inventory_data);
+        my %redirection_data = %{$run_args->{redirection_data}};
+        disconnect_target_from_serial();
+
+        # Prepare ssh config, download ssh private key for accessing SUTs
+        my $jump_host_user = get_required_var('REDIRECT_DESTINATION_USER');
+        my $jump_host_ip = get_required_var('REDIRECT_DESTINATION_IP');
+        my $scp_cmd = join(' ', 'scp ', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_private_key_path);
+        assert_script_run($scp_cmd);
+        prepare_ssh_config(
+            inventory_data => $inventory_data,
+            jump_host_ip => $jump_host_ip,
+            jump_host_user => $jump_host_user
+        );
+
+        # Upload SUTs logs
+        for my $instance_type (keys(%redirection_data)) {
+            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs);
+            for my $hostname (keys(%{$redirection_data{$instance_type}})) {
+                my %host_data = %{$redirection_data{$instance_type}{$hostname}};
+                connect_target_to_serial(
+                    destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user}, switch_root => '1');
+                sdaf_upload_logs(hostname => $hostname, sap_sid => $sap_sid);
+                disconnect_target_from_serial();
             }
         }
     }
