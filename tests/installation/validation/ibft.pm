@@ -79,18 +79,21 @@ sub ibft_validation {
     # Enabling iBFT autoconfiguration for the interfaces should be done in initrd
     if (is_sle('<15-sp4')) {
         assert_script_run 'grep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/mkinitrd.log';
+        assert_script_run 'ip a | grep -i ibft';
     }
     elsif (is_sle('>=15-sp4') && is_sle('<16')) {
         # In recent products yast2-bootloader calls dracut instead of mkinitrd, so the logs differ
         assert_script_run 'zgrep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/y2log*';
+        assert_script_run 'ip a | grep -i ibft';
     }
     else {
         # SLE16 uses agama, so search the general logs of agama
         assert_script_run "zgrep -a -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/agama-installation/logs.tar.gz";
+        # IBFT naming is moved to more predictable schema in SLE 16
+        assert_script_run 'ip a | grep -i ens';
     }
 
     # Scan for ibft interface
-    assert_script_run 'ip a | grep -i ibft';
     my $ibft_setup = script_output 'for a in `find /sys/firmware/ibft/ -type f -print`; do  echo -n "$a:";  cat $a; echo; done';
     my @config = split(/\n/, $ibft_setup);
 
