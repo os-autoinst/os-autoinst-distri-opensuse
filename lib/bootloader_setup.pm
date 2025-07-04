@@ -1146,9 +1146,12 @@ sub tianocore_disable_secureboot {
     while (!check_screen('tianocore-mainmenu')) {
         wait_still_screen();
         if (check_screen('tianocore-bootmenu')) {
-            send_key 'down';
-            assert_screen 'tianocore-bootmenu-EFI-fimware-selected';
-            send_key 'ret';
+            my $retries = 5;
+            while (!check_screen('tianocore-bootmenu-EFI-fimware-selected') && $retries--) {
+                send_key 'down';
+                sleep 1;
+            }
+            match_has_tag 'tianocore-bootmenu-EFI-fimware-selected' ? send_key 'ret' : die "Couldn't find the EFI firmware needle.'";
         }
     }
 
