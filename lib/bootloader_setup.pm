@@ -1123,9 +1123,13 @@ sub select_bootmenu_language {
 sub tianocore_enter_menu {
     # we need to reduce this waiting time as much as possible
     my $counter = 300;
-    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1) && $counter--) {
+    while (!check_screen([qw(tianocore-mainmenu tianocore-bootmenu)], 0, no_wait => 1) && $counter--) {
         send_key 'f2';
         sleep 0.1;
+    }
+    if (check_screen('tianocore-bootmenu')) {
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        send_key "ret";
     }
 }
 
