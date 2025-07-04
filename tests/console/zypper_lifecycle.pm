@@ -101,7 +101,14 @@ sub run {
 
     die "Got malformed repo list:\nOutput: '$output'" unless $base_repos;
 
-    $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 600;
+    if (is_sle('>=16')) {
+        # For sle16, it has only one repository, see https://progress.opensuse.org/issues/185221
+        $output = script_output('echo $(zypper -n -x se -t package -i -s | grep name= | head -n 1 )', 600);
+    }
+    else {
+        $output = script_output 'echo $(for repo in ' . $base_repos . ' ; do zypper -n -x se -t package -i -s -r $repo ; done | grep name= | head -n 1 )', 600;
+    }
+
     # Parse package name
     if ($output =~ /name="(?<package>[^"]+)"/) {
         $package = $+{package};
