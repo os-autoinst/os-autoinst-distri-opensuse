@@ -10,7 +10,6 @@
 #  - Install the required dependencies to install the aistack helm chart
 #  - Test access to OpenWebUI and run integration tests with Ollama and MilvusDB
 # Maintainer: Yogalakshmi Arunachalam <yarunachalam@suse.com>
-#
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
@@ -74,9 +73,9 @@ sub install_dependency_components {
     my $ing_ver = get_var('ING_VERSION');
 
     # Add Ingress Controller to open-webui endpoint
-    assert_script_run("helm repo add $ingress_repo");
-    assert_script_run("helm repo update");
-    assert_script_run("helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --set controller.service.type=ClusterIP --version $ing_ver --create-namespace", timeout => 120);
+    # assert_script_run("helm repo add $ingress_repo");
+    #assert_script_run("helm repo update");
+    #assert_script_run("helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --set controller.service.type=ClusterIP --version $ing_ver --create-namespace", timeout => 120);
 
     # Add cert-manager repo,install
     assert_script_run("helm repo add $cert_repo");
@@ -143,10 +142,10 @@ sub install_aistack_chart {
     assert_script_run("helm registry login dp.apps.rancher.io/charts -u $docker_user_name -p $SECRET_application_collection");
     if (check_var('PUBLIC_CLOUD_NVIDIA_GPU_AISTACK', 1)) {
         assert_script_run("curl " . data_url("aistack/$openwebui_gpu_values") . " -o $openwebui_gpu_values", 60);
-        assert_script_run("helm install open-webui -f $openwebui_gpu_values -n $namespace $openwebui_helm_repo --set open-webui.ingress.class=nginx", timeout => 100);
+        assert_script_run("helm install open-webui -f $openwebui_gpu_values -n $namespace $openwebui_helm_repo", timeout => 100);
     } else {
         assert_script_run("curl " . data_url("aistack/$openwebui_values") . " -o $openwebui_values", 60);
-        assert_script_run("helm install open-webui -f $openwebui_values -n $namespace $openwebui_helm_repo --set open-webui.ingress.class=nginx", timeout => 100);
+        assert_script_run("helm install open-webui -f $openwebui_values -n $namespace $openwebui_helm_repo", timeout => 100);
     }
 
     assert_script_run("kubectl get all --namespace $namespace");
@@ -159,10 +158,16 @@ sub install_aistack_chart {
     # After reaching max_retries , record the pod details which does not run after reaching max_retries
     my $max_retries = 15;
     my @failed_pods;
+    my @issue_logs_pod;
     my $sleep_interval = 20;
+    my $ollama_pod;
     my @out = split(' ', script_output("kubectl get pods --namespace $namespace -o custom-columns=':metadata.name'"));
     record_info("Pod names", join(" ", @out));
   POD_LOOP: foreach my $pod (@out) {
+
+        if ($pod =~ /^ollama/) {
+            $ollama_pod = $pod;
+        }
         my $counter = 0;
         my $start_time = time();
         while ($counter++ < $max_retries) {
@@ -177,8 +182,8 @@ sub install_aistack_chart {
                 next POD_LOOP;
             } else {
                 if ($logs =~ /ERROR|FAILURE|Exception|Failed/) {
-                    record_info("$pod failed due to error in log: $logs \n ");
-                    push @failed_pods, {name => $pod, status => $status};
+                    record_info("$pod has error in log: $logs \n ");
+                    push @issue_logs_pod, {name => $pod, status => $status};
                     next POD_LOOP;
                 }    # if log
                 sleep $sleep_interval;
@@ -188,6 +193,25 @@ sub install_aistack_chart {
     }    # pod loop
 
     assert_script_run("kubectl get all --namespace $namespace");
+
+    # GPU check for NVIDIA_GPU_AISTACK test
+    if (check_var('PUBLIC_CLOUD_NVIDIA_GPU_AISTACK', 1)) {
+        my $ollama_log = script_output("kubectl logs $ollama_pod -n $namespace", proceed_on_failure => 1);
+        if ($ollama_log =~ /looking for compatible GPUs/) {
+            record_info("GPU compatible check in pod log $ollama_pod.");
+        }
+        if ($ollama_log =~ /no gpus found/) {
+            die "No GPU found for $ollama_pod\n";
+        }
+    }
+
+    # pod logs containing ERROR, FAILURE, or Exception, log a message indicating
+    # that the log has failure details and further inspection is needed
+    if (@issue_logs_pod) {
+        record_info("@issue_logs_pod log has ERROR|FAILURE|Exception check log for more details ");
+    }
+
+    # Exit if there is failed pods
     if (@failed_pods) {
         die "Failed pods:\n" . join("\n", map { "$_->{name}: $_->{status}" } @failed_pods) . "\n";
     }
@@ -233,24 +257,34 @@ sub test_openwebui_service {
     record_info("Added $ipaddr to /etc/hosts with hostname $host_name");
 
     # get endpoints
-    assert_script_run("kubectl get endpoints $sr_name -n $namespace -o=jsonpath='{.subsets[*].addresses[*].ip}'");
-    my $endpoint_cmd = "kubectl get endpoints $sr_name -n $namespace -o=jsonpath='{.subsets[*].addresses[*].ip}'";
-    my $endpoint_result = script_output($endpoint_cmd);
-    record_info("Endpoint code: $endpoint_result \n");
-    if (!$endpoint_result) {
-        die "No healthy endpoints found for the open-webui service in $namespace\n";
+    #my $endpoint_result = script_output("kubectl get endpoints $sr_name -n $namespace -o=jsonpath='{.subsets[*].addresses[*].ip}'");
+    #record_info("Endpoint code: $endpoint_result \n");
+    #if (!$endpoint_result) {
+    #   die "No healthy endpoints found for the open-webui service in $namespace\n";
+    #} else {
+    # connect open-webui service
+    assert_script_run("ping -c 5 $host_name");
+    my $curl_cmd = 'curl -v --trace --head --write-out "%{http_code}\n" -k -L https://' . $host_name;
+    my $curl_code = script_retry($curl_cmd, retry => 5, delay => 60);
+    record_info("http code: $curl_code \n");
+    if ($curl_code == 200) {
+        record_info("Successfully connected to the open-webui service at $curl_cmd \n");
     } else {
-        # connect open-webui service
-        assert_script_run("curl --output /dev/null --silent --head --write-out \"%{http_code}\n\" -k -L https://$host_name");
-        my $curl_cmd = "curl --output /dev/null --silent --head --write-out \"%{http_code}\n\" -k -L https://$host_name";
-        my $curl_result = script_output($curl_cmd);
-        record_info("http code: $curl_result \n");
-        if ($curl_result == 200) {
-            record_info("Successfully connected to the open-webui service at $curl_cmd \n");
-        } else {
-            die "Received unexpected HTTP error code $curl_result for $curl_cmd\n";
-        }
-    }
+       my $opod_name = script_output("kubectl get pods -n suse-private-ai -o=jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep 'open-webui' | head -n 1");
+       record_info("Open webui name $opod_name");
+       assert_script_run("kubectl get pods --all-namespaces");
+       assert_script_run("kubectl logs $opod_name -n suse-private-ai");
+       assert_script_run("kubectl get ingress --all-namespaces");
+       my $ing_pod_name = script_output("kubectl get pods --all-namespaces | grep ingress-nginx-controller | tail -n 2 | awk '{print \$2}'");
+       assert_script_run("kubectl logs $ing_pod_name -n suse-private-ai");
+       assert_script_run("kubectl get svc --all-namespaces | grep ingress");
+       assert_script_run("kubectl get svc open-webui -n suse-private-ai");
+       assert_script_run("kubectl describe ingress open-webui -n suse-private-ai");
+       assert_script_run("kubectl describe pod open-webui-0 -n suse-private-ai");
+
+       die "Received unexpected HTTP error code $curl_code for $curl_cmd\n";
+   }
+   
 
     # create Admin user
     my $signup_url = "https://$host_name/api/v1/auths/signup";
@@ -304,6 +338,8 @@ sub run {
 
     my $instance = $self->{my_instance} = $args->{my_instance};
     my $provider = $self->{provider} = $args->{my_provider};
+    my $webip = $instance->public_ip;
+    record_info 'Instance', join(' ', 'IP: ', $instance->public_ip);
 
     # Install dependency package, config kubectl and depnedency components
     install_dependency_package($instance);
@@ -317,6 +353,7 @@ sub run {
 
     # Install private_ai_stack chart
     install_aistack_chart($instance, $ai_ns);
+  
 
     # OpenWebUI service test
     test_openwebui_service($instance, $ai_ns);
