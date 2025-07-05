@@ -21,6 +21,7 @@ use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
+use wsl qw(wsl_choose_sles register_via_scc);
 
 my $user_created = 0;
 
@@ -230,12 +231,22 @@ sub run {
         assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
+        # In WSL, the new process of installing, appears in an already maximized window,
+        # but sometimes it loses focus. So I created another needle to check if
+        # the window is already maximized and click somewhere else to bring it to focus.
+        if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+            assert_screen(['window-max', 'window-minimize']);
+            assert_and_click 'window-max' if match_has_tag 'window-max';
+            assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
+            wait_still_screen stilltime => 3, timeout => 10;
+        }
         send_key 'ret';
     }
 
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    if (is_community_jeos || is_sle('=12-sp5')) {
+    # system locale is present in WSL with jeos-firstboot
+    if (is_community_jeos || is_sle('=12-sp5') || get_var('WSL_VERSION')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
@@ -268,8 +279,13 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
-    # handle registration notice
-    if (is_sle || is_sle_micro) {
+    # In WSL: Choose SLES or SLED
+    # And register via SCC
+    wsl_choose_sles;
+    register_via_scc;
+
+    # handle registration notice. Not in WSL.
+    if ((is_sle || is_sle_micro) && !get_var('WSL_VERSION')) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }
@@ -289,6 +305,11 @@ sub run {
         # All options used up, so no need to press 'Done' explicitly anymore.
 
         # Continues below to verify that /etc/issue shows the recovery key
+    }
+
+    # Create user in WSL
+    if (get_var('WSL_VERSION')) {
+        create_user_in_ui;
     }
 
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
