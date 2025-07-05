@@ -119,12 +119,19 @@ sub command_output {
     my @expected = @{$args{matches}};
     record_info($name, $description);
     my $actual = script_output("$name $options");
+    record_info("Actual=", $actual);
     assert_matches($_, $actual, "Partition not found") for (@expected);
 }
 
 sub run {
     select_console 'root-console';
     prepare_test_data;
+    record_info("test_data partitioning", join("\n", @partitioning));
+    record_info("test_data raid", join("\n", @raid));
+
+    record_info('lsblk', script_output('lsblk --list --output NAME,FSTYPE,MOUNTPOINT'));
+    record_info('mdadm', script_output('mdadm --detail /dev/md0 /dev/md1'));
+
     command_output(
         name => 'lsblk',
         options => '--list --output NAME,FSTYPE,MOUNTPOINT',
