@@ -11,6 +11,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use registration 'register_addons_cmd';
+use migration 'set_scc_proxy_url';
 
 sub run {
     my @addons = split(/,/, get_required_var('SCC_ADDONS'));
@@ -18,11 +19,12 @@ sub run {
     my %filter;
     @filter{@addons_drop} = {};
 
-    select_console('root-console');
-    assert_script_run('SUSEConnect --debug --cleanup');
-    assert_script_run('SUSEConnect --debug --regcode ' . get_required_var('SCC_REGCODE'), 200);
-    my $addons_to_register = join(',', grep !exists $filter{$_}, @addons);
-    register_addons_cmd($addons_to_register);
+    set_scc_proxy_url;
+    #select_console('root-console');
+    #assert_script_run('SUSEConnect --debug --cleanup');
+    #assert_script_run('SUSEConnect --debug --regcode ' . get_required_var('SCC_REGCODE'), 200);
+    #my $addons_to_register = join(',', grep !exists $filter{$_}, @addons);
+    #register_addons_cmd($addons_to_register);
 }
 
 1;

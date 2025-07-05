@@ -11,3 +11,6 @@ schedule:
   - yam/migration/restore_upgrade_env
   - console/system_prepare
   - console/hostname
+  - yam/migration/setup_registration
+  - yam/migration/migration_auto
+  - installation/handle_reboot
