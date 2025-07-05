@@ -1597,6 +1597,16 @@ sub config_guest_network_bridge_services {
         }
         record_info("Content of /etc/sysconfig/network/config", script_output("cat /etc/sysconfig/network/config", proceed_on_failure => 1));
     }
+    else {
+        type_string("cat > /etc/NetworkManager/conf.d/resolv_config.conf <<EOF
+[main]
+dns=none
+rc-manager=unmanaged
+EOF
+");
+        systemctl("restart NetworkManager.service");
+        record_info("Content of /etc/NetworkManager/conf.d/resolv_config.conf", script_output("cat /etc/NetworkManager/conf.d/resolv_config.conf", proceed_on_failure => 1));
+    }
     $_detect_signature = script_output("cat /etc/resolv.conf | grep \"#Modified by guest_installation_and_configuration_base module\"", proceed_on_failure => 1);
     assert_script_run("cp /etc/resolv.conf /etc/resolv_backup.conf") if ($_detect_signature eq '');
     my $_detect_name_server = script_output("cat /etc/resolv.conf | grep \"nameserver $_guest_network_ipaddr_gw\"", proceed_on_failure => 1);
