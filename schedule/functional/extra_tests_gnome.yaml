@@ -27,6 +27,7 @@ conditional_schedule:
                 - x11/wine
                 - x11/chrome
                 - x11/doom.py
+                - x11/emptyepsilon.lua
     opensuse_tests:
         DISTRI:
             opensuse:
