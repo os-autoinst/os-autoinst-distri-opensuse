@@ -30,7 +30,7 @@ sub post_run_hook {
     # start next test in home directory
     enter_cmd "cd";
 
-    record_avc_selinux_alerts();
+    $self->record_avc_selinux_alerts();
     # clear screen to make screen content ready for next test
     $self->clear_and_verify_console;
 }
@@ -44,7 +44,7 @@ Method executed when run() finishes and the module has result => 'fail'
 sub post_fail_hook {
     my ($self) = @_;
     return if get_var('NOLOGS');
-    record_avc_selinux_alerts();
+    $self->record_avc_selinux_alerts();
     $self->SUPER::post_fail_hook;
     # at this point the instance is shutdown
     return if (is_public_cloud() || is_openstack());

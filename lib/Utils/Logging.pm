@@ -324,7 +324,6 @@ sub export_logs_basic {
     save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.txt', {screenshot => 1});
     save_and_upload_log('dmesg', '/tmp/dmesg.txt', {screenshot => 1});
     tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.gz', {gzip => 1});
-    record_avc_selinux_alerts();
     for my $service (get_started_systemd_services()) {
         save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.txt", {screenshot => 1});
     }
@@ -388,8 +387,12 @@ List AVCs that have been recorded during a runtime of a test module that execute
 =cut
 
 sub record_avc_selinux_alerts {
+    my $self = shift;
+    if (current_console() !~ /root|log/) {
+        return;
+    }
 
-    if ((current_console() !~ /root|log/) || (script_run('test -f /var/log/audit/audit.log') != 0)) {
+    if (script_run('grep -q selinux /sys/kernel/security/lsm 2> /dev/null') != 0) {
         return;
     }
 
@@ -397,14 +400,25 @@ sub record_avc_selinux_alerts {
 
     # no new messages are registered
     if (scalar @logged <= $avc_record{start}) {
+        record_info('AVC', 'No AVCs were recorded');
         return;
     }
+
 
     $avc_record{end} = scalar @logged - 1;
     my @avc = @logged[$avc_record{start} .. $avc_record{end}];
     $avc_record{start} = $avc_record{end} + 1;
 
-    record_info('AVC', join("\n", @avc));
+    if (@avc) {
+        if (get_var('AVC_FAIL_ON_DENIALS', 0)) {
+            record_info('AVC', join("\n", @avc), result => 'fail');
+            if ($self->{post_fail_hook_running} == 0) {
+                $self->result('fail');
+            }
+        } else {
+            record_info('AVC', join("\n", @avc), result => 'softfail');
+        }
+    }
 }
 
 1;

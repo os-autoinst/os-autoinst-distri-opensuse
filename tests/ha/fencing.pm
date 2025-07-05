@@ -95,7 +95,7 @@ sub post_run_hook {
     my $node_to_fence = get_var('NODE_TO_FENCE', undef);
     # If NODE_TO_FENCE is undef, then the module fences first node only, otherwise check for the hostname
     if ((defined $node_to_fence && (get_hostname ne $node_to_fence)) || (!defined $node_to_fence && !check_var('HA_CLUSTER_INIT', 'yes'))) {
-        record_avc_selinux_alerts() if is_sle('16+');
+        $self->record_avc_selinux_alerts() if is_sle('16+');
     }
 }
 
