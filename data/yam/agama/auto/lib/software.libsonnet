@@ -1,0 +1,15 @@
+{
+  software: {
+    extraRepositories: [
+      {
+        alias: 'games',
+        url: 'https://download.opensuse.org/repositories/games/openSUSE_Tumbleweed/',
+        gpgFingerprints: ['AEF1 EE83 0A27 90AB ABC2 CDA2 8F91 B0E6 C862 B42C'],
+      },
+    ],
+    mkPatternsPackages:: function(patterns='', packages='') std.prune({
+      patterns: if patterns != '' then std.split(patterns, ','),
+      packages: if packages != '' then std.split(packages, ','),
+    }),
+  },
+}
