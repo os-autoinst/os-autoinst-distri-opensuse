@@ -632,7 +632,7 @@ subtest '[crm_resource_meta_set] Delete meta-argument' => sub {
     my @calls;
     $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
 
-    crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement');
+    crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement', argument_value => undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((grep /delete/, @calls), 'Specify "delete" action');
 
