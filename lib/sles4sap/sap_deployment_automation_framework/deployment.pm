@@ -56,6 +56,7 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
+  export_credentials
 );
 
 our $output_log_file = '';
@@ -361,6 +362,7 @@ sub set_common_sdaf_os_env {
     set_var('SDAF_REGION_CODE', $args{sdaf_region_code});
 
     my @variables = (
+        'export TFE_PARALLELISM=1',
         "export env_code=$args{env_code}",
         "export deployer_vnet_code=$args{deployer_vnet_code}",
         "export workload_vnet_code=$workload_vnet_code",
