@@ -1907,6 +1907,34 @@ sub qesap_az_clean_old_peerings {
     }
 }
 
+sub qesap_aws_delete_leftover_tgw_attachments {
+    my (%args) = @_;
+    return 0 unless $args{mirror_tag};
+
+    my $available_attachments = qesap_aws_get_tgw_attachments(%args);
+
+    return 1 unless ref($available_attachments) eq 'ARRAY' && @$available_attachments;
+    record_info('AWS PEERING CLEANUP', 'Starting leftover peering cleanup (AWS)');
+
+    foreach my $att (@$available_attachments) {
+        my $name = $att->{Name} // '';
+        my $id   = $att->{Id}   // next;
+
+        next unless $name =~ /(\d+)-tgw-attach$/;
+        my $job_id = $1;
+
+        next unless qesap_is_job_finished($job_id);
+
+        record_info('LEFTOVER TGW ATTACHMENT', "Attachment $name's job has finished, deleting");
+
+        qesap_aws_delete_transit_gateway_vpc_attachment(
+            id => $id,
+            wait => 0
+        );
+    }
+    return 1;
+}
+
 =head2 qesap_az_setup_native_fencing_permissions
 
     qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
