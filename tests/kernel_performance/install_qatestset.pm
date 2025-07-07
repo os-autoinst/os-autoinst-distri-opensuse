@@ -18,6 +18,7 @@ use repo_tools 'add_qa_head_repo';
 use mmapi 'wait_for_children';
 use ipmi_backend_utils;
 use version_utils qw(is_sle has_selinux);
+use bootloader_setup qw(replace_grub_cmdline_settings);
 
 sub setup_rules_for_sleperf_when_selinux_enforcing {
     if (has_selinux && script_output('getenforce') eq 'Enforcing') {
@@ -169,24 +170,44 @@ sub os_update {
     zypper_call("dup", timeout => 1800);
 }
 
+#
+# Modify selinux according to job setting 'HANAPERF_SELINUX_SETENFORCE'
+# HANAPERF_SELINUX_SETENFORCE=disabled : disable selinux by modifying grub cmdline
+# HANAPERF_SELINUX_SETENFORCE=enforcing/permissive : modifying /etc/selinux/config
+#
+sub set_selinux {
+    return unless (has_selinux);
+
+    record_info('sestatus', script_output('sestatus'));
+    my $selinux_mode = get_var('HANAPERF_SELINUX_SETENFORCE', 'Enforcing');
+
+    return if (script_output('getenforce') =~ m/$selinux_mode/i);
+
+    if ($selinux_mode =~ m/disabled/i) {
+        replace_grub_cmdline_settings('selinux=1', 'selinux=0', update_grub => 1);
+
+        # The machine has not been reboot before calling setup_rules_for_sleperf_when_selinux_enforcing,
+        # so we need to settenforce 0 to let the result of getenforce is not Enforcing
+        assert_script_run('setenforce 0');
+        return;
+    }
+
+    assert_script_run('setenforce ' . $selinux_mode);
+    validate_script_output('getenforce', sub { m/$selinux_mode/i });
+
+    # Modify /etc/selinux/config and "SELINUX=" uses low case
+    $selinux_mode = lc $selinux_mode;
+    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
+    assert_script_run("echo 'SELINUX=$selinux_mode' >> /etc/selinux/config");
+    record_info('sestatus', script_output('sestatus'));
+}
+
 sub run {
     my $self = shift;
 
     select_console 'root-console' if (is_sle('16+') && get_var('HANA_PERF'));
 
-    if (has_selinux) {
-        my $selinux_mode = get_var('HANAPERF_SELINUX_SETENFORCE', 'Enforcing');
-        record_info('sestatus', script_output('sestatus'));
-        if (script_output('getenforce') !~ m/$selinux_mode/i) {
-            assert_script_run('setenforce ' . $selinux_mode);
-            validate_script_output('getenforce', sub { m/$selinux_mode/i });
-            # Modify /etc/selinux/config and "SELINUX=" uses low case
-            $selinux_mode = lc $selinux_mode;
-            assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
-            assert_script_run("echo 'SELINUX=$selinux_mode' >> /etc/selinux/config");
-            record_info('sestatus', script_output('sestatus'));
-        }
-    }
+    set_selinux;
 
     # Add more packages for HANAonKVM with 15SP2
     if (get_var('HANA_PERF') && get_var('VERSION') eq '15-SP2' && get_var('SYSTEM_ROLE') eq 'kvm') {
