@@ -64,12 +64,10 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 
 # Debug variables
 # - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
-# - BTRFS_DUMP: set it a non-zero value to enable btrfs dump.
 # - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
 # - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
 #     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
 my $INJECT_INFO = get_var('INJECT_INFO', '');
-my $BTRFS_DUMP = get_var('BTRFS_DUMP', 0);
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 my $DEBUG_INFO = get_var('XFSTESTS_DEBUG', '');
 
