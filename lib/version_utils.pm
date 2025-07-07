@@ -868,8 +868,7 @@ sub get_bootloader {
 
     return 'grub2' if !check_var('UEFI', 1);
     return 'grub2' if is_upgrade;
-    return 'systemd-boot' if check_var("VERSION", "Staging:F") && is_microos
-      && !(get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'systemd-boot' if is_microos && !(get_var('FLAVOR', '') =~ /(Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
     return 'grub2';
 }
 
