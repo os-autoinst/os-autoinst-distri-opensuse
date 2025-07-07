@@ -817,6 +817,7 @@ elsif (get_var('XFSTESTS')) {
         }
         if (check_var('XFSTESTS', 'installation')) {
             loadtest 'shutdown/shutdown';
+            loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
         }
         else {
             loadtest 'xfstests/partition';
