@@ -33,13 +33,8 @@ sub init {
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');
-    if (is_sle('>=15')) {
-        # kill it in case it's running
-        script_run("killall chronyd && sleep 5 && if pgrep chronyd; then killall -9 chronyd; fi");
-        assert_script_run("chronyd -q 'pool time.google.com iburst'");
-    } else {
-        assert_script_run('ntpdate -s time.google.com');
-    }
+    systemctl('stop chronyd.service');
+    script_retry("chronyd -q 'pool time.google.com iburst'", retry => 5, delay => 30);
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
         'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
