@@ -40,6 +40,7 @@ sub run {
     zypper_call "in $apache2";
     zypper_call "in apache2-utils" if is_jeos;
     zypper_call "in policycoreutils-python-utils" if (is_jeos && has_selinux);
+    assert_script_run 'restorecon -Rv /srv/www' if (has_selinux);
     systemctl 'enable apache2';    # Note: The systemd service is always apache2, not apache2-tls13.
     systemctl 'restart apache2';    # apache2 could be already running from previous test runs
     systemctl 'status apache2';
