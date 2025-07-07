@@ -65,7 +65,7 @@ sub run {
     }
 
     # Check if the server works and serves the right content
-    assert_script_run 'curl -v http://localhost/ | grep "index"';
+    validate_script_output('curl --fail -v http://localhost/', qr/index/);
 
     # Check if the permissions are set correctly
     assert_script_run 'ls -la /srv/www/htdocs | head -n2 | grep "drwxr\-xr\-x"';
@@ -78,7 +78,7 @@ sub run {
 
     # Start apache again
     systemctl 'start apache2';
-    assert_script_run 'curl -v http://[::1]/ | grep "index"';
+    validate_script_output('curl --fail -v http://[::1]/', qr/index/);
 
     # Listen on 85 and create a vhost for it
     assert_script_run 'echo "Listen 85" >> /etc/apache2/listen.conf';
