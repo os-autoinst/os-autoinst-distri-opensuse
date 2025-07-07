@@ -4,7 +4,7 @@ name: 'minimalvm-sap-patterns'
 conditional_schedule:
     bootloader:
         MACHINE:
-            'svirt-hyperv-uefi':
+            'svirt-hyperv2022-uefi':
                 - installation/bootloader_hyperv
             'svirt-vmware70':
                 - installation/bootloader_svirt
