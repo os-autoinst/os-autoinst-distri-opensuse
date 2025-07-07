@@ -53,10 +53,6 @@ sub run {
     }
     install_packages(@packages);
 
-    # Avoid this error as rootless:
-    # "docker: Error response from daemon: SUSE:secrets :: failed to read through tar reader: unexpected EOF."
-    script_run "echo 0 > /etc/docker/suse-secrets-enable";
-
     my @ip_versions = (4);
     push @ip_versions, 6 unless (is_hyperv || is_s390x || is_vmware);
 
