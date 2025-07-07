@@ -30,14 +30,10 @@ Test module requires following structure containing information:
     'TestModule_A' => { # This is a name this test module was scheduled under using C<loadtest(name=>'TestModule_A')> .
                         # It is the name visible on the openQA web UI.. It is the name visible on the openQA web UI.
         description => 'First test scheduled using "loadtest()".',
-        connect_ip => '192.168.1.1',
-        connect_user => 'cloudadmin',
         crm_resource_name => 'rsc_sap_QES_ASCS01' # CRM resource name used for ASCS/ERS instance
     }
     'TestModule_B' => { # This is a name this test module was scheduled under using C<loadtest(name=>'TestModule_A')>
         description => 'Second test scheduled using "loadtest()".',
-        connect_ip => '192.168.1.2',
-        connect_user => 'cloudadmin',
         crm_resource_name => 'rsc_sap_QES_ERS02' # CRM resource name used for ASCS/ERS instance
     }
 };
@@ -51,13 +47,30 @@ loadtest('sles4sap/redirection_tests/ensa2_kill_sapinstance', name => 'TestModul
 
 sub run {
     my ($self, $run_args) = @_;
+
+    # Merge data into one hash. Resource location from redirection data is relative and can change
+    my %redirection_data = map { %{$run_args->{redirection_data}{$_}} } ('nw_ascs', 'nw_ers');
     my %scenario = %{$run_args->{scenarios}{$self->{name}}};
     my $resource_name = $scenario{crm_resource_name};
-
     record_info('TEST INFO', $scenario{description});
 
+    # Connect to any of the ENSA2 cluster nodes and collect current data
+    my $connect_ip = $redirection_data{(keys(%redirection_data))[0]}{ip_address};
     connect_target_to_serial(
-        destination_ip => $scenario{connect_ip}, ssh_user => $scenario{connect_user}, switch_root => 1);
+        destination_ip => $connect_ip,
+        ssh_user => $redirection_data{(keys(%redirection_data))[0]}{ssh_user},
+        switch_root => 1);
+
+    # Collect current 'SAPInstance' resources location
+    my $resource_location = crm_resource_locate(crm_resource => $resource_name);
+    # Check if current console is redirected to target host and reconnect if needed.
+    if (script_run("hostname | grep $resource_location")) {
+        disconnect_target_from_serial();
+        connect_target_to_serial(
+            destination_ip => $redirection_data{$resource_location}{ip_address},
+            ssh_user => $redirection_data{$resource_location}{ssh_user},
+            switch_root => 1);
+    }
 
     my @instances_data = @{saphostctrl_list_instances(as_root => 'yes', running => 'yes')};
     my $instance_id = $instances_data[0]->{instance_id};
@@ -98,13 +111,14 @@ sub run {
     assert_script_run("kill -9 $pid");
 
     # Check if sapinstance process was killed
-    record_info('PROC list', script_output("ps -ef | grep $process_name"));
-    script_retry("pgrep $process_name",
-        expect => 1,    # pgrep returns 1 if process was not found
-        delay => 1,    # short delay in case process gets up too quickly
-        timeout => 30,    # 30 sec is plenty
-        fail_message => "$instance_type process still running after being killed."
-    );
+    record_info('PROC list', script_output("ps -ef | grep -E $process_name"));
+
+    my $retry = 0;
+    until (script_run("pgrep -f $process_name")) {
+        sleep 1;
+        $retry++;
+        die if ($retry == 30);
+    }
 
     record_info('Cluster wait', 'Waiting for cluster detecting failure');
     # Wait till fail count increases
