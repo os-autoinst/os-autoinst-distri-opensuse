@@ -75,7 +75,6 @@ our @EXPORT = qw(
   ssh_copy_id
   add_guest_to_hosts
   ensure_default_net_is_active
-  ensure_guest_started
   remove_additional_disks
   remove_additional_nic
   start_guests

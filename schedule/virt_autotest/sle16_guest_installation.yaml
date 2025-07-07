@@ -9,6 +9,7 @@ schedule:
   - virt_autotest/set_config_as_glue
   - '{{uefi_guest_verification}}'
   - '{{sev-es_guest_verification}}'
+  - '{{sriov_network_card_pci_passthrough_test}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -22,3 +23,7 @@ conditional_schedule:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
         - virt_autotest/sev_es_guest_verification
+  sriov_network_card_pci_passthrough_test:
+    ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH:
+      1:
+        - virt_autotest/sriov_network_card_pci_passthrough
