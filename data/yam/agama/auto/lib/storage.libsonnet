@@ -98,13 +98,13 @@ local whole_disk_and_boot_unattended() = {
 local mdroot_partition = {
   alias: 'mdroot',
   id: 'raid',
-  size: '7.81 GiB',
+  size: '6 GiB',
 };
 
 local mdswap_partition = {
   alias: 'mdswap',
   id: 'raid',
-  size: '512 MiB',
+  size: '4 GiB',
 };
 
 local raid(level='raid0', uefi=false) = {
@@ -154,33 +154,87 @@ local raid(level='raid0', uefi=false) = {
         'mdroot',
       ],
       level: level,
-      partitions: [
-        {
-          filesystem: {
-            path: '/',
-            type: {
-              btrfs: {
-                snapshots: false,
-              },
-            },
+      filesystem: {
+        path: '/',
+        type: {
+          btrfs: {
+            snapshots: false
           },
         },
-      ],
+      },
     },
     {
       devices: [
         'mdswap',
       ],
       level: 'raid0',
+      filesystem: {
+        path: 'swap'
+      },
+    },
+  ],
+};
+
+local search_raid0() = {
+  drives: [
+    {
+      search: {
+        sort: {
+          size: 'asc'
+        },
+        max: 1
+      },
       partitions: [
         {
+          id: 'esp',
+          size: '128 MiB',
           filesystem: {
-            path: 'swap',
+            path: '/boot/efi',
+            type: 'vfat'
           },
         },
       ],
     },
   ],
+  mdRaids: [
+    {
+      search: '/dev/md0',
+      partitions: [
+        {
+          delete: true,
+          search: '*'
+        },
+        {
+          size: '6 GiB',
+          filesystem: {
+            path: '/'
+          },
+        },
+        {
+          size: '2 GiB',
+          filesystem: {
+            path: 'swap'
+          },
+        },
+      ],
+    },
+    {
+      search: '/dev/md1',
+      partitions: [
+        {
+          delete: true,
+          search: '*'
+        },
+        {
+          size: '4 GiB',
+          filesystem: {
+            path: '/home'
+          },
+        },
+      ],
+    }
+  ],
+  boot: {  configure: false },
 };
 {
   lvm: lvm(false),
@@ -188,6 +242,7 @@ local raid(level='raid0', uefi=false) = {
   lvm_tpm_fde: lvm(true, 'tpmFde'),
   raid0: raid('raid0'),
   raid0_uefi: raid('raid0', true),
+  raid0_uefi_search: search_raid0(),
   resize: resize(),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
