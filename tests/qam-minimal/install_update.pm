@@ -40,7 +40,7 @@ sub run {
     }
     zypper_call('rr 15-SP4-TERADATA-Updates') if get_var('MACHINE') =~ /uefi/ && get_var('FLAVOR') =~ /TERADATA/;
     # yast2-logs for save_y2logs is on 15-SP4 not installed with minimal base system pattern
-    if (is_sle('>=15-SP4')) {
+    if (is_sle('>=15-SP4') && is_sle('<16')) {
         zypper_call('in yast2-logs');
     }
     # do zypper update bsc#1165180
