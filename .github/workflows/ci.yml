@@ -25,6 +25,8 @@ jobs:
         apt-get -y update
         apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip liblua5.3-dev
         pip3 install yamllint jsonnet==0.20.0
+        # FFI needs cargo (newer than the packaged version)
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - name: Setup perl
       env:
         INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
@@ -34,6 +36,7 @@ jobs:
         echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
         echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
+        . "$HOME/.cargo/env"
         make prepare
     - name: Run ${{ matrix.test }} tests
       env:
