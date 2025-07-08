@@ -448,7 +448,6 @@ sub bats_sources {
         run_command "curl $curl_opts -o hack/bats $hack_bats";
     } elsif ($package eq "buildah") {
         selinux_hack $test_dir;
-        selinux_hack "/tmp";
     }
 }
 
