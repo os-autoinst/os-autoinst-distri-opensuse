@@ -249,6 +249,9 @@ sub set_config {
         if ($NFS_VERSION =~ 'pnfs') {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
         }
+        elsif ($NFS_VERSION =~ 'TLS') {
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.2,minorversion=2\"' >> $CONFIG_FILE");
+        }
         else {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
         }
@@ -351,6 +354,7 @@ sub install_dependencies_nfs {
       nfs-kernel-server
       nfs4-acl-tools
     );
+    push @deps, 'ktls-utils' if ($NFS_VERSION =~ 'TLS');
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
         trup_install(join(' ', @deps));
@@ -378,8 +382,58 @@ sub install_dependencies_overlayfs {
     }
 }
 
+sub setup_ktls {
+    my $tlshd_dir = '/etc/tlshd';
+    assert_script_run("mkdir $tlshd_dir");
+    assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $tlshd_dir/server-key.pem -out $tlshd_dir/server-cert.pem -subj \"/C=CN/ST=Beijing/L=Beijing/O=SUSE/OU=QA/CN=susetest.example.com\"");
+    my $server_conf = <<END_S;
+[global]
+mode = server
+listen = 0.0.0.0:20490
+backend = 127.0.0.1:2049
+cert = $tlshd_dir/server-cert.pem
+key = $tlshd_dir/server-key.pem
+ciphers = TLS_AES_256_GCM_SHA384
+tls13 = true
+END_S
+    script_run("echo '$server_conf' > \"$tlshd_dir/server.conf\"");
+    my $client_conf = <<END_C;
+[global]
+mode = client
+listen = 127.0.0.1:20489
+backend = 127.0.0.1:20490 #nfs server address
+cacert = $tlshd_dir/server-cert.pem
+tls13 = true
+END_C
+    script_run("echo '$client_conf' > \"$tlshd_dir/client.conf\"");
+    script_run("sed -i '/^ExecStart/ s|ExecStart=.*|ExecStart=/usr/sbin/tlsdh -c $tlshd_dir/server.conf|' /usr/lib/systemd/system/tlshd.service");
+    script_run('systemctl daemon-reload; systemctl enable tlshd.service; systemctl start tlshd.service');
+    my $systemd_conf = <<END;
+[Unit]
+Description=TLSH Client for NFS over TLS
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/tlshd -c /etc/tlshd/client.conf
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tlshd-client
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+END
+    script_run("echo '$systemd_conf' > /usr/lib/systemd/system/tlshd-client.service");
+    script_run('systemctl daemon-reload; systemctl enable tlshd-client.service; systemctl start tlshd-client.service');
+}
+
 sub setup_nfs_server {
     my $nfsversion = shift;
+    if ($nfsversion =~ 'TLS') {
+        setup_ktls;
+    }
     if ($nfsversion =~ 'pnfs') {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
     }
@@ -389,7 +443,7 @@ sub setup_nfs_server {
     my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
 
-    if ($nfsversion == '3') {
+    if ($nfsversion =~ '3') {
         assert_script_run("echo 'MOUNT_NFS_V3=\"yes\"' >> /etc/sysconfig/nfs");
         assert_script_run("echo 'MOUNT_NFS_DEFAULT_PROTOCOL=3' >> /etc/sysconfig/autofs && echo 'OPTIONS=\"-O vers=3\"' >> /etc/sysconfig/autofs");
         assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=3' >> /etc/nfsmount.conf && echo 'Nfsvers=3' >> /etc/nfsmount.conf");
@@ -402,6 +456,9 @@ sub setup_nfs_server {
             assert_script_run('mkdir -p /srv/pnfs_data && chown nobody:nogroup /srv/pnfs_data && echo \'/srv/pnfs_data *(rw,pnfs,no_subtree_check,no_root_squash,fsid=10)\' >> /etc/exports');
             assert_script_run('sed -i \'/^\[nfsd\\]$/a pnfs_dlm_device = localhost:/srv/pnfs_data\' /etc/nfs.conf');
             assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.1' >> /etc/nfsmount.conf && echo 'Nfsvers=4.1' >> /etc/nfsmount.conf");
+        }
+        if ($nfsversion =~ 'TLS') {
+            assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.2' >> /etc/nfsmount.conf && echo 'Nfsvers=4.2' >> /etc/nfsmount.conf");
         }
         enable_rdma_in_nfs if $nfsversion =~ 'rdma';
     }
