@@ -272,15 +272,6 @@ sub bats_setup {
     assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
 }
 
-sub selinux_hack {
-    my $dir = shift;
-
-    # Use the same labeling in /var/lib/containers for $dir
-    # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    run_command "sudo semanage fcontext -a -e /var/lib/containers $dir || true", timeout => 120;
-    run_command "sudo restorecon -R -v $dir || true";
-}
-
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -331,7 +322,6 @@ sub bats_tests {
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
-    selinux_hack $tmp_dir if ($package eq "podman");
 
     $env{BATS_TMPDIR} = $tmp_dir;
     $env{TMPDIR} = $tmp_dir if ($package eq "buildah");
