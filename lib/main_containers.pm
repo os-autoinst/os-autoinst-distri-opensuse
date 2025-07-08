@@ -21,6 +21,7 @@ use warnings;
 
 our @EXPORT = qw(
   is_container_test
+  is_suse_host
   load_container_tests
   load_container_engine_test
 );
@@ -36,6 +37,11 @@ sub is_container_image_test {
 sub is_expanded_support_host {
     # returns if booted image is RedHat Expanded Support
     return get_var("HDD_1") =~ /sles-es/;
+}
+
+sub is_suse_host {
+    my ($version, $sp, $host_distri) = get_os_release;
+    return $host_distri =~ /sle|opensuse/;
 }
 
 sub is_ubuntu_host {

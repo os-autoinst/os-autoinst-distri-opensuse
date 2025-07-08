@@ -15,6 +15,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network is_running_in_isolated_network get_default_dns);
+use main_containers qw(is_suse_host);
 use utils;
 use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional);
 use containers::common;
@@ -43,7 +44,7 @@ sub setup_networking_in_isolated_network {
 
     set_resolv(nameservers => \@dns);
 
-    install_packages("ethtool");
+    install_packages("ethtool") if is_suse_host();
 
     # NICVLAN does not autonegotiate link speed and duplex, so we need to set it manually
     set_nics_link_speed_duplex({
@@ -52,8 +53,6 @@ sub setup_networking_in_isolated_network {
             duplex => 'full',
             autoneg => 'off'
     });
-
-    check_connectivity_to_host_with_retry($nic0, "conncheck.opensuse.org");
 }
 
 sub run {
@@ -80,11 +79,11 @@ sub run {
     else {
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
-            assert_script_run("dhclient -v");
+            assert_script_run("dhclient -v") unless is_running_in_isolated_network();
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             # dhclient is no longer available in CentOS 10
-            script_run("dhclient -v");
+            script_run("dhclient -v") unless is_running_in_isolated_network();
             script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
             script_retry("dnf update -q -y", timeout => $update_timeout);
