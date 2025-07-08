@@ -446,8 +446,6 @@ sub bats_sources {
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
-    } elsif ($package eq "buildah") {
-        selinux_hack $test_dir;
     }
 }
 
