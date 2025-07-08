@@ -107,6 +107,8 @@ sub load_container_engine_privileged_mode {
 sub load_compose_tests {
     my ($run_args) = @_;
     return if (is_staging);
+    # SLEM 6.0 has podman 4.9.5 while SLEM 6.1 has podman 5.2.5
+    # podman with docker-compose needs podman 5.x
     my $min_slem_version = ($run_args->{runtime} eq "podman") ? "6.1" : "6.0";
     return unless (is_tumbleweed || is_sle('>=16.0') || is_sle_micro(">=$min_slem_version"));
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
@@ -179,7 +181,11 @@ sub load_host_tests_docker {
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
-    loadtest 'containers/rootless_docker' if (is_tumbleweed || is_sle('>=16.0'));
+    # The docker-rootless-extras package is only available on SLES 15-SP4+
+    # while the docker-stable-rootless-extras is available on SLES 16.0+
+    if (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"))) {
+        loadtest 'containers/rootless_docker';
+    }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';

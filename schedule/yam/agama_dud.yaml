@@ -1,8 +1,0 @@
----
-name: agama_dud
-description: >
-  Patch or extend the Live Media by pointing to so called Driver Update which currently supports only RPM packages.
-schedule:
-  - yam/agama/boot_agama
-  - yam/agama/agama_arrange
-  - yam/validate/validate_dud

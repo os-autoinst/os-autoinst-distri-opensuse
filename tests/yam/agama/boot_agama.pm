@@ -57,7 +57,13 @@ sub prepare_boot_params {
     push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
 
     # additional parameters requiring parsing
-    push @params, 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
+    if (get_var('INST_DUD')) {
+        foreach my $item (split(',', get_var('INST_DUD'))) {
+            push @params, 'inst.dud=' . data_url($item);
+        }
+        push @params, 'rd.neednet=1';
+    }
+
 
     return @params;
 }

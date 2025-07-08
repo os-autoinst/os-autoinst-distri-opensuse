@@ -7,7 +7,6 @@ vars:
   INSTALLONLY: '1'
   SCC_ADDONS: 'ha'
   SCC_REGISTER: 'installation'
-  HOSTNAME: 'reartest'
   AGAMA_PRODUCT_ID: SLES
   INST_AUTO: ha/agama/sles_ha_default.jsonnet
 schedule:

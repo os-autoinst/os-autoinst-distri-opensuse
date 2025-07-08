@@ -432,18 +432,6 @@ sub copy_fsxops {
     script_run($cmd);
 }
 
-=head2 dump_btrfs_img
-
-Log: Only run in test Btrfs, collect image dump for inconsistent error
-
-=cut
-
-sub dump_btrfs_img {
-    my ($category, $num, $dev) = @_;
-    my $cmd = "umount $dev; btrfs-image $dev $LOG_DIR/$category/$num.img";
-    script_run($cmd);
-}
-
 =head2 raw_dump
 
 Log: Raw dump from SCRATCH_DEV via dd
@@ -502,13 +490,16 @@ Add all above logs
 =cut
 
 sub copy_all_log {
-    my ($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
+    my ($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
     copy_log($category, $num, 'out.bad');
     copy_log($category, $num, 'full');
     copy_log($category, $num, 'dmesg');
     copy_fsxops($category, $num);
+    if (script_run("ls /opt/xfstests/results/$category/$num.*.md* 1> /dev/null 2>&1") == 0) {
+        script_run("tar -cf $LOG_DIR/$num.dump.tar /opt/xfstests/results/$category/$num.*.md*");
+        upload_logs("$LOG_DIR/$num.dump.tar");
+    }
     collect_fs_status($category, $num, $fstype, $is_crash);
-    if ($btrfs_dump && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num, $btrfs_dump); }
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
@@ -570,7 +561,7 @@ Run a single test and write log to file but without heartbeat, return log_add ou
 =cut
 
 sub test_run_without_heartbeat {
-    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
+    my ($self, $test, $timeout, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
@@ -591,7 +582,7 @@ sub test_run_without_heartbeat {
         $test_duration = time() - $test_start;
         script_run('rm -rf /tmp/*', timeout => 90);    # Get some space and inode for no-space-left-on-device error to get reboot signal
         sleep 2;
-        copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
+        copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
 
         if (is_public_cloud) {
             $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
@@ -627,7 +618,7 @@ sub test_run_without_heartbeat {
         }
         else {
             $test_status = 'FAILED';
-            copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
+            copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
         }
     }
     # Add test status to STATUS_LOG file

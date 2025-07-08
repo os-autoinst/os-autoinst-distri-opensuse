@@ -25,11 +25,19 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use registration;
 use utils;
 use containers::common;
-use version_utils qw(is_transactional);
+use version_utils qw(is_sle_micro is_transactional);
 
 sub basic_test {
     my ($runtime, $rootless) = @_;
     my $opts = $rootless ? "--user" : "";
+
+    # Apply workaround for https://bugzilla.suse.com/show_bug.cgi?id=1245762
+    # docker-compose doesn't work with podman using podman-docker package
+    if (is_sle_micro('=6.1')) {
+        assert_script_run 'export PODMAN_COMPOSE_PROVIDER=/usr/lib/docker/cli-plugins/docker-compose';
+    }
+
+    validate_script_output("$runtime compose version", qr/version 2/);
 
     systemctl "start $opts podman.socket" if ($runtime eq "podman");
 
@@ -79,8 +87,6 @@ sub run {
     # us to test how both runtimes behave when installed together.
     push @pkgs, 'podman-docker' if check_var("CONTAINER_RUNTIMES", "podman");
     install_packages(@pkgs);
-
-    validate_script_output("$runtime compose version", qr/version 2/);
 
     basic_test($runtime, 0);
 

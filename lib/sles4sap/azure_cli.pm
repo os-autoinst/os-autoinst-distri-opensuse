@@ -430,20 +430,6 @@ sub az_network_publicip_get {
     return script_output($az_cmd);
 }
 
-#az vm show --show-details --resource-group $MY_RESOURCE_GROUP_NAME --name $MY_VM_NAME --query publicIps --output tsv
-sub az_get_publicip {
-    my (%args) = @_;
-    foreach (qw(resource_group name)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
-    my $az_cmd = join(' ', 'az vm show',
-        '--show-details',
-        '--resource-group', $args{resource_group},
-        "--name", $args{name},
-        "--query publicIps",
-        '-o tsv');
-    return script_output($az_cmd);
-}
-
 =head2 az_network_nat_gateway_create
 
     az_network_nat_gateway_create(
@@ -755,51 +741,44 @@ Create a virtual machine
 
 =item B<security_type> - is used force a specific value for '--security-type'
 
+=item B<assign_identity> - automatically handles the credentials for the identity, default 1
+
+=item B<public_ip_sku> - controls the features, performance, and availability of the Public IP, default Standard
+
 =back
 =cut
 
 sub az_vm_create {
     my (%args) = @_;
-
-    # Validate required arguments
     foreach (qw(resource_group name image)) {
-        croak("Argument < $_ > missing") unless $args{$_};
-    }
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
 
     my @vm_create = ('az vm create');
 
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
     push @vm_create, '--image', $args{image};
+    push @vm_create, '--public-ip-address';
+    push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
 
-    # Default size if not provided
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
 
     push @vm_create, '-l', $args{region} if $args{region};
+    push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
+
     push @vm_create, '--admin-username', $args{username} if $args{username};
-
-    # Parameters specific to az_vm_create
-    unless ($args{crash_mode}) {
-        push @vm_create, '--public-ip-address', $args{public_ip} ? $args{public_ip} : '""';
-        push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
-        push @vm_create, '--nsg', $args{nsg} if $args{nsg};
-        push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
-        push @vm_create, '--nics', $args{nic} if $args{nic};
-        push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
-        push @vm_create, '--subnet', $args{snet} if $args{snet};
-        push @vm_create, '--security-type', $args{security_type} if $args{security_type};
-
-        if ($args{ssh_pubkey}) {
-            push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
-        } else {
-            push @vm_create, '--authentication-type ssh --generate-ssh-keys';
-        }
+    push @vm_create, '--nsg', $args{nsg} if $args{nsg};
+    push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
+    push @vm_create, '--nics', $args{nic} if $args{nic};
+    push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
+    push @vm_create, '--subnet', $args{snet} if $args{snet};
+    push @vm_create, '--security-type', $args{security_type} if $args{security_type};
+    if ($args{ssh_pubkey}) {
+        push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
     } else {
-        # Parameters specific to az_vm_create_crash
-        push @vm_create, '--generate-ssh-keys';
-        push @vm_create, '--assign-identity';
-        push @vm_create, '--public-ip-sku Standard';
+        push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
 
     assert_script_run(join(' ', @vm_create), timeout => 900);

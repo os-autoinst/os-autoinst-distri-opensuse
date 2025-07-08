@@ -54,14 +54,26 @@ sub run {
         $os_ver = $img_name;
     }
 
+    my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip-';
+    az_network_publicip_create(
+        resource_group => $rg,
+        name => $pub_ip_prefix . $_,
+        zone => '1 2 3');
+     my $nic = DEPLOY_PREFIX . '-nic';
+    $az_cmd = join(' ', 'az network nic create',
+        '--resource-group', $rg,
+        '--name', $nic,
+        '--private-ip-address-version IPv4',
+        '--public-ip-address', $pub_ip_prefix . '1');
+    assert_script_run($az_cmd);
     # Create one VM
     my $vm = DEPLOY_PREFIX . '-vm';
     my %vm_create_args = (
         resource_group => $rg,
         name => $vm,
         image => $os_ver,
+        nic => $nic,
         username => 'cloudadmin',
-        crash_mode => 1,
         region => $provider->provider_client->region);
     $vm_create_args{security_type} = 'Standard' if is_sle '<=12-SP5';
 
@@ -71,7 +83,7 @@ sub run {
     my $ssh_cmd;
     my $ret;
     # check that the VM is reachable using public IP addresses
-    $vm_ip = az_get_publicip(resource_group => $rg, name => DEPLOY_PREFIX . "-vm");
+    $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-$_");
     $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
 
     my $start_time = time();

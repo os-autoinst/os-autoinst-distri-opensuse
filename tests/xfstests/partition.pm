@@ -210,6 +210,8 @@ sub create_loop_device_by_rootsize {
     set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
     script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
     script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
     if ($amount == 1) {
         script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV', '/dev/loop1');
