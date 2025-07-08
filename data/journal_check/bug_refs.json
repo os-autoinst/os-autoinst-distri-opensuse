@@ -910,5 +910,12 @@
             "sle": ["16.0"]
         },
         "type": "ignore"
+    },
+    "boo#1245786": {
+        "description": "Failed to start Update import-pubring.gpg with keys from rpmdb",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }

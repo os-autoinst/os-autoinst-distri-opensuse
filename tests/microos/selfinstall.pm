@@ -48,6 +48,8 @@ sub run {
         wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
         # Avoid booting into selfinstall again
         eject_cd() unless $no_cd;
+        # Reboot again to avoid potential race conditions
+        send_key 'ctrl-alt-delete' unless $no_cd;
         microos_login;
     } elsif (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         wait_serial('The initial configuration', 180) or die "jeos-firstboot has not been reached";

@@ -596,7 +596,10 @@ sub terraform_apply {
             $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
             record_info("TFM apply output", $tf_apply_output);
             record_info("TFM apply exit code", $ret);
-            last if $ret == 0;
+            if ($ret == 0) {
+                $self->provider_client->availability_zone($az);
+                last;
+            }
         }
     }
 

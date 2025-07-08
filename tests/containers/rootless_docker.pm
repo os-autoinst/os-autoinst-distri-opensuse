@@ -43,7 +43,6 @@ sub run {
     # NOTE: Remove this when 15-SP3 is EOL
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
-        record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
         $subuid_start = 200000;
         my $subuid_range = $subuid_start + 65535;
         assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
