@@ -853,6 +853,14 @@
         },
         "type": "bug"
     },
+    "boo#1245608": {
+        "description": "basic hdkf.*hkdf_extract failed with -22",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
     "bsc#1240431": {
         "description": "Activation request for 'org.fedoraproject.Setroubleshootd'",
         "products": {
