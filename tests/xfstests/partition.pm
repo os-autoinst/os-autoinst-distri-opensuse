@@ -249,6 +249,11 @@ sub set_config {
         if ($NFS_VERSION =~ 'pnfs') {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
         }
+        elsif ($NFS_VERSION =~ 'TLS') {
+            script_run('modprobe tls');
+            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=sys,xprtsec=mtls\"' >> $CONFIG_FILE");
+        }
         else {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
         }
@@ -351,6 +356,7 @@ sub install_dependencies_nfs {
       nfs-kernel-server
       nfs4-acl-tools
     );
+    push @deps, 'ktls-utils' if ($NFS_VERSION =~ 'TLS');
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
         trup_install(join(' ', @deps));
@@ -378,8 +384,44 @@ sub install_dependencies_overlayfs {
     }
 }
 
+sub setup_ktls {
+    my $tlshd_dir = '/etc/tlshd';
+    assert_script_run("mkdir $tlshd_dir; cd $tlshd_dir");
+    #Generate CA
+    assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ca.key -out ca.pem -subj \"/CN=NFS Test CA\"");
+    #Generate server-CA
+    assert_script_run("openssl req -new -nodes -newkey rsa:2048 -keyout server.key -out server.csr  -subj \"/CN=nfs-server\" -addext \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\"");
+    assert_script_run("openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 365 -extfile <(printf \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\")");
+    #Generate client-CA(use for mtls, multi-way tls verification)
+    assert_script_run("openssl req -new -nodes -newkey rsa:2048 -keyout client.key -out client.csr -subj \"/CN=nfs-client\" -addext \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\"");
+    assert_script_run("openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.pem -days 365 -extfile <(printf \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\")");
+    script_run('cd -');
+    my $content = <<END;
+[debug]
+loglevel=1
+tls=1
+nl=1
+
+[authenticate.client]
+x509.truststore = /etc/tlshd/ca.pem
+x509.certificate = /etc/tlshd/client.pem
+x509.private_key = /etc/tlshd/client.key
+
+[authenticate.server]
+x509.truststore = /etc/tlshd/ca.pem
+x509.certificate = /etc/tlshd/server.pem
+x509.private_key = /etc/tlshd/server.key
+END
+    script_run("echo '$content' > \"/etc/tlshd.conf\"");
+    script_run("sed -i '/^ExecStart/ s|ExecStart=.*|ExecStart=/usr/sbin/tlshd -c /etc/tlshd.conf|' /usr/lib/systemd/system/tlshd.service");
+    script_run('systemctl daemon-reload; systemctl enable tlshd.service; systemctl start tlshd.service');
+}
+
 sub setup_nfs_server {
     my $nfsversion = shift;
+    if ($nfsversion =~ 'TLS') {
+        setup_ktls;
+    }
     if ($nfsversion =~ 'pnfs') {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
     }
@@ -389,7 +431,7 @@ sub setup_nfs_server {
     my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
 
-    if ($nfsversion == '3') {
+    if ($nfsversion =~ '3') {
         assert_script_run("echo 'MOUNT_NFS_V3=\"yes\"' >> /etc/sysconfig/nfs");
         assert_script_run("echo 'MOUNT_NFS_DEFAULT_PROTOCOL=3' >> /etc/sysconfig/autofs && echo 'OPTIONS=\"-O vers=3\"' >> /etc/sysconfig/autofs");
         assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=3' >> /etc/nfsmount.conf && echo 'Nfsvers=3' >> /etc/nfsmount.conf");
@@ -479,6 +521,7 @@ sub run {
             setup_nfs_server("$NFS_VERSION");
             setup_nfs_client("$NFS_VERSION");
             $NFS_SERVER_IP = 'localhost';
+            $NFS_SERVER_IP = '127.0.0.1' if $NFS_VERSION =~ 'TLS';    #ipv6 will make some issue for the test key
             $NFS_SERVER_IP = script_output("ip route | awk 'NR==2 {print \$9}'") if $NFS_VERSION =~ 'rdma';
         }
     }
