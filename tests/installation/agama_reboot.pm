@@ -39,11 +39,6 @@ sub upload_agama_logs {
     upload_logs('/tmp/agama_config.txt');
 }
 
-sub get_agama_install_console_tty {
-    # get_x11_console_tty would otherwise autodetermine 2
-    return 7;
-}
-
 sub verify_agama_auto_install_done_cmdline {
     # for some remote workers, there is no vnc access to the install console,
     # so we need to make sure the installation has completed from command line.
@@ -85,7 +80,6 @@ sub run {
     }
 
     assert_screen('agama-congratulations');
-    console('installation')->set_tty(get_agama_install_console_tty());
     upload_agama_logs();
     select_console('installation', await_console => 0);
     # make sure newly booted system does not expect we're still logged in console
