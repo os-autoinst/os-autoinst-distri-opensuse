@@ -331,7 +331,7 @@ sub bats_tests {
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
-    selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
+    selinux_hack $tmp_dir if ($package eq "podman");
 
     $env{BATS_TMPDIR} = $tmp_dir;
     $env{TMPDIR} = $tmp_dir if ($package eq "buildah");
