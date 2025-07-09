@@ -1140,20 +1140,7 @@ sub tianocore_disable_secureboot {
     my $neelle_sb_change_state = $revert ? 'tianocore-devicemanager-sb-conf-enabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
     my $neelle_sb_config_state = $revert ? 'tianocore-secureboot-enabled' : 'tianocore-secureboot-not-enabled';
 
-    assert_screen 'grub2';
-    send_key 'c';
-    sleep 5;
-    enter_cmd "exit";
-
-    # There might be a boot menu before the mainmenu.
-    # Wait until the main menu appears and move to the EFI firmware setup, if the boot menu is present
-    while (!check_screen('tianocore-mainmenu')) {
-        wait_still_screen();
-        if (check_screen('tianocore-bootmenu')) {
-            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
-            send_key "ret";
-        }
-    }
+    tianocore_enter_menu;
 
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
