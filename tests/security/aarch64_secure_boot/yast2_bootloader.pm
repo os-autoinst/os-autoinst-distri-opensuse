@@ -14,9 +14,15 @@ use strict;
 use warnings;
 use utils;
 use power_action_utils 'power_action';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = shift;
+
+    if (is_sle('>=16')) {
+        record_info("SKIPPING TEST - YaST2 is not shipped in SLE16.");
+        return;
+    }
 
     # Start yast2 bootloader to un-select Secure Boot Support
     # This operation will not disable the secureboot from UEFI
@@ -24,9 +30,7 @@ sub run {
     # grubaa64.efi
     select_console("root-console");
 
-    # On the maintenance job group, we need to install yast2-bootloader, since
-    # it's not present in the created ISO.
-    if (get_var('START_AFTER_TEST') eq "mru-install-minimal-with-addons_security") {
+    if (script_run("rpm -q yast2-bootloader")) {
         zypper_call("in yast2-bootloader");
     }
 
