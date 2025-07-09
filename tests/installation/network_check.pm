@@ -19,7 +19,7 @@ sub qemu_backend_ifup_check {
     return unless is_qemu;
     if (get_var('IFUP_CHECK', '1')) {
         my $vm_ip_addr = get_var('VM_IP_ADDR', '10.0.2.15');
-        my $vm_ip_route = get_var('VM_IP_ROUTE', '10.0.2.2');
+        my $vm_ip_route = get_var('VM_IP_ROUTE', testapi::host_ip());
         die 'No ip addresse is allocated' unless (script_run("ip a | grep $vm_ip_addr") == 0);
         die 'The gateway is not accessible' unless (script_run("ping -c 3 $vm_ip_route") == 0);
     }
