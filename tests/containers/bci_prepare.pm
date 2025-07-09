@@ -25,6 +25,7 @@ use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release is_sle is_opensuse);
+use network_utils qw(is_running_in_isolated_network);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
@@ -108,7 +109,7 @@ sub run {
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
         # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
-        assert_script_run("dhclient -v");
+        assert_script_run("dhclient -v") unless is_running_in_isolated_network();
         # This command prevents a prompt that asks for services to be restarted
         # causing a delay of 5min on each package install
         script_run('export DEBIAN_FRONTEND=noninteractive');
