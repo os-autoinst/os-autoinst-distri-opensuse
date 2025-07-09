@@ -25,6 +25,7 @@
       <li><a href="#set_nics_link_speed_duplex">set_nics_link_speed_duplex</a></li>
       <li><a href="#check_connectivity_to_host_with_retry">check_connectivity_to_host_with_retry</a></li>
       <li><a href="#get_nics">get_nics</a></li>
+      <li><a href="#is_systemd_networkd_used">is_systemd_networkd_used</a></li>
       <li><a href="#is_nm_used">is_nm_used</a></li>
       <li><a href="#is_wicked_used">is_wicked_used</a></li>
       <li><a href="#is_running_in_isolated_network">is_running_in_isolated_network</a></li>
@@ -115,6 +116,13 @@
 <p>This function scans for network interfaces available on the system, optionally ignoring specified interfaces and always excluding the loopback interface. It&#39;s particularly useful for scripts that need to dynamically determine which network interfaces to operate on, allowing for exclusion of interfaces that are not of interest.</p>
 
 <pre><code>get_nics([&#39;bond0&#39;, &#39;bond1&#39;]);</code></pre>
+
+<h2 id="is_systemd_networkd_used">is_systemd_networkd_used</h2>
+
+<pre><code>Check if systemd-networkd service is active.
+
+This function checks if the systemd-networkd service is currently active on the system.
+It returns true (0) if the service is active, otherwise false (1).</code></pre>
 
 <h2 id="is_nm_used">is_nm_used</h2>
 
