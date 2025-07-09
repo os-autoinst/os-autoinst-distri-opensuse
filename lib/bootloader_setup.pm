@@ -1463,6 +1463,7 @@ C<$search> if set, bypass default grub cmdline variable.
 
 sub add_grub_cmdline_settings {
     my $search_variable = (is_bootloader_grub2) ? GRUB_CMDLINE_VAR : '';
+    my $needs_quote = (is_bootloader_grub2) ? '"' : '';
     my $add = shift;
     my %args = testapi::compat_args(
         {
@@ -1474,7 +1475,7 @@ sub add_grub_cmdline_settings {
         @_
     );
 
-    change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
+    change_grub_config($needs_quote . '$', " " . $add . $needs_quote, $args{search}, "g", $args{update_grub});
 }
 
 =head2 add_grub_xen_cmdline_settings
