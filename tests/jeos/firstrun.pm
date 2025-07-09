@@ -384,7 +384,7 @@ sub run {
         $self->clear_and_verify_console;
     }
     # For WSL we have replicated firstrun-wsl up to this point
-    # Therefore we will end the test here, temporarily. 
+    # Therefore we will end the test here, temporarily.
     # Open ticket to expand the test in the future.
     elsif (get_var('WSL_VERSION')) {
         assert_screen 'wsl-linux-prompt';
