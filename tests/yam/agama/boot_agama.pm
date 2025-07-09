@@ -13,7 +13,6 @@ use testapi;
 use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile);
 use Utils::Architectures;
 use Utils::Backends;
-
 use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
@@ -49,6 +48,8 @@ sub prepare_boot_params {
         push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
     }
     push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('SCC_URL') && get_var('FLAVOR') =~ /^(Online.*|agama-installer)$/;
+
+    push @params, "inst.install_url=" . get_var("INST_INSTALL_URL") if get_var('INST_INSTALL_URL');
 
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
