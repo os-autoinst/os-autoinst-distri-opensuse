@@ -1,4 +1,4 @@
-# Copyright 2020-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for su, su to root should fail if user is not in group "wheel"
@@ -17,10 +17,15 @@ use version_utils;
 sub run {
     select_console 'root-console';
 
-    # User will not be able to su to root since it is not belong to group "wheel"
+    # Perform group check of the test user
     my $user = $testapi::username;
     my $passwd = $testapi::password;
     my $group = 'wheel';
+
+    # Remove test user from wheel group in case it's part of it
+    if (script_run("id $user | grep $group") == 0) {
+        assert_script_run "gpasswd -d $user $group";
+    }
     validate_script_output "id $user | grep $group || echo 'check pass'", sub { m/check pass/ };
 
     # Modify the PAM configuration files
@@ -28,27 +33,32 @@ sub run {
     my $sul_file_tw = '';
     my $su_file = '/etc/pam.d/su';
     my $sul_file = '/etc/pam.d/su-l';
-    if (is_sle || is_leap) {
+
+    if (is_sle('<16') || is_leap) {
         $su_file_tw = '/usr/etc/pam.d/su';
         $sul_file_tw = '/usr/etc/pam.d/su-l';
     } else {
         $su_file_tw = '/usr/lib/pam.d/su';
         $sul_file_tw = '/usr/lib/pam.d/su-l';
     }
+
     my $su_file_bak = '/tmp/su';
     my $sul_file_bak = '/tmp/su-l';
     my $ret_su = script_run("[[ -e $su_file ]]");
     my $ret_sul = script_run("[[ -e $sul_file ]]");
+
     if ($ret_su != 0) {
         script_run "cp $su_file_tw $su_file";
     }
     if ($ret_sul != 0) {
         script_run "cp $sul_file_tw $sul_file";
     }
+
     assert_script_run "cp $su_file $su_file_bak";
     assert_script_run "cp $sul_file $sul_file_bak";
     assert_script_run "sed -i '\$a auth     required       pam_wheel.so use_uid' $su_file";
     assert_script_run "sed -i '\$a auth     required       pam_wheel.so use_uid' $sul_file";
+
     upload_logs($su_file, failok => is_aarch64 ? 1 : 0);
     upload_logs($sul_file, failok => is_aarch64 ? 1 : 0);
 
