@@ -19,7 +19,7 @@ use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
-use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
+use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions enter_cmd_slow);
 use serial_terminal 'prepare_serial_console';
 use wsl qw(wsl_choose_sles register_via_scc);
 
@@ -383,6 +383,7 @@ sub run {
         wait_still_screen;
         $self->clear_and_verify_console;
     }
+
     # For WSL we have replicated firstrun-wsl up to this point
     # Therefore we will end the test here, temporarily.
     # Open ticket to expand the test in the future.
