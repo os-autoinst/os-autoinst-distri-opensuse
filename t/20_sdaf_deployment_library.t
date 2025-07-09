@@ -503,6 +503,7 @@ subtest '[ansible_show_status] HanaSR status commands' => sub {
     my @commands;
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
     $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
+    $ms_sdaf->redefine(record_soft_failure => sub { return; });
     $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
     ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha']);
 
@@ -514,6 +515,7 @@ subtest '[ansible_show_status] HanaSR status commands' => sub {
 subtest '[ansible_show_status] ENSA2 status commands' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @commands;
+    $ms_sdaf->redefine(record_soft_failure => sub { return; });
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
     $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
     $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
