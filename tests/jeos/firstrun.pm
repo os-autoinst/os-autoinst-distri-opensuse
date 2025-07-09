@@ -21,6 +21,7 @@ use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 use serial_terminal 'prepare_serial_console';
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 my $user_created = 0;
 
@@ -433,6 +434,10 @@ sub run {
     verify_bsc if is_jeos;
     verify_partition_label;
     verify_selinux;
+}
+
+sub post_run_hook {
+    shift->record_avc_selinux_alerts;
 }
 
 sub test_flags {

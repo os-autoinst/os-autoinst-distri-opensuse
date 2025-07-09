@@ -33,7 +33,7 @@ sub post_fail_hook {
     select_serial_terminal();
     export_healthcheck_basic;
     export_logs_basic;
-    record_avc_selinux_alerts;
+    shift->record_avc_selinux_alerts;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     export_logs_desktop;
     select_log_console;
