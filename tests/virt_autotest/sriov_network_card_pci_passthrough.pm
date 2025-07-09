@@ -60,6 +60,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
+        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
