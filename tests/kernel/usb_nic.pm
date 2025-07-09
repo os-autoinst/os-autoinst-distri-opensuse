@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use network_utils 'is_wicked_used';
 
 sub run {
     my ($self) = @_;
@@ -23,11 +24,18 @@ sub run {
     die "no USB network interfaces found" unless $usb_net_devs ne "";
 
     my $interface = script_output "basename $usb_net_devs | head -n1";
+    record_info("USB Interface", $interface);
 
-    assert_script_run "echo \"BOOTPROTO='dhcp'\" > /etc/sysconfig/network/ifcfg-$interface";
-    assert_script_run "echo \"STARTMODE='auto'\" >> /etc/sysconfig/network/ifcfg-$interface";
+    if (is_wicked_used) {
+        assert_script_run "echo \"BOOTPROTO='dhcp'\" > /etc/sysconfig/network/ifcfg-$interface";
+        assert_script_run "echo \"STARTMODE='auto'\" >> /etc/sysconfig/network/ifcfg-$interface";
 
-    assert_script_run("ifup $interface -o debug", 60);
+        assert_script_run("ifup $interface -o debug");
+    } else {
+        assert_script_run("nmcli device set $interface managed yes");
+        assert_script_run("nmcli connection add type ethernet ifname $interface con-name usbnic-$interface autoconnect yes ipv4.method auto");
+        assert_script_run("nmcli connection up usbnic-$interface");
+    }
 
     sleep 30;
     my $inet = script_output("ip addr show dev $interface |  awk \'/inet / {split(\$0,a); print a[2]}\'", proceed_on_failure => 1);
