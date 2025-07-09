@@ -1,7 +1,7 @@
 ---
 name: wsl_main.yaml
-description:  >
-      WSL smoke test on Windows 10 image
+description: >
+  WSL smoke test on Windows 10 image
 
 conditional_schedule:
   enable_systemd:
@@ -12,11 +12,19 @@ conditional_schedule:
     ARCH:
       'aarch64':
         - wsl/wsl_install
+  # Different modules used for legacy and modern wsl installations.
+  # Legacy is yast-firstboot and modern is jeos-firstboot.
+  wsl_firstrun:
+    WSL_FIRSTBOOT:
+      'jeos':
+        - jeos/firstrun
+      'yast':
+        - wsl/firstrun
 
 schedule:
   - wsl/boot_windows
   - '{{wsl_install}}'
   - wsl/distro_install
-  - wsl/firstrun
+  - '{{wsl_firstrun}}'
   - '{{enable_systemd}}'
   - wsl/smoke_test
