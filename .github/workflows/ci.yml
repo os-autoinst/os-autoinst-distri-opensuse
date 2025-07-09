@@ -38,6 +38,26 @@ jobs:
         echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare
+    - name: Debug UT 01
+      run: |
+        echo "--> OS:"
+        cat /etc/os-release
+        echo "--> Egrep:"
+        which egrep
+        ls -lai $(which egrep)
+        egrep --version
+        echo "--> Grep:"
+        which grep
+        ls -lai $(which grep)
+        grep --version
+        echo "--> The GIT part:"
+        git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' || echo "__$?__"
+        echo "--> The xargs part (no -L):"
+        git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs egrep '(luks|encryption).*password.*nots3cr3t' || echo "__$?__"
+        echo "--> The xargs part (with -L):"
+        git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs egrep -L '(luks|encryption).*password.*nots3cr3t' || echo "__$?__"
+        echo "--> The xargs part with grep:"
+        git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs grep -E -L '(luks|encryption).*password.*nots3cr3t' || echo "__$?__"
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}
