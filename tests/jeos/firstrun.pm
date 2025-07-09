@@ -383,6 +383,15 @@ sub run {
         wait_still_screen;
         $self->clear_and_verify_console;
     }
+    # For WSL we have replicated firstrun-wsl up to this point
+    # Therefore we will end the test here, temporarily. 
+    # Open ticket to expand the test in the future.
+    elsif (get_var('WSL_VERSION')) {
+        assert_screen 'wsl-linux-prompt';
+        enter_cmd_slow "exit\n";
+        return;
+    }
+
     else {
         assert_screen [qw(linux-login reached-power-off)], 1000;
         if (match_has_tag 'reached-power-off') {
