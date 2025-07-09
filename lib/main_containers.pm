@@ -169,7 +169,7 @@ sub load_host_tests_docker {
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
-    unless (is_staging || is_transactional || is_sle(">=16.0") || is_sle("<15-sp4")) {
+    unless (is_staging || is_transactional || is_sle("<15-sp4")) {
         loadtest 'containers/registry';
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
