@@ -24,6 +24,8 @@ sub expect_is_shown {
     my $self = shift;
     my $timeout = 2400;
 
+    select_console('installation');
+
     while ($timeout > 0) {
         my $ret = check_screen($self->{tag_installation_complete}, 30);
         $timeout -= 30;
