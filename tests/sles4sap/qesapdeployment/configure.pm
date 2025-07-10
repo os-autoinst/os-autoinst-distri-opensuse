@@ -76,6 +76,13 @@ sub run {
     }
     $variables{REG_ARGS} = $reg_args;
 
+    if (($provider_setting eq 'AZURE') && get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
+        $variables{MIRROR_IP} = get_required_var("QESAPDEPLOY_IBSMIRROR_IP");
+        # INCIDENT_REPO is the "official" setting name as configured by the official bot
+        # QESAPDEPLOY_INCIDENT_REPO is to be able to run this test in other context
+        $variables{REPOS} = get_var("INCIDENT_REPO", get_required_var("QESAPDEPLOY_INCIDENT_REPO"));
+    }
+
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
     $variables{SCC_LTSS_REGCODE} = get_var('SCC_REGCODE_LTSS', '');
@@ -141,7 +148,7 @@ sub run {
 
     qesap_prepare_env(
         openqa_variables => \%variables,
-        provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        provider => $provider_setting,
         region => $provider->provider_client->region);
 }
 
