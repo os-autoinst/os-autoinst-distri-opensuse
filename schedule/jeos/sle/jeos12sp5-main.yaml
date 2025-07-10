@@ -11,12 +11,12 @@ conditional_schedule:
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-            'svirt-hyperv-uefi':
+            'svirt-hyperv2022-uefi':
                 - installation/bootloader_hyperv
-            'svirt-hyperv':
+            'svirt-hyperv2022':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-            'svirt-vmware70':
+            'svirt-vmware':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
             'uefi-virtio-vga':
