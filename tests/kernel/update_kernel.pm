@@ -82,6 +82,9 @@ sub update_kernel {
     elsif (get_var('COCO')) {
         zypper_call('in kernel-devel-coco');
     }
+    elsif (get_var('KERNEL_64KB')) {
+        zypper_call('in kernel-64kb-devel');
+    }
     elsif (is_sle('12+')) {
         zypper_call('in kernel-devel');
     }
@@ -567,6 +570,11 @@ sub run {
         $self->prepare_kernel($kernel_package);
         $self->update_kernel($repo, $incident_id);
     }
+    elsif (get_var('KERNEL_64KB')) {
+        $kernel_package = 'kernel-64kb';
+        $self->prepare_kernel($kernel_package);
+        $self->update_kernel($repo, $incident_id);
+    }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
     }
@@ -627,6 +635,12 @@ kernel-default-base instead. Then update kernel as in the default case.
 When COCO variable evaluates to true, the job should test the kernel-coco from
 Confidential Computing Module. Uninstall kernel-default and install kernel-coco
 instead. Then update kernel as in the default case.
+
+=head2 KERNEL_64KB
+
+When KERNEL_64KB variable evaluates to true, the job should test the kernel-64kb.
+Uninstall kernel-default and install kernel-64kb instead. Then update kernel as
+in the default case.
 
 =head2 KERNEL_VERSION
 
