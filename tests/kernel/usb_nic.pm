@@ -14,11 +14,13 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use network_utils 'is_wicked_used';
+use usb;
 
 sub run {
     my ($self) = @_;
 
     select_serial_terminal;
+    check_usb_devices;
 
     my $usb_net_devs = script_output('readlink /sys/class/net/* | grep usb', proceed_on_failure => 1);
     die "no USB network interfaces found" unless $usb_net_devs ne "";
