@@ -7,7 +7,7 @@
 # Summary: Execute regression tests with pacemaker-cts
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use testapi;

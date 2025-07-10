@@ -7,7 +7,7 @@
 # Summary: Workarounds after upgrade from cluster with clvmd into lvmlockd only systems
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use utils qw(zypper_call systemctl zypper_enable_install_dvd);

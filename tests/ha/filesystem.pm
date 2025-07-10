@@ -7,7 +7,7 @@
 # Summary: Create filesystem and check content
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use utils qw(zypper_call write_sut_file);
