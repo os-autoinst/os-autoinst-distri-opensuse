@@ -43,6 +43,7 @@ sub run {
 
     record_info("bsc#1189988: ", "We need disable secureboot with ima fix mode");
     power_action("reboot", textmode => 1);
+    $self->wait_grub(bootloader_time => 200);
     $self->tianocore_disable_secureboot;
     $self->wait_boot(textmode => 1);
     select_serial_terminal;
