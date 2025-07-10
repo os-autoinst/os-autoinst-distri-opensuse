@@ -67,14 +67,6 @@ sub run {
     my ($version, $sp, $host_distri) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIMES');
 
-    # some images do not have quiet option in kernel parameters
-    if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
-        add_grub_cmdline_settings('quiet', update_grub => 1);
-        power_action("reboot", textmode => 1);
-        $self->wait_boot(textmode => 1);
-        select_serial_terminal;
-    }
-
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sle|opensuse/) {
@@ -85,8 +77,18 @@ sub run {
             zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
             zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
         }
+
+        # some images do not have quiet option in kernel parameters
+        if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
+            add_grub_cmdline_settings('quiet', update_grub => 1);
+            power_action("reboot", textmode => 1);
+            $self->wait_boot(textmode => 1);
+            select_serial_terminal;
+        }
     }
     else {
+        # post_{fail|run}_hooks are not working with 3rd party hosts
+        set_var('NOLOGS', 1);
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v") unless is_running_in_isolated_network();
