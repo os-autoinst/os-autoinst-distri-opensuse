@@ -186,6 +186,40 @@ sub configure_sap_host_exporter {
     upload_logs $metrics_file;
 }
 
+sub configure_alloy {
+    # Install needed packages
+    zypper_call 'in alloy system-user-alloy';
+
+    # Collect some info
+    zypper_call 'info --provides alloy';
+    script_run 'rpm -qf $(which alloy)';
+    script_run 'rpm -ql $(rpm -qf $(which alloy))';
+
+    # Enable and verify the service
+    systemctl 'enable --now alloy';
+    systemctl 'status alloy';
+    systemctl 'is-active alloy';
+    assert_script_run 'journalctl -u alloy';
+
+    # Check the config files
+    my $config_file_line = script_output 'grep CONFIG_FILE /etc/sysconfig/alloy';
+    # The following regex extracts the file path from a line like 'CONFIG_FILE="/path/to/file"'.
+    # - ^CONFIG_FILE\s*=\s* : Matches the CONFIG_FILE variable at the beginning of the line, allowing for flexible whitespace.
+    # - (["'])?             : Capturing group 1. Optionally matches an opening quote (' or "). It handles optional single or double quotes around the path.
+    # - (.*?)               : Capturing group 2. Lazily captures the file path.
+    # - \1?                 : Optionally matches the same quote captured in group 1, ensuring quotes are paired. It also works in case of no quotes.
+    # The path will be available in group $2
+    die 'Could not determine config file path from /etc/sysconfig/alloy.' unless ($config_file_line && $config_file_line =~ /^CONFIG_FILE\s*=\s*(["'])?(.*?)\1?$/);
+
+    # Check if the config file exists
+    assert_script_run "cat $2";
+
+    # Check the default port
+    sleep 30;
+    assert_script_run 'curl -o alloy_curl.txt http://localhost:12345';
+    assert_script_run 'curl -o alloy_metrics_curl.txt http://localhost:12345/metrics';
+}
+
 sub configure_node_exporter {
     my $monitoring_port = 9100;
     my $metrics_file = '/tmp/node_exporter.metrics';
@@ -224,6 +258,7 @@ sub run {
     # Make sure that we have an opened terminal
     select_serial_terminal;
 
+    configure_alloy if is_sle('>=16');
     # Configure Exporters
     configure_ha_exporter if get_var('HA_CLUSTER');
     configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
