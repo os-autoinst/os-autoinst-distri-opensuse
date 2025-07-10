@@ -66,6 +66,13 @@ sub run {
     my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
     assert_script_run("curl --remote-name-all " . data_url($data_url));
 
+    # The workaround can be removed once the bug is fixed
+    # Or keep it if it is by design
+    if (is_sle('>=16')) {
+        record_info('bsc#1246214');
+        script_run('rm -f /usr/share/containers/mounts.conf');
+    }
+
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
 
     # Cleanup the container in case a previous run did not cleanup properly, no need to assert
