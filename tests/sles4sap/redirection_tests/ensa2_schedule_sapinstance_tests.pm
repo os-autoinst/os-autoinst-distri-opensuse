@@ -43,12 +43,42 @@ sub run {
     disconnect_target_from_serial();
 
     # Define test scenarios
+    # %scenarios = {
+    # 'TestModule_A' => { # This is a name this test module was scheduled under using C<loadtest(name=>'TestModule_A')> .
+    #                     # It is the name visible on the openQA web UI.. It is the name visible on the openQA web UI.
+    #     description => 'First test scheduled using "loadtest()".',
+    #     forced_takeover => true/false
+    #         # B<true> sets cluster parameter B<migration_threshold>  to `1` so the takeover happens without
+    #         # prior attempt to restart the resource first.
+    #     crm_resource_name => 'rsc_sap_QES_ASCS01' # CRM resource name used for ASCS/ERS instance
+    # }
+    # 'TestModule_B' => { # This is a name this test module was scheduled under using C<loadtest(name=>'TestModule_A')>
+    #     description => 'Second test scheduled using "loadtest()".',
+    #     forced_takeover => true,
+    #     crm_resource_name => 'rsc_sap_QES_ERS02' # CRM resource name used for ASCS/ERS instance
+    # }
+    # };
+
     my %scenarios = (
         'Kill_sapinstance_ASCS' => {
             description => 'Test kills SAP instance ASCS process using "kill -9" command.
             Process must be restarted by cluster on original node without failover.',
             crm_resource_name => $ascs_resource,
             forced_takeover => undef
+        },
+        # Moves ASCS resource from Node_A to Node_B
+        'Kill_sapinstance_ASCS-takeover' => {
+            description => 'Test kills SAP instance ASCS process using "kill -9" command.
+                Failover must take place and resource will be moved to another node.',
+            crm_resource_name => $ascs_resource,
+            forced_takeover => 'true'
+        },
+        # Returns ASCS resource from Node_B to Node_A using same method (Resource location is detected on module level)
+        'Recover_sapinstance_ASCS' => {
+            description => 'ASCS resource will be moved to original place.
+                Sapinstance process will be killed triggering failover.',
+            crm_resource_name => $ascs_resource,
+            forced_takeover => 'true'
         },
         'Kill_sapinstance_ERS' => {
             description => 'Test kills SAP instance ERS process using "kill -9" command.
@@ -61,6 +91,8 @@ sub run {
     # Schedule all tests using `loadtest` call
     for my $test_name (
         'Kill_sapinstance_ASCS',
+        'Kill_sapinstance_ASCS-takeover',
+        'Recover_sapinstance_ASCS',
         'Kill_sapinstance_ERS'
       )
     {
