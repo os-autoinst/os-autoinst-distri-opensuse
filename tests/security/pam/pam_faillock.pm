@@ -97,7 +97,7 @@ EOF
     # Clean up
     assert_script_run('mv /etc/pam.d/common-auth.back /etc/pam.d/common-auth');
     assert_script_run('mv /etc/pam.d/common-password.back /etc/pam.d/common-password');
-    assert_script_run("userdel -r $user_name");
+    assert_script_run("userdel -r -f $user_name");
 }
 
 sub test_flags {
