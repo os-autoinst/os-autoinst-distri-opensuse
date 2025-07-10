@@ -17,11 +17,13 @@ use serial_terminal 'select_serial_terminal';
 use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network is_running_in_isolated_network get_default_dns);
 use main_containers qw(is_suse_host);
 use utils;
-use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional);
+use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional is_bootloader_grub2);
 use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
 use transactional qw(trup_call process_reboot);
+use bootloader_setup qw(add_grub_cmdline_settings);
+use power_action_utils qw(power_action);
 
 sub setup_networking_in_isolated_network {
     my ($self, $nics_ref) = @_;
@@ -64,6 +66,14 @@ sub run {
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
     my ($version, $sp, $host_distri) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIMES');
+
+    # some images do not have quiet option in kernel parameters
+    if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
+        add_grub_cmdline_settings('quiet', update_grub => 1);
+        power_action("reboot", textmode => 1);
+        $self->wait_boot(textmode => 1);
+        select_serial_terminal;
+    }
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured

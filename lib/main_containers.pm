@@ -297,6 +297,8 @@ sub load_container_tests {
             # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
         }
+    } elsif (is_tumbleweed && get_var('FLAVOR', '') =~ /dvd|net/i) {
+        loadtest 'containers/host_configuration';
     }
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
