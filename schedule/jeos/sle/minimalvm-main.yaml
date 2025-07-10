@@ -9,9 +9,9 @@ conditional_schedule:
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-            'svirt-hyperv20222022-uefi':
+            'svirt-hyperv2022-uefi':
                 - installation/bootloader_hyperv
-            'svirt-hyperv20222022':
+            'svirt-hyperv2022':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
             'svirt-vmware':
