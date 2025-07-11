@@ -142,7 +142,7 @@ sub monitor_concurrent_guest_installations {
                 }
             }
             my $_current_guest_instance = $_;
-            if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and ($guest_instances{$_}->{guest_installation_result} ne '')) {
+            if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and $guest_instances{$_}->is_guest_installation_finalized) {
                 push(@guest_installations_done, $_);
                 $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
                 $guest_instances{$_}->collect_guest_installation_logs_via_ssh if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
