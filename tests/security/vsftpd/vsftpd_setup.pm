@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my $vsftpd_path = '/etc/vsftpd';
@@ -27,6 +28,9 @@ sub run {
 
     # Install vsftpd, expect for Tumbleweed
     zypper_call("in vsftpd expect openssl wget");
+
+    # https://bugzilla.suse.com/show_bug.cgi?id=1246224
+    assert_script_run('setsebool -P ftpd_full_access 1') unless is_sle('<16');
 
     # Create self-signed certificate
     assert_script_run("(test -d $vsftpd_path || mkdir $vsftpd_path) && cd $vsftpd_path");
