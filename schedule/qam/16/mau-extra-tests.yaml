@@ -1,0 +1,17 @@
+---
+name: mau-extratests1
+description: First set of CLI extratests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/ntp_client
+  - console/dnsmasq
+  - console/sshd
+  - console/cron
+  - console/mta
+  - console/sudo
+  - x11/evolution/evolution_prepare_servers
+  - console/mutt
+  - network/samba/server

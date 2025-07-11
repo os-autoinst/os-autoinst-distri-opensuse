@@ -19,6 +19,7 @@ use Utils::Backends;
 use version_utils qw(is_upgrade is_sles4sap is_sle is_sle_micro);
 
 sub run {
+    set_var('VERSION', '16.0');
     my ($self) = @_;
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
