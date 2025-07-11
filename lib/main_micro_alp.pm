@@ -190,7 +190,8 @@ sub load_remote_controller_tests {
     loadtest 'installation/user_settings_root';
     loadtest 'installation/resolve_dependency_issues';
     loadtest 'installation/installation_overview';
-    loadtest 'installation/disable_grub_timeout';
+    loadtest 'installation/disable_grub_timeout' if is_bootloader_grub2;
+    loadtest 'installation/configure_bls' if is_bootloader_sdboot || is_bootloader_grub2_bls;
     loadtest 'installation/start_install';
     loadtest 'installation/await_install';
     loadtest 'installation/reboot_after_installation';
