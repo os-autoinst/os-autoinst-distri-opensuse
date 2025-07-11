@@ -2132,6 +2132,8 @@ Register addons on SUT
 
 =over
 
+=item B<scc_addons> - List of scc addons as usually provided by SCC_ADDONS variable
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
@@ -2142,9 +2144,10 @@ Register addons on SUT
 
 sub ipaddr2_scc_addons {
     my (%args) = @_;
+    croak 'Missing mandatory argument < scc_addons >' unless $args{scc_addons};
     $args{bastion_pubip} //= ipaddr2_bastion_pubip();
     my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    my @addons = split(/,/, $args{scc_addons});
 
     foreach my $id (1 .. 2) {
         # Register through an external library function register_addon.
