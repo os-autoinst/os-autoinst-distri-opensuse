@@ -71,7 +71,7 @@ sub prepare_boot_params {
 
 sub run {
     my $self = shift;
-
+    set_var('VERSION', '16.0');
     # Please, avoid adding code here that would be a dependency for specific booting implementations
     # For now using legacy code to handle remote architectures
     if (is_s390x()) {
