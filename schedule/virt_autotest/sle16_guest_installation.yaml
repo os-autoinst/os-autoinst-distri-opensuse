@@ -9,6 +9,7 @@ schedule:
   - virt_autotest/set_config_as_glue
   - '{{uefi_guest_verification}}'
   - '{{sev-es_guest_verification}}'
+  - '{{virtual_network_test}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -22,3 +23,11 @@ conditional_schedule:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
         - virt_autotest/sev_es_guest_verification
+  virtual_network_test:
+    ENABLE_VIR_NET:
+      1:
+        - virt_autotest/libvirt_virtual_network_init
+        - virt_autotest/libvirt_host_bridge_virtual_network
+        - virt_autotest/libvirt_nated_virtual_network
+        - virt_autotest/libvirt_routed_virtual_network
+        - virt_autotest/libvirt_isolated_virtual_network
