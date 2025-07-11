@@ -42,6 +42,11 @@ sub create_profile {
     $profile =~ s/\{\{CA_STR\}\}/$ca_str/g;
     $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
     $profile =~ s/\{\{SUT_IP\}\}/$sut_ip/g;
+    # Change bootloader to grub2-efi for UEFI boot if using UEFI boot (VIRT_LEGACY_BOOT=0)
+    if (virt_autotest::utils::should_use_uefi()) {
+        $profile =~ s/<loader_type>grub2<\/loader_type>/<loader_type>grub2-efi<\/loader_type>/;
+        record_info("UEFI Config", "Modified autoyast profile to use grub2-efi for UEFI boot");
+    }
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
