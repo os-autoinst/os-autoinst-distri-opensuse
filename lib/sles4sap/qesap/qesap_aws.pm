@@ -36,6 +36,7 @@ use testapi;
 
 our @EXPORT = qw(
   qesap_aws_get_vpc_id
+  qesap_aws_get_tgw_attachments
   qesap_aws_delete_transit_gateway_vpc_attachment
   qesap_aws_vnet_peering
   qesap_aws_create_credentials
@@ -252,44 +253,71 @@ sub qesap_aws_create_transit_gateway_vpc_attachment {
     Call delete-transit-gateway-vpc-attachment and
     wait until Transit Gateway Attachment is deleted.
 
-    Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
-    Return 0 (false) if delete-transit-gateway-vpc-attachment fails or
-         the gateway does not become inactive before the timeout
+    Return 1 (true) if properly managed to delete the tgw-attachment OR 'wait' is 0
+    Return 0 (false) if wait=1 AND delete-transit-gateway-vpc-attachment fails or timeout is reached
 
 =over
 
-=item B<NAME> - Prefix for the Tag Name of transit-gateway-vpc-attachment
+=item B<ID> - id of the TGW attachment to be deleted
 
 =item B<TIMEOUT> - default is 5 mins
+
+=item B<WAIT> - whether to wait to verify deleted status or not
 
 =back
 =cut
 
 sub qesap_aws_delete_transit_gateway_vpc_attachment {
     my (%args) = @_;
-    croak 'Missing mandatory name argument' unless $args{name};
+    croak 'Must provide transit gateway id' unless $args{id};
     $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{wait} = $args{wait} // 1;
 
-    my $res = qesap_aws_get_transit_gateway_vpc_attachment(
-        name => $args{name});
-    # Here [0] suppose that only one of them match 'name'
-    my $transit_gateway_attachment_id = $res->[0]->{TransitGatewayAttachmentId};
-    return 0 unless $transit_gateway_attachment_id;
-
-    my $cmd = join(' ', 'aws ec2 delete-transit-gateway-vpc-attachment',
-        '--transit-gateway-attachment-id', $transit_gateway_attachment_id);
+    my $cmd = join(' ', 'aws ec2 delete-transit-gateway-vpc-attachment', '--transit-gateway-attachment-id', $args{id});
     script_run($cmd);
+
+    return 1 unless $args{wait};
 
     my $state = 'none';
     my $duration;
     my $start_time = time();
-    while ((($duration = time() - $start_time) < $args{timeout}) && ($state !~ m/deleted/)) {
+    my $res;
+    while ((($duration = time() - $start_time) < $args{timeout})
+        && ($state !~ m/deleted/))
+    {
         sleep 5;
-        $res = qesap_aws_get_transit_gateway_vpc_attachment(
-            transit_gateway_attach_id => $transit_gateway_attachment_id);
-        $state = $res->[0]->{State};
+        $res = qesap_aws_get_transit_gateway_vpc_attachment(transit_gateway_attach_id => $args{id});
+
+        last unless @$res;
+        $state = $res->[0]{State};
     }
     return $duration < $args{timeout};
+}
+
+sub qesap_aws_get_tgw_attachments {
+    my (%args) = @_;
+    return [] unless $args{mirror_tag};
+
+    my ($tgw_id) = qesap_aws_get_mirror_tg(mirror_tag => $args{mirror_tag});
+    return [] unless $tgw_id;
+
+    my @filters = (
+        "Name=transit-gateway-id,Values=$tgw_id",
+        "Name=tag:Name,Values='*-tgw-attach'",
+        "Name=state,Values=available",
+    );
+
+    my $query = q{'TransitGatewayAttachments[].{Id:TransitGatewayAttachmentId,Name:Tags[?Key==`Name`]|[0].Value}'};
+
+    my $atts_json = qesap_aws_filter_query(
+        cmd => 'describe-transit-gateway-attachments',
+        filter => join(' ', @filters),
+        query => $query,
+        output => 'json',
+    );
+
+    my $attachments = decode_json($atts_json);
+    return $attachments;
 }
 
 =head3 qesap_aws_add_route_to_tgw
@@ -332,10 +360,11 @@ sub qesap_aws_filter_query {
     my (%args) = @_;
     foreach (qw(cmd filter query)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
+    my $output_format = $args{output} // 'text';
     my $cmd = join(' ', 'aws ec2', $args{cmd},
         '--filters', $args{filter},
         '--query', $args{query},
-        '--output text');
+        '--output', $output_format);
     return script_output($cmd);
 }
 

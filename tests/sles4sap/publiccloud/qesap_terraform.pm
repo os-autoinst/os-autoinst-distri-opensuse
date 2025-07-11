@@ -235,6 +235,9 @@ sub run {
         qesap_az_clean_old_peerings(rg => $group, vnet => az_network_vnet_get(resource_group => $group, query => "[0].name"));
         record_info 'PEERING CLEANUP', "Peering cleanup END";
     }
+    elsif (is_ec2 && get_var('IBSM_PRJ_TAG')) {
+        qesap_aws_delete_leftover_tgw_attachments(mirror_tag => get_var('IBSM_PRJ_TAG'));
+    }
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1, region => get_required_var('PUBLIC_CLOUD_REGION'));

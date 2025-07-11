@@ -84,6 +84,7 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_is_job_finished
+  qesap_aws_delete_leftover_tgw_attachments
   qesap_az_get_resource_group
   qesap_az_vnet_peering
   qesap_az_simple_peering_delete
@@ -1871,6 +1872,52 @@ sub qesap_az_clean_old_peerings {
             qesap_az_simple_peering_delete(rg => $args{rg}, vnet_name => $args{vnet}, peering_name => $key);
         }
     }
+}
+
+=head2 qesap_aws_delete_leftover_tgw_attachments
+
+    Delete leftover peering resources for AWS jobs that finished without cleaning up.
+    This only works for resources created by jobs that run on the same openqa server 
+    that the current job is running on.
+
+=over
+
+=item B<MIRROR_TAG> - tag of the IBS Mirror
+
+=back
+=cut
+
+
+sub qesap_aws_delete_leftover_tgw_attachments {
+    my (%args) = @_;
+    return 0 unless $args{mirror_tag};
+
+    my $available_attachments = qesap_aws_get_tgw_attachments(%args);
+
+    return 1 unless ref($available_attachments) eq 'ARRAY' && @$available_attachments;
+    record_info('AWS PEERING CLEANUP', 'Starting leftover peering cleanup (AWS)');
+
+    foreach my $att (@$available_attachments) {
+        # The name is set by Terraform during the attachment creation
+        # The name includes the id of the openqa job that created the resources.
+        my $name = $att->{Name} // '';
+        # This is the tgw-attachment id
+        my $id = $att->{Id} // next;
+
+        # Here the openqa job id is extracted from the name
+        next unless $name =~ /(\d+)-tgw-attach$/;
+        my $job_id = $1;
+        # If the job is finished, the resources are leftovers and must be purged.
+        next unless qesap_is_job_finished($job_id);
+
+        record_info('LEFTOVER TGW ATTACHMENT', "Attachment " . $name . "'s job has finished, deleting");
+
+        qesap_aws_delete_transit_gateway_vpc_attachment(
+            id => $id,
+            wait => 0
+        );
+    }
+    return 1;
 }
 
 =head2 qesap_az_setup_native_fencing_permissions
