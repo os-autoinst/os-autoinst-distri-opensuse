@@ -645,7 +645,7 @@ sub load_virt_feature_tests {
         loadtest "virt_autotest/virsh_external_snapshot";
     }
 }
-
+set_var('VERSION', '16.0') if (check_var('VERSION', '15.99'));
 testapi::set_distribution(DistributionProvider->provide());
 
 # set failures

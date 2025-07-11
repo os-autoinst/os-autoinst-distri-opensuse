@@ -1,0 +1,16 @@
+---
+name: mau-webserver
+description: Services used in various web server
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/curl_https
+  - console/http_srv
+  - console/dns_srv
+  - console/apache
+  - console/apache_ssl
+  - console/postgresql_server
+  - console/mariadb_srv
+  - console/nginx
+  - console/zypper_log_packages
