@@ -21,6 +21,7 @@ requires 'File::Copy';
 requires 'File::Find';
 requires 'File::Path';
 requires 'File::Temp';
+requires 'Inline::Lua';
 requires 'IO::File';
 requires 'IO::Socket::INET';
 requires 'LWP::Simple';
