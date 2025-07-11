@@ -45,7 +45,7 @@ sub enable_fips {
             change_grub_config('=\"[^\"]*', '& fips=1 ', 'GRUB_CMDLINE_LINUX_DEFAULT');
             trup_call('--continue grub.cfg');
         } else {
-            add_grub_cmdline_settings('fips=1', update_grub => 1) unless is_sle_micro;
+            add_grub_cmdline_settings('fips=1', update_grub => 1) unless (is_sle_micro || is_microos);
         }
         $self->reboot_and_select_serial_term;
     }
