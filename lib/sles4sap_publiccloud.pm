@@ -1393,6 +1393,29 @@ sub wait_for_zypper {
     die("Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)") if $retry >= $args{max_retries};
 }
 
+sub check_zypper_ref {
+    my ($self, %args) = @_;
+    croak('Argument <instance> missing') unless $args{instance};
+    $args{runas} //= 'cloudadmin';
+
+    #my $ret = $self{my_instance}->run_ssh_command(cmd => 'sudo zypper ref',
+    my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref',
+        username => $args{runas},
+        proceed_on_failure => 1,
+        rc_only => 1,
+        quiet => 1,
+        timeout => $args{timeout});
+        if ($ret == 4) {
+            die('ZYPPER: libzypp reported error while refreshing repositories');
+        } elsif ($ret == 6) {
+            die('ZYPPER reported no repositories defined');
+        } elsif ($ret == 106) {
+            die('ZYPPER reported some repositories failed to refresh');
+        } else {
+            record_info('ZYPPER REF', "Zypper ref returned $ret");
+        }
+}
+
 =head2 wait_for_idle
 
     The function wraps the `cs_wait_for_idle` command, and restarts in case of timeout (once, this
