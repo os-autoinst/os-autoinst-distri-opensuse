@@ -19,7 +19,7 @@ use serial_terminal 'select_serial_terminal';
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
 use Utils::Backends 'is_pvm';
-use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional);
+use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 
 my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
 
@@ -45,7 +45,7 @@ sub enable_fips {
             change_grub_config('=\"[^\"]*', '& fips=1 ', 'GRUB_CMDLINE_LINUX_DEFAULT');
             trup_call('--continue grub.cfg');
         } else {
-            add_grub_cmdline_settings('fips=1', update_grub => 1) unless is_sle_micro;
+            add_grub_cmdline_settings('fips=1', update_grub => 1) unless (is_sle_micro || is_microos);
         }
         $self->reboot_and_select_serial_term;
     }
@@ -53,7 +53,7 @@ sub enable_fips {
 }
 
 sub ensure_fips_enabled {
-    if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
+    if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed || is_microos) {
         validate_script_output("fips-mode-setup --check",
             sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
     } else {
