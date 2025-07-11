@@ -70,6 +70,7 @@
         </ul>
       </li>
       <li><a href="#qesap_az_clean_old_peerings">qesap_az_clean_old_peerings</a></li>
+      <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
       <li><a href="#qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</a></li>
       <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
       <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
@@ -905,6 +906,20 @@ empty string if a peering doesn&#39;t exist</code></pre>
 
 </dd>
 <dt id="VNET---vnet-name-of-rg1"><b>VNET</b> - vnet name of rg</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</h2>
+
+<pre><code>Delete leftover peering resources for AWS jobs that finished without cleaning up.
+This only works for resources created by jobs that run on the same openqa server 
+that the current job is running on.</code></pre>
+
+<dl>
+
+<dt id="MIRROR_TAG---tag-of-the-IBS-Mirror"><b>MIRROR_TAG</b> - tag of the IBS Mirror</dt>
 <dd>
 
 </dd>

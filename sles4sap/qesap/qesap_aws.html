@@ -169,17 +169,20 @@ Return 0 (false) if create-transit-gateway-vpc-attachment fails or
 <pre><code>Call delete-transit-gateway-vpc-attachment and
 wait until Transit Gateway Attachment is deleted.
 
-Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
-Return 0 (false) if delete-transit-gateway-vpc-attachment fails or
-     the gateway does not become inactive before the timeout</code></pre>
+Return 1 (true) if properly managed to delete the tgw-attachment OR &#39;wait&#39; is 0
+Return 0 (false) if wait=1 AND delete-transit-gateway-vpc-attachment fails or timeout is reached</code></pre>
 
 <dl>
 
-<dt id="NAME---Prefix-for-the-Tag-Name-of-transit-gateway-vpc-attachment1"><b>NAME</b> - Prefix for the Tag Name of transit-gateway-vpc-attachment</dt>
+<dt id="ID---id-of-the-TGW-attachment-to-be-deleted"><b>ID</b> - id of the TGW attachment to be deleted</dt>
 <dd>
 
 </dd>
 <dt id="TIMEOUT---default-is-5-mins1"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dd>
+
+</dd>
+<dt id="WAIT---whether-to-wait-to-verify-deleted-status-or-not"><b>WAIT</b> - whether to wait to verify deleted status or not</dt>
 <dd>
 
 </dd>
