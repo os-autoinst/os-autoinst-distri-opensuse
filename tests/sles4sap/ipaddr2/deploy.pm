@@ -51,7 +51,7 @@ sub run {
         # is still not able to use images from Azure Gallery
         $os = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        $os = get_required_var('CLUSTER_OS_VER');
+        $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
 
     my %cloudinit_args;
