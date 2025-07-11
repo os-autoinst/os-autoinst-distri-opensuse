@@ -9,7 +9,6 @@ package sles4sap::ipaddr2;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use sles4sap::qesap::qesapdeployment qw (qesap_calculate_address_range qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
@@ -18,6 +17,8 @@ use sles4sap::azure_cli;
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
+use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
+use sles4sap::ibsm;
 
 
 =head1 SYNOPSIS
@@ -85,7 +86,7 @@ count the private ip range and return
 sub get_private_ip_range {
     my %range = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
     if (my $worker_id = get_var("WORKER_ID")) {
-        %range = qesap_calculate_address_range(slot => $worker_id);
+        %range = ibsm_calculate_address_range(slot => $worker_id);
     }
 
     $range{priv_ip_range} = ($range{main_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
