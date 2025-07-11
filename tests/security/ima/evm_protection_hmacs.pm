@@ -12,8 +12,9 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use bootloader_setup qw(replace_grub_cmdline_settings tianocore_disable_secureboot);
+use bootloader_setup qw(replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
+use security::secureboot qw(handle_secureboot);
 
 sub run {
     my ($self) = @_;
@@ -43,9 +44,7 @@ sub run {
 
     # We need re-enable the secureboot after removing "ima_appraise=fix" kernel parameter
     power_action('reboot', textmode => 1);
-    $self->wait_grub(bootloader_time => 200);
-    $self->tianocore_disable_secureboot('re_enable');
-    $self->wait_boot(textmode => 1);
+    handle_secureboot($self, 're_enable');
     select_serial_terminal;
     my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);
     die "$sample_app should not have permission to run" if ($ret !~ "\Q$sample_app\E: *Permission denied");
