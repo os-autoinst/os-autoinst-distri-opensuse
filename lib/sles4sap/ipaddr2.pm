@@ -439,7 +439,7 @@ sub ipaddr2_infra_deploy {
         my $wt = az_vm_wait_running(
             resource_group => $rg,
             name => ipaddr2_get_internal_vm_name(id => $_),
-            timeout => 600
+            timeout => 1200
         );
         record_info('VM RUNNING', "VM $_ takes $wt seconds to reach the Running state.");
     }
@@ -2149,9 +2149,7 @@ sub ipaddr2_scc_addons {
         # Register through an external library function register_addon.
         # In order to make it able to run the addons registration
         # on the two internal VMs, compose command do do it
-        my $remote_cmd = join(' ',
-            '-J', $host_ip,
-            'cloudadmin@', ipaddr2_get_internal_vm_private_ip(id => $id));
+        my $remote_cmd = join(' ', '-J', $host_ip, 'cloudadmin@' . ipaddr2_get_internal_vm_private_ip(id => $id));
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
             register_addon($remote_cmd, $addon);
