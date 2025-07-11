@@ -263,6 +263,13 @@
         },
         "type": "ignore"
     },
+    "bsc#1245376": {
+        "description": "kernel: watchdog: watchdog0: watchdog did not stop!",
+        "products": {
+            "sle-micro": ["6.2"]
+        },
+        "type": "ignore"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended (PCI|.*configuration) space under this bridge|PCI: System does not support PCI",
         "products": {
