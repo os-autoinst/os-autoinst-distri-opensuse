@@ -48,7 +48,7 @@ sub run_test {
     @host_pfs = find_sriov_ethernet_devices();
 
     #get/set necessary variables for test
-    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
+    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3 | sort -u";
 
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
@@ -60,6 +60,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
+        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
@@ -258,8 +259,9 @@ sub prepare_guest_for_sriov_passthrough {
         assert_script_run(" ! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
         assert_script_run "virsh start $vm";
-        wait_guest_online($vm);
     }
+
+    wait_guest_online($vm, 30);
 
     #passwordless access to guest
     save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
