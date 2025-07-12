@@ -7,7 +7,7 @@
 # Summary: Check cluster integrity
 # Maintainer: QE-SAP <qe-sap@suse.de>, Christian Lanig <clanig@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use testapi;
