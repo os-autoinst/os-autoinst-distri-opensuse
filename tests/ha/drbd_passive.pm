@@ -11,7 +11,7 @@
 # Check multistate status
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use version_utils 'is_sle';

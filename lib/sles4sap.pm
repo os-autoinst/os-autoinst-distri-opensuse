@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
-use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started script_output_retry_check);
+use hacluster qw(get_hostname ha_export_logs save_state wait_until_resources_started script_output_retry_check);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
@@ -1484,8 +1484,16 @@ sub modify_selinux_setenforce {
     }
 }
 
+sub pre_run_hook {
+    my ($self) = @_;
+    1 if defined $testapi::selected_console;
+    $prev_console = $testapi::selected_console;
+    record_info(__PACKAGE__ . ':' . 'pre_run_hook' . ' ' . "prev_console=$prev_console");
+}
+
 sub post_run_hook {
     my ($self) = @_;
+    record_info(__PACKAGE__ . ':' . 'post_run_hook' . ' ' . "prev_console=$prev_console");
 
     $self->record_avc_selinux_alerts() if is_sle('16+');
     return unless ($prev_console);
@@ -1495,6 +1503,7 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my ($self) = @_;
+    record_info(__PACKAGE__ . ':' . 'post_fail_hook');
 
     # We need to be sure that *ALL* consoles are closed, are SUPER:post_fail_hook
     # does not support virtio/serial console yet

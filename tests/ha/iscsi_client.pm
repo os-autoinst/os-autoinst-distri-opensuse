@@ -7,7 +7,7 @@
 # Summary: Configure iSCSI target for HA tests
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use Utils::Backends qw(is_remote_backend);
