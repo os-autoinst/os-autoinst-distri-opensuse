@@ -49,7 +49,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils qw(zypper_call);
-use version_utils qw(is_sle is_leap is_jeos is_tumbleweed get_os_release);
+use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
 
 sub run {
     select_serial_terminal;
@@ -89,24 +89,8 @@ sub run {
     #Cleaning up dependencies of removed packages
     zypper_call "rm --clean-deps cmake";
 
-    my ($os_version, $os_servicepack, $distri) = get_os_release;
-
-    my $packman_repo_url = "http://ftp.gwdg.de/pub/linux/misc/packman/suse/";
-
-    if (is_sle()) {
-        $packman_repo_url .= "SLE_$os_version" if is_sle("<16");
-        $packman_repo_url .= "SLE_15" if is_sle(">=16");
-        record_info("Unsupported OS", "Attempting to use 15 repo for 16 which is not yet supported.", result => 'softfail') unless is_tumbleweed();
-    } elsif (is_leap()) {
-        $packman_repo_url .= "openSUSE_Leap_$os_version.$os_servicepack";
-    } else {
-        $packman_repo_url .= "openSUSE_Tumbleweed";
-        record_info("Unsupported OS", "Attempting to use Tumbleweed repo on non supported version", result => 'softfail') unless is_tumbleweed();
-    }
-    $packman_repo_url .= "/";
-
     #Add a repository
-    zypper_call "ar -p 90 -f --no-gpgcheck $packman_repo_url packman";
+    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_15.2/ packman';
     assert_script_run("zypper lr | grep packman");
 
     #Install package from a disabled repository
