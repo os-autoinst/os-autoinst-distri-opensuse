@@ -14,9 +14,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
-
-sub audit_verify {
-}
+use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     my ($self) = @_;
@@ -28,8 +27,7 @@ sub run {
     systemctl('is-active auditd');
     if (script_run("grep CONFIG_INTEGRITY_TRUSTED_KEYRING=y /boot/config-`uname -r`") == 0) {
         record_soft_failure("bsc#1157432 for SLE15SP2+: CA could not be loaded into the .ima or .evm keyring");
-    }
-    else {
+    } else {
         # Make sure IMA is in the enforce mode
         validate_script_output "grep -E 'ima_appraise=(fix|log|off)' /etc/default/grub || echo 'IMA enforced'", sub { m/IMA enforced/ };
         assert_script_run("test -e /etc/sysconfig/ima-policy", fail_message => 'ima-policy file is missing');
@@ -46,7 +44,8 @@ sub run {
         # Test both default(no ima_apprais=) and ima_appraise=log situation
         add_grub_cmdline_settings("ima_appraise=log", update_grub => 1);
         power_action("reboot", textmode => 1);
-        $self->wait_boot(textmode => 1);
+        my $boot_method = ((is_aarch64 && is_sle('>=16')) ? 'wait_boot_past_bootloader' : 'wait_boot');
+        $self->$boot_method;
         select_serial_terminal;
 
         assert_script_run("echo -n '' > /var/log/audit/audit.log");
