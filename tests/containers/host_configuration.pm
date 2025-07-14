@@ -22,6 +22,7 @@ use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils qw(power_action);
+use zypper qw(wait_quit_zypper);
 
 sub run {
     my ($self) = @_;
@@ -68,6 +69,11 @@ sub run {
     }
 
     # Install engines in case they are not installed
+    # Make sure packagekit is not running, or it will conflict with SUSEConnect.
+    quit_packagekit;
+    # poo#87850 wait the zypper processes in background to finish and release the lock.
+    wait_quit_zypper;
+
     install_docker_when_needed() if ($engine =~ 'docker');
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
 
