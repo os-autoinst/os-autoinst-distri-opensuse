@@ -90,15 +90,12 @@ sub run {
     zypper_call "rm --clean-deps cmake";
 
     my $repo_version;
-    my $package_to_install;
+    my $package_to_install = "funny-manpages";
     if (is_opensuse) {
         my $string = (is_leap) ? 'Leap_' : '';
         $repo_version = "openSUSE_$string" . get_var('VERSION');
-        $package_to_install = "funny-manpages";
     } elsif (is_sle) {
-        my $major_version = substr(get_var('VERSION'), 0, 2);
-        $repo_version = "SLE_$major_version";
-        $package_to_install = "rar";
+        $repo_version = "openSUSE_Leap_15.6";
     } else {
         die "Unknown distribution";
     }
