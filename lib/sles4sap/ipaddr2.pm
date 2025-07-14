@@ -1999,17 +1999,26 @@ Add download.suse.de server to hosts by specifying IBSM address
 
 =over
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<ibsm_ip> - IP of the IBSm
+
+=item B<incident_repo> - Comma separated list of incident repos
+
 =back
 
 =cut
 
 sub ipaddr2_add_server_repos_to_hosts {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    croak 'Missing mandatory argument < ibsm_ip >' unless $args{ibsm_ip};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
     foreach my $id (1 .. 2) {
         ipaddr2_ssh_internal(id => $id,
             cmd => "echo \"$args{'ibsm_ip'} download.suse.de\" | sudo tee -a /etc/hosts",
-            bastion_ip => $args{bastion_pubip});
+            bastion_ip => $args{bastion_ip});
     }
 
     # Add repos
@@ -2026,7 +2035,7 @@ sub ipaddr2_add_server_repos_to_hosts {
         foreach my $id (1 .. 2) {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $zypper_cmd,
-                bastion_ip => $args{bastion_pubip});
+                bastion_ip => $args{bastion_ip});
         }
         $count++;
     }
@@ -2040,13 +2049,17 @@ Patch system
 
 =over
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
 =back
 
 =cut
 
 sub ipaddr2_patch_system {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     my @vms = ();
     foreach my $id (1 .. 2) {
@@ -2055,22 +2068,21 @@ sub ipaddr2_patch_system {
 
         ipaddr2_ssh_internal(id => $id,
             cmd => "sudo zypper -n ref",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             timeout => 1500);
     }
 
     # zypper patch
-    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     foreach my $vm_ip (@vms) {
-        my $remote = "-J $host_ip cloudadmin@" . "$vm_ip";
-        ssh_fully_patch_system($remote);
+        ssh_fully_patch_system("-J $host_ip cloudadmin@" . "$vm_ip");
     }
 
     foreach my $vm_id (1 .. 2) {
         # To avoid the zypper lock issue
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => "sudo systemctl mask packagekit; sudo systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             method => "script_run",
             timeout => 120);
 
@@ -2078,7 +2090,7 @@ sub ipaddr2_patch_system {
         # assert_script_run. Use script_run instead to avoid that
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => "sudo reboot",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             method => "script_run",
             timeout => 60);
     }
@@ -2107,7 +2119,7 @@ sub ipaddr2_patch_system {
             my $ret = ipaddr2_ssh_internal(
                 id => $v_id,
                 cmd => 'pgrep "zypper|purge-kernels|rpm"',
-                bastion_ip => $args{bastion_pubip},
+                bastion_ip => $args{bastion_ip},
                 method => "script_run",
                 timeout => 60);
             if ($ret == 0) {
@@ -2132,6 +2144,8 @@ Register addons on SUT
 
 =over
 
+=item B<scc_addons> - List of scc addons as usually provided by SCC_ADDONS variable
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
@@ -2142,9 +2156,10 @@ Register addons on SUT
 
 sub ipaddr2_scc_addons {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
-    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    croak 'Missing mandatory argument < scc_addons >' unless $args{scc_addons};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my @addons = split(/,/, $args{scc_addons});
 
     foreach my $id (1 .. 2) {
         # Register through an external library function register_addon.

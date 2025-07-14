@@ -27,7 +27,9 @@ sub run {
     # Create network peering
     ipaddr2_network_peering_create(ibsm_rg => get_required_var('IBSM_RG'));
 
-    ipaddr2_add_server_repos_to_hosts(ibsm_ip => get_required_var('IBSM_IP'), incident_repo => get_var('INCIDENT_REPO', ''));
+    ipaddr2_add_server_repos_to_hosts(
+        ibsm_ip => get_required_var('IBSM_IP'),
+        incident_repo => get_var('INCIDENT_REPO', ''));
 }
 
 sub test_flags {
