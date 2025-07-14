@@ -69,13 +69,19 @@ local lvm(encrypted=false, encryption='luks2') = {
 local whole_disk_and_boot_unattended() = {
   drives: [
     {
-      search: '/dev/vda',
+      search: {
+        sort: {size: 'desc'},
+        max: 1,
+      },
       filesystem: {
         path: '/home',
       },
     },
     {
-      search: '/dev/vdb',
+      search: {
+        sort: {size: 'desc'},
+        max: 1,
+      },
       partitions: [
         {
           filesystem: {
@@ -85,7 +91,10 @@ local whole_disk_and_boot_unattended() = {
       ],
     },
     {
-      search: '/dev/vdc',
+      search: {
+        sort: {size: 'desc'},
+        max: 1,
+      },
       alias: 'boot-disk',
     },
   ],
