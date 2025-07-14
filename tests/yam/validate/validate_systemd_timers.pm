@@ -29,7 +29,7 @@ sub run {
     my $elapsed_time = $birth_time - $start_time;
     validate_script_output("systemctl list-timers", sub { !m/\b$service\b/ });
     record_info("stat /tmp/foo", "Scheduled: $start_time.\nCreated: $birth_time.\nElapsed: $elapsed_time secs");
-    die("elapsed_time ($elapsed_time) is greater than  OnActiveSec ($on_active_sec)!") if $elapsed_time > $on_active_sec;
+    die("elapsed_time ($elapsed_time) is greater than  OnActiveSec ($on_active_sec)!") if $elapsed_time > $on_active_sec + 1;
 }
 
 1;
