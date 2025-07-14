@@ -49,7 +49,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils qw(zypper_call);
-use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
+use version_utils qw(is_sle is_leap is_jeos is_tumbleweed is_opensuse);
 
 sub run {
     select_serial_terminal;
@@ -89,13 +89,27 @@ sub run {
     #Cleaning up dependencies of removed packages
     zypper_call "rm --clean-deps cmake";
 
+    my $repo_version;
+    my $package_to_install;
+    if (is_opensuse) {
+        my $string = (is_leap) ? 'Leap_' : '';
+        $repo_version = "openSUSE_$string" . get_var('VERSION');
+        $package_to_install = "funny-manpages";
+    } elsif (is_sle) {
+        my $major_version = substr(get_var('VERSION'), 0, 2);
+        $repo_version = "SLE_$major_version";
+        $package_to_install = "rar";
+    } else {
+        die "Unknown distribution";
+    }
+
     #Add a repository
-    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_15.1/ packman';
+    zypper_call "ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/$repo_version/ packman";
     assert_script_run("zypper lr | grep packman");
 
     #Install package from a disabled repository
     zypper_call 'mr -d packman';
-    zypper_call '--plus-content packman install funny-manpages';
+    zypper_call "--plus-content packman install $package_to_install";
 
     #Prioritize a repository
     zypper_call 'mr -e -p 20 packman';
@@ -129,7 +143,7 @@ sub run {
     #Show packages which are without repository:
     zypper_call 'pa --orphaned';
     #There should be one orphan left funny-manpages, let's remove it
-    zypper_call 'rm funny-manpages';
+    zypper_call "rm $package_to_install";
 
     #Show packages which are installed but are not needed:
     zypper_call 'pa --unneeded';
