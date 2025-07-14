@@ -9,12 +9,16 @@
 
 use base 'opensusebasetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
 use utils;
+use package_utils 'install_package';
+use version_utils 'is_sle';
 use usb;
 
 sub run {
     my ($self) = @_;
+
+    my $unpriv_user = 'unpriv';
 
     select_serial_terminal;
     check_usb_devices;
@@ -32,9 +36,12 @@ sub run {
     my $file_copy = "$mountpoint/file";
 
     assert_script_run "mkdir $mountpoint";
-    assert_script_run "mkfs.btrfs -f $device";
+    assert_script_run "chgrp disk $mountpoint";
+    assert_script_run "chmod 777 $mountpoint";
 
-    assert_script_run "mount -t btrfs $device $mountpoint";
+    assert_script_run "mkfs.ext4 -F $device";
+    assert_script_run "mount -t ext4 $device $mountpoint";
+
     assert_script_run "dd if=/dev/urandom of=$file bs=1M count=16";
     assert_script_run "md5sum $file > $md5";
     assert_script_run "cp $file $file_copy";
@@ -44,12 +51,42 @@ sub run {
     assert_script_run "echo 3 > /proc/sys/vm/drop_caches";
 
     # remount and check md5sum
-    assert_script_run "mount -t btrfs $device $mountpoint";
+    assert_script_run "mount -t ext4 $device $mountpoint";
     assert_script_run "cd $mountpoint; md5sum -c $md5; cd /";
 
-    # cleanup
     assert_script_run("umount $mountpoint");
-    assert_script_run("rm -r $tmp");
+
+    if (zypper_search('lklfuse')) {
+        install_package 'lklfuse';
+        assert_script_run "usermod -a -G disk bernhard";
+
+        select_user_serial_terminal;
+        $mountpoint = "/home/bernhard/mount";
+        $file = "/home/bernhard/file";
+        $md5 = "/home/bernhard/md5";
+        $file_copy = "$mountpoint/file2";
+
+        assert_script_run "dd if=/dev/urandom of=$file bs=1M count=15";
+        assert_script_run "md5sum $file > $md5";
+        assert_script_run "mkdir -p $mountpoint";
+        assert_script_run "lklfuse $device $mountpoint -o type=ext4";
+        assert_script_run "mount | grep $mountpoint";
+        assert_script_run "cp $file $file_copy";
+        assert_script_run "fusermount -u $mountpoint";
+        assert_script_run "sync";
+        sleep 2;
+        # make sure the file doesn't exist after unmointing
+        assert_script_run "! [ -f $file_copy ]";
+        assert_script_run "lklfuse $device $mountpoint -o type=ext4";
+        record_info "Drive contents", script_output("ls $mountpoint");
+        assert_script_run "cd $mountpoint; md5sum -c $md5";
+        assert_script_run "sync";
+        sleep 2;
+        script_run "fusermount -u $mountpoint";
+
+    } elsif (is_sle('16+')) {
+        die "running on SLE16+ but lklfuse package is missing";
+    }
 }
 
 sub test_flags {
