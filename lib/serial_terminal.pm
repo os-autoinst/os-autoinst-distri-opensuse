@@ -122,7 +122,10 @@ wait_serial(get_login_message(), 300);
 
 sub get_login_message {
     my $arch = get_required_var("ARCH");
-    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+    my $agama_opts = get_var('AGAMA_PROFILE_OPTIONS', '');
+
+    return is_sle() && $agama_opts =~ /software_only_required/ ? qr/\blogin:/
+      : is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
       : is_sle_micro() ? qr/Welcome to SUSE Linux.* Micro .*\($arch\)/
       : is_leap() ? qr/Welcome to openSUSE Leap.*/
       : qr/Welcome to openSUSE Tumbleweed 20.*/;
