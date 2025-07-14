@@ -90,7 +90,7 @@ sub run {
     zypper_call "rm --clean-deps cmake";
 
     #Add a repository
-    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_15.1/ packman';
+    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_15.6/ packman';
     assert_script_run("zypper lr | grep packman");
 
     #Install package from a disabled repository
