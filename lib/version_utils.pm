@@ -876,11 +876,11 @@ sub get_bootloader {
 
     return 'grub2' if !check_var('UEFI', 1);
     return 'grub2' if is_upgrade;
-    return 'systemd-boot' if is_microos && !(get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
-    # Avoid unnecesary failures in staging
     return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
-    return 'grub2-bls' if check_var('VERSION', 'Staging:F');
-    return 'grub2';
+    return 'grub2' if is_slowroll;
+    return 'grub2' if is_sle || is_leap;
+    return 'systemd-boot' if is_microos;
+    return 'grub2-bls';
 }
 
 =head2 get_default_bootloader
