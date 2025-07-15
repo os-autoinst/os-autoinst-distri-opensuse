@@ -54,7 +54,7 @@ sub run {
     install_packages(@packages);
 
     # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1240150
-    assert_script_run "echo 0 > /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
+    script_run "echo 0 > /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
 
     my @ip_versions = (4);
     push @ip_versions, 6 unless (is_hyperv || is_s390x || is_vmware);
