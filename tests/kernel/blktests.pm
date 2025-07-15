@@ -52,8 +52,9 @@ sub run {
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
+    $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
     foreach my $i (@tests) {
-        script_run("./check --quick=$quick --exclude=$exclude $i", 480);
+        script_run("./check --quick=$quick $exclude $i", 480);
     }
 
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
