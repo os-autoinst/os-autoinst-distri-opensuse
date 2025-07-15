@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use bootloader_setup 'add_grub_cmdline_settings';
@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use YAML::PP;
 use File::Basename;
+use Utils::Architectures qw(is_x86_64);
 
 our @EXPORT = qw(
   bats_post_hook
@@ -79,15 +80,25 @@ sub install_git {
 }
 
 sub install_ncat {
-    my $version = get_var("NCAT_VERSION", "7.95-3");
-
-    my @cmds = (
-        "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm",
-        "ln -sf /usr/bin/ncat /usr/bin/nc"
-    );
-    foreach my $cmd (@cmds) {
-        run_command $cmd;
+    # Upstream tests use Nmap's ncat but this is a problematic tool for multiple reasons:
+    # - Behaviour breaks between versions. See https://nmap.org/changelog.html#7.96
+    # - Nmap changed license and both Fedora & openSUSE won't ship new versions
+    if (is_x86_64) {
+        # This version from upstream Nmap is known to work on x86_64 on SLES 15-SP4+ & TW
+        my $version = get_var("NCAT_VERSION", "7.95-3");
+        run_command "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm";
+    } else {
+        # TW has 7.95 and SLES 16.0 has 7.92. This version is not likely to change
+        # TODO: Find a repo with the right version that works for SLES 15-SPx
+        if (is_tumbleweed) {
+            run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        }
+        run_command "zypper -n install ncat";
     }
+    # Some tests use nc instead of ncat but expect ncat behaviour instead of netcat-openbsd
+    run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
+
+    record_info("nc", script_output("nc --version"));
 }
 
 sub install_bats {
