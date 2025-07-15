@@ -4,6 +4,7 @@ description: >
   Perform interactive installation with agama for s390x worker.
 schedule:
   - yam/agama/boot_agama
+  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
@@ -11,7 +12,6 @@ schedule:
   - installation/first_boot
   - yam/validate/validate_base_product
   - yam/validate/validate_first_user
-  - console/validate_repos
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

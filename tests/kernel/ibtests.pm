@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: git-core twopence-shell-client bc iputils python
@@ -23,20 +23,17 @@ our $slave;
 
 sub upload_ibtest_logs {
     my $self = shift;
+    my $default_units = 'opensm srp_daemon nvmet nvmf-autoconnect rdma-hw rdma-load-modules@infiniband rdma-load-modules@rdma rdma-ndd rdma-sriov';
+
+    my @systemd_units = split(/\s+/, get_var('IBTEST_UNIT_LOGS', $default_units));
+
 
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 
-    save_and_upload_systemd_unit_log('opensm.service');
-    save_and_upload_systemd_unit_log('srp_daemon.service');
-    save_and_upload_systemd_unit_log('nvmet.service');
-    save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
-    save_and_upload_systemd_unit_log('rdma-hw.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
-    save_and_upload_systemd_unit_log('rdma-ndd.service');
-    save_and_upload_systemd_unit_log('rdma-sriov.service');
+    # save logs for relevant systemd units
+    foreach (@systemd_units) {
+        save_and_upload_log("journalctl -u ${_}.service", "/tmp/${_}.service.log", {screenshot => 0});
+    }
 }
 
 sub ibtest_slave {
@@ -104,7 +101,6 @@ sub run {
     $slave = get_required_var('IBTEST_IP2');
 
     select_serial_terminal;
-
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
 
@@ -114,10 +110,24 @@ sub run {
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
 
+    assert_script_run('nmcli device set ib0 managed no');
+    assert_script_run('nmcli device set ib1 managed no');
+    sleep(3);
+    assert_script_run('ip link set up dev ib0');
+    assert_script_run('ip link set up dev ib1');
+
     if ($role eq 'IBTEST_MASTER') {
+        assert_script_run('ip addr add fe80::1/64 dev ib0');
+        assert_script_run('ip addr add fe80::2/64 dev ib1');
+        sleep(5);
+        record_info("ip addr show", script_output('ip addr show'));
         $self->ibtest_master;
     }
     elsif ($role eq 'IBTEST_SLAVE') {
+        assert_script_run('ip addr add fe80::3/64 dev ib0');
+        assert_script_run('ip addr add fe80::4/64 dev ib1');
+        sleep(5);
+        record_info("ip addr show", script_output('ip addr show'));
         $self->ibtest_slave;
     }
 

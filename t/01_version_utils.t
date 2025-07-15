@@ -194,6 +194,10 @@ subtest 'bootloader_tests' => sub {
 
     set_var('FLAVOR', 'JeOS-for-OpenStack-Cloud');
     ok get_default_bootloader eq 'grub2', "JeOS-for-OpenStack-Cloud image is grub2";
+
+    set_var('FLAVOR', 'MicroOS-Image');
+    ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
+
     set_var('FLAVOR', 'Server-DVD');
 
     set_var('UPGRADE', 1);

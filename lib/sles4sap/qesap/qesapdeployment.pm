@@ -84,7 +84,7 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_is_job_finished
-  qesap_calculate_address_range
+  qesap_aws_delete_leftover_tgw_attachments
   qesap_az_get_resource_group
   qesap_az_vnet_peering
   qesap_az_simple_peering_delete
@@ -1606,39 +1606,6 @@ sub qesap_az_get_resource_group {
     return $result;
 }
 
-=head3 qesap_calculate_address_range
-
-Calculate a main range that can be used in Azure for vnet or in AWS for vpc.
-Also calculate a secondary range within the main one for Azure subnet address ranges.
-The format is 10.ip2.ip3.0/21 and /24 respectively.
-ip2 and ip3 are calculated using the slot number as seed.
-
-=over
-
-=item B<SLOT> - integer to be used as seed in calculating addresses
-
-=back
-
-=cut
-
-sub qesap_calculate_address_range {
-    my %args = @_;
-    croak 'Missing mandatory slot argument' unless $args{slot};
-    die "Invalid 'slot' argument - valid values are 1-8192" if ($args{slot} > 8192 || $args{slot} < 1);
-    my $offset = ($args{slot} - 1) * 8;
-
-    # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
-    #ip2 gets incremented when it is >=256
-    my $ip2 = int($offset / 256);
-    #ip3 gets incremented by 8 until it's >=256, then it resets
-    my $ip3 = $offset % 256;
-
-    return (
-        main_address_range => sprintf("10.%d.%d.0/21", $ip2, $ip3),
-        subnet_address_range => sprintf("10.%d.%d.0/24", $ip2, $ip3),
-    );
-}
-
 =head3 qesap_az_vnet_peering
 
     Create a pair of network peering between
@@ -1905,6 +1872,52 @@ sub qesap_az_clean_old_peerings {
             qesap_az_simple_peering_delete(rg => $args{rg}, vnet_name => $args{vnet}, peering_name => $key);
         }
     }
+}
+
+=head2 qesap_aws_delete_leftover_tgw_attachments
+
+    Delete leftover peering resources for AWS jobs that finished without cleaning up.
+    This only works for resources created by jobs that run on the same openqa server 
+    that the current job is running on.
+
+=over
+
+=item B<MIRROR_TAG> - tag of the IBS Mirror
+
+=back
+=cut
+
+
+sub qesap_aws_delete_leftover_tgw_attachments {
+    my (%args) = @_;
+    return 0 unless $args{mirror_tag};
+
+    my $available_attachments = qesap_aws_get_tgw_attachments(%args);
+
+    return 1 unless ref($available_attachments) eq 'ARRAY' && @$available_attachments;
+    record_info('AWS PEERING CLEANUP', 'Starting leftover peering cleanup (AWS)');
+
+    foreach my $att (@$available_attachments) {
+        # The name is set by Terraform during the attachment creation
+        # The name includes the id of the openqa job that created the resources.
+        my $name = $att->{Name} // '';
+        # This is the tgw-attachment id
+        my $id = $att->{Id} // next;
+
+        # Here the openqa job id is extracted from the name
+        next unless $name =~ /(\d+)-tgw-attach$/;
+        my $job_id = $1;
+        # If the job is finished, the resources are leftovers and must be purged.
+        next unless qesap_is_job_finished($job_id);
+
+        record_info('LEFTOVER TGW ATTACHMENT', "Attachment " . $name . "'s job has finished, deleting");
+
+        qesap_aws_delete_transit_gateway_vpc_attachment(
+            id => $id,
+            wait => 0
+        );
+    }
+    return 1;
 }
 
 =head2 qesap_az_setup_native_fencing_permissions

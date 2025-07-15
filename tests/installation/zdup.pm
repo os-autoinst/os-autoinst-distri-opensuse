@@ -199,6 +199,7 @@ sub solve_conflicts {
     my $conflict_solved = 0;
     my %conflict_solutions = (
         'star-rmt' => qr{.*Solution (\d+):\s*deinstallation of star-rmt},
+        'gstreamer-plugins-bad' => qr{.*Solution (\d+):\s*install gstreamer-plugins-bad},
     );
 
     my @lines = split /\n/, $output;

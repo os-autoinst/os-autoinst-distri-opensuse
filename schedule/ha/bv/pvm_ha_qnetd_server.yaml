@@ -1,0 +1,35 @@
+name:           pvm_ha_qnetd_server
+description:    >
+  Create a qnetd server for testing qnet/device (corosync quorum feature)
+
+  This schedule corresponds to the job that provides the qnetd server for the
+  qnetd/qdevice multi-machine cluster test.  It must be scheduled PARALLEL_WITH
+  the cluster nodes. Some
+  settings are defined here in the schedule, while others are required outside
+  of it.
+
+  The following settings must be defined outside of the schedule, either in
+  the job group yaml configuration or in a test suite.
+
+  CLUSTER_NAME defining a name for the cluster test, for example qdevice. Only
+  use characters permitted by DNS in this name
+  SLE_PRODUCT with the product being tested
+  YAML_SCHEDULE set to schedule/ha/bv/pvm_ha_qnetd_server.yaml
+vars:
+  DESKTOP: textmode
+  HA_CLUSTER: "1"
+  HOSTNAME: "%CLUSTER_NAME%-node03"
+  # Number of nodes. This setting is required here and in the support server job
+  NUM_NODES: "2"
+  # qdevice test role is qnetd_server here and client in the cluster nodes
+  QDEVICE_TEST_ROLE: qnetd_server
+schedule:
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/firewall_disable
+  - ha/qnetd

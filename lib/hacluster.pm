@@ -69,10 +69,6 @@ our @EXPORT = qw(
   check_device_available
   set_lvm_config
   add_lock_mgr
-  pre_run_hook
-  post_run_hook
-  post_fail_hook
-  test_flags
   is_not_maintenance_update
   activate_ntp
   script_output_retry_check
@@ -131,7 +127,6 @@ Extension (HA or HAE) tests.
 
 our $crm_mon_cmd = 'crm_mon -R -r -n -1';
 our $softdog_timeout = bmwqemu::scale_timeout(60);
-our $prev_console;
 our $join_timeout = bmwqemu::scale_timeout(60);
 our $default_timeout = bmwqemu::scale_timeout(30);
 our $corosync_token = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.token\s/ {print int($2/1000)}'@;
@@ -1083,47 +1078,6 @@ sub add_lock_mgr {
     sleep 5;
 }
 
-sub pre_run_hook {
-    my ($self) = @_;
-    if (isotovideo::get_version() == 12) {
-        $prev_console = $autotest::selected_console;
-    } else {
-        # perl -c will give a "only used once" message
-        # here and this makes the ci tests fail.
-        1 if defined $testapi::selected_console;
-        $prev_console = $testapi::selected_console;
-    }
-}
-
-sub post_run_hook {
-    my ($self) = @_;
-
-    record_avc_selinux_alerts() if is_sle('16+');
-    return unless ($prev_console);
-    select_console($prev_console, await_console => 0);
-    if ($prev_console eq 'x11') {
-        ensure_unlocked_desktop;
-    }
-    else {
-        $self->clear_and_verify_console;
-    }
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-
-    # Save a screenshot before trying further measures which might fail
-    save_screenshot;
-
-    # Try to save logs as a last resort
-    ha_export_logs;
-    export_logs;
-}
-
-sub test_flags {
-    return {milestone => 1, fatal => 1};
-}
-
 =head2 is_not_maintenance_update
 
  is_not_maintenance_update( $package );
@@ -1813,7 +1767,11 @@ sub crm_resource_meta_set {
         croak("Mandatory argument '$arg' missing.") unless $arg;
     }
     my $action = $args{argument_value} ? 'set' : 'delete';
-    assert_script_run("crm resource meta $args{resource} $action $args{meta_argument}");
+    my $cmd = "crm resource meta $args{resource} $action $args{meta_argument}";
+    $cmd .= " $args{argument_value}" if $action eq 'set';
+
+    assert_script_run($cmd);
+    record_info('CRM meta set', "CRM meta set: $cmd");
 }
 
 1;

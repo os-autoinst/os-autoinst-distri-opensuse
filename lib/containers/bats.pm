@@ -114,7 +114,7 @@ sub configure_oci_runtime {
         $oci_runtime = script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'");
     }
     run_command "mkdir -p /etc/containers/containers.conf.d";
-    run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" >> /etc/containers/containers.conf.d/engine.conf';
+    run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" > /etc/containers/containers.conf.d/engine.conf';
     record_info("OCI runtime", script_output("$oci_runtime --version"));
 }
 
@@ -208,8 +208,12 @@ sub bats_setup {
     push @commands, "### RUN AS root";
 
     if (get_var("BATS_TEST_REPOS", "")) {
-        run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
-        run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+        if (script_run("zypper lr | grep -q SUSE_CA")) {
+            run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
+        }
+        if (script_run("rpm -q ca-certificates-suse")) {
+            run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+        }
 
         foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
             run_command "zypper addrepo $repo";
@@ -272,15 +276,6 @@ sub bats_setup {
     assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
 }
 
-sub selinux_hack {
-    my $dir = shift;
-
-    # Use the same labeling in /var/lib/containers for $dir
-    # https://github.com/containers/podman/blob/main/troubleshooting.md#11-changing-the-location-of-the-graphroot-leads-to-permission-denied
-    run_command "sudo semanage fcontext -a -e /var/lib/containers $dir || true", timeout => 120;
-    run_command "sudo restorecon -R -v $dir || true";
-}
-
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -331,7 +326,6 @@ sub bats_tests {
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
-    selinux_hack $tmp_dir if ($package =~ /buildah|podman/);
 
     $env{BATS_TMPDIR} = $tmp_dir;
     $env{TMPDIR} = $tmp_dir if ($package eq "buildah");
@@ -446,9 +440,6 @@ sub bats_sources {
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
-    } elsif ($package eq "buildah") {
-        selinux_hack $test_dir;
-        selinux_hack "/tmp";
     }
 }
 

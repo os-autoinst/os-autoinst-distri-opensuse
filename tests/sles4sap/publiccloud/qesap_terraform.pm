@@ -35,6 +35,7 @@ use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byo
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::azure_cli;
+use sles4sap::ibsm;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 use qam;
@@ -67,7 +68,7 @@ sub run {
 
     # *_ADDRESS_RANGE variables are not necessary needed by all the conf.yaml templates
     # but calculate them every time is "cheap"
-    my %maintenance_vars = qesap_calculate_address_range(slot => get_required_var('WORKER_ID'));
+    my %maintenance_vars = ibsm_calculate_address_range(slot => get_required_var('WORKER_ID'));
     set_var("MAIN_ADDRESS_RANGE", $maintenance_vars{main_address_range});
     set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
 
@@ -233,6 +234,9 @@ sub run {
         my $group = get_var('IBSM_RG');
         qesap_az_clean_old_peerings(rg => $group, vnet => az_network_vnet_get(resource_group => $group, query => "[0].name"));
         record_info 'PEERING CLEANUP', "Peering cleanup END";
+    }
+    elsif (is_ec2 && get_var('IBSM_PRJ_TAG')) {
+        qesap_aws_delete_leftover_tgw_attachments(mirror_tag => get_var('IBSM_PRJ_TAG'));
     }
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)

@@ -54,17 +54,42 @@ sub run {
         $os_ver = $img_name;
     }
 
-    my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip-';
+    # Create security rule to allow ssh
+    my $nsg = DEPLOY_PREFIX . '-nsg';
+    az_network_nsg_create(
+        resource_group => $rg,
+        name => $nsg);
+
+    az_network_nsg_rule_create(
+        resource_group => $rg,
+        nsg => $nsg,
+        name => $nsg . 'RuleSSH',
+        port => 22);
+
+    my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip';
     az_network_publicip_create(
         resource_group => $rg,
-        name => $pub_ip_prefix . $_,
+        name => $pub_ip_prefix,
         zone => '1 2 3');
-     my $nic = DEPLOY_PREFIX . '-nic';
-    $az_cmd = join(' ', 'az network nic create',
+     # Create a virtual network with a subnet
+    my $vnet = DEPLOY_PREFIX . '-vnet';
+    my $subnet = DEPLOY_PREFIX . '-snet';
+    az_network_vnet_create(
+        resource_group => $rg,
+        region => $provider->provider_client->region,
+        vnet => $vnet,
+        address_prefixes => '10.1.0.0/16',
+        snet => $subnet,
+        subnet_prefixes => '10.1.0.0/24');
+    my $nic = DEPLOY_PREFIX . '-nic';
+    my $az_cmd = join(' ', 'az network nic create',
         '--resource-group', $rg,
         '--name', $nic,
+        '--vnet-name', $vnet,
+        '--subnet', $subnet,
+        '--network-security-group', $nsg,
         '--private-ip-address-version IPv4',
-        '--public-ip-address', $pub_ip_prefix . '1');
+        '--public-ip-address', $pub_ip_prefix);
     assert_script_run($az_cmd);
     # Create one VM
     my $vm = DEPLOY_PREFIX . '-vm';
@@ -83,7 +108,7 @@ sub run {
     my $ssh_cmd;
     my $ret;
     # check that the VM is reachable using public IP addresses
-    $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-$_");
+    $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip");
     $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
 
     my $start_time = time();
@@ -96,6 +121,10 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('TEST STEP', 'VM reachable with SSH');
 
+    my $wt = az_vm_wait_running(
+            resource_group => $rg,
+            name => $vm,
+            timeout => 1200);
     my %system_register_args = (
         reg_code => get_var('SCC_REGCODE_SLES4SAP'),
         ssh_command => $ssh_cmd);

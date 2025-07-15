@@ -120,7 +120,7 @@ sub run {
         assert_script_run("pip3 --quiet install tox", timeout => 600);
     } elsif ($host_distri =~ /centos|rhel/) {
         foreach my $pkg (@packages) {
-            script_retry("dnf install -y $pkg", timeout => 300);
+            script_retry("dnf install -y --allowerasing $pkg", timeout => 300);
         }
         activate_virtual_env if ($bci_virtualenv);
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);

@@ -618,6 +618,7 @@ subtest '[crm_resource_meta_set] Set value' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
     $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement', argument_value => 'enter');
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -625,12 +626,14 @@ subtest '[crm_resource_meta_set] Set value' => sub {
     ok((grep /resource meta Hogwarts/, @calls), 'Call "meta" option');
     ok((grep /set/, @calls), 'Specify "set" action');
     ok((grep /RoomOfRequirement/, @calls), 'Specify meta-arg name');
+    ok((grep /enter/, @calls), 'Specify meta-arg value');
 };
 
 subtest '[crm_resource_meta_set] Delete meta-argument' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
     $hacluster->redefine(assert_script_run => sub { @calls = @_; return; });
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     crm_resource_meta_set(resource => 'Hogwarts', meta_argument => 'RoomOfRequirement');
     note("\n  -->  " . join("\n  -->  ", @calls));

@@ -269,7 +269,7 @@ sub get_nics {
     my ($ignore_ref) = @_;
     my @ignore = @$ignore_ref;
 
-    my $command = "ip -o link show | grep -v 'lo'";
+    my $command = "ip -o link show | grep -vE '(lo|docker|podman|veth)'";
 
     foreach my $iface (@ignore) {
         $command .= " | grep -v '$iface'";
@@ -284,6 +284,19 @@ sub get_nics {
     record_info(scalar(@nics) . " NICs Detected", join(', ', @nics));
 
     return @nics;
+}
+
+=head2 is_systemd_networkd_used
+
+ Check if systemd-networkd service is active.
+
+ This function checks if the systemd-networkd service is currently active on the system.
+ It returns true (0) if the service is active, otherwise false (1).
+
+=cut
+
+sub is_systemd_networkd_used {
+    return script_run("systemctl is-active systemd-networkd") == 0;
 }
 
 =head2 is_nm_used
@@ -389,7 +402,7 @@ sub set_resolv {
     my @nameservers = @{$args{nameservers}};
 
     # Set DNS in /etc/resolv.conf
-    assert_script_run("rm /etc/resolv.conf || true");
+    script_run("rm -f /etc/resolv.conf");
     assert_script_run("touch /etc/resolv.conf");
 
     foreach my $nameserver (@nameservers) {
@@ -530,11 +543,39 @@ sub setup_dhcp_server_network {
         assert_script_run "echo 'default $gateway dev $nic0' > $route_file";
 
         if (@dns) {
-            my $dns = join(",", @dns);
+            my $dns = join(" ", @dns);
             assert_script_run "sed s/.*NETCONFIG_DNS_STATIC_SERVERS=.*/NETCONFIG_DNS_STATIC_SERVERS='$dns'/g -i /etc/sysconfig/network/config";
         }
 
         systemctl 'restart wicked';
+    }
+
+    if (is_systemd_networkd_used()) {
+        my $netplan_dir = "/etc/netplan";
+        script_run("rm -f $netplan_dir/*");
+        my $yaml_path = "$netplan_dir/01-static.yaml";
+        my $quoted_dns = join(", ", map { "\"$_\"" } @dns);
+        my $dns_block = @dns
+          ? "      nameservers:\n        addresses: [$quoted_dns]\n"
+          : '';
+
+        my $yaml_content = <<"YAML";
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    $nic0:
+      dhcp4: false
+      addresses: [$server_ip$subnet]
+      routes:
+        - to: 0.0.0.0/0
+          via: $gateway
+$dns_block
+YAML
+        assert_script_run("echo -e '$yaml_content' > $yaml_path");
+        assert_script_run("chmod 600 $yaml_path");
+        record_info("$netplan_dir/01-static.yaml", script_output("cat $yaml_path"));
+        assert_script_run("netplan apply");
     }
 }
 

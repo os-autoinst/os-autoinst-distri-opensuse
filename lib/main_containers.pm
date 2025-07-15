@@ -21,6 +21,7 @@ use warnings;
 
 our @EXPORT = qw(
   is_container_test
+  is_suse_host
   load_container_tests
   load_container_engine_test
 );
@@ -36,6 +37,11 @@ sub is_container_image_test {
 sub is_expanded_support_host {
     # returns if booted image is RedHat Expanded Support
     return get_var("HDD_1") =~ /sles-es/;
+}
+
+sub is_suse_host {
+    my ($version, $sp, $host_distri) = get_os_release;
+    return $host_distri =~ /sle|opensuse/;
 }
 
 sub is_ubuntu_host {
@@ -144,6 +150,8 @@ sub load_host_tests_podman {
     loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le);
     loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
     loadtest 'containers/podman_quadlet' unless (is_staging || is_leap("<16") || is_sle("<16") || is_sle_micro("<6.1"));
+    load_secret_tests($run_args);
+    load_volume_tests($run_args);
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
@@ -152,8 +160,6 @@ sub load_host_tests_podman {
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
-    load_secret_tests($run_args);
-    load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
@@ -169,7 +175,7 @@ sub load_host_tests_docker {
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
-    unless (is_staging || is_transactional || is_sle(">=16.0") || is_sle("<15-sp4")) {
+    unless (is_staging || is_transactional || is_sle("<15-sp4")) {
         loadtest 'containers/registry';
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
@@ -184,7 +190,8 @@ sub load_host_tests_docker {
     # The docker-rootless-extras package is only available on SLES 15-SP4+
     # while the docker-stable-rootless-extras is available on SLES 16.0+
     if (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"))) {
-        loadtest 'containers/rootless_docker';
+        # Public Cloud repos have unmatching versions of the docker & extras packages
+        loadtest 'containers/rootless_docker' unless (is_public_cloud);
     }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
@@ -282,6 +289,12 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
+    if (my $bats_package = get_var('BATS_PACKAGE', '')) {
+        $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
+        loadtest "containers/bats/$bats_package";
+        return;
+    }
+
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
@@ -290,6 +303,8 @@ sub load_container_tests {
             # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
         }
+    } elsif (is_tumbleweed && get_var('FLAVOR', '') =~ /dvd|net/i) {
+        loadtest 'containers/host_configuration';
     }
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
@@ -320,12 +335,6 @@ sub load_container_tests {
 
     if (get_var('CONTAINER_SUMA')) {
         loadtest 'containers/suma_containers';
-        return;
-    }
-
-    if (my $bats_package = get_var('BATS_PACKAGE', '')) {
-        $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
-        loadtest "containers/bats/$bats_package";
         return;
     }
 

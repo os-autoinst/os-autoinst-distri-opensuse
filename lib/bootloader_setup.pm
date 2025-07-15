@@ -1150,9 +1150,8 @@ sub tianocore_disable_secureboot {
     while (!check_screen('tianocore-mainmenu')) {
         wait_still_screen();
         if (check_screen('tianocore-bootmenu')) {
-            send_key 'down';
-            assert_screen 'tianocore-bootmenu-EFI-fimware-selected';
-            send_key 'ret';
+            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+            send_key "ret";
         }
     }
 

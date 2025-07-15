@@ -1847,7 +1847,7 @@ sub ensure_system_ready_and_register {
                 $args{ssh_command},
                 'sudo', 'registercloudguest',
                 '--force-new',
-                '-r', '\'$reg_code\'',
+                '-r', '\'$args{reg_code}\'',
                 '-e ', 'testing@suse.com'),
             timeout => 600);
         assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
