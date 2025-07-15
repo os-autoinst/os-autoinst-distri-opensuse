@@ -49,6 +49,7 @@ sub load_config_tests {
 }
 
 sub load_boot_from_disk_tests {
+    loadtest 'microos/disk_boot' if (check_var('MACHINE', 'ppc64le-p10-virtio') && !check_var('FIRST_BOOT_CONFIG', 'wizard'));
     return if is_ppc64le && get_var('MACHINE') !~ /ppc64le-emu/i && !(is_sle_micro('=5.5') && check_var('FLAVOR', 'Container-Image-Updates'));
     # add additional image handling module for svirt workers
     if (is_s390x()) {
@@ -190,7 +191,8 @@ sub load_remote_controller_tests {
     loadtest 'installation/user_settings_root';
     loadtest 'installation/resolve_dependency_issues';
     loadtest 'installation/installation_overview';
-    loadtest 'installation/disable_grub_timeout';
+    loadtest 'installation/disable_grub_timeout' if is_bootloader_grub2;
+    loadtest 'installation/configure_bls' if is_bootloader_sdboot || is_bootloader_grub2_bls;
     loadtest 'installation/start_install';
     loadtest 'installation/await_install';
     loadtest 'installation/reboot_after_installation';
@@ -248,7 +250,7 @@ sub load_qemu_tests {
 }
 
 sub load_fips_tests {
-    loadtest 'transactional/enable_fips' if get_var('BOOT_HDD_IMAGE');
+    loadtest 'fips/fips_setup' if get_var('BOOT_HDD_IMAGE');
     loadtest 'fips/libica' if is_s390x && is_sle_micro('5.4+');
     loadtest 'fips/openssl/openssl_fips_alglist';
     loadtest 'fips/openssl/openssl_fips_cipher';

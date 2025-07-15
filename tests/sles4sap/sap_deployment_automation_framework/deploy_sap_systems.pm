@@ -97,9 +97,11 @@ sub run {
         sdaf_region_code => $sdaf_region_code,
         env_code => $env_code);
 
+    my $custom_sizing_file = get_sizing_filename();
+    record_info('Sizing file', "Sizing file used: $custom_sizing_file");
     my $retrieve_custom_sizing = join(' ', 'curl', '-v', '-fL',
-        data_url('sles4sap/sap_deployment_automation_framework/custom_sizes.json'),
-        '-o', $config_root_path . '/custom_sizes.json');
+        data_url("sles4sap/sap_deployment_automation_framework/$custom_sizing_file"),
+        '-o', $config_root_path . "/$custom_sizing_file");
 
     assert_script_run($retrieve_custom_sizing);
 

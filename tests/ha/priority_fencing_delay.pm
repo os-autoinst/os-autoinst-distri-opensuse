@@ -7,7 +7,7 @@
 # The node with the master resource must always win the fencing match
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use testapi;

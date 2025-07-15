@@ -76,23 +76,23 @@ Please add this warning on each bug report you open when adding instructions on 
 ## openQA schedules
 
 - [Tumbleweed](https://github.com/os-autoinst/opensuse-jobgroups/blob/master/job_groups/opensuse_tumbleweed.yaml)
-- [Latest SLE 16](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host_sle16.yaml)
+- [Tumbleweed aarch64](https://github.com/os-autoinst/opensuse-jobgroups/blob/master/job_groups/opensuse_tumbleweed_aarch64.yaml)
+- [SLES 16.0](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/latest_host_sle16.yaml)
 - [SLES 15-SP4+](https://gitlab.suse.de/qac/qac-openqa-yaml/-/blob/master/containers/updates.yaml)
-
-NOTES
-- As of now, all jobs are `x86_64` only.
 
 ## openQA jobs
 
-| Product               | aardvark         | buildah            | netavark         | podman             | runc             | skopeo |
+| Product               | aardvark         | buildah            | netavark         | podman             | runc               | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| openSUSE Tumbleweed   | [![tw_al]][tw_a] | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n] | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r] | [![tw_sl]][tw_s] |
-| openSUSE TW with crun |                  | [![tw_blc]][tw_bc] |                  | [![tw_plc]][tw_pc] |                  |                  |
-| Latest SLES 16        | [![logo]][s16_a] | [![logo]][s16_b]   | [![logo]][s16_n] | [![logo]][s16_p]   | [![logo]][s16_r] | [![logo]][s16_s] |
-| SLES 15 SP7           |                  | [![logo]][sp7_b]   | [![logo]][sp7_n] | [![logo]][sp7_p]   | [![logo]][sp7_r] | [![logo]][sp7_s] |
-| SLES 15 SP6           |                  | [![logo]][sp6_b]   | [![logo]][sp6_n] | [![logo]][sp6_p]   | [![logo]][sp6_r] | [![logo]][sp6_s] |
-| SLES 15 SP5           |                  | [![logo]][sp5_b]   | [![logo]][sp5_n] |                    | [![logo]][sp5_r] | [![logo]][sp5_s] |
-| SLES 15 SP4           |                  | [![logo]][sp4_b]   |                  |                    | [![logo]][sp4_r] | [![logo]][sp4_s] |
+| openSUSE Tumbleweed   | [![tw_al]][tw_a] | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n] | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r]   | [![tw_sl]][tw_s]   |
+| openSUSE TW with crun |                  | [![tw_blc]][tw_bc] |                  | [![tw_plc]][tw_pc] |                    |                    |
+| openSUSE TW (aarch64) |                  |                    |                  |                    | [![twa_rl]][twa_r] | [![twa_sl]][twa_s] |
+| SLES 16.0             | [![logo]][s16_a] | [![logo]][s16_b]   | [![logo]][s16_n] | [![logo]][s16_p]   | [![logo]][s16_r]   | [![logo]][s16_s]   |
+| SLES 16.0 (aarch64)   |                  |                    |                  |                    | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
+| SLES 15 SP7           |                  | [![logo]][sp7_b]   | [![logo]][sp7_n] | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
+| SLES 15 SP6           |                  | [![logo]][sp6_b]   | [![logo]][sp6_n] | [![logo]][sp6_p]   | [![logo]][sp6_r]   | [![logo]][sp6_s]   |
+| SLES 15 SP5           |                  | [![logo]][sp5_b]   | [![logo]][sp5_n] |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
+| SLES 15 SP4           |                  | [![logo]][sp4_b]   |                  |                    | [![logo]][sp4_r]   | [![logo]][sp4_s]   |
 
 [logo]: logo.svg
 
@@ -112,6 +112,10 @@ NOTES
 [tw_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
 [tw_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 [tw_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
+[twa_rl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_runc_testsuite
+[twa_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_runc_testsuite
+[twa_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
+[twa_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
 
 [s16_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=aardvark_testsuite
 [s16_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite

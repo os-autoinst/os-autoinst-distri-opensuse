@@ -61,6 +61,7 @@ sub run_tox_cmd {
     my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $bci_reruns_delay = get_var('BCI_RERUNS_DELAY', 10);
     my $tox_out = "tox_$env.txt";
+    assert_script_run("export USE_MACVLAN_DUMMY=1");
     my $cmd = "tox -e $env -- -rxX -n auto";
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";

@@ -60,7 +60,7 @@ sub registry_push_pull {
     assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # podman artifact needs podman 5.4.0
-    if ($engine->runtime eq "podman" && is_tumbleweed) {
+    if ($engine->runtime eq "podman" && (is_tumbleweed || is_sle('>=16.0'))) {
         my $artifact = "localhost:5000/testing-artifact";
         assert_script_run "podman artifact add $artifact /etc/passwd";
         assert_script_run "podman artifact push $artifact";
@@ -76,7 +76,7 @@ sub run {
 
     # Install and check that it's running
     my $pkg = 'distribution-registry';
-    activate_containers_module if is_sle(">=15-SP4");
+    activate_containers_module if (is_sle(">=15-SP4") && (is_sle('<16')));
 
     zypper_call "se -v $pkg";
     zypper_call "in $pkg";

@@ -83,6 +83,12 @@ sub run {
     # Raises instance specific barrier to prevent dependencies from running
     raise_barriers(instance_type => $instance_type, instances => \@instances);
 
+    # We created new unlabeled files so we must relabel them for SELinux
+    if (has_selinux) {
+        assert_script_run('test -d /.snapshots && restorecon -R / -e /.snapshots', timeout => 600);
+        assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
+    }
+
     my $swpm_command = join(' ', $swpm_binary,
         "SAPINST_INPUT_PARAMETERS_URL=$sap_install_profile",
         "SAPINST_USE_HOSTNAME=$hostname",
@@ -96,8 +102,8 @@ sub run {
 
     # Labelling the newly installed files only for systems with SELinux.
     if (has_selinux) {
-        assert_script_run('test -d /.snapshots && restorecon -R / -e /.snapshots');
-        assert_script_run('test -d /.snapshots || restorecon -R /');
+        assert_script_run('test -d /.snapshots && restorecon -R / -e /.snapshots', timeout => 600);
+        assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
     }
 
     sapcontrol_process_check(sidadm => $nw_install_data->{sidadm},
@@ -113,3 +119,4 @@ sub run {
 }
 
 1;
+

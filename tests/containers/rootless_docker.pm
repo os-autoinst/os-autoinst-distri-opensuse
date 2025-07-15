@@ -25,6 +25,7 @@ use containers::docker;
 use containers::container_images;
 use Utils::Architectures;
 use containers::common qw(install_docker_when_needed);
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -37,6 +38,9 @@ sub run {
 
     my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
     install_packages("$pkg_name-rootless-extras");
+
+    # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1240150
+    assert_script_run "echo 0 > /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
@@ -83,6 +87,7 @@ sub post_run_hook {
     my $self = shift;
     cleanup();
     select_serial_terminal();
+    script_run "rm -f /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
     $self->SUPER::post_run_hook;
 }
 
@@ -90,6 +95,7 @@ sub post_fail_hook {
     my $self = shift;
     cleanup();
     select_serial_terminal();
+    script_run "rm -f /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
     save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
     $self->SUPER::post_fail_hook;
 }

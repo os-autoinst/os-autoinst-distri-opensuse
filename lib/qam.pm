@@ -28,7 +28,7 @@ use constant ZYPPER_STATUS_COL => 5;
 sub capture_state {
     my ($state, $y2logs) = @_;
     if ($y2logs) {    #save y2logs if needed
-        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz");
+        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz") unless is_sle('>=16');
     }
     #upload ip status
     script_run("ip a | tee /tmp/ip_a_$state.log");
@@ -123,7 +123,9 @@ sub add_test_repositories {
 
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
+    # For sle16 staging tests, PR should be untrusted key
+    my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
+    zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
 
     # return the count of repos-1 because counter is increased also on last cycle
     return --$counter;

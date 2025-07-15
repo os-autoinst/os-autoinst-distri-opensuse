@@ -240,10 +240,10 @@ sub cleanup_system_host {
     if ($self->runtime eq 'podman') {
         # retry because on older hosts there can be remnants that take some time before they are cleaned
         $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60);
-        $self->_engine_script_run("system prune -f --external", 300);
+        $self->_engine_script_run("system prune -f --external", timeout => 300);
     }
-    $self->_engine_script_run("volume prune -f", 300);
-    $self->_engine_script_run("system prune -a -f", 300);
+    $self->_engine_script_run("volume prune -f", timeout => 300);
+    $self->_engine_script_run("system prune -a -f", timeout => 300);
 }
 
 1;

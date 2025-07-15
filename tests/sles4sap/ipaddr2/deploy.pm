@@ -49,9 +49,9 @@ sub run {
         # This section is only needed by Azure tests using images uploaded
         # with publiccloud_upload_img. This is because qe-sap-deployment
         # is still not able to use images from Azure Gallery
-        $os = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+        $os = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        $os = get_required_var('CLUSTER_OS_VER');
+        $os = $provider->get_image_id();
     }
 
     my %cloudinit_args;

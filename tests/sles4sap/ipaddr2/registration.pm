@@ -29,8 +29,9 @@ sub run {
 
     my $bastion_pubip = ipaddr2_bastion_pubip();
 
-    # Addons registration not needed at the moment
-    #ipaddr2_scc_addons(bastion_pubip => $bastion_pubip);
+    # Addons registration
+    ipaddr2_scc_addons(bastion_pubip => $bastion_pubip);
+
     foreach my $id (1 .. 2) {
         # refresh repo
         ipaddr2_refresh_repo(id => $id, bastion_pubip => $bastion_pubip);

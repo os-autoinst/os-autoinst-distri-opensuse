@@ -13,11 +13,13 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use usb;
 
 sub run {
     my ($self) = @_;
 
     select_serial_terminal;
+    check_usb_devices;
 
     my $lun = script_output 'lsscsi -t -v | awk -F" " \'/usb/ {split($2,a,/[\/]/); print a[6]}\'';
     die "no usb storage device connected" if $lun eq "";

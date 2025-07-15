@@ -14,52 +14,19 @@ use warnings;
 use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network is_running_in_isolated_network get_default_dns);
+use main_containers qw(is_suse_host);
 use utils;
-use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_transactional);
+use version_utils qw(check_os_release get_os_release is_sle is_sle_micro is_bootloader_grub2);
 use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
-use transactional qw(trup_call process_reboot);
-
-sub setup_networking_in_isolated_network {
-    my ($self, $nics_ref) = @_;
-    my @nics = @$nics_ref;
-    my $nic0 = $nics[0];
-
-    my $server_ip = "10.0.2.101";
-    my $subnet = "/24";
-    my $gateway = "10.0.2.2";
-    my $dns_string = get_var("DNS", get_default_dns());
-    my @dns = ($dns_string ne "") ? split(",", $dns_string) : ();
-
-    setup_dhcp_server_network(
-        server_ip => $server_ip,
-        subnet => $subnet,
-        gateway => $gateway,
-        nics => \@nics,
-        dns => \@dns
-    );
-
-    set_resolv(nameservers => \@dns);
-
-    install_packages("ethtool");
-
-    # NICVLAN does not autonegotiate link speed and duplex, so we need to set it manually
-    set_nics_link_speed_duplex({
-            nics => \@nics,
-            speed => 1000,
-            duplex => 'full',
-            autoneg => 'off'
-    });
-
-    check_connectivity_to_host_with_retry($nic0, "conncheck.opensuse.org");
-}
+use bootloader_setup qw(add_grub_cmdline_settings);
+use power_action_utils qw(power_action);
+use zypper qw(wait_quit_zypper);
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
-    setup_networking_in_isolated_network($self, [get_nics([])]) if is_running_in_isolated_network();
 
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
@@ -76,8 +43,18 @@ sub run {
             zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
             zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
         }
+
+        # some images do not have quiet option in kernel parameters
+        if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
+            add_grub_cmdline_settings('quiet', update_grub => 1);
+            power_action("reboot", textmode => 1);
+            $self->wait_boot(textmode => 1);
+            select_serial_terminal;
+        }
     }
     else {
+        # post_{fail|run}_hooks are not working with 3rd party hosts
+        set_var('NOLOGS', 1);
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v");
@@ -92,6 +69,11 @@ sub run {
     }
 
     # Install engines in case they are not installed
+    # Make sure packagekit is not running, or it will conflict with SUSEConnect.
+    quit_packagekit;
+    # poo#87850 wait the zypper processes in background to finish and release the lock.
+    wait_quit_zypper;
+
     install_docker_when_needed() if ($engine =~ 'docker');
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
 

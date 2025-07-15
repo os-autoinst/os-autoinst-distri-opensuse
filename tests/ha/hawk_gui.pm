@@ -7,7 +7,7 @@
 # Summary: check HAWK GUI with the a python+selenium script and firefox
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'opensusebasetest';
+use base 'haclusterbasetest';
 use strict;
 use warnings;
 use testapi;

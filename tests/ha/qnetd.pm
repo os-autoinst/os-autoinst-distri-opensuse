@@ -179,7 +179,7 @@ sub run {
 # But collect SELinux AVCs on node 1 and server
 sub post_run_hook {
     my ($self) = @_;
-    record_avc_selinux_alerts() if (is_sle('16+') && !is_node(2));
+    $self->record_avc_selinux_alerts() if (is_sle('16+') && !is_node(2));
 }
 
 1;

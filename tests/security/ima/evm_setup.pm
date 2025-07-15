@@ -14,8 +14,9 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
+use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
+use security::secureboot qw(handle_secureboot);
 
 sub run {
     my ($self) = @_;
@@ -43,9 +44,7 @@ sub run {
 
     record_info("bsc#1189988: ", "We need disable secureboot with ima fix mode");
     power_action("reboot", textmode => 1);
-    $self->wait_grub(bootloader_time => 200);
-    $self->tianocore_disable_secureboot;
-    $self->wait_boot(textmode => 1);
+    handle_secureboot($self);
     select_serial_terminal;
 
     validate_script_output "cat /sys/kernel/security/evm", sub { m/^1$/ };
