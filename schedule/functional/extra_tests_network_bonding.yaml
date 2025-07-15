@@ -9,7 +9,6 @@ conditional_schedule:
         - microos/disk_boot
         - update/zypper_clear_repos
         - console/zypper_ar
-        - console/zypper_ref
       'sle-micro':
         - microos/disk_boot
       'opensuse':
