@@ -1,16 +1,75 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Create a VM with a single NIC and 3 ip-config
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Deploy the SUT for the ipaddr2 test
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-# Variables:
-#  IPADDR2_CLOUDINIT: 0:disabled|1:enabled. Default to enabled. Control if cloud-init is used to setup the SUT.
-#                     cloud-init in this test can handle:
-#                       1. register the image
-#                       2. ensure nginx and socat are installed
-#                       3. create a simple web page presented by default by nginx and allowing to recognize
-#                          which of the two internal VM are providing it.
+=head1 NAME
+
+ipaddr2/deploy.pm - Perform the infrastructure deployment for the ipaddr2 test
+
+=head1 DESCRIPTION
+
+This module deploys the infrastructure for the ipaddr2 test.
+It creates the necessary resources in Azure, which includes:
+
+- One bastion VM, serving as an entry point to the infrastructure.
+- Two VMs that will be later joined in a crm cluster, forming the SUT (System Under Test).
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<IPADDR2_CLOUDINIT>
+
+Enables or disables the use of cloud-init for SUT setup. Defaults to enabled (1).
+When enabled, cloud-init handles tasks such as image registration,
+installation of nginx and socat, and creation of a basic web page for SUT identification.
+
+=item B<IPADDR2_NGINX_EXTREPO>
+
+External repository for nginx installation. Needed when testing OS images
+not including nginx by default.
+If set, it will be used to install nginx during the cloud-init phase.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+Enable some diagnostic features as the additional deployment of some Azure resources needed
+to collect boot logs.
+
+=item B<IPADDR2_TRUSTEDLAUNCH>
+
+Enable trusted launch for the VMs.
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider for deployment. Currently, only AZURE is supported.
+
+=item B<PUBLIC_CLOUD_IMAGE_LOCATION> and B<PUBLIC_CLOUD_IMAGE_ID>
+
+Id of the OS images to use for the VMs deployment.
+If B<PUBLIC_CLOUD_IMAGE_LOCATION> is set, it is used to specify the location 
+of a custom image in Azure Blob Storage uploaded via B<publiccloud_upload_img>.
+If not set, a catalog image specified via B<PUBLIC_CLOUD_IMAGE_ID>
+is used.
+
+=item B<SCC_REGCODE_SLES4SAP> 
+
+SUSE Customer Center registration code for SLES for SAP.
+Required if the OS image is BYOS.
+
+=item B<SCC_ADDONS>
+
+SUSE Customer Center addons to register during the deployment.
+Currently, this is not implemented via cloud-init script.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use strict;
 use warnings;
@@ -55,10 +114,15 @@ sub run {
     }
 
     my %cloudinit_args;
+    # This line of code is not really specific to cloud-init,
+    # but it is used to ensure that registration code is available
+    # when using BYOS image. No matter if the registration is performed
+    # via cloud-init or not.
     $cloudinit_args{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os =~ /byos/i);
 
     die "SCC_ADDONS registration is not implemented via cloudinit script yet"
       if (get_var('SCC_ADDONS') && !check_var('IPADDR2_CLOUDINIT', 0));
+
     $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
     my %deployment = (
         os => $os,
