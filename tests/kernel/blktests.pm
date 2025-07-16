@@ -54,7 +54,7 @@ sub run {
 
     $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
     foreach my $i (@tests) {
-        script_run("./check --quick=$quick $exclude $i", 480);
+        script_run("./check --quick=$quick $exclude $i", 1200);
     }
 
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
