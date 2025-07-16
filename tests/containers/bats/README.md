@@ -161,16 +161,6 @@ Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 | --- | --- |
 | half of them | openQA network setup |
 
-### buildah
-
-| tests | reason |
-| --- | --- |
-| [sbom] | https://github.com/containers/buildah/issues/5617 |
-
-[from]: https://github.com/containers/buildah/blob/main/tests/from.bats
-[run]: https://github.com/containers/buildah/blob/main/tests/run.bats
-[sbom]: https://github.com/containers/buildah/blob/main/tests/sbom.bats
-
 ### podman
 
 | test | reason |
