@@ -1234,6 +1234,8 @@ sub load_consoletests {
         }
         loadtest "console/zypper_ref";
     }
+    loadtest "console/zypper_in";
+    loadtest "console/zypper_log";
     if (is_jeos) {
         loadtest "jeos/glibc_locale";
         loadtest "jeos/kiwi_templates" unless (is_leap('<15.2') || is_staging);
@@ -1264,8 +1266,6 @@ sub load_consoletests {
     loadtest "console/glibc_tunables";
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
-    loadtest "console/zypper_in";
-    loadtest "console/zypper_log";
     if (!get_var("LIVETEST")) {
         loadtest "console/yast2_i" unless (is_sle("16+") || is_leap("16.0+"));
         loadtest "console/yast2_bootloader" unless ((is_sle("16+") || is_leap("16.0+")) || is_bootloader_sdboot || is_bootloader_grub2_bls);
