@@ -1210,6 +1210,7 @@ sub load_consoletests {
             loadtest "console/installation_snapshots" unless get_var('FLAVOR') =~ /OpenStack-Cloud/;
         }
     }
+    loadtest "console/opensuse_repos";
     loadtest "console/zypper_lr";
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
