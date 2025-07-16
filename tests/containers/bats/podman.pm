@@ -83,6 +83,11 @@ sub run {
     # Patch tests
     run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
+    # This test fails on systems with GNU tar 1.35 due to
+    # https://bugzilla.suse.com/show_bug.cgi?id=1246607
+    run_command "rm -f test/system/125-import.bats" if (is_aarch64 && (is_tumbleweed || is_sle('>=16.0')));
+    # This test is flaky on aarch64
+    run_command "rm -f test/system/180-blkio.bats" if is_aarch64;
     # This test is flaky and will fail if system is "full"
     run_command "rm -f test/system/320-system-df.bats";
     # This tests needs criu, available only on Tumbleweed
