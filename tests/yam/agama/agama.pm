@@ -24,7 +24,7 @@ use testapi qw(
   console
 );
 use Utils::Architectures qw(is_s390x is_ppc64le);
-use Utils::Backends qw(is_svirt);
+use Utils::Backends qw(is_pvm is_svirt);
 use power_action_utils 'power_action';
 
 sub is_headless_installation {
@@ -62,7 +62,7 @@ sub run {
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    (is_s390x() || is_ppc64le() || is_headless_installation()) ?
+    (is_s390x() || is_pvm() || is_headless_installation()) ?
       # reboot via console
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot
