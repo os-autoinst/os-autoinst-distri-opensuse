@@ -4,7 +4,6 @@ use Test::More;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
-use Test::Mock::Time;
 use testapi;
 use sles4sap::database_hana;
 
@@ -40,6 +39,28 @@ subtest '[hdb_stop] Sapcontrol arguments' => sub {
     ok((grep /instance_id/, @sapcontrol_args), 'Mandatory arg "instance_id"');
     ok((grep /expected_state/, @sapcontrol_args), 'Define expected state');
     ok((grep /wait_for_state/, @sapcontrol_args), 'Wait until processes are in correct state');
+};
+
+subtest '[hdb_info] Command composition' => sub {
+    my $db_hana = Test::MockModule->new('sles4sap::database_hana', no_auto => 1);
+    my @cmd_args;
+    $db_hana->redefine(script_output => sub { @cmd_args = grep defined, @_; return 'Dumbledore'; });
+
+    hdb_info();
+    note("\n  -->  " . join("\n  -->  ", @cmd_args));
+    ok((grep /HDB info/, @cmd_args), 'Base "HDB info" command');
+    ok((!grep /sudo su/, @cmd_args), 'Execute without "sudo su"');
+};
+
+subtest '[hdb_info] Command composition with user switching' => sub {
+    my $db_hana = Test::MockModule->new('sles4sap::database_hana', no_auto => 1);
+    my @cmd_args;
+    $db_hana->redefine(script_output => sub { @cmd_args = grep defined, @_; return 'Dumbledore'; });
+
+    hdb_info(switch_user => 'Dumbledore');
+    note("\n  -->  " . join("\n  -->  ", @cmd_args));
+    ok((grep /sudo su - /, @cmd_args), 'Execute with "sudo su - "');
+    ok((grep /Dumbledore/, @cmd_args), 'Switch to correct user');
 };
 
 subtest '[register_replica] Command compilation' => sub {

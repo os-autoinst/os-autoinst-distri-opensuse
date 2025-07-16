@@ -498,34 +498,6 @@ subtest '[playbook_settings] Verify playbook order' => sub {
     is $playbook_list[10], 'playbook_05_03_sap_app_install.yaml', 'Playbook #11 must be: playbook_05_03_sap_app_install.yaml';
 };
 
-subtest '[ansible_show_status] HanaSR status commands' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @commands;
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
-    $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
-    $ms_sdaf->redefine(record_soft_failure => sub { return; });
-    $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
-    ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha']);
-
-    ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');
-    ok(grep(/crm status full/, @commands), 'Show full cluster status');
-    ok(grep(/sudo SAPHanaSR-showAttr/, @commands), 'Show HanaSR status');
-};
-
-subtest '[ansible_show_status] ENSA2 status commands' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @commands;
-    $ms_sdaf->redefine(record_soft_failure => sub { return; });
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
-    $ms_sdaf->redefine(ansible_execute_command => sub { push @commands, @_; return $_[1] });
-    $ms_sdaf->redefine(get_sdaf_instance_id => sub { return '00'; });
-    ansible_show_status(sdaf_config_root_dir => '/config/dir', sap_sid => 'abc', scenarios => ['db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa']);
-
-    ok(grep(/cat \/etc\/os-release/, @commands), 'Execute os-release command');
-    ok(grep(/crm status full/, @commands), 'Show full cluster status');
-    ok(grep(/ps -ef | grep sap/, @commands), 'Netweaver processes');
-};
-
 subtest '[register_byos] Test exceptions' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(ansible_execute_command => sub { return; });

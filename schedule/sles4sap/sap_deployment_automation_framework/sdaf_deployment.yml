@@ -2,6 +2,8 @@
 name: sap_deployment_automation_framework
 description: |
   Deploy SAP Hana SR scenario using 'SAP deployment automation framework'
+vars:
+  TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop
   - sles4sap/sap_deployment_automation_framework/create_deployer_vm
@@ -10,3 +12,7 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/deploy_workload_zone
   - sles4sap/sap_deployment_automation_framework/deploy_sap_systems
   - sles4sap/sap_deployment_automation_framework/execute_playbooks
+  - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
+  - sles4sap/redirection_tests/check_hana_database
+  - sles4sap/redirection_tests/check_ensa2_cluster
+  - sles4sap/redirection_tests/check_netweaver

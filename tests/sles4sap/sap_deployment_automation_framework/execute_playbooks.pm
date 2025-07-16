@@ -110,10 +110,6 @@ sub run {
         }
 
     }
-
-    # Display deployment information
-    ansible_show_status(sdaf_config_root_dir => $sdaf_config_root_dir, scenarios => \@setup);
-
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');
 }
