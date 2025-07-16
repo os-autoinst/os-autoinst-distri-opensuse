@@ -16,7 +16,7 @@ use containers::common qw(install_packages);
 use utils;
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_hyperv);
-use version_utils qw(is_sle is_vmware);
+use version_utils qw(is_vmware);
 
 my $runtime;
 my $network = "test_isolated_network";
@@ -52,9 +52,6 @@ sub run {
         push @packages, "$base-rootless-extras";
     }
     install_packages(@packages);
-
-    # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1240150
-    script_run "echo 0 > /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
 
     my @ip_versions = (4);
     push @ip_versions, 6 unless (is_hyperv || is_s390x || is_vmware);
@@ -106,7 +103,6 @@ sub cleanup() {
     select_serial_terminal;
     script_run "$runtime network rm $network";
     $runtime->cleanup_system_host();
-    script_run "rm -f /etc/docker/suse-secrets-enable" if is_sle('<15-SP6');
 }
 
 sub post_fail_hook {
