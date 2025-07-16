@@ -11,3 +11,4 @@ schedule:
   - console/validate_blockdevices
   - console/validate_free_space
   - console/validate_read_write
+  - yam/validate/validate_connectivity
