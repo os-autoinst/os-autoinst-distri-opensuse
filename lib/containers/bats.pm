@@ -88,12 +88,14 @@ sub install_ncat {
         my $version = get_var("NCAT_VERSION", "7.95-3");
         run_command "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm";
     } else {
-        # TW has 7.95 and SLES 16.0 has 7.92. This version is not likely to change
-        # TODO: Find a repo with the right version that works for SLES 15-SPx
+        # TW has ncat 7.95 and SLES 16.0 has 7.92. These versions are unlikely to change
         if (is_tumbleweed) {
             run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        } elsif (is_sle('<16')) {
+            # This repo has ncat 7.92.  Also unlikely to change
+            run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/SLE_15/network:utilities.repo";
         }
-        run_command "zypper -n install ncat";
+        run_command "zypper --gpg-auto-import-keys -n install ncat";
     }
     # Some tests use nc instead of ncat but expect ncat behaviour instead of netcat-openbsd
     run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
