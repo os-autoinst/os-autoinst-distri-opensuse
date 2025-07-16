@@ -56,6 +56,10 @@ sub prepare_kselftests_from_ibs
 {
     my ($root) = @_;
 
+    zypper_call("in curl");
+    assert_script_run("curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt");
+    assert_script_run("update-ca-certificates");
+
     my $repo = get_var('KSELFTESTS_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
