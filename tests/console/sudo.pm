@@ -10,8 +10,8 @@
 #          - starting a shell
 #          - environment variables
 #          - sudoers configuration
-#          https://www.suse.com/documentation/sles-12/singlehtml/book_sle_admin/book_sle_admin.html#cha.adm.sudo
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+#          https://documentation.suse.com/en-us/sles/15-SP7/html/SLES-all/cha-adm-sudo.html
+# Maintainer: QE Core <qe-core@suse.de>
 
 
 use base "consoletest";
@@ -44,16 +44,16 @@ sub sudo_with_pw {
 sub test_sudoers {
     my ($sudo_password) = @_;
     assert_script_run 'sudo journalctl -n10 --no-pager';
-    sudo_with_pw 'sudo zypper -n in -f yast2', password => $sudo_password, timeout => 300;
+    sudo_with_pw 'sudo visudo --check --strict', password => $sudo_password, timeout => 300;
 }
 
 sub prepare_sudoers {
     my $root_no_pass = shift // 0;
     $parm_user = ' (root)' if $root_no_pass;
-    assert_script_run "echo 'bernhard ALL =$parm_user NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su, /usr/bin/id, /bin/bash' >/etc/sudoers.d/test";
+    assert_script_run "echo 'bernhard ALL =$parm_user NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/sbin/visudo, /usr/bin/su, /usr/bin/id, /bin/bash' >/etc/sudoers.d/test";
     # use script_run because yes is still writing to the pipe and then command is exiting with 141
     script_run "groupadd sudo_group && useradd -m -d /home/sudo_test -G sudo_group,\$(stat -c %G /dev/$serialdev) sudo_test && yes $test_password|passwd -q sudo_test";
-    assert_script_run "echo '%sudo_group ALL =$parm_user NOPASSWD: /usr/bin/journalctl, PASSWD: /usr/bin/zypper' >/etc/sudoers.d/sudo_group";
+    assert_script_run "echo '%sudo_group ALL =$parm_user NOPASSWD: /usr/bin/journalctl, PASSWD: /usr/sbin/visudo' >/etc/sudoers.d/sudo_group";
 }
 
 sub full_test {
