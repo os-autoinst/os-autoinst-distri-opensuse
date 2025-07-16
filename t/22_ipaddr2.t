@@ -1001,4 +1001,60 @@ subtest '[ipaddr2_network_peering_create]' => sub {
     ok $create_peering, "qesap_az_vnet_peering called";
 };
 
+subtest '[ipaddr2_scc_addons] no args' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    dies_ok { ipaddr2_scc_addons() } "die if no scc_addons argument is provided";
+    dies_ok { ipaddr2_scc_addons(scc_addons => '') } "die if empty scc_addons argument is provided";
+};
+
+subtest '[ipaddr2_patch_system]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            # simulate zypper is not running anymore
+            return 1 if $_[0] =~ /pgrep.*zypper/;
+            return 0; });
+    my @fully_patch;
+    $ipaddr2->redefine(ssh_fully_patch_system => sub {
+            push @fully_patch, $_[0]; return;
+    });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ipaddr2_patch_system();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  FULLY PATCH CALL -->  " . join("\n  FULLY PATCH CALL -->  ", @fully_patch));
+    ok @fully_patch, "Fully patch not called";
+};
+
+subtest '[ipaddr2_scc_addons] one addon' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my (@remotes, @addons);
+    $ipaddr2->redefine(register_addon => sub {
+            my ($remote, $addon) = @_;
+            push @remotes, $remote;
+            push @addons, $addon;
+    });
+    my ($exp, $act);
+    # Here there are 2 test coded:
+    #  - one for SCC_ADDONS with value for a single addon
+    #  - one for SCC_ADDONS with string containing two addons
+    foreach ('123', '456,789') {
+        ipaddr2_scc_addons(scc_addons => $_);
+        note("\n  REMOTE[$_] -->  " . join("\n  REMOTE[$_] -->  ", @remotes));
+        note("\n  ADDON[$_] -->  " . join("\n  ADDON[$_] -->  ", @addons));
+        $act = scalar @remotes;
+        $exp = (1 + ($_ =~ tr/,//)) * 2;
+        ok $act eq $exp, "Expected remotes to have $exp elements but it has $act .";
+        @remotes = ();
+        @addons = ();
+    }
+    ok 1;
+};
+
 done_testing;

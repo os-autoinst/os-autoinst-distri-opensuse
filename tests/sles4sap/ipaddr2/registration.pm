@@ -30,7 +30,10 @@ sub run {
     my $bastion_pubip = ipaddr2_bastion_pubip();
 
     # Addons registration
-    ipaddr2_scc_addons(bastion_pubip => $bastion_pubip);
+    ipaddr2_scc_addons(
+        bastion_ip => $bastion_pubip,
+        scc_addons => get_required_var('SCC_ADDONS')
+    ) if (get_var('SCC_ADDONS'));
 
     foreach my $id (1 .. 2) {
         # refresh repo

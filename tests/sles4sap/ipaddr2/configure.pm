@@ -22,6 +22,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_cloudinit_logs
   ipaddr2_scc_check
   ipaddr2_scc_register
+  ipaddr2_scc_addons
   ipaddr2_refresh_repo
   ipaddr2_azure_resource_group
 );
@@ -50,27 +51,32 @@ sub run {
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually there and no need to per performed here.
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
+        # Registration was not part of cloud-init but still needed
+        record_info("TEST STAGE", "Registration");
+
         # Check if reg code is provided or not, PAYG does not need it
         if (get_var('SCC_REGCODE_SLES4SAP')) {
-            # Registration was not part of cloud-init but still needed
-            record_info("TEST STAGE", "Registration");
             foreach (1 .. 2) {
                 # Check if somehow the image is already registered or not
                 my $is_registered = ipaddr2_scc_check(
                     bastion_ip => $bastion_ip,
                     id => $_);
                 record_info('is_registered', "$is_registered");
-                # Only perform registration if it is no
-                # So test can be programmatically configured not to perform
-                # any registration, by not providing SCC_REGCODE_SLES4SAP variable.
-                # But even if it is, registration is only performed if image
-                # at this test moment is not registered.
+                # Conditionally register the SLES for SAP instance.
+                # Registration is attempted only if the instance is not currently registered and a
+                # registration code ('SCC_REGCODE_SLES4SAP') is available.
                 ipaddr2_scc_register(
                     bastion_ip => $bastion_ip,
                     id => $_,
                     scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
             }
         }
+        # Optionally register addons
+        ipaddr2_scc_addons(
+            bastion_ip => $bastion_ip,
+            scc_addons => get_required_var('SCC_ADDONS')
+        ) if (get_var('SCC_ADDONS'));
+
         record_info("TEST STAGE", "Install the web server");
         my %web_install_args;
         $web_install_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');

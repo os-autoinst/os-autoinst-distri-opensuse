@@ -56,6 +56,9 @@ sub run {
 
     my %cloudinit_args;
     $cloudinit_args{scc_code} = get_required_var('SCC_REGCODE_SLES4SAP') if ($os =~ /byos/i);
+
+    die "SCC_ADDONS registration is not implemented via cloudinit script yet"
+      if (get_var('SCC_ADDONS') && !check_var('IPADDR2_CLOUDINIT', 0));
     $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
     my %deployment = (
         os => $os,
