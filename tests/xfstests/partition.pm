@@ -436,10 +436,6 @@ sub setup_nfs_client {
 
 sub run {
     my ($self) = @_;
-    if (is_sle_micro && is_ppc64le) {
-        record_info('INFO', 'Booting microos on ppc64le');
-        $self->wait_boot(ready_time => 1800);
-    }
     select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
