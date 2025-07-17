@@ -1503,16 +1503,23 @@ sub activate_guest_network_bridge_device {
     }
     else {
         if (is_networkmanager) {
-            script_retry("nmcli connection up $args{_bridge_device}", timeout => 60, delay => 15, retry => 3, die => 0);
-            script_retry("nmcli connection up $args{_host_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+            enter_cmd("nmcli connection up $args{_bridge_device}");
         }
         else {
             script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
         }
+        wait_still_screen(60);
+        save_screenshot;
         type_string("reset\n");
-        select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
-        $_detect_active_route = script_output("ip route show default | grep -i $args{_bridge_device}", proceed_on_failure => 1);
-        $_detect_inactive_route = script_output("ip route show default | grep -i $args{_host_device}", proceed_on_failure => 1);
+        if (!(check_screen('text-logged-in-root'))) {
+            reset_consoles;
+            select_console('root-ssh');
+        }
+        enter_cmd("nmcli connection up $args{_host_device}");
+        wait_still_screen(15);
+        save_screenshot;
+        $_detect_active_route = script_output("ip route show default | grep -i $args{_bridge_device}", proceed_on_failure => 1, timeout => 180);
+        $_detect_inactive_route = script_output("ip route show default | grep -i $args{_host_device}", proceed_on_failure => 1, timeout => 180);
     }
 
     if (($_detect_active_route ne '') and ($_detect_inactive_route eq '')) {

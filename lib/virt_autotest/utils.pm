@@ -687,8 +687,10 @@ sub ensure_default_net_is_active {
 
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
+    my $guestname = (split /\./, $hostname)[0];
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
     assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    assert_script_run "echo '$address $guestname # virtualization' >> /etc/hosts";
 }
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given

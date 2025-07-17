@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtual_network_utils:
@@ -26,11 +26,62 @@ use version_utils qw(is_sle is_alp);
 use virt_autotest::utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone
-  restore_guests restore_network destroy_vir_network restore_libvirt_default pload_debug_log
-  check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
-  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status);
+  = qw(
+  hosts_backup
+  hosts_restore
+  get_free_mem
+  check_guest_ip
+  save_guest_ip
+  prepare_network
+  restore_guests
+  restore_network
+  pload_debug_log
+  restore_standalone
+  destroy_standalone
+  destroy_vir_network
+  check_guest_status
+  check_guest_module
+  get_guest_bridge_src
+  download_network_cfg
+  validate_guest_status
+  test_network_interface
+  clean_all_virt_networks
+  restore_libvirt_default
+  get_virtual_network_data
+  setup_vm_simple_dns_with_ip
+  update_simple_dns_for_all_vm
+  get_guest_ip_from_vnet_with_mac
+  get_active_pool_and_available_space
+  );
+
+sub get_virtual_network_data {
+    my ($guest, %args) = @_;
+
+    my $net = $args{net};
+    my $exclusive = $args{exclusive} // "--current";
+    my $model = (is_xen_host) ? 'netfront' : 'virtio';
+    my $gate = $args{gate} // script_output "ip route get 1.1.1.1 | awk '{print \$3; exit}'";
+    #Just only 15-SP5 PV guest system have a rebooting problem due to bsc#1206250
+    my $skip_type = ($guest =~ m/sles-15-sp5-64-pv-def-net/i) ? 'skip_ping' : 'skip_network';
+
+    return {
+        net => $net,
+        gate => $gate,
+        model => $model,
+        affecter => "",
+        exclusive => $exclusive,
+        skip_type => $skip_type
+    };
+}
+
+sub get_guest_bridge_src {
+    my ($guest) = @_;
+
+    # get the bridge source from guest
+    my $cmd = qq(virsh domiflist "$guest" | grep -Po '(?<=\\s)(br\\d+)');
+    my $guest_bridge_src = script_output($cmd);
+    return $guest_bridge_src;
+}
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -128,9 +179,14 @@ sub test_network_interface {
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
+    my $nic = "";
     $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
-    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    if ($guest =~ /sles-16/i) {
+        $nic = script_output(qq(ssh root\@$guest ip -o link | grep -i $mac | awk '{gsub(/:/, "", \$2); print \$2}'));
+    } else {
+        $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    }
     die "$mac not found in guest $guest" unless $nic;
     if (get_var('TEST', '') =~ m/qam-(kvm|xen)-install-and-features-test/ || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
@@ -373,16 +429,11 @@ sub setup_vm_simple_dns_with_ip {
     my ($_vm, $_ip) = @_;
 
     my $_dns_file = '/etc/hosts';
-
-    # Workaround for directly editing file issue: resource busy
-    if (is_alp) {
-        $_dns_file = '/etc/hosts.wip';
-        assert_script_run "cp /etc/hosts $_dns_file";
-    }
+    my $guest_domain_name = $_vm . ".qe.prg2.suse.org";
 
     script_run "sed -i '/$_vm/d' $_dns_file";
     assert_script_run "echo '$_ip $_vm' >> $_dns_file";
-    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
+    assert_script_run "echo '$_ip $guest_domain_name' >> $_dns_file";
     save_screenshot;
     record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
 }
