@@ -22,10 +22,10 @@ has wpa_supplicant_version => undef;
 has need_key_mgmt => undef;
 has eap_user => 'tester';
 has eap_password => 'test1234';
-has ca_cert => '/etc/raddb/certs/ca.pem';
-has client_cert => '/etc/raddb/certs/client.crt';
-has client_key => '/etc/raddb/certs/client.key';
-has client_key_no_pass => '/etc/raddb/certs/client_no_pass.key';
+has ca_cert => '/etc/wpa_supplicant/certs/ca.pem';
+has client_cert => '/etc/wpa_supplicant/certs/client.crt';
+has client_key => '/etc/wpa_supplicant/certs/client.key';
+has client_key_no_pass => '/etc/wpa_supplicant/certs/client_no_pass.key';
 has client_key_password => 'whatever';
 
 has netns_name => 'wifi_ref';
@@ -215,6 +215,7 @@ sub prepare_freeradius_server {
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
             $self->eap_user, $self->eap_password));
     assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
+    assert_script_run('cp -r /etc/raddb/certs /etc/wpa_supplicant/');
     assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passin pass:'%s'),
             $self->client_key, $self->client_key_no_pass, $self->client_key_password));
 }
