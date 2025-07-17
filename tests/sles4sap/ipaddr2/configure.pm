@@ -1,8 +1,55 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Create a VM with a single NIC and 3 ip-config
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Configure the SUT for the ipaddr2 test
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+ipaddr2/configure.pm - Configure the SUT for the ipaddr2 test
+
+=head1 DESCRIPTION
+
+This module handles the post-deployment configuration of the System Under
+Test (SUT) virtual machines for the ipaddr2 test.
+
+It performs the following key configuration steps:
+
+- Establishes SSH connectivity by accepting host keys for the bastion
+  and between the two SUT VMs.
+- Generates SSH keys on the SUT VMs to allow passwordless communication between them.
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. Currently, only AZURE is supported.
+
+=item B<IPADDR2_CLOUDINIT>
+
+Controls whether this module performs the web server configuration.
+If set to 0 (disabled), this module will install and configure nginx.
+If enabled (default, 1), this step is skipped, assuming cloud-init has already performed it.
+
+=item B<IPADDR2_ROOTLESS>
+
+Determines the user for internal SSH key generation. If set to 0, keys are
+generated for the 'root' user. Otherwise, the default user (e.g., 'cloudadmin') is used.
+
+=item B<IPADDR2_KEYCHECK_OLD>
+
+A compatibility flag for older SSH clients. If set to 1, it uses a less strict
+host key checking mechanism ('no') suitable for older systems where 'accept-new' is not supported.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use strict;
 use warnings;
@@ -13,18 +60,11 @@ use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
-  ipaddr2_configure_web_server
-  ipaddr2_cluster_create
   ipaddr2_deployment_logs
   ipaddr2_infra_destroy
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_cloudinit_logs
-  ipaddr2_scc_check
-  ipaddr2_scc_register
-  ipaddr2_scc_addons
-  ipaddr2_refresh_repo
-  ipaddr2_azure_resource_group
 );
 
 sub run {
@@ -47,53 +87,6 @@ sub run {
     # default for ipaddr2_internal_key_gen is cloudadmin
     $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_internal_key_gen(%int_key_args);
-
-    # Check if cloudinit is active or not. In case it is,
-    # registration was eventually there and no need to per performed here.
-    if (check_var('IPADDR2_CLOUDINIT', 0)) {
-        # Registration was not part of cloud-init but still needed
-        record_info("TEST STAGE", "Registration");
-
-        # Check if reg code is provided or not, PAYG does not need it
-        if (get_var('SCC_REGCODE_SLES4SAP')) {
-            foreach (1 .. 2) {
-                # Check if somehow the image is already registered or not
-                my $is_registered = ipaddr2_scc_check(
-                    bastion_ip => $bastion_ip,
-                    id => $_);
-                record_info('is_registered', "$is_registered");
-                # Conditionally register the SLES for SAP instance.
-                # Registration is attempted only if the instance is not currently registered and a
-                # registration code ('SCC_REGCODE_SLES4SAP') is available.
-                ipaddr2_scc_register(
-                    bastion_ip => $bastion_ip,
-                    id => $_,
-                    scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
-            }
-        }
-        # Optionally register addons
-        ipaddr2_scc_addons(
-            bastion_ip => $bastion_ip,
-            scc_addons => get_required_var('SCC_ADDONS')
-        ) if (get_var('SCC_ADDONS'));
-
-        record_info("TEST STAGE", "Install the web server");
-        my %web_install_args;
-        $web_install_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
-        $web_install_args{bastion_ip} = $bastion_ip;
-        foreach (1 .. 2) {
-            $web_install_args{id} = $_;
-            ipaddr2_configure_web_server(%web_install_args);
-        }
-    } else {
-        # Registartion eventually performed at first boot by cloud-init script.
-        # Just a repo sync is needed now.
-        foreach (1 .. 2) {
-            ipaddr2_refresh_repo(
-                bastion_ip => $bastion_ip,
-                id => $_);
-        }
-    }
 }
 
 sub test_flags {
@@ -104,9 +97,6 @@ sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
     ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }
