@@ -1594,6 +1594,10 @@ Call zypper refresh
 
 =item B<id> - VM id where to install and configure the web server
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
 =back
 
 =cut
