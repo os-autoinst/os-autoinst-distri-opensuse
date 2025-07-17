@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openSUSE-repos
@@ -40,8 +40,17 @@ sub run {
         assert_script_run("rpm -q $pkgname-NVIDIA");
     }
 
-    # Ensure we can refresh repositories
-    record_soft_failure('poo#161798,Refresh repos failed') if (zypper_call('--gpg-auto-import-keys ref -s', exitcode => [0, 4]) == 4);
+    zypper_call("refresh-services");
+    assert_script_run "zypper lr --uri | grep cdn.opensuse.org";
+    assert_script_run "zypper lr --uri | grep download.nvidia.com" if (is_x86_64 || is_aarch64);
+
+    # removing the distro package, removes the NVIDIA service too if it was installed
+    zypper_call("rm openSUSE-repos");
+
+    if (script_run("zypper lr --uri | grep -E 'cdn\.opensuse|download\.nvidia'") == 0) {
+        die "Unexpected leftover repositories";
+    }
+
 }
 
 sub test_flags {
