@@ -775,8 +775,8 @@ sub registration_bootloader_cmdline {
     # https://progress.opensuse.org/issues/94696
     set_var('SCC_URL', 'https://scc.suse.com') unless get_var('SCC_URL');
     my $cmdline = '';
-    if (my $url = get_var('SMT_URL') || !check_var('SCC_URL', 'https://scc.suse.com')) {
-        $cmdline .= is_agama ? " inst.register_url=$url" : " regurl=$url";
+    if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
+        $cmdline .= is_agama && !check_var('SCC_URL', 'https://scc.suse.com') ? " inst.register_url=$url" : " regurl=$url";
         $cmdline .= " regcert=$url" if get_var('SCC_CERT');
     }
     return $cmdline;
