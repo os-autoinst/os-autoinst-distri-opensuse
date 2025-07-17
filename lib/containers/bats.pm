@@ -372,7 +372,7 @@ sub bats_tests {
 
     unless (get_var("BATS_TESTS")) {
         $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
-        my @skip_tests = split(/\s+/, get_var('BATS_SKIP', $settings->{BATS_SKIP}) . " " . $skip_tests);
+        my @skip_tests = split(/\s+/, join(' ', get_var('BATS_SKIP', $settings->{BATS_SKIP}), $skip_tests));
         patch_logfile($log_file, @skip_tests);
     }
 
