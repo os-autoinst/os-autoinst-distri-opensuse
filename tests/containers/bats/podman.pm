@@ -12,7 +12,7 @@ use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 use containers::bats;
 
