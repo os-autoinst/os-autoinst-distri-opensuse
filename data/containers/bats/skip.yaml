@@ -22,13 +22,13 @@ buildah:
     BATS_PATCHES:
     - 6226
     BATS_SKIP:
-    BATS_SKIP_ROOT: bud copy run
+    BATS_SKIP_ROOT: bud namespaces run
     BATS_SKIP_USER:
   sle-15-SP6:
     BATS_PATCHES:
     - 6226
     BATS_SKIP:
-    BATS_SKIP_ROOT: bud run
+    BATS_SKIP_ROOT: bud namespaces run
     BATS_SKIP_USER:
   sle-15-SP5:
     BATS_PATCHES:
