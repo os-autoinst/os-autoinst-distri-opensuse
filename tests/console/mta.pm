@@ -28,7 +28,7 @@ sub run {
         # check if postfix is installed, enabled and running
         assert_script_run 'rpm -q postfix';
         systemctl 'is-enabled postfix';
-        systemctl 'is-active postfix';
+        script_retry 'systemctl is-active postfix', retry => 3, delay => 10;
         systemctl 'status postfix';
     } else {
         # Install and start postfix on Public Cloud
