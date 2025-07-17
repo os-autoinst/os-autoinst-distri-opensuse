@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use base "x11test";
 use testapi;
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
@@ -36,7 +37,7 @@ sub run {
     # Exit
     $self->exit_firefox;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     send_key "ctrl-l";
     wait_still_screen 3;
     # look for file name "Internet for people, not profit",
