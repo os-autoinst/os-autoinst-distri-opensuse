@@ -1,0 +1,65 @@
+---
+name: xfs
+description: >
+  Installation with default parameters, except XFS being selected as filesystem
+  for the root partition. Installation is validated by successful boot and checking
+  that the correct filesystem was installed.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: xfs
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  # Called only on BACKEND: s390x
+  - '{{disk_activation}}'
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  # Called on all, except BACKEND: s390x
+  - '{{hostname_inst}}'
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - '{{validate_partition_table}}'
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
+conditional_schedule:
+  disk_activation:
+    BACKEND:
+      s390x:
+        - installation/disk_activation
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst
+  validate_partition_table:
+    BACKEND:
+      qemu:
+        - console/validate_partition_table_via_blkid
+      svirt:
+        - console/validate_partition_table_via_blkid
+      pvm_hmc:
+        - console/validate_partition_table_via_blkid
+      s390x:
+        - console/validate_partition_table_via_parted
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: xfs
