@@ -919,6 +919,9 @@ sub wait_boot {
     # SLE-16 boot on ppc64le results too quick to be captured, from grub2 to login prompt
     elsif (get_var('OFW') && is_sle('16+') && is_ppc64le && (check_screen('linux-login', 10))) {
     }
+    # SLE-16 on aarch64 login prompt needs more time to be detected, before to continue.
+    elsif (is_sle('16+') && is_aarch64 && (check_screen('linux-login', 30))) {
+    }
     elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
