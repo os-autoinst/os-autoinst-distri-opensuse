@@ -184,6 +184,15 @@ sub run {
             barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_", $num_nodes);
             barrier_create("HANA_REPLICATE_STATE_${cluster_name}_NODE$_", $num_nodes);
         }
+
+        # Create barriers for adding/removing a sbd device
+        if (get_var('HA_SBD_SUBCOMMAND')) {
+            barrier_create("CLUSTER_ADD_SBD_DEVICE_$cluster_name", $num_nodes);
+            barrier_create("CLUSTER_DEL_SBD_DEVICE_$cluster_name", $num_nodes);
+            barrier_create("CLUSTER_BEFORE_CHANGE_METADATA_$cluster_name", $num_nodes);
+            barrier_create("CLUSTER_AFTER_CHANGE_METADATA_$cluster_name", $num_nodes);
+            barrier_create("CLUSTER_CHECK_CHANGE_METADATA_$cluster_name", $num_nodes);
+        }
     }
 
     # Wait for all children to start
