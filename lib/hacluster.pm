@@ -751,21 +751,21 @@ sub check_cluster_state {
     my %args = @_;
 
     # We may want to check cluster state without stopping the test
-    my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
+    my $cmd_sub = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
-    $cmd->("$crm_mon_cmd");
+    $cmd_sub->("$crm_mon_cmd");
     if (is_sle '12-sp3+') {
         # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
         sleep 5;
-        $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'");
+        $cmd_sub->("$crm_mon_cmd | grep -i 'no inactive resources'");
     }
-    $cmd->('crm_mon -1 | grep \'partition with quorum\'');
+    $cmd_sub->('crm_mon -1 | grep \'partition with quorum\'');
 
     # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
     # Fall back to the older method of checking Online vs. Configured nodes
     my $cmp_result = package_version_cmp(script_output(q|rpm -q --qf '%{VERSION}\n' crmsh|), '4.4.2');
     if ($cmp_result < 0) {
-        $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
+        $cmd_sub->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
     }
     else {
         check_online_nodes(%args);
@@ -776,7 +776,7 @@ sub check_cluster_state {
         script_run 'crm_verify -LV';
     }
     else {
-        $cmd->('crm_verify -LV');
+        $cmd_sub->('crm_verify -LV');
     }
 }
 
@@ -1144,8 +1144,9 @@ B<$ignore_failure> do not kill the test upon failure.
 
 sub script_output_retry_check {
     my %args = @_;
-    my $cmd = $args{cmd} // die('No command specified.');
-    my $regex = $args{regex_string} // die('Regex input missing');
+    foreach (qw(cmd regex_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = $args{cmd};
+    my $regex = $args{regex_string};
     my $retry = $args{retry} // 5;
     my $sleep = $args{sleep} // 10;
     my $ignore_failure = $args{ignore_failure} // "0";
@@ -1478,9 +1479,11 @@ B<timeout> Override default timeout value
 
 sub crm_check_resource_location {
     my (%args) = @_;
+    croak 'Missing mandatory argument "$args{resource}"' unless $args{resource};
     my $wait_for_target = $args{wait_for_target} // 0;
     my $timeout = $args{timeout} // bmwqemu::scale_timeout(120);
-    my $cmd = join(' ', "crm resource status", $args{resource}, "| grep 'resource $args{resource} is'"); # Grep to avoid random kernel message appearing in script_output
+    # Grep to avoid random kernel message appearing in script_output
+    my $cmd = join(' ', "crm resource status", $args{resource}, "| grep 'resource $args{resource} is'");
     my $out;
     my $current_location;
 
@@ -1548,9 +1551,7 @@ Manage HA cluster parameter using crm shell.
 
 sub set_cluster_parameter {
     my (%args) = @_;
-    for my $arg ('resource', 'parameter', 'value') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource parameter value)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'set', $args{parameter}, $args{value});
     assert_script_run($cmd);
 }
@@ -1573,9 +1574,7 @@ Show cluster parameter value using CRM shell.
 
 sub show_cluster_parameter {
     my (%args) = @_;
-    for my $arg ('resource', 'parameter') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource parameter)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'show', $args{parameter});
     return script_output($cmd);
 }
@@ -1647,10 +1646,10 @@ Waits till crm fail count reached non-zero value of fail after B<timeout>
 
 sub crm_wait_failcount {
     my (%args) = @_;
+    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
     $args{timeout} //= 300;
     $args{delay} //= 5;
 
-    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
 
     my $result = 0;
     my $start_time = time;
@@ -1737,9 +1736,7 @@ Return resource meta-argument value.
 
 sub crm_resource_meta_show {
     my (%args) = @_;
-    for my $arg ('resource', 'meta_argument') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource meta_argument)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     return script_output("crm resource meta $args{resource} show $args{meta_argument}");
 }
 
@@ -1763,9 +1760,8 @@ Change or delete resource meta-argument value.
 
 sub crm_resource_meta_set {
     my (%args) = @_;
-    for my $arg ('resource', 'meta_argument') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+
+    foreach (qw(resource meta_argument)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $action = $args{argument_value} ? 'set' : 'delete';
     my $cmd = "crm resource meta $args{resource} $action $args{meta_argument}";
     $cmd .= " $args{argument_value}" if $action eq 'set';

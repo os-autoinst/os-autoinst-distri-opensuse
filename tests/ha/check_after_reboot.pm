@@ -44,9 +44,7 @@ sub run {
     assert_script_run "iptables -F && iptables -X" if (is_node(1) && check_var('QDEVICE_TEST_ROLE', 'client') && !get_var('HA_UNICAST'));
 
     # Workaround network timeout issue during upgrade
-    if (get_var('HDDVERSION')) {
-        check_iscsi_failure;
-    }
+    check_iscsi_failure if (get_var('HDDVERSION'));
 
     # Check iSCSI server is connected
     my $ret = script_run 'ls /dev/disk/by-path/ip-*', $default_timeout;
@@ -83,7 +81,6 @@ sub run {
         systemctl 'status pacemaker';
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
-
     if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
         my $sbd_delay = setup_sbd_delay();
         record_info("SBD delay $sbd_delay sec", "Calculated SBD start delay: $sbd_delay");
