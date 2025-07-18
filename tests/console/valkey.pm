@@ -18,67 +18,72 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry validate_script_output_retry);
-use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
-    # install valkey package
-    zypper_call 'in valkey';
-    assert_script_run('valkey-server --version');
+    zypper_call('in valkey openssl wget');
 
-    # start valkey server on port 6379 and test that it works
-    assert_script_run('valkey-server --daemonize yes --logfile /var/log/valkey/valkey-server_6379.log');
-    script_retry('valkey-cli ping', delay => 5, retry => 12);
-    validate_script_output_retry('valkey-cli ping', sub { m/PONG/ }, delay => 5, retry => 12);
+    record_info('Generate Test Certificates');
+    assert_script_run('mkdir -p valkey/tls/server');
+    assert_script_run('mkdir -p valkey/tls/replica');
+    assert_script_run('cd valkey/tls');
+    # CA
+    assert_script_run('openssl genrsa -out ca.key 4096');
+    assert_script_run('openssl req -new -x509 -days 3650 -key ca.key -out ca.crt -subj "/"');
+    # Master
+    assert_script_run('openssl genrsa -out server/valkey.key 2048');
+    assert_script_run('openssl req -new -key server/valkey.key -out server/valkey.csr -subj "/"');
+    assert_script_run('openssl x509 -req -in server/valkey.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server/valkey.crt -days 365 -sha256');
+    # Replica
+    assert_script_run('openssl genrsa -out replica/valkey.key 2048');
+    assert_script_run('openssl req -new -key replica/valkey.key -out replica/valkey.csr -subj "/"');
+    assert_script_run('openssl x509 -req -in replica/valkey.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out replica/valkey.crt -days 365 -sha256');
 
-    # test some valkey cli commands
-    validate_script_output('valkey-cli set foo bar', sub { m/OK/ });
-    validate_script_output('valkey-cli get foo', sub { m/bar/ });
-    validate_script_output('valkey-cli pfselftest', sub { m/OK/ });
-    validate_script_output('valkey-cli flushdb', sub { m/OK/ });
-    validate_script_output('valkey-cli get foo', sub { !m/bar/ });
+    record_info('Start master server');
+    assert_script_run 'wget --quiet ' . data_url('valkey/valkey.conf');
+    assert_script_run('valkey-server valkey.conf');
+    upload_logs("/var/log/valkey/valkey_6379.log");
 
-    assert_script_run 'curl -O ' . data_url('console/movies.redis');
-    assert_script_run('valkey-cli -h localhost -p 6379 < ./movies.redis');
+    record_info('Start replica server');
+    assert_script_run 'wget --quiet ' . data_url('valkey/replica.conf');
+    assert_script_run('valkey-server replica.conf');
+    upload_logs("/var/log/valkey/valkey_6380.log");
 
-    validate_script_output('valkey-cli HMGET "movie:343" title', sub { m/Spider-Man/ });
+    record_info('Master/replica check');
+    my $MASTER_VALKEY_CLI = 'valkey-cli --tls --cert server/valkey.crt --key server/valkey.key --cacert ca.crt -p 6379';
+    my $REPLICA_VALKEY_CLI = 'valkey-cli --tls --cert replica/valkey.crt --key replica/valkey.key --cacert ca.crt -p 6380';
+    validate_script_output_retry($MASTER_VALKEY_CLI . " info replication", sub { m/connected_slaves:1/ }, delay => 5, retry => 4);
+    validate_script_output_retry($REPLICA_VALKEY_CLI . " info replication", sub { m/master_link_status:up/ }, delay => 5, retry => 4);
 
-    # start valkey server on port 6380 and test that it works
-    assert_script_run('valkey-server --daemonize yes --port 6380 --logfile /var/log/valkey/valkey-server_6380.log');
-    validate_script_output_retry('valkey-cli -p 6380 ping', sub { m/PONG/ }, delay => 5, retry => 12);
+    record_info('Client tests with master');
+    validate_script_output($MASTER_VALKEY_CLI . " ping", sub { m/PONG/ });
+    validate_script_output($MASTER_VALKEY_CLI . " set mykey 'valkey'", sub { m/OK/ });
+    validate_script_output($MASTER_VALKEY_CLI . " get mykey", sub { m/valkey/ });
+    assert_script_run 'wget --quiet ' . data_url('console/movies.redis');
+    assert_script_run($MASTER_VALKEY_CLI . " -h localhost < ./movies.redis");
+    validate_script_output($MASTER_VALKEY_CLI . ' HMGET "movie:343" title', sub { m/Spider-Man/ });
 
-    # make 6380 instance a replica of valkey instance running on port 6379
-    assert_script_run('valkey-cli -p 6380 replicaof localhost 6379');
+    record_info('Client tests with replica');
+    validate_script_output($REPLICA_VALKEY_CLI . " ping", sub { m/PONG/ });
+    validate_script_output($REPLICA_VALKEY_CLI . " get mykey", sub { m/valkey/ });
+    validate_script_output($REPLICA_VALKEY_CLI . ' HMGET "movie:343" title', sub { m/Spider-Man/ });
 
-    # test master knows about the slave and vice versa
-    validate_script_output_retry('valkey-cli info replication', sub { m/connected_slaves:1/ }, delay => 5, retry => 12);
-    validate_script_output('valkey-cli -p 6380 info replication', sub { m/role:slave/ });
+    record_info('Clean up');
+    clean_up();
+}
 
-    # test that the synchronization finished and the data are reachable from slave
-    validate_script_output_retry('valkey-cli info replication', sub { m/state=online/ }, delay => 5, retry => 12);
-    validate_script_output('valkey-cli -p 6380 HMGET "movie:343" title', sub { m/Spider-Man/ });
+sub clean_up {
+    script_run('valkey-cli --tls --cert server/valkey.crt --key server/valkey.key --cacert ca.crt -h localhost flushall');
+    script_run('killall valkey-server');
+    upload_logs("/var/log/valkey/valkey_6379.log");
+    upload_logs("/var/log/valkey/valkey_6380.log");
 }
 
 sub post_fail_hook {
     my $self = shift;
-    $self->cleanup();
+    $self->clean_up();
     $self->SUPER::post_fail_hook;
-}
-
-sub post_run_hook {
-    my $self = shift;
-    $self->cleanup();
-    $self->SUPER::post_run_hook;
-}
-
-sub cleanup {
-    upload_logs('/var/log/valkey/valkey-server_6379.log');
-    upload_logs('/var/log/valkey/valkey-server_6380.log');
-    assert_script_run('valkey-cli -h localhost flushall');
-    assert_script_run('killall valkey-server');
-    assert_script_run('rm -f movies.redis');
 }
 
 1;
