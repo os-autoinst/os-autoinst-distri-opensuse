@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
-use hacluster qw(get_hostname ha_export_logs save_state wait_until_resources_started script_output_retry_check);
+use hacluster qw(get_hostname ha_export_logs save_state wait_until_resources_started);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
