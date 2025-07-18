@@ -1,0 +1,25 @@
+---
+disks:
+  - name: sda
+    table_type: gpt
+    size: 20G
+    type: disk
+    children:
+      - name: sda1
+        type: part
+        mountpoints: ["/home"]
+        size: 20G
+  - name: vda
+    table_type: gpt
+    partitions:
+      - name: vda1
+        type: part
+        size: 8M
+      - name: vda2
+        type: part
+        mountpoints: /
+        size: 20G
+      - name: vda3
+        type: part
+        mountpoints: [SWAP]
+        size: 1G
