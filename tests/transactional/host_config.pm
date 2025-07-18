@@ -19,6 +19,7 @@ use utils qw(ensure_ca_certificates_suse_installed zypper_call ensure_serialdev_
 use version_utils qw(is_bootloader_grub2 is_bootloader_sdboot is_bootloader_grub2_bls is_sle is_sle_micro);
 use serial_terminal qw(select_serial_terminal prepare_serial_console);
 use Utils::Architectures 'is_ppc64le';
+use zypper qw(wait_quit_zypper);
 
 sub run {
     select_console 'root-console';
@@ -45,6 +46,8 @@ sub run {
 
         if (!$keep_grub_timeout or $extrabootparams) {
             record_info('GRUB', script_output('cat /etc/default/grub'));
+            # poo#87850 wait the zypper processes in background to finish and release the lock.
+            wait_quit_zypper;
             assert_script_run('transactional-update grub.cfg');
             ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
             process_reboot(trigger => 1);
