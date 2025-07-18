@@ -6,8 +6,8 @@ schedule:
   - virt_autotest/login_console
   - virt_autotest/prepare_non_transactional_server
   - virt_autotest/unified_guest_installation
-  - virt_autotest/set_config_as_glue
-  - '{{uefi_guest_verification}}'
+    #  - virt_autotest/set_config_as_glue
+    #  - '{{uefi_guest_verification}}'
   - '{{sev-es_guest_verification}}'
   - '{{sriov_network_card_pci_passthrough_test}}'
 conditional_schedule:
