@@ -34,6 +34,9 @@ our $vm_xml_save_dir = "/tmp/download_vm_xml";
 sub run_test {
     my $self = shift;
 
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
+
     #set up ssh, packages and iommu on host
     prepare_host();
 
@@ -43,16 +46,25 @@ sub run_test {
     #save original guest configuration file in case of restore in post_fail_hook()
     save_guests_xml_for_change($vm_xml_save_dir);
 
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
+
     #get the SR-IOV device BDF and interface
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
 
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
+
     #get/set necessary variables for test
-    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
+    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3 | sort -u";
 
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
@@ -60,6 +72,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
+        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
