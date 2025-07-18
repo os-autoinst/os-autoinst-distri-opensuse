@@ -23,6 +23,7 @@ use Utils::Logging qw(export_logs record_avc_selinux_alerts);
 use network_utils qw(iface);
 use Carp qw(croak);
 use Data::Dumper;
+use XML::Simple;
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -90,6 +91,7 @@ our @EXPORT = qw(
   crm_resource_locate
   crm_resource_meta_show
   crm_resource_meta_set
+  crm_list_options
 );
 
 =head1 SYNOPSIS
@@ -1768,6 +1770,37 @@ sub crm_resource_meta_set {
 
     assert_script_run($cmd);
     record_info('CRM meta set', "CRM meta set: $cmd");
+}
+
+=head2 crm_list_options
+
+    crm_list_options();
+
+Run various commands TBD
+
+=cut
+
+sub crm_list_options {
+    my (%args) = @_;
+
+    my $cmp_result = package_version_cmp(script_output(q|rpm -q --qf '%{VERSION}\n' crmsh|), '5.0.0');
+    return 0 if ($cmp_result < 0);
+    my $out;
+
+    my $parser = XML::Simple->new;
+    my $ret = 1;
+    foreach (
+        'crm_resource  --list-options primitive     --output-as xml',
+        'crm_resource  --list-options fencing       --output-as xml',
+        'crm_attribute --list-options cluster --all --output-as=xml') {
+        $out = script_output($_);
+        eval { $parser->parse_string($out) };
+        if ($@) {
+            $ret = -1;
+            diag("XML parsing error for '$_' output:\n $@");
+        }
+    }
+    return $ret;
 }
 
 1;

@@ -140,6 +140,8 @@ sub run {
     # And check for the state of the whole cluster
     check_cluster_state;
 
+    crm_list_options;
+
     if (check_var('CLUSTER_NAME', 'hana')) {
         'sles4sap'->check_replication_state;
         'sles4sap'->check_hanasr_attr;
