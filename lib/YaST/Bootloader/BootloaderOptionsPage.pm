@@ -30,4 +30,10 @@ sub set_grub_timeout {
     $self->{txb_grub_timeout}->set($timeout);
 }
 
+sub bls_disable_timeout {
+    my ($self) = @_;
+    $self->{chb_automatically_boot} = $self->{app}->checkbox({id => 'cont_boot'});
+    $self->{chb_automatically_boot}->uncheck();
+}
+
 1;

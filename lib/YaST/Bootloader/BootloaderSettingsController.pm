@@ -101,6 +101,13 @@ sub disable_grub_timeout {
     $self->get_bootloader_options_page->press_next();
 }
 
+sub bls_disable_timeout {
+    my ($self) = @_;
+    $self->get_boot_code_options_page->switch_to_bootloader_options_tab();
+    $self->get_bootloader_options_page->bls_disable_timeout();
+    $self->get_bootloader_options_page->press_next();
+}
+
 sub disable_plymouth {
     my ($self) = @_;
     $self->get_boot_code_options_page()->switch_to_kernel_parameters_tab();
