@@ -2,7 +2,70 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Create a VM with a single NIC and 3 ip-config
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+cloud_netconfig/deploy.pm - Deploy infrastructure for the cloud-netconfig test
+
+=head1 DESCRIPTION
+
+This module deploys the necessary Azure infrastructure for testing the
+B<cloud-netconfig> service. It sets up a specific network configuration to
+verify that C<cloud-netconfig> can correctly manage multiple IP addresses on a
+single network interface.
+
+The created resources include:
+
+=over 4
+
+=item * A virtual machine (VM) to host the test.
+
+=item * A virtual network (VNet) and a subnet.
+
+=item * A single Network Interface Card (NIC) attached to the VM.
+
+=item * Three IP configurations associated with the single NIC:
+
+=over 2
+
+=item - The primary IP configuration with a public IP address.
+
+=item - A secondary IP configuration with another public IP address and a static private IP.
+
+=item - A third IP configuration with only a static private IP.
+
+=back
+
+=item * A Network Security Group (NSG) allowing SSH access.
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider for deployment. Currently, only 'AZURE' is supported.
+
+=item B<PUBLIC_CLOUD_IMAGE_LOCATION>
+
+Id of the OS image to use for the VM deployment.
+If set, it specifies the location of a custom VHD image in Azure Blob Storage.
+If not set, a catalog image is used.
+
+=item B<SCC_REGCODE_SLES4SAP>
+
+SUSE Customer Center registration code. If provided, the deployed VM will be registered.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use strict;
 use warnings;
@@ -34,7 +97,7 @@ sub run {
         # with publiccloud_upload_img.
         $os_ver = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        $os_ver = get_required_var('CLUSTER_OS_VER');
+        $os_ver = $provider->get_image_id();
     }
 
     # remove configuration file created by the PC factory
