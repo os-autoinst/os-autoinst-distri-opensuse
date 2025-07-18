@@ -14,7 +14,7 @@ use Exporter;
 use testapi;
 use utils qw(zypper_call handle_screen zypper_repos upload_y2logs);
 use JSON;
-use List::Util qw(max);
+use List::Util qw(max uniq);
 use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
@@ -267,7 +267,7 @@ sub get_test_repos {
             push @repos, split(/,/, $value);
         }
     }
-    return @repos;
+    return uniq @repos;
 }
 
 1;
