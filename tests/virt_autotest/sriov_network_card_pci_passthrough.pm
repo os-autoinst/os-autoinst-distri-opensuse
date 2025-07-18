@@ -34,6 +34,9 @@ our $vm_xml_save_dir = "/tmp/download_vm_xml";
 sub run_test {
     my $self = shift;
 
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
+
     #set up ssh, packages and iommu on host
     prepare_host();
 
@@ -43,9 +46,15 @@ sub run_test {
     #save original guest configuration file in case of restore in post_fail_hook()
     save_guests_xml_for_change($vm_xml_save_dir);
 
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
+
     #get the SR-IOV device BDF and interface
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
+
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
 
     #get/set necessary variables for test
     my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3 | sort -u";
@@ -53,6 +62,9 @@ sub run_test {
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+
+    # Just for julie debug
+    check_guest_health("sles-16-64-kvm-hvm-uefi-agama-online-iso");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
@@ -259,9 +271,8 @@ sub prepare_guest_for_sriov_passthrough {
         assert_script_run(" ! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
         assert_script_run "virsh start $vm";
+        wait_guest_online($vm);
     }
-
-    wait_guest_online($vm, 30);
 
     #passwordless access to guest
     save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
