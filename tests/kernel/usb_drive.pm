@@ -13,6 +13,8 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
+use version_utils 'is_sle';
 use usb;
 
 sub run {
@@ -34,9 +36,12 @@ sub run {
     my $file_copy = "$mountpoint/file";
 
     assert_script_run "mkdir $mountpoint";
-    assert_script_run "mkfs.btrfs -f $device";
+    assert_script_run "chgrp disk $mountpoint";
+    assert_script_run "chmod 777 $mountpoint";
 
+    assert_script_run "mkfs.btrfs -f $device";
     assert_script_run "mount -t btrfs $device $mountpoint";
+
     assert_script_run "dd if=/dev/urandom of=$file bs=1M count=16";
     assert_script_run "md5sum $file > $md5";
     assert_script_run "cp $file $file_copy";
@@ -49,8 +54,31 @@ sub run {
     assert_script_run "mount -t btrfs $device $mountpoint";
     assert_script_run "cd $mountpoint; md5sum -c $md5; cd /";
 
-    # cleanup
     assert_script_run("umount $mountpoint");
+
+    if (zypper_search('lklfuse')) {
+        assert_script_run "useradd -m -G users,disk unpriv -p $testapi::password";
+        install_package 'lklfuse';
+        script_start_io('su unpriv');
+        my $script = <<"FIN";
+dd if=/dev/urandom of=/home/unpriv/file2 bs=1M count=16
+md5sum /home/unpriv/file2 > /home/unpriv/md5
+mkdir -p /home/unpriv/mount
+lklfuse -o type=btrfs $device /home/unpriv/mount
+cp /home/unpriv/file2 /home/unpriv/mount/file2
+fusermount -u /home/unpriv/mount
+sync
+lklfuse -o type=btrfs $device /home/unpriv/mount
+cd /home/unpriv/mount; md5sum -c /home/unpriv/mount/md5; cd
+FIN
+        assert_script_run($script);
+        script_finish_io();
+        enter_cmd('exit');
+    } elsif (is_sle('16+')) {
+        die "running on SLE16+ but lklfuse package is missing";
+    }
+
+    # cleanup
     assert_script_run("rm -r $tmp");
 }
 
