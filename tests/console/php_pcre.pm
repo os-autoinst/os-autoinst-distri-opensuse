@@ -24,7 +24,9 @@ use version_utils qw(is_leap is_sle php_version);
 
 sub run {
     select_serial_terminal;
-    zypper_call("in gcc-c++ pcre-devel");
+
+    my $pcre_pkg = is_sle('>=16.0') ? 'pcre2-devel' : 'pcre-devel';
+    zypper_call("in gcc-c++ $pcre_pkg");
     assert_script_run "mkdir pcre_data; cd pcre_data; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && cd data";
     assert_script_run "ls .";
     assert_script_run "g++ pcretest.cpp -o test_pcrecpp -lpcrecpp";
