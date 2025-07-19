@@ -258,7 +258,8 @@ our %host_params = (
     'host_version_id' => '',    # Version ID of host os release from /etc/os-release on host
     'ssh_public_key' => '',    # Public key used for ssh login to guest
     'ssh_private_key' => '',    # Private key used for ssh login to guest
-    'ssh_command' => ''    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'ssh_command' => '',    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'reconsole_counter' => get_var('RESELECT_CONSOLE_COUNTER', 180)    # Reselect disconnected console if condition triggerd in counter
 );
 
 # Global data structure %guest_network_matrix to specify network devices to be
