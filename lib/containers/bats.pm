@@ -246,7 +246,7 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    run_command "zypper --gpg-auto-import-keys -n install @pkgs";
+    run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 300;
 
     configure_oci_runtime $oci_runtime;
 
