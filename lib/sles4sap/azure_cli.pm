@@ -70,6 +70,8 @@ our @EXPORT = qw(
   az_keyvault_list
   az_keyvault_secret_list
   az_keyvault_secret_show
+  az_get_publicip
+  ensure_system_ready_and_register
 );
 
 
@@ -738,6 +740,10 @@ Create a virtual machine
           if missing the command is configured to generate one
 
 =item B<security_type> - is used force a specific value for '--security-type'
+
+=item B<assign_identity> - automatically handles the credentials for the identity, default 1
+
+=item B<public_ip_sku> - controls the features, performance, and availability of the Public IP, default Standard
 
 =back
 =cut
@@ -1817,6 +1823,35 @@ sub az_keyvault_secret_show {
 
     return decode_json(script_output(join(' ', @az_cmd))) if $args{output} eq 'json';
     return script_output(join(' ', @az_cmd));
+}
+
+=over
+
+=item B<reg_code> registration code.
+
+=back
+=cut
+
+sub ensure_system_ready_and_register {
+    my (%args) = @_;
+    my $start_time = time();
+    my $ret;
+
+    while ((time() - $start_time) < 300) {
+        $ret = script_run('$ssh_cmd sudo systemctl is-system-running');
+        last unless $ret;
+        sleep 10;
+    }
+    if ($args{reg_code}) {
+        assert_script_run(join(' ',
+                $args{ssh_command},
+                'sudo', 'registercloudguest',
+                '--force-new',
+                '-r', '\'$args{reg_code}\'',
+                '-e ', 'testing@suse.com'),
+            timeout => 600);
+        assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
+    }
 }
 
 =head2 az_group_exists
