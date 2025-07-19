@@ -11,6 +11,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use Utils::Architectures;
+use Utils::Backends 'is_pvm';
 use version_utils 'is_sle';
 use Test::Assert ':all';
 
@@ -73,7 +74,7 @@ my (
 );
 # Prepare test data depending on specific architecture/product
 sub prepare_test_data {
-    if (is_ppc64le || is_ppc64) {
+    if (is_pvm) {
         @partitioning = (
             $raid_partitions_3_arrays, $hard_disks, $linux_raid_member_3_arrays,
             $ext4_boot,
