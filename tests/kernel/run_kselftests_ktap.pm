@@ -85,7 +85,7 @@ sub run
             install_kselftest_suite($i);
             assert_script_run("cd ./tools/testing/selftests/kselftest_install");
             #required by the TAP openQA parser
-            assert_script_run("echo t/$i.t .. > $i.tap");
+            #assert_script_run("echo t/$i.t .. > $i.tap");
             assert_script_run("./run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
             parse_extra_log(KTAP => "$i.tap");
             assert_script_run("cd -");
@@ -94,7 +94,7 @@ sub run
         prepare_kselftests_from_ibs("/usr/share/kselftests");
 
         foreach my $i (@kselftests_suite) {
-            assert_script_run("echo t/$i.t .. > $i.tap");
+            #assert_script_run("echo t/$i.t .. > $i.tap");
             assert_script_run("/usr/share/kselftests/run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
             parse_extra_log(TAP => "$i.tap");
         }
