@@ -66,6 +66,7 @@ netavark:
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
+  # https://github.com/containers/podman/pull/24068 is needed for 271-tcp-cors-server
   # https://github.com/containers/podman/pull/25792 is needed for 080-pause
   # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
@@ -96,6 +97,7 @@ podman:
   sle-15-SP7:
     BATS_PATCHES:
     - 21875
+    - 24068
     - 25792
     - 25942
     BATS_SKIP:
@@ -106,6 +108,7 @@ podman:
   sle-15-SP6:
     BATS_PATCHES:
     - 21875
+    - 24068
     - 25792
     - 25942
     BATS_SKIP:
