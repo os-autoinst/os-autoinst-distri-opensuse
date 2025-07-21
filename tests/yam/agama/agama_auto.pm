@@ -22,7 +22,7 @@ sub run {
 
     $self->upload_agama_logs() unless is_hyperv();
 
-    (is_s390x() || is_pvm() || is_vmware()) ?
+    (is_s390x() || is_ppc64le() || is_pvm() || is_vmware()) ?
       # reboot via console
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot
