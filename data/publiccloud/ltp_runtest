@@ -1,7 +1,7 @@
 # LTP runtest file for Public Cloud
 
 # NOTE: Generated using the script below, against LTP:
-# commit a7c31dff7edc089a32e990765e12952cc4d7666a (tag: 20250130)
+# commit 14331e1ecfcd63426c9d270d88b7bad9f60c6d64 (tag: 20250530)
 # Which is the HEAD of ltp-stable package from obs:
 # https://build.opensuse.org/projects/benchmark:ltp:stable/packages/ltp-stable/files/_service
 
@@ -509,10 +509,8 @@ cachestat02 cachestat02
 cachestat03 cachestat03
 cachestat04 cachestat04
 chdir01 chdir01
-chdir01A symlink01 -T chdir01
 chdir04 chdir04
 chmod01 chmod01
-chmod01A symlink01 -T chmod01
 chmod03 chmod03
 chmod05 chmod05
 chmod06 chmod06
@@ -682,6 +680,7 @@ fchown05 fchown05
 fchown05_16 fchown05_16
 fchownat01 fchownat01
 fchownat02 fchownat02
+fchownat03 fchownat03
 fcntl01 fcntl01
 fcntl01_64 fcntl01_64
 fcntl02 fcntl02
@@ -756,6 +755,8 @@ fcntl38 fcntl38
 fcntl38_64 fcntl38_64
 fcntl39 fcntl39
 fcntl39_64 fcntl39_64
+fcntl40 fcntl40
+fcntl40_64 fcntl40_64
 fdatasync01 fdatasync01
 fdatasync02 fdatasync02
 fdatasync03 fdatasync03
@@ -772,6 +773,7 @@ flock02 flock02
 flock03 flock03
 flock04 flock04
 flock06 flock06
+flock07 flock07
 fmtmsg01 fmtmsg01
 fork01 fork01
 fork03 fork03
@@ -933,6 +935,7 @@ ioctl_ficlone02 ioctl_ficlone02
 ioctl_ficlone03 ioctl_ficlone03
 ioctl_ficlonerange01 ioctl_ficlonerange01
 ioctl_ficlonerange02 ioctl_ficlonerange02
+ioctl_fiemap01 ioctl_fiemap01
 inotify_init1_01 inotify_init1_01
 inotify_init1_02 inotify_init1_02
 inotify01 inotify01
@@ -970,6 +973,7 @@ fanotify20 fanotify20
 fanotify21 fanotify21
 fanotify22 fanotify22
 fanotify23 fanotify23
+fanotify24 fanotify24
 ioperm01 ioperm01
 ioperm02 ioperm02
 iopl01 iopl01
@@ -1005,7 +1009,6 @@ kill05 kill05
 kill06 kill06
 kill07 kill07
 kill08 kill08
-kill09 kill09
 kill10 kill10
 kill11 kill11
 kill12 kill12
@@ -1025,7 +1028,6 @@ lchown02_16 lchown02_16
 lchown03_16 lchown03_16
 lgetxattr01 lgetxattr01
 lgetxattr02 lgetxattr02
-link01 symlink01 -T link01
 link02 link02
 link04 link04
 link05 link05
@@ -1099,7 +1101,6 @@ mlock05 mlock05
 mlock201 mlock201
 mlock202 mlock202
 mlock203 mlock203
-qmm01 mmap001 -m 1
 mmap01 mmap01
 mmap02 mmap02
 mmap03 mmap03
@@ -1117,9 +1118,11 @@ mmap17 mmap17
 mmap18 mmap18
 mmap19 mmap19
 mmap20 mmap20
+mmap21_01 mmap21 -m 1
+mmap21_02 mmap21
+mmap22 mmap22
 modify_ldt01 modify_ldt01
 modify_ldt02 modify_ldt02
-modify_ldt03 modify_ldt03
 mount01 mount01
 mount02 mount02
 mount03 mount03
@@ -1130,6 +1133,7 @@ mount07 mount07
 mount_setattr01 mount_setattr01
 move_mount01 move_mount01
 move_mount02 move_mount02
+move_mount03 move_mount03
 move_pages01 move_pages01
 move_pages02 move_pages02
 move_pages03 move_pages03
@@ -1252,7 +1256,6 @@ pathconf01 pathconf01
 pathconf02 pathconf02
 pause01 pause01
 pause02 pause02
-pause03 pause03
 personality01 personality01
 personality02 personality02
 pidfd_getfd01 pidfd_getfd01
@@ -1282,6 +1285,14 @@ pipe15 pipe15
 pipe2_01 pipe2_01
 pipe2_02 pipe2_02
 pipe2_04 pipe2_04
+pipeio_1 pipeio -T pipeio_1 -c 5 -s 4090 -i 100 -b -f x80
+pipeio_2 pipeio -T pipeio_2 -c 5 -s 4090 -i 100 -f x80
+pipeio_3 pipeio -T pipeio_3 -c 5 -s 4090 -i 100 -u -b -f x80
+pipeio_4 pipeio -T pipeio_4 -c 5 -s 4090 -i 100 -u -f x80
+pipeio_5 pipeio -T pipeio_5 -c 5 -s 5000 -i 10 -b -f x80
+pipeio_6 pipeio -T pipeio_6 -c 5 -s 5000 -i 10 -b -u -f x80
+pipeio_7 pipeio -T pipeio_7 -c 5 -s 5000 -i 10 -f x80
+pipeio_8 pipeio -T pipeio_8 -c 5 -s 5000 -i 10 -u -f x80
 pivot_root01 pivot_root01
 poll01 poll01
 poll02 poll02
@@ -1368,7 +1379,6 @@ readahead01 readahead01
 readahead02 readahead02
 readdir01 readdir01
 readdir21 readdir21
-readlink01A symlink01 -T readlink01
 readlink01 readlink01
 readlink03 readlink03
 readlinkat01 readlinkat01
@@ -1388,7 +1398,6 @@ remap_file_pages02 remap_file_pages02
 removexattr01 removexattr01
 removexattr02 removexattr02
 rename01 rename01
-rename01A symlink01 -T rename01
 rename03 rename03
 rename04 rename04
 rename05 rename05
@@ -1412,7 +1421,6 @@ request_key06 request_key06
 rmdir01 rmdir01
 rmdir02 rmdir02
 rmdir03 rmdir03
-rmdir03A symlink01 -T rmdir03
 rt_sigaction01 rt_sigaction01
 rt_sigaction02 rt_sigaction02
 rt_sigaction03 rt_sigaction03
@@ -1708,7 +1716,6 @@ swapon01 swapon01
 swapon02 swapon02
 swapon03 swapon03
 switch01 endian_switch01
-symlink01 symlink01
 symlink02 symlink02
 symlink03 symlink03
 symlink04 symlink04
@@ -1760,7 +1767,6 @@ ulimit01 ulimit01
 umask01 umask01
 uname01 uname01
 uname02 uname02
-unlink01 symlink01 -T unlink01
 unlink05 unlink05
 unlink07 unlink07
 unlink08 unlink08
@@ -1769,6 +1775,8 @@ unlink10 unlink10
 unlinkat01 unlinkat01
 unshare01 unshare01
 unshare02 unshare02
+unshare03 unshare03
+unshare04 unshare04
 umount01 umount01
 umount02 umount02
 umount03 umount03
