@@ -161,7 +161,7 @@ sub load_host_tests_podman {
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
-        loadtest 'containers/podman_remote' if is_sle_micro('5.5+');
+        loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
