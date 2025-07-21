@@ -25,8 +25,10 @@ sub run {
 
     # Generate audit records for testing
     assert_script_run("echo '' > $audit_log");
-    assert_script_run('systemctl stop apparmor');
-    assert_script_run('systemctl start apparmor');
+
+    if (is_sle('<16')) {
+        assert_script_run('systemctl restart apparmor');
+    }
 
     # Search for an event based on the given filename
     assert_script_run("ausearch -f /etc > $tmp_output");

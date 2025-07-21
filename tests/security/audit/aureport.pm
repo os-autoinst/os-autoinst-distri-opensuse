@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "aureport" utility can generate default audit report and reports with specifc parameters
@@ -22,8 +22,10 @@ sub run {
 
     # Generate audit records for testing
     assert_script_run("echo '' > $audit_log");
-    assert_script_run('systemctl stop apparmor');
-    assert_script_run('systemctl start apparmor');
+
+    if (is_sle('<16')) {
+        assert_script_run('systemctl restart apparmor');
+    }
 
     # Stop auditd before checking records in case the following executions will generate new audit records
     assert_script_run('systemctl stop auditd');
