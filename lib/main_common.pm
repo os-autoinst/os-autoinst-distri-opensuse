@@ -222,7 +222,7 @@ sub have_addn_repos {
       !get_var("NET")
       && !get_var("EVERGREEN")
       && get_var("SUSEMIRROR")
-      && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
+      && get_var("FLAVOR", '') !~ m/^Staging2?[\-]DVD$/;
 }
 
 sub is_livesystem {
