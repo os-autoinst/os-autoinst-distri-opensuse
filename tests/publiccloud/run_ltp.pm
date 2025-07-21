@@ -156,7 +156,7 @@ sub run {
     my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
     my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
-    assert_script_run("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo");
+    script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
