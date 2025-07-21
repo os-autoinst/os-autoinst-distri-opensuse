@@ -137,7 +137,7 @@ sub load_host_tests_podman {
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # podman artifact needs podman 5.4.0
-    loadtest 'containers/podman_artifact' if is_tumbleweed;
+    loadtest 'containers/podman_artifact' if (is_sle('>=16.0') || is_tumbleweed);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
