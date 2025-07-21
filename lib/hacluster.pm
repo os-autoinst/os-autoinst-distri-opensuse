@@ -1774,9 +1774,37 @@ sub crm_resource_meta_set {
 
 =head2 crm_list_options
 
-    crm_list_options();
+    my $ret = crm_list_options();
 
-Run various commands TBD
+Executes a series of C<crm> commands to list metadata options for different
+resource types (primitive, fencing, cluster attributes) and validates that their
+XML output is well-formed. This function is designed to test a new feature in
+C<crmsh> version 5.0.0 and newer, which provides a CLI interface to query
+resource meta-attributes.
+
+The function will execute the following commands:
+
+=over
+
+=item * C<crm_resource --list-options primitive --output-as xml>
+
+=item * C<crm_resource --list-options fencing --output-as xml>
+
+=item * C<crm_attribute --list-options cluster --all --output-as=xml>
+
+=back
+
+B<Return values:>
+
+=over
+
+=item * B<1>: All commands executed successfully and their XML output was valid.
+
+=item * B<0>: The installed C<crmsh> version is older than 5.0.0. The function performs no operation.
+
+=item * B<-1>: At least one of the commands produced output that was not valid XML.
+
+=back
 
 =cut
 
