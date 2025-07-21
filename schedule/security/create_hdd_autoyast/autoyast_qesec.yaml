@@ -8,6 +8,7 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/hostname
+  - '{{fips_installation}}'
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
@@ -18,3 +19,7 @@ conditional_schedule:
     ARCH:
       s390x:
         - shutdown/svirt_upload_assets
+  fips_installation:
+    FIPS_INSTALLATION:
+      1:
+        - fips/fips_setup
