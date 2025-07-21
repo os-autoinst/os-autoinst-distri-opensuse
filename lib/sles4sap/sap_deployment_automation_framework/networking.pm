@@ -311,6 +311,7 @@ sub assign_defined_network {
     my @lease_files;
     my $lease_file;
     my $count = 0;
+    my $num = 10;    # Exit the dead loop if exceed
     record_info('NET assign', "Searching for free networks older than $args{networks_older_than} seconds");
     while (!$lease_file) {
         $count++;
@@ -322,7 +323,6 @@ sub assign_defined_network {
         # Check if network resource associated with chosen lease file exists.
         if (deployer_peering_exists(addr_space => $lease_file . '/26', deployer_vnet_name => $args{deployer_vnet_name})) {
             $lease_file = 0;
-            my $num = 10;    # Exit the dead loop if exceed
             if ($count > $num) {
                 record_info("Debug: searched for $count times, more than $num times, return to create new network");
                 return;
@@ -334,7 +334,16 @@ sub assign_defined_network {
 
         # Attempt to acquire network file lease (update modification time)
         # This will prevent other tests from spending time checking this file since it is already taken.
-        return if !acquire_network_file_lease(network_lease_file => $lease_file);
+        if (!acquire_network_file_lease(network_lease_file => $lease_file)) {
+            $lease_file = 0;
+            if ($count > $num) {
+                record_info("Debug: searched for $count times, more than $num times, return to create new network");
+                return;
+            } else {
+                record_info("Debug: searched for $count times, less than $num times, continue to search old network");
+                next;
+            }
+        }
     }
     return $lease_file . '/26';    # Add /26 suffix
 }
