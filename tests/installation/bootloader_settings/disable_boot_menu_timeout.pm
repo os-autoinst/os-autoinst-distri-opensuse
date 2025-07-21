@@ -9,10 +9,15 @@
 use strict;
 use warnings;
 use base 'y2_installbase';
+use version_utils qw(is_bootloader_grub2);
 
 sub run {
     $testapi::distri->get_installation_settings()->access_booting_options();
-    $testapi::distri->get_bootloader_settings()->disable_grub_timeout();
+    if (is_bootloader_grub2) {
+        $testapi::distri->get_bootloader_settings()->disable_grub_timeout();
+    } else {
+        $testapi::distri->get_bootloader_settings()->bls_disable_timeout();
+    }
 }
 
 1;
