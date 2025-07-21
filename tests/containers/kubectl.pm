@@ -29,7 +29,7 @@ sub run {
     record_info("kubectl", $version);
     if ($version !~ /v\Q$k8s_version\E/) {
         # NOTE: Remove when bsc is resolved
-        if ($k8s_version eq "1.23" || $k8s_version eq "1.26") {
+        if (is_sle("<15-SP6") && ($k8s_version eq "1.23" || $k8s_version eq "1.26")) {
             record_soft_failure('bsc#1245087 - Installation of kubernetes-client 1.23 & 1.26 installs next available version instead');
             return;
         } else {
