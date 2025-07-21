@@ -91,6 +91,7 @@ sub run {
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
     if (get_var("FIPS_INSTALLATION")) {
+        install_fips;
         ensure_fips_enabled;
         record_info 'Kernel Mode', 'FIPS kernel mode (for global) configured!';
         return;
