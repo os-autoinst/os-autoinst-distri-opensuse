@@ -23,6 +23,7 @@ sub run {
         my $command = get_var('AGAMA_VERSION') == '16' ?
           "agama config load $profile_url" : "agama profile import $profile_url";
 
+        $command = "agama config load $profile_url";
         assert_script_run($command, timeout => 300);
     }
 
