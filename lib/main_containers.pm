@@ -168,6 +168,7 @@ sub load_host_tests_podman {
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
+    loadtest('containers/podmansh') if (is_tumbleweed && !is_staging && !is_transactional);
 }
 
 sub load_host_tests_docker {
