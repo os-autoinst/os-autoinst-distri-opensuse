@@ -24,6 +24,7 @@ use version_utils qw(is_agama is_upgrade);
 use Utils::Backends;
 use YuiRestClient;
 use ntlm_auth;
+use autoyast qw(parse_dud_parameter);
 
 our @EXPORT = qw(
   boot_pvm
@@ -137,7 +138,13 @@ sub enter_netboot_parameters {
         type_string_slow " " . get_var('EXTRABOOTPARAMS') . " " if (get_var('EXTRABOOTPARAMS'));
         # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
         type_string_slow " " . get_var('AGAMA_NETWORK_PARAMS') . " " if (get_var('AGAMA_NETWORK_PARAMS'));
-        type_string_slow " " . 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
+
+        # additional parameters requiring parsing
+        my $dud;
+        if (my $dud_line = get_var('INST_DUD')) {
+            $dud = parse_dud_parameter($dud_line);
+        }
+        type_string_slow $dud;
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
