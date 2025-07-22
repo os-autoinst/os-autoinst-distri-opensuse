@@ -1,0 +1,19 @@
+---
+disks:
+  - name: vdc
+    table_type: xfs
+    partitions:
+      # whole disk formatted
+      - name: vdc
+        fstype: xfs
+        type: disk
+  - name: vdd
+    table_type: gpt
+    partitions:
+      - name: vdd1
+        fstype: btrfs
+  - name: vda
+    table_type: gpt
+    partitions:
+      - name: vda1
+        fstype: vfat
