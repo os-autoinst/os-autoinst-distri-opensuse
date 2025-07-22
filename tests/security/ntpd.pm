@@ -10,8 +10,6 @@
 # fails when ntpd is installed.
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use services::ntpd;

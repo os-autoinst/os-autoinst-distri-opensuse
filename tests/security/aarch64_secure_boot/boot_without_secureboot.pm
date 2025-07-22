@@ -11,8 +11,6 @@
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use power_action_utils 'power_action';
 use bootloader_setup 'tianocore_disable_secureboot';

@@ -9,8 +9,6 @@
 # - import SUSE CA certificates
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';

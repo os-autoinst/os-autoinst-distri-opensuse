@@ -8,8 +8,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base qw(opensusebasetest x11test);
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use mmapi;

@@ -7,7 +7,6 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

@@ -8,8 +8,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_sle';
 

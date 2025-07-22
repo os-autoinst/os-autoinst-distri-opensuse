@@ -26,8 +26,6 @@ use utils qw(check_console_font disable_serial_getty zypper_call);
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
 use Utils::Logging 'export_logs';
-use strict;
-use warnings;
 
 
 sub run {

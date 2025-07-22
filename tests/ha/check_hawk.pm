@@ -8,8 +8,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster qw(get_cluster_name is_node prepare_console_for_fencing);

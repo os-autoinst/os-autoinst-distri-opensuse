@@ -8,8 +8,6 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#64902, tc#1742298
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

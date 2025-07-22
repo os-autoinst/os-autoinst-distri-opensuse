@@ -7,8 +7,6 @@
 # Maintainer: xgwang@suse.com
 
 package mitigation_perf;
-use strict;
-use warnings;
 use testapi;
 use base "consoletest";
 

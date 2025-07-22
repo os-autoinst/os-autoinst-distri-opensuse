@@ -9,10 +9,8 @@
 
 use base "consoletest";
 use services::apparmor;
-use strict;
 use testapi;
 use utils;
-use warnings;
 
 sub run {
     select_console 'root-console';

@@ -11,8 +11,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'bootbasetest';
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends;

@@ -10,9 +10,7 @@
 package run_perf_case;
 use base 'y2_installbase';
 use ipmi_backend_utils;
-use strict;
 use power_action_utils 'power_action';
-use warnings;
 use testapi;
 use File::Basename;
 use Utils::Backends 'use_ssh_serial_console';

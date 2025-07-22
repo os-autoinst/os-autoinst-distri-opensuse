@@ -7,8 +7,6 @@
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use warnings;
-use strict;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);

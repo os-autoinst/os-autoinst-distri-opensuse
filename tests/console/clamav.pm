@@ -21,8 +21,6 @@
 # Tags: TC1595169, poo#46880, poo#65375, poo#80182
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;

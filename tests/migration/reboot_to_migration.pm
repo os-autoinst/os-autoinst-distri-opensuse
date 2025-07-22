@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi qw(select_console set_var assert_script_run send_key assert_screen);
 use Utils::Architectures;
 use Utils::Backends 'is_pvm';

@@ -10,8 +10,6 @@
 use base "consoletest";
 use testapi;
 use utils;
-use strict;
-use warnings;
 use version_utils 'verify_os_version';
 use transactional 'process_reboot';
 

@@ -8,8 +8,6 @@
 
 use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
-use strict;
-use warnings;
 use testapi;
 use virt_utils;
 use virt_autotest::utils;

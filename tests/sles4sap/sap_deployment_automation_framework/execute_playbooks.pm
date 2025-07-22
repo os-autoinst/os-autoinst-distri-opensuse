@@ -8,8 +8,6 @@
 # Playbooks can be found in SDAF repo: https://github.com/Azure/sap-automation/tree/main/deploy/ansible
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-use strict;
-use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);

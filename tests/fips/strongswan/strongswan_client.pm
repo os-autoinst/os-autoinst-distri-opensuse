@@ -12,8 +12,6 @@
 
 use base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use version_utils qw(package_version_cmp is_sle);

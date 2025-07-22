@@ -6,8 +6,6 @@
 # Summary: virt_autotest: virtualization automation test in openqa, both kvm and xen supported
 # Maintainer: alice <xlai@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use base "reboot_and_wait_up";

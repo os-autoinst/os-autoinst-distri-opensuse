@@ -8,8 +8,6 @@
 # expected one.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use testapi;
 use base 'basetest';
 use scheduler 'get_test_suite_data';

@@ -13,8 +13,6 @@
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
 use base 'x11test';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

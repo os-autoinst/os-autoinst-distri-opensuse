@@ -9,8 +9,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use Mojo::JSON 'encode_json';
 use lockapi;
 use testapi;

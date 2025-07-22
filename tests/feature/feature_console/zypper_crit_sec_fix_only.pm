@@ -8,8 +8,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use registration;
 use utils;

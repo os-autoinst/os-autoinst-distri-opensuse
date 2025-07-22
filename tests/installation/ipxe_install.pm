@@ -8,8 +8,6 @@
 
 package ipxe_install;
 use base 'y2_installbase';
-use strict;
-use warnings;
 
 use utils;
 use testapi;

@@ -8,8 +8,6 @@ package reset_partition;
 # Maintainer: Leon Guo <xguo@suse.com>
 
 use base "virt_feature_test_base";
-use strict;
-use warnings;
 use testapi;
 use virt_utils;
 use ipmi_backend_utils;

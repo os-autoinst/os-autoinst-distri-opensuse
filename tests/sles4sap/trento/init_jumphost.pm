@@ -6,7 +6,6 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
-use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use trento 'get_trento_deployment';

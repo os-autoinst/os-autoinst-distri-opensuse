@@ -7,8 +7,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);

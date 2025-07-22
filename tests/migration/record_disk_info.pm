@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use migration 'record_disk_info';
 use serial_terminal qw(select_serial_terminal);

@@ -6,8 +6,6 @@
 # Summary: Check qe-sap-deployment health before start using it.
 # https://github.com/SUSE/qe-sap-deployment
 
-use strict;
-use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::utils;

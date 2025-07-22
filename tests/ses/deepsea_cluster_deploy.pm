@@ -7,8 +7,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);

@@ -9,8 +9,6 @@
 # Tags: tc#1503754
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

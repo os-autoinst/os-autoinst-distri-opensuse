@@ -63,8 +63,6 @@
 #
 
 package xen_domu_mitigation_test;
-use strict;
-use warnings;
 use base "consoletest";
 use bootloader_setup;
 use Mitigation;

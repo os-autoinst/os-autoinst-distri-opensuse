@@ -7,8 +7,6 @@ package update_package;
 # Summary: update_package: Update all packages and use real repo as guest installation source before test.
 # Maintainer: qe-virt@suse.com
 
-use strict;
-use warnings;
 use testapi;
 use base "virt_autotest_base";
 use utils 'is_uefi_boot';

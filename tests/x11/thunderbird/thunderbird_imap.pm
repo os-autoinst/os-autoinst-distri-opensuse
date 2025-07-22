@@ -14,8 +14,6 @@
 # - Exit thunderbird
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use warnings;
-use strict;
 use testapi;
 use utils;
 use lockapi qw(mutex_wait);

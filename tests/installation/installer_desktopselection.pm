@@ -8,8 +8,6 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use utils 'addon_products_is_applicable';
 use testapi;
 use version_utils 'is_leap';

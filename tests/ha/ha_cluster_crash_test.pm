@@ -18,8 +18,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster qw(check_cluster_state

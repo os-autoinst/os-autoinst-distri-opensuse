@@ -15,8 +15,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use x11utils 'handle_relogin';
 use version_utils qw(is_leap is_sle);

@@ -5,8 +5,6 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use serial_terminal 'select_serial_terminal';
 use transactional 'process_reboot';

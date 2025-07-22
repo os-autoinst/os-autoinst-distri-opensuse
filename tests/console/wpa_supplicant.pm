@@ -23,8 +23,6 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use registration 'is_phub_ready';
 use version_utils;

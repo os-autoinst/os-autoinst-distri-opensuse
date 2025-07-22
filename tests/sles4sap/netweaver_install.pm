@@ -14,8 +14,6 @@ use lockapi;
 use hacluster;
 use utils qw(zypper_call);
 use version_utils qw(is_sle);
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

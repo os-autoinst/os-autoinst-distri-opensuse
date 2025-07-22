@@ -10,8 +10,6 @@
 use base 'consoletest';
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
-use strict;
-use warnings;
 use testapi;
 use utils;
 use lynis::lynistest;

@@ -16,8 +16,6 @@ use Utils::Logging 'save_and_upload_log';
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils 'is_sle';
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;

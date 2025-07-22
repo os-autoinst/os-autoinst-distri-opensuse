@@ -7,8 +7,6 @@
 # Summary: Print and save diffs between two containers using container-diff tool
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

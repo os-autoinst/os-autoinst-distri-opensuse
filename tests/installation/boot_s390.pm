@@ -9,8 +9,6 @@
 use base "installbasetest";
 
 use testapi;
-use strict;
-use warnings;
 
 use backend::console_proxy;
 

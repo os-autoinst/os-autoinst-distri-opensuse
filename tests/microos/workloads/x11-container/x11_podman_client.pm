@@ -7,8 +7,6 @@
 # Summary: install and verify x11 container.
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
-use warnings;
-use strict;
 use testapi;
 use lockapi;
 use base 'x11test';

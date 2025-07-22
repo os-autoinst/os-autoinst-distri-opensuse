@@ -12,8 +12,6 @@
 #           - with UEFI (secureboot enabled by default)
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use bootloader_setup qw(stop_grub_timeout boot_grub_item grub_mkconfig);

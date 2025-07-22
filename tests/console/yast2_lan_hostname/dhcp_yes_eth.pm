@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'yast2_lan_hostname_base';
-use strict;
-use warnings;
 use testapi;
 use scheduler qw(get_test_suite_data);
 use YaST::Module;

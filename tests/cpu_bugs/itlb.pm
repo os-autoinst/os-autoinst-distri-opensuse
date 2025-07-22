@@ -8,13 +8,10 @@
 
 package itlb;
 
-use strict;
-use warnings;
 
 
 use base "consoletest";
 use bootloader_setup;
-use strict;
 use testapi;
 use utils;
 use power_action_utils 'power_action';

@@ -8,8 +8,6 @@
 # Tags: poo#96049
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Architectures qw(is_s390x);

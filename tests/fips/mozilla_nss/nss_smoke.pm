@@ -7,8 +7,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 #             QE Security
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use version_utils qw(is_sle is_transactional);

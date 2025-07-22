@@ -14,8 +14,6 @@
 # all QEMU-backed tests will be executed at the end until all physical machine tests are completed.
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
 use Mitigation;
 use base "consoletest";
 use bootloader_setup;

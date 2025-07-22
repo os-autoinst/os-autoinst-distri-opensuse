@@ -7,8 +7,6 @@
 # Summary: Rails test - just installing and starting server
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 

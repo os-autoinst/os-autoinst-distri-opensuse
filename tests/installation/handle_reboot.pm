@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use grub_utils qw(grub_test);
 use testapi;
 use Utils::Architectures;

@@ -12,8 +12,6 @@
 
 use base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use mmapi qw(wait_for_children get_children);

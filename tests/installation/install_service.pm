@@ -4,8 +4,6 @@
 # Summary: Installs and checks a service for migration scenarios
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
-use strict;
-use warnings;
 use base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

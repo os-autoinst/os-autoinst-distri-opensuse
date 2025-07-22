@@ -18,8 +18,6 @@
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "y2_module_guitest";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_sle);
 use YaST::workarounds;

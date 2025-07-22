@@ -8,8 +8,6 @@
 
 use base 'sles4sap';
 use testapi;
-use strict;
-use warnings;
 use hacluster qw(get_my_ip);
 use registration;
 use utils qw(zypper_call systemctl);

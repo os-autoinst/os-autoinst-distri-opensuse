@@ -9,8 +9,6 @@
 # Tags: https://progress.opensuse.org/issues/49901
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use upload_system_log 'upload_supportconfig_log';
 

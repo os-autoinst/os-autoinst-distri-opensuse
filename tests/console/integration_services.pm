@@ -9,8 +9,6 @@
 use base 'consoletest';
 use testapi;
 use utils 'integration_services_check';
-use strict;
-use warnings;
 
 sub run {
     select_console 'root-console';

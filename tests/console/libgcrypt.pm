@@ -15,8 +15,6 @@
 use base "opensusebasetest";
 use testapi;
 use utils;
-use strict;
-use warnings;
 use version_utils qw(is_sle is_opensuse);
 use registration;
 

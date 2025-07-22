@@ -9,8 +9,6 @@
 # Tags: poo#112028
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use base 'consoletest';
 use testapi;
 

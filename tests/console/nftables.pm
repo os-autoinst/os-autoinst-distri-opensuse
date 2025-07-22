@@ -7,8 +7,6 @@
 # Summary: Test nftables with firewalld
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

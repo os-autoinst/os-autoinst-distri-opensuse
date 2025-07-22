@@ -7,8 +7,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use testapi;
 use hacluster;
 use utils 'systemctl';

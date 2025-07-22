@@ -10,8 +10,6 @@
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_sle';
 

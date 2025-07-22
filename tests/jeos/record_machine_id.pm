@@ -7,8 +7,6 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 
 sub run {

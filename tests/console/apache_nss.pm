@@ -7,8 +7,6 @@
 # - calls setup_apache2 with mode = NSS (lib/apachetest.pm)
 # Maintainer: Ben Chou <BChou@suse.com>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

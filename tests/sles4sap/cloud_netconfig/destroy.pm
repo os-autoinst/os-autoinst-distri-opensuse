@@ -4,8 +4,6 @@
 # Summary: destroy all the resources in the cloud
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';

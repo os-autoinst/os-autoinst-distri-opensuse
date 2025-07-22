@@ -6,8 +6,6 @@
 
 use base 'y2_installbase';
 use testapi 'get_var';
-use strict;
-use warnings;
 
 sub run {
     my $product_selection = $testapi::distri->get_product_selection();

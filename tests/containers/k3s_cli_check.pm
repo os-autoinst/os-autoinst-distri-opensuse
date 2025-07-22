@@ -12,8 +12,6 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle_micro';
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;

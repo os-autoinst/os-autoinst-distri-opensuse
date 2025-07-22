@@ -11,8 +11,6 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils 'zypper_call';
 use version_utils qw(is_tumbleweed is_leap is_sle is_transactional);
 use transactional qw(trup_call process_reboot);

@@ -7,8 +7,6 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

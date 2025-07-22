@@ -9,8 +9,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils 'get_x11_console_tty';
 

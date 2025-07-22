@@ -8,8 +8,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'addpart';

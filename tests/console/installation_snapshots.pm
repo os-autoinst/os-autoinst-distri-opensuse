@@ -12,8 +12,6 @@
 # Tags: fate#317973, bsc#935923
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal;
 use version_utils qw(is_jeos is_sle);

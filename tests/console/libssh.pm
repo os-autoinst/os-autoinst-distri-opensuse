@@ -26,8 +26,6 @@
 
 package libssh;
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Utils::Systemd 'disable_and_stop_service';

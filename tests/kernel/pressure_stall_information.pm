@@ -7,8 +7,6 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';

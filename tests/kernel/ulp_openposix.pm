@@ -6,8 +6,6 @@
 # Summary: Install glibc livepatch and run openposix testsuite
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;

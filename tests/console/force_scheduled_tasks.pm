@@ -15,8 +15,6 @@
 # Tags: bsc#1017461, bsc#1063638
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';

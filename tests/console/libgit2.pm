@@ -11,8 +11,6 @@
 # Maintainer: QE Core <qe-core@suse.com>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap);

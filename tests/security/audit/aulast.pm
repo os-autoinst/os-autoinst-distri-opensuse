@@ -6,8 +6,6 @@
 # Tags: poo#81772, tc#1768581
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_tumbleweed);

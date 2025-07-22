@@ -10,7 +10,6 @@
 
 package hana_sr_schedule_replica_tests;
 
-use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;

@@ -10,8 +10,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

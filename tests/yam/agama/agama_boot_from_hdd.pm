@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
-use strict;
-use warnings;
 
 sub run {
     my $grub_menu = $testapi::distri->get_grub_menu_agama();

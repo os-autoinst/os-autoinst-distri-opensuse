@@ -13,8 +13,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'sles4sap';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace zypper_call);

@@ -9,9 +9,7 @@
 use base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use version_utils;
 use publiccloud::utils;

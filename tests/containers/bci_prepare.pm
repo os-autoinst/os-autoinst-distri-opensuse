@@ -19,8 +19,6 @@
 #   repository defined by BCI_TESTS_REPO.
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);

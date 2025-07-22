@@ -6,8 +6,6 @@
 # Tags: poo#70345, poo#106020, tc#1167579
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use base 'consoletest';
 use utils qw(clear_console ensure_serialdev_permissions);

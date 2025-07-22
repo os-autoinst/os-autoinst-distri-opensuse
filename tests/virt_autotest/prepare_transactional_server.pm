@@ -12,8 +12,6 @@
 package prepare_transactional_server;
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use transactional;
 use utils;

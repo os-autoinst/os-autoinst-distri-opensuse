@@ -23,8 +23,6 @@
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'has_selinux';

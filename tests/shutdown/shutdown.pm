@@ -5,8 +5,6 @@
 # - Poweroff system
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use power_action_utils qw(power_action check_bsc1215132);

@@ -15,8 +15,6 @@ use testapi;
 use utils;
 use Utils::Backends;
 use Utils::Architectures;
-use strict;
-use warnings;
 use Utils::Logging 'tar_and_upload_log';
 
 sub run {

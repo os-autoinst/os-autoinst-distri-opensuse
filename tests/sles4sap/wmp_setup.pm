@@ -13,8 +13,6 @@ use Utils::Systemd qw(systemctl);
 use version_utils qw(is_sle);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use hacluster qw(get_hostname);
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

@@ -4,8 +4,6 @@
 # Summary: create a deployment with a single VM on Microsoft Azure cloud.
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use sles4sap::cloud_zypper_patch;
 use testapi;

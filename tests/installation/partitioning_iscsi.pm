@@ -9,8 +9,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use partition_setup 'take_first_disk';
 

@@ -17,8 +17,6 @@ use base "consoletest";
 use testapi;
 use utils;
 use utils "zypper_call";
-use strict;
-use warnings;
 use registration qw(add_suseconnect_product cleanup_registration register_product);
 
 sub run {

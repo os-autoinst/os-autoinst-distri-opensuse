@@ -6,8 +6,6 @@
 # Summary: This module install and test tvm
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

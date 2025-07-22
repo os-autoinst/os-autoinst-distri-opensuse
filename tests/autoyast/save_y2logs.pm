@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 
-use strict;
-use warnings;
 use parent 'y2_module_consoletest';
 use testapi;
 

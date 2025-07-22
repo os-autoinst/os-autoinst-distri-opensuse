@@ -6,8 +6,6 @@
 # Summary: Support installation testing of SLE 12 with unreleased maint updates
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 use qam 'advance_installer_window';

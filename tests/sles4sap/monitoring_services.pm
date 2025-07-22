@@ -9,8 +9,6 @@
 use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use lockapi;
 use Utils::Systemd qw(systemctl);
 use utils qw(file_content_replace zypper_call);

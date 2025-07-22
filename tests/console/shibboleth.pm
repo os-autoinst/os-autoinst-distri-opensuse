@@ -14,8 +14,6 @@
 # Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

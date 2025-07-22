@@ -14,8 +14,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils qw(is_sle is_sle_micro is_transactional is_tumbleweed);
 use security::openssl_misc_utils;

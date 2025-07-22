@@ -8,8 +8,6 @@
 # Tags: poo#94450, poo#106816
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

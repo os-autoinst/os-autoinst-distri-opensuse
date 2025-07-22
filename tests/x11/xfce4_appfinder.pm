@@ -8,8 +8,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'x11test';
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_tumbleweed is_leap);
 use x11utils 'desktop_runner_hotkey';

@@ -14,8 +14,6 @@
 # Tags: poo#104181 tc#1769990
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use base 'consoletest';
 use utils qw(zypper_call package_upgrade_check);

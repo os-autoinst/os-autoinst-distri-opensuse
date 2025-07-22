@@ -8,8 +8,6 @@
 # Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

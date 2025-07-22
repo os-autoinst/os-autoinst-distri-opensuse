@@ -14,8 +14,6 @@
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 
-use strict;
-use warnings;
 
 use base "x11test";
 use testapi;

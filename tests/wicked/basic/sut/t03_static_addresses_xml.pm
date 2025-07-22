@@ -11,8 +11,6 @@
 
 
 use base 'wickedbase';
-use strict;
-use warnings;
 use testapi;
 use utils 'file_content_replace';
 
