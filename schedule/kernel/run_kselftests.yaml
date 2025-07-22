@@ -4,6 +4,7 @@ description:    >
 schedule:
     - '{{boot}}'
     - boot/boot_to_desktop
+    - kernel/install_ltp
     - kernel/run_kselftests
     - shutdown/shutdown
 

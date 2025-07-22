@@ -22,6 +22,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
+use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
+use power_action_utils 'power_action';
 
 sub prepare_kselftests_from_git
 {
@@ -72,6 +74,10 @@ sub run
 {
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
+    #add_grub_cmdline_settings('console=ttyS0,115200', update_grub => 1);
+    #add_custom_grub_entries;
+    #power_action('reboot', textmode => 1, keepconsole => 1);
+    #select_serial_terminal;
 
     my $kselftest_git = get_var('KSELFTEST_FROM_GIT', 0);
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
