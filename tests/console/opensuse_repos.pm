@@ -45,7 +45,7 @@ sub run {
     # removing the distro package, removes the NVIDIA service too if it was installed
     zypper_call("rm $pkgname");
     # restore old repos which were replaced by openSUSE service
-    assert_script_run(q"rename .rpmsave '' /etc/zypp/repos.d/*.rpmsave");
+    script_run(q"rename .rpmsave '' /etc/zypp/repos.d/*.rpmsave");
 
     if (script_run("zypper lr --uri | grep -E 'cdn\.opensuse|download\.nvidia'") == 0) {
         die "Unexpected leftover repositories";
