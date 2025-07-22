@@ -73,6 +73,7 @@
       <li><a href="#crm_resource_locate">crm_resource_locate</a></li>
       <li><a href="#crm_resource_meta_show">crm_resource_meta_show</a></li>
       <li><a href="#crm_resource_meta_set">crm_resource_meta_set</a></li>
+      <li><a href="#crm_list_options">crm_list_options</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -627,6 +628,42 @@
 
 </li>
 <li><p><b>argument_value</b>: Meta-argument value. If <b>undef</b>, meta argument will be removed.</p>
+
+</li>
+</ul>
+
+<h2 id="crm_list_options">crm_list_options</h2>
+
+<pre><code>my $ret = crm_list_options();</code></pre>
+
+<p>Executes a series of <code>crm</code> commands to list metadata options for different resource types (primitive, fencing, cluster attributes) and validates that their XML output is well-formed. This function is designed to test a new feature in <code>crmsh</code> version 5.0.0 and newer, which provides a CLI interface to query resource meta-attributes.</p>
+
+<p>The function will execute the following commands:</p>
+
+<ul>
+
+<li><p><code>crm_resource --list-options primitive --output-as xml</code></p>
+
+</li>
+<li><p><code>crm_resource --list-options fencing --output-as xml</code></p>
+
+</li>
+<li><p><code>crm_attribute --list-options cluster --all --output-as=xml</code></p>
+
+</li>
+</ul>
+
+<p><b>Return values:</b></p>
+
+<ul>
+
+<li><p><b>1</b>: All commands executed successfully and their XML output was valid.</p>
+
+</li>
+<li><p><b>0</b>: The installed <code>crmsh</code> version is older than 5.0.0. The function performs no operation.</p>
+
+</li>
+<li><p><b>-1</b>: At least one of the commands produced output that was not valid XML.</p>
 
 </li>
 </ul>
