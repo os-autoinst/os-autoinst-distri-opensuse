@@ -1544,7 +1544,7 @@ B<Arguments:>
 sub az_validate_uuid_pattern {
     my (%args) = @_;
     croak "Mandatory argument 'uuid' missing" unless $args{uuid};
-    my $pattern = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+    my $pattern = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
     return $args{uuid} if ($args{uuid} =~ /$pattern/i);
     diag("String did not match UUID pattern:\nString: '$args{uuid}'\nPattern: '$pattern'");
     return undef;
