@@ -7,8 +7,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use serial_terminal 'select_serial_terminal';

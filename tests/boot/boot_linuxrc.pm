@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "bootbasetest";
-use strict;
-use warnings;
 use testapi;
 use bootloader_setup qw(select_bootmenu_more ensure_shim_import);
 

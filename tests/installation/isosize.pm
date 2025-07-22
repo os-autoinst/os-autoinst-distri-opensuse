@@ -9,8 +9,6 @@
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base "basetest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

@@ -14,8 +14,6 @@
 #
 # Maintainer: Klaus G. Wagner <kgw@suse.com>
 
-use strict;
-use warnings;
 use base 'basetest';
 use lockapi;
 use testapi;    # sub autoinst_url()

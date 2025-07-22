@@ -17,8 +17,6 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 

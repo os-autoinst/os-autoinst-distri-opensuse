@@ -5,8 +5,6 @@
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
 use base qw(opensusebasetest);
-use strict;
-use warnings;
 
 use testapi;
 use power_action_utils qw(power_action);

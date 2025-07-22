@@ -9,8 +9,6 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_staging';
 use utils 'zypper_call';

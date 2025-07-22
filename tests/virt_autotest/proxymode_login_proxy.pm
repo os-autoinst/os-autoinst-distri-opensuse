@@ -6,8 +6,6 @@
 # Summary: proxymode_login_proxy: Login to Physical machine thru Proxy machine with ipmitool.
 # Maintainer: John <xgwang@suse.com>
 
-use strict;
-use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;

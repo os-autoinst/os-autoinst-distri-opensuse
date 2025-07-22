@@ -10,8 +10,6 @@
 # - upload configuration
 # Maintainer: An Long <lan@suse.com>
 
-use warnings;
-use strict;
 use base "opensusebasetest";
 use testapi;
 use utils;

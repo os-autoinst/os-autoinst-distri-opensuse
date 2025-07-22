@@ -11,8 +11,6 @@
 #      * Complete lifecycle (create, start, pause, resume, kill, delete)
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use transactional 'trup_install';

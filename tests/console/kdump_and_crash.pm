@@ -8,8 +8,6 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use base "y2_module_consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use kdump_utils;

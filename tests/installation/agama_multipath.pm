@@ -5,8 +5,6 @@
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use base "installbasetest";
-use strict;
-use warnings;
 
 use testapi;
 

@@ -22,8 +22,6 @@
 # - Create locks for each server created
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
-use strict;
-use warnings;
 use base 'basetest';
 use lockapi;
 use testapi;

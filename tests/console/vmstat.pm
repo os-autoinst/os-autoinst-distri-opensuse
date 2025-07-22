@@ -16,8 +16,6 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
 use POSIX;
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use List::Util qw(min);

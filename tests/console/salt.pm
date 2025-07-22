@@ -19,8 +19,6 @@
 # Tags: fate#318875, fate#320919
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call quit_packagekit systemctl);

@@ -16,8 +16,6 @@
 # Tags: poo#102038, poo#107485
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_leap is_sle is_tumbleweed);

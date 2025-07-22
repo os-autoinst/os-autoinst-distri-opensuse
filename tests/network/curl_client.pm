@@ -10,8 +10,6 @@
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
 use base "consoletest";
-use warnings;
-use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

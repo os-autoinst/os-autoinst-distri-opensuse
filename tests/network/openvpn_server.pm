@@ -22,8 +22,6 @@ use utils qw(systemctl zypper_call exec_and_insert_password script_retry);
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'add_qa_head_repo';
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
-use strict;
-use warnings;
 use Utils::Architectures;
 use network_utils 'iface';
 

@@ -8,8 +8,6 @@
 # Tags: poo#110233, tc#1769967, poo#112094
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Architectures;

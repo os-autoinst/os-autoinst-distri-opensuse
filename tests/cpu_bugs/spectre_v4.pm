@@ -6,8 +6,6 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 package spectre_v4;
-use strict;
-use warnings;
 
 use base "consoletest";
 use bootloader_setup;

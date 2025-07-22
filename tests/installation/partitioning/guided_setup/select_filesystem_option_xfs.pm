@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'y2_installbase';
-use strict;
-use warnings;
 
 sub run {
     $testapi::distri->get_filesystem_options()->select_root_filesystem_type('xfs');

@@ -9,8 +9,6 @@
 use base 'consoletest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use containers::urls 'get_opensuse_registry_prefix';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 

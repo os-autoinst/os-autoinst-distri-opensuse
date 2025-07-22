@@ -8,8 +8,6 @@
 # Maintainer: qe-core team <qe-core@suse.de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_log';

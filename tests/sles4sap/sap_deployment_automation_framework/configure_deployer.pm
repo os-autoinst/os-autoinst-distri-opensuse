@@ -16,8 +16,6 @@
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use strict;
-use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);

@@ -10,8 +10,6 @@
 use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use version_utils 'is_upgrade';
 
 sub run {

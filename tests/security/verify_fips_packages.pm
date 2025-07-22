@@ -6,8 +6,6 @@
 # Tag: poo#125702
 
 use base "basetest";
-use strict;
-use warnings;
 use version;
 use testapi;
 use serial_terminal 'select_serial_terminal';

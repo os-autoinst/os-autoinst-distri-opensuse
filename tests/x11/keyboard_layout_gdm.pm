@@ -9,8 +9,6 @@
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';

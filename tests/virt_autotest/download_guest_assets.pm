@@ -8,8 +8,6 @@
 # Maintainer: Julie CAO <jcao@suse.com>
 package download_guest_assets;
 
-use strict;
-use warnings;
 use base "virt_autotest_base";
 use testapi;
 use virt_utils;

@@ -7,8 +7,6 @@
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use bootloader_setup 'boot_grub_item';
 use x11utils 'handle_login';

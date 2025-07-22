@@ -9,7 +9,6 @@
 # HA_SBD_START_DELAY (optional) - Sets SBD start delay in /etc/sysconfig/sbd
 # DB_ACTION (optional) - Action to be done on the database to simulate failure - check lib/sles4sap_publiccloud "stop_hana" function
 
-use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;

@@ -7,8 +7,6 @@
 # Summary: Add repo into QEMU
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
 use base "consoletest";
 use bootloader_setup;
 use ipmi_backend_utils;

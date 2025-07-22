@@ -7,8 +7,6 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use qam;
 use transactional;

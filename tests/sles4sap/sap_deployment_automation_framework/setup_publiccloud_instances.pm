@@ -7,8 +7,6 @@
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use warnings;
-use strict;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);

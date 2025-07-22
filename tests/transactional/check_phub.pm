@@ -11,8 +11,6 @@
 
 package check_phub;
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use transactional qw(trup_call check_reboot_changes);
 

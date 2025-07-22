@@ -10,9 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);

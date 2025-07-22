@@ -27,8 +27,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "saltbase";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

@@ -8,8 +8,6 @@
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use Utils::Backends;
 use version_utils qw(is_storage_ng is_sle);

@@ -18,8 +18,6 @@
 # Step 9: Finish
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 
 use testapi;

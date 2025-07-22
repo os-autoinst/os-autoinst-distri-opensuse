@@ -11,8 +11,6 @@
 
 use base "consoletest";
 use testapi;
-use strict;
-use warnings;
 use apachetest;
 use utils 'clear_console';
 

@@ -9,8 +9,6 @@
 
 use base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use mmapi;

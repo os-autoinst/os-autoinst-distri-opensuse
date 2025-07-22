@@ -10,8 +10,6 @@
 
 use base 'y2_module_guitest';
 use y2_base;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

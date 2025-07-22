@@ -8,8 +8,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use parent "y2_module_consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils ':VERSION';

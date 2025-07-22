@@ -15,8 +15,6 @@
 # Maintainer: mloviska <mloviska@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Systemd 'systemctl';

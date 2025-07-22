@@ -14,8 +14,6 @@
 # - Exit evolution
 # Maintainer: Zhaocong Jia <zcjia@suse.com>
 
-use strict;
-use warnings;
 use base "x11test";
 use testapi;
 use utils;

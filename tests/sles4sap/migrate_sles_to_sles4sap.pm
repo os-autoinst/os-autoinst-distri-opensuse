@@ -11,8 +11,6 @@
 #       script does a roll back to SLES.
 
 use base 'sles4sap';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

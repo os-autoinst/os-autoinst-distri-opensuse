@@ -10,8 +10,6 @@
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use registration;

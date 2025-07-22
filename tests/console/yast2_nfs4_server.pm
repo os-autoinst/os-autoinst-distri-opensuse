@@ -18,8 +18,6 @@
 
 use base "y2_module_consoletest";
 
-use strict;
-use warnings;
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;

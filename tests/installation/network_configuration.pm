@@ -8,8 +8,6 @@
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use registration 'assert_registration_screen_present';
 

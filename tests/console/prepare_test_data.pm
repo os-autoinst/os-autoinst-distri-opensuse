@@ -14,8 +14,6 @@ use base "consoletest";
 use testapi;
 use utils;
 use Utils::Backends;
-use strict;
-use warnings;
 use version_utils 'is_public_cloud';
 
 sub run {

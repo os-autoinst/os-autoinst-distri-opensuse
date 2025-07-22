@@ -5,8 +5,6 @@
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use y2_module_basetest;

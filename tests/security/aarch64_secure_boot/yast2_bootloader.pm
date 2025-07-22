@@ -10,8 +10,6 @@
 use base 'opensusebasetest';
 use base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';

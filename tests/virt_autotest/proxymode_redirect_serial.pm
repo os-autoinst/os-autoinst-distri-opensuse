@@ -6,8 +6,6 @@
 # Summary: proxymode_redirect_serial1: Setup a channel which redirects Physical machine serial output to Proxy machine standard output.
 # Maintainer: John <xgwang@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 sub run {
     my $self = shift;

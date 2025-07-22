@@ -6,8 +6,6 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#107488, tc#1769799, poo#112241
 
-use strict;
-use warnings;
 use base qw(consoletest opensusebasetest);
 use testapi;
 use utils qw(quit_packagekit zypper_call);

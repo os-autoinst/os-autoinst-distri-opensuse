@@ -13,8 +13,6 @@
 #      poo#80754, poo#104314, poo#104989, poo#105343
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Architectures;

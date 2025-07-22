@@ -7,8 +7,6 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: fate#321738
 
-use strict;
-use warnings;
 use base "consoletest";
 use utils;
 use testapi;

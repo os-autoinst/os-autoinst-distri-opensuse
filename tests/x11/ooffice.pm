@@ -12,8 +12,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils 'type_string_very_slow';
 

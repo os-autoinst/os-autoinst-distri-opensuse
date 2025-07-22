@@ -7,8 +7,6 @@
 # Summary: Check that health-check service works correctly
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

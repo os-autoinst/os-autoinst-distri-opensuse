@@ -9,8 +9,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster qw(choose_node

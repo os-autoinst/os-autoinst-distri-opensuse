@@ -4,8 +4,6 @@
 # Summary: Deployment steps for qe-sap-deployment
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use sles4sap_publiccloud;
 use qam;

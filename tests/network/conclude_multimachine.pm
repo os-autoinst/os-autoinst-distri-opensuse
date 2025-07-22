@@ -7,8 +7,6 @@
 # Maintainer: Marius Kittler <mkittler@suse.de>
 
 use base 'basetest';
-use strict;
-use warnings;
 use testapi;
 use mmapi;
 

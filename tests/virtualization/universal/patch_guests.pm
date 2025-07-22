@@ -8,8 +8,6 @@
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
-use warnings;
-use strict;
 use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;

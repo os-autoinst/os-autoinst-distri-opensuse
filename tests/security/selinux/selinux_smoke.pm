@@ -10,8 +10,6 @@
 # Tags: poo#40361, tc#1682591
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

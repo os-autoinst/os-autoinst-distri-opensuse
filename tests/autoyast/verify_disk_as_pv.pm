@@ -9,8 +9,6 @@
 #          is used for LVM group with root and swap logical volumes.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'basetest';
 use testapi;
 

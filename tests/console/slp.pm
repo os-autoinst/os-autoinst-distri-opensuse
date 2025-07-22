@@ -16,8 +16,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';

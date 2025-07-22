@@ -7,8 +7,6 @@
 # Maintainer: QA SLE YaST <qa-sle-yast@suse.com>
 
 use base 'y2_module_consoletest';
-use strict;
-use warnings;
 use testapi;
 use registration;
 use version_utils 'is_sle';

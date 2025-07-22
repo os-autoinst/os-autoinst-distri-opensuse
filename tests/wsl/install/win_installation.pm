@@ -9,8 +9,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "windowsbasetest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

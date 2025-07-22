@@ -9,8 +9,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "locale";
-use strict;
-use warnings;
 use testapi;
 
 

@@ -8,8 +8,6 @@
 # Maintainer: qe-virt@suse.de, Xiaoli Ai<xlai@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 
 sub run {

@@ -13,8 +13,6 @@
 use base "sles4sap";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use version_utils qw(is_sle);
 use utils qw(zypper_call script_retry);
 use hacluster qw(is_package_installed);

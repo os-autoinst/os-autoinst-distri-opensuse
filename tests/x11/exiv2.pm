@@ -13,8 +13,6 @@
 # Maintainer: João Walter Bruno Filho <bfilho@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

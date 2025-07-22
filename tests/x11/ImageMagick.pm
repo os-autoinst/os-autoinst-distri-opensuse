@@ -20,8 +20,6 @@
 # Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

@@ -12,8 +12,6 @@
 # Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

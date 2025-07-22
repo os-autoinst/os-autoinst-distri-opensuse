@@ -9,8 +9,6 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "y2_module_consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures 'is_aarch64';

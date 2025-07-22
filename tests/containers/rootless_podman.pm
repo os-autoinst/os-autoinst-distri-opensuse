@@ -15,8 +15,6 @@
 # - Restore /etc/zypp/credentials.d/ credentials
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal;

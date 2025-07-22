@@ -7,8 +7,6 @@
 #          mr_test repo: https://gitlab.suse.de/qa/mr_test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
 
-use strict;
-use warnings;
 use base 'sles4sap';
 use autotest;
 use testapi;

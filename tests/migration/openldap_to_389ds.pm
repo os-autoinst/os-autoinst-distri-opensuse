@@ -9,8 +9,6 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use Utils::Systemd qw(systemctl);
 use version_utils;

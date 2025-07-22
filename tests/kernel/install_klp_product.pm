@@ -9,8 +9,6 @@
 # Maintainer: Nicolai Stange <nstange@suse.de>
 
 use 5.018;
-use warnings;
-use strict;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

@@ -6,8 +6,6 @@
 # Summary: Clone an openQA job from O3
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 

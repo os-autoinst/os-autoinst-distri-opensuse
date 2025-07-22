@@ -8,8 +8,6 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_jeos);
 use serial_terminal qw(select_serial_terminal);

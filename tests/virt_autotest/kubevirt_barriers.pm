@@ -7,8 +7,6 @@
 # Maintainer: Nan Zhang <nan.zhang@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 

@@ -8,8 +8,6 @@ package qa_run;
 # Summary: base class for qa_automation tests in openQA
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use registration 'add_suseconnect_product';

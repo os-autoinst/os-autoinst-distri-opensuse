@@ -9,8 +9,6 @@
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(quit_packagekit zypper_call);
 

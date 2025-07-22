@@ -15,8 +15,6 @@ use utils;
 use version_utils qw(is_sle is_upgrade);
 use main_common 'is_updates_tests';
 use registration qw(add_suseconnect_product);
-use strict;
-use warnings;
 
 sub run {
     my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");

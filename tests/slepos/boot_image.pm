@@ -7,8 +7,6 @@
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use base "basetest";
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils;

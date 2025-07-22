@@ -15,8 +15,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use network_utils qw(iface set_nic_dhcp_auto reload_connections_until_all_ips_assigned delete_all_existing_connections);

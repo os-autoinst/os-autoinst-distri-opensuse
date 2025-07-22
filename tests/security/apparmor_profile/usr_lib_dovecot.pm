@@ -16,8 +16,6 @@
 # Tags: poo#46235, tc#1695943, poo#46238, tc#1695947
 
 use base "apparmortest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);

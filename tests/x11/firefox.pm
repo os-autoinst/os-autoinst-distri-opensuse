@@ -13,8 +13,6 @@
 
 package firefox;
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_opensuse is_tumbleweed);
 use Utils::Architectures 'is_s390x';

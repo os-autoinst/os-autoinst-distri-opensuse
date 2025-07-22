@@ -12,8 +12,6 @@
 # - Check mariadb service status
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

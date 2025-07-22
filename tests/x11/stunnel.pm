@@ -9,8 +9,6 @@
 # Tags: TC1595152
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils;

@@ -13,8 +13,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use apachetest;
 use version_utils qw (is_sle is_sle_micro is_transactional package_version_cmp);
 use security::openssl_misc_utils;

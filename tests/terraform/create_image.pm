@@ -9,9 +9,7 @@
 
 
 use base 'opensusebasetest';
-use strict;
 use testapi;
-use warnings;
 use utils 'systemctl';
 use version_utils qw(is_sle is_tumbleweed is_leap);
 

@@ -9,8 +9,6 @@
 # Maintainer: Cris Dywan <cdywan@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(zypper_call);
 use Utils::Architectures 'is_aarch64';

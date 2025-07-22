@@ -11,8 +11,6 @@
 # Tags: poo#9694
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use x11utils qw(handle_login handle_logout handle_welcome_screen);

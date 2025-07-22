@@ -8,8 +8,6 @@
 
 package setup_kvm_container;
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use alp_workloads::kvm_workload_utils qw(set_kvm_container_image clean_and_resetup_kvm_container collect_kvm_container_setup_logs);
 use virt_autotest::utils qw(download_vm_import_disks);

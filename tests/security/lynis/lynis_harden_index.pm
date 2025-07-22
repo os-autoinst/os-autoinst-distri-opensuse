@@ -7,8 +7,6 @@
 # Tags: poo#78224, poo#78230
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use lynis::lynistest;

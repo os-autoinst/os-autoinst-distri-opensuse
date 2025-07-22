@@ -9,8 +9,6 @@
 
 use parent "y2_module_consoletest";
 
-use strict;
-use warnings;
 use utils;
 use testapi;
 use repo_tools;

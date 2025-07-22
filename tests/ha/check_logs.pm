@@ -8,8 +8,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster qw(get_cluster_name ha_export_logs);

@@ -15,8 +15,6 @@
 # Tags: https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
 use base 'x11test';
-use strict;
-use warnings;
 use testapi;
 use utils 'type_string_slow';
 

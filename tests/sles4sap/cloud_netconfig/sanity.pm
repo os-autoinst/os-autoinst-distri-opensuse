@@ -4,8 +4,6 @@
 # Summary: Check that deployed resource in the cloud are as expected
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
-use strict;
-use warnings;
 use Mojo::JSON qw(decode_json);
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

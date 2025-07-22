@@ -10,8 +10,6 @@
 # Tags: poo#71740 bsc#1176714
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_tumbleweed';

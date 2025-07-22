@@ -7,8 +7,6 @@
 # Maintainer:  QE Core <qe-core@suse.de>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use utils qw(set_hostname);
 use testapi;
 use lockapi;

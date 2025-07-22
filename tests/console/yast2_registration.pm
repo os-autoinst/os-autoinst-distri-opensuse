@@ -20,8 +20,6 @@
 
 use base "opensusebasetest";
 
-use strict;
-use warnings;
 use testapi;
 use registration;
 use utils 'zypper_call';

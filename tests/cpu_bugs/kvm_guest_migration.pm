@@ -6,8 +6,6 @@
 # Summary: KVM Guest install under the mitigation enable/disable
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
 use base "consoletest";
 use Mitigation;
 use bootloader_setup;

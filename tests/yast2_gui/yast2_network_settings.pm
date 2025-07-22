@@ -12,8 +12,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
-use strict;
-use warnings;
 use testapi;
 use y2_module_basetest 'is_network_manager_default';
 use version_utils 'is_sle';

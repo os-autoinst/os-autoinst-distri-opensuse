@@ -8,8 +8,6 @@
 # Maintainer: Richard Brown <rbrown@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use transactional;
 use utils;

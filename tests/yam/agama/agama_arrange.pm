@@ -5,8 +5,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::patch_agama_base;
-use strict;
-use warnings;
 use testapi;
 
 sub set_agama_version {

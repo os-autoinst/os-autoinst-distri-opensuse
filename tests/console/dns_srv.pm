@@ -10,8 +10,6 @@
 # - verify that the dns server responds
 # Maintainer: sysrich <RBrownCCB@opensuse.org>
 
-use strict;
-use warnings;
 use base "consoletest";
 use serial_terminal 'select_serial_terminal';
 use testapi;
