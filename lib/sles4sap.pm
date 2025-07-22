@@ -1162,7 +1162,7 @@ sub prepare_swpm {
     my $sapinst_executable = "$target_path/sapinst";
 
     assert_script_run("mkdir -p $target_path");
-    assert_script_run("cp $sar_archives_dir/* $target_path/");
+    assert_script_run("rsync -azr --info=progress2 --stats $sar_archives_dir/* $target_path/", 600);
     assert_script_run("cd $target_path; $sapcar_bin_path -xvf ./$swpm_sar_filename");
     my $swpm_dir_content = script_output("ls -alitr $target_path");
     record_info("SWPM dir", "$swpm_dir_content");
