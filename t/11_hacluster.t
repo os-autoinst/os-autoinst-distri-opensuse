@@ -641,4 +641,82 @@ subtest '[crm_resource_meta_set] Delete meta-argument' => sub {
 
 };
 
+subtest '[crm_list_options] no op for crm verions older than 5.0.0' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub { push @calls, $_[0]; return $this_test_ver; });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    foreach ('0.1.1', '4.3.2', '4.4.1', '4.4.2', '4.5.2') {
+        @calls = ();
+        $this_test_ver = $_;
+        my $res = crm_list_options();
+        ok $res eq 0, "res:$res is 0 if any crmsh with valid version is available";
+        ok((all { /rpm.*crms/ } @calls), 'script_output should only be user for rpm but it gets ' . "\n  -->  " . join("\n  -->  ", @calls));
+    }
+};
+
+subtest '[crm_list_options] ver newer than 5.0.0' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub {
+            return $this_test_ver if ($_[0] =~ /rpm/);
+            # Intentionally do not collect rpm calls
+            push @calls, $_[0];
+            return <<END;
+<pacemaker-result api-version="1.23" request="crm_resource --list-options primitive --output-as xml">
+  <resource-agent name="primitive-meta" version="1.2.3">
+  </resource-agent>
+  <status code="0" message="OK"/>
+</pacemaker-result>
+END
+    });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    foreach ('5.0.0', '5.0.4', '6.0.0') {
+        $this_test_ver = $_;
+        @calls = ();
+        my $res = crm_list_options();
+        note("\n  -->  " . join("\n  -->  ", @calls));
+        ok $res > 0, "res:$res is great than 0 for a valid XML";
+        ok((any { /crm_resource.*primitive/ } @calls), 'There is a call to crm_resource --list-options primitive');
+        ok((any { /crm_resource.*fencing/ } @calls), 'There is a call to crm_resource --list-options fencing');
+        ok((any { /crm_attribute.*cluster/ } @calls), 'There is a call to crm_attribute --list-options cluster');
+    }
+};
+
+subtest '[crm_list_options] invalid xml' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub {
+            return $this_test_ver if ($_[0] =~ /rpm/);
+            # Intentionally do not collect rpm calls
+            push @calls, $_[0];
+            # Intentionally invalid XML
+            return <<END;
+<<<pacemaker-result api-version="1.23" request="crm_resource --list-options primitive --output-as xml">
+  <resource-agent name="primitive-meta" version="1.2.3">
+  </resource-agent>
+  <status code="0" message="OK"/>
+<__/pacemaker-result>
+END
+    });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    $this_test_ver = '5.0.0';
+    my $res = crm_list_options();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res < 0, "res:$res is less than 0 for invalid xml";
+    # All 3 commands has to be executed even if one has an issue
+    ok((any { /crm_resource.*primitive/ } @calls), 'There is a call to crm_resource --list-options primitive');
+    ok((any { /crm_resource.*fencing/ } @calls), 'There is a call to crm_resource --list-options fencing');
+    ok((any { /crm_attribute.*cluster/ } @calls), 'There is a call to crm_attribute --list-options cluster');
+};
+
 done_testing;
