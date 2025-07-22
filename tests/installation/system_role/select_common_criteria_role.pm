@@ -6,8 +6,6 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 
 sub run {

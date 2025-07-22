@@ -10,8 +10,6 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

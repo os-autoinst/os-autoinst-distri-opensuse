@@ -18,8 +18,6 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>, qe-core team SUSE
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

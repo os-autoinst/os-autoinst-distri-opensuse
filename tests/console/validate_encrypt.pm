@@ -14,8 +14,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package validate_encrypt;
-use strict;
-use warnings;
 use base "opensusebasetest";
 use scheduler 'get_test_suite_data';
 use validate_encrypt_utils;

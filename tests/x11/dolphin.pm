@@ -9,8 +9,6 @@
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_plasma6';

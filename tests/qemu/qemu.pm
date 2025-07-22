@@ -6,8 +6,6 @@
 # Summary: Run QEMU as emulator
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use Utils::Backends;

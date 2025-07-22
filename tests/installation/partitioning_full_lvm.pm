@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use partition_setup qw(create_new_partition_table addboot addpart addvg addlv);
 use version_utils 'is_storage_ng';

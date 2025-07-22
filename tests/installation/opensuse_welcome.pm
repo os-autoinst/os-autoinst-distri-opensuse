@@ -8,8 +8,6 @@
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);

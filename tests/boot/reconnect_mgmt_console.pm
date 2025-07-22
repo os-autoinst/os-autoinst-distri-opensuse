@@ -7,8 +7,6 @@
 # Summary: Reconnect management-consoles after reboot
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
-use strict;
-use warnings;
 use base "installbasetest";
 use utils 'reconnect_mgmt_console';
 

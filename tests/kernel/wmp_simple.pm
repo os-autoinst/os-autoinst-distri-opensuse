@@ -14,8 +14,6 @@
 # Tags: https://progress.opensuse.org/issues/49031
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';

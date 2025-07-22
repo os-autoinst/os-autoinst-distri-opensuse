@@ -6,8 +6,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

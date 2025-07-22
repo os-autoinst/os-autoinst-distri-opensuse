@@ -6,8 +6,6 @@
 # Summary: Validate that SELinux is running in permissive mode
 # Maintainer: QE C <qe-c@suse.de>
 
-use strict;
-use warnings;
 use testapi;
 use base "selinuxtest";
 

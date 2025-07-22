@@ -10,8 +10,6 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use Utils::Backends;
 use serial_terminal;

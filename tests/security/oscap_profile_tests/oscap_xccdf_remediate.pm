@@ -5,8 +5,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base 'oscap_tests';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

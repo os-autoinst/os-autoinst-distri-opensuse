@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base qw(y2_installbase y2_module_guitest);
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;

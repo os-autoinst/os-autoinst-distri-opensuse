@@ -19,8 +19,6 @@ use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use mmapi;

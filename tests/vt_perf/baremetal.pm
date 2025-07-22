@@ -8,8 +8,6 @@
 
 package baremetal;
 
-use warnings;
-use strict;
 use base "opensusebasetest";
 use Mitigation;
 use vt_perf_libs;

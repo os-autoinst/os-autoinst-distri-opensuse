@@ -8,8 +8,6 @@
 #          keep disturbing the iSCSI LUNs of the multipathed test device.
 # Maintainer: Klaus G. Wagner <kgw@suse.com>
 
-use strict;
-use warnings;
 use base 'basetest';
 use lockapi;
 use testapi;

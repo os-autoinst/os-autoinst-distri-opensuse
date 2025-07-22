@@ -8,8 +8,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use Utils::Backends qw(is_remote_backend);
 use utils qw(zypper_call systemctl ping_size_check);
 use testapi;

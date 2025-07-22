@@ -9,8 +9,6 @@
 
 use base 'x11test';
 use testapi;
-use strict;
-use warnings;
 use utils 'zypper_call';
 
 sub run {

@@ -13,8 +13,6 @@
 # Create a new profile for 'top' binary;
 # Maintainer: Sergio R Lemke <slemke@suse.com>;
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 use testapi;
 use utils qw(zypper_call systemctl);

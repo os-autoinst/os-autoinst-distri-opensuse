@@ -7,10 +7,8 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use base 'opensusebasetest';
-use strict;
 use testapi;
 use utils;
-use warnings;
 use nvidia_utils;
 use serial_terminal qw(select_serial_terminal);
 

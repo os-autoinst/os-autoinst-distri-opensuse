@@ -19,8 +19,6 @@ use publiccloud::utils;
 use publiccloud::ssh_interactive;
 use transactional;
 use containers::k8s;
-use strict;
-use warnings;
 use utils;
 use publiccloud::utils;
 use transactional qw(process_reboot trup_install trup_shell);

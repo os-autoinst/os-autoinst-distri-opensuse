@@ -9,8 +9,6 @@
 # Maintainer: jeriveramoya <jeriveramoya@suse.com>
 
 use base 'y2_module_consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle);

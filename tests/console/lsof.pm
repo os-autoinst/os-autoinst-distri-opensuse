@@ -25,10 +25,8 @@
 # Maintainer: Antonio Caristia <acaristia@suse.com>
 
 use base 'consoletest';
-use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use warnings;
 use utils 'zypper_call';
 
 sub run {

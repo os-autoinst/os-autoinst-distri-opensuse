@@ -15,8 +15,6 @@
 
 use base "opensusebasetest";
 
-use strict;
-use warnings;
 
 use utils;
 use power_action_utils 'prepare_system_shutdown';

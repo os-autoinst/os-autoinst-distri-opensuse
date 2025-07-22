@@ -14,8 +14,6 @@ use version_utils qw(is_staging is_sle is_upgrade);
 use Utils::Architectures;
 use Utils::Systemd 'systemctl';
 use utils qw(zypper_call);
-use strict;
-use warnings;
 
 sub run_developers_tests {
     my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test';

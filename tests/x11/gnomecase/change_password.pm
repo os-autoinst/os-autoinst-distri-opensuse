@@ -17,8 +17,6 @@
 # Maintainer: chuchingkai <chuchingkai@gmail.com>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use power_action_utils 'reboot_x11';

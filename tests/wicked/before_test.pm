@@ -8,8 +8,6 @@
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 
 use base 'wickedbase';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl file_content_replace zypper_ar ensure_ca_certificates_suse_installed);

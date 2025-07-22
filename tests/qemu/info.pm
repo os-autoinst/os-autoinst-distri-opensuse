@@ -6,8 +6,6 @@
 # Summary: Fetch some infos about CPU, KVM and Kernel
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

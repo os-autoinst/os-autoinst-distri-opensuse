@@ -10,8 +10,6 @@
 use base "s390base";
 use testapi;
 use utils;
-use warnings;
-use strict;
 
 sub run {
     my $self = shift;

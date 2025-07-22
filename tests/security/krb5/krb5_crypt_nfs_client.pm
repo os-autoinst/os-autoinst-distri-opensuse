@@ -6,8 +6,6 @@
 # Ticket: poo#51560, poo#52388
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use lockapi;

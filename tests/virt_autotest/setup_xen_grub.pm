@@ -6,8 +6,6 @@
 # Summary: Setup xen serial console so that ipmitool can work normally from 3rd generation openqa ipmi backend.
 # Maintainer: Alice <xlai@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 use base "virt_autotest_base";
 use ipmi_backend_utils;

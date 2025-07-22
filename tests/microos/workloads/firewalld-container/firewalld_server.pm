@@ -8,8 +8,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
-use warnings;
-use strict;
 use testapi;
 use lockapi;
 use mmapi;

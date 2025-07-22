@@ -13,8 +13,6 @@
 # Actions past install-screen with reboot button ara handled separately in agama_reboot.pm
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use strict;
-use warnings;
 use base "installbasetest";
 use testapi;
 use version_utils qw(is_leap is_sle);

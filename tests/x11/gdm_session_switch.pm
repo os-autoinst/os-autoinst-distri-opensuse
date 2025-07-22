@@ -11,8 +11,6 @@
 # Maintainer: Chingkai Chu <chuchingkai@gmail.com>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

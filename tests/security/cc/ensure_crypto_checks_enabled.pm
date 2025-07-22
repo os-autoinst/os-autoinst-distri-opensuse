@@ -9,8 +9,6 @@
 # Tags: poo#120894
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

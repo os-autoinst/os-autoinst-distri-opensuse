@@ -12,8 +12,6 @@
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use Socket;
 use testapi;
 use Test::Assert 'assert_equals';

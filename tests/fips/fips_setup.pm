@@ -10,8 +10,6 @@
 # Tags: poo#39071, poo#105591, poo#105999, poo#109133
 
 use base qw(consoletest);
-use strict;
-use warnings;
 use testapi;
 use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
 use power_action_utils 'power_action';

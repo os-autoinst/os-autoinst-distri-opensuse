@@ -7,8 +7,6 @@
 # Summary: Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use transactional qw(rpmver get_utt_packages trup_call);

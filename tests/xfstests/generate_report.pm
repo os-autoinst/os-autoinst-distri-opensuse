@@ -14,9 +14,7 @@
 # Maintainer: Yong Sun <yosun@suse.com>
 package generate_report;
 
-use strict;
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;

@@ -7,8 +7,6 @@
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use power_action_utils qw(power_action);
 use utils qw(unlock_bootloader);

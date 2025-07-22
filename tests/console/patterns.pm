@@ -8,8 +8,6 @@
 # Tags: fate#317481 poo#16650
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

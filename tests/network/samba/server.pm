@@ -10,8 +10,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils;
 use registration;

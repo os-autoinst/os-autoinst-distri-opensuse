@@ -10,8 +10,6 @@
 # - Run "curl http://localhost/index.php", check output for "PHP Version ?"
 # Maintainer: QE Core <qe-core@suse.com>
 use base "consoletest";
-use strict;
-use warnings;
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';

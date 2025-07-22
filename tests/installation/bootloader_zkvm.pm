@@ -11,8 +11,6 @@ package bootloader_zkvm;
 
 use base "installbasetest";
 
-use strict;
-use warnings;
 
 use bootloader_setup;
 use registration;

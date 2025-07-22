@@ -7,8 +7,6 @@
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils;

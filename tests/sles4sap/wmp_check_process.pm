@@ -11,8 +11,6 @@ use testapi;
 use File::Basename qw(basename);
 use utils qw(zypper_call file_content_replace);
 use version_utils qw(is_sle);
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

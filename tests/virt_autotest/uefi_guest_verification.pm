@@ -12,8 +12,6 @@
 package uefi_guest_verification;
 
 use base 'virt_feature_test_base';
-use strict;
-use warnings;
 use POSIX 'strftime';
 use File::Basename;
 use testapi;

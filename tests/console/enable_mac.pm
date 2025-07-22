@@ -9,8 +9,6 @@
 # Maintainer: QA-C team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Systemd qw(systemctl);

@@ -6,8 +6,6 @@
 # Summary:  to execute testsuites in openQA from QA:Head by running its build up test run script
 # Maintainer: Yong Sun  <yosun@suse.com>
 
-use strict;
-use warnings;
 use File::Basename;
 use IO::File;
 use Data::Dumper;

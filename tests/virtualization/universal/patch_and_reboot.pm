@@ -10,8 +10,6 @@
 use base 'consoletest';
 use virt_autotest::common;
 use virt_autotest::utils;
-use warnings;
-use strict;
 use power_action_utils 'power_action';
 use ipmi_backend_utils;
 use virt_autotest::kernel;

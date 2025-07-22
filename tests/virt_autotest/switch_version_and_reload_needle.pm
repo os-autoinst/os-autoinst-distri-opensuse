@@ -10,8 +10,6 @@
 # Maintainer: xlai@suse.com
 
 
-use strict;
-use warnings;
 use base "virt_autotest_base";
 use testapi;
 

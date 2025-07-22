@@ -8,8 +8,6 @@
 # Tags: poo#95908
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use security_boot_utils;

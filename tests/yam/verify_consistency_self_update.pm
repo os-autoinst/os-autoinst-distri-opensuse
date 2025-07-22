@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use y2_module_guitest;

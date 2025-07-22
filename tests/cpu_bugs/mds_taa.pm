@@ -6,12 +6,9 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
 
 use base "consoletest";
 use bootloader_setup;
-use strict;
 use testapi;
 use Utils::Backends;
 use utils;

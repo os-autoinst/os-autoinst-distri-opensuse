@@ -21,8 +21,6 @@
 # Maintainer: Dario Abatianni <dabatianni@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

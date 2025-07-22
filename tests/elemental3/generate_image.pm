@@ -9,8 +9,6 @@
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
 use base qw(opensusebasetest);
-use strict;
-use warnings;
 use experimental qw(switch);
 
 use testapi;

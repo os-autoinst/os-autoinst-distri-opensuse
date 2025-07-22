@@ -7,8 +7,6 @@
 # Maintainer: qa-c@suse.de
 
 use base "consoletest";
-use strict;
-use warnings;
 use migration qw(set_scc_proxy_url);
 
 sub run {

@@ -8,8 +8,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster;

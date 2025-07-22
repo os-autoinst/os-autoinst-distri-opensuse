@@ -7,8 +7,6 @@
 # Maintainer: Yong Sun <yosun@suse.com>
 package generate_report;
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use Mojo::JSON;
 use testapi;

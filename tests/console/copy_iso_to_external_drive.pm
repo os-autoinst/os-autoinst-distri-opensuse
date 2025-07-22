@@ -9,8 +9,6 @@
 # Tags: boo#1040749
 
 use base 'btrfs_test';
-use strict;
-use warnings;
 use testapi;
 use utils 'get_root_console_tty';
 

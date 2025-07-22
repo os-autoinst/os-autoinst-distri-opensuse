@@ -12,7 +12,6 @@
 #       _SECRET_AZURE_SPN_APPLICATION_ID - application ID for fencing agent
 #       _SECRET_AZURE_SPN_APP_PASSWORD - application password used by fencing agent
 
-use strict;
 use warnings FATAL => 'all';
 
 use base 'sles4sap_publiccloud_basetest';

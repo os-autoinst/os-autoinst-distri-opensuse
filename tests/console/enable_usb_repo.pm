@@ -9,8 +9,6 @@
 # Tags: bsc#1012258
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

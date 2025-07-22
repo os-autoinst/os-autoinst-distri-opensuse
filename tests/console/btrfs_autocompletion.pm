@@ -14,8 +14,6 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base 'btrfs_test';
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos is_sle is_leap);

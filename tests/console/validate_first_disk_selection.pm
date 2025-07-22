@@ -9,8 +9,6 @@
 
 use base 'consoletest';
 
-use strict;
-use warnings;
 use testapi;
 
 use scheduler qw(get_test_suite_data);

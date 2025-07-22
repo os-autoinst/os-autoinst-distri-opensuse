@@ -6,8 +6,6 @@
 # Summary: Install gdal and perform tests
 # Maintainer: Guillaume <guillaume@opensuse.org>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

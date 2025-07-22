@@ -26,8 +26,6 @@
 # Tags: fate#320597
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos is_upgrade);

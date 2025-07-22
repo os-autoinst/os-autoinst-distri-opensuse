@@ -7,7 +7,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Tags: TEAM-6709
 
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive qw(select_host_console);
 use publiccloud::utils;

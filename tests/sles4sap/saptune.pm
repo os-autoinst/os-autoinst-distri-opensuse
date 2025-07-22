@@ -12,8 +12,6 @@ use serial_terminal 'select_serial_terminal';
 use utils "zypper_call";
 use version_utils qw(is_sle is_upgrade);
 use Utils::Architectures;
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;

@@ -8,8 +8,6 @@
 # Maintainer: Guillaume Gardet <guillaume@opensuse.org>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

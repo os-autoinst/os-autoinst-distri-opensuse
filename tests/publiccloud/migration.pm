@@ -15,8 +15,6 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use publiccloud::utils;
 use File::Basename;

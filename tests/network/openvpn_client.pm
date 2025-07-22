@@ -19,8 +19,6 @@ use y2_module_guitest;
 use mm_network;
 use utils qw(systemctl zypper_call exec_and_insert_password script_retry);
 use version_utils 'is_sle';
-use strict;
-use warnings;
 use Utils::Architectures;
 use network_utils 'iface';
 

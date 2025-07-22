@@ -12,9 +12,7 @@
 #   6. Ansible Vault
 # Maintainer: QE Core <qe-core@suse.de>, Pavel Dostál <pdostal@suse.cz>
 
-use warnings;
 use base "consoletest";
-use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);

@@ -13,8 +13,6 @@
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use version_utils;

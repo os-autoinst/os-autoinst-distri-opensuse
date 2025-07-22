@@ -7,8 +7,6 @@
 # Maintainer: Julie CAO <JCao@suse.com>, qe-virt@suse.de
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
