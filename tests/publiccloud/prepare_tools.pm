@@ -92,8 +92,9 @@ sub run {
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
     # Download the aws cli binary, its signature and verify those
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip", retry => 3, delay => 60);
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig", retry => 3, delay => 60);
+    my $curl_opts = "--retry 3 --retry-delay 60";
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip");
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig");
     assert_script_run('gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip', fail_message => 'The gpg check of downloaded installation file failed.');
     assert_script_run('unzip /tmp/awscliv2.zip -d /tmp/');
     assert_script_run('/tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin');

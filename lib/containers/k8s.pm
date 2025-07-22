@@ -114,7 +114,8 @@ sub install_k3s {
             zypper_call('in k3s-selinux');
             record_soft_failure("gh#k3s-io/k3s#10876 - Support selinux on Tumbleweed");
         }
-        script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
+        my $curl_opts = "-sfL --retry 3 --retry-delay 60 --retry-max-time 180";
+        assert_script_run("curl $curl_opts https://get.k3s.io -o install_k3s.sh");
         assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
         zypper_call('in apparmor-parser') if is_sle('<15-SP4', get_var('HOST_VERSION', get_required_var('VERSION')));
