@@ -331,7 +331,7 @@
     "xen-trim-btrfs-on-mechaninal-drive": {
         "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
         },
         "type": "ignore"
     },
@@ -914,6 +914,27 @@
     },
     "tpm-auth-session": {
         "description": "kernel: tpm tpm0: auth session is active",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "ppc64le-power10-secvar-sysfs-nosb": {
+        "description": "kernel: secvar-sysfs: Failed to retrieve secvar operations",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "ppc64le-power10-no-sed": {
+        "description": "kernel: SED: plpks not available",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "ppc64le-power10-no-sriov-hw": {
+        "description": "kernel: pci .*: No hypervisor support for SR-IOV on this device, IOV BARs disabled",
         "products": {
             "sle": ["16.0"]
         },
