@@ -90,9 +90,21 @@ sub post_fail_hook {
 
 This is one of the test module interfaces C<'test_flags()'>.
 
-  - Specifies what should happen when test execution of the current test module is finished depending on the result.
-  - Set C<'milestone=1'>: after this test succeeds, update the 'lastgood' snapshot of the SUT
-  - Set C<'fatal=1'>: when set to 1 the whole test suite is aborted if the test module fails. The overall state is set to failed.
+=over
+
+=item
+
+Specify what should happen when test execution of the current test module is finished depending on the result.
+
+=item
+
+Set C<'milestone=1'>: after this test succeeds, update the 'lastgood' snapshot of the SUT
+
+=item
+
+Set C<'fatal=1'>: when set to 1 the whole test suite is aborted if the test module fails. The overall state is set to failed.
+
+=back
 =cut
 
 sub test_flags {
