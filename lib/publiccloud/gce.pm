@@ -223,36 +223,27 @@ sub get_image_id {
 }
 
 sub describe_instance {
-    my ($self, $instance_id) = @_;
-    my $attempts = 10;
+    my ($self, $instance_id, $query) = @_;
 
-    my $out = [];
-    while (@{$out} == 0 && $attempts-- > 0) {
-        $out = decode_json(script_output("gcloud compute instances list --filter=\"name=( 'NAME' '$instance_id')\" --format json", quiet => 1));
-        sleep 3;
-    }
-
-    die("Unable to retrive description of instance $instance_id") unless ($attempts > 0);
-    return $out->[0];
+    return script_output("gcloud compute instances list --filter=\"name=( 'NAME' '$instance_id')\" --format json | jq -r '$query'", quiet => 1);
 }
 
-sub get_state_from_instance
-{
+sub get_state_from_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
 
-    my $desc = $self->describe_instance($instance_id);
-    die("Unable to get status") unless exists($desc->{status});
-    return $desc->{status};
+    my $status = $self->describe_instance($instance_id, '.[0].status');
+    die("Unable to get status") unless $status;
+    return $status;
 }
 
 sub get_public_ip {
     my ($self) = @_;
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
 
-    my $desc = $self->describe_instance($instance_id);
-    die("Unable to get public_ip") unless exists($desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP});
-    return $desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP};
+    my $natIP = $self->describe_instance($instance_id, '.[0].networkInterfaces[0].accessConfigs[0].natIP');
+    die("Unable to get public_ip") unless $natIP;
+    return $natIP;
 }
 
 sub stop_instance {

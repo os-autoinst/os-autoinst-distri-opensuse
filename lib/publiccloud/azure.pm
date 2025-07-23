@@ -552,8 +552,7 @@ sub on_terraform_destroy_timeout {
     assert_script_run("az group delete --yes --no-wait --name $resgroup");
 }
 
-sub get_state_from_instance
-{
+sub get_state_from_instance {
     my ($self, $instance) = @_;
     my $id = $instance->instance_id();
     my $out = decode_azure_json(script_output("az vm get-instance-view --ids '$id' --query instanceView.statuses[1] --output json", quiet => 1));
@@ -568,12 +567,11 @@ sub get_public_ip {
     $instance_id =~ s/.*\/(.*)/$1/;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
 
-    my $out = decode_azure_json(script_output("az vm list-ip-addresses --name '$instance_id' --resource-group '$resource_group'", quiet => 1));
-    return $out->[0]->{virtualMachine}->{network}->{publicIpAddresses}->[0]->{ipAddress};
+    # asdf
+    return script_output("az vm list-ip-addresses --name '$instance_id' --resource-group '$resource_group' | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress'", quiet => 1);
 }
 
-sub stop_instance
-{
+sub stop_instance {
     my ($self, $instance) = @_;
     # We assume that the instance_id on azure is actually the name
     # which is equal to the resource group
