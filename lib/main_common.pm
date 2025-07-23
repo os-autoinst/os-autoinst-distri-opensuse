@@ -1664,6 +1664,10 @@ sub load_extra_tests_perl_bootloader {
 }
 
 sub load_extra_tests_kdump {
+    if (is_jeos && is_sle('16.0+')) {
+        loadtest "kernel/kdump";
+        return;
+    }
     return unless kdump_is_applicable;
     loadtest "console/kdump_and_crash";
 }
