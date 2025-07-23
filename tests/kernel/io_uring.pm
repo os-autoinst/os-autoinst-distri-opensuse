@@ -96,15 +96,22 @@ sub run {
     }
 
     # search for failed tests and known issues
-    @lines = $out =~ /Tests failed \(\d+\):.*/mg;
-    if (@lines) {
-        for my $failure ($lines[0] =~ '<(?P<test>[\w-]+\.t)>') {
-            $whitelist->override_known_failures(
-                $self,
-                $environment,
-                'liburing',
-                $failure
-            );
+    my @failures;
+    for my $line ($out =~ /Tests failed \(\d+\):.*/mg) {
+        push @failures, $line =~ /<([\w\-\.]+\.t)>/g;
+    }
+    if (@failures) {
+        record_info("Failed Tests", join(", ", @failures));
+        for my $failure (@failures) {
+            unless ($whitelist->override_known_failures(
+                    $self,
+                    $environment,
+                    'liburing',
+                    $failure
+            )) {
+                record_info("Unexpected Failure", "$failure failed", result => 'fail');
+                $self->{result} = 'fail';
+            }
         }
     }
 }
