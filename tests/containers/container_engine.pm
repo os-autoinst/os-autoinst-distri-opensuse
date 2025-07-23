@@ -86,11 +86,9 @@ sub basic_container_tests {
     validate_script_output("$runtime ps", qr/basic_test_container/);
     validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
     assert_script_run("$runtime stop basic_test_container");
-    if (script_output("$runtime ps") =~ m/basic_test_container/) {
-        record_soft_failure("bsc#1212825 race condition in docker/podman stop");
-        # We still expect the container to eventually stop
-        validate_script_output_retry("$runtime ps", sub { $_ !~ m/basic_test_container/ }, retry => 3, delay => 60);
-    }
+    # We need to retry to avoid
+    # https://bugzilla.suse.com/show_bug.cgi?id=1212825 Race condition in docker/podman stop
+    validate_script_output_retry("$runtime ps", sub { $_ !~ m/basic_test_container/ }, retry => 3, delay => 60);
     validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
     assert_script_run("$runtime container start basic_test_container");
     validate_script_output("$runtime ps", qr/basic_test_container/);
@@ -114,14 +112,7 @@ sub basic_container_tests {
     assert_script_run("$runtime image rm example.com/tw-commit_test");
 
     ## Test connectivity inside the container
-    if (script_run("$runtime container exec basic_test_container curl -sfIL http://conncheck.opensuse.org") != 0) {
-        if (is_sle("=12-SP5")) {
-            record_soft_failure("bsc#1239303");
-        } else {
-            sleep(60);    # wait 1 delay time before retrying
-            script_retry("$runtime container exec basic_test_container curl -sfIL http://conncheck.opensuse.org", retry => 2, delay => 60, fail_message => "cannot reach conncheck.opensuse.org");
-        }
-    }
+    script_retry("$runtime container exec basic_test_container curl -sfIL http://conncheck.opensuse.org", retry => 3, delay => 60, fail_message => "cannot reach conncheck.opensuse.org");
 
     ## Test `--init` option, i.e. the container process won't be PID 1 (to avoid zombie processes)
     # Ensure PID 1 has either the $runtime-init (e.g. podman-init) OR /init (e.g. `/dev/init) suffix
