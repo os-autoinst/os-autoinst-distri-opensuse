@@ -86,11 +86,9 @@ sub basic_container_tests {
     validate_script_output("$runtime ps", qr/basic_test_container/);
     validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/true/);
     assert_script_run("$runtime stop basic_test_container");
-    if (script_output("$runtime ps") =~ m/basic_test_container/) {
-        record_soft_failure("bsc#1212825 race condition in docker/podman stop");
-        # We still expect the container to eventually stop
-        validate_script_output_retry("$runtime ps", sub { $_ !~ m/basic_test_container/ }, retry => 3, delay => 60);
-    }
+    # We need to retry to avoid
+    # https://bugzilla.suse.com/show_bug.cgi?id=1212825 Race condition in docker/podman stop
+    validate_script_output_retry("$runtime ps", sub { $_ !~ m/basic_test_container/ }, retry => 3, delay => 60);
     validate_script_output("$runtime container inspect --format='{{.State.Running}}' basic_test_container", qr/false/);
     assert_script_run("$runtime container start basic_test_container");
     validate_script_output("$runtime ps", qr/basic_test_container/);
