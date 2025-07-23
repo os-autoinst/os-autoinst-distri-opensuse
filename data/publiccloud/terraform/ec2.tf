@@ -88,6 +88,14 @@ variable "ssh_public_key" {
   default = "/root/.ssh/id_ed25519.pub"
 }
 
+variable "hibernation" {
+  default = "false"
+}
+
+variable "root-disk-encrypted" {
+  default = "false"
+}
+
 resource "random_id" "service" {
   count = var.instance_count
   keepers = {
@@ -110,6 +118,7 @@ resource "aws_instance" "openqa" {
   availability_zone      = var.availability_zone
   subnet_id              = var.subnet_id
   ipv6_address_count     = var.ipv6_address_count
+  hibernation            = var.hibernation
 
   tags = merge({
     openqa_created_by   = var.name
@@ -118,8 +127,10 @@ resource "aws_instance" "openqa" {
   }, var.tags)
 
   root_block_device {
-    volume_size = var.root-disk-size 
+    volume_size = var.root-disk-size
     volume_type = "gp3"
+    # For hibernation, the root device volume must be encrypted.
+    encrypted   = var.root-disk-encrypted
   }
 
   timeouts {
