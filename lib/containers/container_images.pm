@@ -83,6 +83,10 @@ sub build_and_run_image {
 
     # Test that the exported port is reachable
     my $curl_opts = "--retry 6 --retry-all-errors";
+    if (is_sle("<15-SP4")) {
+        # --retry-all-errors is not available on curl < 7.71.0
+        $curl_opts = "--retry 10";
+    }
     assert_script_run("curl $curl_opts http://localhost:8888/ | grep 'The test shall pass'");
 
     # Cleanup
