@@ -5,8 +5,6 @@ vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
     DESKTOP: textmode
     IBTESTS: 1
-    IBTEST_GITBRANCH: master
-    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_MASTER
     MLX_PROTOCOL: 1
 schedule:
