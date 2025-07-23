@@ -85,7 +85,7 @@ sub run {
     systemctl '--now enable registry';
     systemctl 'status registry';
 
-    my $curl_opts = "--retry 10 --retry-delay 3";
+    my $curl_opts = "--retry 10 --retry-all-errors";
     assert_script_run "curl -s $curl_opts http://127.0.0.1:5000/v2/_catalog | grep repositories";
 
     my $engine = $self->containers_factory($runtime);
