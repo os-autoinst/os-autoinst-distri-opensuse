@@ -520,6 +520,8 @@ sub terraform_apply {
             $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
             $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
             $vars{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
+            $vars{hibernation} = (get_var('PUBLIC_CLOUD_NETCONFIG')) ? 'true' : 'false';
+            $vars{'root-disk-encrypted'} = (get_var('PUBLIC_CLOUD_NETCONFIG')) ? 'true' : 'false';
         } elsif (is_azure) {
             my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
             $vars{subnet_id} = $subnet_id if ($subnet_id);
