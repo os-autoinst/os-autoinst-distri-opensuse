@@ -12,3 +12,4 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_hostname
+  - yam/validate/validate_connectivity
