@@ -152,17 +152,16 @@ sub get_image_version {
     my $gallery = $self->image_gallery;
     my $version = generate_img_version();
     my $definition = $self->generate_azure_image_definition();
-    my $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
-          "--gallery-image-definition '$definition' --gallery-image-version '$version'", proceed_on_failure => 1, timeout => 60 * 30);
-    record_info('IMG VER', $json);
-    eval { $image = decode_azure_json($json)->{id}; };
+    eval { my $image = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --gallery-image-version '$version' | jq -r '.id'", timeout => 60 * 30); };
     if ($@) {
         record_info('IMG VER NOT-FOUND', "Cannot find image-version $version in definition image definition. Need to upload it.\n$@");
         return undef;
     }
     record_info('IMG VER FOUND', "Found $image image version.");
 
-    my $regions = decode_azure_json($json)->{publishingProfile}->{targetRegions};
+    my $regions = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
+          "--gallery-image-definition '$definition' --gallery-image-version '$version' | jq -r '.publishingProfile.targetRegions'", timeout => 60 * 30);
     my @regions_list = map { lc($_->{name} =~ s/[-\s]//gr) } @$regions;
     if (!grep(/^$self->{provider_client}->{region}$/, @regions_list)) {
         record_info('REGION MISMATCH', 'The ' . $self->provider_client->region . ' is not listed in the targetRegions(' . join(',', @regions_list) . ') of this image version.');
@@ -170,7 +169,9 @@ sub get_image_version {
     }
     record_info('REGION OK', 'The ' . $self->provider_client->region . ' is listed in the targetRegions(' . join(',', @regions_list) . ') of this image version.');
 
-    die("Image version $image Found in failed state") if (decode_azure_json($json)->{provisioningState} eq "Failed");
+    my $state = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
+          "--gallery-image-definition '$definition' --gallery-image-version '$version' | jq -r '.provisioningState'", timeout => 60 * 30);
+    die("Image version $image Found in failed state") if ($state eq "Failed");
 
     return $image;
 }
@@ -567,7 +568,6 @@ sub get_public_ip {
     $instance_id =~ s/.*\/(.*)/$1/;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
 
-    # asdf
     return script_output("az vm list-ip-addresses --name '$instance_id' --resource-group '$resource_group' | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress'", quiet => 1);
 }
 
