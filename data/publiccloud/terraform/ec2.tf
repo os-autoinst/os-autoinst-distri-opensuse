@@ -110,6 +110,7 @@ resource "aws_instance" "openqa" {
   availability_zone      = var.availability_zone
   subnet_id              = var.subnet_id
   ipv6_address_count     = var.ipv6_address_count
+  hibernation            = "true"
 
   tags = merge({
     openqa_created_by   = var.name
@@ -120,6 +121,8 @@ resource "aws_instance" "openqa" {
   root_block_device {
     volume_size = var.root-disk-size 
     volume_type = "gp3"
+    # For hibernation, the root device volume must be encrypted.
+    encrypted   = "true"
   }
 
   timeouts {

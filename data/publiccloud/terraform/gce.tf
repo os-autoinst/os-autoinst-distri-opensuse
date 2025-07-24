@@ -166,11 +166,13 @@ resource "google_compute_instance" "openqa" {
   }, var.tags)
 
   network_interface {
-    network    = "tf-network"
-    subnetwork = "tf-subnetwork"
-    access_config {}
-    stack_type = var.stack_type
-    nic_type   = var.nic_type
+    network      = "tf-network"
+    subnetwork   = "tf-subnetwork"
+    stack_type   = var.stack_type
+    nic_type     = var.nic_type
+    access_config {
+      network_tier = "PREMIUM"
+    }
   }
   can_ip_forward = true
 
