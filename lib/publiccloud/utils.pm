@@ -194,27 +194,22 @@ sub deregister_addon {
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
-    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
-    my $cmd_time = time();
+    my $suseconnect = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
 
     # Check what version of registercloudguest binary we use, chost images have none pre-installed
     my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
     if ($version =~ /cloud-regionsrv-client is not installed/) {
         die 'cloud-regionsrv-client should not be installed' if !is_container_host;
-    } else {
-        # Only a specific version of the package has issue and only on a specific SP
-        # Do not activate the workaround if the user explicitly decide using a specific ENDPOINT
-        if (is_sle('15-SP2+') && check_version('<10.1.7', $version) && !get_var('PUBLIC_CLOUD_SCC_ENDPOINT')) {
-            record_soft_failure("bsc#1217583 IPv6 handling during registration. Force use SUSEConnect to work around it.");
-            $suseconnect = 'SUSEConnect';
-        }
     }
+
+    my $cmd_time = time();
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+
+    # If the SSH master socket is active, exit it, so the next SSH command will (re)login
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
         assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
     }
-    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub register_addons_in_pc {
