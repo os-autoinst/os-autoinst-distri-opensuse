@@ -1119,11 +1119,25 @@
 
 <h2 id="az_validate_uuid_pattern">az_validate_uuid_pattern</h2>
 
-<pre><code>az_validate_uuid_pattern( uuid =&gt; $uuid_string )
+<pre><code>my $is_valid = az_validate_uuid_pattern(uuid =&gt; $uuid_string);
 
-Function checks input string against uuid pattern
-which is commonly used as an identifier for Azure resources.
-returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
+Validates if a given string matches the standard UUID pattern (e.g.,
+C&lt;xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&gt;). This is commonly used to verify
+identifiers for Azure resources.</code></pre>
+
+<p><b>Return value:</b></p>
+
+<ul>
+
+<li><p>On a successful match, returns the original <b>scalar string</b> containing the UUID. This value is considered true in a boolean context.</p>
+
+</li>
+<li><p>On a failed match, returns <b>undef</b>. This value is considered false in a boolean context.</p>
+
+</li>
+</ul>
+
+<p><b>Arguments:</b></p>
 
 <dl>
 
@@ -1164,13 +1178,28 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 
 <h2 id="az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</h2>
 
-<pre><code>az_storage_blob_lease_acquire(
-    container_name=&gt;&#39;somecontainer&#39;,
-    storage_account_name=&gt;&#39;storageaccount&#39;,
-    blob_name =&gt; &#39;somefilename&#39; [, lease_duration=&gt;&#39;42&#39;]
+<pre><code>my $lease_id = az_storage_blob_lease_acquire(
+    container_name       =&gt; &#39;somecontainer&#39;,
+    storage_account_name =&gt; &#39;storageaccount&#39;,
+    blob_name            =&gt; &#39;somefilename&#39;,
+    lease_duration       =&gt; 60
 );</code></pre>
 
-<p>Acquire a lease for a storage blob. Function returns UUID which is then required to modify the file and gives the UUID owner exclusive rights. Optionally <b>lease_duration</b> can be defined to limit this file lock up to 60s instead of infinity. In case of function returns nothing, the reasons may vary and it is up to caller to decide how to deal with the result. In that case Possible reasons are that there is already a lease present (az cli returns a message which is not a valid UUID)</p>
+<p>Acquire a lease for a storage blob. The function returns a UUID which is then required to modify the file and gives the UUID owner exclusive rights.</p>
+
+<p>If the lease cannot be acquired (e.g., the blob is already leased by another process, or another Azure error occurs), the function will return <code>undef</code>.</p>
+
+<p><b>Return value:</b></p>
+
+<ul>
+
+<li><p>On success, returns a <b>scalar string</b> containing the lease UUID.</p>
+
+</li>
+<li><p>On failure, returns <b>undef</b>. The reasons may vary and it is up to caller to decide how to deal with the result. Possible reasons are that there is already a lease present (az cli returns a message which is not a valid UUID)</p>
+
+</li>
+</ul>
 
 <dl>
 
@@ -1186,7 +1215,7 @@ returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
 <dd>
 
 </dd>
-<dt id="lease_duration-Lease-duration-between-15-60s.-Default:-infinite"><b>lease_duration</b> Lease duration between 15-60s. Default: infinite</dt>
+<dt id="lease_duration-Specifies-the-duration-of-the-lease-in-seconds.-A-non-infinite-lease-can-be-between-15-and-60-seconds.-A-value-of--1-indicates-an-infinite-lease.-Default:--1-infinite"><b>lease_duration</b> Specifies the duration of the lease in seconds. A non-infinite lease can be between 15 and 60 seconds. A value of -1 indicates an infinite lease. Default: -1 (infinite).</dt>
 <dd>
 
 </dd>
