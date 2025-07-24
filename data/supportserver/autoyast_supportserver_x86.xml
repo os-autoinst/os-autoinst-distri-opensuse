@@ -33,7 +33,7 @@
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>
+        <device>ens4</device>
         <startmode>onboot</startmode>
       </interface>
     </interfaces>
