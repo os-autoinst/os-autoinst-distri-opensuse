@@ -82,12 +82,12 @@ sub build_and_run_image {
     assert_script_run("$runtime logs myapp");    # show logs for easier problem investigation
 
     # Test that the exported port is reachable
-    my $curl_opts = "--retry 6 --retry-all-errors";
-    if (is_sle("<15-SP4") || is_sle_micro("<5.3")) {
-        # --retry-all-errors is not available on curl < 7.71.0
-        $curl_opts = "--retry 10";
-    }
-    assert_script_run("curl $curl_opts http://localhost:8888/ | grep 'The test shall pass'");
+    # --retry-all-errors is not available on curl < 7.71.0
+    assert_script_run(qq( <<EOF
+      curl_opts=$(curl --help all | grep -q retry-all-errors && echo "--retry 6 --retry-all-errors" || echo "--retry 10")
+      curl $curl_opts http://localhost:8888/ | grep 'The test shall pass'
+EOF
+));
 
     # Cleanup
     assert_script_run("$runtime stop myapp");
