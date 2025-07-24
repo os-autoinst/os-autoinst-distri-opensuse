@@ -1951,7 +1951,7 @@ sub qesap_az_setup_native_fencing_permissions {
             "-n '$args{vm_name}'",
             "--query 'systemAssignedIdentity'",
             '-o tsv'));
-    die 'Returned output does not match ID pattern' if az_validate_uuid_pattern(uuid => $vm_id) eq 0;
+    die "Returned output '$vm_id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $vm_id));
 
     # Assign role
     my $subscription_id = script_output('az account show --query "id" -o tsv');
@@ -1980,7 +1980,7 @@ sub qesap_az_get_tenant_id {
     my $az_cmd = "az account show --only-show-errors";
     my $az_cmd_args = "--subscription $subscription_id --query 'tenantId' -o tsv";
     my $tenant_id = script_output(join(' ', $az_cmd, $az_cmd_args));
-    croak 'Returned output does not match ID pattern' if az_validate_uuid_pattern(uuid => $tenant_id) eq 0;
+    die "Returned output '$tenant_id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $tenant_id));
     return $tenant_id;
 }
 

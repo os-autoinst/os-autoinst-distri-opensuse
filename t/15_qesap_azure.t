@@ -115,13 +115,7 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
     ok((any { /jsc#7487/ } @soft_failure), 'soft failure');
 };
 
-subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
-    my $command;
-    my $vm_id = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    $qesap->redefine(script_output => sub { return $vm_id; });
-    $qesap->redefine(assert_script_run => sub { $command = shift; return 1; });
-
+subtest '[qesap_az_setup_native_fencing_permissions] missing argument' => sub {
     my %mandatory_args = (
         vm_name => 'CaptainUsop',
         resource_group => 'StrawhatPirates'
@@ -133,9 +127,39 @@ subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
         dies_ok { qesap_az_setup_native_fencing_permissions(%mandatory_args) } "Expected failure: missing mandatory arg: $_";
         $mandatory_args{$_} = $orig_value;
     }
+};
+
+subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
+    my @calls;
+    my $vm_id = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $vm_id; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
+
+    my %mandatory_args = (
+        vm_name => 'CaptainUsop',
+        resource_group => 'StrawhatPirates'
+    );
 
     ok qesap_az_setup_native_fencing_permissions(%mandatory_args), 'PASS with all args defined';
-    like($command, qr/az role assignment create.*--assignee-object-id $vm_id.*StrawhatPirates/, 'az command properly composed');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az role assignment create.*/ } @calls), 'Main az command properly composed');
+    ok((any { /.*--assignee-object-id $vm_id/ } @calls), 'assignee-object-id in az command properly composed');
+    ok((any { /.*StrawhatPirates/ } @calls), 'resource group in az command properly composed');
+};
+
+subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
+    my @calls;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'AnneBonny'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
+
+    my %mandatory_args = (
+        vm_name => 'CaptainUsop',
+        resource_group => 'StrawhatPirates'
+    );
+
+    dies_ok { ok qesap_az_setup_native_fencing_permissions(%mandatory_args) } 'PASS with all args defined';
 };
 
 subtest '[qesap_az_get_tenant_id]' => sub {
