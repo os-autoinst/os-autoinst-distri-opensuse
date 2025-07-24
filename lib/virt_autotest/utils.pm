@@ -96,6 +96,7 @@ our @EXPORT = qw(
   reboot_virtual_machine
   reconnect_console_if_not_good
   get_guest_settings
+  create_host_bridge
 );
 
 my %log_cursors;
@@ -105,6 +106,25 @@ sub trim {
     my $text = shift;
     $text =~ s/^\s+|\s+$//g;
     return $text;
+}
+
+#create a host bridge network interface for sles16 via python script poo#178708
+sub create_host_bridge {
+    my $host_bridge = "br0";
+    my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
+
+    if (is_sle('=16') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
+        #install required packages python313-psutil and python313-dbus-python
+        zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
+        my $wait_script = "180";
+        my $script_name = "create_bridge.py";
+        my $script_url = data_url("virt_autotest/$script_name");
+        my $download_script = "curl -s -o ~/$script_name $script_url";
+        script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
+        script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16");
+    }
 }
 
 #return 1 if test is expected to run on XEN hypervisor

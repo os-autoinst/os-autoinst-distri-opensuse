@@ -34,6 +34,7 @@ sub run {
     $self->prepare_services;
     $self->prepare_reboot;
     $self->restore_ground;
+    virt_autotest::utils::create_host_bridge;
 }
 
 sub prepare_ground {
