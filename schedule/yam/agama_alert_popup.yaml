@@ -1,0 +1,9 @@
+---
+name: agama_alert_popup
+description: >
+  Verify alert popup shown with invalid profile url.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
