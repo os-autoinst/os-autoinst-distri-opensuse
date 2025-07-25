@@ -30,6 +30,7 @@ sub run {
     my @lines;
     my $out;
 
+    record_info('KERNEL', script_output('rpm -qi kernel-default'));
     # check if liburing2 is installed and eventually install it
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
