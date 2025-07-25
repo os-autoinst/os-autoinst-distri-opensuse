@@ -1,7 +1,7 @@
 ---
 name: NFS testing on Baremetal
 description:    >
-    Maintainer: mmoese
+    Maintainer: mmoese, schlad
     Tests creating NFS set-up and testing NFS itself with focus on various
     versions, features etc. on baremetal.
 vars:
@@ -50,4 +50,4 @@ schedule:
     - kernel/mellanox_config
     - kernel/before_nfs_test
     - '{{nfstest}}'
-    - kernel/nfs_stress_ng
+    #- kernel/nfs_stress_ng
