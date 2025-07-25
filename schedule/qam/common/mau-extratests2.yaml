@@ -46,6 +46,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/valkey
         - '{{arch_specific15_sp5plus}}'
       15-SP6:
         - console/curl_ipv6
@@ -59,6 +60,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/valkey
         - '{{arch_specific15_sp5plus}}'
       15-SP5:
         - console/curl_ipv6
