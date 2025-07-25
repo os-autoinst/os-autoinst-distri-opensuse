@@ -1,0 +1,19 @@
+name:           ibtest-master
+description:    >
+    The master node for the infiniband testsuite (hpc-testing)
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    IBTESTS: 1
+    IBTEST_ROLE: IBTEST_MASTER
+    MLX_PROTOCOL: 1
+schedule:
+    - kernel/ibtests_barriers
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/mellanox_config
+    - kernel/ibtests_prepare
+    - installation/handle_reboot
+    - kernel/ibtests
