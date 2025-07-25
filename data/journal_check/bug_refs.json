@@ -908,7 +908,8 @@
         "description": "No '\/dev\/log' or 'logger' included for syslog logging",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.2"]
         },
         "type": "ignore"
     },
