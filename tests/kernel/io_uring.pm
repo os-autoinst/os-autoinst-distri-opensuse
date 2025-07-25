@@ -92,7 +92,7 @@ sub run {
         record_info(
             "Timeout",
             $lines[0],
-            result => 'softfail'
+            result => 'fail'
         );
     }
 
