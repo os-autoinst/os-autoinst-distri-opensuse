@@ -31,6 +31,7 @@ sub run {
     my $out;
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
+    record_info('CONFIG', script_output("grep . /boot/config-\$(uname -r) || echo 'No kernel config found'"));
     # check if liburing2 is installed and eventually install it
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
