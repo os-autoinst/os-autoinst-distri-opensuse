@@ -54,6 +54,7 @@ sub run {
     assert_script_run("make -C src");
     assert_script_run("make -C test");
 
+    record_info("IO_URING Features", script_output("grep 'IORING_FEAT_RECVSEND_BUNDLE' liburing/src/include/liburing.h || echo 'Flag not found in headers'"));
     # create environment information for known issues check
     my $environment = {
         product => get_var('DISTRI') . ':' . get_var('VERSION'),
