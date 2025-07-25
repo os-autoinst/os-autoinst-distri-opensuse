@@ -96,6 +96,7 @@ our @EXPORT = qw(
   reboot_virtual_machine
   reconnect_console_if_not_good
   get_guest_settings
+  reselect_openqa_console
 );
 
 my %log_cursors;
@@ -1483,6 +1484,38 @@ sub get_guest_settings {
     }
 
     return \%settings_matrix;
+}
+
+=head2 reselect_openqa_console
+
+Reselect named console in openQA test if concerned console is lost after detecting
+ssh port or needle. Arguments include address to be detected,console to be selected
+,needle to be checked and counter to be used.
+=cut
+
+sub reselect_openqa_console {
+    my (%args) = @_;
+    $args{address} //= '';
+    $args{console} //= 'root-ssh';
+    $args{needle} //= 'text-logged-in-root';
+    $args{counter} //= '180';
+    die("Address must be given for ssh port detecting") if (!$args{address});
+
+    my $_reselect_console_counter = $args{counter};
+    while ($_reselect_console_counter >= 0) {
+        if (!(check_port_state($args{address}, 22)) or !(check_screen($args{needle}))) {
+            if (check_port_state($args{address}, 22, 6, 5)) {
+                reset_consoles;
+                select_console($args{console});
+                last;
+            }
+            else {
+                croak("System $args{address} port 22 is not open for console selection");
+            }
+        }
+        enter_cmd("reset");
+        $_reselect_console_counter -= 1;
+    }
 }
 
 1;
