@@ -47,6 +47,7 @@ sub run {
     assert_script_run("git clone --no-single-branch $repository");
     assert_script_run("cd liburing");
     assert_script_run("git checkout $version");
+    record_info("test version", script_output("git log -1 --oneline"));
     assert_script_run("./configure");
     assert_script_run("make -C src");
     assert_script_run("make -C test");
