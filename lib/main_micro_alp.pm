@@ -49,7 +49,6 @@ sub load_config_tests {
 }
 
 sub load_boot_from_disk_tests {
-    loadtest 'microos/disk_boot' if (check_var('MACHINE', 'ppc64le-p10-virtio') && !check_var('FIRST_BOOT_CONFIG', 'wizard'));
     # add additional image handling module for svirt workers
     if (is_s390x()) {
         loadtest 'installation/bootloader_start';
