@@ -12,6 +12,11 @@ use lockapi;
 use utils;
 
 sub run {
+
+    if (get_var('PARALLEL_WITH') eq 'ibtest-master') {
+        record_info("Dont initi barriers");
+    } else {
+
     my $nodes = get_required_var("MULTIMACHINE_NODES");
     record_info("#barriers", $nodes);
     barrier_create("NFS_SERVER_ENABLED", $nodes);
@@ -26,6 +31,8 @@ sub run {
         barrier_create("KDUMP_MULTIMACHINE", $nodes);
     }
     record_info("barriers initializoped");
+}
+
 }
 
 sub test_flags {

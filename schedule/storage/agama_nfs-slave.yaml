@@ -1,0 +1,19 @@
+name:           ibtest-slave
+description:    >
+    The slave node for the infiniband testsuite (hpc-testing)
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    IBTESTS: 1
+    IBTEST_ROLE: IBTEST_SLAVE
+    MLX_PROTOCOL: 1
+    PARALLEL_WITH: ibtest-master
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/mellanox_config
+    - kernel/ibtests_prepare
+    - installation/handle_reboot
+    - kernel/ibtests
