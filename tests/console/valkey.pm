@@ -30,7 +30,7 @@ sub run {
     assert_script_run('cd valkey/tls');
     # CA
     assert_script_run('openssl genrsa -out ca.key 4096');
-    assert_script_run('openssl req -new -x509 -days 3650 -key ca.key -out ca.crt -subj "/"');
+    assert_script_run('openssl req -new -x509 -nodes -days 3650 -key ca.key -out ca.crt -subj "/C=DE/ST=Nueremberg/L=Nueremberg/O=QA/OU=core/CN=susetest.example.com"');
     # Master
     assert_script_run('openssl genrsa -out server/valkey.key 2048');
     assert_script_run('openssl req -new -key server/valkey.key -out server/valkey.csr -subj "/"');
