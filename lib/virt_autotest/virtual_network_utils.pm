@@ -22,15 +22,19 @@ use XML::Writer;
 use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_opensuse);
 use virt_autotest::utils;
+use virt_autotest::domain_management_utils qw(construct_uri);
+use mm_network;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone
   restore_guests restore_network destroy_vir_network restore_libvirt_default pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
   hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
-  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status);
+  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status config_domain_resolver
+  write_network_bridge_device_config write_network_bridge_device_ifcfg write_network_bridge_device_nmconnection
+  activate_network_bridge_device config_virtual_network_device);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -409,6 +413,408 @@ sub validate_guest_status {
         #Ensure the SSH connection for the given guest
         die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
     }
+}
+
+=head2 config_domain_resolver
+
+Create domain resolver and prevent it from being overwritten automatically. Other
+arguments include domain resolver configuration file resolvconf, resolver address
+resolvip and domain name domainname.
+=cut
+
+sub config_domain_resolver {
+    my (%args) = @_;
+    $args{resolvconf} //= '/etc/resolv.conf';
+    $args{resolvip} //= '';
+    $args{domainname} //= '';
+    die("Resolver ip and domain name must be given") if (!$args{resolvip} or !$args{domainname});
+
+    my $ret = 1;
+    if (is_networkmanager) {
+        type_string("cat > /etc/NetworkManager/conf.d/resolv_config.conf <<EOF
+[main]
+dns=none
+rc-manager=unmanaged
+EOF
+");
+        $ret = systemctl("restart NetworkManager.service");
+        record_info("Content of /etc/NetworkManager/conf.d/resolv_config.conf", script_output("cat /etc/NetworkManager/conf.d/resolv_config.conf", proceed_on_failure => 1));
+    }
+    else {
+        my $detect_signature = script_output("cat /etc/sysconfig/network/config | grep \"#Modified by parallel_guest_migration_base module\"", proceed_on_failure => 1);
+        if ($detect_signature eq '') {
+            assert_script_run("cp /etc/sysconfig/network/config /etc/sysconfig/network/config_backup");
+            $ret = assert_script_run("sed -ri \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g\' /etc/sysconfig/network/config");
+            $ret |= assert_script_run("echo \'#Modified by parallel_guest_migration_base module\' >> /etc/sysconfig/network/config");
+        }
+        record_info("Content of /etc/sysconfig/network/config", script_output("cat /etc/sysconfig/network/config", proceed_on_failure => 1));
+    }
+    my $detect_signature = script_output("cat $args{resolvconf} | grep \"#Modified by parallel_guest_migration_base.pm module\"", proceed_on_failure => 1);
+    my $detect_name_server = script_output("cat $args{resolvconf} | grep \"nameserver $args{resolvip}\"", proceed_on_failure => 1);
+    my $detect_domain_name = script_output("cat $args{resolvconf} | grep \"$args{domainname}\"", proceed_on_failure => 1);
+    $ret |= assert_script_run("cp $args{resolvconf} /etc/resolv_backup.conf") if ($detect_signature eq '');
+    $ret |= assert_script_run("awk -v dnsvar=$args{resolvip} \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' $args{resolvconf} > $args{resolvconf}.tmp") if ($detect_name_server eq '');
+    if ($detect_domain_name eq '') {
+        $ret |= assert_script_run("cp $args{resolvconf} $args{resolvconf}.tmp") if (script_run("ls $args{resolvconf}.tmp") != 0);
+        $ret |= assert_script_run("sed -i -r \'s/^search/search $args{domainname}/\' $args{resolvconf}.tmp");
+    }
+    if (script_run("ls $args{resolvconf}.tmp") == 0) {
+        $ret |= assert_script_run("mv $args{resolvconf}.tmp $args{resolvconf}");
+        $ret |= assert_script_run("echo \'#Modified by parallel_guest_migration_base module network $args{resolvip}\' >> $args{resolvconf}");
+    }
+    record_info("Content of $args{resolvconf}", script_output("cat $args{resolvconf}", proceed_on_failure => 1));
+    return $ret;
+}
+
+=head2 write_network_bridge_device_config
+
+  write_network_bridge_device_config(name => $name [, ipaddr => $ipaddr,
+      bootproto => $bootproto, startmode => $startmode, zone => $zone,
+      bridge_type => $bridge_type, _bridge_ports => $bridge_ports,
+      bridge_stp => $bridge_stp, bridge_forwarddelay => $bridge_forwarddelay,
+      backup_folder => $backup_folder])
+
+Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or
+/etc/NetworkManager/system-connections/*.nmconnection depends on whether system
+network is managed by NetworkManager or not. The supported arguments are listed
+out as below:
+$ipaddr: IP address/mask length pair of the interface
+$name: Identifier of the interface
+$bootproto: DHCP automatic or manual configuration, 'static', 'dhcp' or 'none'
+$startmode: Auto start up or connection: 'auto', 'manual' or 'off'
+$zone: The trust level of this network connection
+$bridge_type: 'master' or 'slave' to indicate master or slave interface
+$bridge_port: Specify interface's master or slave interface name
+$bridge_stp: 'on' or 'off' to turn stp on or off
+$bridge_forwarddelay: The stp forwarding delay in seconds
+If $ipaddr given is empty, it means there is no associated specific ip address
+to this interface which might be attached to another bridge interface or will not
+be assigned one ip address from dhcp, so set $ipaddr to '0.0.0.0'.If $ipaddr
+given is non-empty but not in ip address format,for example, 'host',it
+means the interface will not use a ip address from pre-defined subnet and will
+automically accept dhcp ip address from public facing host network.
+
+=cut
+
+sub write_network_bridge_device_config {
+    my (%args) = @_;
+
+    $args{ipaddr} //= '0.0.0.0';
+    $args{name} //= '';
+    $args{bootproto} //= 'dhcp';
+    $args{startmode} //= 'auto';
+    $args{zone} //= '';
+    $args{bridge_type} //= 'master';
+    $args{bridge_port} //= '';
+    $args{bridge_stp} //= 'off';
+    $args{bridge_forwarddelay} //= '15';
+    $args{backup_folder} //= '/temp';
+    die("Interface name must be given otherwise network bridge device config can not be generated.") if (!$args{name});
+
+    my $ret = 1;
+    $args{ipaddr} = '0.0.0.0' if ($args{ipaddr} eq '');
+    $args{ipaddr} = '' if (!($args{ipaddr} =~ /\d+\.\d+\.\d+\.\d+/));
+    if (is_networkmanager) {
+        $ret = write_network_bridge_device_nmconnection(%args);
+    }
+    else {
+        $ret = write_network_bridge_device_ifcfg(%args);
+    }
+    return $ret;
+}
+
+=head2 write_network_bridge_device_ifcfg
+
+  write_network_bridge_device_ifcfg(name => $name [, ipaddr => $ipaddr,
+      name => $name, bootproto => $bootproto, startmode => $startmode,
+      zone => $zone, bridge_type => $bridge_type, bridge_ports => $bridge_ports,
+      bridge_stp => $bridge_stp, bridge_forwarddelay => $bridge_forwarddelay,
+      backup_folder => $backup_folder])
+
+Write bridge device config file to /etc/sysconfig/network/ifcfg-*. Please refer
+to https://github.com/openSUSE/sysconfig/blob/master/config/ifcfg.template for
+config file content. This subroutine is supposed to be used by calling subroutine
+write_network_bridge_device_config.
+
+=cut
+
+sub write_network_bridge_device_ifcfg {
+    my (%args) = @_;
+    die("Interface name must be given otherwise network bridge device config can not be generated.") if (!$args{name});
+
+    my $ret = 1;
+    script_run("cp /etc/sysconfig/network/ifcfg-$args{name} /etc/sysconfig/network/backup-ifcfg-$args{name}");
+    script_run("cp /etc/sysconfig/network/backup-ifcfg-$args{name} $args{backup_folder}");
+    my $bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $args{name};
+    my $is_bridge = (($args{bridge_type} eq 'master') ? 'yes' : 'no');
+    type_string("cat > $bridge_device_config_file <<EOF
+IPADDR=\'$args{ipaddr}\'
+NAME=\'$args{name}\'
+BOOTPROTO=\'$args{bootproto}\'
+STARTMODE=\'$args{startmode}\'
+ZONE=\'$args{zone}\'
+BRIDGE=\'$is_bridge\'
+BRIDGE_PORTS=\'$args{bridge_port}\'
+BRIDGE_STP=\'$args{bridge_stp}\'
+BRIDGE_FORWARDDELAY=\'$args{bridge_forwarddelay}\'
+EOF
+");
+    script_run("cp $bridge_device_config_file $args{backup_folder}");
+    $ret = script_run("ls $bridge_device_config_file");
+    record_info("Network device $args{name} config $bridge_device_config_file", script_output("cat $bridge_device_config_file", proceed_on_failure => 0));
+    return $ret;
+}
+
+=head2 write_network_bridge_device_nmconnection
+
+  write_network_bridge_device_nmconnection(name => $name [, ipaddr => $ipaddr,
+      name => $name, bootproto => $bootproto, startmode => $startmode,
+      zone => $zone, bridge_type => $bridge_type, bridge_ports => $bridge_ports,
+      bridge_stp => $bridge_stp, bridge_forwarddelay => $bridge_forwarddelay,
+      backup_folder => $backup_folder])
+
+Write bridge device config file to /etc/NetworkManager/system-connections/*. NM
+settings are a little bit different from ifcfg settings, but there are definite
+mapping between them. So translation from well-known and default ifcfg settings
+to NM settings is necessary. Please refer to nm-settings explanation as below:
+https://developer-old.gnome.org/NetworkManager/stable/nm-settings-keyfile.html.
+This subroutine is supposed to be used by calling write_network_bridge_device_config.
+
+=cut
+
+sub write_network_bridge_device_nmconnection {
+    my (%args) = @_;
+    die("Interface name must be given otherwise network bridge device config can not be generated.") if (!$args{name});
+
+    my $ret = 1;
+    my $configmethod = (($args{bootproto} eq 'dhcp') ? 'auto' : 'manual');
+    my $autoconnect = (($args{startmode} eq 'auto') ? 'true' : 'false');
+    my $autoconnect_ports = (($args{startmode} eq 'auto') ? 1 : 0);
+    $args{bridge_stp} = (($args{bridge_stp} eq 'on') ? 'true' : 'false');
+    script_run("cp /etc/NetworkManager/system-connections/$args{name}.nmconnection /etc/NetworkManager/system-connections/backup-$args{name}.nmconnection");
+    script_run("cp /etc/NetworkManager/system-connections/backup-$args{name}.nmconnection $args{backup_folder}");
+    my $bridge_device_config_file = '/etc/NetworkManager/system-connections/' . $args{name} . '.nmconnection';
+
+    if ($args{bridge_type} eq 'master') {
+        type_string("cat > $bridge_device_config_file <<EOF
+[connection]
+autoconnect=$autoconnect
+EOF
+");
+        type_string("cat >> $bridge_device_config_file <<EOF
+autoconnect-ports=$autoconnect_ports
+EOF
+") if (is_sle('>=16'));
+        type_string("cat >> $bridge_device_config_file <<EOF
+id=$args{name}
+permissions=
+interface-name=$args{name}
+type=bridge
+zone=$args{zone}
+[ipv4]
+method=$configmethod
+address1=$args{ipaddr}
+[bridge]
+stp=$args{bridge_stp}
+forward-delay=$args{bridge_forwarddelay}
+EOF
+");
+    }
+    elsif ($args{bridge_type} eq 'slave') {
+        my $interfacetype = '';
+        if (script_run("nmcli connection show $args{name}") == 0) {
+            $interfacetype = script_output("nmcli connection show $args{name} | grep connection.type | awk \'{print \$2}\'", proceed_on_failure => 0);
+        }
+        else {
+            my $interfacename = script_output("nmcli -f NAME,DEVICE connection show | grep $args{name}", proceed_on_failure => 0);
+            $interfacename =~ s/\s*$args{name}\s*$//;
+            $interfacetype = script_output("nmcli connection show \"$interfacename\" | grep connection.type | awk \'{print \$2}\'", proceed_on_failure => 0);
+        }
+        type_string("cat > $bridge_device_config_file <<EOF
+[connection]
+autoconnect=$autoconnect
+id=$args{name}
+permissions=
+interface-name=$args{name}
+type=$interfacetype
+zone=$args{zone}
+slave-type=bridge
+master=$args{bridge_port}
+[ipv4]
+method=$configmethod
+address1=$args{ipaddr}
+EOF
+");
+    }
+    $ret = script_run("chmod 700 $bridge_device_config_file && cp $bridge_device_config_file $args{backup_folder}");
+    $ret |= script_retry("nmcli connection load $bridge_device_config_file", retry => 3, die => 0);
+    record_info("Network device $args{name} config $bridge_device_config_file", script_output("cat $bridge_device_config_file", proceed_on_failure => 0));
+    return $ret;
+}
+
+=head2 activate_network_bridge_device
+
+  activate_network_bridge_device(host_device => $host_device,
+      bridge_device => $bridge_device, network_mode => $network_mode)
+
+Activate guest network bridge device by using wicked or NetworkManager depends on
+system configuration. And also validate whether activation is successful or not.
+
+=cut
+
+sub activate_network_bridge_device {
+    my (%args) = @_;
+    $args{network_mode} //= 'bridge';
+    $args{host_device} //= '';
+    $args{bridge_device} //= '';
+    die("Bridge device name must be given otherwise activation can not be done.") if (!$args{bridge_device});
+
+    my $ret = 1;
+    my $detect_active_route = '';
+    my $detect_inactive_route = '';
+    if ($args{network_mode} ne 'host') {
+        if (is_networkmanager) {
+            $ret = script_retry("nmcli connection up $args{bridge_device}", retry => 3, die => 0);
+        }
+        else {
+            my $bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $args{bridge_device};
+            if (is_opensuse) {
+                # NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
+                # Not sure if it is a bug yet. This is just a temporary solution.
+                my $bridge_ipaddr = script_output("grep IPADDR $bridge_device_config_file | cut -d \"'\" -f2");
+                $ret = script_retry("ip link add $args{bridge_device} type bridge; ip addr flush dev $args{bridge_device}", retry => 3, die => 0);
+                $ret |= script_retry("ip addr add $bridge_ipaddr dev $args{bridge_device} && ip link set $args{bridge_device} up", retry => 3, die => 0);
+            }
+            else {
+                $ret = script_retry("wicked ifup $bridge_device_config_file $args{bridge_device}", retry => 3, die => 0);
+            }
+        }
+        $detect_active_route = script_output("ip route show | grep -i $args{bridge_device}", proceed_on_failure => 1);
+    }
+    else {
+        if (is_networkmanager) {
+            script_retry("nmcli connection up $args{bridge_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+            script_retry("nmcli connection up $args{host_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+        }
+        else {
+            script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
+        }
+        type_string("reset\n");
+        select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
+        $detect_active_route = script_output("ip route show default | grep -i $args{bridge_device}", proceed_on_failure => 1);
+        $detect_inactive_route = script_output("ip route show default | grep -i $args{host_device}", proceed_on_failure => 1);
+    }
+
+    if (($detect_active_route ne '') and ($detect_inactive_route eq '')) {
+        $ret = 0;
+        record_info("Successfully setup bridge device $args{bridge_device}", script_output("ip addr show;ip route show"));
+    }
+    else {
+        $ret |= 1;
+        record_info("Failed to setup bridge device $args{bridge_device}", script_output("ip addr show;ip route show"), result => 'fail');
+    }
+    return $ret;
+}
+
+=head2 config_virtual_network_device
+
+  config_virtual_network_device(driver => 'driver', transport => 'transport',
+      user => 'user', host => 'host', port => 'port', path => 'path',
+      extra => 'extra', fwdmode => 'fwdmode', name => 'name', device => 'device',
+      ipaddr => 'ip', netmask => 'mask', startaddr => 'start', endaddr => 'end',
+      domainname => 'domainname', confdir => 'confdir')
+
+Create virtual network to be used. This subroutine also calls construct_uri to
+determine the desired URI to be connected if the interested party is not localhost.
+Please refer to subroutine construct_uri for the arguments related. The network
+to be created based on arguments fwdmode, name, device, ipaddr, netmask, startaddr
+, endaddr and domainname. The configuration file is constructed from arguments
+name and confdir.
+
+=cut
+
+sub config_virtual_network_device {
+    my (%args) = @_;
+    $args{driver} //= '';
+    $args{transport} //= 'ssh';
+    $args{user} //= '';
+    $args{host} //= 'localhost';
+    $args{port} //= '';
+    $args{path} //= 'system';
+    $args{extra} //= '';
+    $args{fwdmode} //= '';
+    $args{name} //= '';
+    $args{device} //= '';
+    $args{ipaddr} //= '';
+    $args{netmask} //= '';
+    $args{startaddr} //= '';
+    $args{endaddr} //= '';
+    $args{domainname} //= 'testvirt.net';
+    $args{confdir} //= '/var/lib/libvirt/images';
+
+    if (!$args{fwdmode} or !$args{name} or !$args{device} or !$args{ipaddr} or !$args{netmask} or !$args{startaddr} or !$args{endaddr}) {
+        die("Network forward mode, name, device, ip address, network mask, start and end address must be given to create virtual network");
+    }
+
+    my $ret = 1;
+    my $uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{driver}, transport => $args{transport}, user => $args{user}, host => $args{host}, port => $args{port}, path => $args{path}, extra => $args{extra});
+    script_run("virsh $uri net-destroy $args{name}");
+    if ($args{name} ne 'default' or script_run("virsh $uri net-list --all --name | grep -i default") != 0) {
+        script_run("virsh $uri net-undefine $args{name}");
+        type_string("cat > $args{confdir}/$args{name}.xml <<EOF
+<network>
+  <name>$args{name}</name>
+  <bridge name=\"$args{device}\"/>
+EOF
+");
+        if ($args{fwdmode} eq 'nat') {
+            type_string("cat >> $args{confdir}/$args{name}.xml <<EOF
+  <forward mode=\"$args{fwdmode}\">
+    <nat>
+      <port start=\"20232\" end=\"65535\"/>
+    </nat>
+  </forward>
+EOF
+");
+        }
+        else {
+            type_string("cat >> $args{confdir}/$args{name}.xml <<EOF
+  <forward mode=\"$args{fwdmode}\"/>
+EOF
+");
+        }
+        type_string("cat >> $args{confdir}/$args{name}.xml <<EOF
+  <domain name=\"$args{domainname}\" localOnly=\"yes\"/>
+  <ip address=\"$args{ipaddr}\" netmask=\"$args{netmask}\">
+    <dhcp>
+      <range start=\"$args{startaddr}\" end=\"$args{endaddr}\">
+        <lease expiry=\"24\" unit=\"hours\"/>
+      </range>
+    </dhcp>
+  </ip>
+EOF
+") if ($args{fwdmode} ne 'host');
+        type_string("cat >> $args{confdir}/$args{name}.xml <<EOF
+</network>
+EOF
+");
+
+        $ret = script_run("virsh $uri net-define $args{confdir}/$args{name}.xml");
+    }
+    else {
+        $ret = 0;
+    }
+    if (script_run("virsh $uri net-start $args{name}") != 0) {
+        restart_libvirtd;
+        check_libvirtd;
+        $ret |= script_run("virsh $uri net-start $args{name}");
+    }
+    $ret |= script_run("iptables --append FORWARD --in-interface $args{device} -j ACCEPT") if ($args{device} ne 'br0');
+    if (script_run("virsh $uri net-list | grep \"$args{name} .*active\"") != 0) {
+        record_info("Network $args{name} creation failed", script_output("virsh $uri list --all; virsh $uri net-dumpxml $args{name};ip route show all", type_command => 1, proceed_on_failure => 1), result => 'fail');
+        $ret |= 1;
+    }
+    return $ret;
 }
 
 1;
