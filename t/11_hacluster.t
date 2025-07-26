@@ -719,4 +719,89 @@ END
     ok((any { /crm_attribute.*cluster/ } @calls), 'There is a call to crm_attribute --list-options cluster');
 };
 
+subtest 'return sbd device list by running crm sbd status [get_sbd_devices]' => sub {
+    my $output = <<'EOF';
+# status of sdb.service:
+Node                          |Active      |Enable         |Since
+2nodes-node01:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+2nodes-node02:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+
+# Status of the sbd disk watcher process on sbdcommand-node01:
+|-3059 sbd: watcher: /dev/disk/by-path/lun-0 - slot : 0 --uuid xxxxxxxxxxxxx
+|-3060 sbd: watcher: /dev/disk/by-path/lun-4 - slot : 0 --uuid xxxxxxxxxxxxx
+
+# Status of the sbd disk watcher process on sbdcommand-node02:
+|-3058 sbd: watcher: /dev/disk/by-path/lun-0 - slot : 0 --uuid xxxxxxxxxxxxx
+|-3061 sbd: watcher: /dev/disk/by-path/lun-4 - slot : 0 --uuid xxxxxxxxxxxxx
+
+# Watchdog info:
+Node.                    |Device                    |Driver           |Kernel Timeout
+2nodes-node01  |/dev/watchdog.   | <unknown>    | 10
+2nodes-node02  |/dev/watchdog.   | <unknown>    | 10
+EOF
+
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return $output });
+    my @devices_node01 = get_sbd_devices("sbdcommand-node01");
+
+    my $expect_value = ['/dev/disk/by-path/lun-0', '/dev/disk/by-path/lun-4'];
+    is_deeply(\@devices_node01, $expect_value, 'Get sbd devices for node01 successfully');
+
+    my @devices_node02 = get_sbd_devices("sbdcommand-node02");
+    is_deeply(\@devices_node02, $expect_value, 'Get sbd devices for node02 successfully');
+};
+
+subtest 'parse result of command "crm sbd configure show disk_metadata" [parse_sbd_metadata]' => sub {
+    my $output = <<'EOF';
+INFO: crm sbd configure show disk_metadata
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version  : 2.1
+UUID            :
+Number of slots: 123
+Sector size: 123
+Timeout (watchdog)  : 15
+Timeout (allocate)  : 2
+Timeout (loop)      : 1
+Timeout (msgwait)   : 30
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+==Dumping header on disk /dev/disk/by-path/yyyy
+Header version  : 2.1
+UUID            : 123
+Number of slots: 123
+Sector size: 123
+Timeout (watchdog) : 16
+Timeout (allocate) : 3
+Timeout (loop)     : 2
+Timeout (msgwait)  : 32
+==Header on disk /dev/disk/by-path/yyyyyyy is dumped
+EOF
+
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return $output });
+    my @sbd_conf = parse_sbd_metadata();
+
+    my $expect_value = [
+        {
+            device_name => '/dev/disk/by-path/xxxxx',
+            metadata => {
+                watchdog => 15,
+                allocate => 2,
+                loop => 1,
+                msgwait => 30,
+            }
+        },
+        {
+            device_name => '/dev/disk/by-path/yyyy',
+            metadata => {
+                watchdog => 16,
+                allocate => 3,
+                loop => 2,
+                msgwait => 32,
+            }
+        }
+    ];
+    is_deeply(\@sbd_conf, $expect_value, 'Parse crm sbd configure show disk_metadata successfully');
+};
+
 done_testing;
