@@ -42,6 +42,13 @@ sub create_profile {
     $profile =~ s/\{\{CA_STR\}\}/$ca_str/g;
     $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
     $profile =~ s/\{\{SUT_IP\}\}/$sut_ip/g;
+    # Change bootloader to grub2-efi for UEFI boot if this specific guest should use UEFI
+    # Check the guest configuration from virt_autotest::common
+    my %guests = %virt_autotest::common::guests;
+    if (exists $guests{$vm_name} && exists $guests{$vm_name}->{boot_firmware} && $guests{$vm_name}->{boot_firmware} eq 'efi') {
+        $profile =~ s/<loader_type>grub2<\/loader_type>/<loader_type>grub2-efi<\/loader_type>/;
+        record_info("UEFI Config", "Modified autoyast profile for $vm_name to use grub2-efi for UEFI boot");
+    }
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
@@ -66,7 +73,7 @@ sub gen_osinfo {
     my $h_version = get_var("VERSION") =~ s/-SP/./r;
     my $g_version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
     my $info_op = $h_version > 15.2 ? "--osinfo" : "--os-variant";
-    my $info_val = $g_version > 12.5 ? $vm_name =~ s/HVM|PV//r =~ s/sles/sle/r : $vm_name =~ s/PV|HVM//r;
+    my $info_val = $g_version > 12.5 ? $vm_name =~ s/HVM|PV|efi//r =~ s/sles/sle/r : $vm_name =~ s/PV|HVM|efi//r;
     if ($h_version == 12.3) {
         $info_val = "sle15-unknown" if ($g_version > 15.1);
         $info_val = "sles12-unknown" if ($g_version == 12.5);
