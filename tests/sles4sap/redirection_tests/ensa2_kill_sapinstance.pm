@@ -142,10 +142,12 @@ sub run {
     $fail_count = crm_wait_failcount(crm_resource => $resource_name);
     record_info("Fail count: $fail_count", "Fail count is $fail_count");
 
+    wait_for_idle_cluster();
     record_info('Refresh', 'Refreshing resources using "crm resource refresh"');
     assert_script_run('crm resource refresh');
     wait_until_resources_started();
     wait_for_idle_cluster();
+
     record_info('Cluster check', 'Checking state of cluster resources');
     check_cluster_state();
 
