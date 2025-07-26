@@ -123,6 +123,11 @@ sub run {
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');
 
+    script_run("zypper -n in nfs-utils");
+    assert_script_run "mkdir -p /tmp/test_nfs_mount";
+    assert_script_run "mount -t nfs " . "dist.suse.de" . ":/dist/install/OracleLinux /tmp/test_nfs_mount";
+    assert_script_run "ls /tmp/test_nfs_mount";
+    save_screenshot;
     # stop and disable PackageKit
     quit_packagekit;
 }

@@ -116,6 +116,12 @@ sub run {
         die('No MCE event recored - ' . $error_output)
           unless ($error_output =~ /MCE events/ && $error_output =~ /status=0x9c00000000000000/);
     }
+
+    script_run("zypper -n in nfs-utils");
+    assert_script_run "mkdir -p /tmp/test_nfs_mount";
+    assert_script_run "mount -t nfs " . "dist.suse.de" . ":/dist/install/OracleLinux /tmp/test_nfs_mount";
+    assert_script_run "ls /tmp/test_nfs_mount";
+    save_screenshot;
 }
 
 sub post_run_hook ($self) {
