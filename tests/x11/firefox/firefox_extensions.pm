@@ -63,6 +63,7 @@ sub run {
     $self->firefox_open_url('opensuse.org', assert_loaded_url => 'firefox-extensions-show_flag');
 
     send_key "alt-2";
+    assert_and_click("firefox-extensions-tab");
     wait_still_screen 2, 4;
     assert_and_click('firefox-extensions-menu-icon') if check_screen('firefox-extensions-menu-icon');
     assert_and_click('firefox-extensions-remove');

@@ -17,12 +17,13 @@ use warnings;
 use base "x11test";
 use testapi;
 use utils;
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     script_run('cd ~/data/testwebsites');
     enter_cmd('python3 -m http.server 48080 &');
     # curl provides an adequate time window for the server to run
@@ -30,6 +31,6 @@ sub run {
     send_key 'alt-tab';    #Switch to firefox
     $self->firefox_open_url('http://localhost:48080/html5_video', assert_loaded_url => 'firefox-testvideo');
     $self->exit_firefox;
-    enter_cmd('exit');
+    send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
 }
 1;

@@ -22,12 +22,13 @@ use warnings;
 use base "x11test";
 use testapi;
 use version_utils 'is_sle';
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
 
     $self->start_firefox_with_profile;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     my $host = script_run('ping -c1 mirror.suse.cz') == 0 ? 'mirror.suse.cz' : 'ibs-mirror.prv.suse.net';
     send_key 'ctrl-d';
     wait_still_screen 2;
