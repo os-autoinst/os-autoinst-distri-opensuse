@@ -30,7 +30,7 @@ our @EXPORT = qw(
   revert_vm_timesync_setting
 );
 
-my $hypervisor = get_var('HYPERVISOR') // get_var('VMWARE_SERVER');
+my $hypervisor = get_var('HYPERVISOR') // get_var('VMWARE_HOST');
 
 sub esxi_vm_get_vmid {
     my $vm_name = shift;
