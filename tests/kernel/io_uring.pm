@@ -30,6 +30,8 @@ sub run {
     my @lines;
     my $out;
 
+    record_info('KERNEL', script_output('rpm -qi kernel-default'));
+    record_info('CONFIG', script_output("grep . /boot/config-\$(uname -r) || echo 'No kernel config found'"));
     # check if liburing2 is installed and eventually install it
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
@@ -47,10 +49,12 @@ sub run {
     assert_script_run("git clone --no-single-branch $repository");
     assert_script_run("cd liburing");
     assert_script_run("git checkout $version");
+    record_info("test version", script_output("git log -1 --oneline"));
     assert_script_run("./configure");
     assert_script_run("make -C src");
     assert_script_run("make -C test");
 
+    record_info("IO_URING Features", script_output("grep 'IORING_FEAT_RECVSEND_BUNDLE' liburing/src/include/liburing.h || echo 'Flag not found in headers'"));
     # create environment information for known issues check
     my $environment = {
         product => get_var('DISTRI') . ':' . get_var('VERSION'),
@@ -91,7 +95,7 @@ sub run {
         record_info(
             "Timeout",
             $lines[0],
-            result => 'softfail'
+            result => 'fail'
         );
     }
 
