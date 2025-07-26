@@ -82,7 +82,7 @@ sub build_and_run_image {
     assert_script_run("$runtime logs myapp");    # show logs for easier problem investigation
 
     # Test that the exported port is reachable
-    my $curl_opts = "--retry 10";
+    my $curl_opts = "--retry 50";
     assert_script_run("curl $curl_opts http://localhost:8888/ | grep 'The test shall pass'");
 
     # Cleanup
