@@ -7,8 +7,6 @@
 # Summary: smoke test for autoyast post-installation
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

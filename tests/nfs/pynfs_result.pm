@@ -5,8 +5,6 @@
 # Maintainer: Petr Vorel <pvorel@suse.cz>
 
 use 5.018;
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use version_utils qw(is_sle is_leap);

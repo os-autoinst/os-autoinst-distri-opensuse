@@ -8,8 +8,6 @@
 # Tags: poo#96540 poo#99441, poo#110157, poo#101914
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use autotest;
 use utils;

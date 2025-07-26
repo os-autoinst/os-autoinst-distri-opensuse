@@ -6,8 +6,6 @@
 # Maintainer: Dumitru Gutu <dgutu@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;

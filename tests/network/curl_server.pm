@@ -8,8 +8,6 @@
 # Maintainer: Marcelo Martins <mmartins@@suse.com>
 
 use base 'opensusebasetest';
-use warnings;
-use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use mmapi;

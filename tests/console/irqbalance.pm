@@ -7,9 +7,7 @@
 # Summary: Test irqbalance runs as service as well as standalone
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use warnings;
 use base "consoletest";
-use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call clear_console);

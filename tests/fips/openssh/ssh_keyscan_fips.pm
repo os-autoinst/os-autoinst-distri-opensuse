@@ -11,9 +11,7 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
-use strict;
 use testapi;
-use warnings;
 use utils qw(systemctl);
 use version_utils qw(is_sle);
 use serial_terminal 'select_serial_terminal';

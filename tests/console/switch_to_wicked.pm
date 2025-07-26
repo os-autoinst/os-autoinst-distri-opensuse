@@ -8,8 +8,6 @@
 
 use base 'consoletest';
 use y2_module_basetest;
-use strict;
-use warnings;
 use testapi;
 use mm_network;
 

@@ -6,9 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 
 use parent 'y2_installbase';
-use strict;
 use testapi;
-use warnings;
 use security::config;
 
 sub run {

@@ -8,8 +8,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils 'ensure_serialdev_permissions';
 use version_utils qw(is_leap);

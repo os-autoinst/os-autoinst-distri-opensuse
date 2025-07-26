@@ -32,8 +32,6 @@
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>, George Gkioulis <ggkioulis@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;

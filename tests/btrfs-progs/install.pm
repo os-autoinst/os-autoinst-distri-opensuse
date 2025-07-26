@@ -5,8 +5,6 @@
 #
 # Summary: Install btrfs-progs
 # Maintainer: An Long <lan@suse.com>
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;

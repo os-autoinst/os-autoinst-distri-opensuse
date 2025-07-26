@@ -10,7 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package bootloader_start;
-use strict;
 use warnings FATAL => 'all';
 use base "installbasetest";
 use testapi;

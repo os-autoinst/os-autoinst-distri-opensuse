@@ -8,8 +8,6 @@
 # Tags: poo#95762
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use audit_test qw(run_testcase compare_run_log);

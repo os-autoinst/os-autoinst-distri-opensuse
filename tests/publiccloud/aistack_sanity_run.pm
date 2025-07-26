@@ -11,8 +11,6 @@
 #
 
 use Mojo::Base 'publiccloud::basetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use publiccloud::utils;

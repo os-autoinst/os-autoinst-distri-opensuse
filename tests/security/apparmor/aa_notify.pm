@@ -18,8 +18,6 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36883, tc#1621139
 
-use strict;
-use warnings;
 use base "apparmortest";
 use testapi;
 use utils;

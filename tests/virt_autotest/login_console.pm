@@ -8,8 +8,6 @@
 
 package login_console;
 use base 'y2_installbase';
-use strict;
-use warnings;
 use File::Basename;
 use testapi;
 use Utils::Architectures;

@@ -7,8 +7,6 @@
 # Summary: Configure snapper and verify that timeline cleanup algorithm behaves accordingly.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 use scheduler 'get_test_suite_data';

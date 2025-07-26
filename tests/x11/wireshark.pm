@@ -24,8 +24,6 @@
 # Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use version_utils 'is_sle';
 use testapi;
 use serial_terminal 'select_serial_terminal';

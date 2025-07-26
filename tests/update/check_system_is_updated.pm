@@ -9,8 +9,6 @@
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils 'ensure_serialdev_permissions';
 

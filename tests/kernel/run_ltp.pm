@@ -8,7 +8,6 @@
 # More documentation is at the bottom
 
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';

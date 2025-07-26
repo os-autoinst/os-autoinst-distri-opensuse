@@ -16,8 +16,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use partition_setup qw(create_new_partition_table addpart addboot);

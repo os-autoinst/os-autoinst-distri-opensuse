@@ -6,8 +6,6 @@
 # Summary: Setup kvm serial console so that ipmitool can work normally from 3rd generation openqa ipmi backend.
 # Maintainer: Wayne <wchen@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use base "virt_autotest_base";

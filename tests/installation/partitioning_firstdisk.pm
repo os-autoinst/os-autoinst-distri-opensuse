@@ -9,8 +9,6 @@
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_storage_ng';
 use partition_setup 'take_first_disk';

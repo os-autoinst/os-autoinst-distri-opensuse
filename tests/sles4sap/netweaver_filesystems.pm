@@ -13,8 +13,6 @@ use serial_terminal 'select_serial_terminal';
 use utils 'systemctl';
 use hacluster;
 use version_utils qw(is_sle);
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

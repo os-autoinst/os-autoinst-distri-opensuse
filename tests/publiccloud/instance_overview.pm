@@ -12,9 +12,7 @@
 
 use base 'publiccloud::basetest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use publiccloud::utils;
 use version_utils qw(is_sle is_sle_micro);

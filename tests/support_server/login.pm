@@ -4,8 +4,6 @@
 # Summary: Boot and login to the supportserver qcow2 image
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

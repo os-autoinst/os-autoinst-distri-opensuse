@@ -8,8 +8,6 @@
 # Tags: poo#52430, poo#52937, tc#1729313, poo#65375
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -9,8 +9,6 @@
 # Tags: poo#52289, tc#1621467, poo#65375
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use web_browser qw(setup_web_browser_env run_web_browser_text_based);

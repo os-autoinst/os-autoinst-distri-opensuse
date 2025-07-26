@@ -10,8 +10,6 @@
 # Tags: poo#81256, tc#1768671, poo#93835, poo#102933
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call permit_root_ssh);

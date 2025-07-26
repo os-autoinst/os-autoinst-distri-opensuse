@@ -7,8 +7,6 @@
 # Tags: poo#70345, tc#1767581
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils qw(zypper_call script_run_interactive enter_cmd_slow);
 use Utils::Architectures qw(is_aarch64);

@@ -8,8 +8,6 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#134984
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use transactional 'process_reboot';

@@ -7,8 +7,6 @@
 # Tags: poo#36907, tc#1621171
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use openscaptest;

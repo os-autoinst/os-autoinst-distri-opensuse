@@ -6,8 +6,6 @@
 # Summary: Validate if generated autoyast profile corresponds to the expected one
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'basetest';
 use testapi;
 use scheduler;

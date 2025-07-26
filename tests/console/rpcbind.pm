@@ -12,9 +12,7 @@
 # - Umount nfs
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use warnings;
 use base 'consoletest';
-use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);

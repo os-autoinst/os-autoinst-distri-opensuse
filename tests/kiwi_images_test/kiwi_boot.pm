@@ -13,8 +13,6 @@
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
 use base "installbasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

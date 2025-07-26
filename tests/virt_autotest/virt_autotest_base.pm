@@ -7,8 +7,6 @@ package virt_autotest_base;
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
 
-use strict;
-use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use testapi;

@@ -7,8 +7,6 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 
-use strict;
-use warnings;
 use Mojo::Base qw(consoletest);
 use testapi;
 use utils;

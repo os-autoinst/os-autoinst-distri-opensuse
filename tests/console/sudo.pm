@@ -15,8 +15,6 @@
 
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_public_cloud);

@@ -7,8 +7,6 @@
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);
 use Utils::Backends 'is_pvm';

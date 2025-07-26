@@ -9,8 +9,6 @@
 # - We only need to care about QEMU backend
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use base 'consoletest';
 use testapi;
 use Utils::Backends 'is_qemu';

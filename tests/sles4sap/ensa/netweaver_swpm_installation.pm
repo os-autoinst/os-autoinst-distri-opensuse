@@ -12,8 +12,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
-use strict;
-use warnings;
 use version_utils qw(has_selinux has_selinux_by_default);
 use sles4sap::sapcontrol;
 

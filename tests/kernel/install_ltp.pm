@@ -7,7 +7,6 @@
 # Maintainer: Richard palethorpe <rpalethorpe@suse.com>
 # Usage details are at the end of this file.
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use File::Basename 'basename';
 use LWP::Simple 'head';

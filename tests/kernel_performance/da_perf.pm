@@ -6,8 +6,6 @@
 # Summary: da_perf: Diamond Assurance performance test
 # Maintainer: jtang@suse.com
 package da_perf;
-use strict;
-use warnings;
 use testapi;
 use base "consoletest";
 sub run {

@@ -7,8 +7,6 @@
 # Summary: yast2_xinetd checks start and stop of verious server components and add or delete server components
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 
 use testapi;

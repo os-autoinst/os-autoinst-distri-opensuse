@@ -20,8 +20,6 @@
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 use base 'wickedbase';
-use strict;
-use warnings;
 use testapi;
 use utils qw(systemctl arrays_differ);
 

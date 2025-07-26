@@ -8,8 +8,6 @@
 #    stored RMT export data, then verify the imported data can list
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use testapi;
 use base 'consoletest';
 use repo_tools;

@@ -9,7 +9,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>, Dawei Pang <dawei.pang@suse.com>
 
 use parent 'y2_installbase';
-use strict;
 use warnings FATAL => 'all';
 use testapi;
 

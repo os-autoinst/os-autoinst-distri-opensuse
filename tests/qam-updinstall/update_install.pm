@@ -51,8 +51,6 @@
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 
 use utils;
 use power_action_utils qw(prepare_system_shutdown power_action);

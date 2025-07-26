@@ -15,8 +15,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl);

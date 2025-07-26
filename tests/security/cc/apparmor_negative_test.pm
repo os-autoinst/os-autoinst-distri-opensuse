@@ -8,8 +8,6 @@
 # Tags: poo#109307
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use audit_test 'parse_kvm_svirt_apparmor_results';

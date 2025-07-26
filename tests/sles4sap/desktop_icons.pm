@@ -9,8 +9,6 @@
 use base 'sles4sap';
 use testapi;
 use version_utils 'is_sle';
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

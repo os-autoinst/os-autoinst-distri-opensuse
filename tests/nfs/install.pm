@@ -8,8 +8,6 @@
 package install;
 
 use 5.018;
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;

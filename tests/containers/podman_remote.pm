@@ -7,8 +7,6 @@
 # Summary: Test podman-remote functionality
 # Maintainer: qe-c <qe-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils qw(script_retry systemctl zypper_call);

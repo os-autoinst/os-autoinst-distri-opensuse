@@ -32,8 +32,6 @@
 package bootloader_uefi;
 
 use base "installbasetest";
-use strict;
-use warnings;
 
 use Time::HiRes 'sleep';
 

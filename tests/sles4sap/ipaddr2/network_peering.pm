@@ -4,8 +4,6 @@
 # Summary: Create network peering with IBSm
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );

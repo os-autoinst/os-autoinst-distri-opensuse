@@ -6,8 +6,6 @@
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

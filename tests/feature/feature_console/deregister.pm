@@ -5,8 +5,6 @@
 # Maintainer: Yi Xu <yxu@suse.com>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use suseconnect_register;
 use registration;

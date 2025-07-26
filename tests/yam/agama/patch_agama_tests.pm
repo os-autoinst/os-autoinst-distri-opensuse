@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::patch_agama_base;
-use strict;
-use warnings;
 use testapi qw(assert_script_run get_required_var select_console);
 
 sub run {

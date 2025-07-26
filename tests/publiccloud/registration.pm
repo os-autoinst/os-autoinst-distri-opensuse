@@ -12,9 +12,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use version_utils;
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use publiccloud::utils;
 use publiccloud::ssh_interactive "select_host_console";

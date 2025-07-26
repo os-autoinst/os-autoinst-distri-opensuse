@@ -14,8 +14,6 @@
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

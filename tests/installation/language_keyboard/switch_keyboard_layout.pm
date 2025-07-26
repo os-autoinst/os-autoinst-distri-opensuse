@@ -5,8 +5,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use Test::Assert ':all';
 use testapi;
 use Utils::Backends;

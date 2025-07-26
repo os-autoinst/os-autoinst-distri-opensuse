@@ -9,9 +9,7 @@
 
 use base 'consoletest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use qam;
 use publiccloud::ssh_interactive "select_host_console";

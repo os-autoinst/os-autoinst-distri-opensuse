@@ -13,8 +13,6 @@
 # Tags: poo#174175, poo#174178
 
 use base "selinuxtest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

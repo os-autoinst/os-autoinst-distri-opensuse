@@ -135,8 +135,6 @@ QE-SAP <qe-sap@suse.de>
 
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use testapi;
 use Time::HiRes 'sleep';
 use Utils::Architectures;

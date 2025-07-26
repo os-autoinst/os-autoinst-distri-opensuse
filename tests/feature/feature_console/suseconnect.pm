@@ -8,8 +8,6 @@
 # Tags: tc#1480023
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

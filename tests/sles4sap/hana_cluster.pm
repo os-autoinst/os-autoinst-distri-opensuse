@@ -14,8 +14,6 @@ use lockapi;
 use network_utils qw(iface);
 use hacluster;
 use utils qw(write_sut_file systemctl file_content_replace);
-use strict;
-use warnings;
 
 sub hanasr_angi_hadr_providers_setup {
     # Setup SAPHanaSR-angi HA/DR providers and

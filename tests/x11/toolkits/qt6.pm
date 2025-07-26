@@ -7,8 +7,6 @@
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base 'x11test';
-use strict;
-use warnings;
 use version_utils 'is_sle';
 use testapi;
 

@@ -6,8 +6,6 @@
 # Summary: Set serial terminal in GRUB for VMware
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 

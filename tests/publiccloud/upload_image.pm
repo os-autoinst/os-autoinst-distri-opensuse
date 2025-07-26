@@ -8,8 +8,6 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 use base "publiccloud::basetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use publiccloud::ec2;

@@ -12,9 +12,7 @@
 # - Wait to yast2 to finish (initrd regenerated)
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
 use base 'y2_module_consoletest';
-use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;

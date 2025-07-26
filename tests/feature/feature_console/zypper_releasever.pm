@@ -8,8 +8,6 @@
 # Tags: tc#1480297, fate#318354
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 
 sub remove_repo {

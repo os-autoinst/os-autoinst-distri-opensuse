@@ -8,8 +8,6 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586210
 
-use strict;
-use warnings;
 use base 'x11test';
 use testapi;
 use lockapi;

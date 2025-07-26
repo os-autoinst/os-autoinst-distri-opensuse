@@ -8,8 +8,6 @@
 # Tags: poo#93441
 
 use base 'selinuxtest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

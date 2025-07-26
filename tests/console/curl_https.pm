@@ -15,8 +15,6 @@
 
 use base "consoletest";
 use testapi;
-use strict;
-use warnings;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
 use Utils::Backends;

@@ -10,8 +10,6 @@
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use package_utils;
 use power_action_utils 'power_action';

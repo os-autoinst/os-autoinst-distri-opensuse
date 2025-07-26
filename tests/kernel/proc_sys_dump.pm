@@ -11,7 +11,6 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;

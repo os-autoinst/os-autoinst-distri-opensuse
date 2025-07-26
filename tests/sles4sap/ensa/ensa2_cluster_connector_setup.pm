@@ -9,8 +9,6 @@
 #
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
 use base 'sles4sap';
 use testapi;
 use hacluster;

@@ -8,8 +8,6 @@
 # Maintainer: Michael Vetter <mvetter@suse.com>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

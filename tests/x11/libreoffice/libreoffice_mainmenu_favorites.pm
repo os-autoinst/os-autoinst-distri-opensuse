@@ -13,8 +13,6 @@
 # Tags: tc#1503906
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_sle';
 

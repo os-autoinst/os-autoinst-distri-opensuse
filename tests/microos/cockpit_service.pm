@@ -7,8 +7,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use transactional;
 use utils qw(systemctl);

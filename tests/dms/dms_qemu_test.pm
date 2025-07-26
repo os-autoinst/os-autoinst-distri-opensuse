@@ -8,8 +8,6 @@
 # Maintainer: QE C <qe-c@suse.de>
 #
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use registration qw(runtime_registration deregister_addons_cmd);

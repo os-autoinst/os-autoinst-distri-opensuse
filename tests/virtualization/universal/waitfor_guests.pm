@@ -10,8 +10,6 @@
 use base 'consoletest';
 use virt_autotest::common;
 use virt_autotest::utils;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

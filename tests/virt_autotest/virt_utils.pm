@@ -10,8 +10,6 @@ package virt_utils;
 
 use base Exporter;
 use Exporter;
-use strict;
-use warnings;
 use Sys::Hostname;
 use File::Basename;
 use testapi;

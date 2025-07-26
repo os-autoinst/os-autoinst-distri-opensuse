@@ -7,8 +7,6 @@
 # by checking for non-existence of .bashrc in /var/lib/{gdm,empty,polkit,nobody,pulseaudio}.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'consoletest';
 use testapi;
 use scheduler 'get_test_suite_data';
