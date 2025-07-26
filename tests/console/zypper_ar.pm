@@ -25,7 +25,7 @@ sub run {
             next unless get_var("REPO_$_");    # Skip repo if not defined
             $repourl = $urlprefix . "/" . get_var("REPO_$_");
             # Skip add repo if already added
-            my $rc = script_run "zypper lr | grep -w $_ || zypper ar -c $repourl $_";
+            my $rc = script_run "zypper lr | grep -w $_ || zypper ar -C $repourl $_";
             # treat OSS error as test failure, others can be just recorded
             if ($rc) {
                 ($_ =~ m/^OSS$/) ? die 'Adding OSS repo failed!' : record_info("$_ repo failure", "zypper exited with code $rc");
