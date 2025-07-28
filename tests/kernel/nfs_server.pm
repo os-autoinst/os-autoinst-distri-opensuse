@@ -74,12 +74,12 @@ my $ip = script_output("hostname -I | awk '{print \$1}'");
 if ($ip eq '10.168.192.68') {
     $wanted_hostname = 'tails-1';
     set_hostname(get_var('HOSTNAME', $wanted_hostname));
-    $client = 'sonic-1*';
+    $client = '10.168.192.0/24';
 }
 elsif ($ip eq '10.168.192.67') {
     $wanted_hostname = 'sonic-1';
     set_hostname(get_var('HOSTNAME', $wanted_hostname));
-    $client = 'tails-1*';
+    $client = '10.168.192.0/24';
 }
 
     record_info("hostname", script_output("hostname"));
