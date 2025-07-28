@@ -25,6 +25,8 @@ conditional_schedule:
                 - installation/bootloader_uefi
             'aarch64':
                 - installation/bootloader_uefi
+            'ppc64le-p10':
+                - installation/bootloader_uefi
     efi:
         UEFI:
             '1':
