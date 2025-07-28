@@ -204,7 +204,7 @@ sub registercloudguest {
 
     my $cmd_time = time();
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
-    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+    record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 
     # If the SSH master socket is active, exit it, so the next SSH command will (re)login
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
