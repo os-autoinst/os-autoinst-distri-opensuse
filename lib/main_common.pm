@@ -16,7 +16,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use Utils::Architectures;
-use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos is_public_cloud);
+use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos is_public_cloud is_leap is_sle);
 use Utils::Backends;
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
@@ -2100,7 +2100,7 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_html5";
     loadtest "x11/firefox/firefox_developertool";
     loadtest "x11/firefox/firefox_ssl";
-    loadtest "x11/firefox/firefox_emaillink";
+    loadtest "x11/firefox/firefox_emaillink" if (is_sle('<16') || is_leap('<16.0'));
     loadtest "x11/firefox/firefox_plugins";
     loadtest "x11/firefox/firefox_extcontent";
     if (!get_var("OFW") && is_qemu) {
