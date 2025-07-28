@@ -1,19 +1,27 @@
-name:           ibtest-master
+name:           NFS bare-metal tests
 description:    >
-    The master node for the infiniband testsuite (hpc-testing)
+    The test schedule meant for openQA NFS multimachine tests
 vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
     DESKTOP: textmode
-    IBTESTS: 1
-    IBTEST_ROLE: IBTEST_MASTER
-    MLX_PROTOCOL: 1
+    MLX_PROTOCOL: 2
+    NFS_MULTIPATH: 1
+conditional_schedule:
+    nfs_barriers:
+        ROLE:
+            nfs_server:
+                - kernel/nfs_barriers
+    nfstest:
+        ROLE:
+            nfs_server:
+                - kernel/nfs_server
+            nfs_client:
+                - kernel/nfs_client
 schedule:
-    - kernel/ibtests_barriers
     - installation/ipxe_install
     - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
     - kernel/mellanox_config
-    - kernel/ibtests_prepare
-    - installation/handle_reboot
-    - kernel/ibtests
+    - kernel/before_nfs_test
+    - '{{nfstest}}'
