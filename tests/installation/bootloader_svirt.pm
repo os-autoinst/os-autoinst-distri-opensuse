@@ -14,8 +14,6 @@
 package bootloader_svirt;
 
 use base "installbasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle is_vmware);

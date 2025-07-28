@@ -6,8 +6,6 @@
 # Summary: Special handling to get workarounds applied ASAP
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use base 'opensusebasetest';

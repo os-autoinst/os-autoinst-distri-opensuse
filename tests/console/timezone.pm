@@ -19,8 +19,6 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
 
 sub get_tz_data {
     my $save = shift;

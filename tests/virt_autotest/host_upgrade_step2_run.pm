@@ -10,8 +10,6 @@ use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
 use testapi;
 use Utils::Architectures;
-use strict;
-use warnings;
 use virt_utils;
 use Utils::Backends 'is_remote_backend';
 use ipmi_backend_utils;

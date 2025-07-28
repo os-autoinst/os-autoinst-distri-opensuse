@@ -11,8 +11,6 @@
 # Summary: Create VM in EC2 using aws binary
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;

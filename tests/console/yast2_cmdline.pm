@@ -9,8 +9,6 @@
 # Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
 
 use base "y2_module_consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';

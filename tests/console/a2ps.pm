@@ -7,8 +7,6 @@
 # Summary: a2ps test based on: https://progress.opensuse.org/issues/9472
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

@@ -11,8 +11,6 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(is_sle);
 use hacluster;
-use strict;
-use warnings;
 
 =head2 exec_conn_cmd
 

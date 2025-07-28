@@ -9,8 +9,6 @@
 
 use base 'consoletest';
 use virt_autotest::common;
-use warnings;
-use strict;
 use virt_autotest::kernel;
 use testapi;
 use utils;

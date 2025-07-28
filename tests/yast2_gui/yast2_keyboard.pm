@@ -28,8 +28,6 @@ https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_ad
 =cut
 
 use base "y2_module_guitest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils "is_sle";

@@ -4,8 +4,6 @@
 # Summary: harmorize zypper_ref between SLE and openSUSE
 # Maintainer: Max Lin <mlin@suse.com>
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 use testapi;
 use registration;

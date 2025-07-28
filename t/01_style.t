@@ -14,4 +14,5 @@ ok $? != 0 && $out eq '', 'No check_var function to verify ARCH/BACKEND types' o
 ok system(qq{git grep -I -l \\( -e "egrep" -e "fgrep" \\) ':!t/01_style.t' ':!CONTRIBUTING.md'}) != 0, 'No usage of the deprecated egrep and fgrep commands';
 $out = qx{git grep -I -l 'nots3cr3t' ':!data/wsl/Autounattend_*.xml' 'data' | xargs grep -E -L '(luks|encryption).*password.*nots3cr3t'};
 ok $out eq '', 'No plain password on data directory' or diag $out;
+ok system(qq{git grep -I -l 'use \\(strict\\|warnings\\);' 'tests'}) != 0, 'No redundant strict|warnings in test modules. Already covered in https://github.com/os-autoinst/os-autoinst/blob/master/basetest.pm#L32';
 done_testing;

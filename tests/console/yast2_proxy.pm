@@ -7,10 +7,8 @@
 # Summary: Test that squid proxy can be started after setup with YaST
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use strict;
 use base "y2_module_consoletest";
 
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap has_selinux);

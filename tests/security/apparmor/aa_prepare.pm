@@ -11,8 +11,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base "basetest";
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos);

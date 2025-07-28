@@ -31,8 +31,6 @@
 package parallel_guest_migration_source;
 
 use base "parallel_guest_migration_base";
-use strict;
-use warnings;
 use POSIX 'strftime';
 use testapi;
 use upload_system_log;

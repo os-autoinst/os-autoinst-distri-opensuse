@@ -8,8 +8,6 @@
 # Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
 use base multi_machine_job_base;
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use transactional;

@@ -23,8 +23,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_guitest';
-use strict;
-use warnings;
 use testapi;
 use y2lan_restart_common qw(initialize_y2lan open_network_settings check_network_status wait_for_xterm_to_be_visible clear_journal_log close_xterm);
 use YuiRestClient;

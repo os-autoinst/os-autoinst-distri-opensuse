@@ -6,8 +6,6 @@
 # Summary: Select systemd-boot in the installer
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;

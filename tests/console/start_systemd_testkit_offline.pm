@@ -27,8 +27,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
-use strict;
-use warnings;
 use Utils::Logging;
 
 my $log = '/tmp/systemd_run.log';

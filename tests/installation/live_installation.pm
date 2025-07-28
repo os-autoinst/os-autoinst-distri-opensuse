@@ -14,12 +14,9 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_plasma6 is_upgrade);
-use strict;
-use warnings;
 use x11utils 'turn_off_kde_screensaver';
 use Utils::Architectures;
 

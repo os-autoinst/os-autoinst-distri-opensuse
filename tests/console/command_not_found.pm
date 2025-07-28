@@ -12,8 +12,6 @@
 
 use base "consoletest";
 use testapi;
-use strict;
-use warnings;
 use utils;
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product remove_suseconnect_product);

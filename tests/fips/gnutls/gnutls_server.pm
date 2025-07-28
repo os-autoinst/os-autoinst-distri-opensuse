@@ -9,8 +9,6 @@
 
 use base "consoletest";
 use testapi;
-use strict;
-use warnings;
 use utils qw(zypper_call);
 use version_utils qw(is_transactional);
 use transactional qw(trup_call process_reboot);

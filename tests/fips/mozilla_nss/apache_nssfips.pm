@@ -6,8 +6,6 @@
 # Summary: Enable NSS module for Apache2 server with NSSFips on
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

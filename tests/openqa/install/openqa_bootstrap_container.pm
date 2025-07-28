@@ -6,8 +6,6 @@
 # Summary: Install openQA using openqa-bootstrap-container
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

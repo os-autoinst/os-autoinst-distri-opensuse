@@ -15,8 +15,6 @@
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 
 # poo#11438

@@ -10,8 +10,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils 'zypper_call';
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);

@@ -47,8 +47,6 @@
 package unified_guest_installation;
 
 use base 'concurrent_guest_installations';
-use strict;
-use warnings;
 use testapi;
 use Carp;
 use Utils::Backends 'use_ssh_serial_console';

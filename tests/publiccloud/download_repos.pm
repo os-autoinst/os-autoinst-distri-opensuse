@@ -9,9 +9,7 @@
 
 use base 'consoletest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use version_utils 'is_sle_micro';
 use publiccloud::ssh_interactive "select_host_console";

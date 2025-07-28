@@ -24,8 +24,6 @@
 package bootloader;
 
 use base "installbasetest";
-use strict;
-use warnings;
 
 use testapi;
 use lockapi 'mutex_wait';

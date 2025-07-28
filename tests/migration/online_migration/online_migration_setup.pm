@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use utils;
 use version_utils qw(is_desktop_installed is_sles4sap);
 use testapi;

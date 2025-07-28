@@ -9,8 +9,6 @@
 
 use base 'apparmortest';
 use base "y2_module_consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);

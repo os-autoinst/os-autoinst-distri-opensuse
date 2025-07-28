@@ -14,8 +14,6 @@
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils 'type_string_very_slow';
 use bootloader_setup qw(uefi_bootmenu_params get_hyperv_fb_video_resolution tianocore_disable_secureboot);

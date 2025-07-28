@@ -8,8 +8,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'windowsbasetest';
-use strict;
-use warnings;
 use testapi;
 
 sub run {

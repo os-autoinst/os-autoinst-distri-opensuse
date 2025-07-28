@@ -9,8 +9,6 @@
 
 use base 'opensusebasetest';
 use swtpmtest;
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;

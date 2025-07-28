@@ -8,7 +8,6 @@
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
 use 5.018;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;

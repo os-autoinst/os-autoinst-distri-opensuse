@@ -8,8 +8,6 @@
 # Tags: poo#109978
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use eal4_test;

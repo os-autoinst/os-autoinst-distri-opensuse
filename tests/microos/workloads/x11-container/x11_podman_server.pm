@@ -8,8 +8,6 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
 use base 'consoletest';
-use warnings;
-use strict;
 use testapi;
 use lockapi;
 use mmapi;

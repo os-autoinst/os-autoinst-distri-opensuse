@@ -7,7 +7,6 @@
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use strict;
 use warnings FATAL => 'all';
 use testapi;
 use main_common 'loadtest';

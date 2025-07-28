@@ -9,8 +9,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils qw(systemctl zypper_call script_retry);
 use serial_terminal qw(select_serial_terminal);

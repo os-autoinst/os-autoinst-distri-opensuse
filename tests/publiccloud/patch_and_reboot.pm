@@ -10,9 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils qw(ssh_fully_patch_system);
 use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_login);
 use publiccloud::ssh_interactive qw(select_host_console);

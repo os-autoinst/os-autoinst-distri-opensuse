@@ -10,8 +10,6 @@
 # Maintainer: Lemon Li <leli@suse.de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 
 sub run {

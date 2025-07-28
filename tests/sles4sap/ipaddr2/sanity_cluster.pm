@@ -9,8 +9,6 @@
 # This test module can be configured with these variables:
 #   - PUBLIC_CLOUD_PROVIDER: This setting is needed by other test modules usually scheduled with this one.
 #                            Variable here is only validated and only value 'AZURE' is supported at the moment.
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );

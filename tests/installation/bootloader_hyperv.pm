@@ -11,8 +11,6 @@ package bootloader_hyperv;
 use base 'installbasetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use File::Basename;
 use data_integrity_utils 'verify_checksum';
 use virt_autotest::hyperv_utils;

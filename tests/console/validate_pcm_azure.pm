@@ -7,8 +7,6 @@
 #
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use version_utils 'is_sle';

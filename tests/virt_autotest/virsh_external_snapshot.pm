@@ -8,8 +8,6 @@
 #
 
 use base "virt_feature_test_base";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virt_utils;

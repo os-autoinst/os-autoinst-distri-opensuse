@@ -15,8 +15,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';

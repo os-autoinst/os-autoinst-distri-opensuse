@@ -7,8 +7,6 @@
 # admins may want to connect with ssh right after an ssh installation.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use services::sshd;
 use testapi "select_console";

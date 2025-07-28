@@ -9,8 +9,6 @@
 # Tags: https://jira.suse.com/browse/SLE-6514
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;

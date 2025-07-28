@@ -7,8 +7,6 @@
 # Maintainer: Julie CAO <jcao@suse.com>
 package restore_guests;
 
-use strict;
-use warnings;
 use testapi;
 use base "virt_autotest_base";
 use virt_autotest::utils qw(remove_vm restore_downloaded_guests);

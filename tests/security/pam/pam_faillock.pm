@@ -8,8 +8,6 @@
 # Tags: poo#102990 tc#1769824
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use base 'consoletest';
 use utils qw(zypper_call enter_cmd_slow);

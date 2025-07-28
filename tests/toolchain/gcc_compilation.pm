@@ -7,8 +7,6 @@
 # Maintainer: qe-core@suse.de
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils 'clear_console';
 use Utils::Logging 'export_logs';

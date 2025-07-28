@@ -67,8 +67,6 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';

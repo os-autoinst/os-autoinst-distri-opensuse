@@ -8,8 +8,6 @@
 #
 use base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use serial_terminal 'select_serial_terminal';

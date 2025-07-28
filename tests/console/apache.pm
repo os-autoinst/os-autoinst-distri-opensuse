@@ -14,8 +14,6 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils qw(is_sle is_jeos has_selinux);
 

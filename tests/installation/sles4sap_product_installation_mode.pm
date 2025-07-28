@@ -7,8 +7,6 @@
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_sle';
 

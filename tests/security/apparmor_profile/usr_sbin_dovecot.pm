@@ -12,8 +12,6 @@
 # Tags: poo#44999, tc#1695949
 
 use base "apparmortest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

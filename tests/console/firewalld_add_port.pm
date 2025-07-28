@@ -14,9 +14,7 @@
 #
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
 use base 'consoletest';
-use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
 use Utils::Firewalld qw(add_port_to_zone reload_firewalld);

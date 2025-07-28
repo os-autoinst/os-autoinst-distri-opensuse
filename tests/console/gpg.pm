@@ -20,8 +20,6 @@
 # Tags: poo#65375, poo#97685, poo#104556
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use Utils::Backends;
 use Utils::Architectures;

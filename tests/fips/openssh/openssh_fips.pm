@@ -17,8 +17,6 @@
 # Tags: tc#1525228, poo#90458
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

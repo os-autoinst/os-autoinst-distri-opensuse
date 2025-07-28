@@ -15,8 +15,6 @@
 # Step 7: Send finish command exits the app.
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 use testapi;
 use utils;

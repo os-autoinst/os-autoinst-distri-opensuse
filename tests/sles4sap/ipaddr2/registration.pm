@@ -53,8 +53,6 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );

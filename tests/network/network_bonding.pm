@@ -7,8 +7,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use power_action_utils "power_action";
 use utils qw(validate_script_output_retry);

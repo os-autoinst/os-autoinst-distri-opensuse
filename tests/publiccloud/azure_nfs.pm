@@ -12,8 +12,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";

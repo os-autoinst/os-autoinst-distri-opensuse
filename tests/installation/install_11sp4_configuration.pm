@@ -15,8 +15,6 @@ use base "installbasetest";
 
 use testapi;
 
-use strict;
-use warnings;
 use English;
 
 use bootloader_setup;

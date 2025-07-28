@@ -10,8 +10,6 @@ package set_config_as_glue;
 
 use base "consoletest";
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;

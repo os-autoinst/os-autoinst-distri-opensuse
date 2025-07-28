@@ -17,8 +17,6 @@
 # Tags: tc#1436022
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 
 

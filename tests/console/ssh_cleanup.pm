@@ -9,8 +9,6 @@
 # Tags: poo#65375
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

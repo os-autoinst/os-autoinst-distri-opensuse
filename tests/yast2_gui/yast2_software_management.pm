@@ -9,8 +9,6 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "y2_module_guitest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

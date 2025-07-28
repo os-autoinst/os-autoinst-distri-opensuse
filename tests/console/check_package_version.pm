@@ -5,8 +5,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "basetest";
-use strict;
-use warnings;
 use version;
 use testapi;
 use utils qw(systemctl zypper_call);

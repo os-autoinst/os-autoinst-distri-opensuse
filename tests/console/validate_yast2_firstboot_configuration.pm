@@ -10,8 +10,6 @@
 
 package validate_yast2_firstboot_configuration;
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
 

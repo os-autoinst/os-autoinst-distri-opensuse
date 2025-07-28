@@ -27,8 +27,6 @@
 
 # Maintainer: wnereiz <wnereiz@github>
 
-use strict;
-use warnings;
 use base "x11test";
 use testapi;
 use version_utils 'is_sle';

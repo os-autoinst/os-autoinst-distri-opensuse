@@ -9,8 +9,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Remote server: https://confluence.suse.com/display/qasle/AD+configuration+for+testing
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

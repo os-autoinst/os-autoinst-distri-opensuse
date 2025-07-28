@@ -13,8 +13,6 @@
 
 use base 'x11test';
 use x11utils 'ensure_unlocked_desktop';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';

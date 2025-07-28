@@ -7,8 +7,6 @@
 # Maintainer: Wayne Chen <wchen@suse.com>
 
 use base "virt_autotest_base";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

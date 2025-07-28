@@ -15,8 +15,6 @@
 #   in /etc/systemd/journald.conf and restart systemd-journalctl
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'prepare_serial_console';

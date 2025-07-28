@@ -7,8 +7,6 @@
 # Requires: sles4sap/netweaver_install, ENV variables INSTANCE_SID, INSTANCE_TYPE and INSTANCE_ID
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
 use base 'sles4sap';
 use testapi;
 use hacluster;

@@ -6,8 +6,6 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'package_version_cmp';

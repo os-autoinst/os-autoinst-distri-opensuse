@@ -11,8 +11,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
-use strict;
-use warnings;
 
 sub run {
     my $cluster_name = get_cluster_name;

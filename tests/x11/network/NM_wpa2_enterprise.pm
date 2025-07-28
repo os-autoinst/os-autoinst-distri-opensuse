@@ -9,8 +9,6 @@
 # Tags: poo#20306
 
 use base 'x11test';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_systemd_unit_log';

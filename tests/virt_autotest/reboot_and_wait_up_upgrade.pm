@@ -6,8 +6,6 @@
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
 
-use strict;
-use warnings;
 use File::Basename;
 use testapi;
 use virt_utils 'clean_up_red_disks';

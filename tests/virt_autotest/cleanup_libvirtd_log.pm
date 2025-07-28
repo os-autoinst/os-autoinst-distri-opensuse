@@ -7,8 +7,6 @@
 # Maintainer: qe-virt@suse.de
 package cleanup_libvirtd_log;
 
-use strict;
-use warnings;
 use base "virt_autotest_base";
 use testapi;
 

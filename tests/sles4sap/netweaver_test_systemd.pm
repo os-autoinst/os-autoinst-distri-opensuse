@@ -11,8 +11,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
-use strict;
-use warnings;
 use utils;
 
 sub run {

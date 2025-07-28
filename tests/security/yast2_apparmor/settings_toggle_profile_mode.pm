@@ -6,8 +6,6 @@
 # Tags: poo#66901, tc#1741266
 
 use base apparmortest;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

@@ -7,8 +7,6 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use containers::common;
 use version_utils qw(is_sle_micro is_leap_micro is_microos);

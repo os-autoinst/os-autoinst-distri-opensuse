@@ -8,8 +8,6 @@
 #          Install ucode package if not installed
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use strict;
-use warnings;
 use base 'consoletest';
 use testapi;
 use utils 'zypper_call';

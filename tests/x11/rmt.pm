@@ -10,8 +10,6 @@
 #    then verify enabled repos are shown on new RMT server.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use testapi;
 use base 'x11test';
 use repo_tools;

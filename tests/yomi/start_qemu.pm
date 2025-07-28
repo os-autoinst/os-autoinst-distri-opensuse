@@ -6,8 +6,6 @@
 # Summary: Install QEMU and launch the inner minion
 # Maintainer: Alberto Planas <aplanas@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

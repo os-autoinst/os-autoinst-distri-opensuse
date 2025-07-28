@@ -10,8 +10,6 @@
 # Tags: poo#16650, poo#25850
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use version_utils qw(is_sle is_sles4sap is_opensuse is_microos is_sle_micro);

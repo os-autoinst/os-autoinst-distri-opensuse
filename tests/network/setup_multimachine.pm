@@ -7,8 +7,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';

@@ -9,8 +9,6 @@
 # Maintainer: QE LSG <qa-team@suse.de>
 
 use base "installbasetest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(OPENQA_FTP_URL zypper_call);
 use Utils::Backends 'is_pvm';

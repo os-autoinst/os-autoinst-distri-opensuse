@@ -10,8 +10,6 @@ use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
-use strict;
-use warnings;
 use lockapi;
 
 our $results_dir = '/tmp';

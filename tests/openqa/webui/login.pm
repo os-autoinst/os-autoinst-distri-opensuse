@@ -6,8 +6,6 @@
 # Summary: Login to the openQA webui
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "x11test";
 use testapi;
 

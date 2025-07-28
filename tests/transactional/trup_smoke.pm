@@ -8,8 +8,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);

@@ -6,8 +6,6 @@
 # Tags: poo#110256, jsc#SLE-24111, poo#110647
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

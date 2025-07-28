@@ -6,8 +6,6 @@
 # Summary: Run QEMU using KVM
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use Utils::Architectures;

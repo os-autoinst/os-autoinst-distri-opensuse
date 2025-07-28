@@ -5,8 +5,6 @@
 # Maintainer: aginies <aginies@suse.com>
 
 use base 'basetest';
-use strict;
-use warnings;
 use testapi;
 use virtmanager;
 use utils 'zypper_call';

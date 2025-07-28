@@ -7,8 +7,6 @@
 # Tags: poo#70345, tc#1767569
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

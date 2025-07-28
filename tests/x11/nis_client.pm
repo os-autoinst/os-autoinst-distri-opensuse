@@ -9,8 +9,6 @@
 # Tags: https://progress.opensuse.org/issues/9900
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils;

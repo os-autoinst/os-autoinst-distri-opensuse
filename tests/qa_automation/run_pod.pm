@@ -7,8 +7,6 @@
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Mojo::JSON;

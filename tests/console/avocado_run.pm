@@ -8,8 +8,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
 use base 'opensusebasetest';
-use warnings;
-use strict;
 use testapi;
 use lockapi;
 

@@ -6,8 +6,6 @@
 # Summary: Migration activation then reboot to perform migration.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use grub_utils 'grub_test';

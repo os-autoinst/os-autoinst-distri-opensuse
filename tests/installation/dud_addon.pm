@@ -8,8 +8,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use utils 'addon_license';
 use version_utils 'is_sle';

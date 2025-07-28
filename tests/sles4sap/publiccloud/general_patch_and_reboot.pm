@@ -8,8 +8,6 @@
 #
 # Maintainer: qa-c <qa-c@suse.de>
 
-use strict;
-use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use registration;

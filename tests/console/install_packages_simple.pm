@@ -15,9 +15,7 @@
 #
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
 use base 'consoletest';
-use warnings;
 use testapi;
 use utils 'zypper_call';
 use scheduler 'get_test_suite_data';

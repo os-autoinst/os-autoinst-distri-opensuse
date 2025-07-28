@@ -9,8 +9,6 @@
 package parallel_guest_migration_barrier;
 
 use base "parallel_guest_migration_base";
-use strict;
-use warnings;
 use lockapi;
 use mmapi;
 

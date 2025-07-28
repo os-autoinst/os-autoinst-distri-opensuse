@@ -18,8 +18,6 @@
 #    we need to access to live root system to monitor installation process
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use strict;
-use warnings;
 use base "installbasetest";
 use testapi;
 use version_utils qw(is_leap is_sle);

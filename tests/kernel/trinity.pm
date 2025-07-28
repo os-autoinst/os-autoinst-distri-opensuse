@@ -11,8 +11,6 @@ use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
 use upload_system_log;
 use repo_tools 'generate_version';
 use version_utils 'is_sle';

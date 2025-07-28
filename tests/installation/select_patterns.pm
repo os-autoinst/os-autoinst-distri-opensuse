@@ -17,8 +17,6 @@
 # Maintainer: slindomansilla <slindomansilla@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use utils 'type_string_slow';
 
