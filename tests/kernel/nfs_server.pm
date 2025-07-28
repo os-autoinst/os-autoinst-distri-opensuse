@@ -65,10 +65,23 @@ sub run {
     if (get_var('PARALLEL_WITH') eq 'ibtest-master') {
         record_info("nfs_client code to execute");
     } else {
-    my $client = get_var('CLIENT_NODE', 'client-node00');
+    my $client; # = get_var('CLIENT_NODE', 'client-node00');
 
     select_serial_terminal();
-    set_hostname(get_var("HOSTNAME", "server-node00"));
+my $wanted_hostname;
+my $ip = script_output("hostname -I | awk '{print \$1}'");
+
+if ($ip eq '10.168.192.68') {
+    $wanted_hostname = 'tails-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $client = 'sonic-1';
+}
+elsif ($ip eq '10.168.192.67') {
+    $wanted_hostname = 'sonic-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $client = 'tails-1';
+}
+
     record_info("hostname", script_output("hostname"));
 
     my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/nfs/shared_nfs3');
