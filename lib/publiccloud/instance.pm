@@ -5,7 +5,7 @@
 
 # Summary: Base class for public cloud instances
 #
-# Maintainer: qa-c@suse.de
+# Maintainer: qa-c team <qa-c@suse.de>
 
 package publiccloud::instance;
 use testapi;

@@ -5,7 +5,7 @@
 
 # Summary: Class with helpers related to SSH Interactive mode
 #
-# Maintainer: qa-c@suse.de
+# Maintainer: qa-c team <qa-c@suse.de>
 
 package publiccloud::ssh_interactive;
 use base Exporter;
