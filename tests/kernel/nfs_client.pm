@@ -23,8 +23,8 @@ sub copy_file {
 
 sub run {
     select_serial_terminal();
-    record_info("hostname", script_output("hostname"));
     set_hostname(get_var("HOSTNAME", "client-node00"));
+    record_info("hostname", script_output("hostname"));
     my $server_node = get_var('SERVER_NODE', 'server-node00');
 
     zypper_call("in nfs-client");
