@@ -11,12 +11,12 @@ conditional_schedule:
         ROLE:
             nfs_server:
                 - kernel/nfs_barriers
-    nfstest:
-        ROLE:
-            nfs_server:
-                - kernel/nfs_server
-            nfs_client:
-                - kernel/nfs_client
+    #nfstest:
+    #    ROLE:
+    #        nfs_server:
+    #            - kernel/nfs_server
+    #        nfs_client:
+    #            - kernel/nfs_client
 schedule:
     - installation/ipxe_install
     - installation/agama_reboot
@@ -24,4 +24,6 @@ schedule:
     - installation/first_boot
     - kernel/mellanox_config
     - kernel/before_nfs_test
-    - '{{nfstest}}'
+    #- '{{nfstest}}'
+    - kernel/nfs_server
+    - kernel/nfs_client
