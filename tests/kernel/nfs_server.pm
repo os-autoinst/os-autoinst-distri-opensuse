@@ -61,6 +61,10 @@ sub run {
     my $kernel_nfs4_2 = 0;
     my $kernel_nfsd_v3 = 0;
     my $kernel_nfsd_v4 = 0;
+
+    if (get_var('PARALLEL_WITH') eq 'ibtest-master') {
+        record_info("nfs_client code to execute");
+    } else {
     my $client = get_var('CLIENT_NODE', 'client-node00');
 
     select_serial_terminal();
@@ -179,6 +183,7 @@ sub run {
     }
 
     record_info("NFS stat for server", script_output("nfsstat -s"));
+    }
 }
 
 sub test_flags {
