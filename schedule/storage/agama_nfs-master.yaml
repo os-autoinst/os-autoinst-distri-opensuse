@@ -18,6 +18,7 @@ conditional_schedule:
     #        nfs_client:
     #            - kernel/nfs_client
 schedule:
+    - '{{nfs_barriers}}'
     - installation/ipxe_install
     - installation/agama_reboot
     - installation/grub_test
