@@ -88,13 +88,23 @@ sub run {
     );
 
     # search for timed out tests
-    @lines = $out =~ /Tests timed out \(d+\):.*/mg;
-    if (@lines) {
-        record_info(
-            "Timeout",
-            $lines[0],
-            result => 'fail'
-        );
+    my @timeouts;
+    for my $line ($out =~ /Tests timed out \(\d+\):.*/mg) {
+        push @timeouts, $line =~ /<([\w\-\.]+\.t)>/g;
+    }
+    if (@timeouts) {
+        record_info("Timed-out Tests", join(", ", @timeouts));
+        for my $testname (@timeouts) {
+            unless ($whitelist->override_known_failures(
+                    $self,
+                    $environment,
+                    'liburing',
+                    $testname
+            )) {
+                record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
+                $self->{result} = 'fail';
+            }
+        }
     }
 
     # search for failed tests and known issues
