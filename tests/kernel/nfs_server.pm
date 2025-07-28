@@ -68,6 +68,7 @@ sub run {
     my $client = get_var('CLIENT_NODE', 'client-node00');
 
     select_serial_terminal();
+    set_hostname(get_var("HOSTNAME", "server-node00"));
     record_info("hostname", script_output("hostname"));
 
     my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/nfs/shared_nfs3');
