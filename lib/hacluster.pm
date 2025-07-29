@@ -92,6 +92,8 @@ our @EXPORT = qw(
   crm_resource_meta_show
   crm_resource_meta_set
   crm_list_options
+  get_sbd_devices
+  parse_sbd_metadata
 );
 
 =head1 SYNOPSIS
@@ -1829,6 +1831,155 @@ sub crm_list_options {
         }
     }
     return $ret;
+}
+
+=head2 get_sbd_devices
+
+    my @ret = get_sbd_devices($hostname);
+
+Executes 'crm sbd status' to get sbd configuration, and return the devices information
+for the specify node.
+
+Following is the result of `crm sbd status`, we will check if there are two device on each node.
+status of sdb.service:
+
+Node                          |Active      |Enable         |Since
+2nodes-node01:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+2nodes-node02:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+
+# Status of the sbd disk watcher process on 2nodes-node01:
+|-3059 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+|-3060 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+
+# Status of the sbd disk watcher process on 2nodes-node02:
+|-3058 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+|-3061 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+
+# Watchdog info:
+Node.                    |Device                    |Driver           |Kernel Timeout
+2nodes-node01  |/dev/watchdog.   | <unknown>    | 10
+2nodes-node02  |/dev/watchdog.   | <unknown>    | 10
+
+=over
+
+=item B<Parameters:>
+
+=over
+
+=item C<$hostname>
+
+String. The name of the node to query.
+
+=back
+
+=item B<Return values:>
+
+Array. List of SBD devices, e.g. (sbd_device1, sbd_device2)
+
+=back
+
+=cut
+
+sub get_sbd_devices {
+    my $hostname = shift;
+
+    my $in_block = 0;
+    my @devices;
+    foreach my $line (split /\n/, script_output('crm sbd status')) {
+        if ($line =~ /^# Status of the sbd disk watcher process on \Q$hostname\E:/) {
+            $in_block = 1;
+            next;
+        }
+
+        if ($line =~ /^# Status of the sbd disk watcher process on / or $line =~ /^# Watchdog info:/) {
+            $in_block = 0;
+        }
+
+        if ($in_block && $line =~ /watcher:\s+(\S+)/) {
+            push @devices, $1;
+        }
+    }
+    return @devices;
+}
+
+=head2 parse_sbd_metadata
+
+    my @ret = parse_sbd_metadata;
+
+Executes 'crm sbd configure show disk_metadata' to get sbd information, and return the devices and metadata value.
+
+Following is the result of `crm sbd configure show disk_metadata`, we will check if there are two device on each node.
+INFO: crm sbd configure show disk_metadata
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version      : 2.1
+UUID                : xxx
+Number of slots     : 255
+Sector size         : 512
+Timeout (watchdog)  : 5
+Timeout (allocate)  : 10 
+Timeout (loop)      : 2
+Timeout (msgwait)   : 5
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+# If there is a second sbd device
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version      : 2.1
+UUID                : xxx
+Number of slots     : 255
+Sector size         : 512
+Timeout (watchdog)  : 5
+Timeout (allocate)  : 10
+Timeout (loop)      : 2
+Timeout (msgwait)   : 5
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+=over
+
+=item B<Return values:>
+
+   (
+          {
+            'metadata' => {
+                            'allocate' => '10',
+                            'loop' => '2',
+                            'msgwait' => '5',
+                            'watchdog' => '5'
+                          },
+            'device_name' => '/dev/disk/by-path/xxxxx'
+          },
+          {
+            'device_name' => '/dev/disk/by-path/xxxxx',
+            'metadata' => {
+                            'allocate' => '10',
+                            'loop' => '2',
+                            'msgwait' => '5',
+                            'watchdog' => '5'
+                          }
+          }
+        ])
+
+=back
+
+=cut
+
+sub parse_sbd_metadata {
+    my @val = ();
+    my $metadata = {};
+    my $device_name = "";
+    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata'))) {
+        if ($line =~ /^==Dumping header on disk (\S+)/) {
+            $device_name = $1;
+        } elsif ($line =~ /Timeout\s+\((\w+)\)\s+\:\s+(\d+)/) {
+            $metadata->{$1} = $2;
+        } elsif ($line =~ /^==Header on disk (\S+) is dumped$/) {
+            push @val, {device_name => $device_name, metadata => $metadata};
+
+            # Init the device_name and metadata hash;
+            $device_name = "";
+            $metadata = {};
+        }
+    }
+    return @val;
 }
 
 1;

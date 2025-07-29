@@ -65,6 +65,7 @@ schedule:
   - ha/fencing
   - '{{boot_to_desktop_node01}}'
   - ha/check_after_reboot
+  - '{{sbd_subcommand}}'
   - '{{remove_node}}'
   - '{{graceful_shutdown}}'
   - ha/check_logs
@@ -93,6 +94,14 @@ conditional_schedule:
     HA_REMOVE_NODE:
       1:
         - ha/remove_node
+  sbd_subcommand:
+    HA_SBD_SUBCOMMAND:
+      1:
+        - ha/add_sbd_device
+        - ha/fencing
+        - '{{boot_to_desktop_node01}}'
+        - ha/remove_sbd_device
+        - ha/change_sbd_metadata
   graceful_shutdown:
     HA_GRACEFUL_SHUTDOWN:
       1:
