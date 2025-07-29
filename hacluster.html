@@ -74,6 +74,8 @@
       <li><a href="#crm_resource_meta_show">crm_resource_meta_show</a></li>
       <li><a href="#crm_resource_meta_set">crm_resource_meta_set</a></li>
       <li><a href="#crm_list_options">crm_list_options</a></li>
+      <li><a href="#get_sbd_devices">get_sbd_devices</a></li>
+      <li><a href="#parse_sbd_metadata">parse_sbd_metadata</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -667,6 +669,85 @@
 
 </li>
 </ul>
+
+<h2 id="get_sbd_devices">get_sbd_devices</h2>
+
+<pre><code>my @ret = get_sbd_devices($hostname);</code></pre>
+
+<p>Executes &#39;crm sbd status&#39; to get sbd configuration, and return the devices information for the specify node.</p>
+
+<p>Following is the result of `crm sbd status`, we will check if there are two device on each node. status of sdb.service:</p>
+
+<p>Node |Active |Enable |Since 2nodes-node01: |YES |YES | active since: Tue 2025-07-22 09:45:21 2nodes-node02: |YES |YES | active since: Tue 2025-07-22 09:45:21</p>
+
+<p># Status of the sbd disk watcher process on 2nodes-node01: |-3059 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx |-3060 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx</p>
+
+<p># Status of the sbd disk watcher process on 2nodes-node02: |-3058 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx |-3061 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx</p>
+
+<p># Watchdog info: Node. |Device |Driver |Kernel Timeout 2nodes-node01 |/dev/watchdog. | &lt;unknown&gt; | 10 2nodes-node02 |/dev/watchdog. | &lt;unknown&gt; | 10</p>
+
+<dl>
+
+<dt id="Parameters"><b>Parameters:</b></dt>
+<dd>
+
+<dl>
+
+<dt id="hostname"><code>$hostname</code></dt>
+<dd>
+
+<p>String. The name of the node to query.</p>
+
+</dd>
+</dl>
+
+</dd>
+<dt id="Return-values"><b>Return values:</b></dt>
+<dd>
+
+<p>Array. List of SBD devices, e.g. (sbd_device1, sbd_device2)</p>
+
+</dd>
+</dl>
+
+<h2 id="parse_sbd_metadata">parse_sbd_metadata</h2>
+
+<pre><code>my @ret = parse_sbd_metadata;</code></pre>
+
+<p>Executes &#39;crm sbd configure show disk_metadata&#39; to get sbd information, and return the devices and metadata value.</p>
+
+<p>Following is the result of `crm sbd configure show disk_metadata`, we will check if there are two device on each node. INFO: crm sbd configure show disk_metadata ==Dumping header on disk /dev/disk/by-path/xxxxx Header version : 2.1 UUID : xxx Number of slots : 255 Sector size : 512 Timeout (watchdog) : 5 Timeout (allocate) : 10 Timeout (loop) : 2 Timeout (msgwait) : 5 ==Header on disk /dev/disk/by-path/xxxxxxx is dumped</p>
+
+<p># If there is a second sbd device ==Dumping header on disk /dev/disk/by-path/xxxxx Header version : 2.1 UUID : xxx Number of slots : 255 Sector size : 512 Timeout (watchdog) : 5 Timeout (allocate) : 10 Timeout (loop) : 2 Timeout (msgwait) : 5 ==Header on disk /dev/disk/by-path/xxxxxxx is dumped</p>
+
+<dl>
+
+<dt id="Return-values1"><b>Return values:</b></dt>
+<dd>
+
+<pre><code>(
+       {
+         &#39;metadata&#39; =&gt; {
+                         &#39;allocate&#39; =&gt; &#39;10&#39;,
+                         &#39;loop&#39; =&gt; &#39;2&#39;,
+                         &#39;msgwait&#39; =&gt; &#39;5&#39;,
+                         &#39;watchdog&#39; =&gt; &#39;5&#39;
+                       },
+         &#39;device_name&#39; =&gt; &#39;/dev/disk/by-path/xxxxx&#39;
+       },
+       {
+         &#39;device_name&#39; =&gt; &#39;/dev/disk/by-path/xxxxx&#39;,
+         &#39;metadata&#39; =&gt; {
+                         &#39;allocate&#39; =&gt; &#39;10&#39;,
+                         &#39;loop&#39; =&gt; &#39;2&#39;,
+                         &#39;msgwait&#39; =&gt; &#39;5&#39;,
+                         &#39;watchdog&#39; =&gt; &#39;5&#39;
+                       }
+       }
+     ])</code></pre>
+
+</dd>
+</dl>
 
 
 </body>
