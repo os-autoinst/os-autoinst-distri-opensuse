@@ -28,7 +28,7 @@ schedule:
     - console/system_prepare
     - console/prepare_test_data
     - console/consoletest_setup
-    - console/ntp_client
+    - console/chrony
     - console/dnsmasq
     - console/man_pages
     - console/ping

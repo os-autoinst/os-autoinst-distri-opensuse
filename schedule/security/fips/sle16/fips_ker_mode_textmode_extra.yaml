@@ -11,7 +11,7 @@ schedule:
     - console/journald_fss
     - console/git
     - console/openvswitch_ssl
-    - console/ntp_client
+    - console/chrony
     - console/cups
     - console/curl_https
     - console/wget_https

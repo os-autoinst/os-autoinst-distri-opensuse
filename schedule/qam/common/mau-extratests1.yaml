@@ -45,6 +45,7 @@ conditional_schedule:
   version_specific:
     VERSION:
       15-SP7:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -52,6 +53,7 @@ conditional_schedule:
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP6:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -59,23 +61,27 @@ conditional_schedule:
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP5:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
         - console/ansible
         - '{{arch_specific}}'
       15-SP4:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
         - console/ansible
         - '{{arch_specific}}'
       15-SP3:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
         - '{{arch_specific}}'
       15-SP2:
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis

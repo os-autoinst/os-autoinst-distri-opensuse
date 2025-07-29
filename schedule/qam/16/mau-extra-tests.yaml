@@ -6,7 +6,7 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
-  - console/ntp_client
+  - console/chrony
   - console/dnsmasq
   - console/sshd
   - console/cron
