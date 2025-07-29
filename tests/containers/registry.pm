@@ -85,8 +85,7 @@ sub run {
     systemctl '--now enable registry';
     systemctl 'status registry';
 
-    my $curl_opts = "--retry 500";
-    assert_script_run "curl -s $curl_opts http://127.0.0.1:5000/v2/_catalog | grep repositories";
+    validate_script_output_retry("curl -s http://127.0.0.1:5000/v2/_catalog", sub { m/repositories/ }, retry => 3, delay => 5, timeout => 300);
 
     my $engine = $self->containers_factory($runtime);
     my $image = 'registry.opensuse.org/opensuse/busybox';
