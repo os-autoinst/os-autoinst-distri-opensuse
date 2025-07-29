@@ -39,6 +39,7 @@ schedule:
   - console/cpio
   - console/tar
   - console/ruby
+  - console/tcpdump
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:

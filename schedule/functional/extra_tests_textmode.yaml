@@ -200,4 +200,5 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
+    - console/tcpdump
     - console/zypper_log_packages
