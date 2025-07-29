@@ -22,6 +22,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
+use LTP::WhiteList;
 
 sub prepare_kselftests_from_git
 {
@@ -68,8 +69,44 @@ sub prepare_kselftests_from_ibs
     }
 }
 
+sub postprocess_kselftest_results {
+    my ($self, $whitelist, $suite, $tap_file) = @_;
+
+    my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
+
+    if (!$tap_content) {
+        die "No TAP output found in $tap_file for $suite\n";
+    }
+
+    foreach my $line (split /\n/, $tap_content) {
+        chomp $line;
+
+        # Skip TAP plan lines like "1..13"
+        next if $line =~ /^\d+\.\.\d+/;
+
+        # Match both top-level and subtests
+        if ($line =~ /^\#?\s*(not ok|ok)\s+\d+\s+(\S+)/) {
+            my $result = $1;
+            my $test_name = $2;
+
+            my $env = {
+                product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+                arch => get_var('ARCH', ''),
+            };
+
+            if ($whitelist->find_whitelist_entry($env, $suite, $test_name)) {
+                $self->{result} = 'softfail';
+                record_info("Known issue", "$suite:$test_name marked as softfail");
+            }
+        }
+    }
+
+    parse_extra_log(KTAP => $tap_file);
+}
+
 sub run
 {
+    my ($self) = @_;
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
@@ -77,6 +114,8 @@ sub run
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
     my @kselftests_suite = split(',', $kselftests_suite);
     my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', '');
+    my $whitelist = LTP::WhiteList->new($whitelist_file);
 
     if (get_var('KSELFTEST_FROM_GIT')) {
         prepare_kselftests_from_git();
@@ -85,7 +124,7 @@ sub run
             install_kselftest_suite($i);
             assert_script_run("cd ./tools/testing/selftests/kselftest_install");
             assert_script_run("./run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
-            parse_extra_log(KTAP => "$i.tap");
+            $self->postprocess_kselftest_results($whitelist, $i, "$i.tap");
             assert_script_run("cd -");
         }
     } else {
@@ -93,7 +132,7 @@ sub run
 
         foreach my $i (@kselftests_suite) {
             assert_script_run("/usr/share/kselftests/run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
-            parse_extra_log(KTAP => "$i.tap");
+            $self->postprocess_kselftest_results($whitelist, $i, "$i.tap");
         }
     }
 }
