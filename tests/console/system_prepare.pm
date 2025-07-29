@@ -25,29 +25,14 @@ use List::MoreUtils 'uniq';
 use migration 'modify_kernel_multiversion';
 use Utils::Architectures 'is_ppc64le';
 use Utils::Backends 'is_pvm';
-use virt_autotest::hyperv_utils 'hyperv_cmd';
 use transactional qw(process_reboot);
 use suseconnect_register qw(command_register);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
-
     ensure_serialdev_permissions;
-
     prepare_serial_console;
-
-    # This code checks if the environment is Hyper-V 2016 with UEFI. If true,
-    # it adds a new VM network adapter connected to a virtual switch and logs a known UEFI boot issue.
-    if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
-        my $virsh_instance = get_required_var("VIRSH_INSTANCE");
-        my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-        hyperv_cmd("powershell -Command "
-              . "\"if ((Get-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} | Where-Object { \$_.SwitchName -eq '${hyperv_switch_name}' }) -eq \$null) "
-              . "{ Add-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} -SwitchName ${hyperv_switch_name} }\"");
-        record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
-    }
-
     if (!check_var('DESKTOP', 'textmode')) {
         # Make sure packagekit is not running, or it will conflict with SUSEConnect.
         quit_packagekit;

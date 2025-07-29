@@ -18,7 +18,6 @@ use mmapi;
 use power_action_utils 'power_action';
 use Utils::Backends qw(is_pvm has_ttys);
 use YuiRestClient;
-use virt_autotest::hyperv_utils 'hyperv_cmd';
 
 sub run {
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
@@ -43,17 +42,6 @@ sub run {
         mutex_create("custom_pxe_client_ready", $jobid_server);
         # Await server's response "OK, done" (custom_pxeboot.pm)
         mutex_wait("custom_pxe_ready", $jobid_server);
-    }
-
-    # If the current test is running on a Hyper-V host with version 2016 and UEFI is enabled:
-    # - Get the VM instance name stored in the VIRSH_INSTANCE variable
-    # - Run a PowerShell command to remove the network adapter from the VM (openQA-SUT) in Hyper-V
-    # - Record a soft failure with a reference to bug bsc#1217800, which is related to UEFI boot issues
-    #   encountered on Hyper-V guests using different ISO builds on bare-metal Windows Server 2016.
-    if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
-        my $virsh_instance = get_var("VIRSH_INSTANCE");
-        hyperv_cmd("powershell -Command Remove-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance}");
-        record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
     }
 
     # Reboot
