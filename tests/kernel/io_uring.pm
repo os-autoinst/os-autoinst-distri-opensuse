@@ -20,7 +20,7 @@ sub run {
 
     select_serial_terminal;
 
-    my $repository = get_var('LIBURING_REPO', 'git@github.com:schlad/liburing.git');
+    my $repository = get_var('LIBURING_REPO', 'https://github.com/schlad/liburing.git');
     my $timeout = get_var('LIBURING_TIMEOUT', 1800);
     my $version = get_var('LIBURING_VERSION', '');
     my $exclude = get_var('LIBURING_EXCLUDE', '');
