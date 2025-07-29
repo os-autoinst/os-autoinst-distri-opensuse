@@ -44,6 +44,8 @@ sub configure_hanadb_exporter {
     my (%args) = @_;
     my $exporter_name = 'hanadb_exporter';
     my $config_dir = "/usr/etc/$exporter_name";
+
+
     my $hanadb_exporter_config = "$config_dir/$args{rsc_id}.json";
     my $check_exporter = 'false';
     my $metrics_file = "/tmp/$exporter_name.metrics";

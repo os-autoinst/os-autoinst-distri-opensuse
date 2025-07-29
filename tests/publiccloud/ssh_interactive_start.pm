@@ -21,7 +21,7 @@ sub run {
     die "tunnel-console requires the TUNNELED=1 setting" unless (is_tunneled());
 
     # Initialize ssh tunnel for the serial device, if not yet happened
-    ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
+    ssh_interactive_tunnel($self->instance) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);
     # The serial terminal needs to be activated manually, as it requires the $self argument
     select_serial_terminal();

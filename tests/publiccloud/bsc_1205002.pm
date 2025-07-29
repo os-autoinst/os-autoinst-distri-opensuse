@@ -23,21 +23,18 @@ sub run {
 
     select_serial_terminal();
 
-    my $provider = $run_args->{my_provider};
-    my $instance = $run_args->{my_instance};
+    $self->instance->ssh_assert_script_run("sudo grub2-mkconfig -o /boot/grub2/grub.cfg");
 
-    $instance->ssh_assert_script_run("sudo grub2-mkconfig -o /boot/grub2/grub.cfg");
-
-    $provider->stop_instance($instance);
+    $self->provider->stop_instance($self->instance);
 
     my $instance_type = get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE', 't3a.large');
-    $provider->change_instance_type($instance, $instance_type);
+    $self->provider->change_instance_type($self->instance, $instance_type);
 
-    $provider->start_instance($instance);
+    $self->provider->start_instance($self->instance);
 
     # The instance changes its public IP address so the key must be rescanned
-    $instance->wait_for_ssh(scan_ssh_host_key => 1);
-    $instance->ssh_assert_script_run("echo we can login");
+    $self->instance->wait_for_ssh(scan_ssh_host_key => 1);
+    $self->instance->ssh_assert_script_run("echo we can login");
 }
 
 1;

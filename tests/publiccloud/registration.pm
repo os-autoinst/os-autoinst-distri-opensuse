@@ -25,18 +25,18 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
-    register_addons_in_pc($args->{my_instance});
+    registercloudguest($self->instance) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+    register_addons_in_pc($self->instance);
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
     if (is_sle('>15-SP5') && is_container_host()) {
-        $args->{my_instance}->ssh_assert_script_run('sudo zypper -n in --force-resolution -y curl');
+        $self->instance->ssh_assert_script_run('sudo zypper -n in --force-resolution -y curl');
     }
 }
 
 sub cleanup {
     my ($self) = @_;
     if (is_azure()) {
-        record_info('azuremetadata', $self->{run_args}->{my_instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
+        record_info('azuremetadata', $self->instance->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }
     1;
 }

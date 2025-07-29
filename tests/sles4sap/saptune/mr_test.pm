@@ -114,7 +114,6 @@ sub run {
     );
 
     # Preserve args for post_fail_hook
-    $self->{provider} = $run_args->{my_provider};    # required for cleanup
     $self->setup;
 
     my $test_list = get_required_var("MR_TEST");
@@ -126,9 +125,7 @@ sub post_fail_hook {
     my ($self) = @_;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
-        my $run_args = OpenQA::Test::RunArgs->new();
-        $run_args->{my_provider} = $self->{provider};
-        $run_args->{my_provider}->finalize($run_args);
+        $self->provider->finalize();
         return;
     }
     $self->SUPER::post_fail_hook;

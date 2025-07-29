@@ -6,7 +6,7 @@
 # Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
@@ -36,8 +36,7 @@ sub get_ltp_rpm
     die('Could not find LTP package in ' . $url);
 }
 
-sub instance_log_args
-{
+sub instance_log_args {
     my ($provider, $instance) = @_;
     return sprintf('"%s" "%s" "%s" "%s"',
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
@@ -105,46 +104,37 @@ sub run {
 
     select_host_console();
 
-    ($args->{my_provider}, $args->{my_instance}) = $self->prepare_instance($args);
-
-    my $instance = $args->{my_instance};
-    my $provider = $args->{my_provider};
+    unless ($self->provider && $self->instance) {
+        $self->provider($self->provider_factory());
+        $self->instance($self->provider->create_instance(check_guestregister => is_openstack ? 0 : 1));
+    }
 
     $self->prepare_scripts();
-    $self->register_instance($instance, $qam);
+    $self->register_instance($self->instance, $qam);
 
-    $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+    $self->install_ltp($self->instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
 
-    $self->gen_ltp_env($instance, $ltp_pkg);
+    $self->gen_ltp_env($self->instance, $ltp_pkg);
 
     my $skip_tests = $self->prepare_skip_tests(\@commands);
 
-    $self->prepare_kirk($instance);
+    $self->prepare_kirk($self->instance);
 
-    $self->upload_runtest($instance, $provider);
+    $self->upload_runtest($self->instance, $self->provider);
 
-    $self->printk_loglevel($instance);
+    $self->printk_loglevel($self->instance);
 
-    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
-    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
+    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($self->provider, $self->instance);
+    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($self->provider, $self->instance);
 
     my $env = get_var('LTP_PC_RUNLTP_ENV');
     $self->prepare_logging($log_start_cmd);
 
-    my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env);
+    my $cmd_run_ltp = $self->prepare_ltp_cmd($self->provider, $self->instance, $reset_cmd, $ltp_command, $skip_tests, $env);
 
     record_info('LTP START', 'Command launch');
     script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
-}
-
-sub prepare_instance {
-    my ($self, $args) = @_;
-    unless ($args->{my_provider} && $args->{my_instance}) {
-        $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_openstack ? 0 : 1);
-    }
-    return ($args->{my_provider}, $args->{my_instance});
 }
 
 sub prepare_scripts {
@@ -239,7 +229,7 @@ sub prepare_logging {
 }
 
 sub prepare_ltp_cmd {
-    my ($self, $instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env) = @_;
+    my ($self, $provider, $instance, $reset_cmd, $ltp_command, $skip_tests, $env) = @_;
 
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
@@ -267,12 +257,12 @@ sub cleanup {
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
 
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
+    unless ($self->provider && $self->instance) {
+        die('cleanup: Either $self->provider or $self->instance is not available. Maybe the test died before the instance has been created?');
     }
 
     if (script_run("test -f $root_dir/log_instance.sh") == 0) {
-        script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance}));
+        script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->provider, $self->instance));
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
@@ -302,8 +292,3 @@ sub gen_ltp_env {
 }
 
 1;
-
-=head1 Discussion
-
-Test module to run LTP test on publiccloud. The test run on a local qemu instance
-and connect to the CSP instance using SSH. This is done via the kirk.

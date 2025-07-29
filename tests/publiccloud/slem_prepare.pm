@@ -17,14 +17,13 @@ use transactional qw(trup_call process_reboot);
 
 sub run {
     my ($self, $args) = @_;
-    my $instance = $args->{my_instance};
     select_serial_terminal;
 
     if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
         my $runtime = get_required_var('CONTAINER_RUNTIMES');
         # Install packages for container test runs
         trup_call("pkg install $runtime toolbox");
-        $instance->softreboot();
+        $self->instance->softreboot();
     }
 }
 

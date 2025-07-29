@@ -22,8 +22,8 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
-    my $instance = $args->{my_instance};
-    my $remote = $instance->username . '@' . $args->{my_instance}->public_ip;
+    my $instance = $self->instance;
+    my $remote = $instance->username . '@' . $self->instance->public_ip;
     my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
     my $repodir = "/opt/repos/";
     # Trigger to skip the download to speed up verification runs
