@@ -266,8 +266,8 @@ sub bats_setup {
         assert_script_run "semodule -DB || true";
     }
 
-    # Remove mounts.conf
-    run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf";
+    # This is a workaround for https://bugzilla.suse.com/show_bug.cgi?id=1246227
+    run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf" unless (is_sle(">=16") || is_tumbleweed);
 
     # Disable tmpfs from next boot
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
