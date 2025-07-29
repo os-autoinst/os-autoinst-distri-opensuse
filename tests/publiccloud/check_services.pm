@@ -21,7 +21,7 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();
 
-    my $instance = $args->{my_instance};
+    my $instance = $self->instance;
 
     # Debug
     $instance->ssh_script_run('systemctl --no-pager list-units');

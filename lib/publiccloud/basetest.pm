@@ -26,6 +26,21 @@ use Storable qw(dclone);
 use strict;
 use warnings;
 
+# Singletons
+my $_provider;
+sub provider {
+    my ($self, $provider) = @_;
+    $_provider = $provider if @_ > 1;
+    return $_provider;
+}
+
+my $_instance;
+sub instance {
+    my ($self, $instance) = @_;
+    $_instance = $instance if @_ > 1;
+    return $_instance;
+}
+
 sub provider_factory {
     my ($self, %args) = @_;
     my $provider;
@@ -116,19 +131,16 @@ sub finalize {
     diag('Public Cloud finalize: $flags->{publiccloud_multi_module}=' . $flags->{publiccloud_multi_module}) if ($flags->{publiccloud_multi_module});
     diag('Public Cloud finalize: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
     diag('Public Cloud finalize: $self->{result}=' . $self->{result}) if ($self->{result});
-    diag('Public Cloud finalize: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
 
-    if ($self->{run_args}) {
-        if ($self->{run_args}->{my_instance}) {
-            my $dumpable_instance = Storable::dclone($self->{run_args}->{my_instance});
-            $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = '******';
-            diag('Public Cloud finalize: $self->{run_args}->{my_instance}=' . Dumper($dumpable_instance));
-        }
-        if ($self->{run_args}->{my_provider}) {
-            my $dumpable_provider = Storable::dclone($self->{run_args}->{my_provider});
-            $dumpable_provider->{provider_client}->{credentials_file_content} = '******';
-            diag('Public Cloud finalize: $self->{run_args}->{my_provider}=' . Dumper($dumpable_provider));
-        }
+    if ($self->instance) {
+        my $dumpable_instance = Storable::dclone($self->instance);
+        $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = 'CENSORED_SECRET';
+        diag('Public Cloud finalize: $self->instance=' . Dumper($dumpable_instance));
+    }
+    if ($self->provider) {
+        my $dumpable_provider = Storable::dclone($self->provider);
+        $dumpable_provider->{provider_client}->{credentials_file_content} = 'CENSORED_SECRET';
+        diag('Public Cloud finalize: $self->provider=' . Dumper($dumpable_provider));
     }
 
     # currently we have two cases when teardown of instance will be skipped:
@@ -158,12 +170,11 @@ sub finalize {
 
     eval { $self->_upload_logs(); } or record_info('FAILED', "\$self->_upload_logs() failed -- $@", result => 'fail');
 
-    # We need $self->{run_args} and $self->{run_args}->{my_provider}
-    if ($self->{run_args} && $self->{run_args}->{my_provider}) {
+    if ($self->provider) {
         diag('Public Cloud finalize: Ready for provider teardown.');
         # Call the provider teardown
-        eval { $self->{run_args}->{my_provider}->upload_boot_diagnostics() } or record_info('FAILED', "\$self->{run_args}->{my_provider}->upload_boot_diagnostics() failed -- $@");
-        eval { $self->{run_args}->{my_provider}->teardown() } or record_info('FAILED', "\$self->{run_args}->{my_provider}::teardown() failed -- $@", result => 'fail');
+        eval { $self->provider->upload_boot_diagnostics() } or record_info('FAILED', "\$self->provider->upload_boot_diagnostics() failed -- $@");
+        eval { $self->provider->teardown() } or record_info('FAILED', "\$self->provider->teardown() failed -- $@", result => 'fail');
         diag('Public Cloud finalize: The provider teardown finished.');
     } else {
         diag('Public Cloud finalize: Not ready for provider teardown.');
@@ -174,10 +185,9 @@ sub _upload_logs {
     my ($self) = @_;
     my $ssh_sut_log = '/var/tmp/ssh_sut.log';
 
-    diag('Public Cloud _upload_logs: $self->{run_args}=' . $self->{run_args}) if ($self->{run_args});
-    diag('Public Cloud _upload_logs: $self->{run_args}->{my_instance}=' . $self->{run_args}->{my_instance}) if ($self->{run_args}->{my_instance});
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('Public Cloud _upload_logs: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
+    diag('Public Cloud _upload_logs: $self->instance=' . $self->instance) if ($self->instance);
+    unless ($self->instance) {
+        die('Public Cloud _upload_logs: $self->instance is not available. Maybe the test died before the instance has been created?');
     }
 
     script_run("sudo chmod a+r " . $ssh_sut_log);
@@ -185,11 +195,11 @@ sub _upload_logs {
 
     my @instance_logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
     for my $instance_log (@instance_logs) {
-        $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . $instance_log, timeout => 0, quiet => 1);
-        $self->{run_args}->{my_instance}->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
+        $self->instance->ssh_script_run("sudo chmod a+r " . $instance_log, timeout => 0, quiet => 1);
+        $self->instance->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
     }
 
-    $self->{run_args}->{my_instance}->upload_supportconfig_log();
+    $self->instance->upload_supportconfig_log();
 
     return 1;
 }
