@@ -125,6 +125,8 @@ elsif ($ip eq '10.168.192.67') {
     }
 
     record_info("EXPORTS", script_output("cat /etc/exports"));
+    assert_script_run("exportfs -r");
+    assert_script_run("exportfs -v");
 
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");
