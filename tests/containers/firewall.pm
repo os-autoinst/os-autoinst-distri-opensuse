@@ -12,7 +12,7 @@ use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'script_retry';
+use utils;
 use containers::common 'check_containers_connectivity';
 use Utils::Systemd 'systemctl';
 
