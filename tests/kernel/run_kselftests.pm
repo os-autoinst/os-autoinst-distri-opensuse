@@ -116,7 +116,7 @@ sub postprocess_kselftest_results {
     }
 
     my $tmp_file = "/tmp/updated_tap.$$";
-    script_output("echo '" . join("\n", @updated_lines) . "' > $tmp_file");
+    script_output("cat <<'EOF' > $tmp_file\n" . join("\n", @updated_lines) . "\nEOF");
     assert_script_run("mv $tmp_file $tap_file");
 
     parse_extra_log(KTAP => $tap_file);
@@ -148,7 +148,7 @@ sub run {
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
     my @kselftests_suite = split(',', $kselftests_suite);
     my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
-    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', '');
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
     my $whitelist = LTP::WhiteList->new($whitelist_file);
 
     if ($kselftest_git) {
