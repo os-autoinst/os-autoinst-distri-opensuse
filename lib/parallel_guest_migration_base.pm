@@ -51,7 +51,7 @@ use List::MoreUtils qw(firstidx);
 use List::Util 'first';
 use version_utils qw(is_opensuse is_sle is_alp is_microos get_os_release);
 use virt_utils qw(collect_host_and_guest_logs cleanup_host_and_guest_logs enable_debug_logging);
-use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts parse_subnet_address_ipv4 check_port_state setup_common_ssh_config is_monolithic_libvirtd restart_libvirtd check_libvirtd restart_modular_libvirt_daemons);
+use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts parse_subnet_address_ipv4 check_port_state setup_common_ssh_config is_monolithic_libvirtd restart_libvirtd check_libvirtd restart_modular_libvirt_daemons reselect_openqa_console);
 use virt_autotest::domain_management_utils qw(construct_uri create_guest remove_guest shutdown_guest show_guest check_guest_state register_guest_name manage_guest_service);
 use virt_autotest::virtual_network_utils qw(config_domain_resolver write_network_bridge_device_config write_network_bridge_device_ifcfg write_network_bridge_device_nmconnection activate_network_bridge_device config_virtual_network_device);
 use utils qw(zypper_call systemctl script_retry define_secret_variable);
@@ -1355,6 +1355,7 @@ sub create_guest_network_bridge_device {
     $args{_masklen} //= '';
     $args{_startaddr} //= '';
     $args{_endaddr} //= '';
+    $args{_consolekeeper} = $_host_params{reconsole_counter};
     $args{_guest} = get_required_var('GUEST_UNDER_TEST') if (!$args{_guest});
     croak("Bridge ip and mask length must be given") if ((!$args{_ipaddr} or !$args{_masklen}) and ($_guest_matrix{$args{_guest}}{netname} ne 'br0'));
 
@@ -1363,7 +1364,7 @@ sub create_guest_network_bridge_device {
     if ($_guest_matrix{$args{_guest}}{netname} ne 'br0') {
         if (script_run("ip route show all | grep \"$_guest_matrix{$args{_guest}}{netname} \"") != 0) {
             $_ret = write_network_bridge_device_config(ipaddr => $args{_ipaddr} . '/' . $args{_masklen}, name => $_guest_matrix{$args{_guest}}{netname}, bootproto => 'static', bridge_type => 'master');
-            $_ret |= activate_network_bridge_device(bridge_device => $_guest_matrix{$args{_guest}}{netname}, network_mode => $_guest_matrix{$args{_guest}}{netmode});
+            $_ret |= activate_network_bridge_device(bridge_device => $_guest_matrix{$args{_guest}}{netname}, network_mode => $_guest_matrix{$args{_guest}}{netmode}, reconsole_counter => $_host_params{reconsole_counter});
             $_ret |= script_run("iptables --append FORWARD --in-interface $_guest_matrix{$args{_guest}}{netname} -j ACCEPT");
         }
         else {
