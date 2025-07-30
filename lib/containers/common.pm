@@ -233,7 +233,7 @@ sub check_containers_connectivity {
     my $container_name = 'sut_container';
     my $image = "registry.opensuse.org/opensuse/busybox:latest";
 
-    script_retry "$runtime pull $image", retry => 3, delay => 120;
+    script_retry "$runtime pull $image", timeout => 300, retry => 3, delay => 120;
     assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 $image sleep infinity";
     my $container_ip = container_ip $container_name, $runtime;
 
