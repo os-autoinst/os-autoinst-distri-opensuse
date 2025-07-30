@@ -23,7 +23,7 @@ sub run {
 
     # Fill the current pairs of hostname & address into /etc/hosts file
     if (get_var("REGRESSION", '') =~ /vmware/) {
-        my $vmware_server = get_required_var('VMWARE_SERVER');
+        my $vmware_server = get_required_var('VMWARE_HOST');
         foreach my $guest (keys %virt_autotest::common::guests) {
             my $ip = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$vmware_server "vim-cmd vmsvc/get.guest \\`vim-cmd vmsvc/getallvms | grep -w $guest|cut -d ' ' -f1\\`|grep -A 1 hostName|grep ipAddress|cut -d '\\"' -f2"));
             record_info("$guest: $ip");
