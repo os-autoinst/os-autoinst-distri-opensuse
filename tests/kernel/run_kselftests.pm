@@ -78,29 +78,46 @@ sub postprocess_kselftest_results {
         die "No TAP output found in $tap_file for $suite\n";
     }
 
+    my $sanitized_suite_name = (split(':', $suite))[0];
+    my @updated_lines;
+
     foreach my $line (split /\n/, $tap_content) {
         chomp $line;
 
         # Skip TAP plan lines like "1..13"
-        next if $line =~ /^\d+\.\.\d+/;
+        if ($line =~ /^\d+\.\.\d+/) {
+            push @updated_lines, $line;
+            next;
+        }
 
-        # Match both top-level and subtests
-        if ($line =~ /^\#?\s*(not ok|ok)\s+\d+\s+(\S+)/) {
+        # Match top-level and subtests (prefixed or not with "#")
+        if ($line =~ /^\#?\s*(ok|not ok)\s+(\d+)\s+(.+?)(?:\s+#.*)?$/) {
             my $result = $1;
-            my $test_name = $2;
+            my $num = $2;
+            my $test_name = $3;    # Full name, can have spaces
 
             my $env = {
                 product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
                 arch => get_var('ARCH', ''),
             };
 
-            my $sanitized_suite_name = (split(':', $suite))[0];
             if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $test_name)) {
                 $self->{result} = 'softfail';
                 record_info("Known issue", "$sanitized_suite_name:$test_name marked as softfail");
+
+                # Preserve comment marker if it was a subtest
+                my $prefix = ($line =~ /^\#/) ? "# " : "";
+                push @updated_lines, "${prefix}ok $num $test_name # TODO Known issue";
+                next;
             }
         }
+
+        push @updated_lines, $line;
     }
+
+    my $tmp_file = "/tmp/updated_tap.$$";
+    script_output("echo '" . join("\n", @updated_lines) . "' > $tmp_file");
+    assert_script_run("mv $tmp_file $tap_file");
 
     parse_extra_log(KTAP => $tap_file);
 }
