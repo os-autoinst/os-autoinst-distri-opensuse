@@ -97,6 +97,7 @@ our @EXPORT = qw(
   reboot_virtual_machine
   reconnect_console_if_not_good
   get_guest_settings
+  reselect_openqa_console
 );
 
 my %log_cursors;
@@ -1501,6 +1502,46 @@ sub get_guest_settings {
     }
 
     return \%settings_matrix;
+}
+
+=head2 reselect_openqa_console
+
+Reselect named console in openQA test if concerned console is lost after detecting
+ssh port or needle. Arguments include address to be detected, console to be selected
+, needle to be checked on console, counter to be used for lost console detection,
+countdown value to be decreased at the end of each loopthe number of retries when
+detecting ssh port of address and delay before next ssh port detection.
+=cut
+
+sub reselect_openqa_console {
+    my (%args) = @_;
+    $args{address} //= '';
+    $args{console} //= 'root-ssh';
+    $args{needle} //= 'text-logged-in-root';
+    $args{counter} //= 180;
+    $args{countdown} //= 3;
+    $args{retries} //= 6;
+    $args{delay} //= 10;
+    die("Address must be given for ssh port detecting") unless $args{address};
+
+    my $reselect_console_counter = $args{counter};
+    while ($reselect_console_counter >= 0) {
+        my $countdown = $args{countdown};
+        if (!(check_port_state($args{address}, 22)) or !(check_screen($args{needle}))) {
+            $countdown = $args{retries} * $args{delay};
+            if (check_port_state($args{address}, 22, $args{retries}, $args{delay})) {
+                reset_consoles;
+                select_console($args{console});
+                record_info("Console $args{console} reconnected after being lost");
+                last;
+            }
+            else {
+                die("System $args{address} ssh port not open for reconnection on waiting after console $args{console} lost");
+            }
+        }
+        enter_cmd("reset") for (0 .. 2);
+        $reselect_console_counter -= $countdown;
+    }
 }
 
 1;
