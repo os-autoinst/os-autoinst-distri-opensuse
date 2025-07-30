@@ -148,7 +148,7 @@ sub run {
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
     my @kselftests_suite = split(',', $kselftests_suite);
     my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
-    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', '');
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
     my $whitelist = LTP::WhiteList->new($whitelist_file);
 
     if ($kselftest_git) {
