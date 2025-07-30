@@ -94,6 +94,7 @@
       <li><a href="#has_autoconsole_for_sure">has_autoconsole_for_sure</a></li>
       <li><a href="#has_noautoconsole_for_sure">has_noautoconsole_for_sure</a></li>
       <li><a href="#record_guest_installation_result">record_guest_installation_result</a></li>
+      <li><a href="#is_guest_installation_done">is_guest_installation_done</a></li>
       <li><a href="#collect_guest_installation_logs_via_ssh">collect_guest_installation_logs_via_ssh</a></li>
       <li><a href="#upload_guest_installation_logs">upload_guest_installation_logs</a></li>
       <li><a href="#detach_all_nfs_mounts">detach_all_nfs_mounts</a></li>
@@ -593,6 +594,12 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>record_guest_installation_result($self, $_guest_installation_result)</code></pre>
 
 <p>Record final guest installation result in [guest_installation_result] and set [stop_run] and [stop_timestamp].</p>
+
+<h2 id="is_guest_installation_done">is_guest_installation_done</h2>
+
+<pre><code>is_guest_installation_done($self)</code></pre>
+
+<p>Check whether guest installation finishes completely and has final successful or failing result. Take agama guest as an example, AGAMA_INSTALL_PHASE_DONE does not and should not indicates a complete successful or failing installation . It only passes the initial configuration and installation by employing agama. Final result can only be determined after rebooting and detecting system.</p>
 
 <h2 id="collect_guest_installation_logs_via_ssh">collect_guest_installation_logs_via_ssh</h2>
 
