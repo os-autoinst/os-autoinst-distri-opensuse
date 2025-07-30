@@ -94,9 +94,10 @@ sub postprocess_kselftest_results {
                 arch => get_var('ARCH', ''),
             };
 
-            if ($whitelist->find_whitelist_entry($env, $suite, $test_name)) {
+            my $sanitized_suite_name = (split(':', $suite))[0];
+            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $test_name)) {
                 $self->{result} = 'softfail';
-                record_info("Known issue", "$suite:$test_name marked as softfail");
+                record_info("Known issue", "$sanitized_suite_name:$test_name marked as softfail");
             }
         }
     }
