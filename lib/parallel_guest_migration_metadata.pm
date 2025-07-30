@@ -98,7 +98,8 @@ our %_host_params = (
     'source_imgpath' => get_var('SOURCE_IMAGE_PATH', '/var/lib/libvirt/images'),    # The folder in which guest assets are stored
     'target_imgpath' => get_var('TARGET_IMAGE_PATH', '/var/lib/libvirt/images'),    # The folder to which NFS share should be mounted
     'use_storage_pool' => get_var('USE_STORAGE_POOL', ''),    # Whether use libvirt storage pool (1 or 0)
-    'storage_pool_name' => get_var('STORAGE_POOL_NAME', 'libvirt_guest_migration')    # libvirt storage pool name
+    'storage_pool_name' => get_var('STORAGE_POOL_NAME', 'libvirt_guest_migration'),    # libvirt storage pool name
+    'reconsole_counter' => get_var('RESELECT_CONSOLE_COUNTER', 180)    # Reselect disconnected console if condition triggered in counter
 );
 
 our %_guest_params = (
