@@ -15,7 +15,7 @@ schedule:
     - console/clamav
     - console/openvswitch_ssl
     - security/ntpd
-    - console/ntp_client
+    - console/chrony
     - console/cups
     - console/syslog
     - x11/evolution/evolution_prepare_servers

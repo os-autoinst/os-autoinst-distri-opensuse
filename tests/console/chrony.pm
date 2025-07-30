@@ -3,7 +3,7 @@
 
 # Package: chrony ntp
 # Summary: Check for NTP clients
-# Maintainer: Dominik Heidler <dheidler@suse.de>
+# Maintainer: qe-core <qe-core@suse.com>
 
 use base 'consoletest';
 use strict;

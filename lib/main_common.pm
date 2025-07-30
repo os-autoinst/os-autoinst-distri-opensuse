@@ -1726,7 +1726,7 @@ sub load_extra_tests_console {
     }
     loadtest "console/cron" unless is_jeos;
     loadtest "console/syslog";
-    loadtest "console/ntp_client" if (!is_sle || is_jeos);
+    loadtest "console/chrony" if (!is_sle || is_jeos);
     loadtest "console/mta" unless is_jeos;
     # part of load_extra_tests_y2uitest_ncurses & load_extra_tests_y2uitest_cmd except jeos
     loadtest "console/yast2_lan_device_settings" if is_jeos;
