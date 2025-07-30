@@ -270,7 +270,8 @@ our %_host_params = (
     'ssh_key_file' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa'),    # SSH key file used for guest installation and login
     'ssh_public_key' => '',    # Public key used for ssh login to guest
     'ssh_private_key' => '',    # Private key used for ssh login to guest
-    'ssh_command' => ''    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'ssh_command' => '',    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'reconsole_counter' => get_var('RESELECT_CONSOLE_COUNTER', 180)    # Reselect disconnected console if condition triggered in counter
 );
 
 # Global data structure %guest_network_matrix to specify network devices to be
