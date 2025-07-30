@@ -43,11 +43,15 @@
       <li><a href="#config_guest_storage">config_guest_storage</a></li>
       <li><a href="#config_guest_console">config_guest_console</a></li>
       <li><a href="#start_guest">start_guest</a></li>
+      <li><a href="#catalogue_guest">catalogue_guest</a></li>
+      <li><a href="#maintain_guest">maintain_guest</a></li>
       <li><a href="#wait_guest">wait_guest</a></li>
       <li><a href="#wait_guest_ssh">wait_guest_ssh</a></li>
       <li><a href="#check_guest_network_config">check_guest_network_config</a></li>
       <li><a href="#check_guest_network_address">check_guest_network_address</a></li>
       <li><a href="#create_guest_network">create_guest_network</a></li>
+      <li><a href="#create_guest_network_bridge_device">create_guest_network_bridge_device</a></li>
+      <li><a href="#create_guest_network_bridge_service">create_guest_network_bridge_service</a></li>
       <li><a href="#initialize_guest_matrix">initialize_guest_matrix</a></li>
       <li><a href="#fill_up_array">fill_up_array</a></li>
       <li><a href="#test_guest_network">test_guest_network</a></li>
@@ -101,11 +105,11 @@
 
 <h2 id="do_local_initialization">do_local_initialization</h2>
 
-<p>Initialization information about local host and save it into variables.</p>
+<p>Initialization information about local host. Source (children) host needs to save ssh key file information used for connecting guest. Sve them into variables which can be shared between source and destination.</p>
 
 <h2 id="do_peer_initialization">do_peer_initialization</h2>
 
-<p>Initialization information about peer, save it into variables and setup passwordless ssh connection to it.</p>
+<p>Initialization information about peer. Destination (parent) host needs to obtain ssh key file information used for connecting guest. Save all obtained information into variables and setup passwordless ssh connection to peer host.</p>
 
 <h2 id="get_peer_info">get_peer_info</h2>
 
@@ -141,7 +145,7 @@
 
 <h2 id="config_host_shared_storage">config_host_shared_storage</h2>
 
-<p>Configure shared nfs storage on server and mount it on client. Main arguments are type of shared storage, path of exported shared storage, server or client , original source path on server and mount path on server and client.</p>
+<p>Configure shared nfs storage or libvirt storage pool on server based on whether argument _usepool is set. Other main arguments are type of shared storage, path of exported shared storage, server or client, original source path on server, mount path on server and client and storage pool name.</p>
 
 <h2 id="config_host_security">config_host_security</h2>
 
@@ -161,7 +165,7 @@
 
 <h2 id="restore_guest_asset">restore_guest_asset</h2>
 
-<p>Find guest disk and xml config with domain name, restore them to their original names and places. Main arguments are guest to be manipulated, whether die (1) or not (0) if any failures happen, directories in which guest asset and config are stored. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+<p>Find or download guest disk and xml config with domain name, restore them to their original names and places. Main arguments are guest to be manipulated, whether die (1) or not (0) if any failures happen, directories in which guest asset and config are stored. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
 
 <h2 id="config_guest_clock">config_guest_clock</h2>
 
@@ -179,17 +183,25 @@
 
 <p>Start guest by using virsh start and wait for it up and running if necessary. Main arguments are guest to start, virtualization management tool to be used, whether restart (1) or not (0), whether die (1) or not (0) if any failures happen and whether wait (1) or not (0) for guest up and running. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
 
+<h2 id="catalogue_guest">catalogue_guest</h2>
+
+<p>Call register_guest_name to catalogue guest. Multiple guests and corresponding ip addresses and domain names are supported as strings separated by space. And other arguments include _keyfile (key file for passwordless ssh connection) and _usedns (0 or 1). Call croak to die if subroutine fails and argument _die is set.</p>
+
+<h2 id="maintain_guest">maintain_guest</h2>
+
+<p>Call manage_guest_service to manage service, target or socket unit in guest system. Multiple guests and corresponding ip addresses are supported as strings separated by space. Other arguments include _keyfile (key file for passwordless ssh connection ), _operation (systemctl subcommand) and _unit to be manipulated. Call croak to die if subroutine fails and _die is set.</p>
+
 <h2 id="wait_guest">wait_guest</h2>
 
-<p>Wait for guest up and running by obtaining ip address, adding mapping in /etc/hosts, and calling wait_guest_ssh. Main arguments are guest to wait, whether check ip address (1) or not (0) and whether die (1) or not (0) if any failures happen.</p>
+<p>Wait for guest up and running after obtaining ip address, and calling wait_guest_ssh. Main arguments are guest to wait, whether check ip address (1) or not (0) and whether die (1) or not (0) if any failures happen.</p>
 
 <h2 id="wait_guest_ssh">wait_guest_ssh</h2>
 
-<p>Detect whether guest ssh port is open by using nc. Main arguments are guest to be detected, times of retry and whether die (1) or not (0) if any failures happen.</p>
+<p>Detect whether guest ssh port is open by using nc. If ssh port is open judging by ip address, then catalogue and maintain guest based on whether _usedns is set. If _usedns is set, setting guest FQDN and restart network service on destination host. If _usedns is not set, only writing guest and ip address into file /etc/hosts for convenient purpose. Other arguments are guest to be involved, times of retry, guest domain name and whether die (1) or not (0) if any failures happen.</p>
 
 <h2 id="check_guest_network_config">check_guest_network_config</h2>
 
-<p>Check and obtain guest network configuration. Guest xml config contains enough information about network to which guest connects on boot, for example: &lt;interface type=&quot;network&quot;&gt; &lt;mac address=&quot;00:16:3e:4f:5a:35&quot;/&gt; &lt;source network=&quot;vnet_nat&quot;/&gt; &lt;/interface&gt; or &lt;interface type=&#39;bridge&#39;&gt; &lt;mac address=&#39;52:54:00:70:9d:b2&#39;/&gt; &lt;source bridge=&#39;br123&#39;/&gt; &lt;model type=&#39;virtio&#39;/&gt; &lt;address type=&#39;pci&#39; domain=&#39;0x0000&#39; bus=&#39;0x01&#39; slot=&#39;0x00&#39; function=&#39;0x0&#39;/&gt; &lt;/interface&gt; Interface type, source network/bridge name and model type are those useful ones determine the network, they will be stored in guest_matrix{guest}{nettype}, guest_matrix{guest}{netname} and guest_matrix{guest}{netmode}. In order to obtain netmode conveniently and consistently, netname should take the form of &quot;vnet_&quot; + &quot;nat/route/host&quot; + &quot;_other_strings&quot; if virtual network to be used. Addtionally, guest_matrix{guest}{macaddr} is also upated by querying domiflist and ip address guest_matrix{guest}{ipaddr} can also be obtained from lib/virt_autotest/common.pm if static ip address is being used. The main arguments are guest to be checked and directory in which guest xml config is stored. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+<p>Check and obtain guest network configuration. Guest xml config contains enough information about network to which guest connects on boot, for example: &lt;interface type=&quot;network&quot;&gt; &lt;mac address=&quot;00:16:3e:4f:5a:35&quot;/&gt; &lt;source network=&quot;vn_nat_vbrXXX&quot;/&gt; &lt;/interface&gt; or &lt;interface type=&#39;bridge&#39;&gt; &lt;mac address=&#39;52:54:00:70:9d:b2&#39;/&gt; &lt;source bridge=&#39;br123&#39;/&gt; &lt;model type=&#39;virtio&#39;/&gt; &lt;address type=&#39;pci&#39; domain=&#39;0x0000&#39; bus=&#39;0x01&#39; slot=&#39;0x00&#39; function=&#39;0x0&#39;/&gt; &lt;/interface&gt; Interface type, source network/bridge name and model type are those useful ones determine the network, they will be stored in guest_matrix{guest}{nettype}, guest_matrix{guest}{netname} and guest_matrix{guest}{netmode}. In order to obtain netmode conveniently and consistently, netname should take the form of &quot;vn_&quot; + &quot;nat/route/host&quot; + &quot;_other_strings&quot; if virtual network to be used. Addtionally, guest_matrix{guest}{macaddr} is also upated by querying domiflist and ip address guest_matrix{guest}{ipaddr} can also be obtained from lib/virt_autotest/common.pm if static ip address is being used. The main arguments are guest to be checked and directory in which guest xml config is stored. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
 
 <h2 id="check_guest_network_address">check_guest_network_address</h2>
 
@@ -197,7 +209,15 @@
 
 <h2 id="create_guest_network">create_guest_network</h2>
 
-<p>Create network, type of which is either network or bridge, to be used with guest. In order to make this work consistent, data in hash structure guest_network_matrix will be used for network creating, and the network name should begin with &quot;vnet_&quot; followed by &quot;nat&quot;, &quot;route&quot; or &quot;host&quot; if network type is &quot;network&quot;, or be &quot;br0&quot; or &quot;br123&quot; if network type is &quot;bridge&quot;. For guest using static ip address, network address info is derived from guest ip address. Main arguments are guest to be served, the directory in which network xml config will be stored and whether die (1) or not (0) if any error.This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+<p>Create network, type of which is either network or bridge, to be used with guest. In order to make this work consistent, data in hash structure guest_network_matrix will be used for network creating, and the network name should begin with &quot;vn_&quot; followed by &quot;nat&quot;, &quot;route&quot; or &quot;host&quot; if network type is &quot;network&quot;, or be &quot;br0&quot; or &quot;br123&quot; if network type is &quot;bridge&quot;. For guest using static ip address, network address info is derived from guest ip address. Main arguments are guest to be served, the directory in which network xml config will be stored and whether die (1) or not (0) if any error.This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related. For network type of vnet, calling subroutine config_domain_resolver at the end if argument _usedns is set. Calling subroutines in lib/virt_autotest/virtual_network_utils.pm: config_virtual_network_device create_guest_network_bridge_device create_guest_network_bridge_service config_domain_resolver to do the actual work.</p>
+
+<h2 id="create_guest_network_bridge_device">create_guest_network_bridge_device</h2>
+
+<p>Create network bridge device br0 (host bridge) or brXXX (internal bridge) by using derived information from host or in data structure %_guest_matrix. This should be called in create_guest_network. This subroutine calls subroutines in lib/virt_autotest/virtual_network_utils.pm: write_network_bridge_device_config activate_network_bridge_device to do the actual work.</p>
+
+<h2 id="create_guest_network_bridge_service">create_guest_network_bridge_service</h2>
+
+<p>Create DHCP/DNS service if using brXXX (internal bridge). If _usedns is set, also configure full DNS support by calling subroutine config_domain_resolver. This is supposed to be called in create_guest_network.</p>
 
 <h2 id="initialize_guest_matrix">initialize_guest_matrix</h2>
 
@@ -209,7 +229,7 @@
 
 <h2 id="test_guest_network">test_guest_network</h2>
 
-<p>Test networking accessibility of guest. All guests should can be reached on host and can reach outside from inside. The only guest that can be reached from outside host is the one uses host bridge network. Main arguments are guest to be tested and whether die (1) or not (0) if any error.</p>
+<p>Test networking accessibility of guest. All guests should can be reached on host and can reach outside from inside. The only guest that can be reached from outside host is the one uses host bridge network. For guest having FQDN and _usedns is set, it should communicate by using its domain name directly. Main arguments are guest to be tested and whether die (1) or not (0) if any error.</p>
 
 <h2 id="test_guest_storage">test_guest_storage</h2>
 

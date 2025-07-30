@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/virt_autotest/virtual_network_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#config_domain_resolver">config_domain_resolver</a></li>
+      <li><a href="#write_network_bridge_device_config">write_network_bridge_device_config</a></li>
+      <li><a href="#write_network_bridge_device_ifcfg">write_network_bridge_device_ifcfg</a></li>
+      <li><a href="#write_network_bridge_device_nmconnection">write_network_bridge_device_nmconnection</a></li>
+      <li><a href="#activate_network_bridge_device">activate_network_bridge_device</a></li>
+      <li><a href="#config_virtual_network_device">config_virtual_network_device</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/virt_autotest/virtual_network_utils.pm</h1>
+
+<h2 id="config_domain_resolver">config_domain_resolver</h2>
+
+<p>Create domain resolver and prevent it from being overwritten automatically. Other arguments include domain resolver configuration file resolvconf, resolver address resolvip and domain name domainname.</p>
+
+<h2 id="write_network_bridge_device_config">write_network_bridge_device_config</h2>
+
+<pre><code>write_network_bridge_device_config(name =&gt; $name [, ipaddr =&gt; $ipaddr,
+    bootproto =&gt; $bootproto, startmode =&gt; $startmode, zone =&gt; $zone,
+    bridge_type =&gt; $bridge_type, _bridge_ports =&gt; $bridge_ports,
+    bridge_stp =&gt; $bridge_stp, bridge_forwarddelay =&gt; $bridge_forwarddelay,
+    backup_folder =&gt; $backup_folder])</code></pre>
+
+<p>Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or /etc/NetworkManager/system-connections/*.nmconnection depends on whether system network is managed by NetworkManager or not. The supported arguments are listed out as below: $ipaddr: IP address/mask length pair of the interface $name: Identifier of the interface $bootproto: DHCP automatic or manual configuration, &#39;static&#39;, &#39;dhcp&#39; or &#39;none&#39; $startmode: Auto start up or connection: &#39;auto&#39;, &#39;manual&#39; or &#39;off&#39; $zone: The trust level of this network connection $bridge_type: &#39;master&#39; or &#39;slave&#39; to indicate master or slave interface $bridge_port: Specify interface&#39;s master or slave interface name $bridge_stp: &#39;on&#39; or &#39;off&#39; to turn stp on or off $bridge_forwarddelay: The stp forwarding delay in seconds If $ipaddr given is empty, it means there is no associated specific ip address to this interface which might be attached to another bridge interface or will not be assigned one ip address from dhcp, so set $ipaddr to &#39;0.0.0.0&#39;.If $ipaddr given is non-empty but not in ip address format,for example, &#39;host&#39;,it means the interface will not use a ip address from pre-defined subnet and will automically accept dhcp ip address from public facing host network.</p>
+
+<h2 id="write_network_bridge_device_ifcfg">write_network_bridge_device_ifcfg</h2>
+
+<pre><code>write_network_bridge_device_ifcfg(name =&gt; $name [, ipaddr =&gt; $ipaddr,
+    name =&gt; $name, bootproto =&gt; $bootproto, startmode =&gt; $startmode,
+    zone =&gt; $zone, bridge_type =&gt; $bridge_type, bridge_ports =&gt; $bridge_ports,
+    bridge_stp =&gt; $bridge_stp, bridge_forwarddelay =&gt; $bridge_forwarddelay,
+    backup_folder =&gt; $backup_folder])</code></pre>
+
+<p>Write bridge device config file to /etc/sysconfig/network/ifcfg-*. Please refer to https://github.com/openSUSE/sysconfig/blob/master/config/ifcfg.template for config file content. This subroutine is supposed to be used by calling subroutine write_network_bridge_device_config.</p>
+
+<h2 id="write_network_bridge_device_nmconnection">write_network_bridge_device_nmconnection</h2>
+
+<pre><code>write_network_bridge_device_nmconnection(name =&gt; $name [, ipaddr =&gt; $ipaddr,
+    name =&gt; $name, bootproto =&gt; $bootproto, startmode =&gt; $startmode,
+    zone =&gt; $zone, bridge_type =&gt; $bridge_type, bridge_ports =&gt; $bridge_ports,
+    bridge_stp =&gt; $bridge_stp, bridge_forwarddelay =&gt; $bridge_forwarddelay,
+    backup_folder =&gt; $backup_folder])</code></pre>
+
+<p>Write bridge device config file to /etc/NetworkManager/system-connections/*. NM settings are a little bit different from ifcfg settings, but there are definite mapping between them. So translation from well-known and default ifcfg settings to NM settings is necessary. Please refer to nm-settings explanation as below: https://developer-old.gnome.org/NetworkManager/stable/nm-settings-keyfile.html. This subroutine is supposed to be used by calling write_network_bridge_device_config.</p>
+
+<h2 id="activate_network_bridge_device">activate_network_bridge_device</h2>
+
+<pre><code>activate_network_bridge_device(host_device =&gt; $host_device,
+    bridge_device =&gt; $bridge_device, network_mode =&gt; $network_mode)</code></pre>
+
+<p>Activate guest network bridge device by using wicked or NetworkManager depends on system configuration. And also validate whether activation is successful or not.</p>
+
+<h2 id="config_virtual_network_device">config_virtual_network_device</h2>
+
+<pre><code>config_virtual_network_device(driver =&gt; &#39;driver&#39;, transport =&gt; &#39;transport&#39;,
+    user =&gt; &#39;user&#39;, host =&gt; &#39;host&#39;, port =&gt; &#39;port&#39;, path =&gt; &#39;path&#39;,
+    extra =&gt; &#39;extra&#39;, fwdmode =&gt; &#39;fwdmode&#39;, name =&gt; &#39;name&#39;, device =&gt; &#39;device&#39;,
+    ipaddr =&gt; &#39;ip&#39;, netmask =&gt; &#39;mask&#39;, startaddr =&gt; &#39;start&#39;, endaddr =&gt; &#39;end&#39;,
+    domainname =&gt; &#39;domainname&#39;, confdir =&gt; &#39;confdir&#39;)</code></pre>
+
+<p>Create virtual network to be used. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related. The network to be created based on arguments fwdmode, name, device, ipaddr, netmask, startaddr , endaddr and domainname. The configuration file is constructed from arguments name and confdir.</p>
+
+
+</body>
+
+</html>
+
+

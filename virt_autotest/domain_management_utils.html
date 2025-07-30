@@ -20,6 +20,8 @@
       <li><a href="#remove_guest">remove_guest</a></li>
       <li><a href="#show_guest">show_guest</a></li>
       <li><a href="#check_guest_state">check_guest_state</a></li>
+      <li><a href="#register_guest_name">register_guest_name</a></li>
+      <li><a href="#manage_guest_service">manage_guest_service</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/domain_management_utils.pm</h1>
@@ -47,6 +49,14 @@
 <h2 id="check_guest_state">check_guest_state</h2>
 
 <p>Check and return guest state. Main argument are guest to be checked and virtualization management tool to be used (virsh or xl). This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+<h2 id="register_guest_name">register_guest_name</h2>
+
+<p>Configure guest hostname or write corresponding record into /etc/hosts based on whether dns service is being used or not. Multiple guests and corresponding ip addresses and domain names can be passed in as strings separated by space. Other arguments include keyfile (key file for passwordless ssh connection) and usedns (0 or 1).</p>
+
+<h2 id="manage_guest_service">manage_guest_service</h2>
+
+<p>Manage service/target/socket unit in guest by using systemctl command. Multiple guests and corresponding ip addresses can be passed in as strings separated by space. Other arguments include keyfile (key file for passwordless ssh connection ), operation (systemctl subcommand) and unit to be manipulated.</p>
 
 
 </body>
