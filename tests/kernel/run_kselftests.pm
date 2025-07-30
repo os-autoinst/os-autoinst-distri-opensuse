@@ -116,7 +116,7 @@ sub postprocess_kselftest_results {
     }
 
     my $tmp_file = "/tmp/updated_tap.$$";
-    script_output("echo '" . join("\n", @updated_lines) . "' > $tmp_file");
+    script_output("cat <<'EOF' > $tmp_file\n" . join("\n", @updated_lines) . "\nEOF");
     assert_script_run("mv $tmp_file $tap_file");
 
     parse_extra_log(KTAP => $tap_file);
