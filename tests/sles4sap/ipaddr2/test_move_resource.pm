@@ -22,7 +22,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_test_other_vm
   ipaddr2_wait_for_takeover
   ipaddr2_azure_resource_group
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
@@ -33,6 +33,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
 
     # 1. get the webpage using the LB floating IP. It should be from VM1 at the test beginning
     # 2. move the cluster resource on the VM2
@@ -43,45 +44,51 @@ sub run {
     # the load balancer entity in Azure is notified about the move
     # and should change the routing from the frontend IP to the
     # backend IP of the VM-02
-    ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 2);
+    ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 2, priv_ip_range => $ip{priv_ip_range});
     sleep 30;
 
     # probe the webserver using the frontend IP
     # until the reply come from the VM-02
-    die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(bastion_ip => $bastion_ip, destination => 2);
+    die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(
+        bastion_ip => $bastion_ip,
+        destination => 2,
+        frontend_ip => $ip{frontend_ip});
 
-    ipaddr2_os_connectivity_sanity();
+    ipaddr2_os_connectivity_sanity(priv_ip_range => $ip{priv_ip_range});
 
     # Check the status on the VM that is supposed to be
     # the master for the webservice
-    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
-    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1);
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2, ip => \%ip);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1, priv_ip_range => $ip{priv_ip_range});
 
     # Slow down, take a break, then check again, nothing should be changed.
     sleep 60;
-    ipaddr2_os_connectivity_sanity();
-    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2);
-    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1);
+    ipaddr2_os_connectivity_sanity(priv_ip_range => $ip{priv_ip_range});
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 2, ip => \%ip);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 1, priv_ip_range => $ip{priv_ip_range});
 
     # Repeat the same but this time from VM-02 to VM-01
     #test_step "Move back the IpAddr2 resource to VM1"
-    ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 1);
+    ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 1, priv_ip_range => $ip{priv_ip_range});
     sleep 30;
 
-    die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(bastion_ip => $bastion_ip, destination => 1);
+    die "Takeover does not happens in time" unless ipaddr2_wait_for_takeover(
+        bastion_ip => $bastion_ip,
+        destination => 1,
+        frontend_ip => $ip{frontend_ip});
 
-    ipaddr2_os_connectivity_sanity();
-    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
-    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2);
+    ipaddr2_os_connectivity_sanity(priv_ip_range => $ip{priv_ip_range});
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1, ip => \%ip);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2, priv_ip_range => $ip{priv_ip_range});
 
     # Slow down, take a break, then check again, nothing should be changed.
     sleep 60;
-    ipaddr2_os_connectivity_sanity();
-    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1);
-    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2);
+    ipaddr2_os_connectivity_sanity(priv_ip_range => $ip{priv_ip_range});
+    ipaddr2_test_master_vm(bastion_ip => $bastion_ip, id => 1, ip => \%ip);
+    ipaddr2_test_other_vm(bastion_ip => $bastion_ip, id => 2, priv_ip_range => $ip{priv_ip_range});
 
     # Clear all location constrain used during the test
-    ipaddr2_crm_clear(bastion_ip => $bastion_ip);
+    ipaddr2_crm_clear(bastion_ip => $bastion_ip, priv_ip_range => $ip{priv_ip_range});
 }
 
 sub test_flags {
@@ -91,7 +98,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     if (my $ibsm_rg = get_var('IBSM_RG')) {
         qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
     }
