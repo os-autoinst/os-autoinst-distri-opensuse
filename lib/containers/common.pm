@@ -107,7 +107,7 @@ sub install_docker_multiplatform {
 
     my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
     if (is_transactional) {
-        select_console 'root-console';
+        select_serial_terminal;
         trup_call("pkg install $pkg_name");
         check_reboot_changes;
         return;
