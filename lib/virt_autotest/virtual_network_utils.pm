@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtual_network_utils:
@@ -23,18 +23,63 @@ use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
 use version_utils qw(is_sle is_alp is_opensuse);
+use Utils::Architectures;
 use virt_autotest::utils;
 use virt_autotest::domain_management_utils qw(construct_uri);
 use mm_network;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone
-  restore_guests restore_network destroy_vir_network restore_libvirt_default pload_debug_log
-  check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
-  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status config_domain_resolver
-  write_network_bridge_device_config write_network_bridge_device_ifcfg write_network_bridge_device_nmconnection
-  activate_network_bridge_device config_virtual_network_device);
+  = qw(
+  download_network_cfg
+  prepare_network
+  restore_standalone
+  destroy_standalone
+  restore_guests
+  restore_network
+  destroy_vir_network
+  restore_libvirt_default
+  pload_debug_log
+  check_guest_status
+  check_guest_module
+  check_guest_ip
+  save_guest_ip
+  test_network_interface
+  hosts_backup
+  hosts_restore
+  get_free_mem
+  get_active_pool_and_available_space
+  clean_all_virt_networks
+  setup_vm_simple_dns_with_ip
+  get_guest_ip_from_vnet_with_mac
+  update_simple_dns_for_all_vm
+  validate_guest_status
+  config_domain_resolver
+  write_network_bridge_device_config
+  write_network_bridge_device_ifcfg
+  write_network_bridge_device_nmconnection
+  activate_network_bridge_device
+  config_virtual_network_device
+  create_host_bridge_nm
+  );
+
+# Create a host bridge network interface for sles16 via NetworkManager poo#178708
+sub create_host_bridge_nm {
+    my $host_bridge = "br0";
+    my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
+
+    if (is_sle('=16') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
+        # Install required packages python313-psutil and python313-dbus-python
+        zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
+        my $wait_script = "180";
+        my $script_name = "create_host_bridge.py";
+        my $script_url = data_url("virt_autotest/$script_name");
+        my $download_script = "curl -s -o ~/$script_name $script_url";
+        script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
+        script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a"));
+    }
+}
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
