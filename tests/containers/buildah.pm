@@ -40,9 +40,9 @@ sub run_tests {
     # When trying to install packages inside the container in Docker, there's a
     # network failure
     if ($runtime eq 'podman') {
-        record_info('Test', "Install random package in the container");
-        assert_script_run("buildah run $container -- zypper in -y cowsay", timeout => 600);
-        assert_script_run("buildah run $container -- cowsay hello world");
+        record_info('Test', "Install arbitrary package in the container");
+        assert_script_run("buildah run $container -- zypper in -y perl", timeout => 600);
+        assert_script_run(qq{buildah run $container -- perl -e 'print("Hello World\n");'});
     }
 
     record_info('Test', "Add environment variable to the container");
