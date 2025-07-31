@@ -61,11 +61,13 @@ NOTES
 
 ## Adding patches to `BATS_PATCHES`
 
-1. Identify the commit(s) that fix the test issue.
-1. Identify the PR ID associated with the commit: `gh pr list --search $COMMIT_SHA --state merged`
+Note: We add the patches to our tree to avoid hitting secondary rate-limits at Github.
+
+1. Identify the commit that fixes the issue.
+1. Identify the PR ID associated with the commit with `gh pr list --search $COMMIT_SHA --state merged`
 1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.patch` (`runc` is under `opencontainers`)
-1. Add the ID to `BATS_PATCHES` sorted numerically for obvious reasons.
-1. Run a verification run with the above setting.
+1. Add the ID to `BATS_PATCHES` sorted numerically as we assume lower numbered are merged earlier.
+1. Add verification runs with the above setting to the PR.
 1. Adjust YAML schedule.
 
 ## Warning
@@ -202,16 +204,6 @@ Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 [200-pod]: https://github.com/containers/podman/blob/main/test/system/200-pod.bats
 [252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
 [505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
-
-### runc
-
-| test | reason |
-| --- | --- |
-| [run] | https://github.com/opencontainers/runc/issues/4732 |
-| [cgroups] | https://github.com/opencontainers/runc/issues/4781 |
-
-[run]: https://github.com/opencontainers/runc/blob/main/tests/integration/run.bats
-[cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
 
 ## Tools
 
