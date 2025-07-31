@@ -243,8 +243,8 @@ sub run {
 
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    # system locale is present in WSL with jeos-firstboot
-    if (is_community_jeos || is_sle('=12-sp5') || get_var('WSL_VERSION')) {
+    # system locale is present in WSL with jeos-firstboot except in WSL Tumbleweed
+    if (is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && get_var('WSL_VERSION'))) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
