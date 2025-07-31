@@ -32,5 +32,6 @@ schedule:
     - console/orphaned_packages_check
     - console/consoletest_finish
     - console/zypper_log_packages
+    - console/rabbitmq
     - network/samba/samba_adcli
     - shutdown/shutdown
