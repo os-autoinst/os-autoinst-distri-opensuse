@@ -361,6 +361,8 @@ sub kdump_is_active {
 }
 
 sub do_kdump {
+    # clear screen
+    assert_script_run "reset";
     # get dump
     script_run "echo c > /proc/sysrq-trigger", 0;
 }
