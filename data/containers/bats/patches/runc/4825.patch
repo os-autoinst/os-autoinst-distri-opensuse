@@ -1,0 +1,168 @@
+From ceef984fb3b2baa7ec54ff4e5092fe2db123bcf5 Mon Sep 17 00:00:00 2001
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Thu, 31 Jul 2025 10:23:59 +1000
+Subject: [PATCH 1/2] tests: clean up loopback devices properly
+
+If an error occurs during a test which sets up loopback devices, the
+loopback device is not freed. Since most systems have very conservative
+limits on the number of loopback devices, re-running a failing test
+locally to debug it often ends up erroring out due to loopback device
+exhaustion.
+
+So let's just move the "losetup -d" to teardown, where it belongs.
+
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ tests/integration/cgroups.bats | 20 ++++----------------
+ tests/integration/helpers.bash | 23 +++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 16 deletions(-)
+
+diff --git a/tests/integration/cgroups.bats b/tests/integration/cgroups.bats
+index 8ef7d081169..c2b1b84604b 100644
+--- a/tests/integration/cgroups.bats
++++ b/tests/integration/cgroups.bats
+@@ -4,6 +4,7 @@ load helpers
+ 
+ function teardown() {
+ 	teardown_bundle
++	teardown_loopdevs
+ }
+ 
+ function setup() {
+@@ -153,13 +154,11 @@ function setup() {
+ @test "runc run (per-device io weight for bfq)" {
+ 	requires root # to create a loop device
+ 
+-	dd if=/dev/zero of=backing.img bs=4096 count=1
+-	dev=$(losetup --find --show backing.img) || skip "unable to create a loop device"
++	dev="$(setup_loopdev)"
+ 
+ 	# See if BFQ scheduler is available.
+ 	if ! { grep -qw bfq "/sys/block/${dev#/dev/}/queue/scheduler" &&
+ 		echo bfq >"/sys/block/${dev#/dev/}/queue/scheduler"; }; then
+-		losetup -d "$dev"
+ 		skip "BFQ scheduler not available"
+ 	fi
+ 
+@@ -198,9 +197,6 @@ function setup() {
+ EOF
+ 	weights2=$(get_cgroup_value $file)
+ 
+-	# The loop device itself is no longer needed.
+-	losetup -d "$dev"
+-
+ 	# Check original values.
+ 	grep '^default 333$' <<<"$weights1"
+ 	grep "^$major:$minor 444$" <<<"$weights1"
+@@ -213,12 +209,8 @@ EOF
+ @test "runc run (per-device multiple iops via unified)" {
+ 	requires root cgroups_v2
+ 
+-	dd if=/dev/zero of=backing1.img bs=4096 count=1
+-	dev1=$(losetup --find --show backing1.img) || skip "unable to create a loop device"
+-
+-	# Second device.
+-	dd if=/dev/zero of=backing2.img bs=4096 count=1
+-	dev2=$(losetup --find --show backing2.img) || skip "unable to create a loop device"
++	dev1="$(setup_loopdev)"
++	dev2="$(setup_loopdev)"
+ 
+ 	set_cgroups_path
+ 
+@@ -233,10 +225,6 @@ EOF
+ 	runc run -d --console-socket "$CONSOLE_SOCKET" test_dev_weight
+ 	[ "$status" -eq 0 ]
+ 
+-	# The loop devices are no longer needed.
+-	losetup -d "$dev1"
+-	losetup -d "$dev2"
+-
+ 	weights=$(get_cgroup_value "io.max")
+ 	grep "^$major1:$minor1 .* riops=333 wiops=444$" <<<"$weights"
+ 	grep "^$major2:$minor2 .* riops=555 wiops=666$" <<<"$weights"
+diff --git a/tests/integration/helpers.bash b/tests/integration/helpers.bash
+index e0397bcc6d4..4e8e070628e 100755
+--- a/tests/integration/helpers.bash
++++ b/tests/integration/helpers.bash
+@@ -791,6 +791,29 @@ function teardown_seccompagent() {
+ 	rm -f "$SECCCOMP_AGENT_SOCKET"
+ }
+ 
++LOOPBACK_DEVICE_LIST="$(mktemp "$BATS_TMPDIR/losetup.XXXXXX")"
++
++function setup_loopdev() {
++	local backing dev
++	backing="$(mktemp "$BATS_RUN_TMPDIR/backing.img.XXXXXX")"
++	truncate --size=4K "$backing"
++
++	dev="$(losetup --find --show "$backing")" || skip "unable to create a loop device"
++	echo "$dev" >>"$LOOPBACK_DEVICE_LIST"
++
++	unlink "$backing"
++	echo "$dev"
++}
++
++function teardown_loopdevs() {
++	[ -s "$LOOPBACK_DEVICE_LIST" ] || return 0
++	while IFS= read -r dev; do
++		echo "losetup -d '$dev'" >&2
++		losetup -d "$dev"
++	done <"$LOOPBACK_DEVICE_LIST"
++	truncate --size=0 "$LOOPBACK_DEVICE_LIST"
++}
++
+ function setup_bundle() {
+ 	local image="$1"
+ 
+
+From e6b4b5a12843ed5ea82fb2c24d1a1a028ea9a63b Mon Sep 17 00:00:00 2001
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Thu, 31 Jul 2025 13:26:41 +1000
+Subject: [PATCH 2/2] tests: bfq: skip tests on misbehaving udev systems
+
+openSUSE has an unfortunate default udev setup which forcefully sets all
+loop devices to use the "none" scheduler, even if you manually set it.
+As this is a property of the host configuration (and udev is monitoring
+from the host) we cannot really change this behaviour from inside our
+test container.
+
+So we should just skip the test in this (hopefully unusual) case.
+Ideally tools running the test suite should disable this behaviour when
+running our test suite.
+
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ tests/integration/cgroups.bats | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/tests/integration/cgroups.bats b/tests/integration/cgroups.bats
+index c2b1b84604b..082d48cc745 100644
+--- a/tests/integration/cgroups.bats
++++ b/tests/integration/cgroups.bats
+@@ -156,12 +156,26 @@ function setup() {
+ 
+ 	dev="$(setup_loopdev)"
+ 
++	# Some distributions (like openSUSE) have udev configured to forcefully
++	# reset the scheduler for loopN devices to be "none", which breaks this
++	# test. We cannot modify the udev behaviour of the host, but since this is
++	# usually triggered by the "change" event from losetup, we can wait for a
++	# little bit before continuing the test. For more details, see
++	# <https://github.com/opencontainers/runc/issues/4781>.
++	sleep 2s
++
+ 	# See if BFQ scheduler is available.
+ 	if ! { grep -qw bfq "/sys/block/${dev#/dev/}/queue/scheduler" &&
+ 		echo bfq >"/sys/block/${dev#/dev/}/queue/scheduler"; }; then
+ 		skip "BFQ scheduler not available"
+ 	fi
+ 
++	# Check that the device still has the right scheduler, in case we lost the
++	# race above...
++	if ! grep -qw '\[bfq\]' "/sys/block/${dev#/dev/}/queue/scheduler"; then
++		skip "udev is configured to reset loop device io scheduler"
++	fi
++
+ 	set_cgroups_path
+ 
+ 	IFS=$' \t:' read -r major minor <<<"$(lsblk -nd -o MAJ:MIN "$dev")"
