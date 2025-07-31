@@ -92,13 +92,13 @@ sub postprocess_kselftest_results {
         }
 
         if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group) {
-            my $num  = $1;
+            my $num = $1;
             my $name = $2;
-            push @{ $group_failures{$current_group} }, $num;
+            push @{$group_failures{$current_group}}, $num;
 
             my $env = {
                 product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
-                arch    => get_var('ARCH', ''),
+                arch => get_var('ARCH', ''),
             };
 
             if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $name)) {
@@ -108,8 +108,8 @@ sub postprocess_kselftest_results {
 
         if ($line =~ /^not ok\s+\d+\s+selftests:\s+cgroup:\s+(\S+)/) {
             my $test_group = $1;
-            my $fails     = $group_failures{$test_group} // [];
-            my $known_map = $group_known{$test_group}    // {};
+            my $fails = $group_failures{$test_group} // [];
+            my $known_map = $group_known{$test_group} // {};
 
             my $all_known = (@$fails && scalar(grep { !$known_map->{$_} } @$fails) == 0);
             $group_all_known{$test_group} = $all_known;
@@ -119,7 +119,7 @@ sub postprocess_kselftest_results {
     my @updated_lines;
     for my $line (@lines) {
         if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/) {
-            my $num       = $1;
+            my $num = $1;
             my $test_name = $2;
             foreach my $test_group (keys %group_known) {
                 if ($group_known{$test_group}{"$test_group/$num"}) {
