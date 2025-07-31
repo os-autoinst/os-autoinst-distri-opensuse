@@ -224,24 +224,10 @@ sub run {
     }
     record_info('TEST STEP', 'VM reachable with SSH');
 
-    # Looping until is-system-running or timeout.
-    my $start_time = time();
-    while ((time() - $start_time) < 300) {
-        $ret = script_run("$ssh_cmd sudo systemctl is-system-running");
-        last unless $ret;
-        sleep 10;
-    }
-
-    if (my $reg_code = get_var('SCC_REGCODE_SLES4SAP')) {
-        assert_script_run(join(' ',
-                $ssh_cmd,
-                'sudo', 'registercloudguest',
-                '--force-new',
-                '-r', "\"$reg_code\"",
-                '-e "testing@suse.com"'),
-            timeout => 600);
-        assert_script_run(join(' ', $ssh_cmd, 'sudo', 'SUSEConnect -s'));
-    }
+    my %system_register_args = (
+        reg_code => get_var('SCC_REGCODE_SLES4SAP'),
+        ssh_command => $ssh_cmd);
+    ensure_system_ready_and_register(%system_register_args);
 }
 
 sub test_flags {
