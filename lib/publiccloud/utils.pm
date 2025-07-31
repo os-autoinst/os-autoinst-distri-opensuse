@@ -51,6 +51,10 @@ our @EXPORT = qw(
   kill_packagekit
   allow_openqa_port_selinux
   ssh_update_transactional_system
+  create_script_file
+  install_in_venv
+  venv_activate
+  get_python_exec
 );
 
 # Check if we are a BYOS test run
@@ -456,6 +460,187 @@ sub ssh_update_transactional_system {
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
     die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
+}
+
+=head2 get_python_exec
+
+get_python_exec()
+
+Returns the Python executable name for public cloud purposes. As of now, it returns "python3.11" by default.
+
+=cut
+
+sub get_python_exec {
+    my $version = '3.11';
+    return "python$version";
+}
+
+=head2 create_script_file
+
+create_script_file($filename, $fullpath, $content)
+
+Creates a script file with the given content, downloads it from the autoinst URL, and makes it executable.
+This is useful for creating scripts that can be run on the public cloud instance.
+
+=cut
+
+sub create_script_file {
+    my ($filename, $fullpath, $content) = @_;
+    save_tmp_file($filename, $content);
+    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
+    assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
+=head2 install_in_venv
+
+install_in_venv($binary, %args)
+
+Installs a Python package in a virtual environment. The package can be specified either by a requirements.txt file or by a list of pip packages.
+The function creates a virtual environment, installs the specified package(s), and creates a wrapper script to run the binary within the virtual environment.
+
+=cut
+
+sub install_in_venv {
+    my ($binary, %args) = @_;
+
+    die("Missing binary name") unless $binary;
+    die("Need to define path to requirements.txt or list of packages")
+      unless $args{pip_packages} || $args{requirements};
+
+    my $venv = venv_create($binary);
+    venv_activate($venv);
+
+    my $what_to_install = venv_prepare_install_source($binary, \%args);
+    venv_install_packages($what_to_install);
+
+    venv_record_installed_packages($venv);
+    venv_deactivate();
+
+    my $script = venv_generate_runner_script($binary, $venv);
+    my $fullpath = "$venv/bin/$binary-run-in-venv";
+
+    create_script_file($binary, $fullpath, $script);
+    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
+
+    return $venv;
+}
+
+=head2 venv_create
+
+venv_create($binary)
+
+Creates a Python virtual environment in the home directory of the root user.
+The virtual environment is named after the binary, prefixed with ".venv_".
+
+=cut
+
+sub venv_create {
+    my ($binary) = @_;
+    my $python_exec = get_python_exec();
+    my $venv = "/root/.venv_$binary";
+
+    assert_script_run("$python_exec -m venv $venv");
+    return $venv;
+}
+
+=head2 venv_activate
+
+venv_activate($venv)
+
+Activates the Python virtual environment specified by C<$venv>.
+
+=cut
+
+sub venv_activate {
+    my ($venv) = @_;
+    assert_script_run("source '$venv/bin/activate'");
+}
+
+=head2 venv_prepare_install_source
+
+venv_prepare_install_source($binary, $args_ref)
+
+Prepares the source for installation in the virtual environment.
+If the C<requirements> argument is defined, it fetches a requirements.txt file from the
+autoinst URL and returns the path to that file.
+If not, it returns the list of pip packages to install.
+
+=cut
+
+sub venv_prepare_install_source {
+    my ($binary, $args_ref) = @_;
+    if (defined $args_ref->{requirements}) {
+        my $url = sprintf('%s/data/publiccloud/venv/%s.txt', autoinst_url(), $binary);
+        my $dst = "/tmp/$binary.txt";
+        assert_script_run("curl -f -v $url > $dst");
+        return "-r $dst";
+    }
+    return $args_ref->{pip_packages};
+}
+
+=head2 venv_install_packages
+
+venv_install_packages($install_target)
+
+Installs the specified package(s) in the virtual environment using pip.
+This function takes a string that can be either a path to a requirements.txt file or a list of pip packages.
+
+=cut
+
+sub venv_install_packages {
+    my ($install_target) = @_;
+    my $timeout = 15 * 60;
+    assert_script_run("pip install --force-reinstall $install_target", timeout => $timeout);
+}
+
+=head2 venv_record_installed_packages
+
+venv_record_installed_packages($venv)
+Records the installed packages in the virtual environment by running `pip freeze`.
+
+=cut
+
+sub venv_record_installed_packages {
+    my ($venv) = @_;
+    record_info($venv, script_output('pip freeze'));
+}
+
+=head2 venv_deactivate
+
+venv_deactivate()
+
+Deactivates the currently active Python virtual environment.
+
+=cut
+
+sub venv_deactivate {
+    assert_script_run('deactivate');
+}
+
+=head2 venv_generate_runner_script
+
+venv_generate_runner_script($binary, $venv)
+
+Generates a shell script that activates the virtual environment and runs the specified binary.
+This script checks if the binary exists in the virtual environment and exits with an error if it does not.
+
+=cut
+
+sub venv_generate_runner_script {
+    my ($binary, $venv) = @_;
+    return <<"EOT";
+#!/bin/sh
+. "$venv/bin/activate"
+if [ ! -e "$venv/bin/$binary" ]; then
+   echo "Missing $binary in virtualenv $venv"
+   deactivate
+   exit 2
+fi
+$binary "\$@"
+exit_code=\$?
+deactivate
+exit \$exit_code
+EOT
 }
 
 1;
