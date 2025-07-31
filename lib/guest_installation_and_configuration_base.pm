@@ -3331,7 +3331,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log /emergency_mode /agama_installation_logs");
+    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;
