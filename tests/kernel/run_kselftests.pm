@@ -73,42 +73,70 @@ sub postprocess_kselftest_results {
     my ($self, $whitelist, $suite, $tap_file) = @_;
 
     my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
-
     if (!$tap_content) {
         die "No TAP output found in $tap_file for $suite\n";
     }
 
     my $sanitized_suite_name = (split(':', $suite))[0];
-    my @updated_lines;
+    my @lines = split /\n/, $tap_content;
 
-    foreach my $line (split /\n/, $tap_content) {
-        chomp $line;
+    my %group_failures;
+    my %group_known;
+    my %group_all_known;
+    my $current_group;
 
-        # Skip TAP plan lines like "1..13"
-        if ($line =~ /^\d+\.\.\d+/) {
-            push @updated_lines, $line;
+    for my $line (@lines) {
+        if ($line =~ /^\#\s*selftests:\s+cgroup:\s+(\S+)/) {
+            $current_group = $1;
             next;
         }
 
-        # Match top-level and subtests (prefixed or not with "#")
-        if ($line =~ /^\#?\s*(ok|not ok)\s+(\d+)\s+(.+?)(?:\s+#.*)?$/) {
-            my $result = $1;
-            my $num = $2;
-            my $test_name = $3;    # Full name, can have spaces
+        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group) {
+            my $num  = $1;
+            my $name = $2;
+            push @{ $group_failures{$current_group} }, $num;
 
             my $env = {
                 product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
-                arch => get_var('ARCH', ''),
+                arch    => get_var('ARCH', ''),
             };
 
-            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $test_name)) {
-                $self->{result} = 'softfail';
-                record_info("Known issue", "$sanitized_suite_name:$test_name marked as softfail");
+            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $name)) {
+                $group_known{$current_group}{"$current_group/$num"} = 1;
+            }
+        }
 
-                # Preserve comment marker if it was a subtest
-                my $prefix = ($line =~ /^\#/) ? "# " : "";
-                push @updated_lines, "${prefix}ok $num $test_name # TODO Known issue";
-                next;
+        if ($line =~ /^not ok\s+\d+\s+selftests:\s+cgroup:\s+(\S+)/) {
+            my $test_group = $1;
+            my $fails     = $group_failures{$test_group} // [];
+            my $known_map = $group_known{$test_group}    // {};
+
+            my $all_known = (@$fails && scalar(grep { !$known_map->{$_} } @$fails) == 0);
+            $group_all_known{$test_group} = $all_known;
+        }
+    }
+
+    my @updated_lines;
+    for my $line (@lines) {
+        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/) {
+            my $num       = $1;
+            my $test_name = $2;
+            foreach my $test_group (keys %group_known) {
+                if ($group_known{$test_group}{"$test_group/$num"}) {
+                    $self->{result} = 'softfail';
+                    record_info("Known issue", "$test_group:$test_name marked as softfail");
+                    $line = "# ok $num $test_name # TODO Known issue";
+                    last;
+                }
+            }
+        }
+
+        if ($line =~ /^not ok\s+(\d+)\s+selftests:\s+cgroup:\s+(\S+)/) {
+            my ($num, $test_group) = ($1, $2);
+            if ($group_all_known{$test_group}) {
+                $self->{result} = 'softfail';
+                record_info("Known issue", "All failed subtests in $test_group are known issues so populating TODO to the group");
+                $line = "ok $num selftests: cgroup: $test_group # TODO Known issue";
             }
         }
 
