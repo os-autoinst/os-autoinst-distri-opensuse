@@ -117,27 +117,41 @@ podman:
     BATS_SKIP_USER_LOCAL:
     BATS_SKIP_USER_REMOTE:
 runc:
+  # Note on patches:
+  # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
   opensuse-Tumbleweed:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER:
   sle-16.0:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER:
   sle-15-SP7:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP6:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP5:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
   sle-15-SP4:
+    BATS_PATCHES:
+    - 4825
     BATS_SKIP:
     BATS_SKIP_ROOT: cgroups
     BATS_SKIP_USER: run userns
