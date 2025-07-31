@@ -277,9 +277,9 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
-    # In WSL: Choose SLES or SLED
+    # In sle WSL: Choose SLES or SLED
     # And register via SCC
-    if (get_var('WSL_VERSION')) {
+    if (is_sle && get_var('WSL_VERSION')) {
         wsl_choose_sles;
         register_via_scc;
     }
