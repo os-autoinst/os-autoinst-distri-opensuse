@@ -1,0 +1,17 @@
+name:  agama-create-hdd-textmode-staging-s390x
+description:    >
+    Install sle16 via agama auto and publish qcow2 images for s390x
+
+schedule:
+    - installation/bootloader_zkvm
+    - installation/agama_reboot
+    - installation/first_boot
+    - console/system_prepare
+    - qam-minimal/install_update
+    - qam-minimal/update_minimal
+    - console/hostname
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - shutdown/svirt_upload_assets
