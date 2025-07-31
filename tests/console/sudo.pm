@@ -37,7 +37,7 @@ sub sudo_with_pw {
         sleep 2;
     }
     else {
-        assert_script_run("expect -c '${env}spawn $command;expect \"password\" {send \"$password\\r\";interact} default {exit 1}'$grep", timeout => $args{timeout});
+        assert_script_run("expect -c '${env}spawn $command;expect \"password\" {sleep 1;send \"$password\\r\";interact} default {exit 1}'$grep", timeout => $args{timeout});
     }
 }
 
