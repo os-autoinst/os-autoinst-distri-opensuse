@@ -22,6 +22,7 @@ use version_utils;
 use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
 use ipmi_backend_utils;
+use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
 
 sub run {
@@ -34,6 +35,7 @@ sub run {
     $self->prepare_services;
     $self->prepare_reboot;
     $self->restore_ground;
+    virt_autotest::virtual_network_utils::create_host_bridge_nm;
 }
 
 sub prepare_ground {
