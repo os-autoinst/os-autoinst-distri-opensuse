@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: NAT based virtual network test:
@@ -15,7 +15,7 @@ use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle);
 
 sub run_test {
     my ($self) = @_;
@@ -26,16 +26,16 @@ sub run_test {
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);
 
-    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0 && !is_alp);
+    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
     #Create NAT BASED NETWORK
     assert_script_run("virsh net-create vnet_nated.xml");
     save_screenshot;
     upload_logs "vnet_nated.xml";
     assert_script_run("rm -rf vnet_nated.xml");
-    if (is_sle('>=15-SP6') && check_var('VIRT_AUTOTEST', 1)) {
+    if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1)) {
         #Resume named.service, refer to poo#175287
         systemctl("start named.service");
         #Enable the listen-on option in named.conf
@@ -47,35 +47,21 @@ sub run_test {
         }
     }
 
-    my ($mac, $model, $affecter, $exclusive, $skip_type);
-    my $gate = '192.168.128.1';
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
-        #Just only 15-SP5 PV guest system have a rebooting problem due to bsc#1206250
-        $skip_type = ($guest =~ m/sles-15-sp5-64-pv-def-net/i) ? 'skip_ping' : 'skip_network';
+        my $data = virt_autotest::virtual_network_utils::get_virtual_network_data($guest, gateway => "192.168.128.1", net => "vnet_nated", exclusive => "network --current");
         #Ensures the given guests is started and fixes some common network issues
-        ensure_online $guest, $skip_type => 1;
+        ensure_online $guest, $data->{skip_type} => 1;
         save_screenshot;
 
-        if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter = "--persistent";
-            $exclusive = "bridge --live --persistent";
-        } else {
-            $affecter = "";
-            $exclusive = "network --current";
-        }
-
-        $mac = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-        $model = (is_xen_host) ? 'netfront' : 'virtio';
-
+        my $mac = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");
-        assert_script_run("virsh attach-interface $guest network vnet_nated --model $model --mac $mac --live $affecter", 60);
+        assert_script_run("virsh attach-interface $guest network vnet_nated --model $data->{model} --mac $mac --live $data->{affecter}", 60);
 
-        my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_nated';
-        test_network_interface($guest, mac => $mac, gate => $gate, net => $net);
+        test_network_interface($guest, mac => $mac, gateway => $data->{gateway}, net => $data->{net});
 
-        assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
+        assert_script_run("virsh detach-interface $guest --mac $mac $data->{exclusive}");
     }
 
     #Destroy NAT BASED NETWORK

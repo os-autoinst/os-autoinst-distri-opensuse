@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Initialize testing environment for Libvirt Virtual Networks
@@ -18,7 +18,7 @@ use base "virt_feature_test_base";
 use virt_utils;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle);
 use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
@@ -40,12 +40,8 @@ sub run_test {
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
         fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
-    # ALP has done this in earlier setup
-    unless (is_alp) {
-        #Need to reset up environemt - br123 for virt_atuo test due to after
-        #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
-        virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
-
+    # SLES16 has done this in earlier setup
+    unless (is_sle('=16')) {
         #Enable libvirt debug log
         turn_on_libvirt_debugging_log;
 
@@ -61,6 +57,8 @@ sub run_test {
 
     #Prepare Guests
     foreach my $guest (keys %virt_autotest::common::guests) {
+        my $guest_bridge_source = virt_autotest::virtual_network_utils::get_guest_bridge_src($guest);
+        record_info('GUEST_BRIDGE_SOURCE', "Found the $guest bridge source: " . $guest_bridge_source);
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
@@ -72,8 +70,8 @@ sub run_test {
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
 
-        # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
-        next if ($guest =~ /alp/i);
+        # SLES16 guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
+        next if ($guest =~ /sles-16/i);
         #Prepare the new guest network interface files for libvirt virtual network
         #for some guests, interfaces are named eth0, eth1, eth2, ...
         #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...

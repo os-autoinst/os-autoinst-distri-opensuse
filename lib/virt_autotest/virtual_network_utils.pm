@@ -60,7 +60,38 @@ our @EXPORT
   activate_network_bridge_device
   config_virtual_network_device
   create_host_bridge_nm
+  get_virtual_network_data
+  get_guest_bridge_src
   );
+
+sub get_virtual_network_data {
+    my ($guest, %args) = @_;
+
+    my $net = $args{net};
+    my $exclusive = $args{exclusive} // "--current";
+    my $model = (is_xen_host) ? 'netfront' : 'virtio';
+    my $gateway = $args{gateway} // script_output "ip route get 1.1.1.1 | awk '{print \$3; exit}'";
+    #Just only 15-SP5 PV guest system have a rebooting problem due to bsc#1206250
+    my $skip_type = ($guest =~ m/sles-15-sp5-64-pv-def-net/i) ? 'skip_ping' : 'skip_network';
+
+    return {
+        net => $net,
+        gateway => $gateway,
+        model => $model,
+        affecter => "",
+        exclusive => $exclusive,
+        skip_type => $skip_type
+    };
+}
+
+sub get_guest_bridge_src {
+    my ($guest) = @_;
+
+    # get the bridge source from guest
+    my $cmd = qq(virsh domiflist "$guest" | grep -Po '(?<=\\s)(br\\d+)');
+    my $guest_bridge_src = script_output($cmd);
+    return $guest_bridge_src;
+}
 
 # Create a host bridge network interface for sles16 via NetworkManager poo#178708
 sub create_host_bridge_nm {
@@ -159,7 +190,7 @@ sub test_network_interface {
     my ($guest, %args) = @_;
     my $net = $args{net};
     my $mac = $args{mac};
-    my $gate = $args{gate};
+    my $gateway = $args{gateway};
     my $isolated = $args{isolated} // 0;
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short google.com");
@@ -181,9 +212,14 @@ sub test_network_interface {
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
+    my $nic = "";
     $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
-    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    if ($guest =~ /sles-16/i) {
+        $nic = script_output(qq(ssh root\@$guest ip -o link | grep -i $mac | awk '{gsub(/:/, "", \$2); print \$2}'), proceed_on_failure => 1, timeout => 60);
+    } else {
+        $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    }
     die "$mac not found in guest $guest" unless $nic;
     if ((get_var('TEST', '') =~ m/qam-(kvm|xen)-install-and-features-test/ || $is_sriov_test eq "true") and !is_sle('16+')) {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
@@ -220,7 +256,7 @@ sub test_network_interface {
 
     # Route our test via the tested interface
     script_run "ssh root\@$addr '[ `ip r | grep $target | wc -l` -gt 0 ] && ip r del $target'";
-    assert_script_run("ssh root\@$addr ip r a $target via $gate dev $nic");
+    assert_script_run("ssh root\@$addr ip r a $target via $gateway dev $nic");
 
     if ($isolated == 0) {
         assert_script_run("ssh root\@$addr 'ping -I $nic -c 3 $target' || true", 60);
