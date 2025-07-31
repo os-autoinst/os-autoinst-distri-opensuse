@@ -17,13 +17,124 @@ use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate);
+use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
 
 my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
+
+sub should_fully_build_ltp {
+    return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
+}
+
+sub should_partially_build_ltp {
+    return get_var('PUBLIC_CLOUD_LTP_GIT_BUILD', 0);    # 1 if env var is set, otherwise 0
+}
+
+sub install_build_deps {
+    my ($self, $instance) = @_;
+
+    my @deps = qw(
+      autoconf
+      automake
+      bison
+      expect
+      flex
+      gcc
+      git-core
+      libaio-devel
+      libopenssl-devel
+      make
+    );
+
+    zypper_install_remote($instance, \@deps);
+
+    my @maybe_deps = qw(
+      gcc-32bit
+      kernel-default-devel-32bit
+      keyutils-devel
+      keyutils-devel-32bit
+      libacl-devel
+      libacl-devel-32bit
+      libaio-devel-32bit
+      libcap-devel
+      libcap-devel-32bit
+      libmnl-devel
+      libnuma-devel
+      libnuma-devel-32bit
+      libselinux-devel
+      libselinux-devel-32bit
+      libtirpc-devel
+      libtirpc-devel-32bit
+    );
+    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
+
+    zypper_install_available_remote($instance, \@maybe_deps);
+}
+
+sub prepare_ltp_git {
+    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+
+    my $repo_url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
+    my $repo_branch = get_var('LTP_RELEASE', 'master');
+
+    my $configure = "./configure --prefix=$ltp_prefix";
+    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
+
+    my $ltp_build_timeout = 5 * 60;
+
+    $self->install_build_deps($instance);
+
+    $instance->run_ssh_command("rm -rf $ltp_dir");
+    $instance->run_ssh_command("git clone --depth 1 -b $repo_branch $repo_url $ltp_dir");
+    $instance->run_ssh_command(
+        cmd => "cd $ltp_dir && make autotools && $configure $extra_flags",
+        timeout => $ltp_build_timeout
+    );
+}
+
+sub fully_build_ltp_from_git {
+    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+
+    my $start = time();
+    my $ltp_build_timeout = 20 * 60;
+
+    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+    $instance->run_ssh_command(
+        cmd => "cd $ltp_dir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
+        timeout => $ltp_build_timeout
+    );
+
+    record_info("LTP Full Build Time", "Time taken to build from source: " . (time() - $start) . " seconds");
+}
+
+sub partially_build_ltp_from_git {
+    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+
+    my $start = time();
+    my $ltp_subdir_build_timeout = 5 * 60;
+
+    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+
+    my @paths = [
+        'commands/insmod',
+        'kernel/device-drivers',
+        'kernel/firmware',
+        'kernel/syscalls/delete_module',
+        'kernel/syscalls/finit_module',
+        'kernel/syscalls/init_module'
+    ];
+
+    foreach my $subdir (@paths) {
+        $instance->run_ssh_command(
+            cmd => "cd $ltp_dir/testcases/$subdir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
+            timeout => $ltp_subdir_build_timeout
+        );
+    }
+    record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
+}
 
 sub get_ltp_rpm
 {
@@ -113,7 +224,14 @@ sub run {
     $self->prepare_scripts();
     $self->register_instance($instance, $qam);
 
-    $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+    my $ltp_dir = '/tmp/ltp';
+    my $ltp_prefix = '/opt/ltp';
+    if (should_fully_build_ltp()) {
+        $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
+    } else {
+        $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp();
+    }
 
     $self->gen_ltp_env($instance, $ltp_pkg);
 
@@ -163,13 +281,9 @@ sub register_instance {
 
 sub install_ltp {
     my ($self, $instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
-    $instance->run_ssh_command(cmd => "sudo zypper -n addrepo -fG $ltp_repo_url $ltp_repo_name", timeout => 600);
-    if (is_transactional) {
-        $instance->run_ssh_command(cmd => "sudo transactional-update -n pkg install $ltp_package_name", timeout => 900);
-        $instance->softreboot();
-    } else {
-        $instance->run_ssh_command(cmd => "sudo zypper -n in $ltp_package_name", timeout => 600);
-    }
+
+    zypper_add_repo_remote($instance, $ltp_repo_name, $ltp_repo_url);
+    zypper_install_remote($instance, $ltp_package_name);
 }
 
 sub prepare_skip_tests {
@@ -281,8 +395,10 @@ sub cleanup {
 
 sub gen_ltp_env {
     my ($self, $instance, $ltp_pkg) = @_;
-    my $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
-
+    my $ltp_version = get_var('LTP_RELEASE', 'master');
+    unless (should_partially_build_ltp() || should_fully_build_ltp()) {
+        $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
+    }
     $self->{ltp_env} = {
         product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
         revision => get_required_var('BUILD'),
