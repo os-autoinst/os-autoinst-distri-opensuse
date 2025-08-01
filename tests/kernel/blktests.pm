@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: blktests
@@ -38,6 +38,7 @@ sub run {
     my $exclude = get_var('BLKTESTS_EXCLUDE');
     my $config = get_var('BLKTESTS_CONFIG');
     my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
+    my $trtypes = get_var('BLKTESTS_TRTYPES');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
 
@@ -53,8 +54,9 @@ sub run {
     assert_script_run('cd /usr/lib/blktests');
 
     $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
+    $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
     foreach my $i (@tests) {
-        script_run("./check --quick=$quick $exclude $i", 1200);
+        script_run("${trtypes} ./check --quick=$quick $exclude $i", 1200);
     }
 
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
