@@ -19,6 +19,16 @@
       <li><a href="#get_credentials-get_credentials-url_suffix-some_csp.json-namespace-some_name-output_json-.-local_credentials.json">get_credentials get_credentials(url_suffix =&gt; &#39;some_csp.json&#39;[, namespace =&gt; &#39;some_name&#39;, output_json =&gt; &#39;./local_credentials.json&#39;])</a></li>
       <li><a href="#gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</a></li>
       <li><a href="#ssh_update_transactional_system">ssh_update_transactional_system</a></li>
+      <li><a href="#get_python_exec">get_python_exec</a></li>
+      <li><a href="#create_script_file">create_script_file</a></li>
+      <li><a href="#install_in_venv">install_in_venv</a></li>
+      <li><a href="#venv_create">venv_create</a></li>
+      <li><a href="#venv_activate">venv_activate</a></li>
+      <li><a href="#venv_prepare_install_source">venv_prepare_install_source</a></li>
+      <li><a href="#venv_install_packages">venv_install_packages</a></li>
+      <li><a href="#venv_record_installed_packages">venv_record_installed_packages</a></li>
+      <li><a href="#venv_deactivate">venv_deactivate</a></li>
+      <li><a href="#venv_generate_runner_script">venv_generate_runner_script</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -66,6 +76,64 @@
 <p>ssh_update_transactional_system($host);</p>
 
 <p>Connect to the remote host <code>$instance</code> using ssh and update the system by running <code>zypper update</code> twice, in transactional mode. The first run will update the package manager, the second run will update the system. Transactional systems like SLE micro used <code>transactional_update up</code> and reboot.</p>
+
+<h2 id="get_python_exec">get_python_exec</h2>
+
+<p>get_python_exec()</p>
+
+<p>Returns the Python executable name for public cloud purposes. As of now, it returns &quot;python3.11&quot; by default.</p>
+
+<h2 id="create_script_file">create_script_file</h2>
+
+<p>create_script_file($filename, $fullpath, $content)</p>
+
+<p>Creates a script file with the given content, downloads it from the autoinst URL, and makes it executable. This is useful for creating scripts that can be run on the public cloud instance.</p>
+
+<h2 id="install_in_venv">install_in_venv</h2>
+
+<p>install_in_venv($binary, %args)</p>
+
+<p>Installs a Python package in a virtual environment. The package can be specified either by a requirements.txt file or by a list of pip packages. The function creates a virtual environment, installs the specified package(s), and creates a wrapper script to run the binary within the virtual environment.</p>
+
+<h2 id="venv_create">venv_create</h2>
+
+<p>venv_create($binary)</p>
+
+<p>Creates a Python virtual environment in the home directory of the root user. The virtual environment is named after the binary, prefixed with &quot;.venv_&quot;.</p>
+
+<h2 id="venv_activate">venv_activate</h2>
+
+<p>venv_activate($venv)</p>
+
+<p>Activates the Python virtual environment specified by <code>$venv</code>.</p>
+
+<h2 id="venv_prepare_install_source">venv_prepare_install_source</h2>
+
+<p>venv_prepare_install_source($binary, $args_ref)</p>
+
+<p>Prepares the source for installation in the virtual environment. If the <code>requirements</code> argument is defined, it fetches a requirements.txt file from the autoinst URL and returns the path to that file. If not, it returns the list of pip packages to install.</p>
+
+<h2 id="venv_install_packages">venv_install_packages</h2>
+
+<p>venv_install_packages($install_target)</p>
+
+<p>Installs the specified package(s) in the virtual environment using pip. This function takes a string that can be either a path to a requirements.txt file or a list of pip packages.</p>
+
+<h2 id="venv_record_installed_packages">venv_record_installed_packages</h2>
+
+<p>venv_record_installed_packages($venv) Records the installed packages in the virtual environment by running `pip freeze`.</p>
+
+<h2 id="venv_deactivate">venv_deactivate</h2>
+
+<p>venv_deactivate()</p>
+
+<p>Deactivates the currently active Python virtual environment.</p>
+
+<h2 id="venv_generate_runner_script">venv_generate_runner_script</h2>
+
+<p>venv_generate_runner_script($binary, $venv)</p>
+
+<p>Generates a shell script that activates the virtual environment and runs the specified binary. This script checks if the binary exists in the virtual environment and exits with an error if it does not.</p>
 
 
 </body>
