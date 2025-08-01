@@ -70,9 +70,6 @@ sub is_container_running {
     foreach my $cont (@containers) {
         if ($out =~ m/$cont/) {
             next;
-        } elsif (is_sle_micro) {
-            record_soft_failure('bsc#1211774 - podman fails to start container with SELinux');
-            return 0;
         } else {
             die "Container $cont is not running!";
         }
