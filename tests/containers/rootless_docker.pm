@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
 use utils;
 use containers::common;
 use containers::docker;
@@ -55,7 +55,7 @@ sub run {
     # already exists owned by root
     assert_script_run 'rm -rf /tmp/script*';
     ensure_serialdev_permissions;
-    select_console "user-console";
+    select_user_serial_terminal;
 
     # https://docs.docker.com/engine/security/rootless/
     assert_script_run "dockerd-rootless-setuptool.sh install";
