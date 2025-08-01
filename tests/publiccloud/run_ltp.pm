@@ -16,6 +16,7 @@ use Mojo::File;
 use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
+use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
 use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
 use publiccloud::ssh_interactive 'select_host_console';
@@ -36,42 +37,8 @@ sub should_partially_build_ltp {
 sub install_build_deps {
     my ($self, $instance) = @_;
 
-    my @deps = qw(
-      autoconf
-      automake
-      bison
-      expect
-      flex
-      gcc
-      git-core
-      libaio-devel
-      libopenssl-devel
-      make
-    );
-
-    zypper_install_remote($instance, \@deps);
-
-    my @maybe_deps = qw(
-      gcc-32bit
-      kernel-default-devel-32bit
-      keyutils-devel
-      keyutils-devel-32bit
-      libacl-devel
-      libacl-devel-32bit
-      libaio-devel-32bit
-      libcap-devel
-      libcap-devel-32bit
-      libmnl-devel
-      libnuma-devel
-      libnuma-devel-32bit
-      libselinux-devel
-      libselinux-devel-32bit
-      libtirpc-devel
-      libtirpc-devel-32bit
-    );
-    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
-
-    zypper_install_available_remote($instance, \@maybe_deps);
+    zypper_install_remote($instance, get_required_build_dependencies());
+    zypper_install_available_remote($instance, get_maybe_build_dependencies());
 }
 
 sub prepare_ltp_git {
@@ -118,16 +85,7 @@ sub partially_build_ltp_from_git {
 
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
 
-    my @paths = [
-        'commands/insmod',
-        'kernel/device-drivers',
-        'kernel/firmware',
-        'kernel/syscalls/delete_module',
-        'kernel/syscalls/finit_module',
-        'kernel/syscalls/init_module'
-    ];
-
-    foreach my $subdir (@paths) {
+    foreach my $subdir (@get_submodules_to_rebuild()) {
         $instance->run_ssh_command(
             cmd => "cd $ltp_dir/testcases/$subdir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
             timeout => $ltp_subdir_build_timeout
