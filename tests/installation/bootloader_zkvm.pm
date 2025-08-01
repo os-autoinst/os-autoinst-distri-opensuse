@@ -20,7 +20,7 @@ use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
 use version_utils qw(is_agama);
-use autoyast qw(expand_agama_profile);
+use autoyast qw(expand_agama_profile parse_dud_parameter);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -40,7 +40,9 @@ sub set_svirt_domain_elements {
             $cmdline .= " live.password=$testapi::password";
             # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
             $cmdline .= ' ' . get_var('AGAMA_NETWORK_PARAMS') if get_var('AGAMA_NETWORK_PARAMS');
-            $cmdline .= ' ' . 'inst.dud=' . data_url(get_var('INST_DUD')) . ' rd.neednet=1' if get_var('INST_DUD');
+
+            # additional parameters requiring parsing
+            $cmdline .= parse_dud_parameter(get_var('INST_DUD')) if get_var('INST_DUD');
         } else {
             $cmdline .= "install=$repo";
             $cmdline .= remote_install_bootmenu_params;
