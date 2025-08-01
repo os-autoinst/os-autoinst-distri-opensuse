@@ -203,6 +203,10 @@ sub rpmver {
         $rpm{obs} = {v => '5.1', r => '1.16'};
     }
 
+    if ($arch eq 'riscv64') {
+        $rpm{obs} = {v => '5.2', r => '1.1'};
+    }
+
     if ($arch eq 'ppc64le') {
         $rpm{obs} = {v => '5.1', r => '1.15'};
     }
