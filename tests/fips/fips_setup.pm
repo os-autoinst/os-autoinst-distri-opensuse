@@ -9,7 +9,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071, poo#105591, poo#105999, poo#109133
 
-use base qw(consoletest opensusebasetest);
+use base qw(consoletest);
 use strict;
 use warnings;
 use testapi;
@@ -87,6 +87,11 @@ sub run {
     my ($self) = @_;
 
     select_serial_terminal;
+
+    if (get_var 'WORKAROUND_BSC1247463') {
+        record_info('!! Workaround !!', 'Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1247463');
+        zypper_call 'in openssl-3';
+    }
 
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
