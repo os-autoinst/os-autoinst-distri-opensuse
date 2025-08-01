@@ -5,8 +5,18 @@
     local_path: '/tmp/ansible_fetch_output/'
     file: 'testout.txt'
   tasks:
-  - name: fetch
-    fetch:
-      flat: yes
+  - name: Get remote file size
+    stat:
+      path: "{{ remote_path }}{{ file }}"
+    register: logfile_stats
+
+  - name: Print remote file size
+    debug:
+      msg: "File size: {{ logfile_stats.stat.size }} bytes."
+
+  - name: Download the remote file
+    ansible.posix.synchronize:
+      mode: pull
       src: "{{ remote_path }}{{ file }}"
       dest: "{{ local_path }}"
+    delegate_to: localhost
