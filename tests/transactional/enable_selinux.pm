@@ -44,12 +44,6 @@ sub is_enforcing {
 sub run {
     select_console 'root-console';
 
-    # Until bsc#1211058 is resolved, we cannot enable SELinux via `transactional-update setup-selinux`.
-    if (is_sle_micro('=5.2')) {
-        record_soft_failure("bsc#1211058 Enabling SELinux broken via transactional-update setup-selinux");
-        return;
-    }
-
     my $trup_log = "/var/log/transactional-update.log";
 
     # auditd should be enabled
