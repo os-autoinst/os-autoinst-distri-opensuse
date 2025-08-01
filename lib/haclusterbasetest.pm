@@ -17,6 +17,7 @@ use hacluster qw(ha_export_logs);
 use Utils::Logging qw(export_logs);
 use version_utils 'is_sle';
 use x11utils qw(ensure_unlocked_desktop);
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 =head1 SYNOPSIS
 
@@ -54,6 +55,7 @@ sub post_run_hook {
     my ($self) = @_;
     record_info(__PACKAGE__ . ':' . 'post_run_hook' . ' ' . "prev_console=$prev_console");
 
+    $self->record_avc_selinux_alerts() if is_sle('16+');
     return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     if ($prev_console eq 'x11') {
