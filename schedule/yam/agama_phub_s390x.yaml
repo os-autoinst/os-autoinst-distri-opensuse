@@ -1,0 +1,15 @@
+---
+name: agama_phub_s390x
+description: >
+  Perform interactive installation with PackageHub and software pattern selection for s390x.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_registered_products
+  - yam/validate/validate_registered_addons
+  - yam/validate/validate_installed_patterns
