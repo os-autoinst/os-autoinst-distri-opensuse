@@ -123,37 +123,37 @@ runc:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-16.0:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-15-SP7:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: run userns
   sle-15-SP6:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: run userns
   sle-15-SP5:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: run userns
   sle-15-SP4:
     BATS_PATCHES:
     - 4825
     BATS_SKIP:
-    BATS_SKIP_ROOT: cgroups
+    BATS_SKIP_ROOT:
     BATS_SKIP_USER: run userns
 skopeo:
   opensuse-Tumbleweed:
