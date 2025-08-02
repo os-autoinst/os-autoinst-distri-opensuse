@@ -1929,7 +1929,7 @@ sub post_fail_hook {
 
     $self->{"stop_run"} = time();
     $self->create_junit_log;
-    collect_host_and_guest_logs('', '', '', "_post_fail_hook");
+    collect_host_and_guest_logs('', '/var/log', '/var/log', "_post_fail_hook");
 }
 
 1;
