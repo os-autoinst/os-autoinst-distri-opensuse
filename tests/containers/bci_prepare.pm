@@ -53,20 +53,20 @@ sub packages_to_install {
         push @packages, ('python3-virtualenv') if ($bci_virtualenv);
     } elsif ($host_distri eq 'sles' || $host_distri =~ /leap/) {
         my $version = "$version.$sp";
-        push @packages, ('python3-virtualenv') if ($bci_virtualenv);
         if ($version =~ /12\./) {
             script_retry("SUSEConnect --auto-agree-with-licenses -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             script_retry('zypper -n in jq', retry => 3);
-            # Note tox is not available on SLES12
-            push @packages, qw(python36-pip);
-            die "virtualenv is not supported on 12-SP5" if ($bci_virtualenv);
+            assert_script_run("zypper ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update:/Products:/SaltBundle:/Update/standard/ saltbundle");
+            assert_script_run("zypper -n install venv-salt-minion");
         } elsif ($version =~ /15\.[1-3]/) {
+            push @packages, ('python3-virtualenv') if ($bci_virtualenv);
             push @packages, ('skopeo');
         } else {
             script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout) if ($host_distri =~ /sles/);
             push @packages, qw(python311 skopeo python311-pip python311-tox);
+            push @packages, ('python3-virtualenv') if ($bci_virtualenv);
         }
     } elsif ($host_distri =~ /opensuse/) {
         push @packages, qw(skopeo python3-pip python3-tox);
@@ -129,10 +129,18 @@ sub run {
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
-        activate_virtual_env if ($bci_virtualenv);
-        if (!grep(/-tox/, @packages)) {
+        if (is_sle('=12-SP5')) {
+            assert_script_run('source /usr/lib/venv-salt-minion/bin/activate');
             assert_script_run('pip --quiet install --upgrade pip', timeout => 600);
-            assert_script_run("pip --quiet install tox --ignore-installed six", timeout => 600);
+            assert_script_run('pip --quiet install tox', timeout => 600);
+            $bci_virtualenv = 1;
+        }
+        else {
+            activate_virtual_env if ($bci_virtualenv);
+            if (!grep(/-tox/, @packages)) {
+                assert_script_run('pip --quiet install --upgrade pip', timeout => 600);
+                assert_script_run("pip --quiet install tox --ignore-installed six", timeout => 600);
+            }
         }
     } else {
         die "Unexpected distribution ($host_distri) has been used";
