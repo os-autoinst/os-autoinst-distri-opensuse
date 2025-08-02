@@ -23,9 +23,24 @@ sub copy_file {
 
 sub run {
     select_serial_terminal();
-    record_info("hostname", script_output("hostname"));
-    my $server_node = get_var('SERVER_NODE', 'server-node00');
+my $server_node; # = get_var('SERVER_NODE', 'server-node00');
 
+my $wanted_hostname;
+my $ip = script_output("hostname -I | awk '{print \$1}'");
+
+if ($ip eq '10.168.192.68') {
+    $wanted_hostname = 'tails-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $server_node = 'sonic-1';
+}
+elsif ($ip eq '10.168.192.67') {
+    $wanted_hostname = 'sonic-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $server_node = 'tails-1';
+}
+    
+    record_info("hostname", script_output("hostname"));
+    
     zypper_call("in nfs-client");
 
     my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/home/localNFS3');
