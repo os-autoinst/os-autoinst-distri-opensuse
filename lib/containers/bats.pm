@@ -234,6 +234,12 @@ sub bats_setup {
 
     enable_modules if is_sle;
 
+    my $install_ncat = 0;
+    if (grep { $_ eq "ncat" } @pkgs) {
+        $install_ncat = 1;
+        @pkgs = grep { $_ ne "ncat" } @pkgs;
+    }
+
     # Install tests dependencies
     my $oci_runtime = get_var("OCI_RUNTIME", "");
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
@@ -243,7 +249,7 @@ sub bats_setup {
 
     configure_oci_runtime $oci_runtime;
 
-    install_ncat if (get_required_var("BATS_PACKAGE") =~ /^aardvark-dns|netavark|podman$/);
+    install_ncat if $install_ncat;
 
     install_git;
 
