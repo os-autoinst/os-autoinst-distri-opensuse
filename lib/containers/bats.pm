@@ -382,36 +382,6 @@ sub bats_tests {
     return ($ret);
 }
 
-sub bats_patches {
-    return if check_var("BATS_PATCHES", "none");
-
-    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
-
-    my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
-    if (!@patches && defined $settings->{BATS_PATCHES}) {
-        @patches = @{$settings->{BATS_PATCHES}};
-    }
-
-    foreach my $patch (@patches) {
-        my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
-        record_info("patch", $url);
-        if ($patch =~ /^\d+$/) {
-            push @commands, "curl $curl_opts -O $url";
-            assert_script_run "curl -O " . data_url("containers/bats/patches/$package/$patch.patch");
-        } else {
-            run_command "curl $curl_opts -O $url", timeout => 900;
-        }
-        # Some patches (e.g., podman's 25942) fail to apply cleanly due to missing files so
-        # try `git apply` first and if it fails use `--include` to restrict the patch scope
-        # to the package tests directory.  Remove this when `git-apply` has a new option to
-        # ignore missing files.
-        my $file = basename($url);
-        my $apply_cmd = "git apply -3 --ours $file";
-        $apply_cmd .= " || git apply -3 --ours --include '$tests_dir{$package}/*' $file";
-        run_command $apply_cmd;
-    }
-}
-
 sub bats_settings {
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
@@ -447,7 +417,32 @@ sub bats_sources {
     run_command "cd $test_dir";
     run_command "git checkout $branch";
 
-    bats_patches;
+    # We use BATS_PATCHES="none" to specify that we don't want to patch anything
+    unless (check_var("BATS_PATCHES", "none")) {
+        my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
+        if (!@patches && defined $settings->{BATS_PATCHES}) {
+            @patches = @{$settings->{BATS_PATCHES}};
+        }
+
+        foreach my $patch (@patches) {
+            my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
+            record_info("patch", $url);
+            if ($patch =~ /^\d+$/) {
+                push @commands, "curl $curl_opts -O $url";
+                assert_script_run "curl -O " . data_url("containers/bats/patches/$package/$patch.patch");
+            } else {
+                run_command "curl $curl_opts -O $url", timeout => 900;
+            }
+            # Some patches (e.g., podman's 25942) fail to apply cleanly due to missing files so
+            # try `git apply` first and if it fails use `--include` to restrict the patch scope
+            # to the package tests directory.  Remove this when `git-apply` has a new option to
+            # ignore missing files.
+            my $file = basename($url);
+            my $apply_cmd = "git apply -3 --ours $file";
+            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir{$package}/*' $file";
+            run_command $apply_cmd;
+        }
+    }
 
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
