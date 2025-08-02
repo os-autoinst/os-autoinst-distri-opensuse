@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
-use registration qw(get_addon_fullname add_suseconnect_product);
+use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
@@ -131,28 +131,75 @@ sub register_addon {
     my $cmd_time = time();
     my ($timeout, $retries, $delay) = (300, 3, 120);
     my $program = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+    my $name;
+    $name = get_addon_fullname($addon) unless (is_ondemand);
 
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
     assert_script_run 'source /tmp/os-release';
 
     if ($addon =~ /ltss/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . get_required_var('SCC_REGCODE_LTSS'), timeout => $timeout, retries => $retries, delay => $delay);
+        ssh_add_suseconnect_product(
+            $remote,
+            $name,
+            program => $program,
+            version => '${VERSION_ID}',
+            arch => $arch,
+            params => "-r " . $ADDONS_REGCODE{$name},
+            timeout => $timeout,
+            retries => $retries,
+            delay => $delay);
     } elsif (is_ondemand) {
         record_info($addon, 'This is on demand image, we will not register this addon.');
         return;
     } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '`echo ${VERSION} | cut -d- -f1`', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+        ssh_add_suseconnect_product(
+            $remote,
+            $name,
+            program => 'SUSEConnect',
+            version => '`echo ${VERSION} | cut -d- -f1`',
+            arch => $arch,
+            params => '',
+            timeout => $timeout,
+            retries => $retries,
+            delay => $delay);
     } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '${VERSION_ID}', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+        ssh_add_suseconnect_product(
+            $remote,
+            $name,
+            program => 'SUSEConnect',
+            version => '${VERSION_ID}',
+            arch => $arch,
+            params => '',
+            timeout => $timeout,
+            retries => $retries,
+            delay => $delay);
     } else {
         if ($addon =~ /nvidia/i) {
             (my $version = get_version_id(dst_machine => $remote)) =~ s/^(\d+).*/$1/m;
-            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => $version, arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+            ssh_add_suseconnect_product(
+                $remote,
+                $name,
+                program => 'SUSEConnect',
+                version => $version,
+                arch => $arch,
+                params => '',
+                timeout => $timeout,
+                retries => $retries,
+                delay => $delay);
         } else {
-            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '${VERSION_ID}', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+            ssh_add_suseconnect_product(
+                $remote,
+                $name,
+                program => 'SUSEConnect',
+                version => '${VERSION_ID}',
+                arch => $arch,
+                params => '',
+                timeout => $timeout,
+                retries => $retries,
+                delay => $delay);
         }
     }
-    record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
+    record_info('SUSEConnect time', 'The command SUSEConnect -r ' . $name . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 =head2 ssh_remove_suseconnect_product
