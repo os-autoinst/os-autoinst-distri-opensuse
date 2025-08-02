@@ -1262,14 +1262,14 @@ sub config_guest_network_bridge_device {
         my $_detect_inactive_route = '';
         if ($self->{guest_network_mode} ne 'host') {
             virt_autotest::virtual_network_utils::write_network_bridge_device_config(ipaddr => $_bridge_network, name => $_bridge_device, bootproto => 'static', bridge_type => 'master', backup_folder => $_host_params{common_log_folder});
-            my $_ret = virt_autotest::virtual_network_utils::activate_network_bridge_device(bridge_device => $_bridge_device, network_mode => $self->{guest_network_mode});
+            my $_ret = virt_autotest::virtual_network_utils::activate_network_bridge_device(bridge_device => $_bridge_device, network_mode => $self->{guest_network_mode}, reconsole_counter => $_host_params{reconsole_counter});
             $self->record_guest_installation_result('FAILED') if ($_ret != 0);
         }
         else {
             my $_host_default_network_interface = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1 | awk \'{print \$5}\'");
             virt_autotest::virtual_network_utils::write_network_bridge_device_config(ipaddr => $_bridge_network, name => $_bridge_device, bootproto => 'dhcp', bridge_type => 'master', bridge_port => $_host_default_network_interface, backup_folder => $_host_params{common_log_folder});
             virt_autotest::virtual_network_utils::write_network_bridge_device_config(ipaddr => '', name => $_host_default_network_interface, bootproto => 'none', bridge_type => 'slave', bridge_port => $_bridge_device, backup_folder => $_host_params{common_log_folder});
-            my $_ret = virt_autotest::virtual_network_utils::activate_network_bridge_device(host_device => $_host_default_network_interface, bridge_device => $_bridge_device, network_mode => $self->{guest_network_mode});
+            my $_ret = virt_autotest::virtual_network_utils::activate_network_bridge_device(host_device => $_host_default_network_interface, bridge_device => $_bridge_device, network_mode => $self->{guest_network_mode}, reconsole_counter => $_host_params{reconsole_counter});
             $self->record_guest_installation_result('FAILED') if ($_ret != 0);
         }
     }
