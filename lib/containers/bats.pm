@@ -24,7 +24,6 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use YAML::PP;
 use File::Basename;
-use Utils::Architectures qw(is_x86_64);
 
 our @EXPORT = qw(
   bats_post_hook
@@ -83,23 +82,17 @@ sub install_ncat {
     # Upstream tests use Nmap's ncat but this is a problematic tool for multiple reasons:
     # - Behaviour breaks between versions. See https://nmap.org/changelog.html#7.96
     # - Nmap changed license and both Fedora & openSUSE won't ship new versions
-    if (is_x86_64) {
-        # This version from upstream Nmap is known to work on x86_64 on SLES 15-SP4+ & TW
-        my $version = get_var("NCAT_VERSION", "7.95-3");
-        run_command "rpm -vhU https://nmap.org/dist/ncat-$version.x86_64.rpm";
-    } else {
-        # TW has ncat 7.95 and SLES 16.0 has 7.92. These versions are unlikely to change
-        if (is_tumbleweed) {
-            run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
-        } elsif (is_sle('<16')) {
-            # This repo has ncat 7.92.  Also unlikely to change
-            run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/SLE_15/network:utilities.repo";
-        }
-        run_command "zypper --gpg-auto-import-keys -n install ncat";
+    # Tumbleweed has ncat 7.95 and SLES 16.0 has 7.92. These versions are unlikely to change
+    if (is_tumbleweed) {
+        run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+    } elsif (is_sle('<16')) {
+        # This repo has ncat 7.92.  Also unlikely to change
+        run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/SLE_15/network:utilities.repo";
     }
+    run_command "zypper --gpg-auto-import-keys -n install ncat";
+
     # Some tests use nc instead of ncat but expect ncat behaviour instead of netcat-openbsd
     run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
-
     record_info("nc", script_output("nc --version"));
 }
 
