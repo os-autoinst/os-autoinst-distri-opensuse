@@ -19,10 +19,6 @@ use publiccloud::utils;
 sub run {
     my ($self, $args) = @_;
 
-    # If someone schedules a publiccloud run with a custom SCHEDULE this causes
-    # the test to break, because we need to pass $args, so dying earlier and with clear message about root cause
-    die('Note: Running publiccloud with a custom SCHEDULE is not supported') if (!defined $args);
-
     select_host_console();    # select console on the host, not the PC instance
 
     # Prevent kernel messages of the helper VM to contaminate the serial console
@@ -37,26 +33,24 @@ sub run {
     my %instance_args;
     $instance_args{check_connectivity} = 1;
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
-    $args->{my_provider} = $self->provider_factory();
-    $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
-    my $provider = $args->{my_provider};
-    my $instance = $args->{my_instance};
+    $self->provider($self->provider_factory());
+    $self->instance($self->provider->create_instance(%instance_args));
 
-    $instance->network_speed_test();
-    $instance->check_cloudinit() if (is_cloudinit_supported);
+    $self->instance->network_speed_test();
+    $self->instance->check_cloudinit() if (is_cloudinit_supported);
 
     # ssh-tunnel settings
-    prepare_ssh_tunnel($instance) if (is_tunneled());
+    prepare_ssh_tunnel($self->instance) if (is_tunneled());
 
     # azure images based on sle12-sp{4,5} code streams come with commented entries 'Defaults targetpw' in /etc/sudoers
     # because the Azure Linux agent creates an entry in /etc/sudoers.d for users without the NOPASSWD flag
     # this is an exception in comparision with other images
     if (is_sle('<15') && is_azure) {
-        $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
+        $self->instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
     }
 
     # We expect that the testapi user (typically 'bernhard') is allowed to run sudo commands
-    $instance->ssh_assert_script_run("echo \"$testapi::username ALL=(ALL) ALL\" | sudo tee /etc/sudoers.d/010_openqa");
+    $self->instance->ssh_assert_script_run("echo \"$testapi::username ALL=(ALL) ALL\" | sudo tee /etc/sudoers.d/010_openqa");
 }
 
 sub test_flags {

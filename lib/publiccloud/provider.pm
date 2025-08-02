@@ -5,7 +5,7 @@
 
 # Summary: Base helper class for public cloud
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
