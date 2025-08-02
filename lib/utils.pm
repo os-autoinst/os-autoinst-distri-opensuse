@@ -2025,16 +2025,15 @@ sub script_retry {
     my $option = $args{option} // '';
     my $die = $args{die} // 1;
     my $fail_msg = $args{fail_message} // "Waiting for Godot: $cmd";
-
-    my $ret;
-
-    my $exec = "timeout $option $timeout $cmd";
+    my $negate;
     # Exclamation mark needs to be moved before the timeout command, if present
     if (substr($cmd, 0, 1) eq "!") {
         $cmd = substr($cmd, 1);
         $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
-        $exec = "! timeout $option $timeout $cmd";
+        $negate = '!';
     }
+    my $exec = join ' ', grep { defined && length } ($negate, 'timeout', $option, $timeout, $cmd);
+    my $ret;
     for (1 .. $retry) {
         # timeout for script_run must be larger than for the 'timeout ...' command
         $ret = script_run($exec, ($timeout + 3));
