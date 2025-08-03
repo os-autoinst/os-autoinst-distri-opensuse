@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use YAML::PP;
 use File::Basename;
+use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(
   bats_post_hook
@@ -84,7 +85,11 @@ sub install_ncat {
     # - Nmap changed license and both Fedora & openSUSE won't ship new versions
     # Tumbleweed has ncat 7.95 and SLES 16.0 has 7.92. These versions are unlikely to change
     if (is_tumbleweed) {
-        run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        if (is_aarch64) {
+            run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        } else {
+            run_command "zypper addrepo http://download.opensuse.org/tumbleweed/repo/non-oss/ non-oss";
+        }
     } elsif (is_sle('<16')) {
         # This repo has ncat 7.92.  Also unlikely to change
         run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/SLE_15/network:utilities.repo";
