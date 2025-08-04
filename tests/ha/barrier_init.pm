@@ -37,9 +37,13 @@ sub run {
             # modules use them, we create them here as well for the scenarios without supportserver
             mutex_create($_) foreach ('iscsi', 'support_server_ready');
             barrier_create("BARRIER_HA_$cluster_name", $num_nodes);
-            barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $num_nodes);
-            barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name", $num_nodes);
-            barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name", $num_nodes);
+            # For the qnetd/qdevice test without support-server scenario (e.g. on powervm),
+            # we need to run 'setup_hosts_and_luns' on the qnetd server node as well,
+            # so an extra barrier is needed.
+            my $qnetd_num_nodes = get_var('QDEVICE') ? $num_nodes + 1 : $num_nodes;
+            barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $qnetd_num_nodes);
+            barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name", $qnetd_num_nodes);
+            barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name", $qnetd_num_nodes);
             barrier_create("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name", $num_nodes);
         }
         else {
