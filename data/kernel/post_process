@@ -67,7 +67,7 @@ generate_xunit_report() {
 }
 
 for dir in ./results/*; do
-	if [[ -d "$dir" ]]; then
+	if [[ -d "$dir" && "$(basename "$dir")" != tmp* ]]; then
 		generate_xunit_report "$(basename "$dir")"
 	fi
 done
