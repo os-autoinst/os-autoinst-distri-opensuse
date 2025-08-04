@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
-use registration qw(get_addon_fullname add_suseconnect_product);
+use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
@@ -136,7 +136,8 @@ sub register_addon {
     assert_script_run 'source /tmp/os-release';
 
     if ($addon =~ /ltss/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . get_required_var('SCC_REGCODE_LTSS'), timeout => $timeout, retries => $retries, delay => $delay);
+        my $name = get_addon_fullname($addon);
+        ssh_add_suseconnect_product($remote, $name, program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . $ADDONS_REGCODE{$name}, timeout => $timeout, retries => $retries, delay => $delay);
     } elsif (is_ondemand) {
         record_info($addon, 'This is on demand image, we will not register this addon.');
         return;
