@@ -468,8 +468,21 @@ sub start_hana {
 sub cleanup_resource {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my @errors = (
+        qr/Aborting because no messages received in \d+ seconds/,
+        qr/Error performing operation: Timeout occurred/
+    );
+    my $retry = '3';
+    my $out = undef;
 
-    $self->run_cmd(cmd => 'crm resource cleanup');
+    # Retry when running crm command with issue, refer to TEAM-10483
+    while ($retry) {
+        $out = $self->run_cmd(cmd => 'crm resource cleanup', proceed_on_failure => 1);
+        last if (!grep { $out =~ /$_/ } @errors);
+        $retry--;
+        sleep 5;
+    }
+    die "Clean up resource failed:\n$out" if ($retry == 0);
 
     # Wait for resource to start
     my $start_time = time;
