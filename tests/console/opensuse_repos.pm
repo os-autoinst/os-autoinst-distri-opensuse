@@ -39,8 +39,8 @@ sub run {
     }
 
     zypper_call("refresh-services");
-    assert_script_run "zypper lr --uri | grep cdn.opensuse.org";
-    assert_script_run "zypper lr --uri | grep download.nvidia.com" if (is_x86_64 || is_aarch64);
+    validate_script_output("zypper lr --uri", qr/cdn.opensuse.org/, fail_message => "cdn.opensuse.org not present in repositories") unless (is_slowroll);
+    validate_script_output("zypper lr --uri", qr/download.nvidia.com/, fail_message => "download.nvidia.com not present in repositories") if (is_x86_64 || is_aarch64);
 
     # removing the distro package, removes the NVIDIA service too if it was installed
     zypper_call("rm $pkgname");
