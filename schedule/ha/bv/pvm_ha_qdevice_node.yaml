@@ -5,7 +5,7 @@ description:    >
   Schedule for qdevice/qnetd test cluster nodes. Use HA_CLUSTER_INIT setting
   in the job group so the schedule loads the tests for a node running
   ha-cluster-init or for nodes running ha-cluster-join. Cluster nodes must be
-  run along a support server and a qnetd server. Some settings are defined
+  run along a qnetd server. Some settings are defined
   here in the schedule, while others are required outside the schedule.
 
   The following settings must be defined outside of the schedule, either in
@@ -21,7 +21,7 @@ description:    >
 vars:
   DESKTOP: textmode
   HA_CLUSTER: "1"
-  # Number of nodes. This setting must match CLUSTER_INFOS in the support server job
+  # Number of nodes.
   NUM_NODES: "2"
   QDEVICE: "1"
   # qdevice test role is client in the cluster nodes and qnetd_server in the server
@@ -32,6 +32,7 @@ schedule:
   - installation/agama_reboot
   - installation/first_boot
   - console/system_prepare
+  - ha/check_hae_active.py
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
@@ -59,4 +60,5 @@ conditional_schedule:
   boot:
     HA_CLUSTER_INIT:
       no:
-        - boot/boot_to_desktop
+        - boot/reconnect_mgmt_console
+        - installation/first_boot
