@@ -307,11 +307,6 @@ sub run {
         # Continues below to verify that /etc/issue shows the recovery key
     }
 
-    # Create user in WSL
-    if (get_var('WSL_VERSION')) {
-        create_user_in_ui;
-    }
-
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
     if (get_var('FLAVOR') =~ m/-encrypted/i) {
         # Select FDE with pass and tpm
@@ -328,23 +323,25 @@ sub run {
         assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2');
     }
 
-    if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
-        assert_screen 'jeos-ssh-enroll-or-not', 120;
+    if (get_var('WSL_VERSION') || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
+        if (!get_var('WSL_VERSION')) {
+            assert_screen 'jeos-ssh-enroll-or-not', 120;
 
-        if (get_var('SSH_ENROLL_PAIR')) {
-            mutex_wait 'dhcp';
-            sleep 30;    # make sure we have an IP
-            mutex_create 'SSH_ENROLL_PAIR';
-            send_key 'y';
-            check_screen 'jeos-ssh-enroll-pairing', 20;
-            assert_screen 'jeos-ssh-enroll-paired', 120;
-            send_key 'y';
-            assert_screen 'jeos-ssh-enroll-import', 120;
-            send_key 'y';
-            assert_screen 'jeos-ssh-enroll-imported', 120;
-            send_key 'ret';
-        } else {
-            send_key 'n';
+            if (get_var('SSH_ENROLL_PAIR')) {
+                mutex_wait 'dhcp';
+                sleep 30;    # make sure we have an IP
+                mutex_create 'SSH_ENROLL_PAIR';
+                send_key 'y';
+                check_screen 'jeos-ssh-enroll-pairing', 20;
+                assert_screen 'jeos-ssh-enroll-paired', 120;
+                send_key 'y';
+                assert_screen 'jeos-ssh-enroll-import', 120;
+                send_key 'y';
+                assert_screen 'jeos-ssh-enroll-imported', 120;
+                send_key 'ret';
+            } else {
+                send_key 'n';
+            }
         }
         create_user_in_ui();
     }
