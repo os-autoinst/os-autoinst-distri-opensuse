@@ -1,0 +1,12 @@
+---
+name: agama_rmt_s390x
+description: >
+  Perform agama interactive installation with RMT registration
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/validate_repos
