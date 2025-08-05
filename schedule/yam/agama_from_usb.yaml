@@ -10,4 +10,5 @@ schedule:
   - yam/agama/agama_boot_from_hdd
   - installation/first_boot
   - yam/validate/validate_base_product
+  - yam/validate/validate_product
   - yam/validate/validate_first_user

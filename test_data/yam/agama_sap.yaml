@@ -1,5 +1,14 @@
 ---
-os_release_name: SLES_SAP
+os_release:
+  NAME: SLES
+  PRETTY_NAME: SUSE Linux Enterprise Server 16.0
+  VARIANT: Enterprise Server for SAP applications
+  VARIANT_ID: server-sap
+  VERSION_ID: 16.0
+  ID: sles
+  ID_LIKE: suse opensuse
+  CPE_NAME: cpe:/o:suse:sles:16:16.0
+  SUSE_SUPPORT_PRODUCT: SUSE Linux Enterprise Server for SAP applications
 repos:
   - name: SLE-Product-SLES_SAP-%VERSION%
     alias: SUSE_Linux_Enterprise_Server_for_SAP_Applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%
