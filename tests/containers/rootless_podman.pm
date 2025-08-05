@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
 use utils;
 use containers::common;
 use containers::container_images;
@@ -98,7 +98,7 @@ sub run {
     # already exists owned by root
     assert_script_run 'rm -rf /tmp/script*';
     ensure_serialdev_permissions;
-    select_console "user-console";
+    select_user_serial_terminal;
 
     # By default the storage driver is set to btrfs if /var is in btrfs
     # but if the home partition is not btrfs podman commands will fail with
