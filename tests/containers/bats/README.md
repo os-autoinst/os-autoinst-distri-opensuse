@@ -215,26 +215,6 @@ Please add this warning on each bug report you open when adding instructions on 
 
 Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 
-### aardvark-dns
-
-| tests | reason |
-| --- | --- |
-| half of them | openQA network setup |
-
-### podman
-
-| test | reason |
-| --- | --- |
-| [130-kill] | flaky test |
-| [200-pod] | flaky test |
-| [252-quadlet] | unknown |
-| [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
-
-[130-kill]: https://github.com/containers/podman/blob/main/test/system/130-kill.bats
-[200-pod]: https://github.com/containers/podman/blob/main/test/system/200-pod.bats
-[252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
-[505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
-
 ## Tools
 
 - [susebats](https://github.com/ricardobranco777/susebats)
