@@ -73,8 +73,11 @@ sub install_git {
     # We need git 2.47.0+ to use `--ours` with `git apply -3`
     if (is_sle) {
         my $version = get_var("VERSION");
-        $version =~ s/-SP/./;
-        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/devel:/languages:/python:/backports/$version/devel:languages:python:backports.repo";
+        if (is_sle('<16')) {
+            $version =~ s/-/_/;
+            $version = "SLE_$version";
+        }
+        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     }
     run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
 }

@@ -14,7 +14,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::bats;
 use version_utils qw(is_tumbleweed);
-
+use Utils::Architectures qw(is_ppc64le is_s390x);
 
 sub run_tests {
     my %params = @_;
@@ -54,6 +54,10 @@ sub run {
     # Compile helpers used by the tests
     my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
     run_command "make $cmds || true";
+    # Skip this test on s390x due to https://bugzilla.suse.com/show_bug.cgi?id=1247568
+    run_command "rm -f tests/integration/no_pivot.bats" if is_ppc64le;
+    # Skip this test on s390x due to https://bugzilla.suse.com/show_bug.cgi?id=1247567
+    run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
 
     my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
 
