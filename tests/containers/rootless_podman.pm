@@ -32,6 +32,9 @@ sub run {
     select_serial_terminal;
     my $user = $testapi::username;
 
+    # Workaround for https://progress.opensuse.org/issues/186834
+    script_run "touch /etc/SUSEConnect" unless (is_sle(">16") || is_tumbleweed);
+
     my $podman = $self->containers_factory('podman');
 
     # add testuser to systemd-journal group to allow non-root
