@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use JSON qw(decode_json to_json);
+use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
