@@ -20,8 +20,9 @@ sub run {
     select_serial_terminal;
 
     zp_ssh_connect();
+    my $repo_host = get_var('REPO_MIRROR_HOST', 'download.suse.de');
     zp_add_repos(ip => get_required_var('IBSM_IP'),
-        name => 'download.suse.de',
+        name => $repo_host,
         repos => get_var('INCIDENT_REPO'));
 }
 
