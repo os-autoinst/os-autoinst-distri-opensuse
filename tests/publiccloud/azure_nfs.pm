@@ -62,8 +62,7 @@ sub check_nfs_share {
 sub run {
     my ($self, $args) = @_;
 
-    my $instance = $args->{my_instance};
-    my $resource_id = $instance->resource_id;
+    my $resource_id = $self->instance->resource_id;
     record_info("resource_id", $resource_id);
 
     # Create mount point and canary to check if remote nfs is mounted

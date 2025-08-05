@@ -267,7 +267,7 @@ sub run {
     my $instances = create_instance_data(provider => $provider);
     foreach my $instance (@$instances) {
         record_info 'Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
-        $self->{my_instance} = $instance;
+        $self->instance($instance);
         $self->set_cli_ssh_opts;
         my $expected_hostname = $instance->{instance_id};
         $instance->wait_for_ssh();
