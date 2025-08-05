@@ -1,0 +1,23 @@
+name:          sle16-virt-guest-installation
+description:    >
+    Virtualization guest migration test from installed or restored guest
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - '{{barrier_setup}}'
+    - virt_autotest/login_console
+    - virt_autotest/prepare_non_transactional_server
+    - '{{guest_migration}}'     
+conditional_schedule:
+    barrier_setup:
+        VIRT_NEW_GUEST_MIGRATION_DESTINATION:
+            1:
+                - virt_autotest/parallel_guest_migration_barrier
+    guest_migration:
+        VIRT_NEW_GUEST_MIGRATION_SOURCE:
+            1:
+                - virt_autotest/unified_guest_installation
+                - virt_autotest/parallel_guest_migration_source
+        VIRT_NEW_GUEST_MIGRATION_DESTINATION:
+            1:
+                - virt_autotest/parallel_guest_migration_destination
