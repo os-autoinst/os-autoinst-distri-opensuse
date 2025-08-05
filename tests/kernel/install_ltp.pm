@@ -24,6 +24,7 @@ use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumblewee
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
+use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
@@ -147,51 +148,8 @@ sub install_runtime_dependencies_network {
 }
 
 sub install_build_dependencies {
-    my @deps = qw(
-      autoconf
-      automake
-      bison
-      expect
-      flex
-      gcc
-      git-core
-      libaio-devel
-      libopenssl-devel
-      make
-    );
-
-    if (is_rt) {
-        push @deps, 'kernel-rt-devel';
-    }
-    elsif (!get_var('KGRAFT')) {
-        push @deps, 'kernel-default-devel';
-    }
-
-    zypper_call('-t in ' . join(' ', @deps));
-
-    my @maybe_deps = qw(
-      keyutils-devel
-      libcap-devel
-      libacl-devel
-      libtirpc-devel
-      libselinux-devel
-      gcc-32bit
-      kernel-default-devel-32bit
-      keyutils-devel-32bit
-      libacl-devel-32bit
-      libaio-devel-32bit
-      libcap-devel-32bit
-      libmnl-devel
-      libnuma-devel
-      libnuma-devel-32bit
-      libselinux-devel-32bit
-      libtirpc-devel-32bit
-    );
-
-    # libopenssl-devel-32bit is blocked by dependency mess on SLE-12 and we
-    # don't use it anyway...
-    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
-    zypper_install_available(@maybe_deps);
+    zypper_call('-t in ' . join(' ', get_required_build_dependencies()));
+    zypper_install_available(get_maybe_build_dependencies());
 }
 
 sub prepare_ltp_git {
@@ -215,15 +173,9 @@ sub prepare_ltp_git {
 
 sub install_selected_from_git {
     prepare_ltp_git;
-    my @paths = qw(commands/insmod
-      kernel/firmware
-      kernel/device-drivers
-      kernel/syscalls/delete_module
-      kernel/syscalls/finit_module
-      kernel/syscalls/init_module);
 
     assert_script_run('pushd testcases');
-    foreach (@paths) {
+    foreach (get_submodules_to_rebuild()) {
         assert_script_run("pushd $_ && make && make install && popd", timeout => 600);
     }
     assert_script_run("popd");
