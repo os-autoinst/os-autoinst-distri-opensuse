@@ -122,6 +122,7 @@ sub run {
     }
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');
+    assert_script_run 'ls | grep rfan1';
 
     # stop and disable PackageKit
     quit_packagekit;

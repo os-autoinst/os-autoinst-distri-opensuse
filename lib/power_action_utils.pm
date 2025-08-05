@@ -32,6 +32,7 @@ our @EXPORT = qw(
   assert_shutdown_and_restore_system
   assert_shutdown_with_soft_timeout
   check_bsc1215132
+  shutdown_hmc_pvm
 );
 
 =head2 prepare_system_shutdown
@@ -466,4 +467,28 @@ sub check_bsc1215132 {
     record_soft_failure("bsc1215132: Possible missing dependency on systemd")
       if (script_run("rpm -q --provides systemd | grep systemd-sysvinit") ||
         script_run("rpm -q --provides systemd | grep shutdown"));
+}
+
+=head2 shutdown_hmc_pvm
+
+ shutdown_hmc_pvm();
+
+Shutdown a system connected via the hmc_pvm backend.
+
+=cut
+
+sub shutdown_hmc_pvm {
+    my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
+    my $lpar_id = get_required_var('LPAR_ID');
+    prepare_system_shutdown;
+    send_key 'ret';    # Confirm
+    select_console 'powerhmc-ssh';
+
+    # detach possibly attached terminals
+    enter_cmd "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'";
+    assert_screen 'pvm-vterm-closed';
+
+    # power off the machine
+    enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id ");
+    check_lpar_is_down($hmc_machine_name, $lpar_id);
 }
