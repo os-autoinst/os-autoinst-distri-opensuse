@@ -21,8 +21,9 @@ sub run {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
         record_info("$instance");
 
+        my $repo_host = get_var('REPO_MIRROR_HOST', 'download.suse.de');
         my $ibsm_ip = get_required_var('IBSM_IP');
-        $instance->run_ssh_command(cmd => "echo \"$ibsm_ip download.suse.de\" | sudo tee -a /etc/hosts", username => 'cloudadmin');
+        $instance->run_ssh_command(cmd => "echo \"$ibsm_ip $repo_host\" | sudo tee -a /etc/hosts", username => 'cloudadmin');
         $instance->run_ssh_command(cmd => 'cat /etc/hosts', username => 'cloudadmin');
     }
 }

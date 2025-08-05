@@ -2019,9 +2019,10 @@ sub ipaddr2_add_server_repos_to_hosts {
     my (%args) = @_;
     croak 'Missing mandatory argument < ibsm_ip >' unless $args{ibsm_ip};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $repo_host = get_var('REPO_MIRROR_HOST', 'download.suse.de');
     foreach my $id (1 .. 2) {
         ipaddr2_ssh_internal(id => $id,
-            cmd => "echo \"$args{'ibsm_ip'} download.suse.de\" | sudo tee -a /etc/hosts",
+            cmd => "echo \"$args{'ibsm_ip'} $repo_host\" | sudo tee -a /etc/hosts",
             bastion_ip => $args{bastion_ip});
     }
 
