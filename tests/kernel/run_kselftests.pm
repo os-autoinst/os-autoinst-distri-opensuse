@@ -161,7 +161,18 @@ sub run {
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
     # Since we only installed a single collection, it is the one that will be executed
-    assert_script_run("./run_kselftest.sh -o $timeout > kselftest.tap", 7200);
+
+    my @tests = split(/\n/, script_output('./run_kselftest.sh --list'));
+    my $tests = '';
+    my @skip = split /,/, get_var('KSELFTESTS_SKIP', '');
+    if (@skip) {
+        my %skip = map { $_ => 1 } @skip;
+        # Remove tests that are in @skip
+        @tests = grep { !$skip{$_} } @tests;
+        $tests .= "--test $_ " for @tests;
+    }
+
+    assert_script_run("./run_kselftest.sh -o $timeout $tests > kselftest.tap", 7200);
     $self->postprocess_results($collection, "kselftest.tap");
 }
 
