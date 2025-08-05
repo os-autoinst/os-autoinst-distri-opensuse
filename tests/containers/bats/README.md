@@ -61,11 +61,13 @@ NOTES
 
 ## Adding patches to `BATS_PATCHES`
 
-1. Identify the commit(s) that fix the test issue.
-1. Identify the PR ID associated with the commit: `gh pr list --search $COMMIT_SHA --state merged`
+Note: We add the patches to our tree to avoid hitting secondary rate-limits at Github.
+
+1. Identify the commit that fixes the issue.
+1. Identify the PR ID associated with the commit with `gh pr list --search $COMMIT_SHA --state merged`
 1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.patch` (`runc` is under `opencontainers`)
-1. Add the ID to `BATS_PATCHES` sorted numerically for obvious reasons.
-1. Run a verification run with the above setting.
+1. Add the ID to `BATS_PATCHES` sorted numerically as we assume lower numbered are merged earlier.
+1. Add verification runs with the above setting to the PR.
 1. Adjust YAML schedule.
 
 ## Warning
@@ -87,16 +89,23 @@ Please add this warning on each bug report you open when adding instructions on 
 | openSUSE Tumbleweed   | [![tw_al]][tw_a]   | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n]   | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r]   | [![tw_sl]][tw_s]   |
 | openSUSE TW with crun |                    | [![tw_blc]][tw_bc] |                    | [![tw_plc]][tw_pc] |                    |                    |
 | openSUSE TW (aarch64) | [![twa_al]][twa_a] |                    | [![twa_nl]][twa_n] | [![twa_pl]][twa_p] | [![twa_rl]][twa_r] | [![twa_sl]][twa_s] |
+| openSUSE TW (ppc64le) |                    |                    |                    |                    | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
 | SLES 16.0             | [![logo]][s16_a]   | [![logo]][s16_b]   | [![logo]][s16_n]   | [![logo]][s16_p]   | [![logo]][s16_r]   | [![logo]][s16_s]   |
 | SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                    | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
+| SLES 16.0 (ppc64le)   |                    |                    |                    |                    | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
+| SLES 16.0 (s390x)     |                    |                    |                    |                    | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
 | SLES 15 SP7           |                    | [![logo]][sp7_b]   | [![logo]][sp7_n]   | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
 | SLES 15 SP7 (aarch64) |                    |                    | [![logo]][sp7a_n]  | [![logo]][sp7a_p]  | [![logo]][sp7a_r]  | [![logo]][sp7a_s]  |
+| SLES 15 SP7 (s390x)   |                    |                    |                    |                    | [![logo]][sp7s_r]  | [![logo]][sp7s_s]  |
 | SLES 15 SP6           |                    | [![logo]][sp6_b]   | [![logo]][sp6_n]   | [![logo]][sp6_p]   | [![logo]][sp6_r]   | [![logo]][sp6_s]   |
 | SLES 15 SP6 (aarch64) |                    |                    | [![logo]][sp6a_n]  | [![logo]][sp6a_p]  | [![logo]][sp6a_r]  | [![logo]][sp6a_s]  |
+| SLES 15 SP6 (s390x)   |                    |                    |                    |                    | [![logo]][sp6s_r]  | [![logo]][sp6s_s]  |
 | SLES 15 SP5           |                    | [![logo]][sp5_b]   | [![logo]][sp5_n]   |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
 | SLES 15 SP5 (aarch64) |                    |                    | [![logo]][sp5a_n]  |                    | [![logo]][sp5a_r]  | [![logo]][sp5a_s]  |
+| SLES 15 SP5 (s390x)   |                    |                    |                    |                    | [![logo]][sp5s_r]  | [![logo]][sp5s_s]  |
 | SLES 15 SP4           |                    | [![logo]][sp4_b]   |                    |                    | [![logo]][sp4_r]   | [![logo]][sp4_s]   |
 | SLES 15 SP4 (aarch64) |                    |                    |                    |                    | [![logo]][sp4a_r]  | [![logo]][sp4a_s]  |
+| SLES 15 SP4 (s390x)   |                    |                    |                    |                    | [![logo]][sp4s_r]  | [![logo]][sp4s_s]  |
 
 [logo]: logo.svg
 
@@ -128,6 +137,11 @@ Please add this warning on each bug report you open when adding instructions on 
 [twa_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
 [twa_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
 
+[twp_rl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
+[twp_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
+[twp_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_skopeo_testsuite
+[twp_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_skopeo_testsuite
+
 [s16_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=aardvark_testsuite
 [s16_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=buildah_testsuite
 [s16_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=netavark_testsuite
@@ -141,6 +155,12 @@ Please add this warning on each bug report you open when adding instructions on 
 [s16a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=runc_testsuite
 [s16a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=skopeo_testsuite
 
+[s16p_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=runc_testsuite
+[s16p_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=skopeo_testsuite
+
+[s16s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=runc_testsuite
+[s16s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=skopeo_testsuite
+
 [sp7_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=buildah_testsuite
 [sp7_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=netavark_testsuite
 [sp7_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=podman_testsuite
@@ -151,6 +171,9 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp7a_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=podman_testsuite
 [sp7a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=runc_testsuite
 [sp7a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=skopeo_testsuite
+
+[sp7s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=s390x&test=runc_testsuite
+[sp7s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=s390x&test=skopeo_testsuite
 
 [sp6_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=buildah_testsuite
 [sp6_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=netavark_testsuite
@@ -163,6 +186,9 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp6a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=runc_testsuite
 [sp6a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=skopeo_testsuite
 
+[sp6s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=s390x&test=runc_testsuite
+[sp6s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=s390x&test=skopeo_testsuite
+
 [sp5_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=buildah_testsuite
 [sp5_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=netavark_testsuite
 [sp5_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=runc_testsuite
@@ -172,6 +198,9 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp5a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=runc_testsuite
 [sp5a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=skopeo_testsuite
 
+[sp5s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=s390x&test=runc_testsuite
+[sp5s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=s390x&test=skopeo_testsuite
+
 [sp4_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=buildah_testsuite
 [sp4_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=runc_testsuite
 [sp4_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=x86_64&test=skopeo_testsuite
@@ -179,39 +208,12 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp4a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=aarch64&test=runc_testsuite
 [sp4a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=aarch64&test=skopeo_testsuite
 
+[sp4s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=ppc44le&test=runc_testsuite
+[sp4s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=ppc44le&test=skopeo_testsuite
+
 ## Skipped tests
 
 Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
-
-### aardvark-dns
-
-| tests | reason |
-| --- | --- |
-| half of them | openQA network setup |
-
-### podman
-
-| test | reason |
-| --- | --- |
-| [130-kill] | flaky test |
-| [200-pod] | flaky test |
-| [252-quadlet] | unknown |
-| [505-networking-pasta] | https://bugs.passt.top/show_bug.cgi?id=49 |
-
-[130-kill]: https://github.com/containers/podman/blob/main/test/system/130-kill.bats
-[200-pod]: https://github.com/containers/podman/blob/main/test/system/200-pod.bats
-[252-quadlet]: https://github.com/containers/podman/blob/main/test/system/252-quadlet.bats
-[505-networking-pasta]: https://github.com/containers/podman/blob/main/test/system/505-networking-pasta.bats
-
-### runc
-
-| test | reason |
-| --- | --- |
-| [run] | https://github.com/opencontainers/runc/issues/4732 |
-| [cgroups] | https://github.com/opencontainers/runc/issues/4781 |
-
-[run]: https://github.com/opencontainers/runc/blob/main/tests/integration/run.bats
-[cgroups]: https://github.com/opencontainers/runc/blob/main/tests/integration/cgroups.bats
 
 ## Tools
 
