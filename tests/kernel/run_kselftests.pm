@@ -54,92 +54,75 @@ sub install_from_ibs
     zypper_call("install -y kselftests-$collection");
 }
 
-sub postprocess_results {
-    my ($self, $collection, $tap_file) = @_;
+sub post_process {
+    my ($self, $collection, @tests) = @_;
 
     my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
     my $whitelist = LTP::WhiteList->new($whitelist_file);
+    my $env = {
+        product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+        arch => get_var('ARCH', ''),
+    };
 
-    my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
-    if (!$tap_content) {
-        die "No TAP output found in $tap_file for $collection\n";
-    }
+    my @full_ktap;
+    my @summary = split(/\n/, script_output("cat summary.tap"));
+    my $summary_ln_idx = 0;
+    my $test_index = 0;
 
-    my @lines = split /\n/, $tap_content;
+    for my $test (@tests) {
+        $test_index++;
+        my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it
 
-    my %group_failures;
-    my %group_known;
-    my %group_all_known;
-    my $current_group;
-
-    for my $line (@lines) {
-        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
-            $current_group = "$1:$2";
-            next;
-        }
-
-        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group) {
-            my $num = $1;
-            my $name = $2;
-            push @{$group_failures{$current_group}}, $num;
-
-            my $env = {
-                product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
-                arch => get_var('ARCH', ''),
-            };
-
-            if ($whitelist->find_whitelist_entry($env, $collection, $name)) {
-                $group_known{$current_group}{$num} = 1;
+        # Check test result in the summary
+        my $summary_ln;
+        while ($summary_ln_idx < @summary) {
+            $summary_ln = $summary[$summary_ln_idx];
+            $summary_ln_idx++;
+            if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
+                my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
+                if ($test_failed && $whitelist->find_whitelist_entry($env, $collection, $test_name)) {
+                    $self->{result} = 'softfail';
+                    record_info("Known Issue", "$test marked as softfail");
+                    $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
+                }
+                # Break and keep the index so that we only read each line in the summary once
+                last;
+            } else {
+                # Push all lines that are not test results to the full log
+                push(@full_ktap, $summary_ln);
             }
         }
 
-        if ($line =~ /^not ok\s+\d+\s+selftests:\s+(\S+):\s+(\S+)/) {
-            my $grp = "$1:$2";
-            my $fails = $group_failures{$grp} // [];
-            my $known_map = $group_known{$grp} // {};
-
-            my $all_known = (@$fails && scalar(grep { !$known_map->{$_} } @$fails) == 0);
-            $group_all_known{$grp} = $all_known;
+        # Check each subtest result in the individual test log
+        my @log = split(/\n/, script_output("cat /tmp/$test_name"));    # When using `--per-test-log`, that's where they are found
+        my $hardfails = 0;
+        my $fails = 0;
+        for my $test_ln (@log) {
+            if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
+                my $subtest_idx = $1;
+                my $subtest_name = $2;
+                if ($whitelist->find_whitelist_entry($env, $collection, $subtest_name)) {
+                    $self->{result} = 'softfail';
+                    record_info("Known Issue", "$test:$subtest_name marked as softfail");
+                    $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
+                } else {
+                    $hardfails++;
+                }
+                $fails++;
+            }
+            push(@full_ktap, $test_ln);
         }
+
+        if ($fails > 0 && $hardfails == 0) {
+            record_info("Known Issue", "All failed subtests in $test are known issues; propagating TODO directive to the top-level");
+            $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
+        }
+
+        push(@full_ktap, $summary_ln);
     }
 
-    my @updated_lines;
-    my $current_group_for_update;
-    for my $line (@lines) {
-        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
-            $current_group_for_update = "$1:$2";
-            push @updated_lines, $line;
-            next;
-        }
-
-        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group_for_update) {
-            my $num = $1;
-            my $test_name = $2;
-            if ($group_known{$current_group_for_update}{$num}) {
-                $self->{result} = 'softfail';
-                record_info("Known issue", "$current_group_for_update:$test_name marked as softfail");
-                $line = "# ok $num $test_name # TODO Known issue";
-            }
-        }
-
-        if ($line =~ /^not ok\s+(\d+)\s+selftests:\s+(\S+):\s+(\S+)/) {
-            my ($num, $suite_group, $sub_group) = ($1, $2, $3);
-            my $grp = "$suite_group:$sub_group";
-            if ($group_all_known{$grp}) {
-                $self->{result} = 'softfail';
-                record_info("Known issue", "All failed subtests in $grp are known issues; propagating TODO directive to the top-level");
-                $line = "ok $num selftests: $suite_group: $sub_group # TODO Known issue";
-            }
-        }
-
-        push @updated_lines, $line;
-    }
-
-    my $tmp_file = "/tmp/updated_tap.$$";
-    script_output("cat <<'EOF' > $tmp_file\n" . join("\n", @updated_lines) . "\nEOF");
-    assert_script_run("mv $tmp_file $tap_file");
-
-    parse_extra_log(KTAP => $tap_file);
+    script_output("cat <<'EOF' > kselftest.tap.txt\n" . join("\n", @full_ktap) . "\nEOF");
+    parse_extra_log(KTAP => 'kselftest.tap.txt');    # Append .txt so that it can be easily previewed within openQA
 }
 
 sub run {
@@ -149,8 +132,6 @@ sub run {
     record_info('KERNEL VERSION', script_output('uname -a'));
 
     my $collection = get_required_var('KSELFTESTS_COLLECTION');
-    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
-
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
@@ -172,8 +153,9 @@ sub run {
         $tests .= "--test $_ " for @tests;
     }
 
-    assert_script_run("./run_kselftest.sh -o $timeout $tests > kselftest.tap", 7200);
-    $self->postprocess_results($collection, "kselftest.tap");
+    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
+    assert_script_run("./run_kselftest.sh --per-test-log --override-timeout $timeout $tests > summary.tap", 7200);
+    $self->post_process($collection, @tests);
 }
 
 1;
