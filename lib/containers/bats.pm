@@ -171,8 +171,6 @@ sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
-    # Needed for criu & fakeroot
-    add_suseconnect_product(get_addon_fullname('phub'));
 }
 
 sub patch_logfile {
