@@ -22,7 +22,7 @@ sub run {
     };
 
     my $json_pretty = to_json($json, {pretty => 1});
-    assert_script_run("echo $json_pretty > /tmp/profile.json");
+    assert_script_run("echo '$json_pretty' > /tmp/profile.json");
     assert_script_run("agama config load file:///tmp/profile.json");
     assert_script_run("agama install");
 
