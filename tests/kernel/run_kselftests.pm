@@ -24,8 +24,10 @@ use registration;
 use utils;
 use LTP::WhiteList;
 
-sub prepare_kselftests_from_git
+sub install_from_git
 {
+    my ($suite) = @_;
+
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
     zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel kernel-source');
@@ -38,42 +40,31 @@ sub prepare_kselftests_from_git
         assert_script_run("git checkout $git_tag");
     }
 
-    assert_script_run("make headers");
+    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
 }
 
-sub install_kselftest_suite
+sub install_from_ibs
 {
     my ($suite) = @_;
 
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
-    assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-    assert_script_run("./run_kselftest.sh -l");
-    assert_script_run("cd -");
-}
-
-sub prepare_kselftests_from_ibs
-{
     my $repo = get_var('KSELFTESTS_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
 
-    my $kselftests_suite = get_var('KSELFTESTS_SUITE');
-    my @kselftests_suite = split(',', $kselftests_suite);
-
-    foreach my $i (@kselftests_suite) {
-        zypper_call("install -y kselftests-$i");
-    }
+    zypper_call("install -y kselftests-$suite");
 }
 
-sub postprocess_kselftest_results {
-    my ($self, $whitelist, $suite, $tap_file) = @_;
+sub postprocess_results {
+    my ($self, $suite, $tap_file) = @_;
+
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
+    my $whitelist = LTP::WhiteList->new($whitelist_file);
 
     my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
     if (!$tap_content) {
         die "No TAP output found in $tap_file for $suite\n";
     }
 
-    my $sanitized_suite_name = (split(':', $suite))[0];
     my @lines = split /\n/, $tap_content;
 
     my %group_failures;
@@ -97,7 +88,7 @@ sub postprocess_kselftest_results {
                 arch => get_var('ARCH', ''),
             };
 
-            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $name)) {
+            if ($whitelist->find_whitelist_entry($env, $suite, $name)) {
                 $group_known{$current_group}{$num} = 1;
             }
         }
@@ -151,51 +142,27 @@ sub postprocess_kselftest_results {
     parse_extra_log(KTAP => $tap_file);
 }
 
-sub run_kselftest_case {
-    my ($self, $whitelist, $suite, $timeout, $script_path) = @_;
-
-    my $sanitized_name = $suite;
-    $sanitized_name =~ s/:/_/g;
-
-    my $cmd;
-    if ($suite =~ /:/) {
-        $cmd = "$script_path -o $timeout -t $suite >> $sanitized_name.tap";
-    } else {
-        $cmd = "$script_path -o $timeout -c $suite >> $sanitized_name.tap";
-    }
-
-    assert_script_run($cmd, 7200);
-    $self->postprocess_kselftest_results($whitelist, $suite, "$sanitized_name.tap");
-}
-
 sub run {
     my ($self) = @_;
+
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
-    my $kselftest_git = get_var('KSELFTEST_FROM_GIT', 0);
-    my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
-    my @kselftests_suite = split(',', $kselftests_suite);
-    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
-    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
-    my $whitelist = LTP::WhiteList->new($whitelist_file);
+    my $suite = get_required_var('KSELFTESTS_SUITE');
+    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
 
-    if ($kselftest_git) {
-        prepare_kselftests_from_git();
-
-        foreach my $i (@kselftests_suite) {
-            install_kselftest_suite((split(':', $i))[0]);
-            assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-            run_kselftest_case($self, $whitelist, $i, $timeout, "./run_kselftest.sh");
-            assert_script_run("cd -");
-        }
+    if (get_var('KSELFTEST_FROM_GIT', 0)) {
+        install_from_git($suite);
+        assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     } else {
-        prepare_kselftests_from_ibs();
-
-        foreach my $i (@kselftests_suite) {
-            run_kselftest_case($self, $whitelist, $i, $timeout, "/usr/share/kselftests/run_kselftest.sh");
-        }
+        install_from_ibs($suite);
+        assert_script_run("cd /usr/share/kselftests");
     }
+
+    # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
+    # Since we only installed a single collection, it is the one that will be executed
+    assert_script_run("./run_kselftest.sh -o $timeout > kselftest.tap", 7200);
+    $self->postprocess_results($suite, "kselftest.tap");
 }
 
 1;
