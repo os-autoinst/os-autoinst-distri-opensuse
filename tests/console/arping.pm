@@ -10,6 +10,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
+use Utils::Architectures 'is_s390x';
 use version_utils qw(is_sle);
 
 sub run {
@@ -26,6 +27,11 @@ sub run {
     my $ifname = script_output('ip link | grep -v lo: | awk "/^[0-9]/ {print \$2}" | sed s/:// | head -1');
     my $ip = script_output("ip -4 addr show $ifname | awk '/inet.*brd/ { print \$2 }' | head -1 | cut -d/ -f1");
     my $route = script_output("ip route show default | awk '/default/ {print \$3}' | head -1");
+
+    if (is_s390x && script_run("grep -qw 0 /sys/class/net/$ifname/device/layer2") == 0) {
+        record_info('Skipped', 'interface configured for layer 3 only', result => 'softfail');
+        return;
+    }
 
     my @tests = (
         "-I $ifname -A -c1 $ip",
