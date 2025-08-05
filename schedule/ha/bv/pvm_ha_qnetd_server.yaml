@@ -19,7 +19,7 @@ vars:
   DESKTOP: textmode
   HA_CLUSTER: "1"
   HOSTNAME: "%CLUSTER_NAME%-node03"
-  # Number of nodes. This setting is required here and in the support server job
+  # Number of nodes.
   NUM_NODES: "2"
   # qdevice test role is qnetd_server here and client in the cluster nodes
   QDEVICE_TEST_ROLE: qnetd_server
@@ -32,4 +32,5 @@ schedule:
   - console/check_os_release
   - console/hostname
   - ha/firewall_disable
+  - ha/setup_hosts_and_luns
   - ha/qnetd
