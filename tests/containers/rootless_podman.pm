@@ -131,12 +131,12 @@ sub verify_userid_on_container {
     my $huser_id = script_output "echo \$UID";
     record_info "host uid", "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
-    my $cid = script_output "podman run -d --rm --name test1 $image sleep infinity";
+    my $cid = script_output "podman run -d --rm --name test1 $image sleep infinity 2>/dev/null";
     validate_script_output "podman top $cid user huser", sub { /root\s+1000/ };
     validate_script_output "podman top $cid capeff", sub { /setuid/i };
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
-    $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity";
+    $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity 2>/dev/null";
     my $id = $start_id + $huser_id - 1;
 
     # podman >= v4.4.0 lists username instead of uid
@@ -148,7 +148,7 @@ sub verify_userid_on_container {
     validate_script_output "podman top $cid capeff", sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
-    $cid = script_output "podman run -d --rm --userns keep-id $image sleep infinity";
+    $cid = script_output "podman run -d --rm --userns keep-id $image sleep infinity 2>/dev/null";
     # Remove once the softfail removed. it is just checks the user's mapped uid
     validate_script_output "podman exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
     # Check for bsc#1182428
