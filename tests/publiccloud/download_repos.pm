@@ -111,9 +111,6 @@ sub run {
     record_info("Repo size", "Total repositories size: $total_size");
     assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' + | sort -h > /root/rpm_list.txt", timeout => 60);
     upload_logs("/root/rpm_list.txt");
-
-    # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
-    assert_script_run("if [ -d ~/repos/dist.suse.de ]; then mv ~/repos/dist.suse.de ~/repos/download.suse.de; fi");
     assert_script_run("cd");
 }
 
