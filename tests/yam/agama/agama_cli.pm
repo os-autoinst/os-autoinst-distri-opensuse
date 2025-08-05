@@ -27,6 +27,7 @@ sub run {
     assert_script_run("agama install", timeout => 2400);
 
     $self->upload_agama_logs();
+    power_action('reboot', keepconsole => 1, first_reboot => 1)
 }
 
 1;
