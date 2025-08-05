@@ -26,7 +26,7 @@ use LTP::WhiteList;
 
 sub install_from_git
 {
-    my ($suite) = @_;
+    my ($collection) = @_;
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
@@ -40,29 +40,29 @@ sub install_from_git
         assert_script_run("git checkout $git_tag");
     }
 
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
+    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
 }
 
 sub install_from_ibs
 {
-    my ($suite) = @_;
+    my ($collection) = @_;
 
     my $repo = get_var('KSELFTESTS_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
 
-    zypper_call("install -y kselftests-$suite");
+    zypper_call("install -y kselftests-$collection");
 }
 
 sub postprocess_results {
-    my ($self, $suite, $tap_file) = @_;
+    my ($self, $collection, $tap_file) = @_;
 
     my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
     my $whitelist = LTP::WhiteList->new($whitelist_file);
 
     my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
     if (!$tap_content) {
-        die "No TAP output found in $tap_file for $suite\n";
+        die "No TAP output found in $tap_file for $collection\n";
     }
 
     my @lines = split /\n/, $tap_content;
@@ -88,7 +88,7 @@ sub postprocess_results {
                 arch => get_var('ARCH', ''),
             };
 
-            if ($whitelist->find_whitelist_entry($env, $suite, $name)) {
+            if ($whitelist->find_whitelist_entry($env, $collection, $name)) {
                 $group_known{$current_group}{$num} = 1;
             }
         }
@@ -148,21 +148,21 @@ sub run {
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
-    my $suite = get_required_var('KSELFTESTS_SUITE');
+    my $collection = get_required_var('KSELFTESTS_COLLECTION');
     my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
 
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
-        install_from_git($suite);
+        install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     } else {
-        install_from_ibs($suite);
+        install_from_ibs($collection);
         assert_script_run("cd /usr/share/kselftests");
     }
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
     # Since we only installed a single collection, it is the one that will be executed
     assert_script_run("./run_kselftest.sh -o $timeout > kselftest.tap", 7200);
-    $self->postprocess_results($suite, "kselftest.tap");
+    $self->postprocess_results($collection, "kselftest.tap");
 }
 
 1;
