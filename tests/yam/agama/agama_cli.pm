@@ -18,8 +18,8 @@ sub run {
     $json->{'product'}->{'id'} = 'SLES';
     $json->{'product'}->{'registrationCode'} = get_var('SCC_REGCODE');
     $json->{'root'} = {
-        'password' = 'nots3cr3t'
-    }
+        'password' => 'nots3cr3t'
+    };
 
     open my $fh, '>', '/tmp/profile.json' or die "Cannot open /tmp/profile.json file to write JSON";
     my $json_pretty = to_json($json, {pretty => 1});
