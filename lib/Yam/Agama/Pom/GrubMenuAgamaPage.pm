@@ -10,6 +10,7 @@ package Yam::Agama::Pom::GrubMenuAgamaPage;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures qw(is_aarch64);
 
 sub new {
     my ($class, $args) = @_;
@@ -21,7 +22,7 @@ sub new {
 
 sub expect_is_shown {
     my ($self) = @_;
-    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down');
+    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down') unless check_screen($self->{tag_agama_installer_highlighted}, 5);
     assert_screen($self->{tag_agama_installer_highlighted}, 60);
 }
 
