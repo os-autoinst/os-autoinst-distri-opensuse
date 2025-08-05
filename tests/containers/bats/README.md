@@ -92,8 +92,8 @@ Please add this warning on each bug report you open when adding instructions on 
 | openSUSE TW (ppc64le) |                    |                    |                    |                    | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
 | SLES 16.0             | [![logo]][s16_a]   | [![logo]][s16_b]   | [![logo]][s16_n]   | [![logo]][s16_p]   | [![logo]][s16_r]   | [![logo]][s16_s]   |
 | SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                    | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
-| SLES 16.0 (ppc64le)   |                    |                    |                    | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
-| SLES 16.0 (s390x)     |                    |                    |                    | [![logo]][s16s_p]  | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
+| SLES 16.0 (ppc64le)   | [![logo]][s16p_a]  |                    | [![logo]][s16p_n]  | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
+| SLES 16.0 (s390x)     | [![logo]][s16s_a]  |                    | [![logo]][s16s_n]  | [![logo]][s16s_p]  | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
 | SLES 15 SP7           |                    | [![logo]][sp7_b]   | [![logo]][sp7_n]   | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
 | SLES 15 SP7 (aarch64) |                    |                    | [![logo]][sp7a_n]  | [![logo]][sp7a_p]  | [![logo]][sp7a_r]  | [![logo]][sp7a_s]  |
 | SLES 15 SP7 (s390x)   |                    |                    |                    |                    | [![logo]][sp7s_r]  | [![logo]][sp7s_s]  |
@@ -155,10 +155,14 @@ Please add this warning on each bug report you open when adding instructions on 
 [s16a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=runc_testsuite
 [s16a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=skopeo_testsuite
 
+[s16p_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=aardvark_testsuite
+[s16p_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=netavark_testsuite
 [s16p_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=podman_testsuite
 [s16p_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=runc_testsuite
 [s16p_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=skopeo_testsuite
 
+[s16s_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=aardvark_testsuite
+[s16s_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=netavark_testsuite
 [s16s_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=podman_testsuite
 [s16s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=runc_testsuite
 [s16s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=skopeo_testsuite
