@@ -26,8 +26,6 @@ use LTP::WhiteList;
 
 sub prepare_kselftests_from_git
 {
-    my ($root) = @_;
-
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
     zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel kernel-source');
@@ -55,8 +53,6 @@ sub install_kselftest_suite
 
 sub prepare_kselftests_from_ibs
 {
-    my ($root) = @_;
-
     my $repo = get_var('KSELFTESTS_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
@@ -194,7 +190,7 @@ sub run {
             assert_script_run("cd -");
         }
     } else {
-        prepare_kselftests_from_ibs("/usr/share/kselftests");
+        prepare_kselftests_from_ibs();
 
         foreach my $i (@kselftests_suite) {
             run_kselftest_case($self, $whitelist, $i, $timeout, "/usr/share/kselftests/run_kselftest.sh");
