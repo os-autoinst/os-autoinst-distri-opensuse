@@ -325,12 +325,15 @@ sub bats_post_hook {
     script_run('df -h > df-h.txt');
     script_run('dmesg > dmesg.txt');
     script_run('findmnt > findmnt.txt');
+    script_run('free -h > free.txt');
+    script_run('lscpu > lscpu.txt');
     script_run('lsmod > lsmod.txt');
     script_run('rpm -qa | sort > rpm-qa.txt');
     script_run('sysctl -a > sysctl.txt');
     script_run('systemctl > systemctl.txt');
     script_run('systemctl status > systemctl-status.txt');
     script_run('systemctl list-unit-files > systemctl_units.txt');
+    script_run('uname -a > uname.txt');
     script_run('journalctl -b > journalctl-b.txt', timeout => 120);
     script_run('tar zcf containers-conf.tgz $(find /etc/containers /usr/share/containers -type f)');
 
