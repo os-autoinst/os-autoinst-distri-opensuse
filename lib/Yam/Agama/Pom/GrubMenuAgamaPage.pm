@@ -10,7 +10,6 @@ package Yam::Agama::Pom::GrubMenuAgamaPage;
 use strict;
 use warnings;
 use testapi;
-use Utils::Architectures qw(is_aarch64);
 
 sub new {
     my ($class, $args) = @_;
