@@ -21,7 +21,7 @@ It performs the following key configuration steps:
 
 =head1 VARIABLES
 
-=over 4
+=over
 
 =item B<PUBLIC_CLOUD_PROVIDER>
 

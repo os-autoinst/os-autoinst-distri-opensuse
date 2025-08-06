@@ -25,7 +25,7 @@ for both SUT VMs and lists them for logging purposes.
 
 =head1 VARIABLES
 
-=over 4
+=over
 
 =item B<IPADDR2_CLOUDINIT>
 
@@ -66,8 +66,8 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_scc_addons
   ipaddr2_scc_check
   ipaddr2_scc_register
-  ipaddr2_refresh_repo
-  ipaddr2_ssh_internal
+  ipaddr2_repo_refresh
+  ipaddr2_repo_list
   ipaddr2_bastion_pubip
 );
 
@@ -108,16 +108,8 @@ sub run {
 
     foreach my $id (1 .. 2) {
         # refresh repo
-        ipaddr2_refresh_repo(id => $id, bastion_ip => $bastion_ip);
-
-        # record repo lr
-        ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo zypper lr",
-            bastion_ip => $bastion_ip);
-        # record repo ls
-        ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo zypper ls",
-            bastion_ip => $bastion_ip);
+        ipaddr2_repo_refresh(id => $id, bastion_ip => $bastion_ip);
+        ipaddr2_repo_list(id => $id, bastion_ip => $bastion_ip);
     }
 }
 

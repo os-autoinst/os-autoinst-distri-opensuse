@@ -3,14 +3,15 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Executes kselftests.
-# This module introduces simplistic openqa runner for kernel selftests. The test
+# Summary: Execute Kselftests.
+#
+# This module introduces a simplistic openQA runner for kernel selftests. The test
 # module allows running tests kernel selftests from either git repository which should be
 # defined in the test setting: KERNEL_GIT_TREE or from OBS/IBS repository using packaged
-# and build rpm. As of May-2025 this runner is meant exclusively for cgroup tests.
+# and build rpm.
 # Running from git supports checking out specific git tag version of the kernel, so if required
 # the tests can checkout the older version, corresponding with the kernel under tests, and run
-# such tests
+# such tests.
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
@@ -24,9 +25,9 @@ use registration;
 use utils;
 use LTP::WhiteList;
 
-sub prepare_kselftests_from_git
+sub install_from_git
 {
-    my ($root) = @_;
+    my ($collection) = @_;
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
@@ -40,166 +41,133 @@ sub prepare_kselftests_from_git
         assert_script_run("git checkout $git_tag");
     }
 
-    assert_script_run("make headers");
+    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
 }
 
-sub install_kselftest_suite
+sub install_from_ibs
 {
-    my ($suite) = @_;
+    my ($collection) = @_;
 
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$suite", 7200);
-    assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-    assert_script_run("./run_kselftest.sh -l");
-    assert_script_run("cd -");
-}
-
-sub prepare_kselftests_from_ibs
-{
-    my ($root) = @_;
-
-    my $repo = get_var('KSELFTESTS_REPO', '');
+    my $repo = get_var('KSELFTEST_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
 
-    my $kselftests_suite = get_var('KSELFTESTS_SUITE');
-    my @kselftests_suite = split(',', $kselftests_suite);
-
-    foreach my $i (@kselftests_suite) {
-        zypper_call("install -y kselftests-$i");
-    }
+    zypper_call("install -y kselftests-$collection");
 }
 
-sub postprocess_kselftest_results {
-    my ($self, $whitelist, $suite, $tap_file) = @_;
+sub post_process {
+    my ($self, $collection, @tests) = @_;
 
-    my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
-    if (!$tap_content) {
-        die "No TAP output found in $tap_file for $suite\n";
-    }
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
+    my $whitelist = LTP::WhiteList->new($whitelist_file);
+    my $env = {
+        product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+        arch => get_var('ARCH', ''),
+    };
 
-    my $sanitized_suite_name = (split(':', $suite))[0];
-    my @lines = split /\n/, $tap_content;
+    my @full_ktap;
+    my @summary = split(/\n/, script_output("cat summary.tap"));
+    my $summary_ln_idx = 0;
+    my $test_index = 0;
 
-    my %group_failures;
-    my %group_known;
-    my %group_all_known;
-    my $current_group;
+    for my $test (@tests) {
+        $test_index++;
+        my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it
 
-    for my $line (@lines) {
-        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
-            $current_group = "$1:$2";
-            next;
-        }
-
-        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group) {
-            my $num = $1;
-            my $name = $2;
-            push @{$group_failures{$current_group}}, $num;
-
-            my $env = {
-                product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
-                arch => get_var('ARCH', ''),
-            };
-
-            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $name)) {
-                $group_known{$current_group}{$num} = 1;
+        # Check test result in the summary
+        my $summary_ln;
+        while ($summary_ln_idx < @summary) {
+            $summary_ln = $summary[$summary_ln_idx];
+            $summary_ln_idx++;
+            if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
+                my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
+                if ($test_failed && $whitelist->find_whitelist_entry($env, $collection, $test_name)) {
+                    $self->{result} = 'softfail';
+                    record_info("Known Issue", "$test marked as softfail");
+                    $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
+                }
+                # Break and keep the index so that we only read each line in the summary once
+                last;
+            } else {
+                # Push all lines that are not test results to the full log
+                push(@full_ktap, $summary_ln);
             }
         }
 
-        if ($line =~ /^not ok\s+\d+\s+selftests:\s+(\S+):\s+(\S+)/) {
-            my $grp = "$1:$2";
-            my $fails = $group_failures{$grp} // [];
-            my $known_map = $group_known{$grp} // {};
-
-            my $all_known = (@$fails && scalar(grep { !$known_map->{$_} } @$fails) == 0);
-            $group_all_known{$grp} = $all_known;
-        }
-    }
-
-    my @updated_lines;
-    my $current_group_for_update;
-    for my $line (@lines) {
-        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
-            $current_group_for_update = "$1:$2";
-            push @updated_lines, $line;
-            next;
-        }
-
-        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group_for_update) {
-            my $num = $1;
-            my $test_name = $2;
-            if ($group_known{$current_group_for_update}{$num}) {
-                $self->{result} = 'softfail';
-                record_info("Known issue", "$current_group_for_update:$test_name marked as softfail");
-                $line = "# ok $num $test_name # TODO Known issue";
+        # Check each subtest result in the individual test log
+        my @log = split(/\n/, script_output("cat /tmp/$test_name"));    # When using `--per-test-log`, that's where they are found
+        my $hardfails = 0;
+        my $fails = 0;
+        for my $test_ln (@log) {
+            if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
+                my $subtest_idx = $1;
+                my $subtest_name = $2;
+                if ($whitelist->find_whitelist_entry($env, $collection, $subtest_name)) {
+                    $self->{result} = 'softfail';
+                    record_info("Known Issue", "$test:$subtest_name marked as softfail");
+                    $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
+                } else {
+                    $hardfails++;
+                }
+                $fails++;
             }
+            push(@full_ktap, $test_ln);
         }
 
-        if ($line =~ /^not ok\s+(\d+)\s+selftests:\s+(\S+):\s+(\S+)/) {
-            my ($num, $suite_group, $sub_group) = ($1, $2, $3);
-            my $grp = "$suite_group:$sub_group";
-            if ($group_all_known{$grp}) {
-                $self->{result} = 'softfail';
-                record_info("Known issue", "All failed subtests in $grp are known issues; propagating TODO directive to the top-level");
-                $line = "ok $num selftests: $suite_group: $sub_group # TODO Known issue";
-            }
+        if ($fails > 0 && $hardfails == 0) {
+            record_info("Known Issue", "All failed subtests in $test are known issues; propagating TODO directive to the top-level");
+            $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
         }
 
-        push @updated_lines, $line;
+        push(@full_ktap, $summary_ln);
     }
 
-    my $tmp_file = "/tmp/updated_tap.$$";
-    script_output("cat <<'EOF' > $tmp_file\n" . join("\n", @updated_lines) . "\nEOF");
-    assert_script_run("mv $tmp_file $tap_file");
-
-    parse_extra_log(KTAP => $tap_file);
-}
-
-sub run_kselftest_case {
-    my ($self, $whitelist, $suite, $timeout, $script_path) = @_;
-
-    my $sanitized_name = $suite;
-    $sanitized_name =~ s/:/_/g;
-
-    my $cmd;
-    if ($suite =~ /:/) {
-        $cmd = "$script_path -o $timeout -t $suite >> $sanitized_name.tap";
-    } else {
-        $cmd = "$script_path -o $timeout -c $suite >> $sanitized_name.tap";
-    }
-
-    assert_script_run($cmd, 7200);
-    $self->postprocess_kselftest_results($whitelist, $suite, "$sanitized_name.tap");
+    script_output("cat <<'EOF' > kselftest.tap.txt\n" . join("\n", @full_ktap) . "\nEOF");
+    parse_extra_log(KTAP => 'kselftest.tap.txt');    # Append .txt so that it can be easily previewed within openQA
 }
 
 sub run {
     my ($self) = @_;
+
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
-    my $kselftest_git = get_var('KSELFTEST_FROM_GIT', 0);
-    my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
-    my @kselftests_suite = split(',', $kselftests_suite);
-    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
-    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
-    my $whitelist = LTP::WhiteList->new($whitelist_file);
-
-    if ($kselftest_git) {
-        prepare_kselftests_from_git();
-
-        foreach my $i (@kselftests_suite) {
-            install_kselftest_suite((split(':', $i))[0]);
-            assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-            run_kselftest_case($self, $whitelist, $i, $timeout, "./run_kselftest.sh");
-            assert_script_run("cd -");
-        }
+    my $collection = get_required_var('KSELFTEST_COLLECTION');
+    if (get_var('KSELFTEST_FROM_GIT', 0)) {
+        install_from_git($collection);
+        assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     } else {
-        prepare_kselftests_from_ibs("/usr/share/kselftests");
-
-        foreach my $i (@kselftests_suite) {
-            run_kselftest_case($self, $whitelist, $i, $timeout, "/usr/share/kselftests/run_kselftest.sh");
-        }
+        install_from_ibs($collection);
+        assert_script_run("cd /usr/share/kselftests");
     }
+
+    # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
+    # Since we only installed a single collection, it is the one that will be executed
+    my @all_tests = split(/\n/, script_output('./run_kselftest.sh --list'));
+
+    # Filter which tests will be ran using KSELFTEST_TESTS
+    my @tests = split /,/, get_var('KSELFTEST_TESTS', '');
+    if (!@tests) {
+        @tests = @all_tests;
+    }
+
+    # Filter which tests will *NOT* be ran using KSELFTEST_SKIP
+    my @skip = split /,/, get_var('KSELFTEST_SKIP', '');
+    if (@skip) {
+        my %skip = map { $_ => 1 } @skip;
+        # Remove tests that are in @skip
+        @tests = grep { !$skip{$_} } @tests;
+    }
+
+    # Run specific tests if the arrays have different lengths
+    my $tests = '';
+    if (@tests != @all_tests) {
+        $tests .= "--test $_ " for @tests;
+    }
+
+    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
+    assert_script_run("./run_kselftest.sh --per-test-log --override-timeout $timeout $tests > summary.tap", 7200);
+    $self->post_process($collection, @tests);
 }
 
 1;

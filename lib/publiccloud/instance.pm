@@ -494,7 +494,7 @@ sub wait_for_ssh {
       ", $instance_msg, Duration: $duration sec.\nResult: $sshout";
     $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
-    record_info("WAIT CHECK", $instance_msg);
+    record_info("WAIT CHECK", $instance_msg, result => ($sysout =~ m/\sfailed\s/ ? "fail" : "ok"));
     # OK
     return $duration if (isok($exit_code) and not $args{wait_stop});
     # FAIL

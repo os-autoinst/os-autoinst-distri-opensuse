@@ -39,6 +39,10 @@ subtest '[ipaddr2_infra_deploy]' => sub {
         'No cloudinit_profile provided so az vm create has no custom-data. Cloud-init disabled by default');
     ok((none { /sudo cloud-init status/ } @cmds),
         'No cloudinit_profile. Cloud-init disabled by default');
+    ok((any { /az network nic ip-config update.*private-ip-address.*\..+\..+\.41/ } @cmds),
+        "Run expected ip-config update for the VM with IP 41");
+    ok((any { /az network nic ip-config update.*private-ip-address.*\..+\..+\.42/ } @cmds),
+        "Run expected ip-config update for the VM with IP 42");
 };
 
 subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
@@ -294,6 +298,20 @@ subtest '[ipaddr2_cluster_create] rootless' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*cluster join.*-c.*cloudadmin@/ } @calls), 'crm cluster join uses a non root username');
+};
+
+subtest '[ipaddr2_cluster_check_version]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    ipaddr2_cluster_check_version();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ssh.*\.41.*rpm.*qf.*which crm/ } @calls), "Get rpm crm");
+    ok((any { /ssh.*\.41.*crm --version/ } @calls), "Get crm --version");
+    ok((any { /ssh.*\.41.*zypper se.*crmsh/ } @calls), "Get installed crmsh zypper package");
+
 };
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
@@ -961,16 +979,29 @@ subtest '[ipaddr2_test_other_vm]' => sub {
     ok((scalar @calls > 0), "Some calls");
 };
 
-subtest '[ipaddr2_refresh_repo]' => sub {
+subtest '[ipaddr2_repo_refresh]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_refresh_repo(id => '42');
+    ipaddr2_repo_refresh(id => '2');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /zypper ref/ } @calls), 'Call zypper ref');
+    ok((any { /ssh.*\.42 .*zypper.*ref/ } @calls), 'Call zypper ref');
+};
+
+subtest '[ipaddr2_repo_list]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_repo_list(id => '2');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ssh.*\.42 .*zypper.*lr/ } @calls), 'Call zypper lr');
+    ok((any { /ssh.*\.42 .*zypper.*ls/ } @calls), 'Call zypper ls');
 };
 
 subtest '[get_private_ip_range]' => sub {
@@ -1001,11 +1032,11 @@ subtest '[ipaddr2_network_peering_create]' => sub {
     ok $create_peering, "qesap_az_vnet_peering called";
 };
 
-subtest '[ipaddr2_scc_addons] no args' => sub {
+subtest '[ipaddr2_patch_system] no args' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    dies_ok { ipaddr2_scc_addons() } "die if no scc_addons argument is provided";
-    dies_ok { ipaddr2_scc_addons(scc_addons => '') } "die if empty scc_addons argument is provided";
+    dies_ok { ipaddr2_patch_systems() } "die if no scc_addons argument is provided";
+    dies_ok { ipaddr2_patch_systems(scc_addons => '') } "die if empty scc_addons argument is provided";
 };
 
 subtest '[ipaddr2_patch_system]' => sub {
@@ -1029,6 +1060,14 @@ subtest '[ipaddr2_patch_system]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     note("\n  FULLY PATCH CALL -->  " . join("\n  FULLY PATCH CALL -->  ", @fully_patch));
     ok @fully_patch, "Fully patch not called";
+};
+
+subtest '[ipaddr2_scc_addons] no args' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    dies_ok { ipaddr2_scc_addons() } "die if no argument is provided";
+    dies_ok { ipaddr2_scc_addons(priv_ip_range => '1.2.3') } "die if no scc_addons argument is provided";
+    dies_ok { ipaddr2_scc_addons(priv_ip_range => '1.2.3', scc_addons => '') } "die if empty scc_addons argument is provided";
 };
 
 subtest '[ipaddr2_scc_addons] one addon' => sub {
@@ -1055,6 +1094,22 @@ subtest '[ipaddr2_scc_addons] one addon' => sub {
         @addons = ();
     }
     ok 1;
+};
+
+subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+
+    ipaddr2_repos_add_server_to_hosts(ibsm_ip => 7.6.5.4, incident_repos => 'AAAA,BBBB');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ssh.*41.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 1 /etc/hosts");
+    ok((any { /ssh.*42.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 2 /etc/hosts");
+    ok((any { /ssh.*41.*zypper.*ar.*TEST_0.*AAAA/ } @calls), "Node 1 Repo TEST_0");
+    ok((any { /ssh.*41.*zypper.*ar.*TEST_1.*BBBB/ } @calls), "Node 1 Repo TEST_1");
+    ok((any { /ssh.*42.*zypper.*ar.*TEST_0.*AAAA/ } @calls), "Node 2 Repo TEST_0");
+    ok((any { /ssh.*42.*zypper.*ar.*TEST_1.*BBBB/ } @calls), "Node 2 Repo TEST_1");
 };
 
 done_testing;

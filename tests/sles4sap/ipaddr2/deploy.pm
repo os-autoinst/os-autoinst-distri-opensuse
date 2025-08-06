@@ -18,7 +18,7 @@ It creates the necessary resources in Azure, which includes:
 
 =head1 VARIABLES
 
-=over 4
+=over
 
 =item B<IPADDR2_CLOUDINIT>
 
@@ -100,7 +100,7 @@ sub run {
     # remove configuration file created by the PC factory
     # as it interfere with ssh behavior.
     # in particular it has setting about verbosity that
-    # break test steps that relay to remote ssh comman output
+    # break test steps that relay to remote ssh command output
     assert_script_run('rm ~/.ssh/config');
 
     my $os;

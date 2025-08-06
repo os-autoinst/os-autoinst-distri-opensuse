@@ -1,14 +1,55 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
-# Summary: Check that deployed resource in the cloud are as expected at OS level:
-#          Check packages, connectivity between nodes, network configuration
-#
-# This test module can be configured with these variables:
-#   - PUBLIC_CLOUD_PROVIDER: This setting is needed by other test modules usually scheduled with this one.
-#                            Variable here is only validated and only value 'AZURE' is supported at the moment.
+# Summary: Perform cluster sanity checks for the ipaddr2 test
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+ipaddr2/sanity_cluster.pm - Perform cluster sanity checks for the ipaddr2 test
+
+=head1 DESCRIPTION
+
+This module runs sanity checks specifically on the Pacemaker cluster created
+for the ipaddr2 test. It verifies the cluster's health, ensuring that it is
+properly configured and all resources are in the expected state.
+
+It primarily calls the C<ipaddr2_cluster_sanity> function from the shared
+library to perform the checks.
+
+
+=head1 VARIABLES
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. This module currently only supports 'AZURE'.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+If enabled (1), extended deployment logs (e.g., boot diagnostics) are
+collected on failure.
+
+=item B<IPADDR2_CLOUDINIT>
+
+This variable's state affects log collection on failure. If not set to 0
+(default is enabled), cloud-init logs are collected.
+
+=item B<IBSM_RG>
+
+The name of the Azure Resource Group for the IBSm (Infrastructure Build and
+Support mirror) environment. If this variable is set, the C<post_fail_hook>
+will clean up the network peering on failure.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';

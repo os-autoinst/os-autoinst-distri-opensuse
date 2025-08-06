@@ -24,7 +24,7 @@ Its primary tasks are:
 
 =head1 VARIABLES
 
-=over 4
+=over
 
 =item B<PUBLIC_CLOUD_PROVIDER>
 
@@ -64,6 +64,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_configure_web_server
   ipaddr2_bastion_pubip
   ipaddr2_cluster_create
+  ipaddr2_cluster_check_version
   ipaddr2_deployment_logs
   ipaddr2_infra_destroy
   ipaddr2_cloudinit_logs
@@ -94,7 +95,11 @@ sub run {
     }
 
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
-    ipaddr2_cluster_create(bastion_ip => $bastion_ip, rootless => get_var('IPADDR2_ROOTLESS', '0'));
+
+    ipaddr2_cluster_check_version();
+    ipaddr2_cluster_create(
+        bastion_ip => $bastion_ip,
+        rootless => get_var('IPADDR2_ROOTLESS', '0'));
 }
 
 sub test_flags {

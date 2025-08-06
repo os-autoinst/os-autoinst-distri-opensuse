@@ -21,7 +21,30 @@ consistent and up-to-date state for subsequent tests.
 =head1 VARIABLES
 
 This module does not require any specific configuration variables for its core functionality.
-It assumes that the system repositories are already configured and accessible.
+Some variables are needed for the correct execution of the post_fail_hook
+
+=over
+
+=item B<IPADDR2_CLOUDINIT>
+
+Enables or disables the use of cloud-init for SUT setup. Defaults to enabled (1).
+When enabled, cloud-init handles tasks such as image registration,
+installation of nginx and socat, and creation of a basic web page for SUT identification.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+Enable some diagnostic features as the additional deployment of some Azure resources needed
+to collect boot logs.
+
+=item B<IBSM_RG>
+
+The name of the Azure Resource Group for the IBSm (Infrastructure Build and Support mirror)
+environment. If this variable is set, it indicates that a network peering was
+established. This module uses it in the C<post_fail_hook> to clean up the
+peering connection if the test fails.
+
+=back
+
 
 =head1 MAINTAINER
 

@@ -1,8 +1,63 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Perform OS and cluster sanity checks for the ipaddr2 test
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+ipaddr2/sanity_os - Perform OS and cluster sanity checks for the ipaddr2 test
+
+=head1 DESCRIPTION
+
+This module performs a series of sanity checks on the deployed infrastructure
+for the ipaddr2 test. It verifies both the operating system (OS) configuration
+of the SUT (System Under Test) VMs and the basic health of the Pacemaker cluster.
+
+The OS-level checks verify network configuration, connectivity between nodes,
+SSH key setup for the configured user, systemd state, and cloud-init status.
+
+The cluster-level checks validate the overall status of the Pacemaker cluster
+and ensure all configured resources are running as expected.
+
+=head1 VARIABLES
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. This module currently only supports 'AZURE'.
+
+=item B<IPADDR2_ROOTLESS>
+
+Determines the user context for the SSH sanity checks. If set to 1, it validates
+the configuration for a rootless cluster setup (using the 'cloudadmin' user).
+If set to 0 or not defined (default), it validates the configuration for a
+cluster running as 'root'.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+If enabled (1), extended deployment logs (e.g., boot diagnostics) are collected on failure.
+
+=item B<IPADDR2_CLOUDINIT>
+
+This variable's state affects log collection on failure. If not set to 0 (default is enabled),
+cloud-init logs are collected, assuming it was used during deployment.
+
+=item B<IBSM_RG>
+
+The name of the Azure Resource Group for the IBSm (Infrastructure Build and Support mirror)
+environment. If this variable is set, it indicates that a network peering was
+established. This module uses it in the C<post_fail_hook> to clean up the
+peering connection if the test fails.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use strict;
 use warnings;
