@@ -35,6 +35,7 @@ sub run {
     my $zypper_migration_failed = qr/^Migration failed/m;
     my $zypper_migration_bsc1184347 = qr/rpmdb2solv: invalid option -- 'D'/m;
     my $zypper_migration_bsc1196114 = qr/scriptlet failed, exit status 127/m;
+    my $zypper_migration_bsc1241014 = qr/Detected 1 file conflict.*xxd.*Continue\?/ms;
     my $zypper_migration_license = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror = qr/URI::InvalidURIError/m;
     my $zypper_migration_reterror = qr/^No migration available|Can't get available migrations|Can't determine the list of installed products/m;
@@ -73,7 +74,7 @@ sub run {
     # kde zypper migration.
     my $timeout = (is_leap_migration) ? 18000 : 7200;
     my $migration_checks = [
-        $zypper_migration_bsc1184347, $zypper_migration_bsc1196114,
+        $zypper_migration_bsc1184347, $zypper_migration_bsc1196114, $zypper_migration_bsc1241014,
         $zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done,
         $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
         $zypper_migration_failed, $zypper_migration_license, $zypper_migration_reterror, $zypper_migration_signing_key
@@ -110,6 +111,12 @@ sub run {
             # othwerwise migration is done, test can continue, libsolv will be updated later
             record_soft_failure('bsc#1184347');
             last;
+        }
+        elsif ($out =~ $zypper_migration_bsc1241014) {
+            # LTSS can't be migrated, and there is fix for the bug
+            record_soft_failure('bsc#1241014');
+            type_string('yes');
+            send_key 'ret';
         }
         elsif ($out =~ $zypper_migration_error) {
             $zypper_migration_error_cnt += 1;
