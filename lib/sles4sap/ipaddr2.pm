@@ -594,7 +594,7 @@ sub ipaddr2_internal_key_accept {
                 $vm_addr,
                 'whoami',
                 '2>>/var/tmp/ssh_proxy_sut.log'
-              ));
+        ));
 
         if ($ret) {
             $ret = script_run(join(' ',
@@ -1283,7 +1283,7 @@ sub ipaddr2_ssh_internal_cmd {
         "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
         "'$args{cmd}'",
         '2>>/var/tmp/ssh_proxy_sut.log'
-      );
+    );
 }
 
 =head2 ipaddr2_ssh_internal
