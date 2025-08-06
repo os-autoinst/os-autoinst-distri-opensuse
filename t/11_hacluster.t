@@ -10,12 +10,37 @@ use Scalar::Util qw(looks_like_number);
 use List::Util qw(all any none);
 
 my %sbd_delay_params = (
-    'sbd_delay_start' => 'yes',
-    'corosync_token' => 5,
-    'corosync_consensus' => 5,
-    'sbd_watchdog_timeout' => 5,
-    'pcmk_delay_max' => 5
+    sbd_delay_start => 'yes',
+    corosync_token => 5,
+    corosync_consensus => 5,
+    sbd_watchdog_timeout => 5,
+    pcmk_delay_max => 5
 );
+
+my %original_hacluster_sbd_delay_params = (
+    corosync_token => $hacluster::corosync_token,
+    corosync_consensus => $hacluster::corosync_consensus,
+    sbd_watchdog_timeout => $hacluster::sbd_watchdog_timeout,
+    sbd_delay_start => $hacluster::sbd_delay_start,
+    pcmk_delay_max => $hacluster::pcmk_delay_max
+);
+
+sub mock_hacluster_sbd_delay_parameters {
+    my %args = @_;
+    $hacluster::corosync_token = $args{corosync_token} // 1;
+    $hacluster::corosync_consensus = $args{corosync_consensus} // 2;
+    $hacluster::sbd_watchdog_timeout = $args{sbd_watchdog_timeout} // 3;
+    $hacluster::sbd_delay_start = $args{sbd_delay_start} // 4;
+    $hacluster::pcmk_delay_max = $args{pcmk_delay_max} // 42;
+}
+
+sub reset_hacluster_sbd_delay_parameters {
+    $hacluster::corosync_token = $original_hacluster_sbd_delay_params{corosync_token};
+    $hacluster::corosync_consensus = $original_hacluster_sbd_delay_params{corosync_consensus};
+    $hacluster::sbd_watchdog_timeout = $original_hacluster_sbd_delay_params{sbd_watchdog_timeout};
+    $hacluster::sbd_delay_start = $original_hacluster_sbd_delay_params{sbd_delay_start};
+    $hacluster::pcmk_delay_max = $original_hacluster_sbd_delay_params{pcmk_delay_max};
+}
 
 subtest '[calculate_sbd_start_delay] Check sbd_delay_start values' => sub {
     my $sbd_delay;
@@ -71,25 +96,79 @@ subtest '[script_output_retry_check] Check input values' => sub {
     dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => '^\d+$', sleep => '1', retry => '2') } "Test failing regex";
 };
 
-subtest '[script_output_retry_check] Diskless SBD scenario' => sub {
+subtest '[collect_sbd_delay_parameters] retry corosync-cmapctl' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     # Just returns whatever you put as command
     $hacluster->redefine(script_output => sub { return $_[0]; });
+    my @retry_cmds = ();
+    $hacluster->redefine(script_retry => sub { push @retry_cmds, @_; });
 
-    $corosync_token = 1;
-    $corosync_consensus = 2;
-    $sbd_watchdog_timeout = 3;
-    $sbd_delay_start = 4;
-    $pcmk_delay_max = "asdf";
+    mock_hacluster_sbd_delay_parameters();
+    collect_sbd_delay_parameters();
+    note(join(' ', 'SCRIPT_RETRY -->', @retry_cmds));
+    is $retry_cmds[0], 'corosync-cmapctl', 'corosync-cmapctl called with script_retry()';
+    is $retry_cmds[2], 30, 'script_retry() delay set to 30s';
+    is $retry_cmds[4], $hacluster::default_timeout, "script_retry() timeout set to ${hacluster::default_timeout}s";
+    reset_hacluster_sbd_delay_parameters();
+};
 
+subtest '[collect_sbd_delay_parameters] SBD scenario' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    # Just returns whatever you put as command
+    $hacluster->redefine(script_output => sub { return $_[0]; });
+    $hacluster->redefine(script_retry => sub { return 0; });
+
+    mock_hacluster_sbd_delay_parameters();
     my %params = collect_sbd_delay_parameters();
-    is $params{'pcmk_delay_max'}, 0, "Test pcmk_delay_max undefined: pcmk_delay_max = $params{'pcmk_delay_max'}";
+    is $params{'corosync_token'}, 1, "Test corosync_token correctly set: = corosync_token $params{'corosync_token'}";
+    is $params{'corosync_consensus'}, 2, "Test corosync_consensus correctly set: corosync_consensus = $params{'corosync_consensus'}";
+    is $params{'sbd_watchdog_timeout'}, 3, "Test sbd_watchdog_timeout correctly set: sbd_watchdog_timeout = $params{'sbd_watchdog_timeout'}";
+    is $params{'sbd_delay_start'}, 4, "Test sbd_delay_start correctly set: sbd_delay_start = $params{'sbd_delay_start'}";
+    is $params{'pcmk_delay_max'}, 42, "Test pcmk_delay_max correctly set: pcmk_delay_max = $params{'pcmk_delay_max'}";
+    reset_hacluster_sbd_delay_parameters();
+};
 
+subtest '[collect_sbd_delay_parameters] SBD scenario - undefined pcmk_delay_max' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @record_info = ();
+    $hacluster->redefine(record_info => sub { push @record_info, @_; });
+    # Just returns whatever you put as command
+    $hacluster->redefine(script_output => sub { return $_[0]; });
+    $hacluster->redefine(script_retry => sub { return 0; });
+
+    mock_hacluster_sbd_delay_parameters(pcmk_delay_max => 'asdf');
+    my %params = collect_sbd_delay_parameters();
+    note(join(' ', 'RECORD_INFO -->', @record_info));
+    is $params{'corosync_token'}, 1, "Test corosync_token correctly set: = corosync_token $params{'corosync_token'}";
+    is $params{'corosync_consensus'}, 2, "Test corosync_consensus correctly set: corosync_consensus = $params{'corosync_consensus'}";
+    is $params{'sbd_watchdog_timeout'}, 3, "Test sbd_watchdog_timeout correctly set: sbd_watchdog_timeout = $params{'sbd_watchdog_timeout'}";
+    is $params{'sbd_delay_start'}, 4, "Test sbd_delay_start correctly set: sbd_delay_start = $params{'sbd_delay_start'}";
+    is $params{'pcmk_delay_max'}, 0, "Test pcmk_delay_max undefined: pcmk_delay_max = $params{'pcmk_delay_max'}";
+    ok((any { qr|Retry 3/3| } @record_info), 'pcmk_delay_max command retried 3 times');
+    ok((any { /Script output did not match pattern/ } @record_info), 'pcmk_delay_max command retried 3 times due to unmatched pattern');
+    ok((any { /Output: asdf/ } @record_info), 'pcmk_delay_max command retried 3 times due to unmatched pattern: "asfd" !~ /^\d+$/');
+    reset_hacluster_sbd_delay_parameters();
+};
+
+subtest '[collect_sbd_delay_parameters] Diskless SBD scenario' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    # Just returns whatever you put as command
+    $hacluster->redefine(script_output => sub { return $_[0]; });
+    $hacluster->redefine(script_retry => sub { return 0; });
+
+    mock_hacluster_sbd_delay_parameters();
     set_var('USE_DISKLESS_SBD', 1);
-    %params = collect_sbd_delay_parameters();
+    my %params = collect_sbd_delay_parameters();
+    is $params{'corosync_token'}, 1, "Test corosync_token correctly set: = corosync_token $params{'corosync_token'}";
+    is $params{'corosync_consensus'}, 2, "Test corosync_consensus correctly set: corosync_consensus = $params{'corosync_consensus'}";
+    is $params{'sbd_watchdog_timeout'}, 3, "Test sbd_watchdog_timeout correctly set: sbd_watchdog_timeout = $params{'sbd_watchdog_timeout'}";
+    is $params{'sbd_delay_start'}, 4, "Test sbd_delay_start correctly set: sbd_delay_start = $params{'sbd_delay_start'}";
     is $params{'pcmk_delay_max'}, 30, "Test diskless scenario: pcmk_delay_max = $params{'pcmk_delay_max'}";
     set_var('USE_DISKLESS_SBD', undef);
+    reset_hacluster_sbd_delay_parameters();
 };
 
 subtest '[cluster_status_matches_regex]' => sub {
