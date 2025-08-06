@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use testapi;
 use JSON qw(decode_json to_json);
-use JSON::PP;
 use power_action_utils 'power_action';
 
 sub run {
