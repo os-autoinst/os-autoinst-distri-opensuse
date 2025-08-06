@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use JSON qw(decode_json to_json);
+use JSON::PP;
 use power_action_utils 'power_action';
 
 sub run {
@@ -19,12 +20,12 @@ sub run {
     $json->{'product'}->{'id'} = 'SLES';
     $json->{'product'}->{'registrationCode'} = get_var('SCC_REGCODE');
     $json->{'root'} = {
-        'hashedPassword' => true,
+        'hashedPassword' => JSON::PP::true,
         'password' => '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     };
     $json->{'user'} = {
         'fullName' => 'Bernhard M. Wiedemann',
-        'hashedPassword' => true,
+        'hashedPassword' => JSON::PP::true,
         'password' => '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
         'userName' => 'bernhard'
     };
