@@ -54,7 +54,7 @@ sub run_test {
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
     # enable 8 vfs for the SR-IOV device on host
-    my @host_vfs = enable_vf(@host_pfs);
+    my @host_vfs = enable_vf(pfs => @host_pfs, number => get_var("ENABLE_VF_COUNT", '7'));
     record_info("VFs enabled", "@host_vfs");
 
     # Restore /etc/resolv.conf after VFs are created
@@ -204,7 +204,9 @@ sub find_sriov_ethernet_devices {
 
 #enable 8 virtual functions for the specified physical functions of the SR-IOV network device
 sub enable_vf {
-    my @pfs = @_;
+    my %args = @_;
+    my @pfs = $args{pfs};
+    my $number = $args{number} // 7;
 
     #enable VFs for SR-IOV PFs by modifying SYS PCI
     #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
@@ -212,10 +214,11 @@ sub enable_vf {
     #also modifying SYS PCI allows to enable specified PFs
     foreach my $pf (@pfs) {
         #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
-        assert_script_run("echo 7 > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
+        assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
     }
 
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
+    record_info("Error", "The VF number is not correct!", result => 'fail') if script_output("echo '$vf_devices' | wc -l") != $number;
     my @vfs = split("\n", $vf_devices);
 
 }
