@@ -73,7 +73,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 jq libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
-    push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=15-SP6'));
+    push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=16'));
 
     $self->bats_setup(@pkgs);
 
