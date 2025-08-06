@@ -25,6 +25,13 @@ sub run {
     } else {
         die "Error, JSON profile in DUD file not loaded";
     }
+
+    my $kernel_dud_output = script_output("journalctl | grep dud");
+    if ($kernel_dud_output =~ /Apply inst-sys update from \/sysroot\/run\/agama\/dud\/dud_\d{3}\/linux\/suse/) {
+        diag "Kernel module DUD applied successfully";
+    } else {
+        die "Error, kernel module DUD not loaded";
+    }
 }
 
 1;
