@@ -47,7 +47,7 @@ sub install_from_ibs
 {
     my ($collection) = @_;
 
-    my $repo = get_var('KSELFTESTS_REPO', '');
+    my $repo = get_var('KSELFTEST_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
 
@@ -131,7 +131,7 @@ sub run {
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
-    my $collection = get_required_var('KSELFTESTS_COLLECTION');
+    my $collection = get_required_var('KSELFTEST_COLLECTION');
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
@@ -145,7 +145,7 @@ sub run {
 
     my @tests = split(/\n/, script_output('./run_kselftest.sh --list'));
     my $tests = '';
-    my @skip = split /,/, get_var('KSELFTESTS_SKIP', '');
+    my @skip = split /,/, get_var('KSELFTEST_SKIP', '');
     if (@skip) {
         my %skip = map { $_ => 1 } @skip;
         # Remove tests that are in @skip
