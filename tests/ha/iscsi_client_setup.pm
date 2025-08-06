@@ -28,10 +28,17 @@ sub run {
     ping_size_check(testapi::host_ip());
     ping_size_check($iscsi_server);
 
+    record_info 'iscsi initiator pre configuration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
+    record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
+
     # open-iscsi & iscsiuio
     zypper_call 'in open-iscsi' if (script_run('rpm -q open-iscsi'));
+    record_info 'iscsi initiator pre configuration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
+    record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     record_info('open-iscsi version', script_output('rpm -q open-iscsi'));
 
+    assert_script_run '/sbin/iscsi-gen-initiatorname -f';
+    record_info 'iscsi initiator after forcing regeneration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     systemctl 'enable --now iscsid';
     record_info('iscsid status', script_output('systemctl status iscsid'));
 

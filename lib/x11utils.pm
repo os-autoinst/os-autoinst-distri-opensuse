@@ -522,7 +522,7 @@ Turns off the screensaver depending on desktop environment
 sub turn_off_screensaver {
     return turn_off_kde_screensaver if check_var('DESKTOP', 'kde');
     die "Unsupported desktop '" . get_var('DESKTOP', '') . "'" unless check_var('DESKTOP', 'gnome');
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     turn_off_gnome_screensaver;
     script_run 'exit', 0;
 }

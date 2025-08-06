@@ -1,0 +1,31 @@
+disks:
+  - name: vda
+    partitions:
+      - size: 2MiB
+        role: raw-volume
+        id: bios-boot
+      - size: 15GiB
+        role: raw-volume
+        id: linux-lvm
+      - role: raw-volume
+        id: linux-lvm
+lvm:
+  volume_groups:
+  - name: vg-no-thin
+    devices:
+      - /dev/vda2
+    logical_volumes:
+      - name: lv-swap
+        size: 2GiB
+        role: swap
+      - name: lv-root
+        role: operating-system
+  - name: vg-thin
+    devices:
+      - /dev/vda3
+    logical_volumes:
+      - name: lv-thin-pool
+        type: thin-pool
+      - name: lv-home
+        type: thin-volume
+        role: data

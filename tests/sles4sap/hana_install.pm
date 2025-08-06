@@ -93,8 +93,9 @@ sub get_test_summary {
 
 sub restorecon_rootfs {
     # restorecon does not behave too well with btrfs, so exclude /.snapshots in btrfs rootfs
-    assert_script_run 'test -d /.snapshots && restorecon -R / -e /.snapshots';
-    assert_script_run 'test -d /.snapshots || restorecon -R /';
+    my $restorecon_cmd = 'restorecon -R /';
+    $restorecon_cmd .= ' -e /.snapshots' unless (script_run('test -d /.snapshots'));
+    assert_script_run "$restorecon_cmd";
 }
 
 sub run {
@@ -288,8 +289,9 @@ sub run {
     # installs shared pkgs from dir 'hdbclient'
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
-      --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
+      --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
     );
+    push @hdblcm_args, "--userid=" . get_var('SIDADM_UID', '1001');
     push @hdblcm_args,
       "--components=" . get_var("HDBLCM_COMPONENTS", 'server'),
       "--sid=$sid",

@@ -1,12 +1,9 @@
-# SUSE's openQA tests
-#
-# Copyright 2016-2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package:  rabbitmq-server python3-pika
+# Package: rabbitmq-server
 # Summary: rabbitmq test suite based on
 #  https://www.rabbitmq.com/tutorials/tutorial-one-python.html
-#  Solely added because someone added "rabbitmq" to the Leap42.2 test plan :-)
 #
 # Maintainer: QE Core <qe-core@suse.de>
 
@@ -16,22 +13,25 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
-    zypper_call 'in rabbitmq-server';
+    select_serial_terminal;
+    zypper_call 'in rabbitmq-server go wget';
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    zypper_call 'in python3-pika wget';
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq
-wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/send.py
-python3 send.py
-wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/receive.py
+wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/send.go
+go mod init amqp-go
+go get github.com/rabbitmq/amqp091-go
+go mod tidy
+go run send.go
+wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/receive.go
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    enter_cmd("timeout 1 python3 receive.py > /dev/$serialdev");
+    enter_cmd('timeout 2 go run receive.go');
     wait_serial(".*Received.*Hello World.*");
     # should be simple assert_script_run but takes too long to stop so
     # workaround
@@ -40,8 +40,8 @@ EOF
         record_soft_failure 'boo#1029031 stopping systemd service takes more than 90s';
         send_key 'ctrl-c';
         # ignore non-zero exit code when collecting more data on soft fail
-        script_run("systemctl status --no-pager rabbitmq-server | tee /dev/$serialdev");
-        script_run("rpm -q --changelog rabbitmq-server | head -n 60 | tee /dev/$serialdev");
+        script_run('systemctl status --no-pager rabbitmq-server');
+        script_run('rpm -q --changelog rabbitmq-server | head -n 60');
         systemctl 'stop rabbitmq-server', timeout => 300;
     }
     # poo#166541, test rabbitmq-server 3.11+ and erlang 25+ on sle15sp6/sp7
@@ -57,8 +57,8 @@ EOF
         zypper_call 'in rabbitmq-server31*';
         systemctl 'start rabbitmq-server';
         systemctl 'status rabbitmq-server';
-        enter_cmd 'python3 send.py';
-        enter_cmd("timeout 1 python3 receive.py > /dev/$serialdev");
+        enter_cmd 'go run send.go';
+        enter_cmd('timeout 2 go run receive.go');
         wait_serial(".*Received.*Hello World.*");
         systemctl 'stop rabbitmq-server';
     }

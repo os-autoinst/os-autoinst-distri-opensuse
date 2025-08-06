@@ -13,8 +13,11 @@ use base "consoletest";
 use testapi;
 use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
+use version_utils qw(is_agama);
 
 sub run {
+    return if (is_agama && check_var('FLAVOR', 'Full'));
+
     my $test_data = get_test_suite_data();
 
     select_console 'root-console';

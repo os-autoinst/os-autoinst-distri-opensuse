@@ -27,11 +27,11 @@ tests/console/textinfo.pm
 tests/console/hostname.pm
 tests/console/zypper_lr.pm
 tests/console/zypper_ref.pm
+tests/console/zypper_in.pm
+tests/console/zypper_log.pm
 tests/console/yast2_lan.pm
 tests/console/curl_https.pm
 tests/console/glibc_tunables.pm
-tests/console/zypper_in.pm
-tests/console/zypper_log.pm
 tests/console/yast2_i.pm
 tests/console/yast2_bootloader.pm
 tests/console/vim.pm

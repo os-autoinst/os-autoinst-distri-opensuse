@@ -132,8 +132,8 @@ sub prepare_for_kdump {
         return;
     }
 
-    if (my $snapshot_debuginfo_repo = get_var('REPO_OSS_DEBUGINFO')) {
-        zypper_call('ar -f ' . get_var('MIRROR_HTTP') . "-debuginfo $snapshot_debuginfo_repo");
+    if (my $snapshot_debuginfo_repo = get_var('REPO_OSS_DEBUG')) {
+        zypper_call('ar -f ' . get_var('MIRROR_PREFIX') . "/$snapshot_debuginfo_repo $snapshot_debuginfo_repo");
         install_kernel_debuginfo;
         zypper_call("rr $snapshot_debuginfo_repo");
         return;
@@ -361,6 +361,8 @@ sub kdump_is_active {
 }
 
 sub do_kdump {
+    # clear screen
+    assert_script_run "reset";
     # get dump
     script_run "echo c > /proc/sysrq-trigger", 0;
 }

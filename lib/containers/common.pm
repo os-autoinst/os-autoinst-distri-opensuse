@@ -107,7 +107,7 @@ sub install_docker_multiplatform {
 
     my $pkg_name = check_var("CONTAINERS_DOCKER_FLAVOUR", "stable") ? "docker-stable" : "docker";
     if (is_transactional) {
-        select_console 'root-console';
+        select_serial_terminal;
         trup_call("pkg install $pkg_name");
         check_reboot_changes;
         return;
@@ -233,7 +233,7 @@ sub check_containers_connectivity {
     my $container_name = 'sut_container';
     my $image = "registry.opensuse.org/opensuse/busybox:latest";
 
-    script_retry "$runtime pull $image", retry => 3, delay => 120;
+    script_retry "$runtime pull $image", timeout => 300, retry => 3, delay => 120;
     assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 $image sleep infinity";
     my $container_ip = container_ip $container_name, $runtime;
 

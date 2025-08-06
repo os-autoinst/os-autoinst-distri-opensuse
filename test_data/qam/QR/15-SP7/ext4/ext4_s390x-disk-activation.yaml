@@ -1,0 +1,19 @@
+---
+guided_partitioning:
+  filesystem_options:
+    root_filesystem_type: ext4
+disks:
+  - name: dasda
+    table_type: dasd
+    partitions:
+      - name: dasda1
+        formatting_options:
+          filesystem: ext4
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: dasda2
+        formatting_options:
+          filesystem: swap
+        mounting_options:
+          mount_point: SWAP

@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
-use registration qw(get_addon_fullname add_suseconnect_product);
+use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
@@ -51,6 +51,16 @@ our @EXPORT = qw(
   kill_packagekit
   allow_openqa_port_selinux
   ssh_update_transactional_system
+  create_script_file
+  install_in_venv
+  venv_activate
+  get_python_exec
+  zypper_add_repo_remote
+  zypper_remove_repo_remote
+  get_installed_packages_remote
+  get_available_packages_remote
+  zypper_install_remote
+  zypper_install_available_remote
 );
 
 # Check if we are a BYOS test run
@@ -132,7 +142,8 @@ sub register_addon {
     assert_script_run 'source /tmp/os-release';
 
     if ($addon =~ /ltss/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . get_required_var('SCC_REGCODE_LTSS'), timeout => $timeout, retries => $retries, delay => $delay);
+        my $name = get_addon_fullname($addon);
+        ssh_add_suseconnect_product($remote, $name, program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . $ADDONS_REGCODE{$name}, timeout => $timeout, retries => $retries, delay => $delay);
     } elsif (is_ondemand) {
         record_info($addon, 'This is on demand image, we will not register this addon.');
         return;
@@ -194,27 +205,22 @@ sub deregister_addon {
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
-    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
-    my $cmd_time = time();
+    my $suseconnect = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
 
     # Check what version of registercloudguest binary we use, chost images have none pre-installed
     my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
     if ($version =~ /cloud-regionsrv-client is not installed/) {
         die 'cloud-regionsrv-client should not be installed' if !is_container_host;
-    } else {
-        # Only a specific version of the package has issue and only on a specific SP
-        # Do not activate the workaround if the user explicitly decide using a specific ENDPOINT
-        if (is_sle('15-SP2+') && check_version('<10.1.7', $version) && !get_var('PUBLIC_CLOUD_SCC_ENDPOINT')) {
-            record_soft_failure("bsc#1217583 IPv6 handling during registration. Force use SUSEConnect to work around it.");
-            $suseconnect = 'SUSEConnect';
-        }
     }
+
+    my $cmd_time = time();
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+
+    # If the SSH master socket is active, exit it, so the next SSH command will (re)login
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
         assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
     }
-    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub register_addons_in_pc {
@@ -461,6 +467,328 @@ sub ssh_update_transactional_system {
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
     die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
+}
+
+=head2 get_python_exec
+
+get_python_exec()
+
+Returns the Python executable name for public cloud purposes. As of now, it returns "python3.11" by default.
+
+=cut
+
+sub get_python_exec {
+    my $version = '3.11';
+    return "python$version";
+}
+
+=head2 create_script_file
+
+create_script_file($filename, $fullpath, $content)
+
+Creates a script file with the given content, downloads it from the autoinst URL, and makes it executable.
+This is useful for creating scripts that can be run on the public cloud instance.
+
+=cut
+
+sub create_script_file {
+    my ($filename, $fullpath, $content) = @_;
+    save_tmp_file($filename, $content);
+    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
+    assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
+=head2 install_in_venv
+
+install_in_venv($binary, %args)
+
+Installs a Python package in a virtual environment. The package can be specified either by a requirements.txt file or by a list of pip packages.
+The function creates a virtual environment, installs the specified package(s), and creates a wrapper script to run the binary within the virtual environment.
+
+=cut
+
+sub install_in_venv {
+    my ($binary, %args) = @_;
+
+    die("Missing binary name") unless $binary;
+    die("Need to define path to requirements.txt or list of packages")
+      unless $args{pip_packages} || $args{requirements};
+
+    my $venv = venv_create($binary);
+    venv_activate($venv);
+
+    my $what_to_install = venv_prepare_install_source($binary, \%args);
+    venv_install_packages($what_to_install);
+
+    venv_record_installed_packages($venv);
+    venv_deactivate();
+
+    my $script = venv_generate_runner_script($binary, $venv);
+    my $fullpath = "$venv/bin/$binary-run-in-venv";
+
+    create_script_file($binary, $fullpath, $script);
+    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
+
+    return $venv;
+}
+
+=head2 venv_create
+
+venv_create($binary)
+
+Creates a Python virtual environment in the home directory of the root user.
+The virtual environment is named after the binary, prefixed with ".venv_".
+
+=cut
+
+sub venv_create {
+    my ($binary) = @_;
+    my $python_exec = get_python_exec();
+    my $venv = "/root/.venv_$binary";
+
+    assert_script_run("$python_exec -m venv $venv");
+    return $venv;
+}
+
+=head2 venv_activate
+
+venv_activate($venv)
+
+Activates the Python virtual environment specified by C<$venv>.
+
+=cut
+
+sub venv_activate {
+    my ($venv) = @_;
+    assert_script_run("source '$venv/bin/activate'");
+}
+
+=head2 venv_prepare_install_source
+
+venv_prepare_install_source($binary, $args_ref)
+
+Prepares the source for installation in the virtual environment.
+If the C<requirements> argument is defined, it fetches a requirements.txt file from the
+autoinst URL and returns the path to that file.
+If not, it returns the list of pip packages to install.
+
+=cut
+
+sub venv_prepare_install_source {
+    my ($binary, $args_ref) = @_;
+    if (defined $args_ref->{requirements}) {
+        my $url = sprintf('%s/data/publiccloud/venv/%s.txt', autoinst_url(), $binary);
+        my $dst = "/tmp/$binary.txt";
+        assert_script_run("curl -f -v $url > $dst");
+        return "-r $dst";
+    }
+    return $args_ref->{pip_packages};
+}
+
+=head2 venv_install_packages
+
+venv_install_packages($install_target)
+
+Installs the specified package(s) in the virtual environment using pip.
+This function takes a string that can be either a path to a requirements.txt file or a list of pip packages.
+
+=cut
+
+sub venv_install_packages {
+    my ($install_target) = @_;
+    my $timeout = 15 * 60;
+    assert_script_run("pip install --force-reinstall $install_target", timeout => $timeout);
+}
+
+=head2 venv_record_installed_packages
+
+venv_record_installed_packages($venv)
+Records the installed packages in the virtual environment by running `pip freeze`.
+
+=cut
+
+sub venv_record_installed_packages {
+    my ($venv) = @_;
+    record_info($venv, script_output('pip freeze'));
+}
+
+=head2 venv_deactivate
+
+venv_deactivate()
+
+Deactivates the currently active Python virtual environment.
+
+=cut
+
+sub venv_deactivate {
+    assert_script_run('deactivate');
+}
+
+=head2 venv_generate_runner_script
+
+venv_generate_runner_script($binary, $venv)
+
+Generates a shell script that activates the virtual environment and runs the specified binary.
+This script checks if the binary exists in the virtual environment and exits with an error if it does not.
+
+=cut
+
+sub venv_generate_runner_script {
+    my ($binary, $venv) = @_;
+    return <<"EOT";
+#!/bin/sh
+. "$venv/bin/activate"
+if [ ! -e "$venv/bin/$binary" ]; then
+   echo "Missing $binary in virtualenv $venv"
+   deactivate
+   exit 2
+fi
+$binary "\$@"
+exit_code=\$?
+deactivate
+exit \$exit_code
+EOT
+}
+
+=head2 get_installed_packages_remote
+
+get_installed_packages_remote($instance, $packages_ref)
+
+This function checks which packages from the provided list are installed on the remote instance.
+It returns an array reference containing the names of the installed packages.
+
+=cut
+
+sub get_installed_packages_remote {
+    my ($instance, $packages_ref) = @_;
+
+    my $pkg_list = join(' ', @$packages_ref);
+    my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
+
+    my $output = $instance->run_ssh_command(
+        cmd => $cmd,
+        proceed_on_failure => 1
+    );
+
+    my %installed;
+    for my $entry (split /\|/, $output) {
+        next if $entry =~ /is not installed/i;
+        $installed{$entry} = 1;
+    }
+
+    my @found = grep { $installed{$_} } @$packages_ref;
+    return \@found;
+}
+
+=head2 get_available_packages_remote
+
+get_available_packages_remote($instance, $packages_ref)
+
+This function checks which packages from the provided list are available for installation on the remote instance.
+It returns an array reference containing the names of the available packages.
+It uses `zypper -x info` to query the availability of packages.
+
+=cut
+
+sub get_available_packages_remote {
+    my ($instance, $packages_ref) = @_;
+    die "Expected arrayref" unless ref($packages_ref) eq 'ARRAY';
+
+    my %installed = map { $_ => 1 } @{get_installed_packages_remote($instance, $packages_ref)};
+    my @not_installed = grep { !$installed{$_} } @$packages_ref;
+    return [] unless @not_installed;
+
+    my $pkg_list = join(' ', @not_installed);
+    my $output = $instance->run_ssh_command(
+        cmd => "zypper -x info $pkg_list 2>/dev/null",
+        proceed_on_failure => 1
+    );
+
+    # Grep all "Name           : <pkg>" lines
+    my %available = map { $_ => 1 } ($output =~ /^Name\s*:\s*(\S+)/mg);
+
+    # Return only those that are in the original not-installed list
+    my @result = grep { $available{$_} } @not_installed;
+    return \@result;
+}
+
+=head2 zypper_add_repo_remote
+
+zypper_add_repo_remote($instance, $repo_name, $repo_url)
+
+This function adds a repository to the remote instance using zypper.
+It uses the `-fG` options to add the repository as a GPG-verified repository.
+
+=cut
+
+sub zypper_add_repo_remote {
+    my ($instance, $repo_name, $repo_url) = @_;
+    $instance->run_ssh_command(
+        cmd => "sudo zypper -n addrepo -fG $repo_url $repo_name",
+        timeout => 600
+    );
+}
+
+=head2 zypper_remove_repo_remote
+
+zypper_remove_repo_remote($instance, $repo_name)
+
+This function removes a repository from the remote instance using zypper.
+It uses the `-n` option to run the command non-interactively.
+
+=cut
+
+sub zypper_remove_repo_remote {
+    my ($instance, $repo_name) = @_;
+    $instance->run_ssh_command(
+        cmd => "sudo zypper -n removerepo $repo_name",
+        timeout => 600
+    );
+}
+
+=head2 zypper_install_remote
+
+zypper_install_remote($instance, $packages)
+
+This function installs the specified packages on the remote instance using zypper.
+It handles both transactional updates and regular zypper installations based on the system type.
+
+=cut
+
+sub zypper_install_remote {
+    my ($instance, $packages) = @_;
+
+    my @pkg_list = ref($packages) eq 'ARRAY' ? @$packages : ($packages);
+    my $pkg_str = join(' ', @pkg_list);
+
+    if (is_transactional) {
+        $instance->run_ssh_command(
+            cmd => "sudo transactional-update -n pkg install --no-recommends $pkg_str",
+            timeout => 900
+        );
+        $instance->softreboot();
+    } else {
+        $instance->run_ssh_command(
+            cmd => "sudo zypper -n in --no-recommends $pkg_str",
+            timeout => 600
+        );
+    }
+}
+
+=head2 zypper_install_available_remote
+
+zypper_install_available_remote($instance, $packages_ref)
+
+This function checks which packages from the provided list are available for installation on the remote instance.
+If any packages are available, it installs them using zypper_install_remote.
+
+=cut
+
+sub zypper_install_available_remote {
+    my ($instance, $packages_ref) = @_;
+    my $available_ref = get_available_packages_remote($instance, $packages_ref);
+    return unless @$available_ref;
+    zypper_install_remote($instance, $available_ref);
 }
 
 1;

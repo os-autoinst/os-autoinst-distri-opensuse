@@ -12,5 +12,4 @@ schedule:
     - sles4sap/qesapdeployment/test_cluster
     - sles4sap/qesapdeployment/test_mirror
     - sles4sap/qesapdeployment/test_crash
-    - sles4sap/qesapdeployment/test_console_redirection
     - sles4sap/qesapdeployment/destroy

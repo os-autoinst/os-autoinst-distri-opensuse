@@ -847,12 +847,18 @@ subtest '[az_validate_uuid_pattern] invalid UUID' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(diag => sub { return; });
     my @uuid_list = ('OhCaptainMyCaptain',    # complete nonsense
-        'c0ffeee-c0ff-eeee-1234-123456abcdef',    # First 7 characters inttead of 8
+        'c0ffeee-c0ff-eeee-1234-123456abcdef',    # First 7 characters instead of 8
         'c0ffeeee-c0ff-eeee-xxxx-123456abcde',    # Using non hexadecimal values 'x'
-        'c0ffeeee_c0ff-eeee-1234-123456abcdef');    # Underscore instead of dash
-
+        'c0ffeeee_c0ff-eeee-1234-123456abcdef',    # Underscore instead of dash
+        <<'END_MSG'
+There is already a lease present.
+RequestId:'c0ffeeee-c0ff-eeee-1234-123456abcdef
+Time:2025-07-21T00:00:eciapili70Z
+ErrorCode:LeaseAlreadyPresent
+END_MSG
+    );    # A message with a UUID inside, but not a valid UUID
     foreach my $bad_uuid (@uuid_list) {
-        is az_validate_uuid_pattern(uuid => $bad_uuid), 0, "Return '0' with invalid UUID: $bad_uuid";
+        is az_validate_uuid_pattern(uuid => $bad_uuid), undef, "Return 'undef' with invalid UUID: $bad_uuid";
     }
 };
 
@@ -898,13 +904,14 @@ subtest '[az_storage_blob_upload]' => sub {
     ok(grep(/--file Colombina/, @calls), 'Check for argument "--file"');
 };
 
-subtest '[az_storage_blob_lease_acquire]' => sub {
+subtest '[az_storage_blob_lease_acquire] valid UUID' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '521fa121-4e04-448e-a8ec-d17e6b9c5e78'; });
+    my $uuid = '521fa121-4e04-448e-a8ec-d17e6b9c5e78';
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return $uuid; });
     $azcli->redefine(record_info => sub { return; });
 
-    az_storage_blob_lease_acquire(
+    my $ret = az_storage_blob_lease_acquire(
         container_name => 'Arlecchino',
         storage_account_name => 'Pantalone',
         blob_name => 'Colombina',
@@ -918,6 +925,43 @@ subtest '[az_storage_blob_lease_acquire]' => sub {
     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
     ok(grep(/--blob-name Colombina/, @calls), 'Check for argument "--blob-name"');
     ok(grep(/--lease-duration 30/, @calls), 'Check for argument "--lease-duration"');
+    ok($ret eq $uuid), "The return value '$ret' is the UUID:'$uuid'";
+};
+
+subtest '[az_storage_blob_lease_acquire] invalid UUID' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'Pantalone'; });
+    $azcli->redefine(record_info => sub { return; });
+
+    my $ret = az_storage_blob_lease_acquire(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        blob_name => 'Colombina',
+        lease_duration => 30
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    my $ret_val = $ret // 'undef';
+    is $ret, undef, "The return value '$ret_val' is undef as expected";
+};
+
+subtest '[az_storage_blob_lease_acquire] valid UUID with error ErrorCode' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '521fa121-4e04-448e-a8ec-d17e6b9c5e78 ErrorCode'; });
+    $azcli->redefine(record_info => sub { return; });
+
+    my $ret = az_storage_blob_lease_acquire(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        blob_name => 'Colombina',
+        lease_duration => 30
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    my $ret_val = $ret // 'undef';
+    is $ret, undef, "The return value '$ret_val' is undef as expected";
 };
 
 subtest '[az_storage_blob_list]' => sub {

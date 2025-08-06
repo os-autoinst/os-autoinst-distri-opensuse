@@ -52,6 +52,9 @@ sub run {
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
     prepare_sdaf_project();
+    my $tf_version_out = script_output('terraform -v');
+    $tf_version_out =~ /Terraform\s(v\.*)/;
+    record_info("Terraform $1", $tf_version_out);
     record_info('Jumphost ready');
 
     # Do not leave connection hanging around between modules.

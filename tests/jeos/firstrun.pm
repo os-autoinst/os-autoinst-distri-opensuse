@@ -19,9 +19,10 @@ use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
-use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
+use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions enter_cmd_slow);
 use serial_terminal 'prepare_serial_console';
 use Utils::Logging qw(record_avc_selinux_alerts);
+use wsl qw(wsl_choose_sles register_via_scc wsl_firstboot_refocus);
 
 my $user_created = 0;
 
@@ -231,12 +232,19 @@ sub run {
         assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
+        # In WSL, the new process of installing, appears in an already maximized window,
+        # but sometimes it loses focus. So I created another needle to check if
+        # the window is already maximized and click somewhere else to bring it to focus.
+        if (check_var('WSL_FIRSTBOOT', 'jeos')) {
+            wsl_firstboot_refocus;
+        }
         send_key 'ret';
     }
 
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    if (is_community_jeos || is_sle('=12-sp5')) {
+    # system locale is present in WSL with jeos-firstboot except in WSL Tumbleweed
+    if (is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && get_var('WSL_VERSION'))) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
@@ -269,8 +277,15 @@ sub run {
     # Enter password & Confirm
     enter_root_passwd;
 
-    # handle registration notice
-    if (is_sle || is_sle_micro) {
+    # In sle WSL: Choose SLES or SLED
+    # And register via SCC
+    if (is_sle && get_var('WSL_VERSION')) {
+        wsl_choose_sles;
+        register_via_scc;
+    }
+
+    # handle registration notice. Not in WSL.
+    if ((is_sle || is_sle_micro) && !get_var('WSL_VERSION')) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }
@@ -308,23 +323,25 @@ sub run {
         assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2');
     }
 
-    if (is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
-        assert_screen 'jeos-ssh-enroll-or-not', 120;
+    if (get_var('WSL_VERSION') || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
+        if (!get_var('WSL_VERSION')) {
+            assert_screen 'jeos-ssh-enroll-or-not', 120;
 
-        if (get_var('SSH_ENROLL_PAIR')) {
-            mutex_wait 'dhcp';
-            sleep 30;    # make sure we have an IP
-            mutex_create 'SSH_ENROLL_PAIR';
-            send_key 'y';
-            check_screen 'jeos-ssh-enroll-pairing', 20;
-            assert_screen 'jeos-ssh-enroll-paired', 120;
-            send_key 'y';
-            assert_screen 'jeos-ssh-enroll-import', 120;
-            send_key 'y';
-            assert_screen 'jeos-ssh-enroll-imported', 120;
-            send_key 'ret';
-        } else {
-            send_key 'n';
+            if (get_var('SSH_ENROLL_PAIR')) {
+                mutex_wait 'dhcp';
+                sleep 30;    # make sure we have an IP
+                mutex_create 'SSH_ENROLL_PAIR';
+                send_key 'y';
+                check_screen 'jeos-ssh-enroll-pairing', 20;
+                assert_screen 'jeos-ssh-enroll-paired', 120;
+                send_key 'y';
+                assert_screen 'jeos-ssh-enroll-import', 120;
+                send_key 'y';
+                assert_screen 'jeos-ssh-enroll-imported', 120;
+                send_key 'ret';
+            } else {
+                send_key 'n';
+            }
         }
         create_user_in_ui();
     }
@@ -363,6 +380,16 @@ sub run {
         wait_still_screen;
         $self->clear_and_verify_console;
     }
+
+    # For WSL we have replicated firstrun-wsl up to this point
+    # Therefore we will end the test here, temporarily.
+    # Open ticket to expand the test in the future.
+    elsif (get_var('WSL_VERSION')) {
+        assert_screen 'wsl-linux-prompt';
+        enter_cmd_slow "exit\n";
+        return;
+    }
+
     else {
         assert_screen [qw(linux-login reached-power-off)], 1000;
         if (match_has_tag 'reached-power-off') {

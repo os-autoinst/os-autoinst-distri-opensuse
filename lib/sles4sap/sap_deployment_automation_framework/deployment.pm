@@ -1069,7 +1069,7 @@ sub playbook_settings {
         # SAP Bill of Materials processing - this also mounts install media storage
         push @playbooks, {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 7200};
         # SAP HANA database installation
-        push @playbooks, {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 1800};
+        push @playbooks, {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 3600};
     }
 
     # playbooks required for all nw* scenarios

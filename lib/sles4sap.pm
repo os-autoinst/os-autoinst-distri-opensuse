@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
-use hacluster qw(get_hostname ha_export_logs save_state wait_until_resources_started script_output_retry_check);
+use hacluster qw(get_hostname ha_export_logs save_state wait_until_resources_started);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
@@ -1162,7 +1162,7 @@ sub prepare_swpm {
     my $sapinst_executable = "$target_path/sapinst";
 
     assert_script_run("mkdir -p $target_path");
-    assert_script_run("cp $sar_archives_dir/* $target_path/");
+    assert_script_run("rsync -azr --info=progress2 --stats $sar_archives_dir/* $target_path/", 600);
     assert_script_run("cd $target_path; $sapcar_bin_path -xvf ./$swpm_sar_filename");
     my $swpm_dir_content = script_output("ls -alitr $target_path");
     record_info("SWPM dir", "$swpm_dir_content");

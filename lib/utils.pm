@@ -2417,7 +2417,14 @@ This functions checks if ca-certificates-suse is installed and if it is not it a
 sub ensure_ca_certificates_suse_installed {
     return unless is_sle || is_sle_micro;
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
-        zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
+        my $version = "openSUSE_Tumbleweed";
+        # Given that our primary need was simply to install certificates, we decided to abandon
+        # the complex logic that determined which package version to select for each run.
+        # Our new approach is to install the TW package universally. Regrettably,
+        # this has presented a challenge with SLE 12 SP5, as the TW package utilizes an unsupported compression method.
+        # For more details, please see https://forums.opensuse.org/t/error-rpm-failed-error-unpacking-of-archive-failed-cpio-bad-magic/142434
+        $version = "SLE_12_SP5" if (is_sle('=12-SP5'));
+        zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/$version/SUSE:CA.repo");
         if (is_sle_micro) {
             transactional::trup_call("--continue run zypper --gpg-auto-import-keys refresh");
             transactional::trup_call('--continue pkg install ca-certificates-suse');

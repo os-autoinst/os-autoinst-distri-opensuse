@@ -24,10 +24,12 @@ use version_utils qw(is_leap is_sle php_version);
 
 sub run {
     select_serial_terminal;
-    zypper_call("in gcc-c++ pcre-devel");
+    my $pcre_ver = is_sle('>=16') ? 'pcre2' : 'pcre';
+    zypper_call("in gcc-c++ $pcre_ver-devel");
     assert_script_run "mkdir pcre_data; cd pcre_data; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && cd data";
     assert_script_run "ls .";
-    assert_script_run "g++ pcretest.cpp -o test_pcrecpp -lpcrecpp";
+    my $pcr_opt = is_sle('>=16') ? 'lpcre2-8' : 'lpcrecpp';
+    assert_script_run "g++ $pcre_ver-test.cpp -o test_pcrecpp -$pcr_opt";
     assert_script_run "./test_pcrecpp";
 
     my ($php, $php_pkg, $php_ver) = php_version();

@@ -49,7 +49,6 @@
     </routing>
   </networking>
   <software>
-    <image/>
     <instsource/>
     <packages config:type="list">
 		<package>vim</package>
@@ -62,8 +61,6 @@
 		<package>autofs</package>
 		<package>bind</package>
 		<package>atftp</package>
-		<package>yast2-iscsi-lio-server</package>
-		<package>tgt</package>
     </packages>
    <patterns config:type="list">
           <pattern>base</pattern>
@@ -83,9 +80,4 @@
                       <user_password>{{PASSWORD}}</user_password>
           </user>
   </users>
-
-  <runlevel>
-    <default>3</default>
-  </runlevel>
-
 </profile>

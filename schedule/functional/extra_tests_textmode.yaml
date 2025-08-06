@@ -81,10 +81,6 @@ conditional_schedule:
                 - console/kdump_and_crash
                 - console/ansible
                 - console/libgit2
-    opensuse_repos:
-        DISTRI:
-            opensuse:
-                - console/opensuse_repos
     validate_packages_and_patterns:
         DISTRI:
             sle:
@@ -126,7 +122,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
-    - console/ntp_client
+    - console/chrony
     - console/dnsmasq
     - console/man_pages
     - console/ping
@@ -196,7 +192,6 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
-    - '{{opensuse_repos}}'
     - '{{leap_tests}}'
     - '{{tumbleweed_tests}}'
     - console/journalctl
@@ -205,4 +200,5 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
+    - console/tcpdump
     - console/zypper_log_packages

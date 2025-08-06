@@ -22,6 +22,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
+use LTP::WhiteList;
 
 sub prepare_kselftests_from_git
 {
@@ -68,8 +69,111 @@ sub prepare_kselftests_from_ibs
     }
 }
 
-sub run
-{
+sub postprocess_kselftest_results {
+    my ($self, $whitelist, $suite, $tap_file) = @_;
+
+    my $tap_content = script_output("cat $tap_file", proceed_on_failure => 1);
+    if (!$tap_content) {
+        die "No TAP output found in $tap_file for $suite\n";
+    }
+
+    my $sanitized_suite_name = (split(':', $suite))[0];
+    my @lines = split /\n/, $tap_content;
+
+    my %group_failures;
+    my %group_known;
+    my %group_all_known;
+    my $current_group;
+
+    for my $line (@lines) {
+        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
+            $current_group = "$1:$2";
+            next;
+        }
+
+        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group) {
+            my $num = $1;
+            my $name = $2;
+            push @{$group_failures{$current_group}}, $num;
+
+            my $env = {
+                product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+                arch => get_var('ARCH', ''),
+            };
+
+            if ($whitelist->find_whitelist_entry($env, $sanitized_suite_name, $name)) {
+                $group_known{$current_group}{$num} = 1;
+            }
+        }
+
+        if ($line =~ /^not ok\s+\d+\s+selftests:\s+(\S+):\s+(\S+)/) {
+            my $grp = "$1:$2";
+            my $fails = $group_failures{$grp} // [];
+            my $known_map = $group_known{$grp} // {};
+
+            my $all_known = (@$fails && scalar(grep { !$known_map->{$_} } @$fails) == 0);
+            $group_all_known{$grp} = $all_known;
+        }
+    }
+
+    my @updated_lines;
+    my $current_group_for_update;
+    for my $line (@lines) {
+        if ($line =~ /^\#\s*selftests:\s+(\S+):\s+(\S+)/) {
+            $current_group_for_update = "$1:$2";
+            push @updated_lines, $line;
+            next;
+        }
+
+        if ($line =~ /^\#\s*not ok\s+(\d+)\s+(.+)/ && defined $current_group_for_update) {
+            my $num = $1;
+            my $test_name = $2;
+            if ($group_known{$current_group_for_update}{$num}) {
+                $self->{result} = 'softfail';
+                record_info("Known issue", "$current_group_for_update:$test_name marked as softfail");
+                $line = "# ok $num $test_name # TODO Known issue";
+            }
+        }
+
+        if ($line =~ /^not ok\s+(\d+)\s+selftests:\s+(\S+):\s+(\S+)/) {
+            my ($num, $suite_group, $sub_group) = ($1, $2, $3);
+            my $grp = "$suite_group:$sub_group";
+            if ($group_all_known{$grp}) {
+                $self->{result} = 'softfail';
+                record_info("Known issue", "All failed subtests in $grp are known issues; propagating TODO directive to the top-level");
+                $line = "ok $num selftests: $suite_group: $sub_group # TODO Known issue";
+            }
+        }
+
+        push @updated_lines, $line;
+    }
+
+    my $tmp_file = "/tmp/updated_tap.$$";
+    script_output("cat <<'EOF' > $tmp_file\n" . join("\n", @updated_lines) . "\nEOF");
+    assert_script_run("mv $tmp_file $tap_file");
+
+    parse_extra_log(KTAP => $tap_file);
+}
+
+sub run_kselftest_case {
+    my ($self, $whitelist, $suite, $timeout, $script_path) = @_;
+
+    my $sanitized_name = $suite;
+    $sanitized_name =~ s/:/_/g;
+
+    my $cmd;
+    if ($suite =~ /:/) {
+        $cmd = "$script_path -o $timeout -t $suite >> $sanitized_name.tap";
+    } else {
+        $cmd = "$script_path -o $timeout -c $suite >> $sanitized_name.tap";
+    }
+
+    assert_script_run($cmd, 7200);
+    $self->postprocess_kselftest_results($whitelist, $suite, "$sanitized_name.tap");
+}
+
+sub run {
+    my ($self) = @_;
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
 
@@ -77,26 +181,23 @@ sub run
     my $kselftests_suite = get_required_var('KSELFTESTS_SUITE');
     my @kselftests_suite = split(',', $kselftests_suite);
     my $timeout = get_var('KSELFTEST_TIMEOUT', 45);
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
+    my $whitelist = LTP::WhiteList->new($whitelist_file);
 
-    if (get_var('KSELFTEST_FROM_GIT')) {
+    if ($kselftest_git) {
         prepare_kselftests_from_git();
 
         foreach my $i (@kselftests_suite) {
-            install_kselftest_suite($i);
+            install_kselftest_suite((split(':', $i))[0]);
             assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-            #required by the TAP openQA parser
-            assert_script_run("echo t/$i.t .. > $i.tap");
-            assert_script_run("./run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
-            parse_extra_log(TAP => "$i.tap");
+            run_kselftest_case($self, $whitelist, $i, $timeout, "./run_kselftest.sh");
             assert_script_run("cd -");
         }
     } else {
         prepare_kselftests_from_ibs("/usr/share/kselftests");
 
         foreach my $i (@kselftests_suite) {
-            assert_script_run("echo t/$i.t .. > $i.tap");
-            assert_script_run("/usr/share/kselftests/run_kselftest.sh -o $timeout -c $i >> $i.tap", 7200);
-            parse_extra_log(TAP => "$i.tap");
+            run_kselftest_case($self, $whitelist, $i, $timeout, "/usr/share/kselftests/run_kselftest.sh");
         }
     }
 }

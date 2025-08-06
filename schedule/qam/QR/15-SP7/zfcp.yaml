@@ -1,0 +1,84 @@
+name:           zfcp
+description:    >
+  Test installation on machine with zfcp multipath disk.
+  Only tests succesful detection of multipath and installation.
+  No functional testing of multipath itself.
+vars:
+  DESKTOP: gnome
+  MULTIPATH: 1
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/disk_activation
+  - installation/multipath
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/validate_zfcp
+test_data:
+  software:
+    packages:
+      # Device Mapper Tools
+      device-mapper:
+        installed: 1
+      # Tools to Manage Multipathed Devices with the device-mapper
+      multipath-tools:
+        installed: 1
+      # Manages partition tables on device-mapper devices
+      kpartx:
+        installed: 1
+  zfcp:
+    fcp_devices:
+      - fcp_channel: '0.0.fa00'
+        attributes:
+          online: 1
+          port_type: 'NPIV VPORT'
+        fcp_luns:
+          - wwpn: '0x500507630708d3b3'
+            scsi:
+              peripheral_type: disk
+              vendor_model_revision: 'IBM'
+          - wwpn: '0x500507630703d3b3'
+            scsi:
+              peripheral_type: disk
+              vendor_model_revision: 'IBM'
+      - fcp_channel: '0.0.fc00'
+        attributes:
+          online: 0
+  multipath:
+    attributes:
+      user_friendly_names: 'no'
+      failback: manual
+      path_checker: tur
+      path_grouping_policy: failover
+      path_selector: 'service-time 0'
+      polling_interval: 5
+      rr_min_io_rq: 1
+      rr_weight: uniform
+      uid_attribute: ID_SERIAL
+    topology:
+      vendor_product_revision: IBM
+      features: '1 queue_if_no_path'
+      hwhandler: '1 alua'
+      wp: rw
+      priority_groups:
+        - prio: 50
+          status: active
+          paths:
+            - name: sda
+              status: 'active ready running'
+            - name: sdb
+              status: 'active ready running'

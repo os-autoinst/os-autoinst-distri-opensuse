@@ -14,7 +14,7 @@ schedule:
     - console/clamav
     - console/openvswitch_ssl
     - security/ntpd
-    - console/ntp_client
+    - console/chrony
     - console/cups
     - network/samba/samba_adcli
     - console/syslog

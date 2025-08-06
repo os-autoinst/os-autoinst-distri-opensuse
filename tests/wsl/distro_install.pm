@@ -77,22 +77,32 @@ sub run {
             send_key "alt-f4";
         }
     } elsif ($install_from eq 'msstore') {
-        # Install required SUSE distro from the MS Store
-        $self->run_in_powershell(
-            cmd => "wsl --install --distribution $WSL_version",
-            timeout => 300,
-        );
-        if (check_var('DISTRI', 'sle') || is_aarch64) {
+        # Install required SUSE distro from the MS Store, legacy or modern.
+        if (check_var('WSL_FIRSTBOOT', 'yast')) {
+            # Install required SUSE distro from the MS Store
+            $self->run_in_powershell(
+                cmd => "wsl --install --legacy --distribution $WSL_version",
+                timeout => 300,
+                code => sub {
+                    assert_screen("yast2-wsl-firstboot-welcome", timeout => 300);
+                }
+            );
+        }
+        else {
+            $self->run_in_powershell(
+                cmd => "wsl --install --web-download --distribution $WSL_version",
+                timeout => 300,
+                code => sub {
+                    # change to jeos-wsl-firstboot-welcome
+                    assert_screen("jeos-wsl-firstboot-welcome", timeout => 300);
+                }
+            );
+        }
+        if (check_var('DISTRI', 'sle')) {
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
 
-        $self->run_in_powershell(
-            cmd => "wsl.exe --distribution $WSL_version",
-            code => sub {
-                assert_screen("yast2-wsl-firstboot-welcome", timeout => 300);
-            }
-        );
     } else {
         die("The value entered for WSL_INSTALL_FROM is not 'build' neither 'msstore'");
     }

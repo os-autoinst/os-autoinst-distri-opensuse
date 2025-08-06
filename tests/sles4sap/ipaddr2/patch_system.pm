@@ -4,6 +4,31 @@
 # Summary: zypper patch and reboot
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
+=head1 NAME
+
+ipaddr2/patch_system.pm - Apply system patches to the SUT for the ipaddr2 test
+
+=head1 DESCRIPTION
+
+This module performs a standard system update on both SUT (System Under Test)
+virtual machines.
+
+It executes `zypper patch` to install all available patches and then reboots
+the systems to ensure that all updates, including any kernel updates, are
+correctly applied and active. This step helps ensure the SUTs are in a
+consistent and up-to-date state for subsequent tests.
+
+=head1 VARIABLES
+
+This module does not require any specific configuration variables for its core functionality.
+It assumes that the system repositories are already configured and accessible.
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';

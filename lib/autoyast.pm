@@ -29,6 +29,7 @@ use File::Path 'make_path';
 use LWP::Simple 'head';
 use Mojo::Util 'trim';
 use Socket;
+use utils;
 
 use xml_utils;
 
@@ -51,6 +52,7 @@ our @EXPORT = qw(
   get_test_data_files
   prepare_ay_file
   generate_xml
+  parse_dud_parameter
 );
 
 =head2 expand_patterns
@@ -1047,6 +1049,24 @@ sub generate_xml {
     $writer->endTag("add_on_products");
     $writer->end();
     return $writer->to_string;
+}
+
+=head2 parse_dud_parameter
+
+ parse_dud_parameter();
+
+ Process DUD raw value (comma separated)
+ Return a string of inst.dud well formed parameters
+
+=cut
+
+sub parse_dud_parameter {
+    my ($dud_raw_value) = @_;
+    my $dud;
+
+    $dud .= ' inst.dud=' . shorten_url(data_url($_)) for split(',', $dud_raw_value);
+    $dud .= ' rd.neednet=1 ';
+    return $dud;
 }
 
 1;

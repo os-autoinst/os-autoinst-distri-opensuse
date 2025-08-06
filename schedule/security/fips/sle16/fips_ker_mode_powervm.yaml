@@ -1,0 +1,32 @@
+name: fips_ker_mode_powervm
+description:    >
+    This is for the FIPS tests in KER mode on the pvm_hmc backend for SLE 16.
+schedule:
+    - installation/bootloader
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_alglist
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_fips_cipher
+    - fips/gnutls/gnutls_base_check
+    - fips/gnutls/gnutls_server
+    - fips/gnutls/gnutls_client
+    - fips/openssl/openssl_tlsv1_3
+    - fips/openssl/openssl_pubkey_rsa
+    - fips/openssl/openssl_pubkey_dsa
+    - fips/openssh/openssh_fips
+    - fips/curl_fips_rc4_seed
+    - console/gpg
+    - console/journald_fss
+    - console/git
+    - console/openvswitch_ssl
+    - console/chrony
+    - console/cups
+    - console/syslog
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/sshd
+    - console/ssh_cleanup

@@ -64,8 +64,7 @@ sub build_and_run_image {
     }
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
 
-    # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
+    $builder->build($dir . "/BuildTest", "myapp", timeout => 1200);
     assert_script_run("rm -rf $dir");
     script_run("$runtime images");
     assert_script_run("$runtime images --all | grep myapp");
@@ -78,11 +77,11 @@ sub build_and_run_image {
     # Test that we can execute programs in the container and test container's variables
     assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
     assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
-    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);    # ensure container is running
-    assert_script_run("$runtime logs myapp");    # show logs for easier problem investigation
+    validate_script_output_retry("$runtime ps -a", sub { m/myapp/ }, retry => 3, delay => 5, timeout => 300);
+    assert_script_run("$runtime logs myapp");
 
     # Test that the exported port is reachable
-    script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
+    validate_script_output_retry("curl -s http://localhost:8888/", sub { m/The test shall pass/ }, retry => 5, delay => 60, timeout => 300);
 
     # Cleanup
     assert_script_run("$runtime stop myapp");

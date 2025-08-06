@@ -136,7 +136,7 @@ sub setup_console_in_grub {
         die "Host Hypervisor is not xen or kvm";
     }
 
-    if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
+    if (script_run('grep HPE /sys/class/dmi/id/board_vendor') != 0) {
         $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
         assert_script_run($cmd);
         $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";

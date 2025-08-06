@@ -18,47 +18,9 @@ use utils;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
-my $python_exec = 'python3.11';
+use publiccloud::utils qw(install_in_venv create_script_file get_python_exec);
 
-sub create_script_file {
-    my ($filename, $fullpath, $content) = @_;
-    save_tmp_file($filename, $content);
-    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
-    assert_script_run(sprintf('chmod +x %s', $fullpath));
-}
-
-sub install_in_venv {
-    my ($binary, %args) = @_;
-    die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
-    die("Missing binary name") unless ($binary);
-    my $install_timeout = 15 * 60;
-    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
-
-    my $venv = '/root/.venv_' . $binary;
-    assert_script_run("$python_exec -m venv $venv");
-    assert_script_run("source '$venv/bin/activate'");
-    my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
-    assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
-    record_info($venv, script_output('pip freeze'));
-    assert_script_run('deactivate');
-    my $script = <<EOT;
-#!/bin/sh
-. "$venv/bin/activate"
-if [ ! -e "$venv/bin/$binary" ]; then
-   echo "Missing $binary in virtualenv $venv"
-   deactivate
-   exit 2
-fi
-$binary "\$@"
-exit_code=\$?
-deactivate
-exit \$exit_code
-EOT
-
-    my $fullpath = "$venv/bin/$binary-run-in-venv";
-    create_script_file($binary, $fullpath, $script);
-    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
-}
+my $python_exec = get_python_exec();
 
 sub run {
     my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
@@ -92,8 +54,9 @@ sub run {
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
     # Download the aws cli binary, its signature and verify those
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip", retry => 3, delay => 60);
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig", retry => 3, delay => 60);
+    my $curl_opts = "--retry 3 --retry-delay 60";
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip");
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig");
     assert_script_run('gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip', fail_message => 'The gpg check of downloaded installation file failed.');
     assert_script_run('unzip /tmp/awscliv2.zip -d /tmp/');
     assert_script_run('/tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin');

@@ -133,11 +133,16 @@ sub load_host_tests_podman {
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args) unless is_staging;
+    load_3rd_party_image_test($run_args) unless (is_staging || is_public_cloud);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # podman artifact needs podman 5.4.0
-    loadtest 'containers/podman_artifact' if is_tumbleweed;
+    loadtest 'containers/podman_artifact' if (is_sle('>=16.0') || is_tumbleweed);
+    # The registry module contains further tests for podman artifact pull/push
+    # The distribution-registry package is only available on Tumbleweed & SLES 15-SP4
+    unless (is_staging || is_transactional || is_sle("<15-sp4")) {
+        loadtest('containers/registry', run_args => $run_args, name => $run_args->{runtime} . "_registry");
+    }
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
@@ -156,13 +161,14 @@ sub load_host_tests_podman {
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
         loadtest 'containers/rootless_podman';
-        loadtest 'containers/podman_remote' if is_sle_micro('5.5+');
+        loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
+    loadtest('containers/podmansh') if (is_tumbleweed && !is_staging && !is_transactional);
 }
 
 sub load_host_tests_docker {
@@ -175,8 +181,9 @@ sub load_host_tests_docker {
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
+    # The distribution-registry package is only available on Tumbleweed & SLES 15-SP4
     unless (is_staging || is_transactional || is_sle("<15-sp4")) {
-        loadtest 'containers/registry';
+        loadtest('containers/registry', run_args => $run_args, name => $run_args->{runtime} . "_registry");
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
@@ -190,8 +197,7 @@ sub load_host_tests_docker {
     # The docker-rootless-extras package is only available on SLES 15-SP4+
     # while the docker-stable-rootless-extras is available on SLES 16.0+
     if (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"))) {
-        # Public Cloud repos have unmatching versions of the docker & extras packages
-        loadtest 'containers/rootless_docker' unless (is_public_cloud);
+        loadtest 'containers/rootless_docker';
     }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {

@@ -71,7 +71,9 @@ sub registry_push_pull {
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    my $runtime = $args->{runtime};
+
     select_serial_terminal;
 
     # Install and check that it's running
@@ -83,19 +85,12 @@ sub run {
     systemctl '--now enable registry';
     systemctl 'status registry';
 
-    script_retry 'curl http://127.0.0.1:5000/v2/_catalog', delay => 3, retry => 10;
-    assert_script_run 'curl -s http://127.0.0.1:5000/v2/_catalog | grep repositories';
+    validate_script_output_retry("curl -s http://127.0.0.1:5000/v2/_catalog", sub { m/repositories/ }, retry => 3, delay => 5, timeout => 300);
 
-    # Run docker tests
-    my $docker = $self->containers_factory('docker');
+    my $engine = $self->containers_factory($runtime);
     my $image = 'registry.opensuse.org/opensuse/busybox';
-    registry_push_pull(image => $image, runtime => $docker);
-    $docker->cleanup_system_host();
-
-    # Run podman tests
-    my $podman = $self->containers_factory('podman');
-    registry_push_pull(image => $image, runtime => $podman);
-    $podman->cleanup_system_host();
+    registry_push_pull(image => $image, runtime => $engine);
+    $engine->cleanup_system_host();
 }
 
 1;

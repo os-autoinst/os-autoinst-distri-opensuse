@@ -36,7 +36,7 @@ sub run {
     }
 
     # Install the latest pygit2
-    my @pygit2_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}-pygit2\$/' | awk -F '|' '/python3[0-9][1,2]/ {gsub(" ", ""); print \$2}' | uniq]));
+    my @pygit2_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}-pygit2\$/' | awk -F '|' '/python3[0-9]{1,2}/ {gsub(" ", ""); print \$2}' | uniq]));
     die 'Cannot find any verisons of pygit2' unless (@pygit2_versions);
     record_info("Available versions", "All available new pygit2 versions are: @pygit2_versions");
     record_info("The latest version is:", "$pygit2_versions[$#pygit2_versions]");

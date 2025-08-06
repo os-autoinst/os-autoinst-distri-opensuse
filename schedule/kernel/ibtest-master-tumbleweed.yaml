@@ -5,8 +5,6 @@ vars:
     DESKTOP: textmode
     DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/devel:/tools/openSUSE_Tumbleweed/devel:tools.repo
     IBTESTS: 1
-    IBTEST_GITBRANCH: master
-    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_MASTER
     PATTERNS: base,minimal
     ROOTONLY: 1

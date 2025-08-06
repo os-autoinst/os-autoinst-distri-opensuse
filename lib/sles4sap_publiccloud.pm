@@ -70,6 +70,7 @@ our @EXPORT = qw(
   get_hana_site_names
   wait_for_cluster
   wait_for_zypper
+  check_zypper_ref
   wait_for_idle
 );
 
@@ -1391,6 +1392,41 @@ sub wait_for_zypper {
     }
 
     die("Zypper is still locked after $args{max_retries} retries, aborting (rc: 7)") if $retry >= $args{max_retries};
+}
+
+=head2 check_zypper_ref
+
+    The function attempts to run 'zypper ref' and check for errors related to repositories.
+
+=over
+
+=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
+
+=item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
+
+=back
+=cut
+
+sub check_zypper_ref {
+    my $self = shift;
+    my %args = @_;
+    $args{runas} //= 'cloudadmin';
+
+    my $ret = $self->{my_instance}->run_ssh_command(cmd => 'sudo zypper ref',
+        username => $args{runas},
+        proceed_on_failure => 1,
+        rc_only => 1,
+        quiet => 1,
+        timeout => $args{timeout});
+    if ($ret == 4) {
+        die('ZYPPER: libzypp reported error while refreshing repositories');
+    } elsif ($ret == 6) {
+        die('ZYPPER reported no repositories defined');
+    } elsif ($ret == 106) {
+        die('ZYPPER reported some repositories failed to refresh');
+    } else {
+        record_info('ZYPPER REF', "Zypper ref returned $ret");
+    }
 }
 
 =head2 wait_for_idle

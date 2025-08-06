@@ -23,6 +23,7 @@ use Utils::Logging qw(export_logs record_avc_selinux_alerts);
 use network_utils qw(iface);
 use Carp qw(croak);
 use Data::Dumper;
+use XML::Simple;
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -90,6 +91,9 @@ our @EXPORT = qw(
   crm_resource_locate
   crm_resource_meta_show
   crm_resource_meta_set
+  crm_list_options
+  get_sbd_devices
+  parse_sbd_metadata
 );
 
 =head1 SYNOPSIS
@@ -751,21 +755,21 @@ sub check_cluster_state {
     my %args = @_;
 
     # We may want to check cluster state without stopping the test
-    my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
+    my $cmd_sub = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
-    $cmd->("$crm_mon_cmd");
+    $cmd_sub->("$crm_mon_cmd");
     if (is_sle '12-sp3+') {
         # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
         sleep 5;
-        $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'");
+        $cmd_sub->("$crm_mon_cmd | grep -i 'no inactive resources'");
     }
-    $cmd->('crm_mon -1 | grep \'partition with quorum\'');
+    $cmd_sub->('crm_mon -1 | grep \'partition with quorum\'');
 
     # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
     # Fall back to the older method of checking Online vs. Configured nodes
     my $cmp_result = package_version_cmp(script_output(q|rpm -q --qf '%{VERSION}\n' crmsh|), '4.4.2');
     if ($cmp_result < 0) {
-        $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
+        $cmd_sub->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
     }
     else {
         check_online_nodes(%args);
@@ -776,7 +780,7 @@ sub check_cluster_state {
         script_run 'crm_verify -LV';
     }
     else {
-        $cmd->('crm_verify -LV');
+        $cmd_sub->('crm_verify -LV');
     }
 }
 
@@ -1144,8 +1148,9 @@ B<$ignore_failure> do not kill the test upon failure.
 
 sub script_output_retry_check {
     my %args = @_;
-    my $cmd = $args{cmd} // die('No command specified.');
-    my $regex = $args{regex_string} // die('Regex input missing');
+    foreach (qw(cmd regex_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = $args{cmd};
+    my $regex = $args{regex_string};
     my $retry = $args{retry} // 5;
     my $sleep = $args{sleep} // 10;
     my $ignore_failure = $args{ignore_failure} // "0";
@@ -1478,9 +1483,11 @@ B<timeout> Override default timeout value
 
 sub crm_check_resource_location {
     my (%args) = @_;
+    croak 'Missing mandatory argument "$args{resource}"' unless $args{resource};
     my $wait_for_target = $args{wait_for_target} // 0;
     my $timeout = $args{timeout} // bmwqemu::scale_timeout(120);
-    my $cmd = join(' ', "crm resource status", $args{resource}, "| grep 'resource $args{resource} is'"); # Grep to avoid random kernel message appearing in script_output
+    # Grep to avoid random kernel message appearing in script_output
+    my $cmd = join(' ', "crm resource status", $args{resource}, "| grep 'resource $args{resource} is'");
     my $out;
     my $current_location;
 
@@ -1548,9 +1555,7 @@ Manage HA cluster parameter using crm shell.
 
 sub set_cluster_parameter {
     my (%args) = @_;
-    for my $arg ('resource', 'parameter', 'value') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource parameter value)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'set', $args{parameter}, $args{value});
     assert_script_run($cmd);
 }
@@ -1573,9 +1578,7 @@ Show cluster parameter value using CRM shell.
 
 sub show_cluster_parameter {
     my (%args) = @_;
-    for my $arg ('resource', 'parameter') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource parameter)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $cmd = join(' ', 'crm', 'resource', 'param', $args{resource}, 'show', $args{parameter});
     return script_output($cmd);
 }
@@ -1647,10 +1650,10 @@ Waits till crm fail count reached non-zero value of fail after B<timeout>
 
 sub crm_wait_failcount {
     my (%args) = @_;
+    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
     $args{timeout} //= 300;
     $args{delay} //= 5;
 
-    croak 'Missing mandatory argument "$args{crm_resource}"' unless $args{crm_resource};
 
     my $result = 0;
     my $start_time = time;
@@ -1737,9 +1740,7 @@ Return resource meta-argument value.
 
 sub crm_resource_meta_show {
     my (%args) = @_;
-    for my $arg ('resource', 'meta_argument') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+    foreach (qw(resource meta_argument)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     return script_output("crm resource meta $args{resource} show $args{meta_argument}");
 }
 
@@ -1763,15 +1764,222 @@ Change or delete resource meta-argument value.
 
 sub crm_resource_meta_set {
     my (%args) = @_;
-    for my $arg ('resource', 'meta_argument') {
-        croak("Mandatory argument '$arg' missing.") unless $arg;
-    }
+
+    foreach (qw(resource meta_argument)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $action = $args{argument_value} ? 'set' : 'delete';
     my $cmd = "crm resource meta $args{resource} $action $args{meta_argument}";
     $cmd .= " $args{argument_value}" if $action eq 'set';
 
     assert_script_run($cmd);
     record_info('CRM meta set', "CRM meta set: $cmd");
+}
+
+=head2 crm_list_options
+
+    my $ret = crm_list_options();
+
+Executes a series of C<crm> commands to list metadata options for different
+resource types (primitive, fencing, cluster attributes) and validates that their
+XML output is well-formed. This function is designed to test a new feature in
+C<crmsh> version 5.0.0 and newer, which provides a CLI interface to query
+resource meta-attributes.
+
+The function will execute the following commands:
+
+=over
+
+=item * C<crm_resource --list-options primitive --output-as xml>
+
+=item * C<crm_resource --list-options fencing --output-as xml>
+
+=item * C<crm_attribute --list-options cluster --all --output-as=xml>
+
+=back
+
+B<Return values:>
+
+=over
+
+=item * B<1>: All commands executed successfully and their XML output was valid.
+
+=item * B<0>: The installed C<crmsh> version is older than 5.0.0. The function performs no operation.
+
+=item * B<-1>: At least one of the commands produced output that was not valid XML.
+
+=back
+
+=cut
+
+sub crm_list_options {
+    my (%args) = @_;
+
+    my $cmp_result = package_version_cmp(script_output(q|rpm -q --qf '%{VERSION}\n' crmsh|), '5.0.0');
+    return 0 if ($cmp_result < 0);
+    my $out;
+
+    my $parser = XML::Simple->new;
+    my $ret = 1;
+    foreach (
+        'crm_resource  --list-options primitive     --output-as xml',
+        'crm_resource  --list-options fencing       --output-as xml',
+        'crm_attribute --list-options cluster --all --output-as=xml') {
+        $out = script_output($_);
+        eval { $parser->parse_string($out) };
+        if ($@) {
+            $ret = -1;
+            diag("XML parsing error for '$_' output:\n $@");
+        }
+    }
+    return $ret;
+}
+
+=head2 get_sbd_devices
+
+    my @ret = get_sbd_devices($hostname);
+
+Executes 'crm sbd status' to get sbd configuration, and return the devices information
+for the specify node.
+
+Following is the result of `crm sbd status`, we will check if there are two device on each node.
+status of sdb.service:
+
+Node                          |Active      |Enable         |Since
+2nodes-node01:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+2nodes-node02:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+
+# Status of the sbd disk watcher process on 2nodes-node01:
+|-3059 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+|-3060 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+
+# Status of the sbd disk watcher process on 2nodes-node02:
+|-3058 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+|-3061 sbd: watcher: /dev/disk/by-path/xxxxxxx - slot : 0 --uuid xxxx
+
+# Watchdog info:
+Node.                    |Device                    |Driver           |Kernel Timeout
+2nodes-node01  |/dev/watchdog.   | <unknown>    | 10
+2nodes-node02  |/dev/watchdog.   | <unknown>    | 10
+
+=over
+
+=item B<Parameters:>
+
+=over
+
+=item C<$hostname>
+
+String. The name of the node to query.
+
+=back
+
+=item B<Return values:>
+
+Array. List of SBD devices, e.g. (sbd_device1, sbd_device2)
+
+=back
+
+=cut
+
+sub get_sbd_devices {
+    my $hostname = shift;
+
+    my $in_block = 0;
+    my @devices;
+    foreach my $line (split /\n/, script_output('crm sbd status')) {
+        if ($line =~ /^# Status of the sbd disk watcher process on \Q$hostname\E:/) {
+            $in_block = 1;
+            next;
+        }
+
+        if ($line =~ /^# Status of the sbd disk watcher process on / or $line =~ /^# Watchdog info:/) {
+            $in_block = 0;
+        }
+
+        if ($in_block && $line =~ /watcher:\s+(\S+)/) {
+            push @devices, $1;
+        }
+    }
+    return @devices;
+}
+
+=head2 parse_sbd_metadata
+
+    my @ret = parse_sbd_metadata;
+
+Executes 'crm sbd configure show disk_metadata' to get sbd information, and return the devices and metadata value.
+
+Following is the result of `crm sbd configure show disk_metadata`, we will check if there are two device on each node.
+INFO: crm sbd configure show disk_metadata
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version      : 2.1
+UUID                : xxx
+Number of slots     : 255
+Sector size         : 512
+Timeout (watchdog)  : 5
+Timeout (allocate)  : 10 
+Timeout (loop)      : 2
+Timeout (msgwait)   : 5
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+# If there is a second sbd device
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version      : 2.1
+UUID                : xxx
+Number of slots     : 255
+Sector size         : 512
+Timeout (watchdog)  : 5
+Timeout (allocate)  : 10
+Timeout (loop)      : 2
+Timeout (msgwait)   : 5
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+=over
+
+=item B<Return values:>
+
+   (
+          {
+            'metadata' => {
+                            'allocate' => '10',
+                            'loop' => '2',
+                            'msgwait' => '5',
+                            'watchdog' => '5'
+                          },
+            'device_name' => '/dev/disk/by-path/xxxxx'
+          },
+          {
+            'device_name' => '/dev/disk/by-path/xxxxx',
+            'metadata' => {
+                            'allocate' => '10',
+                            'loop' => '2',
+                            'msgwait' => '5',
+                            'watchdog' => '5'
+                          }
+          }
+        ])
+
+=back
+
+=cut
+
+sub parse_sbd_metadata {
+    my @val = ();
+    my $metadata = {};
+    my $device_name = "";
+    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata'))) {
+        if ($line =~ /^==Dumping header on disk (\S+)/) {
+            $device_name = $1;
+        } elsif ($line =~ /Timeout\s+\((\w+)\)\s+\:\s+(\d+)/) {
+            $metadata->{$1} = $2;
+        } elsif ($line =~ /^==Header on disk (\S+) is dumped$/) {
+            push @val, {device_name => $device_name, metadata => $metadata};
+
+            # Init the device_name and metadata hash;
+            $device_name = "";
+            $metadata = {};
+        }
+    }
+    return @val;
 }
 
 1;

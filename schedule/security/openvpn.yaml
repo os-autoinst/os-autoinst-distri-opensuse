@@ -3,11 +3,24 @@ description: >
   Maintainer: pdostal.
   openVPN test
 schedule:
+  - '{{bootloader}}'
   - boot/boot_to_desktop
-  - network/setup_multimachine
+  - '{{setup_multimachine}}'
   - '{{fips}}'
   - '{{openvpn}}'
 conditional_schedule:
+  bootloader:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+      ppc64le:
+        - installation/bootloader
+  setup_multimachine:
+    ARCH:
+      aarch64:
+        - network/setup_multimachine
+      x86_64:
+        - network/setup_multimachine
   fips:
     FIPS_ENABLED:
       1:

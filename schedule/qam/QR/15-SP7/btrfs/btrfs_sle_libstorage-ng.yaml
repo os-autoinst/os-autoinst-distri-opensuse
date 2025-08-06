@@ -1,0 +1,93 @@
+name:           btrfs_libstorage-ng
+description:    >
+  Validate default installation with btrfs and libstorage-ng.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: btrfs
+  YUI_REST_API: 1
+schedule:
+  # Called on BACKEND: qemu
+  - '{{isosize}}'
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  # Called only on BACKEND: s390x
+  - '{{disk_activation}}'
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  # Called on all, except BACKEND: s390x
+  - '{{hostname_inst}}'
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/check_resume
+  - console/validate_no_cow_attribute
+  # On all the backends except s390x, /home is located on a separate partition
+  - '{{validate_home_partition}}'
+conditional_schedule:
+  isosize:
+    BACKEND:
+      qemu:
+        - installation/isosize
+  disk_activation:
+    BACKEND:
+      s390x:
+        - installation/disk_activation
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst
+  validate_home_partition:
+    BACKEND:
+      qemu:
+        - console/verify_separate_home
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
+      svirt:
+        - console/verify_separate_home
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
+      s390x:
+        - console/verify_no_separate_home
+test_data:
+  subvolume:
+    cow:
+      - /root
+      - /tmp
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

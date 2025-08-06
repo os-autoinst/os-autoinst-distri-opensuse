@@ -24,7 +24,7 @@ sub run {
     my ($self) = @_;
     select_console 'x11';
     start_audiocapture;
-    x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => [qw(command-not-found test-firefox_audio-1)], match_timeout => 90);
+    x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => [qw(command-not-found test-firefox_audio-1 test-firefox_audio-notplayed)], match_timeout => 90);
     #  re-try for typing issue, see https://progress.opensuse.org/issues/54401
     if (match_has_tag 'command-not-found') {
         for my $retry (0 .. 2) {
@@ -32,6 +32,10 @@ sub run {
             x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => 'test-firefox_audio-1', match_timeout => 90);
             last if (match_has_tag 'test-firefox_audio-1');
         }
+    }
+    if (match_has_tag 'test-firefox_audio-notplayed') {
+        record_info('poo#186585', 'Play the audio file manually');
+        send_key_until_needlematch('test-firefox_audio-1', 'spc', 3, 3);
     }
     sleep 1;    # at least a second of silence
 

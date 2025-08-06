@@ -15,7 +15,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_upgrade is_microos is_staging is_bootloader_sdboot is_bootloader_grub2_bls);
+use version_utils qw(is_sle is_leap is_upgrade);
 use Utils::Architectures;
 
 sub run {
@@ -75,19 +75,11 @@ sub run {
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle('<12-SP1');
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
-    # changes are for now confined to Staging:F
-    if (is_bootloader_grub2_bls || is_bootloader_sdboot) {
-        # Microos and Tumbleweed are using systemd-boot and grub-bls respectively
-        # the UI doesn't accept -1 anymore, but has a checkbox to disable the timeout
-        send_key 'alt-a';
-        send_key 'spc' if $is_textmode;
-        wait_still_screen(1);
-    } else {
-        # Select Timeout dropdown box and disable
-        send_key 'alt-t';
-        wait_still_screen(1);
-        type_string $timeout;
-    }
+
+    # Select Timeout dropdown box and disable
+    send_key 'alt-t';
+    wait_still_screen(1);
+    type_string $timeout;
 
     wait_still_screen(1);
     # ncurses uses blocking modal dialog, so press return is needed

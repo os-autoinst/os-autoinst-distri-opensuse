@@ -16,7 +16,7 @@ use Utils::Backends;
 use Utils::Systemd;
 use Utils::Architectures;
 use lockapi 'mutex_wait';
-use serial_terminal 'get_login_message';
+use serial_terminal qw(get_login_message prepare_serial_console select_serial_terminal);
 use version_utils;
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
@@ -24,7 +24,6 @@ use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
 use publiccloud::ssh_interactive 'select_host_console';
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
-use serial_terminal 'select_serial_terminal';
 
 # Base class for all openSUSE tests
 
@@ -616,9 +615,14 @@ sub handle_emergency_if_needed {
 sub handle_displaymanager_login {
     my ($self, %args) = @_;
     assert_screen [qw(displaymanager emergency-shell emergency-mode gdm-crash)], $args{ready_time};
-    if (is_ppc64le && check_var('VERSION', '15-SP7') && check_var('TEST', 'qam-minimal-full') && match_has_tag('gdm-crash')) {
+    if (is_ppc64le && check_var('VERSION', '15-SP7') && match_has_tag('gdm-crash')) {
+        unless (check_var('TEST', 'qam-minimal-full')) {
+            select_console 'root-console';
+            prepare_serial_console;
+        }
         select_serial_terminal();
         systemctl('disable --now display-manager');
+        set_var('WORKAROUND_1243491', '1');
         set_var('DESKTOP', 'textmode', reload_needles => 1);
         assert_script_run('while ps aux|grep gdm|grep -v grep; do sleep 2; done', 300);
         select_console 'root-console';
@@ -810,6 +814,7 @@ sub wait_boot_past_bootloader {
 
     $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
     return if $args{nologin};
+    return if get_var('WORKAROUND_1243491');
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;

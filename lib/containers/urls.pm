@@ -168,7 +168,6 @@ sub get_3rd_party_images {
 
     # Following images are not available on 32-bit arm
     push @images, (
-        "registry.fedoraproject.org/fedora",
         "registry.access.redhat.com/ubi8/ubi",
         "registry.access.redhat.com/ubi8/ubi-minimal",
         "registry.access.redhat.com/ubi8/ubi-micro",

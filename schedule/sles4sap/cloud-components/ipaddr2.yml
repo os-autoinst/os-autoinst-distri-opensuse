@@ -9,7 +9,9 @@ schedule:
     - '{{validate_repos}}'
     - sles4sap/ipaddr2/deploy
     - sles4sap/ipaddr2/configure
-    - '{{patch_system}}'
+    - sles4sap/ipaddr2/registration
+    - '{{ibsm_peering}}'
+    - sles4sap/ipaddr2/patch_system
     - sles4sap/ipaddr2/cluster_create
     - sles4sap/ipaddr2/sanity_os
     - sles4sap/ipaddr2/sanity_cluster
@@ -20,9 +22,7 @@ conditional_schedule:
         IS_MAINTENANCE:
             1:
                 - publiccloud/validate_repos
-    patch_system:
+    ibsm_peering:
         IS_MAINTENANCE:
             1:
                 - sles4sap/ipaddr2/network_peering
-                - sles4sap/ipaddr2/registration
-                - sles4sap/ipaddr2/patch_system

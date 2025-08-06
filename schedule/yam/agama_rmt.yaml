@@ -1,0 +1,12 @@
+---
+name: agama_rmt
+description: >
+  Perform agama interactive installation with RMT registration
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_repos

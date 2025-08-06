@@ -207,22 +207,21 @@ sub teardown {
 }
 
 sub describe_instance {
-    my ($self, $instance_id) = @_;
-    my $json_output = decode_json(script_output('aws ec2 describe-instances --filter Name=instance-id,Values=' . $instance_id, quiet => 1));
-    my $i_desc = $json_output->{Reservations}->[0]->{Instances}->[0];
-    return $i_desc;
+    my ($self, $instance_id, $query) = @_;
+    chomp($query);
+    return script_output("aws ec2 describe-instances --filter Name=instance-id,Values=$instance_id | jq -r '.Reservations[0].Instances[0]" . $query . "'", quiet => 1);
 }
 
 sub get_state_from_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    return $self->describe_instance($instance_id)->{State}->{Name};
+    return $self->describe_instance($instance_id, '.State.Name');
 }
 
 sub get_public_ip {
     my ($self) = @_;
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
-    return $self->describe_instance($instance_id)->{PublicIpAddress};
+    return $self->describe_instance($instance_id, '.PublicIpAddress');
 }
 
 sub stop_instance
@@ -241,14 +240,13 @@ sub stop_instance
     die("Failed to stop instance $instance_id") unless ($attempts > 0);
 }
 
-sub start_instance
-{
+sub start_instance {
     my ($self, $instance, %args) = @_;
     my $attempts = 60;
     my $instance_id = $instance->instance_id();
 
-    my $i_desc = $self->describe_instance($instance_id);
-    die("Try to start a running instance") if ($i_desc->{State}->{Name} ne 'stopped');
+    my $state = $self->describe_instance($instance_id, '.State.Name');
+    die("Try to start a running instance") if ($state ne 'stopped');
 
     assert_script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1);
     sleep 1;    # give some time to update public_ip
@@ -263,9 +261,9 @@ sub start_instance
 sub change_instance_type {
     my ($self, $instance, $instance_type) = @_;
     my $instance_id = $instance->instance_id();
-    die "Instance type is already $instance_type" if ($self->describe_instance($instance_id)->{InstanceType} eq $instance_type);
+    die "Instance type is already $instance_type" if ($self->describe_instance($instance_id, '.InstanceType') eq $instance_type);
     assert_script_run("aws ec2 modify-instance-attribute --instance-id $instance_id --instance-type '{\"Value\": \"$instance_type\"}'");
-    die "Failed to change instance type to $instance_type" if ($self->describe_instance($instance_id)->{InstanceType} ne $instance_type);
+    die "Failed to change instance type to $instance_type" if ($self->describe_instance($instance_id, '.InstanceType') ne $instance_type);
 }
 
 sub query_metadata {

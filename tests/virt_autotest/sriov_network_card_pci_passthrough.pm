@@ -48,11 +48,18 @@ sub run_test {
     @host_pfs = find_sriov_ethernet_devices();
 
     #get/set necessary variables for test
-    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
+    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3 | sort -u";
+
+    # Back up /etc/resolv.conf as it will refresh by creating VFs
+    assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+
+    # Restore /etc/resolv.conf after VFs are created
+    assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
+    script_run("cat /etc/resolv.conf");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
@@ -60,6 +67,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
+        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 

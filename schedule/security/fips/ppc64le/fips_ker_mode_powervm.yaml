@@ -30,7 +30,7 @@ schedule:
     - console/git
     - console/clamav
     - console/openvswitch_ssl
-    - console/ntp_client
+    - console/chrony
     - console/cups
     - console/syslog
     - console/curl_https

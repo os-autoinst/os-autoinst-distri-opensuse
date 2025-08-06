@@ -17,12 +17,15 @@ use scheduler 'get_test_suite_data';
 sub run {
     select_console 'root-console';
 
-    my $os_release_name_expected = get_test_suite_data()->{os_release_name};
+    my $test_data = get_test_suite_data()->{os_release};
+    my $os_release = Config::Tiny->read_string(script_output('cat /etc/os-release'))->{_};
 
-    my $os_release_output = script_output('cat /etc/os-release');
-    my $os_release_name = Config::Tiny->read_string($os_release_output)->{_}->{NAME};
-
-    assert_equals("\"" . $os_release_name_expected . "\"", $os_release_name, 'Wrong product NAME in /etc/os-release');
+    foreach my $key (keys %$test_data) {
+        my $expected = $test_data->{$key};
+        my $actual = $os_release->{$key};
+        $actual =~ s/^"|"$//g;
+        assert_equals($expected, $actual, "Mismatch for $key, expect $expected but got $actual");
+    }
 }
 
 1;

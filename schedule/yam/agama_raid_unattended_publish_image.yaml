@@ -1,0 +1,13 @@
+---
+name: agama_raid_unattended_publish_image
+description: >
+  Perform unattended installation with RAID and publish image.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_md_raid
+  - console/validate_raid
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

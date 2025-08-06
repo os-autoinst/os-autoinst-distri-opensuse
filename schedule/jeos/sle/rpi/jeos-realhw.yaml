@@ -5,7 +5,7 @@ schedule:
   - jeos/prepare_firstboot
   - jeos/firstrun
   - jeos/record_machine_id
-  - console/ntp_client
+  - console/chrony
   - console/system_prepare
   - console/force_scheduled_tasks
   - console/suseconnect_scc

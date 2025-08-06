@@ -8,8 +8,6 @@ vars:
     DESKTOP: textmode
     GRUB_TIMEOUT: 300
     IBTESTS: 1
-    IBTEST_GITBRANCH: master
-    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_SLAVE
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de

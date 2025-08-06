@@ -56,7 +56,7 @@ sub run {
                 push(@repos, $maintrepo) unless (is_embargo_update($incident, $type)); }
         }
 
-        s/https?:\/\/// for @repos;
+        s/https?:\/\/.*\/ibs\/// for @repos;
 
         # Create list of directories for rsync
         for my $repo (@repos) {
@@ -86,7 +86,7 @@ sub run {
             }
         }
         else {
-            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
+            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://download.suse.de/ibs/,$repodir,g' '{}' \\;");
             $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
             $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
         }

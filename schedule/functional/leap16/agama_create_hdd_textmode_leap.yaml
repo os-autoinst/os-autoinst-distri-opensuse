@@ -15,6 +15,7 @@ schedule:
     - update/zypper_clear_repos
     - console/zypper_ar
     - console/zypper_ref
+    - console/opensuse_repos
     - console/hostname
     - console/force_scheduled_tasks
     - console/check_selinux_fails

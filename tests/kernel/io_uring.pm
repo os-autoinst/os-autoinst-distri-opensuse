@@ -30,6 +30,7 @@ sub run {
     my @lines;
     my $out;
 
+    record_info('KERNEL', script_output('rpm -qi kernel-default'));
     # check if liburing2 is installed and eventually install it
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
@@ -47,6 +48,7 @@ sub run {
     assert_script_run("git clone --no-single-branch $repository");
     assert_script_run("cd liburing");
     assert_script_run("git checkout $version");
+    record_info("test version", script_output("git log -1 --oneline"));
     assert_script_run("./configure");
     assert_script_run("make -C src");
     assert_script_run("make -C test");
@@ -86,25 +88,42 @@ sub run {
     );
 
     # search for timed out tests
-    @lines = $out =~ /Tests timed out \(d+\):.*/mg;
-    if (@lines) {
-        record_info(
-            "Timeout",
-            $lines[0],
-            result => 'softfail'
-        );
+    my @timeouts;
+    for my $line ($out =~ /Tests timed out \(\d+\):.*/mg) {
+        push @timeouts, $line =~ /<([\w\-\.]+\.t)>/g;
+    }
+    if (@timeouts) {
+        record_info("Timed-out Tests", join(", ", @timeouts));
+        for my $testname (@timeouts) {
+            unless ($whitelist->override_known_failures(
+                    $self,
+                    $environment,
+                    'liburing',
+                    $testname
+            )) {
+                record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
+                $self->{result} = 'fail';
+            }
+        }
     }
 
     # search for failed tests and known issues
-    @lines = $out =~ /Tests failed \(\d+\):.*/mg;
-    if (@lines) {
-        for my $failure ($lines[0] =~ '<(?P<test>[\w-]+\.t)>') {
-            $whitelist->override_known_failures(
-                $self,
-                $environment,
-                'liburing',
-                $failure
-            );
+    my @failures;
+    for my $line ($out =~ /Tests failed \(\d+\):.*/mg) {
+        push @failures, $line =~ /<([\w\-\.]+\.t)>/g;
+    }
+    if (@failures) {
+        record_info("Failed Tests", join(", ", @failures));
+        for my $failure (@failures) {
+            unless ($whitelist->override_known_failures(
+                    $self,
+                    $environment,
+                    'liburing',
+                    $failure
+            )) {
+                record_info("Unexpected Failure", "$failure failed", result => 'fail');
+                $self->{result} = 'fail';
+            }
         }
     }
 }

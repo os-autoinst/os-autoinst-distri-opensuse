@@ -1054,7 +1054,7 @@ sub process_modules {
     if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
         process_scc_register_addons;
     }
-    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
+    elsif (get_var('SCC_REGISTER', '') !~ /addon|network/) {
         send_key $cmd{next};
     }
 }

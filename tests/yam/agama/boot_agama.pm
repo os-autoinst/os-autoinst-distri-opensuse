@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
-use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile);
+use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile parse_dud_parameter);
 use Utils::Architectures;
 use Utils::Backends;
 use Mojo::Util 'trim';
@@ -58,13 +58,7 @@ sub prepare_boot_params {
     push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
 
     # additional parameters requiring parsing
-    if (get_var('INST_DUD')) {
-        foreach my $item (split(',', get_var('INST_DUD'))) {
-            push @params, 'inst.dud=' . data_url($item);
-        }
-        push @params, 'rd.neednet=1';
-    }
-
+    push @params, split ' ', trim(parse_dud_parameter(get_var('INST_DUD'))) if get_var('INST_DUD');
 
     return @params;
 }
@@ -104,7 +98,7 @@ sub run {
     $grub_entry_edition->boot();
 
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
-    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
+    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/ || check_var('AGAMA_ALERT_POPUP', 'invalid_profile')) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
     } else {
         $agama_up_an_running->expect_is_shown();

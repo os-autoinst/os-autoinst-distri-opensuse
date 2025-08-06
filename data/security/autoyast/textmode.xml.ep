@@ -36,6 +36,9 @@
       % }
       <global>
           <timeout config:type="integer">-1</timeout>
+          % if ($check_var->('FIPS_INSTALLATION', '1')) {
+          <append>fips=1</append>
+          % }
           % if ($check_var->('ARCH', 'aarch64')) {
           <secure_boot>true</secure_boot>
           <update_nvram>true</update_nvram>
@@ -105,6 +108,9 @@
       <pattern>x11</pattern>
       <pattern>x11_yast</pattern>
       <pattern>yast2_basis</pattern>
+      % if ($check_var->('FIPS_INSTALLATION', '1')) {
+      <pattern>fips</pattern>
+      % }
     </patterns>
     <products config:type="list">
       <product>SLES</product>

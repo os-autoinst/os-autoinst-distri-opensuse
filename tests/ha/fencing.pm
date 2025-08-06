@@ -53,11 +53,13 @@ sub run {
 
     # Fence a node with sysrq, crm node fence or by killing corosync
     # Sysrq fencing is more a real crash simulation
+    enter_cmd "clear";
     if (get_var('USE_SYSRQ_FENCING') || get_var('USE_PKILL_COROSYNC_FENCING')) {
         my $cmd = 'echo b > /proc/sysrq-trigger';
         $cmd = 'pkill -9 corosync' if (get_var('USE_PKILL_COROSYNC_FENCING'));
         record_info('Fencing info', "Fencing done by [$cmd]");
         enter_cmd $cmd if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
+        sleep 1;
     }
     else {
         record_info('Fencing info', 'Fencing done by crm');
@@ -69,11 +71,11 @@ sub run {
     }
 
     # Wait for server to restart on $node_to_fence or on the master node if no node is specified
-    # This loop waits for 'root-console' to disappear, then 'boot_to_desktop' (or something similar) will take care of the boot
+    # This loop waits for 'cleared-console' to disappear, then 'boot_to_desktop' (or something similar) will take care of the boot
     if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
         # Wait at most for 5 minutes (TIMEOUT_SCALE could increase this value!)
         my $loop_count = bmwqemu::scale_timeout(300);
-        while (check_screen('root-console', 0, no_wait => 1)) {
+        while (check_screen('cleared-console', 0, no_wait => 1)) {
             sleep 1;
             $loop_count--;
             last if !$loop_count;

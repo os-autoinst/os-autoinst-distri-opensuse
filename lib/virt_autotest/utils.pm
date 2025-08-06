@@ -24,6 +24,7 @@ use File::Basename;
 use LWP::Simple 'head';
 use Utils::Architectures;
 use IO::Socket::INET;
+use mm_network;
 use Carp;
 
 our @EXPORT = qw(
@@ -75,7 +76,6 @@ our @EXPORT = qw(
   ssh_copy_id
   add_guest_to_hosts
   ensure_default_net_is_active
-  ensure_guest_started
   remove_additional_disks
   remove_additional_nic
   start_guests
@@ -550,6 +550,12 @@ sub create_guest {
     my ($guest, $method) = @_;
     my $v_type = $guest->{name} =~ /HVM/ ? "-v" : "";
 
+    # Ensure UEFI firmware package is installed if this guest requires UEFI mode
+    if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi' && script_run("rpm -q ovmf") != 0) {
+        record_info("Installing OVMF", "Installing OVMF package for UEFI support for guest $guest->{name}");
+        zypper_call("in ovmf");
+    }
+
     my $name = $guest->{name};
     my $location = $guest->{location};
     my $autoyast = $guest->{autoyast};
@@ -576,6 +582,11 @@ sub create_guest {
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network bridge=br0 --autostart --location=$location --wait -1";
+        # Configure boot firmware based on guest configuration
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
+            $virtinstall .= " --boot firmware=efi";
+            record_info("Boot Firmware", "Guest $name configured for EFI boot");
+        }
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
@@ -688,7 +699,9 @@ sub ensure_default_net_is_active {
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
-    assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    my $ret = assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    record_info("Content of /etc/hosts", script_output("cat /etc/hosts"));
+    return $ret;
 }
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
@@ -805,15 +818,16 @@ sub start_guests {
 
 #Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.
 sub setup_common_ssh_config {
-    my $ssh_config_file = shift;
+    my %args = @_;
+    $args{ssh_config_file} //= '/root/.ssh/config';
+    $args{ssh_id_file} //= '';
 
-    $ssh_config_file //= '/root/.ssh/config';
-    if (script_run("test -f $ssh_config_file") ne 0) {
-        script_run "mkdir -p " . dirname($ssh_config_file);
-        assert_script_run("touch $ssh_config_file");
+    if (script_run("test -f $args{ssh_config_file}") ne 0) {
+        script_run "mkdir -p " . dirname($args{ssh_config_file});
+        assert_script_run("touch $args{ssh_config_file}");
     }
-    if (script_run("grep \"Host \\\*\" $ssh_config_file") ne 0) {
-        type_string("cat >> $ssh_config_file <<EOF
+    if (script_run("grep \"Host \\\*\" $args{ssh_config_file}") ne 0) {
+        type_string("cat >> $args{ssh_config_file} <<EOF
 Host *
     UserKnownHostsFile /dev/null
     StrictHostKeyChecking no
@@ -821,8 +835,11 @@ Host *
 EOF
 ");
     }
-    assert_script_run("chmod 600 $ssh_config_file");
-    record_info("Content of $ssh_config_file after common ssh config setup", script_output("cat $ssh_config_file;ls -lah $ssh_config_file"));
+    if ($args{ssh_id_file} and script_run("grep \"IdentityFile $args{ssh_id_file}\" $args{ssh_config_file}") ne 0) {
+        assert_script_run("sed -i -r \'/^Host \\*/a \\    IdentityFile $args{ssh_id_file}\' $args{ssh_config_file}");
+    }
+    assert_script_run("chmod 600 $args{ssh_config_file}");
+    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{sh_config_file}"));
     return;
 }
 

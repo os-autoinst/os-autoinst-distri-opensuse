@@ -48,7 +48,11 @@ sub run {
     }
     elsif (is_aarch64) {
         enter_cmd "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img";
-        assert_screen 'qemu-uefi-shell', 600;
+        assert_screen([qw(qemu-enter-boot-manager qemu-uefi-shell)], 600);
+        if (match_has_tag('qemu-enter-boot-manager')) {
+            send_key('e');
+            assert_screen('qemu-uefi-boot-manager');
+        }
     }
 
     # close qemu

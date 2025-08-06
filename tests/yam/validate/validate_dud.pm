@@ -19,11 +19,11 @@ sub run {
     # See https://build.opensuse.org/package/show/home:lslezak:dud-test/hello-world
     validate_script_output("hello-world.sh", qr/Hello world!/);
 
-    my $agama_output = script_output("journalctl /usr/bin/agama");
-    if ($agama_output =~ /The\sprofile\sis\svalid/ms) {
+    my $agama_output = script_output("journalctl -u agama-autoinstall");
+    if ($agama_output =~ /Configuration\sloaded\sfrom\sfile\:\/\/\/autoinst\.json/ms) {
         diag "DUD profile loaded successfully";
     } else {
-        die "Error, JSON profile in DUD file not loaded or not valid to perform unattended installation";
+        die "Error, JSON profile in DUD file not loaded";
     }
 }
 

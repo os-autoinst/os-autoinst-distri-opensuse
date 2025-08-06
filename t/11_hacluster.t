@@ -641,4 +641,167 @@ subtest '[crm_resource_meta_set] Delete meta-argument' => sub {
 
 };
 
+subtest '[crm_list_options] no op for crm verions older than 5.0.0' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub { push @calls, $_[0]; return $this_test_ver; });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    foreach ('0.1.1', '4.3.2', '4.4.1', '4.4.2', '4.5.2') {
+        @calls = ();
+        $this_test_ver = $_;
+        my $res = crm_list_options();
+        ok $res eq 0, "res:$res is 0 if any crmsh with valid version is available";
+        ok((all { /rpm.*crms/ } @calls), 'script_output should only be user for rpm but it gets ' . "\n  -->  " . join("\n  -->  ", @calls));
+    }
+};
+
+subtest '[crm_list_options] ver newer than 5.0.0' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub {
+            return $this_test_ver if ($_[0] =~ /rpm/);
+            # Intentionally do not collect rpm calls
+            push @calls, $_[0];
+            return <<END;
+<pacemaker-result api-version="1.23" request="crm_resource --list-options primitive --output-as xml">
+  <resource-agent name="primitive-meta" version="1.2.3">
+  </resource-agent>
+  <status code="0" message="OK"/>
+</pacemaker-result>
+END
+    });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    foreach ('5.0.0', '5.0.4', '6.0.0') {
+        $this_test_ver = $_;
+        @calls = ();
+        my $res = crm_list_options();
+        note("\n  -->  " . join("\n  -->  ", @calls));
+        ok $res > 0, "res:$res is great than 0 for a valid XML";
+        ok((any { /crm_resource.*primitive/ } @calls), 'There is a call to crm_resource --list-options primitive');
+        ok((any { /crm_resource.*fencing/ } @calls), 'There is a call to crm_resource --list-options fencing');
+        ok((any { /crm_attribute.*cluster/ } @calls), 'There is a call to crm_attribute --list-options cluster');
+    }
+};
+
+subtest '[crm_list_options] invalid xml' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+
+    my $this_test_ver;
+    $hacluster->redefine(script_output => sub {
+            return $this_test_ver if ($_[0] =~ /rpm/);
+            # Intentionally do not collect rpm calls
+            push @calls, $_[0];
+            # Intentionally invalid XML
+            return <<END;
+<<<pacemaker-result api-version="1.23" request="crm_resource --list-options primitive --output-as xml">
+  <resource-agent name="primitive-meta" version="1.2.3">
+  </resource-agent>
+  <status code="0" message="OK"/>
+<__/pacemaker-result>
+END
+    });
+    $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+
+    $this_test_ver = '5.0.0';
+    my $res = crm_list_options();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res < 0, "res:$res is less than 0 for invalid xml";
+    # All 3 commands has to be executed even if one has an issue
+    ok((any { /crm_resource.*primitive/ } @calls), 'There is a call to crm_resource --list-options primitive');
+    ok((any { /crm_resource.*fencing/ } @calls), 'There is a call to crm_resource --list-options fencing');
+    ok((any { /crm_attribute.*cluster/ } @calls), 'There is a call to crm_attribute --list-options cluster');
+};
+
+subtest 'return sbd device list by running crm sbd status [get_sbd_devices]' => sub {
+    my $output = <<'EOF';
+# status of sdb.service:
+Node                          |Active      |Enable         |Since
+2nodes-node01:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+2nodes-node02:       |YES          |YES              | active since: Tue 2025-07-22 09:45:21
+
+# Status of the sbd disk watcher process on sbdcommand-node01:
+|-3059 sbd: watcher: /dev/disk/by-path/lun-0 - slot : 0 --uuid xxxxxxxxxxxxx
+|-3060 sbd: watcher: /dev/disk/by-path/lun-4 - slot : 0 --uuid xxxxxxxxxxxxx
+
+# Status of the sbd disk watcher process on sbdcommand-node02:
+|-3058 sbd: watcher: /dev/disk/by-path/lun-0 - slot : 0 --uuid xxxxxxxxxxxxx
+|-3061 sbd: watcher: /dev/disk/by-path/lun-4 - slot : 0 --uuid xxxxxxxxxxxxx
+
+# Watchdog info:
+Node.                    |Device                    |Driver           |Kernel Timeout
+2nodes-node01  |/dev/watchdog.   | <unknown>    | 10
+2nodes-node02  |/dev/watchdog.   | <unknown>    | 10
+EOF
+
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return $output });
+    my @devices_node01 = get_sbd_devices("sbdcommand-node01");
+
+    my $expect_value = ['/dev/disk/by-path/lun-0', '/dev/disk/by-path/lun-4'];
+    is_deeply(\@devices_node01, $expect_value, 'Get sbd devices for node01 successfully');
+
+    my @devices_node02 = get_sbd_devices("sbdcommand-node02");
+    is_deeply(\@devices_node02, $expect_value, 'Get sbd devices for node02 successfully');
+};
+
+subtest 'parse result of command "crm sbd configure show disk_metadata" [parse_sbd_metadata]' => sub {
+    my $output = <<'EOF';
+INFO: crm sbd configure show disk_metadata
+==Dumping header on disk /dev/disk/by-path/xxxxx
+Header version  : 2.1
+UUID            :
+Number of slots: 123
+Sector size: 123
+Timeout (watchdog)  : 15
+Timeout (allocate)  : 2
+Timeout (loop)      : 1
+Timeout (msgwait)   : 30
+==Header on disk /dev/disk/by-path/xxxxxxx is dumped
+
+==Dumping header on disk /dev/disk/by-path/yyyy
+Header version  : 2.1
+UUID            : 123
+Number of slots: 123
+Sector size: 123
+Timeout (watchdog) : 16
+Timeout (allocate) : 3
+Timeout (loop)     : 2
+Timeout (msgwait)  : 32
+==Header on disk /dev/disk/by-path/yyyyyyy is dumped
+EOF
+
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return $output });
+    my @sbd_conf = parse_sbd_metadata();
+
+    my $expect_value = [
+        {
+            device_name => '/dev/disk/by-path/xxxxx',
+            metadata => {
+                watchdog => 15,
+                allocate => 2,
+                loop => 1,
+                msgwait => 30,
+            }
+        },
+        {
+            device_name => '/dev/disk/by-path/yyyy',
+            metadata => {
+                watchdog => 16,
+                allocate => 3,
+                loop => 2,
+                msgwait => 32,
+            }
+        }
+    ];
+    is_deeply(\@sbd_conf, $expect_value, 'Parse crm sbd configure show disk_metadata successfully');
+};
+
 done_testing;

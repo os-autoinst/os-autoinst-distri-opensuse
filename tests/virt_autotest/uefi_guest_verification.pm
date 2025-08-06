@@ -34,22 +34,11 @@ sub run_test {
     # No machine type on aarch64 supports power management, or secure boot
     return $self if (is_aarch64);
 
-    if (is_kvm_host) {
-        if (is_sle) {
-            record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
-        }
-        elsif (is_alp) {
-            # The current default uefi firmware in alp kvm container supports secure boot,
-            # but does not support PXE/HTTP boot, and pm is not well supported either.
-            # Secure boot is supported with q35 machine type only
-            $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
-        }
+    if (is_sle('=16')) {
+        $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
         #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);
-
     }
-    else {
-        record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
-    }
+    record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI") if (is_xen_host);
 
     # TODO: enable pm check for alp once default uefi firmware supports it well
     if (is_sle('>=15')) {

@@ -57,6 +57,8 @@ sub ibtest_master {
     my $phase = get_var('IBTEST_ONLY_PHASE');
     my $mpi_flavours = get_var('IBTEST_MPI_FLAVOURS');
     my $ipoib_modes = get_var('IBTEST_IPOIB_MODES');
+    my $ipoib_ip1 = get_var('IBTEST_IPOIB_IP1', '192.168.0.1');
+    my $ipoib_ip2 = get_var('IBTEST_IPOIB_IP2', '192.168.0.2');
 
     my $args = '';
 
@@ -73,6 +75,7 @@ sub ibtest_master {
 
     $args = $args . "--mpi $mpi_flavours " if $mpi_flavours;
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
+    $args = $args . "--ip1 $ipoib_ip1 --ip2 $ipoib_ip2 ";
 
 
     # pull in the testsuite

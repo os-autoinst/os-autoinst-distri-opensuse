@@ -510,7 +510,9 @@ sub ipaddr2_bastion_key_accept {
     # in openQA start from a clean environment
 
     my $cmd = join(' ',
-        'ssh -vvv',
+        'ssh',
+        '-E /var/tmp/ssh_sut.log',
+        '-vvv',
         '-oStrictHostKeyChecking=accept-new', # always use accept-new is fine here as this cmd is executed on the worker that is supposed to have a recent ssh client
         ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         'whoami');
@@ -584,16 +586,20 @@ sub ipaddr2_internal_key_accept {
         # Try two different variants of the same command.
         $ret = script_run(join(' ',
                 'ssh',
+                '-E /var/tmp/ssh_sut.log',
                 '-vvv',
                 $key_policy,
                 '-oConnectionAttempts=120',
                 '-J', $bastion_ssh_addr,
                 $vm_addr,
-                'whoami'));
+                'whoami',
+                '2>>/var/tmp/ssh_proxy_sut.log'
+        ));
 
         if ($ret) {
             $ret = script_run(join(' ',
                     'ssh',
+                    '-E /var/tmp/ssh_sut.log',
                     '-vvv',
                     $vm_addr,
                     "-oProxyCommand=\"ssh $bastion_ssh_addr -oConnectionAttempts=120 -W %h:%p\"",
@@ -789,6 +795,7 @@ sub ipaddr2_internal_key_authorize {
     # the first internal vm is always done as cloudadmin (crm only care VM to VM ssh configuration).
     my $f_cmd = join(' ',
         'ssh',
+        '-E /var/tmp/ssh_sut.log',
         "$args{user}\@$vm_name",
         $key_policy,
         'whoami');
@@ -1169,6 +1176,7 @@ sub ipaddr2_ssh_bastion_assert_script_run {
 
     assert_script_run(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1199,6 +1207,7 @@ sub ipaddr2_ssh_bastion_script_run {
 
     return script_run(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1229,6 +1238,7 @@ sub ipaddr2_ssh_bastion_script_output {
 
     return script_output(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1266,9 +1276,14 @@ sub ipaddr2_ssh_internal_cmd {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     return join(' ',
-        'ssh', '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+        'ssh',
+        '-E /var/tmp/ssh_sut.log',
+        '-J',
+        ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
-        "'$args{cmd}'");
+        "'$args{cmd}'",
+        '2>>/var/tmp/ssh_proxy_sut.log'
+    );
 }
 
 =head2 ipaddr2_ssh_internal
@@ -1593,6 +1608,10 @@ Call zypper refresh
 =over
 
 =item B<id> - VM id where to install and configure the web server
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
 
 =back
 
@@ -1999,17 +2018,29 @@ Add download.suse.de server to hosts by specifying IBSM address
 
 =over
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
+=item B<ibsm_ip> - IP of the IBSm
+
+=item B<incident_repo> - Comma separated list of incident repos
+
+=item B<repo_host> - host name of the repo server. Default is download.suse.de.
+
 =back
 
 =cut
 
 sub ipaddr2_add_server_repos_to_hosts {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    croak 'Missing mandatory argument < ibsm_ip >' unless $args{ibsm_ip};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{repo_host} //= 'download.suse.de';
     foreach my $id (1 .. 2) {
         ipaddr2_ssh_internal(id => $id,
-            cmd => "echo \"$args{'ibsm_ip'} download.suse.de\" | sudo tee -a /etc/hosts",
-            bastion_ip => $args{bastion_pubip});
+            cmd => "echo \"$args{'ibsm_ip'} $args{repo_host}\" | sudo tee -a /etc/hosts",
+            bastion_ip => $args{bastion_ip});
     }
 
     # Add repos
@@ -2026,7 +2057,7 @@ sub ipaddr2_add_server_repos_to_hosts {
         foreach my $id (1 .. 2) {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $zypper_cmd,
-                bastion_ip => $args{bastion_pubip});
+                bastion_ip => $args{bastion_ip});
         }
         $count++;
     }
@@ -2040,13 +2071,17 @@ Patch system
 
 =over
 
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended in order
+                      to avoid having to query Azure to get it.
+
 =back
 
 =cut
 
 sub ipaddr2_patch_system {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     my @vms = ();
     foreach my $id (1 .. 2) {
@@ -2055,22 +2090,21 @@ sub ipaddr2_patch_system {
 
         ipaddr2_ssh_internal(id => $id,
             cmd => "sudo zypper -n ref",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             timeout => 1500);
     }
 
     # zypper patch
-    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     foreach my $vm_ip (@vms) {
-        my $remote = "-J $host_ip cloudadmin@" . "$vm_ip";
-        ssh_fully_patch_system($remote);
+        ssh_fully_patch_system("-J $host_ip cloudadmin@" . "$vm_ip");
     }
 
     foreach my $vm_id (1 .. 2) {
         # To avoid the zypper lock issue
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => "sudo systemctl mask packagekit; sudo systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             method => "script_run",
             timeout => 120);
 
@@ -2078,7 +2112,7 @@ sub ipaddr2_patch_system {
         # assert_script_run. Use script_run instead to avoid that
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => "sudo reboot",
-            bastion_ip => $args{bastion_pubip},
+            bastion_ip => $args{bastion_ip},
             method => "script_run",
             timeout => 60);
     }
@@ -2107,7 +2141,7 @@ sub ipaddr2_patch_system {
             my $ret = ipaddr2_ssh_internal(
                 id => $v_id,
                 cmd => 'pgrep "zypper|purge-kernels|rpm"',
-                bastion_ip => $args{bastion_pubip},
+                bastion_ip => $args{bastion_ip},
                 method => "script_run",
                 timeout => 60);
             if ($ret == 0) {
@@ -2132,6 +2166,8 @@ Register addons on SUT
 
 =over
 
+=item B<scc_addons> - List of scc addons as usually provided by SCC_ADDONS variable
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended in order
                       to avoid having to query Azure to get it.
@@ -2142,9 +2178,10 @@ Register addons on SUT
 
 sub ipaddr2_scc_addons {
     my (%args) = @_;
-    $args{bastion_pubip} //= ipaddr2_bastion_pubip();
-    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_pubip});
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    croak 'Missing mandatory argument < scc_addons >' unless $args{scc_addons};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my @addons = split(/,/, $args{scc_addons});
 
     foreach my $id (1 .. 2) {
         # Register through an external library function register_addon.
