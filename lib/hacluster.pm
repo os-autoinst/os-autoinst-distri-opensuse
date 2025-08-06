@@ -94,6 +94,9 @@ our @EXPORT = qw(
   crm_list_options
   get_sbd_devices
   parse_sbd_metadata
+  list_configured_sbd
+  sbd_device_report
+  get_fencing_type
 );
 
 =head1 SYNOPSIS
@@ -1921,7 +1924,7 @@ UUID                : xxx
 Number of slots     : 255
 Sector size         : 512
 Timeout (watchdog)  : 5
-Timeout (allocate)  : 10 
+Timeout (allocate)  : 10
 Timeout (loop)      : 2
 Timeout (msgwait)   : 5
 ==Header on disk /dev/disk/by-path/xxxxxxx is dumped
@@ -1985,6 +1988,81 @@ sub parse_sbd_metadata {
         }
     }
     return @val;
+}
+
+=head2 list_configured_sbd
+
+    list_configured_sbd();
+
+Returns list of SBD devices defined in `/etc/sysconfig/sbd` as an B<ARRAYREF>. Example: ['/device/1', '/device/2']
+
+=cut
+
+sub list_configured_sbd {
+    my (%args) = @_;
+    # return if file does not exist - means no SBD setup
+    return [] if script_run('test -f /etc/sysconfig/sbd');
+    my $sbd_devices = script_output('grep -E ^SBD_DEVICE /etc/sysconfig/sbd', proceed_on_failure => '1');
+    return [] unless $sbd_devices;
+    $sbd_devices =~ s/SBD_DEVICE=|"//g;
+    my @sbd_devices = split(';', $sbd_devices);
+    assert_script_run("test -b $_", fail_message => "SBD device '$_' not found") foreach @sbd_devices;
+    return \@sbd_devices;
+}
+
+=head2 sbd_device_report
+
+    sbd_device_report(device_list=>['/device/one', '/device/two']);
+
+Executes various SBD related commands and returns report compiled from the outputs as a single string.
+
+=over
+
+=item * B<device_list> List of devices as an B<ARRAYREF> that should be included in the report.
+
+=item * B<expected_sbd_devices_count> Optional check if number of expected SBD devices deployed matches current state.
+
+=back
+
+=cut
+
+sub sbd_device_report {
+    my (%args) = @_;
+    my $separator = "\n" . '*' x 50 . "\n";
+    my $report = "SBD Device report$separator";
+    # Optional check if number of expected SBD devices matches current state
+    if ($args{expected_sbd_devices_count}) {
+        my $number_of_sbds = $args{device_list} ? @{$args{device_list}} : '0';
+        $report .= "Check SBD device count :\n";
+        $report .= ($args{expected_sbd_devices_count} == $number_of_sbds) ?
+          "PASS: Number of expected ($args{expected_sbd_devices_count}) devices matched${separator}" :
+          "FAIL: Number of expected ($args{expected_sbd_devices_count}) devices does not match current state ($number_of_sbds)${separator}";
+    }
+
+    # no need to run commands if there are no SBD devices configured
+    return $report unless $args{device_list};
+    $report .= join("\n", 'Device list:', @{$args{device_list}});
+    $report .=
+      join("\n", map { "${separator}Slot $_:\n" . script_output("sbd list -d $_") } @{$args{device_list}});
+    $report .=
+      join("\n", map { "${separator}Dump $_:\n" . script_output("sbd dump -d $_") } @{$args{device_list}});
+
+    return $report;
+}
+
+=head2 get_fencing_type
+
+    get_fencing_type();
+
+Checks which stonith resource type is configured using B<crm shell>.
+Returns full type name ('external/sbd', 'fence_azure_arm', ...).
+
+=cut
+
+sub get_fencing_type {
+    my $stonith_type = script_output('crm configure show related:stonith | grep primitive');
+    $stonith_type =~ m/stonith:(.*)\s/;
+    return $1;
 }
 
 1;

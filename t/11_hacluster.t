@@ -639,6 +639,7 @@ subtest '[crm_resources_by_class] Result verification' => sub {
 primitive rsc_sap_QES_ERS02 SAPInstance'; });
     $hacluster->redefine(assert_script_run => sub { return; });
     my @resources_found = @{crm_resources_by_class(primitive_class => 'SAPInstance')};
+    note("\n  -->  " . join("\n  -->  ", @resources_found));
     ok((grep /SCS/, @resources_found), 'Result finds ASCS instance name');
     ok((grep /ERS/, @resources_found), 'Result finds ERS instance name');
 };
@@ -881,6 +882,61 @@ EOF
         }
     ];
     is_deeply(\@sbd_conf, $expect_value, 'Parse crm sbd configure show disk_metadata successfully');
+};
+
+subtest '[list_configured_sbd] ' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $mock_out = 'SBD_DEVICE="/dev/disk/by-id/scsi-1;/dev/disk/by-id/scsi-2;/dev/disk/by-id/scsi-3"';
+    $hacluster->redefine(script_output => sub { return $mock_out; });
+    $hacluster->redefine(script_run => sub { return '0'; });
+    $hacluster->redefine(assert_script_run => sub { return '0'; });
+    my @sbd_devices = @{list_configured_sbd()};
+    note("\n  -->  " . join("\n  -->  ", @sbd_devices));
+    ok((any { /\/dev\/disk\/by-id\/scsi-1/ } @sbd_devices), 'First SBD device');
+    ok((any { /\/dev\/disk\/by-id\/scsi-2/ } @sbd_devices), 'Second SBD device');
+    ok((any { /\/dev\/disk\/by-id\/scsi-3/ } @sbd_devices), 'Third SBD device');
+};
+
+subtest '[list_configured_sbd] Return empty ARRAY if there is no SBD config present' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_run => sub { return '1'; });
+    $hacluster->redefine(assert_script_run => sub { return '0'; });
+    ok(!@{list_configured_sbd()}, 'Return empty ARRAY');
+};
+
+subtest '[sbd_device_report]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub {
+            return 'list_out' if grep /list/, @_;
+            return 'dump_out' if grep /dump/, @_;
+    });
+    my $report = sbd_device_report(device_list => ['/dev/a']);
+    note("\n  -->  " . join("\n  -->  ", $report));
+
+    ok($report =~ /list_out/, 'Report contains "sbd list" command output');
+    ok($report =~ /dump_out/, 'Report contains "sbd dump" command output');
+};
+
+subtest '[sbd_device_report] Expected device count check' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return 'sbd out'; });
+    my $report = sbd_device_report(expected_sbd_devices_count => '1', device_list => ['/dev/a']);
+    note("\n  -->  " . join("\n  -->  ", $report));
+    ok($report =~ /PASS/, 'Pass with matching SBD device count');
+};
+
+subtest '[get_fencing_type] ' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my %tested_values = (
+        'external/sbd' => 'primitive some-name stonith:external/sbd \\',
+        'fence_azure_arm' => 'primitive rsc_st_azure stonith:fence_azure_arm \\',
+    );
+
+    for my $expected_result (keys(%tested_values)) {
+        $hacluster->redefine(script_output => sub { return $tested_values{$expected_result}; });
+        is get_fencing_type, $expected_result, "Return correct fencing type '$expected_result'";
+    }
+
 };
 
 done_testing;
