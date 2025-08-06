@@ -14,7 +14,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures qw(is_x86_64);
 use containers::bats;
-use version_utils qw(is_tumbleweed);
+use version_utils qw(is_sle);
 
 
 sub run_tests {
@@ -41,9 +41,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
-    # This package is only available on Tumbleweed and is needed
-    # only for the SIF image test in systemtest/020-copy.bats
-    push @pkgs, "fakeroot" if is_tumbleweed;
+    push @pkgs, "fakeroot" unless is_sle('>=16.0');
 
     $self->bats_setup(@pkgs);
 
