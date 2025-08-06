@@ -46,6 +46,9 @@ sub grub_test {
     {
         bug_workaround_bsc1005313() unless get_var("BOOT_TO_SNAPSHOT");
     }
+    elsif (get_var('AGAMA_SELINUX_CHECK')) {
+        add_kernel_parameters_for_selinux_check();  
+    }
     else {
         # avoid timeout for booting to HDD
         send_key 'ret';
@@ -88,6 +91,17 @@ sub bug_workaround_bsc1005313 {
     }
     type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
 
+    save_screenshot;
+    send_key 'ctrl-x';
+}
+
+sub add_kernel_parameters_for_selinux_check {
+    send_key 'e';
+    # Move to end of kernel boot parameters line
+    send_key_until_needlematch "linux-line-selected", "down", 26;
+    wait_screen_change { send_key('end') };
+    wait_still_screen(1);
+    type_string(" security=selinux selinux=1");
     save_screenshot;
     send_key 'ctrl-x';
 }
