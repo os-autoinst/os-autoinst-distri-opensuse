@@ -510,7 +510,9 @@ sub ipaddr2_bastion_key_accept {
     # in openQA start from a clean environment
 
     my $cmd = join(' ',
-        'ssh -vvv',
+        'ssh',
+        '-E /var/tmp/ssh_sut.log',
+        '-vvv',
         '-oStrictHostKeyChecking=accept-new', # always use accept-new is fine here as this cmd is executed on the worker that is supposed to have a recent ssh client
         ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         'whoami');
@@ -584,16 +586,20 @@ sub ipaddr2_internal_key_accept {
         # Try two different variants of the same command.
         $ret = script_run(join(' ',
                 'ssh',
+                '-E /var/tmp/ssh_sut.log',
                 '-vvv',
                 $key_policy,
                 '-oConnectionAttempts=120',
                 '-J', $bastion_ssh_addr,
                 $vm_addr,
-                'whoami'));
+                'whoami',
+                '2>>/var/tmp/ssh_proxy_sut.log'
+        ));
 
         if ($ret) {
             $ret = script_run(join(' ',
                     'ssh',
+                    '-E /var/tmp/ssh_sut.log',
                     '-vvv',
                     $vm_addr,
                     "-oProxyCommand=\"ssh $bastion_ssh_addr -oConnectionAttempts=120 -W %h:%p\"",
@@ -789,6 +795,7 @@ sub ipaddr2_internal_key_authorize {
     # the first internal vm is always done as cloudadmin (crm only care VM to VM ssh configuration).
     my $f_cmd = join(' ',
         'ssh',
+        '-E /var/tmp/ssh_sut.log',
         "$args{user}\@$vm_name",
         $key_policy,
         'whoami');
@@ -1169,6 +1176,7 @@ sub ipaddr2_ssh_bastion_assert_script_run {
 
     assert_script_run(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1199,6 +1207,7 @@ sub ipaddr2_ssh_bastion_script_run {
 
     return script_run(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1229,6 +1238,7 @@ sub ipaddr2_ssh_bastion_script_output {
 
     return script_output(join(' ',
             'ssh',
+            '-E /var/tmp/ssh_sut.log',
             ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
             "'$args{cmd}'"));
 }
@@ -1266,9 +1276,14 @@ sub ipaddr2_ssh_internal_cmd {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     return join(' ',
-        'ssh', '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+        'ssh',
+        '-E /var/tmp/ssh_sut.log',
+        '-J',
+        ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         "$user\@" . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
-        "'$args{cmd}'");
+        "'$args{cmd}'",
+        '2>>/var/tmp/ssh_proxy_sut.log'
+    );
 }
 
 =head2 ipaddr2_ssh_internal
