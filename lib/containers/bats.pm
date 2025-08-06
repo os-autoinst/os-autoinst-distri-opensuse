@@ -294,6 +294,22 @@ sub bats_setup {
     assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
 }
 
+sub collect_coredumps {
+    script_run('coredumpctl list > coredumpctl.txt');
+
+    # Get PID and executable for all dumps
+    my @lines = split /\n/, script_output(q{coredumpctl --no-pager --no-legend | awk '$9 == "present" { print $5, $10 }'});
+
+    foreach my $line (@lines) {
+        my ($pid, $exe) = split /\s+/, $line;
+        my $core = basename($exe) . ".$pid.core";
+
+        # Dumping and compressing coredumps may take some time
+        script_run("coredumpctl -o $core dump $pid", 300);
+        script_run("gzip -v $core", 300);
+    }
+}
+
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -303,6 +319,7 @@ sub bats_post_hook {
 
     script_run "rm -rf $test_dir";
 
+    collect_coredumps;
     script_run('df -h > df-h.txt');
     script_run('dmesg > dmesg.txt');
     script_run('findmnt > findmnt.txt');
