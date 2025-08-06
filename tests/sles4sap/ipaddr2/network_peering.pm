@@ -29,7 +29,8 @@ sub run {
 
     ipaddr2_add_server_repos_to_hosts(
         ibsm_ip => get_required_var('IBSM_IP'),
-        incident_repo => get_var('INCIDENT_REPO', ''));
+        incident_repo => get_var('INCIDENT_REPO', ''),
+        repo_host => get_var('REPO_MIRROR_HOST', 'download.suse.de'));
 }
 
 sub test_flags {
