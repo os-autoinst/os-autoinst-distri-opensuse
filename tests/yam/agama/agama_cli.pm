@@ -20,12 +20,12 @@ sub run {
     $json->{'product'}->{'id'} = 'SLES';
     $json->{'product'}->{'registrationCode'} = get_var('SCC_REGCODE');
     $json->{'root'} = {
-        'hashedPassword' => JSON::PP::true,
+        'hashedPassword' => \1,
         'password' => '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     };
     $json->{'user'} = {
         'fullName' => 'Bernhard M. Wiedemann',
-        'hashedPassword' => JSON::PP::true,
+        'hashedPassword' => \1,
         'password' => '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
         'userName' => 'bernhard'
     };
