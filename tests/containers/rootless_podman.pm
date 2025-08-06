@@ -101,7 +101,11 @@ sub run {
     # already exists owned by root
     assert_script_run 'rm -rf /tmp/script*';
     ensure_serialdev_permissions;
-    select_user_serial_terminal;
+    if (is_transactional) {
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal();
+    }
 
     # By default the storage driver is set to btrfs if /var is in btrfs
     # but if the home partition is not btrfs podman commands will fail with
