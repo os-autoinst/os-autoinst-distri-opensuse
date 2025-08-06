@@ -883,4 +883,39 @@ EOF
     is_deeply(\@sbd_conf, $expect_value, 'Parse crm sbd configure show disk_metadata successfully');
 };
 
+subtest '[list_configured_sbd] ' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $mock_out = 'SBD_DEVICE="/dev/disk/by-id/scsi-1;/dev/disk/by-id/scsi-2;/dev/disk/by-id/scsi-3"';
+    $hacluster->redefine(script_output => sub { return $mock_out; });
+    my @sbd_devices = @{list_configured_sbd()};
+    ok((any { /\/dev\/disk\/by-id\/scsi-1/ } @sbd_devices), 'First SBD device');
+    ok((any { /\/dev\/disk\/by-id\/scsi-2/ } @sbd_devices), 'Second SBD device');
+    ok((any { /\/dev\/disk\/by-id\/scsi-3/ } @sbd_devices), 'Third SBD device');
+};
+
+subtest '[sbd_device_report]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub {
+            return 'list_out' if grep /list/, @_;
+            return 'dump_out' if grep /dump/, @_;
+    });
+    my $report = sbd_device_report(device_list => ['/dev/a']);
+    note("\n  -->  " . join("\n  -->  ", $report));
+
+    ok($report =~ /list_out/, 'Report contains "sbd list" command output');
+    ok($report =~ /dump_out/, 'Report contains "sbd dump" command output');
+};
+
+subtest '[sbd_device_report] Check mandatory args' => sub {
+    dies_ok { sbd_device_report() } 'Fail with missing mandatory argument "device_list"';
+};
+
+subtest '[sbd_device_report] Expected device count check' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return 'sbd out'; });
+    my $report = sbd_device_report(expected_sbd_devices_count => '1', device_list => ['/dev/a']);
+    note("\n  -->  " . join("\n  -->  ", $report));
+    ok($report =~ /PASS/, 'Pass with matching SBD device count');
+};
+
 done_testing;
