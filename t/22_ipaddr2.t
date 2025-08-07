@@ -311,7 +311,6 @@ subtest '[ipaddr2_cluster_check_version]' => sub {
     ok((any { /ssh.*\.41.*rpm.*qf.*which crm/ } @calls), "Get rpm crm");
     ok((any { /ssh.*\.41.*crm --version/ } @calls), "Get crm --version");
     ok((any { /ssh.*\.41.*zypper se.*crmsh/ } @calls), "Get installed crmsh zypper package");
-
 };
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
