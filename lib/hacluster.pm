@@ -188,7 +188,7 @@ sub add_file_in_csync {
 
     if (defined($conf_file) && defined($args{value})) {
         # Check if conf_file is a valid value
-        assert_script_run "[[ -w $conf_file ]]";
+        assert_script_run("[[ -w $conf_file ]]", 180);
 
         # Add the value in conf_file and sync on all nodes
         assert_script_run "grep -Fq $args{value} $conf_file || sed -i 's|^}\$|include $args{value};\\n}|' $conf_file";
