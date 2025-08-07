@@ -35,6 +35,11 @@ sub run {
     assert_script_run("agama install", timeout => 2400);
 
     $self->upload_agama_logs();
+
+    # make sure we will boot from hard disk next time
+    if (is_s390x() && is_svirt()) {
+        my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
+    }
     power_action('reboot', keepconsole => 1, first_reboot => 1)
 }
 
