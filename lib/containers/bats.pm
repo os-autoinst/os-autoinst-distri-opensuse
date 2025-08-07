@@ -253,6 +253,8 @@ sub bats_setup {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
+    # We use xz to compress core files
+    push @pkgs, "xz";
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 300;
 
     configure_oci_runtime $oci_runtime;
@@ -304,11 +306,12 @@ sub collect_coredumps {
 
     foreach my $line (@lines) {
         my ($pid, $exe) = split /\s+/, $line;
-        my $core = basename($exe) . ".$pid.core";
+        $exe = basename($exe);
+        my $core = "core.$exe.$pid.core";
 
         # Dumping and compressing coredumps may take some time
         script_run("coredumpctl -o $core dump $pid", 300);
-        script_run("gzip -v $core", 300);
+        script_run("xz -9v $core", 300);
     }
 }
 
