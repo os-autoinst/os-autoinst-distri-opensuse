@@ -12,7 +12,7 @@ use warnings;
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use Utils::Architectures qw(is_x86_64);
+use Utils::Architectures qw(is_s390x is_x86_64);
 use containers::bats;
 use version_utils qw(is_sle);
 
@@ -41,7 +41,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
-    push @pkgs, "fakeroot" unless is_sle('>=16.0');
+    push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
 
     $self->bats_setup(@pkgs);
 
