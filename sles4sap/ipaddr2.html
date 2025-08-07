@@ -16,7 +16,6 @@
     <ul>
       <li><a href="#get_private_ip_range">get_private_ip_range</a></li>
       <li><a href="#ipaddr2_azure_resource_group">ipaddr2_azure_resource_group</a></li>
-      <li><a href="#ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</a></li>
       <li><a href="#ipaddr2_cloudinit_create">ipaddr2_cloudinit_create</a></li>
       <li><a href="#ipaddr2_infra_deploy">ipaddr2_infra_deploy</a></li>
       <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
@@ -80,12 +79,6 @@
 <pre><code>my $rg = ipaddr2_azure_resource_group();</code></pre>
 
 <p>Get the Azure resource group name for this test</p>
-
-<h2 id="ipaddr2_azure_storage_account">ipaddr2_azure_storage_account</h2>
-
-<pre><code>my $storage_account = ipaddr2_azure_storage_account();</code></pre>
-
-<p>Get a unique storage account name. Not including the jobId result in error like: The storage account named ip2tstorageaccount already exists under the subscription</p>
 
 <h2 id="ipaddr2_cloudinit_create">ipaddr2_cloudinit_create</h2>
 
@@ -217,17 +210,26 @@
 
 <h2 id="ipaddr2_internal_key_authorize">ipaddr2_internal_key_authorize</h2>
 
-<pre><code>ipaddr2_internal_key_authorize(src =&gt; &#39;1&#39;, dst =&gt; &#39;2&#39;, key_checking = &#39;no&#39;);</code></pre>
+<pre><code>ipaddr2_internal_key_authorize(
+    src          =&gt; 1,
+    dst          =&gt; 2,
+    user         =&gt; &#39;cloudadmin&#39;,
+    key_checking =&gt; &#39;accept-new&#39;,
+);</code></pre>
 
-<p>Add pub ssh key for a specific user to the same use authorized_key file on the other internal VM</p>
+<p>Helper for <code>ipaddr2_internal_key_gen</code> and contribute to establish password-less SSH access from a source internal VM to a destination internal VM for a specific user. It takes the public SSH key of the source VM (previously generated and stored on the openQA worker) and adds it to the <code>authorized_keys</code> file on the destination VM.</p>
+
+<p>This function must be called twice, once for each direction (e.g., VM1 to VM2, and then VM2 to VM1).</p>
+
+<p>The process involves: 1. Copying the source VM&#39;s public key to a temporary location on the destination VM via the bastion host. 2. Appending the key to the correct <code>authorized_keys</code> file on the destination VM. 3. Performing a test SSH connection from the source to the destination to verify the setup.</p>
 
 <dl>
 
-<dt id="src---id-of-the-internal-VM-that-want-to-have-its-public-key-recorded-on-the-other"><b>src</b> - id of the internal VM that want to have its public key recorded on the other</dt>
+<dt id="src---id-of-the-internal-VM-that-want-to-have-its-public-key-recorded-on-the-other-VM"><b>src</b> - id of the internal VM that want to have its public key recorded on the other VM</dt>
 <dd>
 
 </dd>
-<dt id="src---id-of-the-internal-VM-has-to-add-the-other-VM-pub-key-in-its-authorized_key-list"><b>src</b> - id of the internal VM has to add the other VM pub key in its authorized_key list</dt>
+<dt id="dst---id-of-the-internal-VM-has-to-add-the-other-VM-pub-key-in-its-authorized_key-list"><b>dst</b> - id of the internal VM has to add the other VM pub key in its authorized_key list</dt>
 <dd>
 
 </dd>
@@ -307,7 +309,7 @@
 
 <pre><code>ipaddr2_cloudinit_sanity()</code></pre>
 
-<p>Run some checks about cloud-init</p>
+<p>Run some checks about cloud-init. These checks can be executed also when a cloudinit script is not used to bootstrap the SUT.</p>
 
 <dl>
 
@@ -369,7 +371,7 @@
     bastion_ip =&gt; &#39;1.2.3.4&#39;,
     cmd =&gt; &#39;whoami&#39;);</code></pre>
 
-<p>run a command on the bastion using assert_script_run</p>
+<p>Run a command on the bastion using assert_script_run</p>
 
 <dl>
 
@@ -389,7 +391,7 @@
     bastion_ip =&gt; &#39;1.2.3.4&#39;,
     cmd =&gt; &#39;whoami&#39;);</code></pre>
 
-<p>run a command on the bastion using script_run</p>
+<p>Run a command on the bastion using script_run</p>
 
 <dl>
 
@@ -409,7 +411,7 @@
     bastion_ip =&gt; &#39;1.2.3.4&#39;,
     cmd =&gt; &#39;whoami&#39;);</code></pre>
 
-<p>run a command on the bastion using script_output</p>
+<p>Run a command on the bastion using script_output</p>
 
 <dl>
 
@@ -438,7 +440,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-in-order-to-avoid-having-to-query-Azure-to-get-it"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended in order to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it15"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -450,13 +452,12 @@
 
 <h2 id="ipaddr2_ssh_internal">ipaddr2_ssh_internal</h2>
 
-<pre><code>ipaddr2_ssh_internal(
-    id =&gt; 2,
-    bastion_ip =&gt; &#39;1.2.3.4&#39;,
+<pre><code>ipaddr2_ssh_internal(id =&gt; 2,
     cmd =&gt; &#39;whoami&#39;,
+    bastion_ip =&gt; &#39;4.5.6.7&#39;,
     method =&gt; script_run/assert_script_run);</code></pre>
 
-<p>run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
+<p>Run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
 
 <dl>
 
@@ -468,7 +469,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it15"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it16"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -501,7 +502,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it16"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it17"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -519,7 +520,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it17"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it18"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -537,7 +538,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it18"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it19"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -555,7 +556,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it19"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it20"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -577,7 +578,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it20"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it21"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -595,7 +596,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it21"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it22"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -621,7 +622,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it22"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it23"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -639,7 +640,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it23"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it24"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -661,7 +662,7 @@
 
 <pre><code>my $vm_name = ipaddr2_get_internal_vm_name(id =&gt; 42);</code></pre>
 
-<p>compose and return a string for the vm name</p>
+<p>Compose and return a string for the vm name</p>
 
 <dl>
 
@@ -695,7 +696,7 @@
 
 <pre><code>ipaddr2_crm_move(destination =&gt; 2);</code></pre>
 
-<p>move the rsc_web_00 resource to the indicated node</p>
+<p>Move the rsc_web_00 resource to the indicated node</p>
 
 <dl>
 
@@ -707,7 +708,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it24"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it25"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -717,7 +718,7 @@
 
 <pre><code>ipaddr2_crm_clear();</code></pre>
 
-<p>clear all location constrain used during the test</p>
+<p>Clear all location constrain used during the test</p>
 
 <dl>
 
@@ -725,7 +726,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it25"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it26"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -743,7 +744,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it26"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it27"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -765,7 +766,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it27"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it28"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -783,7 +784,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it28"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it29"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -801,7 +802,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it29"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it30"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -829,7 +830,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it30"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it31"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -855,7 +856,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it31"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it32"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
@@ -873,7 +874,7 @@
 <dd>
 
 </dd>
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it32"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it33"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
