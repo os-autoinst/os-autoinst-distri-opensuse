@@ -221,6 +221,12 @@ Please add this warning on each bug report you open when adding instructions on 
 
 Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 
+### aardvark-dns
+
+| tests | reason |
+| --- | --- |
+| half of them | [aardvark-dns upstream tests make dnsmasq dump core](https://bugzilla.opensuse.org/show_bug.cgi?id=1247812) |
+
 ## Tools
 
 - [susebats](https://github.com/ricardobranco777/susebats)
