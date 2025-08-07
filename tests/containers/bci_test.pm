@@ -23,7 +23,7 @@ use serial_terminal 'select_serial_terminal';
 use containers::utils qw(reset_container_network_if_needed);
 use File::Basename;
 use utils qw(systemctl);
-use version_utils qw(get_os_release check_version);
+use version_utils qw(get_os_release check_version is_sle);
 
 my $error_count;
 
@@ -137,6 +137,7 @@ sub run {
     reset_container_network_if_needed($engine);
 
     assert_script_run('source bci/bin/activate') if ($bci_virtualenv);
+    assert_script_run('source /usr/lib/venv-salt-minion/bin/activate') if (is_sle('=12-SP5'));
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
@@ -158,7 +159,7 @@ sub run {
         $self->run_tox_cmd($env);
     }
 
-    assert_script_run('deactivate') if ($bci_virtualenv);
+    assert_script_run('deactivate') if ($bci_virtualenv || is_sle('=12-SP5'));
 
     # Mark the job as failed if any of the tests failed
     die("$error_count tests failed.") if ($error_count > 0);
