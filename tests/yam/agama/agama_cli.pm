@@ -10,6 +10,8 @@ use warnings;
 use testapi;
 use JSON qw(decode_json to_json);
 use power_action_utils 'power_action';
+use Utils::Architectures qw(is_s390x);
+use Utils::Backends qw(is_svirt);
 
 sub run {
     my $self = shift;
