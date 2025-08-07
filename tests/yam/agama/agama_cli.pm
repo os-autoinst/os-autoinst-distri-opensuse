@@ -40,6 +40,7 @@ sub run {
 
     # make sure we will boot from hard disk next time
     if (is_s390x() && is_svirt()) {
+        select_console 'installation';
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
     power_action('reboot', keepconsole => 1, first_reboot => 1)
