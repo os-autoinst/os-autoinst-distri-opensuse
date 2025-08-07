@@ -822,7 +822,7 @@
         "type": "ignore"
     },
     "vmware-RETBleed": {
-        "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!",
+        "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!|Speculative Return Stack Overflow: (IBPB-extending microcode not applied|WARNING: See .* for mitigation options)",
         "products": {
             "sle": ["15-SP6", "15-SP7", "16.0"],
             "sle-micro": ["6.2"]
