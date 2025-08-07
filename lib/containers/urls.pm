@@ -152,6 +152,18 @@ sub supports_image_arch {
     (grep { $_ eq $arch } @{$images_list{$distri}{$version}{available_arch}}) ? 1 : 0;
 }
 
+sub discover_ubi_images {
+    my ($ubi_version) = @_;
+    my $registry = 'registry.access.redhat.com';
+    my $prefix = "ubi$ubi_version/ubi";
+
+    my $cmd = "podman search --format '{{.Name}}' --no-trunc --limit=50 $registry/$prefix | grep ^$registry/$prefix || true";
+    my $output = script_output($cmd, quiet => 1);
+
+    my @images = grep { $_ ne '' } split /\n/, $output;
+    return @images;
+}
+
 sub get_3rd_party_images {
     my $registry = get_var('REGISTRY', 'docker.io');
     my @images = (
@@ -167,35 +179,25 @@ sub get_3rd_party_images {
     ) unless (is_riscv);
 
     # Following images are not available on 32-bit arm
-    push @images, (
-        "registry.access.redhat.com/ubi8/ubi",
-        "registry.access.redhat.com/ubi8/ubi-minimal",
-        "registry.access.redhat.com/ubi8/ubi-micro",
-        "registry.access.redhat.com/ubi8/ubi-init"
-    ) unless (is_arm || is_riscv);
+    push @images, discover_ubi_images('8') unless (is_arm || is_riscv);
 
     # - ubi9 images require z14+ s390x machine, they are not ready in OSD yet.
     #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
     # - ubi9 images require power9+ machine.
     #     on Power8: "Fatal glibc error: CPU lacks ISA 3.00 support (POWER9 or later required)"
     # - ubi9 images require x86_64-v2, which needs certain cpu flags
-    push @images, (
-        "registry.access.redhat.com/ubi9/ubi",
-        "registry.access.redhat.com/ubi9/ubi-minimal",
-        "registry.access.redhat.com/ubi9/ubi-micro",
-        "registry.access.redhat.com/ubi9/ubi-init"
-    ) unless (is_arm || is_s390x || is_ppc64le || is_riscv || !is_x86_64_v2);
+    push @images, discover_ubi_images('9') unless (is_arm || is_s390x || is_ppc64le || is_riscv || !is_x86_64_v2);
 
     push @images, (
         "$registry/library/ubuntu"
     ) if (is_x86_64);
 
     # RedHat UBI7 images are not built for aarch64 and 32-bit arm
-    push @images, (
-        "registry.access.redhat.com/ubi7/ubi",
-        "registry.access.redhat.com/ubi7/ubi-minimal",
-        "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (is_arm || is_aarch64 || is_riscv || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+    push @images, discover_ubi_images('7') unless (is_arm || is_aarch64 || is_riscv || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+
+    # Deduplicate
+    my %seen;
+    my @unique_images = grep { !$seen{$_}++ } @images;
 
     return (\@images);
 }
