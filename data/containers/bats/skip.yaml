@@ -119,15 +119,18 @@ podman:
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
+  # https://github.com/opencontainers/runc/pull/4842 is needed for latest busybox images
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 4825
+    - https://github.com/opencontainers/runc/pull/4842.patch
     BATS_SKIP:
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
   sle-16.0:
     BATS_PATCHES:
     - 4825
+    - https://github.com/opencontainers/runc/pull/4842.patch
     BATS_SKIP:
     BATS_SKIP_ROOT:
     BATS_SKIP_USER:
