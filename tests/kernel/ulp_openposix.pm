@@ -6,8 +6,6 @@
 # Summary: Install glibc livepatch and run openposix testsuite
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
@@ -17,6 +15,7 @@ use qam;
 use LTP::utils;
 use OpenQA::Test::RunArgs;
 use version_utils;
+use package_utils;
 
 sub parse_incident_repo {
     my $incident_id = get_required_var('INCIDENT_ID');
@@ -69,7 +68,7 @@ sub setup_ulp {
     my $repo_args = '';
 
     install_klp_product if is_sle('<16');
-    zypper_call('in libpulp0 libpulp-tools libpulp-load-default');
+    install_package('libpulp0 libpulp-tools libpulp-load-default');
 
     if (get_var('INCIDENT_REPO')) {
         my $repo_data = parse_incident_repo();
@@ -80,10 +79,11 @@ sub setup_ulp {
     } else {
         record_info('Tools tests', "No incident provided, testing lastest livepatching tools.");
     }
+    my $packver = zypper_search("-sx -t package $packname");
 
     # Find glibc versions targeted by livepatch package
     my $provides = script_output("zypper -n info --provides $repo_args $packname");
-    my @versions = $provides =~ m/^\s*libc_([^_()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
+    my @versions = $provides =~ m/^\s*libc_([^()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
 
     die "Package $packname contains no libc livepatches"
       unless scalar @versions;
@@ -100,7 +100,8 @@ sub setup_ulp {
 
     prepare_ltp_env;
     return OpenQA::Test::RunArgs->new(run_id => 0,
-        glibc_versions => \@versions, packname => $packname);
+        glibc_versions => \@versions, packname => $packname,
+        packver => $$packver[0]{version});
 }
 
 sub run {
@@ -115,23 +116,33 @@ sub run {
         # Incident has no userspace livepatch related packages, nothing to do
         return if not $tinfo;
     } else {
-        zypper_call("rm " . $tinfo->{packname});
+        uninstall_package($tinfo->{packname});
     }
 
     # Schedule openposix tests and install the livepatch
     my $libver = $tinfo->{glibc_versions}[$tinfo->{run_id}];
     record_info('glibc version', $libver);
-    zypper_call("in --oldpackage glibc-$libver");
+    install_package("--oldpackage glibc-$libver", trup_continue => 1, trup_reboot => 1);
+    validate_script_output("cat /etc/ld.so.conf", sub { /include\s+\/var\/livepatches\/ld\.so\.conf/ });
+    script_run("test -d /var/livepatches");
+
+    # Reconfigure LTP environment after reboot
+    if (is_transactional) {
+        log_versions(1);
+        prepare_ltp_env;
+    }
+    assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0');
     schedule_tests('openposix', "_glibc-$libver");
     loadtest_kernel('ulp_threads', name => "ulp_threads_glibc-$libver",
         run_args => $tinfo);
-    zypper_call("in " . $tinfo->{packname});
+    install_package($tinfo->{packname});
+    validate_script_output("ldd /usr/bin/echo", sub { /libc\.so\.6.*\/var\/livepatches\/openposix-livepatches.*/ });
 
     # Run tests again with the next untested glibc version
     if ($tinfo->{run_id} < $#{$tinfo->{glibc_versions}}) {
         my $runargs = OpenQA::Test::RunArgs->new(run_id => $tinfo->{run_id} + 1,
             glibc_versions => $tinfo->{glibc_versions},
-            packname => $tinfo->{packname});
+            packname => $tinfo->{packname}, packver => $tinfo->{packver});
 
         loadtest_kernel('ulp_openposix', run_args => $runargs);
     }
