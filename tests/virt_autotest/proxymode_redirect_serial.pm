@@ -9,7 +9,6 @@
 use strict;
 use warnings;
 use testapi;
-use base "proxymode";
 sub run {
     my $self = shift;
     my $test_machine = get_var("TEST_MACHINE");

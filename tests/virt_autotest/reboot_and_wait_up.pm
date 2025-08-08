@@ -11,7 +11,6 @@ use strict;
 use warnings;
 use testapi;
 use ipmi_backend_utils;
-use base "proxymode";
 use Utils::Architectures;
 use virt_autotest::utils;
 
