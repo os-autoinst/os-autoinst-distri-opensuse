@@ -183,19 +183,16 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi",
         "registry.access.redhat.com/ubi9/ubi-minimal",
         "registry.access.redhat.com/ubi9/ubi-micro",
-        "registry.access.redhat.com/ubi9/ubi-init"
+        "registry.access.redhat.com/ubi9/ubi-init",
+        "registry.access.redhat.com/ubi10/ubi",
+        "registry.access.redhat.com/ubi10/ubi-minimal",
+        "registry.access.redhat.com/ubi10/ubi-micro",
+        "registry.access.redhat.com/ubi10/ubi-init"
     ) unless (is_arm || is_s390x || is_ppc64le || is_riscv || !is_x86_64_v2);
 
     push @images, (
         "$registry/library/ubuntu"
     ) if (is_x86_64);
-
-    # RedHat UBI7 images are not built for aarch64 and 32-bit arm
-    push @images, (
-        "registry.access.redhat.com/ubi7/ubi",
-        "registry.access.redhat.com/ubi7/ubi-minimal",
-        "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (is_arm || is_aarch64 || is_riscv || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
 }
