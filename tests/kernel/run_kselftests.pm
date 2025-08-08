@@ -144,8 +144,7 @@ sub run {
     }
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
-    # Since we only installed a single collection, it is the one that will be executed
-    my @all_tests = split(/\n/, script_output('./run_kselftest.sh --list'));
+    my @all_tests = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
 
     # Filter which tests will run using KSELFTEST_TESTS
     my @tests = split /,/, get_var('KSELFTEST_TESTS', '');
@@ -163,7 +162,9 @@ sub run {
 
     # Run specific tests if the arrays have different lengths
     my $tests = '';
-    if (@tests != @all_tests) {
+    if (@tests == @all_tests) {
+        $tests = "--collection $collection";
+    } else {
         $tests .= "--test $_ " for @tests;
     }
 
