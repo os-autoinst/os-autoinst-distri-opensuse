@@ -1,7 +1,0 @@
-name:          kselftests
-description:    >
-    Generic scheduler for Linux kselftests
-schedule:
-    - boot/boot_to_desktop
-    - kernel/kselftests
-    - shutdown/shutdown
