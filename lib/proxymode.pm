@@ -79,10 +79,6 @@ sub resume_org_serialdev {
     $serialdev = get_org_serialdev();
 }
 
-sub set_serialdev {
-    $serialdev = $SLAVE_SERIALDEV;
-}
-
 sub start_nc_on_slave {
     my ($self) = @_;
     # Create nc connection on root console
