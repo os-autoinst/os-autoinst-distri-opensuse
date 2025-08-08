@@ -145,13 +145,13 @@ sub run {
     # Since we only installed a single collection, it is the one that will be executed
     my @all_tests = split(/\n/, script_output('./run_kselftest.sh --list'));
 
-    # Filter which tests will be ran using KSELFTEST_TESTS
+    # Filter which tests will run using KSELFTEST_TESTS
     my @tests = split /,/, get_var('KSELFTEST_TESTS', '');
     if (!@tests) {
         @tests = @all_tests;
     }
 
-    # Filter which tests will *NOT* be ran using KSELFTEST_SKIP
+    # Filter which tests will *NOT* run using KSELFTEST_SKIP
     my @skip = split /,/, get_var('KSELFTEST_SKIP', '');
     if (@skip) {
         my %skip = map { $_ => 1 } @skip;
