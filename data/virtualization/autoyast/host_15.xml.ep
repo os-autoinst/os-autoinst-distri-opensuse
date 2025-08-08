@@ -41,6 +41,12 @@
 	<alias>SLES15-SP2-LTSS-TERADATA</alias>
       </listentry>
       % }
+      % if ($get_var->('KUBEVIRT_TEST')) {
+      <listentry>
+        <media_url>http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/<%= $get_var->('VERSION') %>/x86_64/product/</media_url>
+	<alias>Development-Tools-OBS</alias>
+      </listentry>
+      % }
       % my $n =0;
       % for my $repo (@$repos) {
       <listentry>
