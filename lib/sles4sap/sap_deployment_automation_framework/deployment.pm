@@ -759,7 +759,7 @@ sub sdaf_execute_remover {
         upload_logs($output_log_file, log_name => $output_log_file);
 
         last unless $rc;
-        sleep 30;
+        sleep 120;
         record_info("SDAF destroy retry $attempt_no", "destroy of '$args{deployment_type}' exited with RC '$rc', retrying ...");
         $attempt_no++;
     }
