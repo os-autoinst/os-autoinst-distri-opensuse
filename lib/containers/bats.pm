@@ -309,6 +309,8 @@ sub collect_coredumps {
     foreach my $line (@lines) {
         my ($pid, $exe) = split /\s+/, $line;
         $exe = basename($exe);
+        # The runc seccomp SCMP_ACT_KILL test uses mkdir so a core file is expected
+        next if ($package eq "runc" && $exe eq "mkdir");
         my $core = "core.$exe.$pid.core";
 
         # Dumping and compressing coredumps may take some time
