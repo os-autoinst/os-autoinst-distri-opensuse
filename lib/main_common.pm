@@ -1280,6 +1280,7 @@ sub load_consoletests {
     }
     if (is_sle('>=16.0') && get_var('FLAVOR', '') =~ /Minimal-VM-Cloud-sap/) {
         loadtest "console/validate_selinux_policy_sapenablement";
+        loadtest 'security/selinux/enforcing_mode_setup';
     }
     if (is_jeos) {
         loadtest "console/kdump_disabled";
