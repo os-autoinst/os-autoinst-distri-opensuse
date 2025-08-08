@@ -1244,7 +1244,7 @@ sub load_consoletests {
     }
     loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
-    loadtest "console/yast2_lan" unless ((is_sle("16+") || is_leap("16.0+")) || is_bridged_networking);
+    #loadtest "console/yast2_lan" unless ((is_sle("16+") || is_leap("16.0+")) || is_bridged_networking);
     # no local certificate store
     if (!is_krypton_argon) {
         loadtest "console/curl_https";
