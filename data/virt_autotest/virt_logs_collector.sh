@@ -199,7 +199,7 @@ function collect_system_log_and_diagnosis() {
 	   else	   
     	      local time_stamp=`date '+%Y%m%d%H%M%S'`
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -x aFSLIST,AUDIT -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -x aFSLIST,AUDIT,SELINUX -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
 	      ${sshpass_ssh_cmd} supportconfig -y -A -x aFSLIST,AUDIT,SELINUX -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
 	   fi
 	   ret_result=$?
