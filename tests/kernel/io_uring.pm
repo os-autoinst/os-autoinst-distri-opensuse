@@ -52,6 +52,7 @@ sub run {
     assert_script_run("./configure");
     assert_script_run("make -C src");
     assert_script_run("make -C test");
+    assert_script_run("cd test");
 
     # create environment information for known issues check
     my $environment = {
@@ -69,63 +70,69 @@ sub run {
 
     # run tests executables
     my @skipped = $whitelist->list_skipped_tests($environment, 'liburing');
-    if (@skipped) {
-        push @skipped, $exclude if $exclude;
-        my $test_exclude = join(' ', @skipped);
+    my @tests = split(/\n/, script_output("ls -1 *.t"));
+    my $tests_num = scalar(@tests);
+    my @report_tap;
+    my $index = 0;
+    my $summary;
+    my $ret;
 
-        assert_script_run("echo TEST_EXCLUDE=\"$test_exclude\" > test/config.local");
-        record_info(
-            "Exclude",
-            "Excluding tests: $test_exclude",
-            result => 'softfail'
-        );
-    }
+    push(@report_tap, "liburing.tap ..");
+    push(@report_tap, "TAP version 13");
+    push(@report_tap, "1..$tests_num");
 
-    $out = script_output(
-        "make -C test runtests",
-        timeout => $timeout,
-        proceed_on_failure => 1
-    );
-
-    # search for timed out tests
-    my @timeouts;
-    for my $line ($out =~ /Tests timed out \(\d+\):.*/mg) {
-        push @timeouts, $line =~ /<([\w\-\.]+\.t)>/g;
-    }
-    if (@timeouts) {
-        record_info("Timed-out Tests", join(", ", @timeouts));
-        for my $testname (@timeouts) {
-            unless ($whitelist->override_known_failures(
-                    $self,
-                    $environment,
-                    'liburing',
-                    $testname
-            )) {
-                record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
-                $self->{result} = 'fail';
+    foreach my $test (@tests) {
+        unless ($whitelist->override_known_failures(
+                $self,
+                $environment,
+                'liburing',
+                $test
+        )) {
+            if (grep($test, @skipped)) {
+                record_info(
+                    "Exclude",
+                    "Excluding tests: $test",
+                    result => 'softfail'
+                );
+                next;
             }
+
+            script_run("echo 'io_uring::run: Starting $test' > /dev/kmsg", quiet => 1);
+
+            # liburing tests return code:
+            # 0: passed
+            # 1: failure
+            # 77: skipped
+            # 124: timeout
+            $ret = script_run(
+                "./$test",
+                timeout => $timeout,
+                proceed_on_failure => 1,
+                quiet => 1,
+            );
+
+            $index++;
+
+            if ($ret eq 77) {
+                script_run("echo 'io_uring::run: Skipped $test' > /dev/kmsg", quiet => 1);
+                next;
+            }
+
+            if ($ret eq 124) {
+                $self->{result} = 'fail';
+                $summary = "not ok $index $test (Timed out)";
+            } elsif ($ret ne 0) {
+                $self->{result} = 'fail';
+                $summary = "not ok $index $test";
+            } else {
+                $summary = "ok $index $test";
+            }
+
+            push(@report_tap, $summary);
         }
     }
-
-    # search for failed tests and known issues
-    my @failures;
-    for my $line ($out =~ /Tests failed \(\d+\):.*/mg) {
-        push @failures, $line =~ /<([\w\-\.]+\.t)>/g;
-    }
-    if (@failures) {
-        record_info("Failed Tests", join(", ", @failures));
-        for my $failure (@failures) {
-            unless ($whitelist->override_known_failures(
-                    $self,
-                    $environment,
-                    'liburing',
-                    $failure
-            )) {
-                record_info("Unexpected Failure", "$failure failed", result => 'fail');
-                $self->{result} = 'fail';
-            }
-        }
-    }
+    script_output("cat <<'EOF' > liburing.tap\n" . join("\n", @report_tap) . "\nEOF");
+    parse_extra_log(TAP => 'liburing.tap');
 }
 
 sub test_flags {
