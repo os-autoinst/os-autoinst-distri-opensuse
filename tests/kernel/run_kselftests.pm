@@ -32,7 +32,7 @@ sub install_from_git
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
-    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel kernel-source');
+    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -133,6 +133,8 @@ sub run {
 
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
+
+    zypper_call('in kernel-devel');
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
