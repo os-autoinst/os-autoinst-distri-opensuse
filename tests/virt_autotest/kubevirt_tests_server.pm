@@ -204,7 +204,14 @@ sub install_kubevirt_packages {
     # Install required kubevirt packages
     my $os_version = get_var('VERSION');
     my $virt_tests_repo = get_required_var('VIRT_TESTS_REPO');
-    my $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+    my $virt_manifests_repo;
+
+    # Support MU incidents repo
+    if (get_var('INCIDENT_REPO')) {
+        $virt_manifests_repo = get_var('INCIDENT_REPO');
+    } else {
+        $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+    }
 
     record_info('Install kubevirt packages', '');
     # Development Tools repo for OBS Module, e.g. http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/15-SP4/x86_64/product/
@@ -512,6 +519,11 @@ EOF
     my ($container_prefix, $container_tag, $pre_util_container_reg, $pre_util_container_tag);
     if ($kubevirt_ver ge "0.50.0") {
         $container_prefix = "$local_registry_fqdn:5000";
+        # Set the variable CONTAINER_TAG based on installed kubevirt version
+        set_var('CONTAINER_TAG', (split('-', $kubevirt_ver))[0]);
+        $container_tag = get_required_var('CONTAINER_TAG');
+        # Check if the container tag exists in local private registry
+        assert_script_run("curl $container_prefix/v2/alpine-container-disk-demo/tags/list | jq -r '.tags[]' | grep $container_tag");
         $container_tag = get_required_var('CONTAINER_TAG');
         $pre_util_container_reg = "$local_registry_fqdn:5000";
         $pre_util_container_tag = get_required_var('PREVIOUS_UTILITY_CONTAINER_TAG');
