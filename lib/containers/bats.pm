@@ -24,7 +24,7 @@ use power_action_utils 'power_action';
 use List::MoreUtils qw(uniq);
 use YAML::PP;
 use File::Basename;
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures;
 
 our @EXPORT = qw(
   bats_post_hook
@@ -90,6 +90,8 @@ sub install_ncat {
     if (is_tumbleweed) {
         if (is_aarch64) {
             run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        } elsif (is_s390x) {
+            run_command "zypper addrepo http://download.opensuse.org/ports/zsystems/tumbleweed/repo/non-oss/ non-oss";
         } else {
             run_command "zypper addrepo http://download.opensuse.org/tumbleweed/repo/non-oss/ non-oss";
         }
