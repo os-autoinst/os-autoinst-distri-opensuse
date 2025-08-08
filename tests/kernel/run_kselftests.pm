@@ -44,15 +44,12 @@ sub install_from_git
     assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
 }
 
-sub install_from_ibs
+sub install_from_repo
 {
-    my ($collection) = @_;
-
     my $repo = get_var('KSELFTEST_REPO', '');
     zypper_call("ar -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
-
-    zypper_call("install -y kselftests-$collection");
+    zypper_call("install -y kselftests");
 }
 
 sub post_process {
@@ -137,7 +134,7 @@ sub run {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     } else {
-        install_from_ibs($collection);
+        install_from_repo();
         assert_script_run("cd /usr/share/kselftests");
     }
 
