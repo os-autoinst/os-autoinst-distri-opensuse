@@ -359,7 +359,7 @@ sub gen_ltp_env {
     }
     $self->{ltp_env} = {
         product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
-        revision => get_required_var('BUILD'),
+        revision => get_var('BUILD', ''),
         arch => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
         kernel => $instance->run_ssh_command(cmd => 'uname -r'),
         backend => get_required_var('BACKEND'),
