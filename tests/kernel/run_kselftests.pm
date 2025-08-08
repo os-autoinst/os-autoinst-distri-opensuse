@@ -24,6 +24,7 @@ use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
 use LTP::WhiteList;
+use version_utils qw(is_sle);
 
 sub install_from_git
 {
@@ -55,7 +56,11 @@ sub install_from_repo
 sub post_process {
     my ($self, $collection, @tests) = @_;
 
-    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', 'https://qam.suse.de/known_issues/kselftests.yaml');
+    my $default_whitelist_file = 'https://raw.githubusercontent.com/openSUSE/kernel-qe/refs/heads/main/kselftests_known_issues.yaml';
+    if (is_sle) {
+        $default_whitelist_file = 'https://qam.suse.de/known_issues/kselftests.yaml';
+    }
+    my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', $default_whitelist_file);
     my $whitelist = LTP::WhiteList->new($whitelist_file);
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
