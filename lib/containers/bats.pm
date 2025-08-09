@@ -345,8 +345,9 @@ sub bats_post_hook {
     script_run('tar zcf containers-conf.tgz $(find /etc/containers /usr/share/containers -type f)');
 
     for my $ip_version (4, 6) {
-        script_run("ip -$ip_version addr > ip$ip_version-addr.txt");
-        script_run("ip -$ip_version route > ip$ip_version-route.txt");
+        script_run("ip -j -$ip_version addr > ip$ip_version-addr.txt");
+        script_run("ip -j -$ip_version link > ip$ip_version-link.txt");
+        script_run("ip -j -$ip_version route > ip$ip_version-route.txt");
     }
     script_run("iptables-save > iptables.txt");
     script_run("ip6tables-save > ip6tables.txt");
