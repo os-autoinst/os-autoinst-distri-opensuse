@@ -94,14 +94,14 @@ Please add this warning on each bug report you open when adding instructions on 
 | SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                    | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
 | SLES 16.0 (ppc64le)   | [![logo]][s16p_a]  |                    | [![logo]][s16p_n]  | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
 | SLES 16.0 (s390x)     | [![logo]][s16s_a]  |                    | [![logo]][s16s_n]  | [![logo]][s16s_p]  | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
-| SLES 15 SP7           |                    | [![logo]][sp7_b]   | [![logo]][sp7_n]   | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
-| SLES 15 SP7 (aarch64) |                    |                    | [![logo]][sp7a_n]  | [![logo]][sp7a_p]  | [![logo]][sp7a_r]  | [![logo]][sp7a_s]  |
+| SLES 15 SP7           | [![logo]][sp7_a]   | [![logo]][sp7_b]   | [![logo]][sp7_n]   | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
+| SLES 15 SP7 (aarch64) | [![logo]][sp7a_a]  |                    | [![logo]][sp7a_n]  | [![logo]][sp7a_p]  | [![logo]][sp7a_r]  | [![logo]][sp7a_s]  |
 | SLES 15 SP7 (s390x)   |                    |                    |                    |                    | [![logo]][sp7s_r]  | [![logo]][sp7s_s]  |
-| SLES 15 SP6           |                    | [![logo]][sp6_b]   | [![logo]][sp6_n]   | [![logo]][sp6_p]   | [![logo]][sp6_r]   | [![logo]][sp6_s]   |
-| SLES 15 SP6 (aarch64) |                    |                    | [![logo]][sp6a_n]  | [![logo]][sp6a_p]  | [![logo]][sp6a_r]  | [![logo]][sp6a_s]  |
+| SLES 15 SP6           | [![logo]][sp6_a]   | [![logo]][sp6_b]   | [![logo]][sp6_n]   | [![logo]][sp6_p]   | [![logo]][sp6_r]   | [![logo]][sp6_s]   |
+| SLES 15 SP6 (aarch64) | [![logo]][sp6a_a]  |                    | [![logo]][sp6a_n]  | [![logo]][sp6a_p]  | [![logo]][sp6a_r]  | [![logo]][sp6a_s]  |
 | SLES 15 SP6 (s390x)   |                    |                    |                    |                    | [![logo]][sp6s_r]  | [![logo]][sp6s_s]  |
-| SLES 15 SP5           |                    | [![logo]][sp5_b]   | [![logo]][sp5_n]   |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
-| SLES 15 SP5 (aarch64) |                    |                    | [![logo]][sp5a_n]  |                    | [![logo]][sp5a_r]  | [![logo]][sp5a_s]  |
+| SLES 15 SP5           | [![logo]][sp5_a]   | [![logo]][sp5_b]   | [![logo]][sp5_n]   |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
+| SLES 15 SP5 (aarch64) | [![logo]][sp5a_a]  |                    | [![logo]][sp5a_n]  |                    | [![logo]][sp5a_r]  | [![logo]][sp5a_s]  |
 | SLES 15 SP5 (s390x)   |                    |                    |                    |                    | [![logo]][sp5s_r]  | [![logo]][sp5s_s]  |
 | SLES 15 SP4           |                    | [![logo]][sp4_b]   |                    |                    | [![logo]][sp4_r]   | [![logo]][sp4_s]   |
 | SLES 15 SP4 (aarch64) |                    |                    |                    |                    | [![logo]][sp4a_r]  | [![logo]][sp4a_s]  |
@@ -173,6 +173,7 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp7_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=runc_testsuite
 [sp7_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=x86_64&test=skopeo_testsuite
 
+[sp7a_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=aardvark_testsuite
 [sp7a_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=netavark_testsuite
 [sp7a_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=podman_testsuite
 [sp7a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP7&arch=aarch64&test=runc_testsuite
@@ -187,6 +188,7 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp6_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=runc_testsuite
 [sp6_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=x86_64&test=skopeo_testsuite
 
+[sp6a_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=aardvark_testsuite
 [sp6a_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=netavark_testsuite
 [sp6a_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=podman_testsuite
 [sp6a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=aarch64&test=runc_testsuite
@@ -200,6 +202,7 @@ Please add this warning on each bug report you open when adding instructions on 
 [sp5_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=runc_testsuite
 [sp5_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=skopeo_testsuite
 
+[sp5a_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=aardvark_testsuite
 [sp5a_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=netavark_testsuite
 [sp5a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=runc_testsuite
 [sp5a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=skopeo_testsuite

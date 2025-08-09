@@ -9,6 +9,12 @@ aardvark-dns:
     BATS_PATCHES:
     - 619
     BATS_SKIP:
+  sle-15-SP7:
+    BATS_SKIP: 100-basic-name-resolution
+  sle-15-SP6:
+    BATS_SKIP: 100-basic-name-resolution
+  sle-15-SP5:
+    BATS_SKIP: 100-basic-name-resolution
 buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
