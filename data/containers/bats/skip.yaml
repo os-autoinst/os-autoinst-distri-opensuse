@@ -1,8 +1,14 @@
 aardvark-dns:
+  # Note on patches:
+  # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
   opensuse-Tumbleweed:
-    BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
+    BATS_PATCHES:
+    - 619
+    BATS_SKIP:
   sle-16.0:
-    BATS_SKIP: 100-basic-name-resolution 200-two-networks 300-three-networks
+    BATS_PATCHES:
+    - 619
+    BATS_SKIP:
 buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
