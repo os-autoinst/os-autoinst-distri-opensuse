@@ -20,7 +20,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
-    return if check_var($skip_tests, "all");
+    return 0 if check_var($skip_tests, "all");
 
     my %env = (
         RUNC_USE_SYSTEMD => "1",

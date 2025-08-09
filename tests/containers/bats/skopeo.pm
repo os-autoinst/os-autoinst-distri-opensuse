@@ -21,7 +21,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
-    return if check_var($skip_tests, "all");
+    return 0 if check_var($skip_tests, "all");
 
     # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
     my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";

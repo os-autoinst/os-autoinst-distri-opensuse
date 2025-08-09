@@ -22,7 +22,7 @@ sub run_tests {
     my %params = @_;
     my ($rootless, $remote, $skip_tests) = ($params{rootless}, $params{remote}, $params{skip_tests});
 
-    return if check_var($skip_tests, "all");
+    return 0 if check_var($skip_tests, "all");
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
