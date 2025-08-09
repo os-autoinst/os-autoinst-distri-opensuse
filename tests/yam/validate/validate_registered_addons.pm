@@ -15,7 +15,7 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    my @addon_list = split(/,/, get_var('ADDONS'));
+    my @addon_list = split(/,/, get_var('SCC_ADDONS'));
 
     zypper_call("search -t product");
     foreach (@addon_list) { zypper_call("search -i -t product $_"); }
