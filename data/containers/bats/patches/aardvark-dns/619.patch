@@ -1,0 +1,24 @@
+From 254c6d1188ca27d67161207619767051b9c640d6 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 9 Aug 2025 10:36:49 +0200
+Subject: [PATCH] test: Remove empty user= directive in dnsmasq.conf to avoid
+ SIGSEGV
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/dnsmasq.conf | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/test/dnsmasq.conf b/test/dnsmasq.conf
+index b000d3d8..72859da3 100644
+--- a/test/dnsmasq.conf
++++ b/test/dnsmasq.conf
+@@ -6,8 +6,6 @@ no-resolv
+ 
+ log-queries
+ 
+-user=
+-
+ # aone and bone should return NXDOMAIN, by default dnsmasq returns REFUSED
+ address=/aone/
+ address=/bone/
