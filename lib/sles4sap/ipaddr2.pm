@@ -27,6 +27,7 @@ Library to manage ipaddr2 tests
 =cut
 
 our @EXPORT = qw(
+  ipaddr2_ip_get
   ipaddr2_infra_deploy
   ipaddr2_infra_destroy
   ipaddr2_configure_web_server
@@ -74,28 +75,50 @@ our $nat_pub_ip = DEPLOY_PREFIX . '-nat_pub_ip';
 # Storage account name must be between 3 and 24 characters in length
 # and use numbers and lowercase letters only.
 our $storage_account = DEPLOY_PREFIX . 'storageaccount';
-our %priv_net_address_range = get_private_ip_range();
-our $priv_ip_range = $priv_net_address_range{priv_ip_range};
-our $frontend_ip = $priv_ip_range . '.50';
 our $ping_cmd = 'ping -c 3';
-our $key_id = 'id_rsa';
 
-=head2 get_private_ip_range
+=head2 ipaddr2_ip_get
 
-    my $range = get_private_ip_range();
+    my $ip = ipaddr2_ip_get();
 
-count the private ip range and return
+Return an hash with some information about IPs and network ranges
+
+Structure has:
+
+=over
+
+=item B<main_address_range>: address range for the vnet
+
+=item B<subnet_address_range>: address range for the subnet
+
+=item B<frontend_ip>: internal IP used as frontend IP to expose the web server through the LB.
+
+=back
+
+Arguments are:
+
+=over
+
+=item B<SLOT> - integer to be used as seed in calculating addresses,
+                usually it could be the value of WORKER_ID.
+                If not provided the deployment uses a default set of IP.
+
+=back
 =cut
+sub ipaddr2_ip_get {
+    my (%args) = @_;
 
-sub get_private_ip_range {
-    my %range = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
-    if (my $worker_id = get_var("WORKER_ID")) {
-        %range = ibsm_calculate_address_range(slot => $worker_id);
+    my %out;
+    if ($args{slot}) {
+        %out = ibsm_calculate_address_range(slot => $args{slot});
+    }
+    else {
+        %out = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24');
     }
 
-    $range{priv_ip_range} = ($range{main_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
-
-    return %range;
+    $out{priv_ip_range} = ($out{main_address_range} =~ /^(\d+\.\d+\.\d+)\./) ? $1 : '';
+    $out{frontend_ip} = $out{priv_ip_range} . '.50';
+    return %out;
 }
 
 =head2 ipaddr2_azure_resource_group
@@ -184,7 +207,11 @@ END
 
 =head2 ipaddr2_infra_deploy
 
-    my $rg = ipaddr2_infra_deploy();
+    my %ip = ipaddr2_ip_get();
+    my $rg = ipaddr2_infra_deploy(
+        region => 'europe',
+        os => 'os:suse:sles4sap:15sp6:latest',
+        ip => \%ip);
 
 Create a deployment in Azure designed for this specific test.
 
@@ -201,6 +228,13 @@ Create a deployment in Azure designed for this specific test.
 
 =item B<os> - existing Load balancer NAME
 
+=item B<ip> - Structure storing information about IP and network ranges of the deployment
+              Structure has to have:
+               - B<main_address_range>: address range for the vnet
+               - B<subnet_address_range>: address range for the subnet
+               - B<frontend_ip>: internal IP used as frontend IP to expose the web server through the LB
+               - B<priv_ip_range>: higher part of all the private IP address.
+
 =item B<diagnostic> - enable diagnostic features if 1
 
 =item B<cloudinit_profile> - filename of the cloud-init profile. Usually this one is the return value of
@@ -215,8 +249,10 @@ Create a deployment in Azure designed for this specific test.
 
 sub ipaddr2_infra_deploy {
     my (%args) = @_;
-    foreach (qw(region os)) {
+    foreach (qw(region os ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    foreach (qw(main_address_range subnet_address_range frontend_ip)) {
+        croak("Argument < $_ > missing within ip structure") unless $args{ip}{$_}; }
     $args{diagnostic} //= 0;
     $args{trusted_launch} //= 1;
 
@@ -249,9 +285,9 @@ sub ipaddr2_infra_deploy {
         resource_group => $rg,
         region => $args{region},
         vnet => $vnet,
-        address_prefixes => $priv_net_address_range{main_address_range},
+        address_prefixes => $args{ip}{main_address_range},
         snet => $subnet,
-        subnet_prefixes => $priv_net_address_range{subnet_address_range});
+        subnet_prefixes => $args{ip}{subnet_address_range});
 
     # Create a Network Security Group
     # only needed later when creating the VM
@@ -304,7 +340,7 @@ sub ipaddr2_infra_deploy {
         snet => $subnet,
         backend => $lb_be,
         frontend_ip_name => $lb_fe,
-        fip => $frontend_ip,
+        fip => $args{ip}{frontend_ip},
         sku => 'Standard');
 
     # All the 2 VM are later assigned to it.
@@ -396,7 +432,7 @@ sub ipaddr2_infra_deploy {
             resource_group => $rg,
             ipconfig_name => $ip_config,
             nic_name => $nic_name,
-            ip => ipaddr2_get_internal_vm_private_ip(id => $i));
+            ip => ipaddr2_get_internal_vm_private_ip(id => $i, priv_ip_range => $args{ip}{priv_ip_range}));
 
         # Add the IpConfig to the LB pool
         az_ipconfig_pool_add(
@@ -520,7 +556,7 @@ sub ipaddr2_bastion_key_accept {
 
 =head2 ipaddr2_internal_key_accept
 
-    ipaddr2_internal_key_accept()
+    ipaddr2_internal_key_accept(priv_ip_range => '1.2.3')
 
 For the worker to accept the host key of the internal VMs.
 This function always use cloudadmin as user in any ssh connections.
@@ -531,6 +567,8 @@ This function always use cloudadmin as user in any ssh connections.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
                         ssh option. default to 'accept-new'
 
@@ -539,6 +577,7 @@ This function always use cloudadmin as user in any ssh connections.
 
 sub ipaddr2_internal_key_accept {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{key_checking} //= 'accept-new';
@@ -548,7 +587,7 @@ sub ipaddr2_internal_key_accept {
 
     my ($vm_name, $vm_addr, $ret, $start_time, $exit_code, $score);
     foreach my $i (1 .. 2) {
-        $vm_name = ipaddr2_get_internal_vm_private_ip(id => $i);
+        $vm_name = ipaddr2_get_internal_vm_private_ip(id => $i, priv_ip_range => $args{priv_ip_range});
         $vm_addr = USER . "\@$vm_name";
 
         # The worker reaches the two remote internal VMs
@@ -604,13 +643,14 @@ sub ipaddr2_internal_key_accept {
         # one more without StrictHostKeyChecking just to verify it is ok
         ipaddr2_ssh_internal(id => $i,
             cmd => 'whoami',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 }
 
 =head2 ipaddr2_internal_key_gen
 
-    ipaddr2_internal_key_gen()
+    ipaddr2_internal_key_gen(priv_ip_range => '1.2.3')
 
 Create, on the /tmp folder of the Worker, two ssh key sets:
 one ssh key pair for each internal VM.
@@ -633,11 +673,15 @@ it is later on needed by crm cluster init/join
                 User root activate special behavior. This argument is needed as crm needs keys for different users
                 when operate in root or rootless mode.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_internal_key_gen {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
+
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{key_checking} //= 'accept-new';
     $args{user} //= USER;
@@ -650,14 +694,15 @@ sub ipaddr2_internal_key_gen {
     my ($vm_name, $vm_addr, $this_tmp, $remote_key_tmp_path, $remote_key_home_path);
     my @pubkey;
     foreach my $i (1 .. 2) {
-        $vm_name = ipaddr2_get_internal_vm_private_ip(id => $i);
+        $vm_name = ipaddr2_get_internal_vm_private_ip(id => $i, priv_ip_range => $args{priv_ip_range});
         # always use cloudadmin for ssh connections even when $args{user} is root
         $vm_addr = USER . "\@$vm_name";
 
         # Assert if the folder ~/.ssh does not exist in the VM
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -d $user_ssh ]",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # Generate public/private keys pair for cloudadmin user on the internal VMs.
         # Generate them on the openQA worker, in a folder within /tmp.
@@ -679,7 +724,8 @@ sub ipaddr2_internal_key_gen {
             $remote_key_tmp_path = "/tmp/$args{user}";
             ipaddr2_ssh_internal(id => $i,
                 cmd => "mkdir -p  $remote_key_tmp_path",
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                priv_ip_range => $args{priv_ip_range});
             $remote_key_tmp_path .= "/$this_key";
             $remote_key_home_path = "$user_ssh/$this_key";
             assert_script_run(join(' ',
@@ -697,7 +743,8 @@ sub ipaddr2_internal_key_gen {
             foreach (@install_key_cmds) {
                 ipaddr2_ssh_internal(id => $i,
                     cmd => $_,
-                    bastion_ip => $args{bastion_ip});
+                    bastion_ip => $args{bastion_ip},
+                    priv_ip_range => $args{priv_ip_range});
             }
         }
     }
@@ -707,7 +754,8 @@ sub ipaddr2_internal_key_gen {
     my %auth_args = (
         bastion_ip => $args{bastion_ip},
         user => $args{user},
-        key_checking => $args{key_checking});
+        key_checking => $args{key_checking},
+        priv_ip_range => $args{priv_ip_range});
     $auth_args{src} = 1;
     $auth_args{dst} = 2;
     ipaddr2_internal_key_authorize(%auth_args);
@@ -724,6 +772,7 @@ sub ipaddr2_internal_key_gen {
         dst          => 2,
         user         => 'cloudadmin',
         key_checking => 'accept-new',
+        priv_ip_range => '1.2.3'
     );
 
 Helper for C<ipaddr2_internal_key_gen> and contribute to
@@ -756,12 +805,14 @@ The process involves:
                 User root activate special behavior. This argument is needed as crm needs keys for different users
                 when operate in root ro rootless mode.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_internal_key_authorize {
     my (%args) = @_;
-    foreach (qw(src dst key_checking)) {
+    foreach (qw(src dst key_checking priv_ip_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{user} //= USER;
@@ -774,11 +825,14 @@ sub ipaddr2_internal_key_authorize {
     my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
 
     # This is the destination VM where to register the public key
-    $vm_name = ipaddr2_get_internal_vm_private_ip(id => $args{dst});
+    $vm_name = ipaddr2_get_internal_vm_private_ip(id => $args{dst}, priv_ip_range => $args{priv_ip_range});
+
     # Create a place where to temporary upload the key
     ipaddr2_ssh_internal(id => $args{dst},
         cmd => "mkdir -p $remote_key_tmp_path",
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
+
     # Upload the pub key to a temporary location in the dst VM
     assert_script_run(join(' ',
             'scp',
@@ -795,7 +849,9 @@ sub ipaddr2_internal_key_authorize {
       "cat $remote_key_tmp_path/$this_key >> $authorize_file";
     ipaddr2_ssh_internal(id => $args{dst},
         cmd => $reg_cmd,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
+
     # first ssh connection: here it is one of the most complex ssh somersault ever ;-)
     # 1. create a ssh connection from the worker running the test to one of the two internal VMs,
     #    through the bastion. This is mostly done by ipaddr2_ssh_internal.
@@ -811,10 +867,12 @@ sub ipaddr2_internal_key_authorize {
         "$args{user}\@$vm_name",
         $key_policy,
         'whoami');
+    # the first internal vm is always done
     $f_cmd = "sudo $f_cmd" if ($args{user} eq 'root');
     ipaddr2_ssh_internal(id => $args{src},
         cmd => $f_cmd,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_deployment_sanity
@@ -852,7 +910,7 @@ sub ipaddr2_deployment_sanity {
 
 =head2 ipaddr2_os_sanity
 
-    ipaddr2_os_sanity()
+    ipaddr2_os_sanity(priv_ip_range => '192.168.0')
 
 Run some OS level checks on all the VMs in the deployment.
 die in case of failure. Tests are targeting all the VM.
@@ -867,30 +925,40 @@ Tests are independent by the cluster status.
 =item B<user> - user expected to be able to ssh connect password-less from one internal VM to the other.
                 Default is cloudadmin.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_os_sanity {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    $args{user} //= USER;
 
-    ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
+    my %common_args = (bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
+    ipaddr2_os_network_sanity(%common_args);
+    ipaddr2_os_connectivity_sanity(%common_args);
+    $common_args{user} = $args{user} ? $args{user} : USER;
+    ipaddr2_os_ssh_sanity(%common_args);
+    # no more needed in next function calls
+    delete($common_args{user});
+    $common_args{cmd} = 'sudo systemctl is-system-running';
     foreach (1 .. 2) {
-        ipaddr2_ssh_internal(id => $_,
-            cmd => 'sudo systemctl is-system-running',
-            bastion_ip => $args{bastion_ip});
+        $common_args{id} = $_;
+        ipaddr2_ssh_internal(%common_args);
     }
+    # no more needed in next function calls
+    delete($common_args{cmd});
+    delete($common_args{id});
 
-    ipaddr2_cloudinit_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_cloudinit_sanity(%common_args);
 }
 
 =head2 ipaddr2_cluster_sanity
 
-    ipaddr2_cluster_sanity()
+    ipaddr2_cluster_sanity(priv_ip_range => '1.2.3')
 
 Run some cluster level checks
 
@@ -902,42 +970,50 @@ Run some cluster level checks
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_cluster_sanity {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{id} //= 1;
 
     my $crm_status = ipaddr2_ssh_internal_output(id => $args{id},
         cmd => 'sudo crm status',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     die "Issue in the cluster health" if cluster_status_matches_regex($crm_status);
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo $crm_mon_cmd",
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
         cmd => 'sudo crm configure show',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     my @resources = $crm_configure =~ /primitive/g;
     die "Cluster on VM $args{id} has " . scalar @resources . " primitives instead of expected 3" unless (scalar @resources) eq 3;
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => '[ -f /usr/lib/ocf/resource.d/heartbeat/nginx ]',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'rpm -qf /usr/lib/ocf/resource.d/heartbeat/nginx',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_os_connectivity_sanity
 
-    ipaddr2_os_connectivity_sanity()
+    ipaddr2_os_connectivity_sanity(priv_ip_range => '1.2.3')
 
 Run some OS level checks about internal connectivity.
 die in case of failure
@@ -951,11 +1027,14 @@ die in case of failure
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_os_connectivity_sanity {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     # intentionally ignore the return as ping or nc
@@ -968,7 +1047,7 @@ sub ipaddr2_os_connectivity_sanity {
         # the VM by hostname and private IP.
         # Check both using the hostname and the IP address.
         foreach my $addr (
-            ipaddr2_get_internal_vm_private_ip(id => $i),
+            ipaddr2_get_internal_vm_private_ip(id => $i, priv_ip_range => $args{priv_ip_range}),
             ipaddr2_get_internal_vm_name(id => $i)) {
             # tracepath is not available by default in 12sp5
             # so only use ping and dig
@@ -982,17 +1061,19 @@ sub ipaddr2_os_connectivity_sanity {
 
     # Check if the two internal VM can ping one to each other
     ipaddr2_ssh_internal(id => 1,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2)),
-        bastion_ip => $args{bastion_ip});
+        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2, priv_ip_range => $args{priv_ip_range})),
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 2,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 1)),
-        bastion_ip => $args{bastion_ip});
+        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 1, priv_ip_range => $args{priv_ip_range})),
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_cloudinit_sanity
 
-    ipaddr2_cloudinit_sanity()
+    ipaddr2_cloudinit_sanity(priv_ip_range => '1.2.3')
 
 Run some checks about cloud-init. These checks can be executed also
 when a cloudinit script is not used to bootstrap the SUT.
@@ -1003,11 +1084,14 @@ when a cloudinit script is not used to bootstrap the SUT.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_cloudinit_sanity {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     foreach my $id (1 .. 2) {
@@ -1023,14 +1107,15 @@ sub ipaddr2_cloudinit_sanity {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $_,
                 timeout => 180,
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                priv_ip_range => $args{priv_ip_range});
         }
     }
 }
 
 =head2 ipaddr2_cloudinit_logs
 
-    ipaddr2_cloudinit_logs()
+    ipaddr2_cloudinit_logs(priv_ip_range => '1.2.3')
 
 Collect some cloud-init related logs
 
@@ -1040,11 +1125,14 @@ Collect some cloud-init related logs
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_cloudinit_logs {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     foreach my $id (1 .. 2) {
@@ -1062,14 +1150,15 @@ sub ipaddr2_cloudinit_logs {
         ) {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $_,
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                priv_ip_range => $args{priv_ip_range});
         }
     }
 }
 
 =head2 ipaddr2_os_network_sanity
 
-    ipaddr2_os_network_sanity()
+    ipaddr2_os_network_sanity(priv_ip_range => '1.2.3')
 
 Check that private IP are in the network configuration on the internal VMs
 
@@ -1079,23 +1168,28 @@ Check that private IP are in the network configuration on the internal VMs
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_os_network_sanity {
     my (%args) = @_;
+
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     foreach (1 .. 2) {
         ipaddr2_ssh_internal(id => $_,
-            cmd => "ip a show eth0 | grep -E \"inet .*$priv_ip_range\"",
-            bastion_ip => $args{bastion_ip});
+            cmd => "ip a show eth0 | grep -E \"inet .*$args{priv_ip_range}\"",
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 }
 
 =head2 ipaddr2_os_ssh_sanity
 
-    ipaddr2_os_ssh_sanity()
+    ipaddr2_os_ssh_sanity(priv_ip_range => '1.2.3')
 
 Run some OS level checks on the various VMs ssh keys and configurations.
 die in case of failure
@@ -1110,11 +1204,14 @@ die in case of failure
                 Value for this argument is used to decide the home folder where to look for the keys.
                 Default is cloudadmin. User root activate some special logic.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_os_ssh_sanity {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{user} //= USER;
     my $user_ssh = ($args{user} eq 'root') ? '/root/' : "/home/$args{user}/";
@@ -1125,25 +1222,29 @@ sub ipaddr2_os_ssh_sanity {
         # exist in this internal VM
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -d $user_ssh ]",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # Check if the private key ~.ssh/SSH_KEY_ID
         # exists in this internal VM.
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo [ -f $user_ssh/" . SSH_KEY_ID . ' ]',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # Use sudo in all commands from here, as ssh key owner could be root
         # Check authorized_keys content
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo cat $user_ssh/authorized_keys",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # Each internal VM has some pub keys from the pair
         # generated by the test code during the configure step
         ipaddr2_ssh_internal(id => $i,
             cmd => "sudo cat $user_ssh/authorized_keys | grep \"Temp internal cluster key for\"",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 
     # Check if ssh without password works between
@@ -1151,12 +1252,14 @@ sub ipaddr2_os_ssh_sanity {
     foreach my $i (1 .. 2) {
         ipaddr2_ssh_internal(id => $i,
             cmd => "whoami | grep " . USER,
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # check root
         ipaddr2_ssh_internal(id => $i,
             cmd => 'sudo whoami | grep root',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 }
 
@@ -1257,7 +1360,8 @@ sub ipaddr2_ssh_bastion_script_output {
 
     script_run(ipaddr2_ssh_internal_cmd(
         id => 2,
-        bastion_ip => '1.2.3.4',
+        priv_ip_range => '1.2.3',
+        bastion_ip => '5.6.7.8',
         cmd => 'whoami'));
 
 Compose an ssh command. Command is composed to be executed on one of the two internal VM.
@@ -1276,12 +1380,14 @@ like assert_script_run or script_output.
 
 =item B<cmd> - Command to be run on the internal VM.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_ssh_internal_cmd {
     my (%args) = @_;
-    foreach (qw(id cmd)) {
+    foreach (qw(id priv_ip_range cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -1289,7 +1395,7 @@ sub ipaddr2_ssh_internal_cmd {
         'ssh',
         '-E', SSH_LOG,
         '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
-        USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
+        USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $args{id}, priv_ip_range => $args{priv_ip_range}),
         "'$args{cmd}'",
         '2>>' . SSH_PROXY_LOG);
 }
@@ -1298,6 +1404,7 @@ sub ipaddr2_ssh_internal_cmd {
 
     ipaddr2_ssh_internal(id => 2,
         cmd => 'whoami',
+        priv_ip_range => '1.2.3''
         bastion_ip => '4.5.6.7',
         method => script_run/assert_script_run);
 
@@ -1318,12 +1425,14 @@ using the assert_script_run API
 
 =item B<method> - Specify which function use when running command
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_ssh_internal {
     my (%args) = @_;
-    foreach (qw(id cmd)) {
+    foreach (qw(id cmd priv_ip_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
@@ -1332,6 +1441,7 @@ sub ipaddr2_ssh_internal {
     my $command = ipaddr2_ssh_internal_cmd(
         id => $args{id},
         bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range},
         cmd => $args{cmd});
     if ($args{method} eq "script_run") {
         return script_run($command, timeout => $args{timeout});
@@ -1345,7 +1455,8 @@ sub ipaddr2_ssh_internal {
 
     ipaddr2_ssh_internal_output(
         id => 2,
-        bastion_ip => '1.2.3.4',
+        bastion_ip => '7.6.5.4',
+        priv_ip_range => '1.2.3',
         cmd => 'whoami');
 
 Runs $cmd  through the bastion on one of the two internal VMs using script_output.
@@ -1363,12 +1474,14 @@ Return the command output.
 
 =item B<timeout> - Execution timeout, default 90sec
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_ssh_internal_output {
     my (%args) = @_;
-    foreach (qw(id cmd)) {
+    foreach (qw(id priv_ip_range cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
@@ -1376,6 +1489,7 @@ sub ipaddr2_ssh_internal_output {
     return script_output(
         ipaddr2_ssh_internal_cmd(
             id => $args{id},
+            priv_ip_range => $args{priv_ip_range},
             bastion_ip => $args{bastion_ip},
             cmd => $args{cmd}),
         timeout => $args{timeout});
@@ -1383,7 +1497,8 @@ sub ipaddr2_ssh_internal_output {
 
 =head2 ipaddr2_cluster_create
 
-    ipaddr2_cluster_create();
+    my %ip = ipaddr2_ip_get();
+    ipaddr2_cluster_create(ip => \%ip);
 
 Initialize and configure the Pacemaker cluster on the two internal nodes
 
@@ -1393,6 +1508,10 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<ip> - Structure has to have:
+               - B<frontend_ip>: internal IP used as frontend IP to expose the web server through the LB
+               - B<priv_ip_range>: higher part of all the private IP address.
+
 =item B<rootless> - Enable or disable the rootless mode. Default is normal root mode.
 
 =back
@@ -1400,22 +1519,29 @@ Initialize and configure the Pacemaker cluster on the two internal nodes
 
 sub ipaddr2_cluster_create {
     my (%args) = @_;
+    croak("Argument < ip > missing") unless $args{ip};
+
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{rootless} //= 0;
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'sudo crm cluster init -y --name DONALDUCK',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     my $join_str = $args{rootless} ? USER . '@' : "";
-    $join_str .= ipaddr2_get_internal_vm_private_ip(id => 1);
+    $join_str .= ipaddr2_get_internal_vm_private_ip(id => 1,
+        priv_ip_range => $args{ip}{priv_ip_range});
+
     ipaddr2_ssh_internal(id => 2,
         cmd => "sudo crm cluster join -y -c $join_str",
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'sudo crm configure property maintenance-mode=true',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
@@ -1425,8 +1551,9 @@ sub ipaddr2_cluster_create {
             'meta target-role="Started"',
             'operations \$id="rsc_ip_RES-operations"',
             'op monitor interval="10s" timeout="20s"',
-            "params ip=\"$frontend_ip\""),
-        bastion_ip => $args{bastion_ip});
+            "params ip=\"$args{ip}{frontend_ip}\""),
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
@@ -1438,7 +1565,8 @@ sub ipaddr2_cluster_create {
             'op stop timeout="60s" interval="0"',
             'op monitor interval="10s" timeout="60s"',
             'meta migration-threshold="10"'),
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
@@ -1447,22 +1575,25 @@ sub ipaddr2_cluster_create {
             'azure-lb',
             'port=62500',
             'op monitor  interval="10s" timeout="20s"'),
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => join(' ',
             'sudo crm configure group',
             'rsc_grp_00', 'rsc_alb_00', 'rsc_ip_00', WEB_RSC),
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'sudo crm configure property maintenance-mode=false',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 }
 
 =head2 ipaddr2_cluster_check_version
 
-    ipaddr2_cluster_check_version();
+    ipaddr2_cluster_check_version(priv_ip_range => '1.2.3');
 
 Check the version priv_ip_range of some cluster related packages like crmsh
 For the moment all the commands are only executed on VM1.
@@ -1473,11 +1604,14 @@ For the moment all the commands are only executed on VM1.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range>: higher part of all the ipaddr2 address.
+
 =back
 =cut
 
 sub ipaddr2_cluster_check_version {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -1487,7 +1621,8 @@ sub ipaddr2_cluster_check_version {
         'sudo zypper se -s -i crmsh') {
         ipaddr2_ssh_internal(id => 1,
             cmd => $_,
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 }
 
@@ -1506,13 +1641,16 @@ Return 1 if all modules are registered, 0 if at least one is not.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_scc_check {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -1521,7 +1659,8 @@ sub ipaddr2_scc_check {
     my $json = decode_json(ipaddr2_ssh_internal_output(
             id => $args{id},
             cmd => 'sudo SUSEConnect -s',
-            bastion_ip => $args{bastion_ip}));
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range}));
     foreach (@$json) {
         if ($_->{status} =~ '^Not Registered') {
             $registered = 0;
@@ -1533,7 +1672,7 @@ sub ipaddr2_scc_check {
 
 =head2 ipaddr2_scc_register
 
-    ipaddr2_scc_register(id => 1, scc_code => '1234567890');
+    ipaddr2_scc_register(id => 1, scc_code => '1234567890', priv_ip_range => '1.2.3');
 
 Register the image. (For the moment) it only support registercloudguest endpoint.
 Notice that this library also support registration through
@@ -1549,25 +1688,29 @@ ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_scc_register {
     my (%args) = @_;
-    foreach (qw(id scc_code)) {
+    foreach (qw(id scc_code priv_ip_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo registercloudguest --clean',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo registercloudguest --force-new -r \"$args{scc_code}\"",
         timeout => 360,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_configure_web_server
@@ -1596,13 +1739,17 @@ This function is in charge to:
 
 =item B<external_repo> - Optional argument: allow to add a PackageHub product
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_configure_web_server {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
     $args{nginx_root} //= '/srv/www/htdocs';
 
     my @nginx_cmds;
@@ -1623,12 +1770,13 @@ sub ipaddr2_configure_web_server {
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $_,
         timeout => 600,
-        bastion_ip => $args{bastion_ip}) for (@nginx_cmds);
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range}) for (@nginx_cmds);
 }
 
 =head2 ipaddr2_repo_refresh
 
-    ipaddr2_repo_refresh(id => 1);
+    ipaddr2_repo_refresh(id => 1, priv_ip_range => '1.2.3');
 
 Call zypper refresh
 
@@ -1640,24 +1788,28 @@ Call zypper refresh
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_repo_refresh {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo zypper ref',
         timeout => 600,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_repo_list
 
-    ipaddr2_repo_list(id => 1);
+    ipaddr2_repo_list(id => 1,  priv_ip_range => '1.2.3');
 
 List all configured zypper repos
 
@@ -1669,24 +1821,29 @@ List all configured zypper repos
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_repo_list {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     # record repo lr
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo zypper lr",
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
     # record repo ls
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo zypper ls",
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_deployment_logs
@@ -1736,7 +1893,7 @@ sub ipaddr2_get_internal_vm_name {
 
 =head2 ipaddr2_get_internal_vm_private_ip
 
-    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 42);
+    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 42, priv_ip_range => '1.2.3');
 
 compose and return a string representing the VM private IP
 
@@ -1744,13 +1901,17 @@ compose and return a string representing the VM private IP
 
 =item B<id> - VM id number
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 =cut
 
 sub ipaddr2_get_internal_vm_private_ip {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
-    return $priv_ip_range . '.4' . $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    return $args{priv_ip_range} . '.4' . $args{id};
 }
 
 =head2 ipaddr2_get_worker_tmp_for_internal_vm
@@ -1783,13 +1944,16 @@ Move the rsc_web_00 resource to the indicated node
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_crm_move {
     my (%args) = @_;
-    croak("Argument < destination > missing") unless $args{destination};
+    foreach (qw(destination priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{id} //= 1;
@@ -1800,12 +1964,13 @@ sub ipaddr2_crm_move {
         ipaddr2_get_internal_vm_name(id => $args{destination}));
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $cmd,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_crm_clear
 
-    ipaddr2_crm_clear();
+    ipaddr2_crm_clear(priv_ip_range => '1.2.3');
 
 Clear all location constrain used during the test
 
@@ -1817,12 +1982,15 @@ Clear all location constrain used during the test
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_crm_clear {
     my (%args) = @_;
+    croak("Argument < priv_ip_range > missing") unless $args{priv_ip_range};
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{id} //= 1;
@@ -1832,12 +2000,13 @@ sub ipaddr2_crm_clear {
         WEB_RSC);
     ipaddr2_ssh_internal(id => $args{id},
         cmd => $cmd,
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 }
 
 =head2 ipaddr2_wait_for_takeover
 
-    die "Takeover does not happens in time" unless  ipaddr2_wait_for_takeover(destination => 2);
+    die "Takeover does not happens in time" unless  ipaddr2_wait_for_takeover(destination => 2, frontend_ip => 192.168.0.50);
 
 Wait that web server is responding from the node indicated by id.
 This check is implemented running a curl request from the bastion
@@ -1850,6 +2019,8 @@ Return 1 as soon as it gets the id in the response. Return 0 if not within 10 mi
 
 =item B<destination> - VM id that from where the web server response is expected to come from
 
+=item B<frontend_ip> - Internal IP used as frontend IP to expose the web server through the LB.
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
@@ -1860,7 +2031,11 @@ Return 1 as soon as it gets the id in the response. Return 0 if not within 10 mi
 
 sub ipaddr2_wait_for_takeover {
     my (%args) = @_;
-    croak("Argument < destination > missing") unless $args{destination};
+    # frontend_ip has to be mandatory here even if not explicitly used
+    # in this function, but only passed to ipaddr2_get_web.
+    # It is about avoiding to also have to additionally care about slot argument for ipaddr2_ip_get
+    foreach (qw(destination frontend_ip)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -1870,7 +2045,7 @@ sub ipaddr2_wait_for_takeover {
     while ($counter < 60) {
         if (ipaddr2_get_web(
                 bastion_ip => $args{bastion_ip},
-                web_url => $frontend_ip,
+                web_url => $args{frontend_ip},
                 str_match => $dest_vm)) {
             record_info("TAKE_OVER", "Webserver now reply from $dest_vm");
             return 1;
@@ -1917,7 +2092,8 @@ sub ipaddr2_get_web {
 
 =head2 ipaddr2_test_master_vm
 
-    ipaddr2_test_master_vm(id => 2);
+    my $ip = ipaddr2_ip_get();
+    ipaddr2_test_master_vm(id => 2, ip => \%ip);
 
 Check the status on the VM that is supposed to have
 the resources.
@@ -1925,6 +2101,11 @@ the resources.
 =over
 
 =item B<id> - VM id that is expected to be master
+
+=item B<ip> - Structure storing information about IP and network ranges of the deployment
+              Structure has to have:
+               - B<frontend_ip>: internal IP used as frontend IP to expose the web server through the LB
+               - B<priv_ip_range>: higher part of all the private IP address.
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
@@ -1936,14 +2117,16 @@ the resources.
 
 sub ipaddr2_test_master_vm {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id ip)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     # checks on the cluster side
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo crm status',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     my $vm = ipaddr2_get_internal_vm_name(id => $args{id});
     my $res;
@@ -1951,19 +2134,22 @@ sub ipaddr2_test_master_vm {
         $res = ipaddr2_ssh_internal_output(
             id => $args{id},
             cmd => "sudo crm resource failcount $resource show $vm",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{ip}{priv_ip_range});
         die "Fail count is not 0 for resource $resource in $vm" unless ($res =~ m/value=0/);
 
         $res = ipaddr2_ssh_internal_output(
             id => $args{id},
             cmd => "sudo crm resource locate $resource",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{ip}{priv_ip_range});
         die "Resource $resource is not running on $vm" unless ($res =~ m/is running on: $vm/);
     }
 
     my $crm_configure = ipaddr2_ssh_internal_output(id => $args{id},
         cmd => 'sudo crm configure show',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     my @preferred = $crm_configure =~ /cli-prefer-.*/g;
     die "Cluster has " . scalar @preferred . " resources with preferred location instead of expected 1"
@@ -1974,7 +2160,7 @@ sub ipaddr2_test_master_vm {
     # using the Azure LB front end IP
     die "The web server is not running on $vm" unless ipaddr2_get_web(
         bastion_ip => $args{bastion_ip},
-        web_url => $frontend_ip,
+        web_url => $args{ip}{frontend_ip},
         str_match => $vm);
     # test that the web page is reachable from the bastion
     # using the VM hostname where the web server is supposed to run
@@ -1986,7 +2172,8 @@ sub ipaddr2_test_master_vm {
     my $ps_ret = ipaddr2_ssh_internal_output(
         id => $args{id},
         cmd => 'ps -xa',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 
     die "Nginx process not running on $vm" unless ($ps_ret =~ m/nginx/);
 
@@ -1994,13 +2181,15 @@ sub ipaddr2_test_master_vm {
     $res = ipaddr2_ssh_internal_output(
         id => $args{id},
         cmd => 'ip a show eth0',
-        bastion_ip => $args{bastion_ip});
-    die "VirtualIP $frontend_ip should be on $vm" unless ($res =~ m/$frontend_ip/);
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
+    die "VirtualIP $args{ip}{frontend_ip} should be on $vm" unless ($res =~ m/$args{ip}{frontend_ip}/);
 
     # Check if the master internal VM can ping the virtual IP
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => join(' ', $ping_cmd, $frontend_ip),
-        bastion_ip => $args{bastion_ip});
+        cmd => join(' ', $ping_cmd, $args{ip}{frontend_ip}),
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{ip}{priv_ip_range});
 }
 
 =head2 ipaddr2_test_other_vm
@@ -2018,20 +2207,24 @@ the resources.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_test_other_vm {
     my (%args) = @_;
-    croak("Argument < id > missing") unless $args{id};
+    foreach (qw(id priv_ip_range)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     # checks on the cluster side
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo crm status',
-        bastion_ip => $args{bastion_ip});
+        bastion_ip => $args{bastion_ip},
+        priv_ip_range => $args{priv_ip_range});
 
     my $vm = ipaddr2_get_internal_vm_name(id => $args{id});
     my $res;
@@ -2039,7 +2232,8 @@ sub ipaddr2_test_other_vm {
         $res = ipaddr2_ssh_internal_output(
             id => $args{id},
             cmd => "sudo crm resource locate $resource",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
         die "Resource $resource is running on $vm and should not" if ($res =~ m/is running on: $vm/);
     }
 }
@@ -2071,7 +2265,10 @@ sub ipaddr2_network_peering_create {
 
 =head2 ipaddr2_repos_add_server_to_hosts
 
-    ipaddr2_repos_add_server_to_hosts(ibsm_ip => , incident_repos => 'AAAA,BBBB');
+    ipaddr2_repos_add_server_to_hosts(
+        ibsm_ip => get_required_var('IBSM_IP'),
+        incident_repos => 'AAAA,BBBB',
+        priv_ip_range => '1.2.3');
 
 Add download.suse.de server to hosts by specifying IBSM address
 
@@ -2087,13 +2284,15 @@ Add download.suse.de server to hosts by specifying IBSM address
 
 =item B<repo_host> - host name of the repo server. Default is download.suse.de.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_repos_add_server_to_hosts {
     my (%args) = @_;
-    foreach (qw(ibsm_ip incident_repos)) {
+    foreach (qw(ibsm_ip incident_repos priv_ip_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
@@ -2101,7 +2300,8 @@ sub ipaddr2_repos_add_server_to_hosts {
     foreach my $id (1 .. 2) {
         ipaddr2_ssh_internal(id => $id,
             cmd => "echo \"$args{'ibsm_ip'} $args{repo_host}\" | sudo tee -a /etc/hosts",
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 
     # Add repos
@@ -2118,7 +2318,8 @@ sub ipaddr2_repos_add_server_to_hosts {
         foreach my $id (1 .. 2) {
             ipaddr2_ssh_internal(id => $id,
                 cmd => $zypper_cmd,
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                priv_ip_range => $args{priv_ip_range});
         }
         $count++;
     }
@@ -2126,11 +2327,13 @@ sub ipaddr2_repos_add_server_to_hosts {
 
 =head2 ipaddr2_patch_system
 
-    ipaddr2_patch_system();
+    ipaddr2_patch_system(priv_ip_range => '1.2.3');
 
 Patch system
 
 =over
+
+=item B<priv_ip_range> - higher part of all the private IPs
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
@@ -2142,17 +2345,19 @@ Patch system
 
 sub ipaddr2_patch_system {
     my (%args) = @_;
+    croak 'Missing mandatory argument < priv_ip_range >' unless $args{priv_ip_range};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
     my @vms = ();
     foreach my $id (1 .. 2) {
-        my $vm_private_ip = ipaddr2_get_internal_vm_private_ip(id => $id);
+        my $vm_private_ip = ipaddr2_get_internal_vm_private_ip(id => $id, priv_ip_range => $args{priv_ip_range});
         push @vms, $vm_private_ip;
 
         ipaddr2_ssh_internal(id => $id,
             cmd => "sudo zypper -n ref",
             timeout => 1500,
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 
     # zypper patch
@@ -2167,7 +2372,8 @@ sub ipaddr2_patch_system {
             cmd => 'sudo systemctl mask packagekit; sudo systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done',
             timeout => 120,
             method => 'script_run',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
 
         # on 12-SP5, reboot causes the VM to restart too fast which can cause failures with
         # assert_script_run. Use script_run instead to avoid that
@@ -2175,7 +2381,8 @@ sub ipaddr2_patch_system {
             cmd => 'sudo reboot',
             timeout => 60,
             method => 'script_run',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            priv_ip_range => $args{priv_ip_range});
     }
 
     # check if the VMs have rebooted successfully
@@ -2204,7 +2411,8 @@ sub ipaddr2_patch_system {
                 cmd => 'pgrep "zypper|purge-kernels|rpm"',
                 timeout => 60,
                 method => 'script_run',
-                bastion_ip => $args{bastion_ip});
+                bastion_ip => $args{bastion_ip},
+                priv_ip_range => $args{priv_ip_range});
             if ($ret == 0) {
                 record_info('zypper process running, need to quit');
                 sleep 30;
@@ -2221,7 +2429,7 @@ sub ipaddr2_patch_system {
 
 =head2 ipaddr2_scc_addons
 
-    ipaddr2_scc_addons();
+    ipaddr2_scc_addons(priv_ip_range => '1.2.3', scc_addons => get_var('SCC_ADDONS'));
 
 Register addons on SUT
 
@@ -2233,13 +2441,16 @@ Register addons on SUT
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<priv_ip_range> - higher part of all the private IPs
+
 =back
 
 =cut
 
 sub ipaddr2_scc_addons {
     my (%args) = @_;
-    croak 'Missing mandatory argument < scc_addons >' unless $args{scc_addons};
+    foreach (qw(priv_ip_range scc_addons)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my @addons = split(/,/, $args{scc_addons});
@@ -2248,7 +2459,7 @@ sub ipaddr2_scc_addons {
         # Register through an external library function register_addon.
         # Compose the command to run the addons registration on the two internal VMs.
         my $remote_cmd = join(' ', '-J', $host_ip,
-            USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id));
+            USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id, priv_ip_range => $args{priv_ip_range}));
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
             register_addon($remote_cmd, $addon);

@@ -59,19 +59,21 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
+  ipaddr2_ip_get
   ipaddr2_deployment_logs
   ipaddr2_cloudinit_logs
   ipaddr2_azure_resource_group
   ipaddr2_infra_destroy
   ipaddr2_patch_system
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
 
     select_serial_terminal;
 
-    ipaddr2_patch_system();
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+    ipaddr2_patch_system(priv_ip_range => $ip{priv_ip_range});
 }
 
 sub test_flags {
@@ -81,7 +83,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     if (my $ibsm_rg = get_var('IBSM_RG')) {
         qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
     }
