@@ -1185,6 +1185,11 @@ C<script_output_retry_check> also defined in this library.
 =cut
 
 sub collect_sbd_delay_parameters {
+    # Depending on when this function is executed, the cmap API may not be ready
+    # (for example, after a fence). Since corosync-cmapctl is used to get some
+    # of the params below, lets first confirm cmap API is ready
+    script_retry('corosync-cmapctl', delay => 30, timeout => $default_timeout, fail_message => 'cmap API not ready');
+
     # all commands below ($corosync_token, $corosync_consensus...) are defined and exported at the beginning of the library
     my %params = (
         'corosync_token' =>
