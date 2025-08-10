@@ -91,11 +91,13 @@ podman:
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
+  # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 25918
     - 25942
     - 26017
+    - 26798
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL: 200-pod
     BATS_SKIP_ROOT_REMOTE:
@@ -108,6 +110,7 @@ podman:
     - 25918
     - 25942
     - 26017
+    - 26798
     BATS_SKIP:
     BATS_SKIP_ROOT_LOCAL: 200-pod
     BATS_SKIP_ROOT_REMOTE:
