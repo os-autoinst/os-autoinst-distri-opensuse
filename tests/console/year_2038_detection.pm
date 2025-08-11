@@ -64,13 +64,17 @@ sub run {
     # Trigger a reboot to make the date/time change fully effective and
     # generate some last/who entries.
     $self->reboot_system;
-    record_info("time after reboot", script_output("timedatectl status"));
+    record_info("time after reboot");
+    my $timedatectl = script_output("timedatectl status");
     my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
     my $wtmp_output = script_output('last -F');
     if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx) {
         # bsc#1237773 manual time changes will not persist after reboot on s390 due to no real time clock
-        if (is_sle('<16') || is_leap('<16.0') || is_sle_micro || is_leap_micro || is_s390x) {
+        if (is_sle('<16') || is_leap('<16.0') || is_sle_micro || is_leap_micro) {
             record_info("bsc#1188626", "SLE <= 15 not Y2038 compatible");
+        }
+        elsif (is_s390x && $timedatectl =~ /RTC time: n\/a/) {
+            record_info("bsc#1237773", "The platform does not have a real-time clock");
         }
         else {
             die('Not Y2038 compatible');
