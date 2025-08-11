@@ -208,8 +208,9 @@ sub teardown {
 
 sub describe_instance {
     my ($self, $instance_id, $query) = @_;
+    my $region = get_required_var('PUBLIC_CLOUD_REGION');
     chomp($query);
-    return script_output("aws ec2 describe-instances --filter Name=instance-id,Values=$instance_id | jq -r '.Reservations[0].Instances[0]" . $query . "'", quiet => 1);
+    return script_output("aws ec2 describe-instances --filter Name=instance-id,Values=$instance_id --region $region | jq -r '.Reservations[0].Instances[0]" . $query . "'", quiet => 1);
 }
 
 sub get_state_from_instance {
