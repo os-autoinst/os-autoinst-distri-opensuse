@@ -319,6 +319,15 @@ sub collect_coredumps {
     }
 }
 
+sub collect_calltraces {
+    # Collect all traces
+    my $traces = script_output(q(dmesg | awk '/Call Trace:/ { trace = 1 } trace { print } /<\/TASK>/ { trace = 0; print "" }'));
+
+    foreach my $trace (split /\n\n+/, $traces) {
+        record_info("TRACE", $trace);
+    }
+}
+
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -328,6 +337,7 @@ sub bats_post_hook {
 
     script_run "rm -rf $test_dir";
 
+    collect_calltraces;
     collect_coredumps;
     script_run('df -h > df-h.txt');
     script_run('dmesg > dmesg.txt');
