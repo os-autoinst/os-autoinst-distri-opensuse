@@ -56,8 +56,6 @@ sub run {
     run_command "make $cmds || true";
     # Skip this test due to https://github.com/opencontainers/runc/issues/4841
     run_command "rm -f tests/integration/cgroups.bats" if is_ppc64le;
-    # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247568
-    run_command "rm -f tests/integration/no_pivot.bats" if is_ppc64le;
     # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247567
     run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
 
