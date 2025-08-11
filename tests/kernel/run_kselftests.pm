@@ -122,7 +122,10 @@ sub post_process {
         }
 
         push(@full_ktap, $summary_ln);
+        upload_logs("/tmp/$test_name", log_name => "$test_name.tap.txt");
     }
+
+    upload_logs("summary.tap", log_name => "summary.tap.txt");
 
     script_output("cat <<'EOF' > kselftest.tap.txt\n" . join("\n", @full_ktap) . "\nEOF");
     parse_extra_log(KTAP => 'kselftest.tap.txt');    # Append .txt so that it can be easily previewed within openQA
