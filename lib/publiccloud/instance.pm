@@ -408,7 +408,7 @@ sub wait_for_ssh {
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
 
         # skip SLES4SAP as incompatible with get_public_ip
-        unless (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
             my $public_ip_from_provider = $self->provider->get_public_ip();
             if ($args{public_ip} ne $public_ip_from_provider) {
                 record_info('IP CHANGED', "The address we know is $args{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
@@ -549,6 +549,9 @@ sub softreboot {
             sleep 5;
         }
     }
+
+    # Let's go to host console (where we have the provider specific environment variables)
+    select_host_console();
 
     $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;    # wait for the +1 in the previous command
