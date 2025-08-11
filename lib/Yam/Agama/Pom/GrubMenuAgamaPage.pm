@@ -16,12 +16,14 @@ sub new {
     return bless {
         grub_menu_base => $args->{grub_menu_base},
         tag_agama_installer_highlighted => 'grub-menu-agama-installer-highlighted',
+        tag_agama_grub_menu_suse => 'grub-menu-agama-suse-brand',
     }, $class;
 }
 
 sub expect_is_shown {
     my ($self) = @_;
-    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down') unless check_screen($self->{tag_agama_installer_highlighted}, 5);
+    assert_screen($self->{tag_agama_grub_menu_suse}, 60);
+    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down');
     assert_screen($self->{tag_agama_installer_highlighted}, 60);
 }
 
