@@ -5,10 +5,6 @@
 
 # Package: drbd-utils crmsh
 # Summary: DRBD active/passive OpenQA test
-# Create DRBD device
-# Create crm ressource
-# Check resource migration
-# Check multistate status
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'haclusterbasetest';
@@ -19,6 +15,120 @@ use utils 'zypper_call';
 use testapi;
 use lockapi;
 use hacluster;
+
+=head1 NAME
+
+ha/drbd_passive.pm - Setup a drbd_passive resource in a cluster in a Promoted/Unpromoted configuration
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=head1 DESCRIPTION
+
+This module will select block devices shared by 2 nodes (iSCSI or similar type of shared block devices),
+and use them to create a C<dev/drbd_passive> device managed by the cluster stack in a Promoted/Unpromoted
+manner.
+
+It will use drbd commands to create the drbd device, and C<crmsh> commands to add it so it is managed by the
+cluster.
+
+After adding the resource, module will verify the resource is running and healthy. It will also do some
+minor checks such as verifying the resource runs in the expected node after initialization and after
+moving the resource from one node to the other.
+
+B<The key tasks performed by this module include:>
+
+=over
+
+=item * Collect necessary information, such as cluster name, name of nodes 1 and 2, IP addresses of both nodes, etc.
+
+=item * Verify test runs only in a 2 node scenario, otherwise skip this test and subsequent C<ha/filesystem> modules.
+
+=item * Update the System Under Test.
+
+=item * Select 2 shared block devices.
+
+=item * Add both block devices into C</etc/lvm.conf> with a read filter.
+
+=item * Modify global drbd configuration and add timeouts.
+
+=item * Download drbd configuration template from C<data/ha> folder into node 1.
+
+=item * Replace hostnames, IP addresses and block devices in the drbd template.
+
+=item * Add drbd files in C</etc/csync2/csync2.conf> and run csync2 from node 1 to synchronize configuration files in all nodes.
+
+=item * Create and enable a drbd block device in both nodes with C<drbdadm>
+
+=item * While waiting in node 2, configure the drbd device in node 1 as the master and wait for both devices to sync.
+
+=item * From node 1, configure the drbd device as secondary, and then disable the devices in both nodes with C<drbdadm down>
+
+=item * Add drbd resource primitive to the cluster configuration from node 1.
+
+=item * Add a Promoted/Unpromoted C<ms_drbd_passive> rule to the cluster configuration. This is of type C<ms> in 15-SP3 or older,
+and of type C<clone> in 15-SP4 or newer.
+
+=item * Verify the C<ms_drbd_passive> resource has started.
+
+=item * Test stopping and starting the resource with C<crmsh> commands.
+
+=item * Confirm the C<ms_drbd_resource> is running in node 1, and that the block device is present in the same node.
+
+=item * Move resource to node 2.
+
+=item * Confirm the C<ms_drbd_resource> is running in node 2, and that the block device is present in the same node.
+
+=item * Roll back the resource migration, and verify that the resource is running in node 1, and that the device is present in the same node.
+
+=item * Write drbd tag so following C<ha/filesystem> modules use the drbd device.
+
+=back
+
+=head1 OPENQA SETTINGS
+
+=over
+
+=item * CLUSTER_NAME: name of the cluster. Must be configured in all nodes.
+
+=item * TWO_NODES: module will verify this setting is not set to B<no>, as test module is only intended for 2 node scenarios.
+
+=back
+
+=head1 BARRIERS
+
+This module uses the following barriers to sync its execution between node 1 and node 2:
+
+=over
+
+=item * C<DRBD_INIT_$cluster_name>
+
+=item * C<DRBD_CREATE_CONF_$cluster_name>
+
+=item * C<DRBD_CREATE_DEVICE_$cluster_name>
+
+=item * C<DRBD_ACTIVATE_DEVICE_$cluster_name>
+
+=item * C<DRBD_SETUP_DONE_$cluster_name>
+
+=item * C<DRBD_DOWN_DONE_$cluster_name>
+
+=item * C<DRBD_RESOURCE_CREATED_$cluster_name>
+
+=item * C<DRBD_RESOURCE_RESTARTED_$cluster_name>
+
+=item * C<DRBD_CHECK_ONE_DONE_$cluster_name>
+
+=item * C<DRBD_MIGRATION_DONE_$cluster_name>
+
+=item * C<DRBD_REVERT_DONE_$cluster_name>
+
+=item * C<DRBD_CHECK_TWO_DONE_$cluster_name>
+
+=back
+
+=cut
 
 sub assert_standalone {
     my $drbd_rsc = shift;
@@ -164,7 +274,7 @@ sub run {
         save_state;
 
         # Check for result
-        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
 
         # Check device
         check_device_available("/dev/$drbd_rsc");
@@ -186,7 +296,7 @@ sub run {
         }
 
         # Node01 should be the Master
-        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
 
         # Check device
         check_device_available("/dev/$drbd_rsc");
@@ -215,7 +325,7 @@ sub run {
         assert_script_run "while ! \$(drbdadm status $drbd_rsc | grep -q \"$drbd_rsc role:Primary\"); do sleep 10; drbdadm status $drbd_rsc; done", 240;
 
         # Check for result
-        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_02\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_02\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
 
         # Check device
         check_device_available("/dev/$drbd_rsc");
@@ -241,7 +351,7 @@ sub run {
         assert_script_run "while ! \$(drbdadm status $drbd_rsc | grep -q \"$drbd_rsc role:Primary\"); do sleep 10; drbdadm status $drbd_rsc; done", 240;
 
         # Check for result
-        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
 
         # Check device
         check_device_available("/dev/$drbd_rsc");
