@@ -146,6 +146,9 @@ sub check_sev_snp_on_host {
     my $cpu_info = script_output("grep -m1 'model name' /proc/cpuinfo");
     record_info('CPU Info', "CPU: $cpu_info");
 
+    # Display system information
+    $self->display_system_info();
+
     # Check architecture
     unless (is_x86_64) {
         record_info('Architecture', 'Non-x86_64 architecture detected, SEV-SNP is not supported', result => 'fail');
@@ -201,6 +204,33 @@ sub check_sev_snp_on_host {
 
     # Check SEV-SNP capability
     $self->check_sev_snp_host_capability();
+
+    return $self;
+}
+
+=head2 display_system_info
+
+  display_system_info($self)
+
+Display system information including BIOS, system details,
+and hardware capabilities relevant for SEV-SNP verification.
+This provides better visibility into the test environment and helps
+with debugging hardware compatibility issues.
+
+=cut
+
+sub display_system_info {
+    my $self = shift;
+
+    record_info('System Info', 'Collecting system information for SEV-SNP verification');
+
+    # Execute dmidecode -t bios and display results
+    my $bios_info = script_output("dmidecode -t bios", proceed_on_failure => 1);
+    record_info('BIOS Information', $bios_info);
+
+    # Execute dmidecode -t system and display results
+    my $system_info = script_output("dmidecode -t system", proceed_on_failure => 1);
+    record_info('System Information', $system_info);
 
     return $self;
 }
