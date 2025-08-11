@@ -53,7 +53,9 @@ sub run {
 
     # Compile helpers & patch tests
     run_command "make examples", timeout => 600;
-    run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
+    unless (get_var("BATS_TESTS")) {
+        run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
+    }
 
     my $errors = run_tests;
     die "netavark tests failed" if ($errors);
