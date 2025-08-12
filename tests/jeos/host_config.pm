@@ -19,7 +19,7 @@ use Utils::Architectures qw(is_s390x);
 use version_utils qw(is_sle);
 
 sub run {
-    select_serial_terminal;
+    select_console('root-console');
 
     set_grub_gfxmode;
     ensure_serialdev_permissions;
