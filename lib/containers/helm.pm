@@ -80,7 +80,7 @@ sub helm_configure_values {
 
         # Charts by design have the image-related settings under `image.`
         #We only need to provide the path until that point via the variable.
-        if ($helm_values_image_path == '') {
+        if ($helm_values_image_path eq '') {
           $set_options .= "--set image.repository=$repository --set image.tag=$tag";
         } else {
           # If containing more than 1 application, the path would be app-specific
