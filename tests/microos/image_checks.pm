@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);
 use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 
 sub run {
     select_console 'root-console';
@@ -42,7 +42,7 @@ sub run {
         $left_sectors = 4062;
     } elsif ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64 && get_var('FLAVOR', '') !~ m/qcow|SelfInstall/) {
         $left_sectors = 2048;
-    } elsif (is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) {
+    } elsif ((is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) || is_jeos && is_ppc64le) {
         $left_sectors = 1792;
     }
 
