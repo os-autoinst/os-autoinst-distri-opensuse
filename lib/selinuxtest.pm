@@ -26,6 +26,8 @@ our @EXPORT = qw(
   $file_contexts_local
   $file_output
   $policyfile_tar
+  get_selinux_status
+  is_selinux_permissive
   download_policy_pkgs
 );
 
@@ -40,6 +42,36 @@ our $file_output = '/tmp/cmd_output';
 our $policypkg_repo = get_var('SELINUX_POLICY_PKGS');
 our $policyfile_tar = 'testing-main';
 our $dir = '/tmp/';
+
+=head2 get_selinux_status
+
+ get_selinux_status();
+
+Returns the SELinux status as a string.
+
+=cut
+
+sub get_selinux_status {
+    select_serial_terminal;
+
+    my $status = script_output("sestatus", proceed_on_failure => 1);
+    record_info("SELinux status", $status);
+    return $status;
+}
+
+=head2 is_selinux_permissive
+
+ is_selinux_permissive();
+
+Returns true if SELinux is in permissive mode, false otherwise.
+
+=cut
+
+sub is_selinux_permissive {
+    my $status = get_selinux_status();
+    return 0 unless $status =~ /SELinux status:\s+enabled/;
+    return $status =~ /Current mode:\s+permissive/;
+}
 
 # download SELinux policy pkgs
 sub download_policy_pkgs {
