@@ -319,22 +319,6 @@ sub load_container_tests {
         return;
     }
 
-    ## Helm chart tests. Add your individual helm chart tests here.
-    if (my $chart = get_var('HELM_CHART')) {
-        set_var('K3S_ENABLE_COREDNS', 1);
-
-        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
-            loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/) {
-            set_var('K3S_ENABLE_TRAEFIK', 1);
-            loadtest 'containers/charts/privateregistry';
-        }
-        else {
-            die "Unsupported HELM_CHART value";
-        }
-        return;
-    }
-
     if ($runtime eq 'k3s') {
         loadtest 'containers/run_container_in_k3s';
         return;
@@ -393,5 +377,29 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
+
+    ## Helm chart tests. Add your individual helm chart tests here.
+    if (my $chart = get_var('HELM_CHART')) {
+        set_var('K3S_ENABLE_COREDNS', 1);
+
+        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } elsif ($chart =~ m/private-registry/) {
+            set_var('K3S_ENABLE_TRAEFIK', 1);
+            loadtest 'containers/charts/privateregistry';
+        } elsif ($chart =~ m/kiosk-firefox/) {
+            if (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_server')) {
+                loadtest 'microos/workloads/x11-container/x11_helm_server';
+            }
+            elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_client')) {
+                loadtest 'microos/workloads/x11-container/x11_helm_client';
+            }
+        }
+        else {
+            die "Unsupported HELM_CHART value";
+        }
+        return;
+    }
+
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }
