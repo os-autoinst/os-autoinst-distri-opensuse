@@ -31,7 +31,7 @@ sub run_tests {
         SKOPEO_TEST_REGISTRY_FQIN => $registry,
     );
 
-    my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap";
+    my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap.txt";
 
     return bats_tests($log_file, \%env, $skip_tests);
 }
