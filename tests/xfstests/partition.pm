@@ -254,6 +254,11 @@ sub set_config {
             my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=sys,xprtsec=mtls\"' >> $CONFIG_FILE");
         }
+        elsif ($NFS_VERSION =~ 'krb5') {
+            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+            my ($krb5_type) = $NFS_VERSION =~ /(krb5[pi]?)/;
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=$krb5_type\"' >> $CONFIG_FILE");
+        }
         else {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
         }
@@ -357,6 +362,7 @@ sub install_dependencies_nfs {
       nfs4-acl-tools
     );
     push @deps, 'ktls-utils' if ($NFS_VERSION =~ 'TLS');
+    push @deps, 'krb5-client', 'krb5-server' if ($NFS_VERSION =~ 'krb5');
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
         trup_install(join(' ', @deps));
@@ -417,6 +423,51 @@ END
     script_run('systemctl daemon-reload; systemctl enable tlshd.service; systemctl start tlshd.service');
 }
 
+sub setup_krb5 {
+    script_run('hostname localhost');
+    my $content = <<END;
+includedir  /etc/krb5.conf.d
+
+[libdefaults]
+    dns_canonicalize_hostname = false
+    rdns = false
+    verify_ap_req_nofail = true
+    default_ccache_name = KEYRING:persistent:%{uid}
+    default_realm = SUSETEST.COM
+    dns_lookup_realm = false
+    dns_lookup_kdc = false
+
+[realms]
+       SUSETEST.COM = {
+        kdc = 127.0.0.1:88
+        admin_server = 127.0.0.1:749
+    }
+
+[logging]
+    kdc = FILE:/var/log/krb5/krb5kdc.log
+    admin_server = FILE:/var/log/krb5/kadmind.log
+    default = SYSLOG:NOTICE:DAEMON
+END
+    script_run("echo '$content' > \"/etc/krb5.conf\"");
+
+    #create KDC database, start service and setup key
+    script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
+    script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
+    script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey nfs/$(hostname -f)@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/$(hostname -f)@SUSETEST.COM"');
+
+    #verify the key
+    script_run('klist -kte /etc/krb5.keytab');
+    script_run('kadmin.local -q "getprinc nfs/$(hostname -f)@SUSETEST.COM"');
+
+    #get kerberos ticket and check
+    script_run('kinit -k host/$(hostname -f)@SUSETEST.COM');
+    script_run('klist');
+    script_run('kinit -k nfs/$(hostname -f)@SUSETEST.COM');
+    script_run('klist');
+}
+
 sub setup_nfs_server {
     my $nfsversion = shift;
     if ($nfsversion =~ 'TLS') {
@@ -424,6 +475,10 @@ sub setup_nfs_server {
     }
     if ($nfsversion =~ 'pnfs') {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
+    }
+    elsif ($nfsversion =~ 'krb5') {
+        setup_krb5($nfsversion);
+        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=2)\' >> /etc/exports');
     }
     else {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
