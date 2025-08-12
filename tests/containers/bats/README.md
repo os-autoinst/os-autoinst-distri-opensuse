@@ -56,7 +56,7 @@ NOTES
 - To debug SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
 - To debug individual tests you may clone a job with `BATS_TESTS`
 - You can also test individual tests from the latest version in the `main` branch with `BATS_URL=main`
-- The BATS output is collected in the log files with the `.tap` extension
+- The BATS output is collected in the log files with the `.tap.txt` extension
 - The commands are collected in a log file ending with `-commands.txt`
 
 ## Adding patches to `BATS_PATCHES`

@@ -27,7 +27,7 @@ sub run_tests {
         RUNC => "/usr/bin/runc",
     );
 
-    my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap";
+    my $log_file = "runc-" . ($rootless ? "user" : "root") . ".tap.txt";
 
     return bats_tests($log_file, \%env, $skip_tests);
 }
