@@ -25,6 +25,8 @@ conditional_schedule:
                 - installation/bootloader_uefi
             'aarch64':
                 - installation/bootloader_uefi
+            'ppc64le-p10':
+                - installation/bootloader_uefi
     efi:
         UEFI:
             '1':
@@ -41,6 +43,8 @@ conditional_schedule:
                 - installation/first_boot
                 - console/system_prepare
             'combustion':
+                - installation/first_boot
+                - jeos/host_config
                 - microos/verify_setup
                 - microos/image_checks
 schedule:
@@ -49,7 +53,6 @@ schedule:
     - jeos/image_info
     - jeos/record_machine_id
     - console/force_scheduled_tasks
-    - jeos/host_config
     - jeos/diskusage
     - jeos/build_key
     - console/prjconf_excluded_rpms
