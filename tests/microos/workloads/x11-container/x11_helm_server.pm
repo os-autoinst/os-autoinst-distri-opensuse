@@ -31,6 +31,15 @@ sub run {
     my $namespace = "kiosk";
     my $helm_values = "kiosk_values.yaml";
     my $helm_chart = get_required_var("HELM_CHART");
+
+    my $set_options = "";
+    if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
+        my ($repository, $tag) = split(':', $image, 2);
+        my $helm_values_image_path = get_required_var('HELM_VALUES_IMAGE_PATH');
+
+        $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
+    }
+
     select_console 'root-console';
     set_hostname(get_var('HOSTNAME') // 'server');
     setup_static_mm_network('10.0.2.101/24');
@@ -57,7 +66,7 @@ sub run {
     # Get the kiosk_values.yaml
     assert_script_run("curl " . autoinst_url("/data/x11/helm_chart/$helm_values") . " -o $helm_values", 60);
     # Deploy using Helm
-    assert_script_run("helm install -n $namespace --create-namespace -f $helm_values $release_name $helm_chart", timeout => 100);
+    assert_script_run("helm install -n $namespace --create-namespace -f $helm_values $set_options $release_name $helm_chart", timeout => 100);
 
     # Verify the firefox kiosk container started
     assert_screen("firefox_kiosk", 300);
