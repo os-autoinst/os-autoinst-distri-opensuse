@@ -73,13 +73,20 @@ sub helm_configure_values {
 
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         my ($repository, $tag) = split(':', $image, 2);
-        my $helm_values_image_path = get_required_var('HELM_VALUES_IMAGE_PATH');
+        my $helm_values_image_path = get_var('HELM_VALUES_IMAGE_PATH') || '';
 
         # Add space before appending if $set_options already has content
         $set_options .= " " if $set_options ne "";
 
-        # Charts by design have the image-related settings under `image.`. We only need to provide the path until that point via the variable.
-        $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
+        # Charts by design have the image-related settings under `image.`
+        #We only need to provide the path until that point via the variable.
+        if ($helm_values_image_path == '') {
+          $set_options .= "--set image.repository=$repository --set image.tag=$tag";
+        } else {
+          # If containing more than 1 application, the path would be app-specific
+          $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
+        }
+
     }
 
     # Enable debug logs
