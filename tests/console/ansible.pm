@@ -18,9 +18,10 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_jeos);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
+use Utils::Architectures qw(is_s390x);
 
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
@@ -111,6 +112,10 @@ sub run {
     # Check Ansible version
     record_info('ansible --version', script_output('ansible --version'));
 
+    # older sles with wicked changes its transient hostname after reboot to s390kvm0XX
+    # wicked can leave the hostname configuration for DHCP
+    # s390x VMs run in a VLAN, this issue is not present present outside s390x and wicked
+    assert_script_run('hostnamectl --transient hostname susetest') if is_s390x && is_jeos && is_sle('<16');
     my $hostname = script_output('hostnamectl --static');
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
