@@ -90,6 +90,9 @@ sub install_ncat {
     if (is_tumbleweed) {
         if (is_aarch64) {
             run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
+        } elsif (is_ppc64le) {
+            # This should be temporary until ncat 7.95 is published for Tumbleweed
+            run_command "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Leap:/16.0:/NonFree/standard/openSUSE:Leap:16.0:NonFree.repo";
         } elsif (is_s390x) {
             run_command "zypper addrepo http://download.opensuse.org/ports/zsystems/tumbleweed/repo/non-oss/ non-oss";
         } else {
