@@ -85,12 +85,13 @@ Please add this warning on each bug report you open when adding instructions on 
 
 ## openQA jobs
 
+With runc as `OCI_RUNTIME`
+
 | Product / Package     | aardvark-dns       | buildah            | netavark           | podman             | runc               | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | openSUSE Tumbleweed   | [![tw_al]][tw_a]   | [![tw_bl]][tw_b]   | [![tw_nl]][tw_n]   | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r]   | [![tw_sl]][tw_s]   |
-| openSUSE TW with crun |                    | [![tw_blc]][tw_bc] |                    | [![tw_plc]][tw_pc] |                    |                    |
 | openSUSE TW (aarch64) | [![twa_al]][twa_a] |                    | [![twa_nl]][twa_n] | [![twa_pl]][twa_p] | [![twa_rl]][twa_r] | [![twa_sl]][twa_s] |
-| openSUSE TW (ppc64le) |                    |                    |                    |                    | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
+| openSUSE TW (ppc64le) | [![twp_al]][twp_a] |                    | [![twp_nl]][twp_n] | [![twp_pl]][twp_p] | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
 | SLES 16.0             | [![logo]][s16_a]   | [![logo]][s16_b]   | [![logo]][s16_n]   | [![logo]][s16_p]   | [![logo]][s16_r]   | [![logo]][s16_s]   |
 | SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                    | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
 | SLES 16.0 (ppc64le)   | [![logo]][s16p_a]  |                    | [![logo]][s16p_n]  | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
@@ -108,20 +109,33 @@ Please add this warning on each bug report you open when adding instructions on 
 | SLES 15 SP4 (aarch64) |                    |                    |                    |                    | [![logo]][sp4a_r]  | [![logo]][sp4a_s]  |
 | SLES 15 SP4 (s390x)   |                    |                    |                    |                    | [![logo]][sp4s_r]  | [![logo]][sp4s_s]  |
 
+openSUSE Tumbleweed with crun as `OCI_RUNTIME`
+
+| Architecture / Package | buildah | podman |
+|:---:|:---:|:---:|
+| aarch64 |                    | [![twa_plc]][twa_pc] |
+| ppc64le |                    | [![twp_plc]][twp_pc] |
+| x86_64  | [![tw_blc]][tw_bc] | [![tw_plc]][tw_pc]   |
+
 [logo]: logo.svg
+
+[tw_blc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
+[tw_bc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
+[tw_plc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+[twa_plc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite_crun
+[twa_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite_crun
+[twp_plc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite_crun
+[twp_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite_crun
 
 [tw_al]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 [tw_a]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 [tw_bl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
 [tw_b]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
-[tw_blc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
-[tw_bc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
 [tw_nl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
 [tw_n]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
 [tw_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
 [tw_p]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
-[tw_plc]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
-[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
 [tw_rl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
 [tw_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
 [tw_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
@@ -138,6 +152,12 @@ Please add this warning on each bug report you open when adding instructions on 
 [twa_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
 [twa_s]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
 
+[twp_al]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
+[twp_a]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
+[twp_nl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
+[twp_n]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
+[twp_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite
+[twp_p]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite
 [twp_rl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
 [twp_r]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
 [twp_sl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_skopeo_testsuite
