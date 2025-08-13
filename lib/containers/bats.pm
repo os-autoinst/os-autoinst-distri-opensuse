@@ -319,6 +319,7 @@ sub collect_coredumps {
         # Dumping and compressing coredumps may take some time
         script_run("coredumpctl -o $core dump $pid", 300);
         script_run("xz -9v $core", 300);
+        record_info("COREDUMP", $exe);
     }
 }
 
