@@ -37,4 +37,9 @@
       <username>root</username>
     </user>
   </users>
+  <general>
+    <mode>
+      <final_reboot config:type="boolean">true</final_reboot>
+    </mode>
+  </general>
 </profile>
