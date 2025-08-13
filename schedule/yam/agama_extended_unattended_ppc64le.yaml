@@ -8,6 +8,7 @@ schedule:
   - yam/agama/agama
   - installation/grub_test
   - installation/first_boot
+  - yam/validate/validate_extra_kernel_params
   - yam/validate/validate_packages
   - yam/validate/validate_post_partitioning
   - yam/validate/validate_deployed_files
