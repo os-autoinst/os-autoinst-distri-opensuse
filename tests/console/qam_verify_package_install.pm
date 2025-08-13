@@ -5,8 +5,6 @@
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

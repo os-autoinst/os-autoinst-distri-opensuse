@@ -23,8 +23,6 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils 'zypper_call';
 use Utils::Architectures;
 use version_utils 'has_selinux';

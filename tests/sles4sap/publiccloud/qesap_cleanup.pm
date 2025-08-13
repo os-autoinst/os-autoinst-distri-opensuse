@@ -7,7 +7,6 @@
 # https://github.com/SUSE/qe-sap-deployment
 
 use base 'sles4sap_publiccloud_basetest';
-use strict;
 use warnings FATAL => 'all';
 use testapi;
 

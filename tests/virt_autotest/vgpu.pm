@@ -15,8 +15,6 @@
 # Maintainer: qe-virt@suse.de, Julie CAO <JCao@suse.com>
 
 use base "virt_feature_test_base";
-use strict;
-use warnings;
 use utils;
 use testapi;
 use virt_autotest::common;

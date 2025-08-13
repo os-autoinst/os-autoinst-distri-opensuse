@@ -12,9 +12,7 @@
 # To skip cleanup use OpenQA parameter 'SDAF_RETAIN_DEPLOYMENT'
 
 use parent 'opensusebasetest';
-use strict;
 use testapi;
-use warnings;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::sap_deployment_automation_framework::deployment qw(serial_console_diag_banner);
 use sles4sap::sap_deployment_automation_framework::basetest qw(full_cleanup);

@@ -6,8 +6,6 @@
 # Tags: poo#81772, tc#1768551
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Architectures qw(is_x86_64);

@@ -10,8 +10,6 @@
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 use base 'wickedbase';
-use strict;
-use warnings;
 use testapi;
 use network_utils 'ifc_exists';
 use utils qw(file_content_replace zypper_call);

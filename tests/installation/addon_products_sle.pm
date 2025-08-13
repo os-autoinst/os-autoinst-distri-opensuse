@@ -7,8 +7,6 @@
 # Summary: Add add-on via DVD, network or DUD during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 use Utils::Backends;

@@ -5,8 +5,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base 'opensusebasetest';
-use warnings;
-use strict;
 use v5.20;
 use feature qw(signatures);
 no warnings qw(experimental::signatures);

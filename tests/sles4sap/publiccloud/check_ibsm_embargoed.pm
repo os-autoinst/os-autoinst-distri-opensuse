@@ -4,8 +4,6 @@
 # Summary: Checks for embargoed updates on IBSM
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use publiccloud::utils "validate_repo";
 use testapi;

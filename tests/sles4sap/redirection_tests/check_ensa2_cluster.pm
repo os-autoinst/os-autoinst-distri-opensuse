@@ -8,7 +8,6 @@
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 package check_ensa2_cluster;
-use strict;
 use warnings FATAL => 'all';
 use testapi;
 use serial_terminal qw(select_serial_terminal);

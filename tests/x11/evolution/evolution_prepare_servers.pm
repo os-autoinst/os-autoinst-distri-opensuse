@@ -14,8 +14,6 @@
 # - Create 2 test users: admin and nimda
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

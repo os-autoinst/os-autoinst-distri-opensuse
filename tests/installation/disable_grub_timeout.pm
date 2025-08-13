@@ -10,8 +10,6 @@
 # - Save screenshot
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;

@@ -16,8 +16,6 @@
 # Tags: fate#320292
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_transactional);

@@ -9,8 +9,6 @@
 # Tags: poo#65570, poo#65615, poo#89005, poo#106504, poo#109566
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;

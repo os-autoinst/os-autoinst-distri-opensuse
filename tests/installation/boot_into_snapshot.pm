@@ -8,8 +8,6 @@
 # and verifies that `before_upgrade` and `after upgrade` are not identical.
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use strict;
-use warnings;
 use testapi;
 use base "opensusebasetest";
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);

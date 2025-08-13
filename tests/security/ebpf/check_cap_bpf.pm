@@ -6,8 +6,6 @@
 # Tags: poo#103932, tc#1769831, poo#108302
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 

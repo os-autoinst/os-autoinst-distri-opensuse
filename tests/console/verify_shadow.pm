@@ -7,8 +7,6 @@
 # (bsc#973639, bsc#974220, bsc#971804 and bsc#965852)
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use parent 'y2_module_consoletest';
 use testapi;
 

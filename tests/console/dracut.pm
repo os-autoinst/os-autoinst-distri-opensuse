@@ -11,8 +11,6 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
 use power_action_utils 'power_action';
 
 sub run {

@@ -10,8 +10,6 @@ package change_desktop;
 
 use y2_logs_helper qw(workaround_dependency_issues workaround_dependency_issues break_dependency);
 use base qw(y2_installbase installsummarystep);
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_sle';
 

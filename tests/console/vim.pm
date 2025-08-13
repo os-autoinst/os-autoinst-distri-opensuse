@@ -14,8 +14,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use version_utils qw(is_jeos);

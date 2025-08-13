@@ -18,8 +18,6 @@
 # Maintainer: Richard Brown <rbrown@suse.de>
 
 use base qw(y2snapper_common x11test);
-use strict;
-use warnings;
 use testapi;
 use utils;
 use x11utils 'turn_off_gnome_screensaver';

@@ -6,8 +6,6 @@
 # Summary: Boot Windows server 2019 and wait samba_ad job child tests
 # Maintainer: mmartins <mmartins@suse.com>
 
-use strict;
-use warnings;
 use base 'windowsbasetest';
 use testapi;
 use mmapi;

@@ -6,8 +6,6 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586207
 
-use strict;
-use warnings;
 use base 'basetest';
 use base 'x11test';
 use testapi;

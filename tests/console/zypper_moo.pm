@@ -8,8 +8,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 
 sub run {

@@ -17,8 +17,6 @@
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base 'btrfs_test';
-use strict;
-use warnings;
 use testapi;
 
 sub run {

@@ -15,8 +15,6 @@
 # Maintainer: Jun Wang <jgwang@suse.com>
 
 use base 'y2_module_basetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);

@@ -8,8 +8,6 @@
 # Maintainer: QE LSG <qa-team@suse.de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 use Utils::Architectures 'is_aarch64';

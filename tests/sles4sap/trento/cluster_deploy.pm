@@ -4,8 +4,6 @@
 # Summary: Deploy SAP Landscape using qe-sap-deployment and network peering with Trento server
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

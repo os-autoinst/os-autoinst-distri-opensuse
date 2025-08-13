@@ -11,8 +11,6 @@
 
 use parent 'y2_installbase';
 
-use strict;
-use warnings;
 
 use testapi;
 use version_utils ':VERSION';

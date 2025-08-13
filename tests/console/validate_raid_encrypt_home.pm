@@ -7,8 +7,6 @@
 # encrypted home (md is not partitioned).
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use Mojo::JSON qw(decode_json);

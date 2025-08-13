@@ -11,8 +11,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
-use warnings;
-use strict;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';

@@ -14,8 +14,6 @@
 # - Write operation in a backing device can be performed and validate that cache is working watching the cache hits.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use scheduler 'get_test_suite_data';

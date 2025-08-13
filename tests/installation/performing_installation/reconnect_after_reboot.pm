@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
 
 sub run {

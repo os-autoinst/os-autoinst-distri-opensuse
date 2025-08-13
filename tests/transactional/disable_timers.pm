@@ -7,8 +7,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);

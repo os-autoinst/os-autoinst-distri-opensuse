@@ -12,8 +12,6 @@
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal qw(select_user_serial_terminal);
 

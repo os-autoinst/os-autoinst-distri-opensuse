@@ -8,8 +8,6 @@
 # Tags: poo#93441, poo#104070
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';

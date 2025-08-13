@@ -8,8 +8,6 @@
 # Maintainer: Ludwig Nussel <lnussel@suse.com>
 
 use base "installbasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use migration;

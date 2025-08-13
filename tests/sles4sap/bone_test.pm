@@ -8,8 +8,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'sles4sap';
-use strict;
-use warnings;
 use testapi;
 use utils qw(file_content_replace);
 use serial_terminal 'select_serial_terminal';

@@ -52,8 +52,6 @@ The hostname of current node.
 =cut
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster;

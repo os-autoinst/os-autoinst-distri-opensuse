@@ -8,8 +8,6 @@
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 

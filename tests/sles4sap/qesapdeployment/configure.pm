@@ -4,8 +4,6 @@
 # Summary: Configuration steps for qe-sap-deployment
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::azure_client;
 use publiccloud::utils qw(get_ssh_private_key_path);

@@ -7,8 +7,6 @@
 # Maintainer: alice <xlai@suse.com>
 
 use base "virt_autotest_base";
-use strict;
-use warnings;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends 'use_ssh_serial_console';

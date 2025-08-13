@@ -8,8 +8,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_guitest';
-use strict;
-use warnings;
 use testapi;
 use y2lan_restart_common qw(open_network_settings wait_for_xterm_to_be_visible close_xterm close_network_settings);
 use x11utils 'start_root_shell_in_xterm';

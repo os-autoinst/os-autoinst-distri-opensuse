@@ -8,8 +8,6 @@
 # Maintainer: Dominik Heidler <dominik@heidler.eu>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils;

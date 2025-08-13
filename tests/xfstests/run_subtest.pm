@@ -8,8 +8,6 @@
 # Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
 
 use 5.018;
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;

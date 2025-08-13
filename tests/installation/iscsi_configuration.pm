@@ -9,8 +9,6 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use utils 'script_output_retry';
 

@@ -23,8 +23,6 @@
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use utils qw(zypper_call clear_console ensure_serialdev_permissions);
 use version_utils qw(is_opensuse is_sle is_tumbleweed is_leap);

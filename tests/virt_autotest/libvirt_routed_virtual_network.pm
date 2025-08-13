@@ -13,8 +13,6 @@ use base "virt_feature_test_base";
 use virt_utils;
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

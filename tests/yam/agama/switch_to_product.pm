@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::agama_base;
-use strict;
-use warnings;
 use testapi qw(reset_consoles get_var set_var);
 use scheduler 'get_test_suite_data';
 

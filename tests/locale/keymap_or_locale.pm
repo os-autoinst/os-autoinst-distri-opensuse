@@ -11,8 +11,6 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "locale";
-use strict;
-use warnings;
 use Utils::Backends 'has_ttys';
 use testapi qw(assert_screen get_var select_console);
 

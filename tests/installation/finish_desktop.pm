@@ -9,8 +9,6 @@
 
 use base "installbasetest";
 use testapi;
-use strict;
-use warnings;
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'turn_off_plasma_tooltips';
 use Utils::Logging qw(save_and_upload_log export_logs);

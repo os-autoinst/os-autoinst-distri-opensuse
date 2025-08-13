@@ -12,8 +12,6 @@
 
 use base 'opensusebasetest';
 use power_action_utils "power_action";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';

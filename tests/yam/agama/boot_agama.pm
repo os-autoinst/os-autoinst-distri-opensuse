@@ -6,8 +6,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
-use strict;
-use warnings;
 
 use testapi;
 use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile parse_dud_parameter);

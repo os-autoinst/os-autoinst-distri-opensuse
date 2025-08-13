@@ -6,8 +6,6 @@
 # Summary: Enable AppArmor during installation
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 

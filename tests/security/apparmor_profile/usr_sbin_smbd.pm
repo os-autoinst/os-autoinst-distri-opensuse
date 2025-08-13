@@ -21,8 +21,6 @@
 # Tags: poo#48776, poo#134780
 
 use base "apparmortest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);

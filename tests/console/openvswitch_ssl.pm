@@ -10,8 +10,6 @@
 # Tags: TC1595181, poo#65375, poo#107134
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';

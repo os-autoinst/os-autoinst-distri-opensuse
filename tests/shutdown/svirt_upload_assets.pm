@@ -7,8 +7,6 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base 'installbasetest';
-use strict;
-use warnings;
 use testapi;
 use version_utils 'is_vmware';
 use backend::svirt ();

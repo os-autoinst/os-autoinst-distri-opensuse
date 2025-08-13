@@ -7,8 +7,6 @@
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging qw(export_logs_basic upload_coredumps);

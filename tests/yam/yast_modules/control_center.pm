@@ -8,8 +8,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use y2_module_consoletest;
 use testapi qw(select_console wait_serial save_screenshot get_var);
 

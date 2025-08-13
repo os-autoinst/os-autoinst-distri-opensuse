@@ -10,8 +10,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use scheduler 'get_test_suite_data';
 use utils 'arrays_subset';
 use testapi;

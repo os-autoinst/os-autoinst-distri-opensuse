@@ -16,8 +16,6 @@
 # 'SDAF_DEPLOYER_MACHINE' override default value for VM size
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-use strict;
-use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_deployment_reused);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip no_cleanup_tag);

@@ -14,8 +14,6 @@
 # Tags: boo#897687
 
 use base "x11test";
-use strict;
-use warnings;
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
 

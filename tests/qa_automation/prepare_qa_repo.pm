@@ -6,8 +6,6 @@
 # Summary: the step to prepare QA:Head repository
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

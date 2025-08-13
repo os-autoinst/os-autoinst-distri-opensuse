@@ -8,8 +8,6 @@
 # Tags: https://progress.opensuse.org/issues/49901
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use Remote::Lab 'connect_vpn';
 use testapi;
 

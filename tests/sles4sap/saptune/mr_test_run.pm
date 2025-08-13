@@ -17,8 +17,6 @@ use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Mojo::JSON 'encode_json';
 use publiccloud::instances;
-use strict;
-use warnings;
 
 our @EXPORT = qw(
   $result_module

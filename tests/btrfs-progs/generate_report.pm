@@ -5,8 +5,6 @@
 #
 # Summary: Upload logs and generate junit report
 # Maintainer: An Long <lan@suse.com>
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;

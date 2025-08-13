@@ -6,8 +6,6 @@
 # Summary: Open the openQA webui in the web browser
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
 use base "x11test";
 use testapi;
 use x11utils 'ensure_unlocked_desktop';

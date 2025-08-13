@@ -9,8 +9,6 @@ package boot_from_pxe;
 
 use base 'opensusebasetest';
 
-use strict;
-use warnings;
 use lockapi;
 use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks sync_time);

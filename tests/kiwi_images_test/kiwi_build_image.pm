@@ -10,8 +10,6 @@
 # Upload the locally created qcow2 image for further testing.
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

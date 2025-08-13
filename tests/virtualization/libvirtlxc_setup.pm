@@ -10,8 +10,6 @@
 use base "basetest";
 use testapi;
 use utils;
-use strict;
-use warnings;
 
 sub run() {
     select_console 'root-console';

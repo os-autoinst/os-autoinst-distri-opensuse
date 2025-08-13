@@ -8,8 +8,6 @@
 # for slower architectures.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi 'get_var';
 use Test::Assert ':all';

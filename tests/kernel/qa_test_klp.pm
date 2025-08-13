@@ -7,8 +7,6 @@
 # Summary: Tests for kernel live patching infrastructure
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use strict;
-use warnings;
 use File::Basename 'basename';
 
 use base 'opensusebasetest';

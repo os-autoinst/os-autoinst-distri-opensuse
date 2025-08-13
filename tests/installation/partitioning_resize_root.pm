@@ -9,8 +9,6 @@
 # Tags: bsc#989976 bsc#1000165
 
 use base 'y2_installbase';
-use strict;
-use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
 

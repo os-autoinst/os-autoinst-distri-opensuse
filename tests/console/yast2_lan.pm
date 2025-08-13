@@ -18,8 +18,6 @@
 
 use base "y2_module_consoletest";
 
-use strict;
-use warnings;
 use testapi;
 use utils;
 use y2lan_restart_common;

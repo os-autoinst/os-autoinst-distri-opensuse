@@ -11,8 +11,6 @@ use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
-use strict;
-use warnings;
 use version_utils qw(package_version_cmp);
 
 sub run {

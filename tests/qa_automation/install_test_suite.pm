@@ -6,8 +6,6 @@
 # Summary:  the step to install testsuite from QA:Head
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use utils;
 use testapi;

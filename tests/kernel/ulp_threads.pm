@@ -6,8 +6,6 @@
 # Summary: Apply livepatch to a process with multiple (thousand) threads
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use testapi;
 

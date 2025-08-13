@@ -7,8 +7,6 @@
 # Maintainer: Julie CAO <jcao@suse.com>
 package cleanup_service;
 
-use strict;
-use warnings;
 use base "virt_autotest_base";
 use testapi;
 use virt_autotest::utils qw(remove_vm);

@@ -7,8 +7,6 @@
 # Maintainer: Nan Zhang <nan.zhang@suse.com>
 
 use base 'consoletest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virt_autotest::common;

@@ -6,8 +6,6 @@
 # Tags: poo#70345, tc#1767577
 
 use base 'opensusebasetest';
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;

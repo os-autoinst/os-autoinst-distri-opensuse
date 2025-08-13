@@ -12,8 +12,6 @@
 #   A smoke test that BCI containers can run in IBM's Hyper Protect Platform
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use strict;
-use warnings;
 use Mojo::Base qw(consoletest);
 use utils qw(script_retry file_content_replace);
 use version_utils;

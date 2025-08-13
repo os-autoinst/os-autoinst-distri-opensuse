@@ -7,8 +7,6 @@
 #          with Kubernetes Using Helm
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
-use warnings;
-use strict;
 use testapi;
 use lockapi;
 use base 'x11test';

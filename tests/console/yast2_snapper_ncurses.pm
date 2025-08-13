@@ -9,8 +9,6 @@
 
 use base qw(y2snapper_common y2_module_consoletest);
 
-use strict;
-use warnings;
 use testapi;
 use utils;
 

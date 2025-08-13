@@ -6,8 +6,6 @@
 # Summary: Run a scenario passed via the TEST variable
 # Maintainer: Alberto Planas <aplanas@suse.de>
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use utils;

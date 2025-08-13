@@ -6,8 +6,6 @@
 # Maintainer: dancermak <dcermak@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use vagrant;

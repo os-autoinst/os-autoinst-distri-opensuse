@@ -8,8 +8,6 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#16266
 
-use strict;
-use warnings;
 use base "consoletest";
 use testapi;
 use transactional;

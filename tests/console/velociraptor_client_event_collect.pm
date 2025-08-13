@@ -9,8 +9,6 @@
 
 use base "consoletest";
 use testapi;
-use strict;
-use warnings;
 use version_utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use utils;

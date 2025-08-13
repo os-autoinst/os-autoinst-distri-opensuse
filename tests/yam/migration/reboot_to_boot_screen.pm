@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use testapi;
 use power_action_utils 'power_action';
 

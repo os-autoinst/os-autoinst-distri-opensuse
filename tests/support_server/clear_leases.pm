@@ -7,8 +7,6 @@
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils 'systemctl';
 

@@ -7,8 +7,6 @@
 # Summary: Validate YaST configuration functionality for NIS
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use scheduler 'get_test_suite_data';

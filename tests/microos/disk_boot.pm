@@ -7,8 +7,6 @@
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use version_utils qw(is_sle_micro);
 use Utils::Architectures qw(is_aarch64);

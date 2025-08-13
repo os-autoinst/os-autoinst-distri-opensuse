@@ -6,8 +6,6 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: Qi Wang <qwang@suse.com>
 package kvm_guest_mitigations;
-use strict;
-use warnings;
 use base "consoletest";
 use bootloader_setup;
 use Mitigation;

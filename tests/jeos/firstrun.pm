@@ -10,8 +10,6 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
-use strict;
-use warnings;
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
 use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro

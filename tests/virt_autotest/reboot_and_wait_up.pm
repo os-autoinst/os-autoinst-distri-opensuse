@@ -7,8 +7,6 @@ package reboot_and_wait_up;
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
 
-use strict;
-use warnings;
 use testapi;
 use ipmi_backend_utils;
 use Utils::Architectures;

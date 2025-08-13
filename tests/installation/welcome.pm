@@ -19,8 +19,6 @@
 # - Proceed install (Next, next) until license on welcome screen is found
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use y2_logs_helper qw(accept_license verify_license_translations verify_license_has_to_be_accepted);
 use testapi;

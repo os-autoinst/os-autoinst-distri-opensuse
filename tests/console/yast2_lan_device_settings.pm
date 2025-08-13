@@ -12,9 +12,7 @@
 #
 # Maintainer: Veronika Svecova <vsvecova@suse.com>
 
-use strict;
 use base 'y2_module_consoletest';
-use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;

@@ -9,8 +9,6 @@
 # Maintainer: Jose Lausuch <jalausuch@suse.de>
 
 use base "publiccloud::basetest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

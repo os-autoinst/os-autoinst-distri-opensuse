@@ -6,10 +6,7 @@
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
-use strict;
-use warnings;
 use virt_autotest::common;
-use strict;
 use testapi;
 use utils;
 

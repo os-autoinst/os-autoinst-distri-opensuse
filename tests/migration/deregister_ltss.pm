@@ -7,8 +7,6 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use registration qw(remove_suseconnect_product);
 use testapi qw(get_var set_var);
 

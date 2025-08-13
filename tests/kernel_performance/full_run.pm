@@ -9,9 +9,7 @@
 
 package full_run;
 use ipmi_backend_utils;
-use strict;
 use power_action_utils 'power_action';
-use warnings;
 use testapi;
 use base 'y2_installbase';
 use File::Basename;

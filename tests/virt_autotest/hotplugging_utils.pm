@@ -8,8 +8,6 @@
 package hotplugging_utils;
 
 use base Exporter;
-use strict;
-use warnings;
 use utils;
 use version_utils;
 use testapi;

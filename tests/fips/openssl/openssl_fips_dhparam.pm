@@ -8,8 +8,6 @@
 # Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_sle_micro is_transactional);

@@ -50,8 +50,6 @@ The hostname of current node.
 
 
 use base 'haclusterbasetest';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use hacluster;

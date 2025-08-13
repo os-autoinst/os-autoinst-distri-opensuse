@@ -7,8 +7,6 @@
 # Maintainer: George Gkioulis <ggkioulis@suse.com>
 
 use base 'x11test';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use x11utils 'ensure_unlocked_desktop';

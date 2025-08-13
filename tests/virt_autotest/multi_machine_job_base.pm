@@ -8,8 +8,6 @@
 
 package multi_machine_job_base;
 use base "virt_autotest_base";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use mmapi;

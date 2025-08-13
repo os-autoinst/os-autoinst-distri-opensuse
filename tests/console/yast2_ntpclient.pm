@@ -7,8 +7,6 @@
 # Summary: yast2_ntpclient test
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use strict;
-use warnings;
 use base "y2_module_consoletest";
 
 use testapi;

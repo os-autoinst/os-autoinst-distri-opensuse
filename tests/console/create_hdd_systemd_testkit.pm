@@ -7,8 +7,6 @@
 # EXTERNAL_TESTSUITE_URL and publishes the result in HDD
 # Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
 use File::Basename;
 use Mojo::JSON qw(encode_json);
 use base "consoletest";

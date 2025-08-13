@@ -7,8 +7,6 @@
 # configuration
 # Maintainer: Wayne Chen <wchen@suse.com>
 
-use strict;
-use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils qw(is_ipxe_boot);

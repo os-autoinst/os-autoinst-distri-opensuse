@@ -15,8 +15,6 @@
 # Maintainer: Andrej Semen <asemen@suse.com>
 
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call);

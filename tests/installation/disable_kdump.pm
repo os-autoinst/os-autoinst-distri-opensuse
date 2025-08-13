@@ -10,8 +10,6 @@
 #   to the RAM amount.
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
-use strict;
-use warnings;
 use base 'y2_installbase';
 use testapi;
 

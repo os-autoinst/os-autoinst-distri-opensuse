@@ -7,8 +7,6 @@
 
 use base "consoletest";
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils;
