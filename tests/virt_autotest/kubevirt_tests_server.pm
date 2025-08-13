@@ -203,34 +203,55 @@ sub install_kubevirt_packages {
     my $self = shift;
     # Install required kubevirt packages
     my $os_version = get_var('VERSION');
-    my $virt_tests_repo = get_required_var('VIRT_TESTS_REPO');
-    my $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+    my $virt_manifests_repo;
+    my $virt_tests_repo;
+    my $virt_manifests_pkgs = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
+    my $virt_tests_pkg = 'kubevirt-tests';
+    my $search_manifests;
 
     record_info('Install kubevirt packages', '');
     # Development Tools repo for OBS Module, e.g. http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/15-SP4/x86_64/product/
     # Development product test repo for SLE official product OSD testing, e.g. http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/GA/standard/
     # Devel test repo, e.g. http://download.suse.de/download/ibs/Devel:/Virt:/SLE-15-SP4/SUSE_SLE-15-SP4_Update_standard/
     # MU product test (SLE official MU channel+incidents)
-    transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+    if (get_var('INCIDENT_REPO')) {
+        zypper_call("in -f $virt_manifests_pkgs $virt_tests_pkg");
 
-    zypper_call("lr -d");
-    zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
-    zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
-    zypper_call("--gpg-auto-import-keys ref");
-
-    my $virt_manifests = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
-    my $search_manifests = $virt_manifests =~ s/\s+/\\\|/gr;
-
-    if ($virt_manifests_repo) {
-        zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests");
-    } elsif (script_run("rpmquery $virt_manifests")) {
-        if (is_transactional || script_run("zypper se -r SLE-Module-Containers${os_version}-Updates $virt_manifests | grep -w '$search_manifests'")) {
-            zypper_call("in -f $virt_manifests");
-        } else {
-            zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests");
+        # Check if at least one installed kubevirt package is from the incident repo
+        my $pkgs_from_incident_repo;
+        foreach (split(' ', $virt_manifests_pkgs), $virt_tests_pkg) {
+            $pkgs_from_incident_repo += 1 if (script_output("zypper info $_ | awk -F': ' '/^Repository/{print \$2}'") =~ /^TEST_/);
         }
+
+        if ($pkgs_from_incident_repo < 1) {
+            die "No kubevirt packages were installed from incident repositary.";
+        } else {
+            record_info("$pkgs_from_incident_repo package(s) installed from incident repositary.", script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
+        }
+    } else {
+        $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+        $virt_tests_repo = get_var('VIRT_TESTS_REPO');
+
+        transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+
+        zypper_call("lr -d");
+        zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
+        zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
+        zypper_call("--gpg-auto-import-keys ref");
+
+        $search_manifests = $virt_manifests_pkgs =~ s/\s+/\\\|/gr;
+
+        if ($virt_manifests_repo) {
+            zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests_pkgs");
+        } elsif (script_run("rpmquery $virt_manifests_pkgs")) {
+            if (is_transactional || script_run("zypper se -r SLE-Module-Containers${os_version}-Updates $virt_manifests_pkgs | grep -w '$search_manifests'")) {
+                zypper_call("in -f $virt_manifests_pkgs");
+            } else {
+                zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests_pkgs");
+            }
+        }
+        zypper_call("in -f -r Virt-Tests-Repo $virt_tests_pkg");
     }
-    zypper_call("in -f -r Virt-Tests-Repo kubevirt-tests");
 
     # Install Longhorn dependencies
     our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-manifests");
@@ -509,15 +530,18 @@ EOF
     my $additional_reg_tag = "-previous-release-registry=$pre_rel_reg -previous-release-tag=$pre_rel_tag";
 
     our $local_registry_fqdn;
-    my ($container_prefix, $container_tag, $pre_util_container_reg, $pre_util_container_tag);
+    my ($private_reg, $container_tag, $pre_util_container_tag);
     if ($kubevirt_ver ge "0.50.0") {
-        $container_prefix = "$local_registry_fqdn:5000";
-        $container_tag = get_required_var('CONTAINER_TAG');
-        $pre_util_container_reg = "$local_registry_fqdn:5000";
-        $pre_util_container_tag = get_required_var('PREVIOUS_UTILITY_CONTAINER_TAG');
+        $private_reg = "$local_registry_fqdn:5000";
+        # Dynamically get the value of the parameter "-container-tag" and "-previous-utility-container-tag"
+        $container_tag = (split('-', $kubevirt_ver))[0];
+        $pre_util_container_tag = (split('-', $pre_rel_tag))[0];
+        # Check if the container tag exists in local private registry
+        assert_script_run("curl $private_reg/v2/alpine-container-disk-demo/tags/list | jq -r '.tags[]' | grep $container_tag");
+
         $additional_reg_tag = "$additional_reg_tag " .
-          "-container-prefix=$container_prefix -container-tag=$container_tag " .
-          "-previous-utility-container-registry=$pre_util_container_reg " .
+          "-container-prefix=$private_reg -container-tag=$container_tag " .
+          "-previous-utility-container-registry=$private_reg " .
           "-previous-utility-container-tag=$pre_util_container_tag";
     }
 
