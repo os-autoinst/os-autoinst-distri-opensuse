@@ -7,7 +7,7 @@ schedule:
     - '{{barrier_setup}}'
     - virt_autotest/login_console
     - virt_autotest/prepare_non_transactional_server
-    - '{{guest_migration}}'     
+    - '{{guest_migration}}'
 conditional_schedule:
     barrier_setup:
         VIRT_NEW_GUEST_MIGRATION_DESTINATION:
