@@ -21,7 +21,7 @@ sub new {
 
 sub expect_is_shown {
     my ($self) = @_;
-    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down') unless check_screen($self->{tag_agama_installer_highlighted}, 5);
+    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down') unless check_screen($self->{tag_agama_installer_highlighted}, 10);
     assert_screen($self->{tag_agama_installer_highlighted}, 60);
 }
 
