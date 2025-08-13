@@ -6,11 +6,11 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/php_version
-  - '{{version_specific}}'
   - console/php_pcre
   - console/php_mysql
   - console/php_postgresql
   - console/php_timezone
+  - '{{version_specific}}'
 conditional_schedule:
   version_specific:
     VERSION:
@@ -22,3 +22,5 @@ conditional_schedule:
         - console/php_composer
       15-SP4:
         - console/php_composer
+      '16.0':
+        - console/apache2_php_fpm
