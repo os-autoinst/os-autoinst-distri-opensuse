@@ -10,6 +10,9 @@ schedule:
   - console/ping
   - console/arping
   - console/wireshark_cli
+  - console/traceroute
+  - console/tracepath
+  - console/dig
   - console/man_pages
   - console/openvswitch
   - console/pam
