@@ -24,6 +24,7 @@
       <li><a href="#execute_over_ssh">execute_over_ssh</a></li>
       <li><a href="#reboot_virtual_machine">reboot_virtual_machine</a></li>
       <li><a href="#get_guest_settings">get_guest_settings</a></li>
+      <li><a href="#reselect_openqa_console">reselect_openqa_console</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -88,6 +89,10 @@
 <pre><code>get_guest_settings(settings =&gt; &#39;list of settings&#39;, separator =&gt; &#39;string separator&#39;)</code></pre>
 
 <p>Settings for guests can be provided just only once and then it should be replicated to all guests specified by GUEST_PATTERN, GUEST_LIST or GUEST. This subroutine has two arguments, including list of names of settings and separator. Multiple settings are seperated by separator comma by default. Values of settings are retrieved from testapi get_var. Generated settings and their values are put in a hash object and returns its reference.</p>
+
+<h2 id="reselect_openqa_console">reselect_openqa_console</h2>
+
+<p>Reselect named console in openQA test if concerned console is lost after detecting ssh port or needle. Arguments include address to be detected, console to be selected , needle to be checked on console, counter to be used for lost console detection, countdown value to be decreased at the end of each loopthe number of retries when detecting ssh port of address and delay before next ssh port detection.</p>
 
 
 </body>
