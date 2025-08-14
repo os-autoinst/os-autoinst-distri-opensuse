@@ -1,0 +1,311 @@
+From 047ef70345caa092654a3f029d1a66420c166a40 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 16 Jul 2025 17:20:23 +0200
+Subject: [PATCH 1/5] change exec_netns macro to return result
+
+When I added it orignally I didn't really know how to return a proper
+result. It makes no real sense to pass the result var as third argument.
+
+Now just return the result directly so it works like a normal function
+does.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ src/network/bridge.rs     |  6 ++----
+ src/network/core_utils.rs | 13 ++++++-------
+ src/network/vlan.rs       |  3 +--
+ 3 files changed, 9 insertions(+), 13 deletions(-)
+
+diff --git a/src/network/bridge.rs b/src/network/bridge.rs
+index 5651de316..6e4090fbc 100644
+--- a/src/network/bridge.rs
++++ b/src/network/bridge.rs
+@@ -818,7 +818,7 @@ fn create_veth_pair<'fd>(
+     }
+ 
+     if let BridgeMode::Managed = data.mode {
+-        exec_netns!(hostns_fd, netns_fd, res, {
++        exec_netns!(hostns_fd, netns_fd, {
+             disable_ipv6_autoconf(&data.container_interface_name)?;
+             if data.ipam.ipv6_enabled {
+                 //  Disable dad inside the container too
+@@ -838,9 +838,7 @@ fn create_veth_pair<'fd>(
+             let rp_filter = format!("net/ipv4/conf/{}/rp_filter", &data.container_interface_name);
+             sysctl::apply_sysctl_value(rp_filter, "2")?;
+             Ok::<(), NetavarkError>(())
+-        });
+-        // check the result and return error
+-        res?;
++        })?;
+ 
+         if data.ipam.ipv6_enabled {
+             let host_veth = host.get_link(netlink::LinkID::ID(host_link))?;
+diff --git a/src/network/core_utils.rs b/src/network/core_utils.rs
+index a30829da6..28e96350f 100644
+--- a/src/network/core_utils.rs
++++ b/src/network/core_utils.rs
+@@ -263,11 +263,12 @@ pub fn join_netns<Fd: AsFd>(fd: Fd) -> NetavarkResult<()> {
+ /// executed in the ns.
+ #[macro_export]
+ macro_rules! exec_netns {
+-    ($host:expr, $netns:expr, $result:ident, $exec:expr) => {
++    ($host:expr, $netns:expr, $exec:expr) => {{
+         join_netns($netns)?;
+-        let $result = $exec;
++        let result = $exec;
+         join_netns($host)?;
+-    };
++        result
++    }};
+ }
+ 
+ pub struct NamespaceOptions {
+@@ -284,14 +285,12 @@ pub fn open_netlink_sockets(
+     let hostns = open_netlink_socket("/proc/self/ns/net").wrap("open host netns")?;
+ 
+     let host_socket = netlink::Socket::new().wrap("host netlink socket")?;
+-    exec_netns!(
++    let netns_sock = exec_netns!(
+         hostns.as_fd(),
+         netns.as_fd(),
+-        res,
+         netlink::Socket::new().wrap("netns netlink socket")
+-    );
++    )?;
+ 
+-    let netns_sock = res?;
+     Ok((
+         NamespaceOptions {
+             file: hostns,
+diff --git a/src/network/vlan.rs b/src/network/vlan.rs
+index d86d57e5d..99aa697b2 100644
+--- a/src/network/vlan.rs
++++ b/src/network/vlan.rs
+@@ -331,8 +331,7 @@ fn setup(
+         }
+     }
+ 
+-    exec_netns!(hostns_fd, netns_fd, res, { disable_ipv6_autoconf(if_name) });
+-    res?; // return autoconf sysctl error
++    exec_netns!(hostns_fd, netns_fd, { disable_ipv6_autoconf(if_name) })?;
+ 
+     let dev = netns
+         .get_link(netlink::LinkID::Name(if_name.to_string()))
+
+From 38cbf3a83cbb738f70f4f5b6336f573be9f6b5f6 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 16 Jul 2025 17:29:05 +0200
+Subject: [PATCH 2/5] bridge: early break out of loop
+
+When we look for the path name we can break once we got the name and set
+the sysctl here as we don't do anything else.
+Same when we check the mac address.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ src/network/bridge.rs | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/network/bridge.rs b/src/network/bridge.rs
+index 6e4090fbc..b402d0d95 100644
+--- a/src/network/bridge.rs
++++ b/src/network/bridge.rs
+@@ -703,6 +703,7 @@ fn create_interfaces(
+                 for nla in link.attributes.into_iter() {
+                     if let LinkAttribute::Address(addr) = nla {
+                         mac = Some(addr);
++                        break;
+                     }
+                 }
+                 if mac.is_none() {
+@@ -848,6 +849,7 @@ fn create_veth_pair<'fd>(
+                     //  Disable dad inside on the host too
+                     let disable_dad_in_container = format!("net/ipv6/conf/{name}/accept_dad");
+                     sysctl::apply_sysctl_value(disable_dad_in_container, "0")?;
++                    break;
+                 }
+             }
+         }
+
+From fbedef911f24557020e670efdf56553e23137c34 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 16 Jul 2025 18:21:57 +0200
+Subject: [PATCH 3/5] make get_default_route_interface return the full
+ LinkMessage
+
+Both callers use the name again to lookup the link again which is just a
+wasted netlink roundtrip. Make it return the full LinkMessage so the
+callers can just use that for the mtu or link index.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ src/network/bridge.rs     |  6 +++---
+ src/network/core_utils.rs | 22 ++++++----------------
+ src/network/vlan.rs       |  6 ++----
+ 3 files changed, 11 insertions(+), 23 deletions(-)
+
+diff --git a/src/network/bridge.rs b/src/network/bridge.rs
+index b402d0d95..1189a4cc0 100644
+--- a/src/network/bridge.rs
++++ b/src/network/bridge.rs
+@@ -661,13 +661,13 @@ fn create_interfaces(
+                 let mut mtu = data.mtu;
+                 if mtu == 0 {
+                     // if we have a default route, use its mtu as default
+-                    if let Ok(iface_name) = get_default_route_interface(host) {
+-                        match core_utils::get_mtu_from_iface(host, &iface_name) {
++                    if let Ok(link) = get_default_route_interface(host) {
++                        match core_utils::get_mtu_from_iface_attributes(&link.attributes) {
+                             Ok(iface_mtu) => {
+                                 mtu = iface_mtu;
+                             },
+                             Err(e) => debug!(
+-                                "failed to get mtu for default interface {iface_name}: {e}, using kernel default",
++                                "failed to get mtu for default interface {}: {e}, using kernel default", link.header.index
+                             ),
+                         }
+                     }
+diff --git a/src/network/core_utils.rs b/src/network/core_utils.rs
+index 28e96350f..7aa6cdd01 100644
+--- a/src/network/core_utils.rs
++++ b/src/network/core_utils.rs
+@@ -2,7 +2,7 @@ use crate::error::{ErrorWrap, NetavarkError, NetavarkResult};
+ use crate::network::{constants, internal_types, types};
+ use crate::wrap;
+ use ipnet::IpNet;
+-use netlink_packet_route::link::{IpVlanMode, MacVlanMode};
++use netlink_packet_route::link::{IpVlanMode, LinkMessage, MacVlanMode};
+ use nix::sched;
+ use sha2::{Digest, Sha512};
+ use std::collections::HashMap;
+@@ -398,7 +398,8 @@ pub fn is_using_systemd() -> bool {
+     Path::new("/run/systemd/system").exists()
+ }
+ 
+-pub fn get_default_route_interface(host: &mut netlink::Socket) -> NetavarkResult<String> {
++/// Returns the *first* interface with a default route or an error if no default route interface exists.
++pub fn get_default_route_interface(host: &mut netlink::Socket) -> NetavarkResult<LinkMessage> {
+     let routes = host.dump_routes().wrap("dump routes")?;
+ 
+     for route in routes {
+@@ -416,25 +417,14 @@ pub fn get_default_route_interface(host: &mut netlink::Socket) -> NetavarkResult
+         // if there is no dest we have a default route
+         // return the output interface for this route
+         if !dest && out_if > 0 {
+-            let link = host.get_link(netlink::LinkID::ID(out_if))?;
+-            let name = link.attributes.iter().find_map(|nla| {
+-                if let LinkAttribute::IfName(name) = nla {
+-                    Some(name)
+-                } else {
+-                    None
+-                }
+-            });
+-            if let Some(name) = name {
+-                return Ok(name.to_owned());
+-            }
++            return host.get_link(netlink::LinkID::ID(out_if));
+         }
+     }
+     Err(NetavarkError::msg("failed to get default route interface"))
+ }
+ 
+-pub fn get_mtu_from_iface(host: &mut netlink::Socket, iface_name: &str) -> NetavarkResult<u32> {
+-    let link = host.get_link(netlink::LinkID::Name(iface_name.to_string()))?;
+-    for nla in link.attributes.iter() {
++pub fn get_mtu_from_iface_attributes(attributes: &[LinkAttribute]) -> NetavarkResult<u32> {
++    for nla in attributes.iter() {
+         if let LinkAttribute::Mtu(mtu) = nla {
+             return Ok(*mtu);
+         }
+diff --git a/src/network/vlan.rs b/src/network/vlan.rs
+index 99aa697b2..489aaa46c 100644
+--- a/src/network/vlan.rs
++++ b/src/network/vlan.rs
+@@ -243,13 +243,11 @@ fn setup(
+     netns_fd: BorrowedFd<'_>,
+     kind_data: &KindData,
+ ) -> NetavarkResult<String> {
+-    let primary_ifname = match data.host_interface_name.as_ref() {
++    let link = match data.host_interface_name.as_ref() {
+         "" => get_default_route_interface(host)?,
+-        host_name => host_name.to_string(),
++        host_name => host.get_link(netlink::LinkID::Name(host_name.to_string()))?,
+     };
+ 
+-    let link = host.get_link(netlink::LinkID::Name(primary_ifname))?;
+-
+     let opts = match kind_data {
+         KindData::IpVlan { mode } => {
+             let mut opts = CreateLinkOptions::new(if_name.to_string(), InfoKind::IpVlan);
+
+From 57e37bbe8e854ee841fe4748704f850eefbaf471 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 16 Jul 2025 18:30:15 +0200
+Subject: [PATCH 4/5] get_mtu_from_iface_attributes: return error without mtu
+
+The kernel currently always includes the MTU attribute[1] so raise a
+warning if we actually don't see it in the response becuase that likely
+indicates something is wrong with the netlink message or the kernel.
+
+[1] https://elixir.bootlin.com/linux/v6.15.6/source/net/core/rtnetlink.c#L2055
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ src/network/bridge.rs     | 2 +-
+ src/network/core_utils.rs | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/network/bridge.rs b/src/network/bridge.rs
+index 1189a4cc0..718cdf2eb 100644
+--- a/src/network/bridge.rs
++++ b/src/network/bridge.rs
+@@ -666,7 +666,7 @@ fn create_interfaces(
+                             Ok(iface_mtu) => {
+                                 mtu = iface_mtu;
+                             },
+-                            Err(e) => debug!(
++                            Err(e) => log::warn!(
+                                 "failed to get mtu for default interface {}: {e}, using kernel default", link.header.index
+                             ),
+                         }
+diff --git a/src/network/core_utils.rs b/src/network/core_utils.rs
+index 7aa6cdd01..b2495bca8 100644
+--- a/src/network/core_utils.rs
++++ b/src/network/core_utils.rs
+@@ -429,7 +429,8 @@ pub fn get_mtu_from_iface_attributes(attributes: &[LinkAttribute]) -> NetavarkRe
+             return Ok(*mtu);
+         }
+     }
+-    // It is possible that the interface has no MTU set, in this case the kernel will use the default.
+-    // We return 0 to signal this, which netavark uses to mean "kernel default".
+-    Ok(0)
++    // It should be impossible that the interface has no MTU set, so return an error in such case.
++    Err(NetavarkError::msg(
++        "no MTU attribute in netlink message, possible kernel issue",
++    ))
+ }
+
+From 2fee8443a5dc28d7bc89a31a4e0003811e20203e Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 16 Jul 2025 18:36:39 +0200
+Subject: [PATCH 5/5] log default route mtu
+
+So we can easily see what mtu was picked up by us.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ src/network/bridge.rs | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/network/bridge.rs b/src/network/bridge.rs
+index 718cdf2eb..0a4ef72fc 100644
+--- a/src/network/bridge.rs
++++ b/src/network/bridge.rs
+@@ -664,6 +664,7 @@ fn create_interfaces(
+                     if let Ok(link) = get_default_route_interface(host) {
+                         match core_utils::get_mtu_from_iface_attributes(&link.attributes) {
+                             Ok(iface_mtu) => {
++                                debug!("Using mtu {iface_mtu} from default route interface for the network");
+                                 mtu = iface_mtu;
+                             },
+                             Err(e) => log::warn!(

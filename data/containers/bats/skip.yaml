@@ -64,6 +64,7 @@ buildah:
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
+  # https://github.com/containers/netavark/pull/1283 is needed to drop ncat dependency
   # https://github.com/containers/netavark/pull/1287 is needed to drop ncat dependency
   opensuse-Tumbleweed:
     BATS_SKIP:
@@ -74,16 +75,19 @@ netavark:
   sle-15-SP7:
     BATS_PATCHES:
     - 1191
+    - 1283
     - 1287
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
     - 1191
+    - 1283
     - 1287
     BATS_SKIP: 250-bridge-nftables
   sle-15-SP5:
     BATS_PATCHES:
     - 1191
+    - 1283
     - 1287
     BATS_SKIP: 250-bridge-nftables
 podman:
