@@ -1,4 +1,4 @@
-# Copyright 2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Controlling the Audit system using auditctl
@@ -9,10 +9,13 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use Utils::Architectures qw(is_x86_64);
+use version_utils;
 
 sub run {
     my $audit_rules = '/etc/audit/rules.d/audit.rules';
     my $audit_log = '/var/log/audit/audit.log';
+    my $ret = '';
+
     select_console 'root-console';
 
     # Disable audit
@@ -20,14 +23,18 @@ sub run {
 
     # Make sure auditctl indeed disabled auditd
     assert_script_run("echo '' > $audit_log");
-    systemctl('restart apparmor');
-    my $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
-    if ($ret == 0) {
-        # $ret == 0, report error since there should be no audit logs related to apparmor restart
-        record_info('Error: ', 'unexpected audit log recorded', result => 'fail');
-    } else {
-        # $ret == 1 is the expected return value
-        record_info('Checked: ', 'auditd temporarily disabled as expected');
+
+    if (is_sle('<16')) {
+        systemctl('restart apparmor');
+
+        $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
+        if ($ret == 0) {
+            # $ret == 0, report error since there should be no audit logs related to apparmor restart
+            record_info('Error: ', 'unexpected audit log recorded', result => 'fail');
+        } else {
+            # $ret == 1 is the expected return value
+            record_info('Checked: ', 'auditd temporarily disabled as expected');
+        }
     }
 
     # Check audit status
@@ -38,14 +45,18 @@ sub run {
 
     # Make sure auditctl indeed enabled auditd
     assert_script_run("echo '' > $audit_log");
-    systemctl('restart apparmor');
-    $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
-    if ($ret == 0) {
-        # $ret == 0 is the expected return value showing that auditd is enabled now
-        record_info('Checked: ', 'auditd temporarily enabled as expected');
-    } else {
-        # $ret == 1, report error that apparmor log has not been recorded
-        record_info('Error: ', 'auditd failed to record apparmor logs', result => 'fail');
+
+    if (is_sle('<16')) {
+        systemctl('restart apparmor');
+
+        $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
+        if ($ret == 0) {
+            # $ret == 0 is the expected return value showing that auditd is enabled now
+            record_info('Checked: ', 'auditd temporarily enabled as expected');
+        } else {
+            # $ret == 1, report error that apparmor log has not been recorded
+            record_info('Error: ', 'auditd failed to record apparmor logs', result => 'fail');
+        }
     }
 
     # Check audit status again
