@@ -325,12 +325,12 @@ sub load_container_tests {
 
         if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/) {
+        } elsif ($chart =~ m/private-registry/ && check_var('HOST_VERSION', '15-SP7')) {
             set_var('K3S_ENABLE_TRAEFIK', 1);
             loadtest 'containers/charts/privateregistry';
         }
         else {
-            die "Unsupported HELM_CHART value";
+            die "Unsupported HELM_CHART value or HOST_VERSION";
         }
         return;
     }
