@@ -14,30 +14,11 @@ use testapi;
 use utils qw(assert_screen_with_soft_timeout handle_untrusted_gpg_key is_uefi_boot);
 use version_utils qw(is_sle is_sle_micro);
 use registration qw(skip_registration assert_registration_screen_present fill_in_registration_data verify_scc investigate_log_empty_license);
-use virt_autotest::hyperv_utils 'hyperv_cmd';
 
 sub run {
     return record_info('Skip reg.', 'SCC registration is not required in media based upgrade since SLE15') if (is_sle('15+') && get_var('MEDIA_UPGRADE'));
     if (check_var('SCC_REGISTER', 'installation') || (check_var('REGISTER', 'installation'))) {
         record_info('SCC reg.', 'SCC registration');
-        # This code checks if the environment is Hyper-V 2016 with UEFI. If true,
-        # it adds a new VM network adapter connected to a virtual switch and logs a known UEFI boot issue.
-        if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
-            my $virsh_instance = get_var("VIRSH_INSTANCE");
-            my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-            hyperv_cmd("powershell -Command "
-                  . "\"if ((Get-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} | Where-Object { \$_.SwitchName -eq '${hyperv_switch_name}' }) -eq \$null) "
-                  . "{ Connect-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} -SwitchName ${hyperv_switch_name} }\"");
-            record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
-            assert_screen 'scc_registration-net';
-            send_key_until_needlematch "scc-registration-net-selected", "tab", 10 if check_var('DESKTOP', 'textmode');
-            send_key 'alt-i';
-            assert_screen 'scc_registration-net-setup';
-            send_key 'alt-y';
-            send_key 'alt-n';
-            assert_screen 'scc_registration-net-dhcp';
-            send_key 'alt-n';
-        }
         assert_registration_screen_present();
         fill_in_registration_data();
         wait_still_screen();
