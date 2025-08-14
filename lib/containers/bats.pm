@@ -99,8 +99,8 @@ sub install_ncat {
             run_command "zypper addrepo http://download.opensuse.org/tumbleweed/repo/non-oss/ non-oss";
         }
     } elsif (is_sle('<16')) {
-        # This repo has ncat 7.92.  Also unlikely to change
-        run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/SLE_15/network:utilities.repo";
+        # This repo has ncat 7.94
+        run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo";
     }
     run_command "zypper --gpg-auto-import-keys -n install ncat";
 
