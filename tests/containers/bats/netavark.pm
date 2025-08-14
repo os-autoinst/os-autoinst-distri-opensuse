@@ -29,7 +29,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 jq make ncat protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 jq make protobuf-devel netavark);
     if (is_tumbleweed || is_sle('>=16.0')) {
         push @pkgs, qw(dbus-1-daemon);
     } elsif (is_sle) {
@@ -51,6 +51,8 @@ sub run {
 
     # Compile helpers & patch tests
     run_command "make examples", timeout => 600;
+    run_command "cargo build --release --bin netavark-connection-tester", timeout => 300;
+    run_command "cp targets/release/netavark-connection-tester bin/";
     unless (get_var("BATS_TESTS")) {
         run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
     }
