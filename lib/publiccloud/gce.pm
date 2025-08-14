@@ -263,26 +263,19 @@ sub stop_instance {
 sub suspend_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    my $attempts = 60;
 
-    die("Cannot suspend instance which is not running.") if ($self->get_state_from_instance($instance) ne 'RUNNING');
+    die("Cannot suspend instance which is not running.") if (lc($self->get_state_from_instance($instance)) ne 'running');
     assert_script_run("gcloud compute instances suspend $instance_id", timeout => 300);
-    while ($self->get_state_from_instance($instance) ne 'SUSPENDED' && $attempts-- > 0) {
-        sleep 5;
-    }
-    die("Failed to suspend instance") unless ($attempts > 0);
+    $instance->wait_for_state('suspended');
 }
 
 sub resume_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
 
-    die("Cannot resume instance which is not suspended.") if ($self->get_state_from_instance($instance) ne 'SUSPENDED');
+    die("Cannot resume instance which is not suspended.") if (lc($self->get_state_from_instance($instance)) ne 'suspended');
     assert_script_run("gcloud compute instances resume $instance_id", timeout => 300);
-    while ($self->get_state_from_instance($instance) ne 'RUNNING' && $attempts-- > 0) {
-        sleep 5;
-    }
-    die("Failed to resume instance.") unless ($attempts > 0);
+    $instance->wait_for_state('running');
 
     my $public_ip_from_provider = $instance->provider->get_public_ip();
     $instance->public_ip($public_ip_from_provider) if ($instance->public_ip ne $public_ip_from_provider);

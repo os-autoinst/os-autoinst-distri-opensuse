@@ -915,4 +915,13 @@ sub upload_supportconfig_log {
     $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
 }
 
+sub wait_for_state {
+    my ($self, $state) = @_;
+    my $attempts = 60;
+    while (lc($self->provider->get_state_from_instance($self)) =~ /$state/ && $attempts-- > 0) {
+        sleep 5;
+    }
+    die("The instance state is not $state but " . $self->provider->get_state_from_instance($self) . " instead.") unless ($attempts > 0);
+}
+
 1;

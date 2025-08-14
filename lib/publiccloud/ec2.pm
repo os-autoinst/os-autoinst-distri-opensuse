@@ -244,29 +244,18 @@ sub stop_instance
 sub suspend_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    my $attempts = 60;
 
-    die("Outdated instance object") if ($instance->public_ip ne $self->get_public_ip());
-
+    die("Cannot suspend instance which is not running.") if (lc($self->get_state_from_instance($instance)) ne 'running');
     assert_script_run("aws ec2 stop-instances --instance-ids $instance_id --hibernate", quiet => 1, timeout => 300);
-
-    while ($self->get_state_from_instance($instance) ne 'stopped' && $attempts-- > 0) {
-        sleep 5;
-    }
-    die("Failed to suspend instance $instance_id") unless ($attempts > 0);
+    $instance->wait_for_state($instance, 'stopped');
 }
 
 sub resume_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    my $attempts = 60;
 
     script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1, timeout => 300);
-
-    while ($self->get_state_from_instance($instance) ne 'running' && $attempts-- > 0) {
-        sleep 5;
-    }
-    die("Failed to resume instance $instance_id") unless ($attempts > 0);
+    $instance->wait_for_state($instance, 'running');
 
     my $public_ip_from_provider = $instance->provider->get_public_ip();
     $instance->public_ip($public_ip_from_provider) if ($instance->public_ip ne $public_ip_from_provider);
