@@ -244,7 +244,7 @@ sub stop_instance
 sub suspend_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    my $attempts = 600;
+    my $attempts = 60;
 
     die("Outdated instance object") if ($instance->public_ip ne $self->get_public_ip());
 
