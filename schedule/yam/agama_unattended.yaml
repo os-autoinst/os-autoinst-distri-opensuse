@@ -12,7 +12,7 @@ schedule:
   - yam/validate/validate_connectivity
   - yam/validate/validate_first_user
   - yam/validate/validate_hostname
-  - yam/validate/validate_snapshot
+  - yam/validate/validate_snapshots
   - console/validate_repos
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
