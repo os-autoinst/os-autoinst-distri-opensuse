@@ -34,17 +34,8 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman);
-    if (is_sle("<16")) {
-        push @pkgs, qw(netcat-openbsd);
-    } else {
-        push @pkgs, qw(ncat);
-    }
-    if (is_tumbleweed || is_sle('>=16.0')) {
-        push @pkgs, qw(dbus-1-daemon);
-    } elsif (is_sle) {
-        push @pkgs, qw(dbus-1);
-    }
-
+    push @pkgs, is_sle('<16') ? 'netcat-openbsd' : 'ncat';
+    push @pkgs, (is_tumbleweed || is_sle('>=16.0')) ? 'dbus-1-daemon' : 'dbus-1';
     $self->bats_setup(@pkgs);
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
