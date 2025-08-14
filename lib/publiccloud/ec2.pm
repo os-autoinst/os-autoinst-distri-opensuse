@@ -261,14 +261,15 @@ sub resume_instance {
     my $instance_id = $instance->instance_id();
     my $attempts = 60;
 
-    die("Outdated instance object") if ($instance->public_ip ne $self->get_public_ip());
-
     script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1, timeout => 300);
 
     while ($self->get_state_from_instance($instance) ne 'running' && $attempts-- > 0) {
         sleep 5;
     }
     die("Failed to resume instance $instance_id") unless ($attempts > 0);
+
+    my $public_ip_from_provider = $instance->provider->get_public_ip();
+    $instance->public_ip($public_ip_from_provider) if ($instance->public_ip ne $public_ip_from_provider);
 }
 
 sub start_instance {
