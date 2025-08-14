@@ -20,5 +20,6 @@ schedule:
     - console/journalctlLevels
     - console/perf
     - '{{tw_tests}}'
+    - x11/xosview
     - console/dpdk
     - console/zypper_log_packages
