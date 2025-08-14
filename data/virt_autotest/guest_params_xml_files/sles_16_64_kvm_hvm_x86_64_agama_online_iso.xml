@@ -20,7 +20,7 @@
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.bin,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
     <guest_xpath/>
     <guest_installation_automation_method>autoagama</guest_installation_automation_method>
-    <guest_installation_automation_platform></guest_installation_automation_platform>
+    <guest_installation_automation_platform/>
     <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
     <guest_installation_method>directkernel</guest_installation_method>
     <guest_installation_extra_args/>
@@ -42,7 +42,7 @@
     <guest_storage_backing_format/>
     <guest_storage_others>driver.name=qemu,target.dev=vda,target.bus=virtio,bus=virtio,cache=none</guest_storage_others>
     <guest_network_type>bridge</guest_network_type>
-    <guest_network_mode>host</guest_network_mode>
+    <guest_network_mode>bridge</guest_network_mode>
     <guest_network_device/>
     <guest_network_others/>
     <guest_netaddr/>
