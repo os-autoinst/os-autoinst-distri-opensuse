@@ -413,8 +413,8 @@ sub wait_for_ssh {
             my $public_ip_from_provider = $self->provider->get_public_ip();
             if ($args{public_ip} ne $public_ip_from_provider) {
                 record_info('IP CHANGED', "The address we know is $args{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
-                $ip_checked = 1;
             }
+            $ip_checked = 1;
         }
 
         sleep $delay;
