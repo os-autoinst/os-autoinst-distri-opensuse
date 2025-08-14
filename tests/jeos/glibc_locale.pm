@@ -59,17 +59,17 @@ sub change_locale {
         ## suitable for sles12 family only
         # create a shallow hash copy
         %rc_lc_modified = %$rc_lc_setup_const;
-        $rc_lc_modified{RC_LANG} = $new_language;
-        $rc_lc_modified{RC_LC_MESSAGES} = $rc_lc_modified{RC_LANG};
+        $rc_lc_modified{LANG} = $new_language;
+        $rc_lc_modified{LC_MESSAGES} = $rc_lc_modified{LANG};
 
-        for (qw(RC_LANG RC_LC_MESSAGES)) {
+        for (qw(LANG LC_MESSAGES)) {
             assert_script_run("sed -ie \'s/$_=\"$rc_lc_setup_const->{$_}\"/$_=\"$rc_lc_modified{$_}\"/\' $suse_lang_conf",
                 fail_message => "Update of $suse_lang_conf failed!");
         }
     } else {
         ## suitable for sle15+ only
         assert_script_run("localectl set-locale LANG=$new_language");
-        $rc_lc_modified{RC_LANG} = $new_language;
+        $rc_lc_modified{LANG} = $new_language;
     }
 
     return \%rc_lc_modified;
@@ -79,13 +79,13 @@ sub test_users_locale {
     my $rc_lc_udpated = shift;
     my $ldd_help_string_expected = shift;
 
-    record_info('Check', "Verifying $rc_lc_udpated->{RC_LANG}");
+    record_info('Check', "Verifying $rc_lc_udpated->{LANG}");
     # the whole user login process again should be repeated over here
     # as console switching can be expensive in openQA, it is enough to switch users
     switch_user;
 
-    assert_script_run("locale | tee -a /dev/$serialdev | grep $rc_lc_udpated->{RC_LANG}",
-        fail_message => "Expected LANG ($rc_lc_udpated->{RC_LANG}) has not been found!");
+    assert_script_run("locale | tee -a /dev/$serialdev | grep $rc_lc_udpated->{LANG}",
+        fail_message => "Expected LANG ($rc_lc_udpated->{LANG}) has not been found!");
 
     my $ldd_help_string_updated = script_output "ldd --help";
     if ($ldd_help_string_updated =~ /([A-Z]\w+\s.*\w:)/) {
@@ -109,8 +109,8 @@ sub run {
     my $lang_new_short = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',
-        RC_LC_ALL => qr/^ *$/,
-        RC_LANG => (is_sle('15+') || is_opensuse) ? qr/^ *$/ : $lc_data{$lang_ref}
+        LC_ALL => qr/^ *$/,
+        LANG => (is_sle('15+') || is_leap) ? qr/^ *$/ : $lc_data{$lang_ref}
     };
 
     ## Retrieve user's $LANG env variable after JeOS firstboot
@@ -148,52 +148,70 @@ sub run {
     die "Test locale not found in the available ones" unless ($output =~ $lang_new_short);
 
     # Parse and evaluate /etc/sysconfig/language
-    die 'SUSE language config file is missing!' if (script_run("test -f $suse_lang_conf") != 0);
+    # /etc/sysconfig/language is no longer used in Tumbleweed
+    my @locale_conf;
+    if (is_tumbleweed) {
+        @locale_conf = split('\n', script_output('locale'));
+    } else {
+        die 'SUSE language config file is missing!' if (script_run("test -f $suse_lang_conf") != 0);
+        # keep only uncommented lines
+        @locale_conf = grep { /^[A-Z].*$/ } split('\n', script_output("cat $suse_lang_conf"));
+    }
+
     my %rc_lc_defaults = map {
         s/["']//g;
         s/\s+//g;
+        s/RC_//g;
         my ($k, $v) = split(/=/, $_, 2);
-        ($k => $v);
-    } grep { /^\w+(_\w+)+/ } split(/\n/, script_output("cat $suse_lang_conf"));
+        "$k" => $v;
+    } @locale_conf;
 
-    my $record_info_result = ($rc_lc_defaults{RC_LC_ALL} =~ /^ *$/);
+    my $checks = 1;
+    my $record_info_result = ($rc_lc_defaults{LC_ALL} =~ /^ *$/);
     my $total_result += $record_info_result;
     record_info('LC_ALL',
-        "Expected to be empty\nRC_LC_ALL = $rc_lc_defaults{RC_LC_ALL}\n",
+        "Expected to be empty\nRC_LC_ALL = $rc_lc_defaults{LC_ALL}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
 
-    $record_info_result = ($rc_lc_defaults{RC_LANG} =~ $rc_expected_data->{RC_LANG});
+    $record_info_result = ($rc_lc_defaults{LANG} =~ $rc_expected_data->{LANG});
     $total_result += $record_info_result;
+    $checks++;
     record_info('LANG',
-        "Expected to be $rc_expected_data->{RC_LANG}\nRC_LANG = $rc_lc_defaults{RC_LANG}\n",
+        "Expected to be $rc_expected_data->{LANG}\nRC_LANG = $rc_lc_defaults{LANG}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
 
-    $record_info_result = ($rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
-    $total_result += $record_info_result;
-    record_info('ROOT_USES_LANG',
-        "Expected to be \'ctype\'\nROOT_USES_LANG = $rc_lc_defaults{ROOT_USES_LANG}\n",
-        result => $record_info_result ? 'ok' : 'fail'
-    );
+    # ROOT_USES_LANG is not defined any more for TW
+    if (!is_tumbleweed) {
+        $checks++;
+        $record_info_result = ($rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
+        $total_result += $record_info_result;
 
-    $record_info_result = ($rc_lc_defaults{RC_LC_MESSAGES} =~ $rc_expected_data->{RC_LANG});
+        record_info('ROOT_USES_LANG',
+            "Expected to be \'ctype\'\nROOT_USES_LANG = $rc_lc_defaults{ROOT_USES_LANG}\n",
+            result => $record_info_result ? 'ok' : 'fail'
+        );
+    }
+
+    $record_info_result = ($rc_lc_defaults{LC_MESSAGES} =~ $rc_expected_data->{LANG});
     $total_result += $record_info_result;
+    $checks++;
     record_info('LANG == LC_MESSAGES',
-        "Expected to be the same\nRC_LANG=$rc_lc_defaults{RC_LANG}\nLC_MESSAGES=$rc_lc_defaults{RC_LC_MESSAGES}\n",
+        "Expected to be the same\nRC_LANG=$rc_lc_defaults{RC_LANG}\nLC_MESSAGES=$rc_lc_defaults{LC_MESSAGES}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
 
-    if ($total_result % 4) {
+    if ($checks - $total_result) {
         $self->result('fail');
-        diag("Number of failed checks: " . $total_result % 4 . "\n");
+        record_info("Fails", "Number of failed checks: " . $checks - $total_result, result => 'fail');
     }
 
     ## Modify default locale, verify new setup, reboot and repeat verification
     my $rc_lc_changed = change_locale($lc_data{$lang_new_short}, \%rc_lc_defaults);
     my $updated_glibc_string = test_users_locale($rc_lc_changed, $test_data_lang{$lang_new_short});
     power_action('reboot', textmode => 1);
-    record_info('Rebooting', "Expected locale set=$rc_lc_changed->{RC_LANG}");
+    record_info('Rebooting', "Expected locale set=$rc_lc_changed->{LANG}");
     $self->wait_boot;
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
     ensure_serialdev_permissions;
@@ -205,7 +223,7 @@ sub run {
     my $rc_lc_reverted = change_locale($lc_data{$lang_booted_short}, $rc_lc_changed);
     my $reverted_glibc_string = test_users_locale($rc_lc_reverted, $test_data_lang{$lang_ref});
     power_action('reboot', textmode => 1);
-    record_info('Rebooting', "Expected locale set=$rc_lc_reverted->{RC_LANG}");
+    record_info('Rebooting', "Expected locale set=$rc_lc_reverted->{LANG}");
     $self->wait_boot;
     select_console('root-console');
     ensure_serialdev_permissions;
