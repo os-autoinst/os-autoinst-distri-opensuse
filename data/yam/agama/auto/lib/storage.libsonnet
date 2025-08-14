@@ -116,8 +116,8 @@ local mdswap_partition = {
   size: '4 GiB',
 };
 
-local raid(level='raid0', uefi=false) = {
-  drives: if uefi then [
+local raid(level='raid0', boot_type='bios') = {
+  drives: if boot_type == 'uefi' then [
     // First disk: mount EFI
     {
       partitions: [
@@ -141,6 +141,15 @@ local raid(level='raid0', uefi=false) = {
           size: '128 MiB',
           filesystem: { type: 'vfat' },
         },
+        mdroot_partition,
+        mdswap_partition,
+      ],
+    },
+  ] else if boot_type == 'prep' then [
+    {
+      search: '*',
+      partitions: [
+        { id: 'prep', size: '8 MiB' },
         mdroot_partition,
         mdswap_partition,
       ],
@@ -295,8 +304,17 @@ local home_on_iscsi() = {
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
   raid0: raid('raid0'),
-  raid0_uefi: raid('raid0', true),
+  raid0_uefi: raid('raid0', 'uefi'),
   raid0_uefi_search: search_raid0(),
+  raid0_prep: raid('raid0', 'prep'),
+  raid1: raid('raid1'),
+  raid1_uefi: raid('raid1', 'uefi'),
+  raid5: raid('raid5'),
+  raid5_uefi: raid('raid5', 'uefi'),
+  raid6: raid('raid6'),
+  raid6_uefi: raid('raid6', 'uefi'),
+  raid10: raid('raid10'),
+  raid10_uefi: raid('raid10', 'uefi'),
   resize: resize(),
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),

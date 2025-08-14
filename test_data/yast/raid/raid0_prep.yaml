@@ -1,0 +1,84 @@
+disks:
+  - name: vda
+    partitions:
+      - delete: true
+        search: "*"
+      - size: 8mb
+        id: prep
+        role: raw-volume
+      - size: 8000mb
+        id: mdroot
+        role: raw-volume
+      - size: 512mb
+        id: mdswap
+        role: raw-volume
+  - name: vdb
+    partitions:
+      - delete: true
+        search: "*"
+      - size: 8mb
+        id: prep
+        role: raw-volume
+      - size: 8000mb
+        id: mdroot
+        role: raw-volume
+      - size: 512mb
+        id: mdswap
+        role: raw-volume
+  - name: vdc
+    partitions:
+      - delete: true
+        search: "*"
+      - size: 8mb
+        id: prep
+        role: raw-volume
+      - size: 8000mb
+        id: mdroot
+        role: raw-volume
+      - size: 512mb
+        id: mdswap
+        role: raw-volume
+  - name: vdd
+    partitions:
+      - delete: true
+        search: "*"
+      - size: 8mb
+        id: prep
+        role: raw-volume
+      - size: 8000mb
+        id: mdroot
+        role: raw-volume
+      - size: 512mb
+        id: mdswap
+        role: raw-volume
+mds:
+  - name: md0
+    raid_level: 0
+    devices:
+      - vda2
+      - vdb2
+      - vdc2
+      - vdd2
+    partition:
+      role: operating-system
+      formatting_options:
+        should_format: 1
+        filesystem: btrfs
+        snapshots: 0
+      mounting_options:
+        should_mount: 1
+        mount_point: /
+  - name: md1
+    raid_level: 0
+    devices:
+      - vda3
+      - vdb3
+      - vdc3
+      - vdd3
+    partition:
+      role: swap
+      formatting_options:
+        should_format: 1
+        filesystem: swap
+      mounting_options:
+        should_mount: 1
