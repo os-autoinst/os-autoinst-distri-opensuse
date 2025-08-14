@@ -73,15 +73,15 @@ netavark:
   sle-15-SP7:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP5:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_SKIP: 200-bridge-firewalld 250-bridge-nftables
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
