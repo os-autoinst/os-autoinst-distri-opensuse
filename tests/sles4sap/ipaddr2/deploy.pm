@@ -81,7 +81,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_deployment_sanity
   ipaddr2_infra_destroy
   ipaddr2_cloudinit_logs
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
@@ -111,6 +111,7 @@ sub run {
         $os = $provider->get_image_id();
     }
 
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
     my %cloudinit_args;
     # This line of code is not really specific to cloud-init,
     # but it is used to ensure that registration code is available
@@ -124,6 +125,7 @@ sub run {
     $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
     my %deployment = (
         os => $os,
+        ip => \%ip,
         diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0));
     $deployment{trusted_launch} = 0 if (check_var('IPADDR2_TRUSTEDLAUNCH', 0));
 
@@ -145,7 +147,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }

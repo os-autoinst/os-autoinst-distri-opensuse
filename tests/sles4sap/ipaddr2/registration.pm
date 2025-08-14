@@ -67,7 +67,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_repo_refresh
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
@@ -75,6 +75,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
 
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually performed by the cloudinit script
@@ -86,6 +87,7 @@ sub run {
                 # Check if somehow the image is already registered or not
                 my $is_registered = ipaddr2_scc_check(
                     bastion_ip => $bastion_ip,
+                    priv_ip_range => $ip{priv_ip_range},
                     id => $_);
                 record_info('is_registered', "$is_registered");
                 # Conditionally register the SLES for SAP instance.
@@ -93,12 +95,14 @@ sub run {
                 # registration code ('SCC_REGCODE_SLES4SAP') is available.
                 ipaddr2_scc_register(
                     bastion_ip => $bastion_ip,
+                    priv_ip_range => $ip{priv_ip_range},
                     id => $_,
                     scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
             }
         }
         # Optionally register addons
         ipaddr2_scc_addons(
+            priv_ip_range => $ip{priv_ip_range},
             bastion_ip => $bastion_ip,
             scc_addons => get_required_var('SCC_ADDONS')
         ) if (get_var('SCC_ADDONS'));
@@ -106,8 +110,8 @@ sub run {
 
     foreach my $id (1 .. 2) {
         # refresh repo
-        ipaddr2_repo_refresh(id => $id, bastion_ip => $bastion_ip);
-        ipaddr2_repo_list(id => $id, bastion_ip => $bastion_ip);
+        ipaddr2_repo_refresh(id => $id, bastion_ip => $bastion_ip, priv_ip_range => $ip{priv_ip_range});
+        ipaddr2_repo_list(id => $id, bastion_ip => $bastion_ip, priv_ip_range => $ip{priv_ip_range});
     }
 }
 
@@ -118,7 +122,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }

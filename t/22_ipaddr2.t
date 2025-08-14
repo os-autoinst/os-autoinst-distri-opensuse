@@ -22,8 +22,12 @@ subtest '[ipaddr2_infra_deploy]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', ip => \%ip);
 
     # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
@@ -58,9 +62,15 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
     ipaddr2_infra_deploy(
         region => 'Marconi',
         os => 'Meucci:gen2:ByoS',
+        ip => \%ip,
         cloudinit_profile => '/AAAAA/BBBBB');
 
     # push the list of commands in another list, this one without the source
@@ -90,7 +100,12 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS', ip => \%ip);
 
     # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
@@ -120,7 +135,12 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', diagnostic => 1);
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', ip => \%ip, diagnostic => 1);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az storage account create/ } @calls), 'Create storage');
@@ -144,7 +164,12 @@ subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
             return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', ip => \%ip, trusted_launch => 0);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--security-type.*Standard/ } @calls), 'Disable trustedLaunch by setting --security-type Standard');
@@ -163,7 +188,12 @@ subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
-    ipaddr2_infra_deploy(region => 'Sithonia', os => 'Toroni.vhd');
+    my %ip = (main_address_range => '55.44.33.22/1',
+        subnet_address_range => '99.88.77.66/5',
+        frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_infra_deploy(region => 'Sithonia', os => 'Toroni.vhd', ip => \%ip);
 
     # push the list of commands in another list, this one without the source
     # In this way it is easier to inspect the content
@@ -227,13 +257,13 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
-    my $ret = ipaddr2_internal_key_accept();
+    my $ret = ipaddr2_internal_key_accept(priv_ip_range => 'Paganini');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
-    ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
-    ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
+    ok((any { /Paganini\.41/ } @calls), 'Internal VM1 IP in the ssh command');
+    ok((any { /Paganini\.42/ } @calls), 'Internal VM2 IP in the ssh command');
 };
 
 subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
@@ -248,7 +278,9 @@ subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
-    my $ret = ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
+    my $ret = ipaddr2_internal_key_accept(
+        key_checking => 'LuigiTorchi',
+        priv_ip_range => 'Paganini');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=LuigiTorchi/ } @calls), 'Correct call ssh command value StrictHostKeyChecking');
@@ -266,7 +298,7 @@ subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
-    dies_ok { ipaddr2_internal_key_accept() } "die if ssh port 22 is not open";
+    dies_ok { ipaddr2_internal_key_accept(priv_ip_range => 'Paganini') } "die if ssh port 22 is not open";
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((none { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
@@ -278,7 +310,10 @@ subtest '[ipaddr2_cluster_create]' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
 
-    ipaddr2_cluster_create();
+    my %ip = (frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_cluster_create(ip => \%ip);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*41.*cluster init/ } @calls), 'crm cluster init on VM1');
@@ -294,7 +329,10 @@ subtest '[ipaddr2_cluster_create] rootless' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
 
-    ipaddr2_cluster_create(rootless => 1);
+    my %ip = (frontend_ip => '22.33.22.11',
+        priv_ip_range => '11.22.33');
+
+    ipaddr2_cluster_create(ip => \%ip, rootless => 1);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*cluster join.*-c.*cloudadmin@/ } @calls), 'crm cluster join uses a non root username');
@@ -306,7 +344,9 @@ subtest '[ipaddr2_cluster_check_version]' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Galileo'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    ipaddr2_cluster_check_version();
+
+    ipaddr2_cluster_check_version(priv_ip_range => 'Volta');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ssh.*\.41.*rpm.*qf.*which crm/ } @calls), "Get rpm crm");
     ok((any { /ssh.*\.41.*crm --version/ } @calls), "Get crm --version");
@@ -388,7 +428,7 @@ subtest '[ipaddr2_os_sanity]' => sub {
             # return exactly what ipaddr2_os_ssh_sanity needs
             return 3; });
 
-    ipaddr2_os_sanity();
+    ipaddr2_os_sanity(priv_ip_range => '192.168.0');
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
@@ -418,7 +458,7 @@ subtest '[ipaddr2_os_sanity] root' => sub {
             # return exactly what ipaddr2_os_ssh_sanity needs
             return 3; });
 
-    ipaddr2_os_sanity(user => 'root');
+    ipaddr2_os_sanity(priv_ip_range => '192.168.0', user => 'root');
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
@@ -443,7 +483,7 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_internal_key_gen();
+    ipaddr2_internal_key_gen(priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
 
@@ -469,7 +509,7 @@ subtest '[ipaddr2_internal_key_gen] custom user' => sub {
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_internal_key_gen(user => 'EliaLocatelli');
+    ipaddr2_internal_key_gen(user => 'EliaLocatelli', priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
 
@@ -485,7 +525,7 @@ subtest '[ipaddr2_internal_key_gen] root' => sub {
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_internal_key_gen(user => 'root');
+    ipaddr2_internal_key_gen(user => 'root', priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
 
@@ -515,7 +555,7 @@ subtest '[ipaddr2_crm_move]' => sub {
             my (%args) = @_;
             push @calls, $args{cmd}; });
 
-    ipaddr2_crm_move(destination => 24);
+    ipaddr2_crm_move(destination => 24, priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /crm resource move rsc_web_00.*24/ } @calls), "Expected crm command called");
@@ -532,7 +572,7 @@ subtest '[ipaddr2_crm_clear]' => sub {
             my (%args) = @_;
             push @calls, $args{cmd}; });
 
-    ipaddr2_crm_clear(destination => 42);
+    ipaddr2_crm_clear(destination => 42, priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /crm resource clear rsc_web_00/ } @calls), "Expected crm command called");
@@ -545,7 +585,7 @@ subtest '[ipaddr2_wait_for_takeover]' => sub {
     $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am ip2t-vm-042'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = ipaddr2_wait_for_takeover(destination => 42);
+    my $ret = ipaddr2_wait_for_takeover(destination => 42, frontend_ip => '192.168.0.50');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 1), "Expected result 1 get $ret");
@@ -559,7 +599,7 @@ subtest '[ipaddr2_wait_for_takeover] timeout' => sub {
     $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am Galileo Galilei.'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = ipaddr2_wait_for_takeover(destination => 42);
+    my $ret = ipaddr2_wait_for_takeover(destination => 42, frontend_ip => '192.168.0.50');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ret eq 0), "Expected result 1 get $ret");
@@ -594,8 +634,8 @@ subtest '[ipaddr2_test_master_vm]' => sub {
             push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
             return $out;
     });
-
-    ipaddr2_test_master_vm(id => 42);
+    my %ip = (frontend_ip => '192.168.0.50');
+    ipaddr2_test_master_vm(id => 42, ip => \%ip);
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -635,8 +675,8 @@ subtest '[ipaddr2_test_master_vm] crm failure' => sub {
             push @calls, ["BASTION", $args{cmd}, "OUT-->  $out"];
             return $out;
     });
-
-    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for failcount";
+    my %ip = (frontend_ip => '192.168.0.50', priv_ip_range => '1.2.3');
+    dies_ok { ipaddr2_test_master_vm(id => 42, ip => \%ip) } "Die for failcount";
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -678,7 +718,8 @@ subtest '[ipaddr2_test_master_vm] web failure' => sub {
             return $out;
     });
 
-    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for web failure";
+    my %ip = (frontend_ip => '192.168.0.50', priv_ip_range => '1.2.3');
+    dies_ok { ipaddr2_test_master_vm(id => 42, ip => \%ip) } "Die for web failure";
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -716,7 +757,8 @@ subtest '[ipaddr2_test_master_vm] nginx not running' => sub {
             return $out;
     });
 
-    dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for nginx not running";
+    my %ip = (frontend_ip => '192.168.0.50', priv_ip_range => '1.2.3');
+    dies_ok { ipaddr2_test_master_vm(id => 42, ip => \%ip) } "Die for nginx not running";
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -749,7 +791,7 @@ subtest '[ipaddr2_cluster_sanity]' => sub {
             return $out;
     });
 
-    ipaddr2_cluster_sanity();
+    ipaddr2_cluster_sanity(priv_ip_range => 'Volta');
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -768,7 +810,7 @@ subtest '[ipaddr2_configure_web_server]' => sub {
             return;
     });
 
-    ipaddr2_configure_web_server(id => 42);
+    ipaddr2_configure_web_server(id => 42, priv_ip_range => 'Volta');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
@@ -787,7 +829,7 @@ subtest '[ipaddr2_configure_web_server] nginx_root' => sub {
             return;
     });
 
-    ipaddr2_configure_web_server(id => 42, nginx_root => 'AAA');
+    ipaddr2_configure_web_server(id => 42, priv_ip_range => 'Volta', nginx_root => 'AAA');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
@@ -805,7 +847,7 @@ subtest '[ipaddr2_configure_web_server] external_repo' => sub {
             return;
     });
 
-    ipaddr2_configure_web_server(id => 42, external_repo => 'BBB');
+    ipaddr2_configure_web_server(id => 42, priv_ip_range => 'Volta', external_repo => 'BBB');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
@@ -823,7 +865,7 @@ subtest '[ipaddr2_scc_check] all registered' => sub {
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}]'; });
 
-    my $ret = ipaddr2_scc_check(id => 42);
+    my $ret = ipaddr2_scc_check(id => 42, priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /SUSEConnect -s/ } @calls), 'SUSEConnect to check what is registered');
@@ -840,7 +882,7 @@ subtest '[ipaddr2_scc_check] one not registered' => sub {
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}, {"status":"Not Registered"}]'; });
 
-    my $ret = ipaddr2_scc_check(id => 42);
+    my $ret = ipaddr2_scc_check(id => 42, priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 0), "Is not registered ret:$ret");
@@ -857,7 +899,7 @@ subtest '[ipaddr2_scc_register]' => sub {
             return;
     });
 
-    ipaddr2_scc_register(id => 42, scc_code => '1234567890');
+    ipaddr2_scc_register(id => 42, priv_ip_range => 'Volta', scc_code => '1234567890');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
@@ -875,7 +917,7 @@ subtest '[ipaddr2_cloudinit_logs]' => sub {
             return;
     });
 
-    ipaddr2_cloudinit_logs();
+    ipaddr2_cloudinit_logs(priv_ip_range => 'Volta');
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -945,7 +987,7 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
     $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_os_connectivity_sanity();
+    ipaddr2_os_connectivity_sanity(priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
@@ -970,7 +1012,7 @@ subtest '[ipaddr2_test_other_vm]' => sub {
             return $out;
     });
 
-    ipaddr2_test_other_vm(id => '42');
+    ipaddr2_test_other_vm(id => '42', priv_ip_range => 'Volta');
 
     for my $call_idx (0 .. $#calls) {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
@@ -984,7 +1026,7 @@ subtest '[ipaddr2_repo_refresh]' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_repo_refresh(id => '2');
+    ipaddr2_repo_refresh(id => '2', priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ssh.*\.42 .*zypper.*ref/ } @calls), 'Call zypper ref');
@@ -996,25 +1038,31 @@ subtest '[ipaddr2_repo_list]' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    ipaddr2_repo_list(id => '2');
+    ipaddr2_repo_list(id => '2', priv_ip_range => 'Volta');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ssh.*\.42 .*zypper.*lr/ } @calls), 'Call zypper lr');
     ok((any { /ssh.*\.42 .*zypper.*ls/ } @calls), 'Call zypper ls');
 };
 
-subtest '[get_private_ip_range]' => sub {
-    my %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    my %expected_value = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24', priv_ip_range => '192.168.0');
+subtest '[ipaddr2_ip_get]' => sub {
+    my %ip_range = ipaddr2_ip_get();
+    my %expected_value = (
+        main_address_range => '192.168.0.0/16',
+        subnet_address_range => '192.168.0.0/24',
+        priv_ip_range => '192.168.0',
+        frontend_ip => '192.168.0.50');
     is_deeply \%ip_range, \%expected_value, "No worker_id, return 192.168.0.0 ip range";
+};
 
-    set_var('WORKER_ID', '123');
-    %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    $expected_value{main_address_range} = '10.3.208.0/21';
-    $expected_value{subnet_address_range} = '10.3.208.0/24';
-    $expected_value{priv_ip_range} = '10.3.208';
+subtest '[ipaddr2_ip_get] slot' => sub {
+    my %ip_range = ipaddr2_ip_get(slot => '123');
+    my %expected_value = (
+        main_address_range => '10.3.208.0/21',
+        subnet_address_range => '10.3.208.0/24',
+        priv_ip_range => '10.3.208',
+        frontend_ip => '10.3.208.50');
     is_deeply \%ip_range, \%expected_value, "IP range is count according by worker_id";
-    set_var('WORKER_ID', undef);
 };
 
 subtest '[ipaddr2_network_peering_create]' => sub {
@@ -1034,8 +1082,8 @@ subtest '[ipaddr2_network_peering_create]' => sub {
 subtest '[ipaddr2_patch_system] no args' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    dies_ok { ipaddr2_patch_systems() } "die if no scc_addons argument is provided";
-    dies_ok { ipaddr2_patch_systems(scc_addons => '') } "die if empty scc_addons argument is provided";
+    dies_ok { ipaddr2_patch_system() } "die if no scc_addons argument is provided";
+    dies_ok { ipaddr2_patch_system(scc_addons => '') } "die if empty scc_addons argument is provided";
 };
 
 subtest '[ipaddr2_patch_system]' => sub {
@@ -1054,7 +1102,7 @@ subtest '[ipaddr2_patch_system]' => sub {
     });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    ipaddr2_patch_system();
+    ipaddr2_patch_system(priv_ip_range => '6.7.8');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     note("\n  FULLY PATCH CALL -->  " . join("\n  FULLY PATCH CALL -->  ", @fully_patch));
@@ -1083,7 +1131,7 @@ subtest '[ipaddr2_scc_addons] one addon' => sub {
     #  - one for SCC_ADDONS with value for a single addon
     #  - one for SCC_ADDONS with string containing two addons
     foreach ('123', '456,789') {
-        ipaddr2_scc_addons(scc_addons => $_);
+        ipaddr2_scc_addons(priv_ip_range => '1.2.3', scc_addons => $_);
         note("\n  REMOTE[$_] -->  " . join("\n  REMOTE[$_] -->  ", @remotes));
         note("\n  ADDON[$_] -->  " . join("\n  ADDON[$_] -->  ", @addons));
         $act = scalar @remotes;
@@ -1101,7 +1149,10 @@ subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
-    ipaddr2_repos_add_server_to_hosts(ibsm_ip => 7.6.5.4, incident_repos => 'AAAA,BBBB');
+    ipaddr2_repos_add_server_to_hosts(
+        ibsm_ip => 7.6.5.4,
+        incident_repos => 'AAAA,BBBB',
+        priv_ip_range => 'Volta');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ssh.*41.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 1 /etc/hosts");
     ok((any { /ssh.*42.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 2 /etc/hosts");

@@ -67,7 +67,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_infra_destroy
   ipaddr2_cloudinit_logs
   ipaddr2_azure_resource_group
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
@@ -78,6 +78,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
 
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually there and no need to per performed here.
@@ -86,6 +87,7 @@ sub run {
         my %web_install_args;
         $web_install_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
         $web_install_args{bastion_ip} = $bastion_ip;
+        $web_install_args{priv_ip_range} = $ip{priv_ip_range};
         foreach (1 .. 2) {
             $web_install_args{id} = $_;
             ipaddr2_configure_web_server(%web_install_args);
@@ -94,9 +96,10 @@ sub run {
 
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
 
-    ipaddr2_cluster_check_version();
+    ipaddr2_cluster_check_version(priv_ip_range => $ip{priv_ip_range});
     ipaddr2_cluster_create(
         bastion_ip => $bastion_ip,
+        ip => \%ip,
         rootless => get_var('IPADDR2_ROOTLESS', '0'));
 }
 
@@ -107,7 +110,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     if (my $ibsm_rg = get_var('IBSM_RG')) {
         qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
     }

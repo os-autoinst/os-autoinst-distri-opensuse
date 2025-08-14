@@ -63,7 +63,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_cloudinit_logs
-);
+  ipaddr2_ip_get);
 
 sub run {
     my ($self) = @_;
@@ -77,7 +77,8 @@ sub run {
     my $bastion_ip = ipaddr2_bastion_pubip();
     ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
 
-    my %int_key_args = (bastion_ip => $bastion_ip);
+    my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+    my %int_key_args = (bastion_ip => $bastion_ip, priv_ip_range => $ip{priv_ip_range});
     # unsupported option "accept-new" for default ssh used in 12sp5
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
     ipaddr2_internal_key_accept(%int_key_args);
@@ -94,7 +95,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        my %ip = ipaddr2_ip_get(slot => get_var('WORKER_ID'));
+        ipaddr2_cloudinit_logs(priv_ip_range => $ip{priv_ip_range});
+    }
     ipaddr2_infra_destroy();
     $self->SUPER::post_fail_hook;
 }
