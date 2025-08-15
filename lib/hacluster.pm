@@ -24,6 +24,7 @@ use network_utils qw(iface);
 use Carp qw(croak);
 use Data::Dumper;
 use XML::Simple;
+use Utils::Architectures;
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -1605,6 +1606,7 @@ sub prepare_console_for_fencing {
     select_console 'root-console', await_console => 0;
     send_key 'ctrl-l';
     send_key 'ret';
+    reset_consoles if (is_ppc64le() and get_var('BACKEND', '') eq 'pvm_hmc');
     select_console 'root-console';
 }
 
