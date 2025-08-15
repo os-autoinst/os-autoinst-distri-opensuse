@@ -112,6 +112,10 @@ sub create_host_bridge_nm {
         # Re-establish the SSH connection, poo#187197
         reset_consoles;
         select_console('root-ssh');
+        # Set metric the lowest to make br0 always be the default route
+        script_run("nmcli con modify br0 ipv4.route-metric 100");
+        script_run("nmcli con up br0");
+        script_run("ip r");
         record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a", proceed_on_failure => 1, timeout => 60));
     }
 }
@@ -529,23 +533,23 @@ EOF
         my $detect_signature = script_output("cat /etc/sysconfig/network/config | grep \"#Modified by parallel_guest_migration_base module\"", proceed_on_failure => 1);
         if ($detect_signature eq '') {
             assert_script_run("cp /etc/sysconfig/network/config /etc/sysconfig/network/config_backup");
-            $ret = assert_script_run("sed -ri \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g\' /etc/sysconfig/network/config");
-            $ret |= assert_script_run("echo \'#Modified by parallel_guest_migration_base module\' >> /etc/sysconfig/network/config");
+            $ret = script_run("sed -ri \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g\' /etc/sysconfig/network/config");
+            $ret |= script_run("echo \'#Modified by parallel_guest_migration_base module\' >> /etc/sysconfig/network/config");
         }
         record_info("Content of /etc/sysconfig/network/config", script_output("cat /etc/sysconfig/network/config", proceed_on_failure => 1));
     }
     my $detect_signature = script_output("cat $args{resolvconf} | grep \"#Modified by parallel_guest_migration_base.pm module\"", proceed_on_failure => 1);
     my $detect_name_server = script_output("cat $args{resolvconf} | grep \"nameserver $args{resolvip}\"", proceed_on_failure => 1);
     my $detect_domain_name = script_output("cat $args{resolvconf} | grep \"$args{domainname}\"", proceed_on_failure => 1);
-    $ret |= assert_script_run("cp $args{resolvconf} /etc/resolv_backup.conf") if ($detect_signature eq '');
-    $ret |= assert_script_run("awk -v dnsvar=$args{resolvip} \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' $args{resolvconf} > $args{resolvconf}.tmp") if ($detect_name_server eq '');
+    $ret |= script_run("cp $args{resolvconf} /etc/resolv_backup.conf") if ($detect_signature eq '');
+    $ret |= script_run("awk -v dnsvar=$args{resolvip} \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' $args{resolvconf} > $args{resolvconf}.tmp") if ($detect_name_server eq '');
     if ($detect_domain_name eq '') {
-        $ret |= assert_script_run("cp $args{resolvconf} $args{resolvconf}.tmp") if (script_run("ls $args{resolvconf}.tmp") != 0);
-        $ret |= assert_script_run("sed -i -r \'s/^search/search $args{domainname}/\' $args{resolvconf}.tmp");
+        $ret |= script_run("cp $args{resolvconf} $args{resolvconf}.tmp") if (script_run("ls $args{resolvconf}.tmp") != 0);
+        $ret |= script_run("sed -i -r \'s/^search/search $args{domainname}/\' $args{resolvconf}.tmp");
     }
     if (script_run("ls $args{resolvconf}.tmp") == 0) {
-        $ret |= assert_script_run("mv $args{resolvconf}.tmp $args{resolvconf}");
-        $ret |= assert_script_run("echo \'#Modified by parallel_guest_migration_base module network $args{resolvip}\' >> $args{resolvconf}");
+        $ret |= script_run("mv $args{resolvconf}.tmp $args{resolvconf}");
+        $ret |= script_run("echo \'#Modified by parallel_guest_migration_base module network $args{resolvip}\' >> $args{resolvconf}");
     }
     record_info("Content of $args{resolvconf}", script_output("cat $args{resolvconf}", proceed_on_failure => 1));
     return $ret;

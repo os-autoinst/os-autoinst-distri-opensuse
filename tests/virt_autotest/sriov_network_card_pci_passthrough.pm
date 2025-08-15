@@ -51,9 +51,20 @@ sub run_test {
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
-    # enable 8 vfs for the SR-IOV device on host
-    my @host_vfs = enable_vf(pfs => @host_pfs, number => get_var("ENABLE_VF_COUNT", '7'));
+    record_info("Before enable VF", script_output("ip a"));
+    script_run("ip r");
+    script_run("nmcli con");
+
+    # Enable VFs for the SR-IOV devices on host
+    my @host_vfs = enable_vf(number => get_var("ENABLE_VF_COUNT", '7'), pfs => \@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+    enter_cmd "ip r; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
+        reset_consoles;
+        select_console('root-ssh');
+    }
+    script_run("ip a");
+    script_run("nmcli con");
 
     # Restore /etc/resolv.conf after VFs are created
     assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
@@ -102,7 +113,7 @@ sub run_test {
         save_network_device_status_logs($guest, "2-after_hotplug_$vfs[0]->{host_id}");
         #check the networking of the plugged interface
         #use br123 as ssh connection
-        test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
+        test_network_interface($guest, gateway => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
@@ -114,7 +125,7 @@ sub run_test {
         #test network after reboot as dhcp lease spends time
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             plugin_vf_device($guest, $vfs[$i]);
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
             save_network_device_status_logs($guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
 
@@ -126,7 +137,7 @@ sub run_test {
 
         #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
         }
 
         #unplug the remaining vf(s) from vm
@@ -200,21 +211,19 @@ sub find_sriov_ethernet_devices {
     return @sriov_devices;
 }
 
-#enable 8 virtual functions for the specified physical functions of the SR-IOV network device
+#Enable $number VFs for one of the passing PFs of the SR-IOV network devices
 sub enable_vf {
     my %args = @_;
-    my @pfs = $args{pfs};
+    my $pfs_ref = $args{pfs};
+    # All SR-IOV ethernet cards allow the maxium fv number is above 7
     my $number = $args{number} // 7;
 
-    #enable VFs for SR-IOV PFs by modifying SYS PCI
-    #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
-    #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
-    #also modifying SYS PCI allows to enable specified PFs
-    foreach my $pf (@pfs) {
-        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
-        assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
-    }
+    # Enable specified VFs on a random PF by modifying SYS PCI
+    my $random_pf = $pfs_ref->[int(rand(@$pfs_ref))];
+    assert_script_run("echo $number > /sys/bus/pci/devices/0000:$random_pf/sriov_numvfs");
 
+    # It takes a litte longer on SLE16 due to network activation
+    script_retry("lspci | grep Ethernet | grep \"Virtual Function\"", delay => 5, retry => 3);
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
     record_info("Error", "The VF number is not correct!", result => 'fail') if script_output("echo '$vf_devices' | wc -l") != $number;
     my @vfs = split("\n", $vf_devices);
@@ -262,7 +271,6 @@ sub prepare_guest_for_sriov_passthrough {
             }
         }
 
-        #try undefine with --keep-nvram if undefine fails on uefi guest
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
         assert_script_run(" ! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
