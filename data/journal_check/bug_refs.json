@@ -266,7 +266,9 @@
     "bsc#1245376": {
         "description": "kernel: watchdog: watchdog0: watchdog did not stop!",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": ["6.2"],
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
     },
@@ -676,7 +678,9 @@
     "bsc#1231457": {
         "description": "vas: API is supported only with radix page tables|SED: plpks not available|NX-GZIP is not supported|ibmvscsi.*couldn't initialize crq|ibmvscsi.*probe with driver ibmvscsi failed",
         "products": {
-            "sle-micro": ["6.1", "6.2"]
+            "sle-micro": ["6.1", "6.2"],
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
         },
         "type": "bug"
     },
