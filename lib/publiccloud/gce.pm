@@ -276,9 +276,6 @@ sub resume_instance {
     die("Cannot resume instance which is not suspended.") if (lc($self->get_state_from_instance($instance)) ne 'suspended');
     assert_script_run("gcloud compute instances resume $instance_id", timeout => 300);
     $instance->wait_for_state('running');
-
-    my $public_ip_from_provider = $instance->provider->get_public_ip();
-    $instance->public_ip($public_ip_from_provider) if ($instance->public_ip ne $public_ip_from_provider);
 }
 
 sub start_instance {
