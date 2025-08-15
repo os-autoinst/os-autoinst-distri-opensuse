@@ -425,8 +425,8 @@ sub check_guest_health {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
         return 'fail' if $failures;
         # julie debug:
-        enter_cmd("ssh root\@$machine 'ping -c3 10.145.10.207'", timeout => 10);
-        enter_cmd("ssh root\@$machine 'ping -c3 192.168.123.1'", timeout => 10);
+        enter_cmd("ssh root\@$vm 'ping -c3 10.145.10.207'", timeout => 10);
+        enter_cmd("ssh root\@$vm 'ping -c3 192.168.123.1'", timeout => 10);
         save_screenshot;
         record_info("Healthy guest!", "$vm looks good so far!");
     }
