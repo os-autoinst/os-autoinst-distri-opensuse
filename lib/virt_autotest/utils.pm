@@ -217,7 +217,7 @@ sub guest_is_sle {
 
     # Version check
     $guest_name =~ /sles-*(\d{2})(?:-*sp(\d))?/;
-    my $version = $2 eq '' ? "$1-sp0" : "$1-sp$2";
+    my $version = defined($2) ? "$1-sp$2" : "$1-sp0";
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
 }
 
@@ -424,7 +424,11 @@ sub check_guest_health {
     if ($vmstate eq "ok") {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
         return 'fail' if $failures;
-        record_info("Healthy guest!", "$vm looks good so far!");
+        if (script_run("ssh root\@$vm 'ping -c3 www.opensuse.org'") == 0 or script_run("ssh root\@$vm 'ping -c3 www.qemu.org'") == 0) {
+            record_info("Healthy guest!", "$vm looks good so far!");
+        } else {
+            record_info("Possible network inaccessibility", "Unable to access outside network from $vm!", result => 'fail');
+        }
     }
     else {
         record_info("Skip check_failures_in_journal for $vm", "$vm is not in desired state judged by either virsh or xl tool stack", result => 'softfail');
@@ -481,11 +485,21 @@ sub download_script {
             # Have to output debug info at here because no logs will be uploaded if there are connection problems
             if (script_run("ssh root\@$machine 'hostname'") == 0) {
                 $script_url =~ /^https?:\/\/([\w\.]+)(:\d+)?\/.*/;
-                script_run("ssh root\@$machine 'ping $1'");
+                record_info("Guest $machine ssh accessible from host", "Debugging its network availability", result => 'fail');
+                # Debug: to check where the access problem lies in.
+                script_run("ssh root\@$machine 'ping -c3 $1'");
                 script_run("ssh root\@$machine 'traceroute $1'");
+                script_run("ssh root\@$machine 'ip route show'");
                 script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
+                # Debug: to check if there is problem with DNS resolution: OSD <=> 10.145.10.207
+                script_run("ssh root\@$machine 'ping -c3 10.145.10.207'");
+                # Debug: to check if the guest can access its host
+                script_run("ssh root\@$machine 'ping -c3 192.168.123.1'");
                 script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
+                script_run("ssh root\@$machine 'ip a'");
                 script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
+                script_run('cat /etc/resolv.conf');
+                record_info("Debugging done", "for Guest $machine", result => 'fail');
             }
             else {
                 record_info("machine is not ssh accessible", "$machine", result => 'fail');
@@ -840,7 +854,7 @@ EOF
         assert_script_run("sed -i -r \'/^Host \\*/a \\    IdentityFile $args{ssh_id_file}\' $args{ssh_config_file}");
     }
     assert_script_run("chmod 600 $args{ssh_config_file}");
-    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{sh_config_file}"));
+    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{ssh_config_file}"));
     return;
 }
 
