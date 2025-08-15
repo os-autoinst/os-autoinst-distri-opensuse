@@ -98,19 +98,23 @@ sub run {
     # Compile helpers used by the tests
     run_command "make podman-testing || true", timeout => 600;
 
-    # user / local
-    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
+    unless (check_var("BATS_IGNORE_USER", "all")) {
+        # user / local
+        my $errors = run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
 
-    # user / remote
-    $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_IGNORE_USER_REMOTE');
+        # user / remote
+        $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_IGNORE_USER_REMOTE');
+    }
 
     switch_to_root;
 
-    # root / local
-    $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_IGNORE_ROOT_LOCAL');
+    unless (check_var("BATS_IGNORE_ROOT", "all")) {
+        # root / local
+        $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_IGNORE_ROOT_LOCAL');
 
-    # root / remote
-    $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_IGNORE_ROOT_REMOTE');
+        # root / remote
+        $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_IGNORE_ROOT_REMOTE');
+    }
 
     die "podman tests failed" if ($errors);
 }
