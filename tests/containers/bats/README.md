@@ -33,19 +33,19 @@ NOTES
 - `BATS_TEST_PACKAGES` may be used to test candidate kernels (KOTD, PTF, etc) and other packages.
 - `BATS_TEST_REPOS` may be used to test candidate packages outside the usual maintenance workflow.
 
-### Summary of the `BATS_SKIP` variables
+### Summary of the `BATS_IGNORE` variables
 
 These are defined in [skip.yaml](data/containers/bats/skip.yaml)
 
 | variable | description | aardvark | buildah | netavark | podman | runc | skopeo |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| `BATS_SKIP` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|
-| `BATS_SKIP_ROOT` | Skip tests for root user            |  |✅|  |  |✅|✅|
-| `BATS_SKIP_USER` | Skip tests for rootless             |  |✅|  |  |✅|✅|
-| `BATS_SKIP_ROOT_LOCAL` | Skip tests for root / local   |  |  |  |✅|  |  |
-| `BATS_SKIP_ROOT_REMOTE` | Skip tests for root / remote |  |  |  |✅|  |  |
-| `BATS_SKIP_USER_LOCAL` | Skip tests for user / local   |  |  |  |✅|  |  |
-| `BATS_SKIP_USER_REMOTE` | Skip tests for user / remote |  |  |  |✅|  |  |
+| `BATS_IGNORE` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|
+| `BATS_IGNORE_ROOT` | Skip tests for root user            |  |✅|  |  |✅|✅|
+| `BATS_IGNORE_USER` | Skip tests for rootless             |  |✅|  |  |✅|✅|
+| `BATS_IGNORE_ROOT_LOCAL` | Skip tests for root / local   |  |  |  |✅|  |  |
+| `BATS_IGNORE_ROOT_REMOTE` | Skip tests for root / remote |  |  |  |✅|  |  |
+| `BATS_IGNORE_USER_LOCAL` | Skip tests for user / local   |  |  |  |✅|  |  |
+| `BATS_IGNORE_USER_REMOTE` | Skip tests for user / remote |  |  |  |✅|  |  |
 
 NOTES
  - The special value `all` may be used to skip all tests.

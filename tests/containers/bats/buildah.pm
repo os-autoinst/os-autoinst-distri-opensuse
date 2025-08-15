@@ -96,11 +96,11 @@ sub run {
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
     run_command "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
 
     die "buildah tests failed" if ($errors);
 }

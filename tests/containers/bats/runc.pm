@@ -61,11 +61,11 @@ sub run {
         run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
     }
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
 
     die "runc tests failed" if ($errors);
 }

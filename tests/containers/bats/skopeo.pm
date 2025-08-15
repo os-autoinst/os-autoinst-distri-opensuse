@@ -54,11 +54,11 @@ sub run {
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
     run_command "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
 
     die "skopeo tests failed" if ($errors);
 }
