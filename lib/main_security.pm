@@ -75,25 +75,23 @@ sub fips_ker_mode_tests_crypt_core {
 
 ## main entry point
 sub load_security_tests {
-    if (check_var 'SECURITY_TEST', 'fips_setup') {
+    if (check_var('SECURITY_TEST', 'fips_setup')) {
         load_security_tests_fips_setup();
-    }
-    elsif (check_var 'SECURITY_TEST', 'crypt_core') {
+    } elsif (check_var('SECURITY_TEST', 'crypt_core')) {
         load_security_tests_crypt_core();
-    } elsif (check_var 'SECURITY_TEST', 'apparmor') {
+    } elsif (check_var('SECURITY_TEST', 'apparmor')) {
         load_security_tests_apparmor();
-    }
-    if (check_var 'TEST', 'selinux') {
+    } elsif (check_var('SECURITY_TEST', 'selinux') || check_var('TEST', 'selinux')) {
         load_selinux_tests;
-    }
-    elsif (check_var 'TEST', 'container_selinux') {
+    } elsif (check_var('SECURITY_TEST', 'container_selinux') || check_var('TEST', 'container_selinux')) {
         load_container_selinux_tests;
-    }
-    elsif (check_var 'TEST', 'fde_misc') {
+    } elsif (check_var('SECURITY_TEST', 'fde_misc') || check_var('TEST', 'fde_misc')) {
         load_fde_misc_tests;
-    }
-    elsif (check_var 'TEST', 'fips_ker_mode_tests_crypt_core') {
+    } elsif (check_var('SECURITY_TEST', 'fips_ker_mode_tests_crypt_core') ||
+        check_var('TEST', 'fips_ker_mode_tests_crypt_core')) {
         fips_ker_mode_tests_crypt_core;
+    } else {
+        die "Unknown SECURITY_TEST requested";
     }
 }
 
