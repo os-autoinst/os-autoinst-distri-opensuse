@@ -8,7 +8,6 @@
 use base Yam::Agama::agama_base;
 use Carp qw(croak);
 use testapi qw(
-  check_var
   diag
   get_var
   get_required_var
@@ -61,7 +60,7 @@ sub run {
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    (is_s390x() || is_pvm() || is_headless_installation() || check_var('AGAMA_ALERT_POPUP', 'invalid_profile')) ?
+    (is_s390x() || is_pvm() || is_headless_installation()) ?
       # reboot via console
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot
