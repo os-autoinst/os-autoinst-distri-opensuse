@@ -256,9 +256,6 @@ sub resume_instance {
 
     script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1, timeout => 300);
     $instance->wait_for_state($instance, 'running');
-
-    my $public_ip_from_provider = $instance->provider->get_public_ip();
-    $instance->public_ip($public_ip_from_provider) if ($instance->public_ip ne $public_ip_from_provider);
 }
 
 sub start_instance {
