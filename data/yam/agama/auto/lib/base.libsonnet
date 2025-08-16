@@ -1,6 +1,7 @@
 {
-  bootloader: {
-    stopOnBootMenu: true
+  bootloader(timeout):: {
+    [if timeout > 0 then 'timeout']: timeout,
+    [if timeout == 0 then 'stopOnBootMenu']: true,
   },
   files: [{
      destination: '/usr/local/share/dummy.xml',

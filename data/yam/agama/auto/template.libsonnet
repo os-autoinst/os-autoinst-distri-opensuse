@@ -10,6 +10,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
+         bootloader_timeout=0,
          dasd=false,
          extra_repositories=false,
          files=false,
@@ -27,7 +28,7 @@ function(bootloader=false,
          ssl_certificates=false,
          storage='',
          user=true) {
-  [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  bootloader: base_lib.bootloader(bootloader_timeout),
   [if dasd == true then 'dasd']: dasd_lib.dasd(),
   [if files == true then 'files']: base_lib['files'],
   [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
