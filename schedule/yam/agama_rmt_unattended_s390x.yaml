@@ -9,3 +9,4 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/first_boot
   - console/validate_repos
+  - yam/validate/validate_suseconnect_url
