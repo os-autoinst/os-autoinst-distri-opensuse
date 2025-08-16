@@ -151,12 +151,12 @@ sub run {
 
     # Filter which tests will run using KSELFTEST_TESTS
     my @tests = split /,/, get_var('KSELFTEST_TESTS', '');
-    if (!@tests) {
-        @tests = @all_tests;
-    }
+    @tests = @all_tests unless @tests;
 
     # Filter which tests will *NOT* run using KSELFTEST_SKIP
-    my @skip = split /,/, get_var('KSELFTEST_SKIP', '');
+    my $skip = get_var('KSELFTEST_SKIP', '');
+    chomp $skip;
+    my @skip = map { s/^\s+|\s+$//gr } split /,/, $skip;
     if (@skip) {
         my %skip = map { $_ => 1 } @skip;
         # Remove tests that are in @skip
