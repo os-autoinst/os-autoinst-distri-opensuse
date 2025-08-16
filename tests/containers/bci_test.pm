@@ -30,7 +30,7 @@ sub skip_testrun {
     # This check is needed here to allow for fine-grained control over BCI test runs, otherwise not possible via the job groups
 
     # Skip due to test setting
-    return 1 if (get_var('BCI_SKIP'));
+    return 1 unless get_var('BCI_TESTS');
 
     # Skip Spack on SLES12-SP5 (https://bugzilla.suse.com/show_bug.cgi?id=1224345)
     return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
@@ -127,14 +127,13 @@ sub run {
     my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
-    my $bci_virtualenv = get_var('BCI_VIRTUALENV', 0);
 
     die "no BCI test environment (BCI_TEST_ENVS) set" unless ($test_envs);
     return if ($test_envs eq '-');
 
     reset_container_network_if_needed($engine);
 
-    assert_script_run('source bci/bin/activate') if ($bci_virtualenv);
+    assert_script_run('source bci/bin/activate');
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
@@ -156,7 +155,7 @@ sub run {
         $self->run_tox_cmd($env);
     }
 
-    assert_script_run('deactivate') if ($bci_virtualenv);
+    assert_script_run('deactivate');
 
     # Mark the job as failed if any of the tests failed
     die("$error_count tests failed.") if ($error_count > 0);

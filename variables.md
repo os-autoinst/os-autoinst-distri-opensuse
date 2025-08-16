@@ -34,9 +34,7 @@ BCI_TEST_ENVS | string | | The list of environments to be tested, e.g. `base,ini
 BCI_TESTS_REPO | string | https://github.com/SUSE/BCI-tests.git | If set, use this instead of the standart BCI-Test repo (see default). Uses the same syntax as CASE_DIR, so to use branch `branch123` on that repo use e.g. https://github.com/SUSE/BCI-tests#branch123
 BCI_TIMEOUT | string | | Timeout given to the command to test each environment. Used by `bci_test.pm`.
 BCI_TARGET | string | ibs-cr | Container project to be tested. `ibs-cr` is the CR project, `ibs` is the released images project
-BCI_SKIP | boolean | false | Switch to disable BCI test runs. Necessary for fine-granular test disablement
 BCI_PREPARE | boolean | false | Launch the bci_prepare step again. Useful to re-initialize the BCI-Test repo when using a different BCI_TESTS_REPO
-BCI_VIRTUALENV | boolean | false | Use a virtualenv for pip dependencies in BCI tests
 BCI_OS_VERSION | string | | Set the environment variable OS_VERSION to this value, if present
 BOOTLOADER | string | grub2 | Which bootloader is used by the image or will be selected during installation, e.g. `grub2`, `grub2-bls`, `systemd-boot`
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.

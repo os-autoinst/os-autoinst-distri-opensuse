@@ -305,7 +305,7 @@ sub load_container_tests {
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
-        if (get_var('BCI_TESTS') && !get_var('BCI_SKIP')) {
+        if (get_var('BCI_TESTS')) {
             loadtest 'containers/bci_collect_stats' if (get_var('IMAGE_STORE_DATA'));
             # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
@@ -361,13 +361,10 @@ sub load_container_tests {
         $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
-                unless (get_var('BCI_SKIP')) {
-                    # Implicitly trigger bci_prepare when a custom test repo has been set, otherwise it won't be enabled.
-                    loadtest('containers/bci_prepare') if (check_var('BCI_PREPARE', '1') || get_var('BCI_TESTS_REPO'));
-                    loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
-                    # For Base image we also run traditional image.pm test
-                    load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
-                }
+                loadtest('containers/bci_prepare');
+                loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
+                # For Base image we also run traditional image.pm test
+                load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
             } elsif (is_sle_micro) {
                 # Test toolbox image updates
                 loadtest('microos/toolbox') unless (is_staging);
@@ -392,6 +389,6 @@ sub load_container_tests {
             loadtest 'containers/apptainer' if (/apptainer/i);
         }
     }
-    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
+    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }
