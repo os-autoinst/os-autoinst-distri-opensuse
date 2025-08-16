@@ -98,9 +98,10 @@ sub run {
     # Compile helpers used by the tests
     run_command "make podman-testing || true", timeout => 600;
 
+    my $errors = 0;
     unless (check_var("BATS_IGNORE_USER", "all")) {
         # user / local
-        my $errors = run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
+        $errors += run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
 
         # user / remote
         $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_IGNORE_USER_REMOTE');
