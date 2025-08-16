@@ -241,6 +241,23 @@ sub stop_instance
     die("Failed to stop instance $instance_id") unless ($attempts > 0);
 }
 
+sub suspend_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $instance->instance_id();
+
+    die("Cannot suspend instance which is not running.") if (lc($self->get_state_from_instance($instance)) ne 'running');
+    assert_script_run("aws ec2 stop-instances --instance-ids $instance_id --hibernate", quiet => 1, timeout => 300);
+    $instance->wait_for_state($instance, 'stopped');
+}
+
+sub resume_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $instance->instance_id();
+
+    script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1, timeout => 300);
+    $instance->wait_for_state($instance, 'running');
+}
+
 sub start_instance {
     my ($self, $instance, %args) = @_;
     my $attempts = 60;
