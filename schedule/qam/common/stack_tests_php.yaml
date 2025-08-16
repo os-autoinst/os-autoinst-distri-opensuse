@@ -16,8 +16,10 @@ conditional_schedule:
     VERSION:
       15-SP7:
         - console/php_composer
+        - console/apache2_php_fpm
       15-SP6:
         - console/php_composer
+        - console/apache2_php_fpm
       15-SP5:
         - console/php_composer
       15-SP4:
