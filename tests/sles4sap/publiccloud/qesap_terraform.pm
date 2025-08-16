@@ -268,6 +268,7 @@ sub run {
         $self->{my_instance} = $instance;
         $self->set_cli_ssh_opts;
         my $expected_hostname = $instance->{instance_id};
+        # We need to scan for the SSH host key as the Ansible later
         $instance->wait_for_ssh();
 
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
