@@ -20,4 +20,12 @@ sub get_grub_menu_installed_system {
     return Yam::Agama::Pom::GrubMenuLeapPage->new({grub_menu_base => $self->get_grub_menu_base()});
 }
 
+sub get_grub_menu_agama {
+    return Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage->new({
+            grub_menu_agama => Yam::Agama::Pom::GrubMenuAgamaPage->new({
+                grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
+	    })
+    });
+}
+
 1;

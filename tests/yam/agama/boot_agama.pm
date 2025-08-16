@@ -88,6 +88,7 @@ sub run {
     my @params = prepare_boot_params();
 
     $grub_menu->expect_is_shown();
+    $grub_menu->select_install_product();
     $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
     $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
     $grub_menu->edit_current_entry();
