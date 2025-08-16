@@ -12,7 +12,7 @@
 use base "opensusebasetest";
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro
+use version_utils qw(is_wsl is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro
   is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos);
 use Utils::Architectures;
 use Utils::Backends;
@@ -242,7 +242,7 @@ sub run {
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
     # system locale is present in WSL with jeos-firstboot except in WSL Tumbleweed
-    if (is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && get_var('WSL_VERSION'))) {
+    if (is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && is_wsl)) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
         send_key 'ret';
@@ -277,13 +277,13 @@ sub run {
 
     # In sle WSL: Choose SLES or SLED
     # And register via SCC
-    if (is_sle && get_var('WSL_VERSION')) {
+    if (is_sle && is_wsl) {
         wsl_choose_sles;
         register_via_scc;
     }
 
     # handle registration notice. Not in WSL.
-    if ((is_sle || is_sle_micro) && !get_var('WSL_VERSION')) {
+    if ((is_sle || is_sle_micro) && !is_wsl) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
     }
@@ -321,8 +321,8 @@ sub run {
         assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2');
     }
 
-    if (get_var('WSL_VERSION') || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
-        if (!get_var('WSL_VERSION')) {
+    if (is_wsl || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
+        if (!is_wsl) {
             assert_screen 'jeos-ssh-enroll-or-not', 120;
 
             if (get_var('SSH_ENROLL_PAIR')) {
@@ -382,7 +382,7 @@ sub run {
     # For WSL we have replicated firstrun-wsl up to this point
     # Therefore we will end the test here, temporarily.
     # Open ticket to expand the test in the future.
-    elsif (get_var('WSL_VERSION')) {
+    elsif (is_wsl) {
         assert_screen 'wsl-linux-prompt';
         enter_cmd_slow "exit\n";
         return;

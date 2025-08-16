@@ -66,6 +66,7 @@ use constant {
           php_version
           has_selinux_by_default
           has_selinux
+          is_wsl
         )
     ],
     BACKEND => [
@@ -473,6 +474,13 @@ Returns true if called in an HPC test
 sub is_hpc {
     return check_var('SLE_PRODUCT', 'hpc');
 }
+
+=head2 is_wsl
+
+Returns true if called on a wsl build
+=cut
+
+sub is_wsl { get_var('WSL_VERSION', '') }
 
 =head2 is_released
 
