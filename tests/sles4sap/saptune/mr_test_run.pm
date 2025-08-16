@@ -50,7 +50,7 @@ sub get_notes {
     # 1656250 - SAP on AWS: Support prerequisites - only Linux Operating System IO  recommendations
     # 2993054 - Recommended settings for SAP systems on Linux running in Azure virtual machines
     if (is_sle('>=16')) {
-        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 3024346 900929 941735 SAP_BOBJ);
+        return qw(1410736 1980196 2161991 2382421 2534844 3024346 3565382 3577842 900929 941735 SAP_BOBJ);
     }
     if (is_sle('>=15')) {
         return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 3024346 900929 941735 SAP_BOBJ);
@@ -61,7 +61,9 @@ sub get_notes {
 }
 
 sub get_solutions {
-    return qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER+HANA S4HANA-APP+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
+    my @solutions = qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER+HANA S4HANA-APP+DB S4HANA-APPSERVER S4HANA-DBSERVER);
+    return (@solutions, 'SAP-ASE') if is_sle('<16');
+    return @solutions;
 }
 
 sub tune_baseline {
@@ -69,9 +71,14 @@ sub tune_baseline {
     assert_script_run "sed -ri -e '/fs\\/file-max/s/:([0-9]*)\$/:~~\\1/' -e '/:scripts\\/shm_size/s/:([0-9]*)\$/:~~\\1/' $filename";
 }
 
-
 sub test_bsc1152598 {
     my ($self) = @_;
+    my $custom_note_path = '/etc/saptune/extra/scheduler-test.conf';
+    # Note's version header format is different in SLES 16
+    my $note1_content = '"[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=noop, none, foobar\n"';
+    $note1_content = '"[version]\nVERSION=0\nDATE=foobar\nDESCRIPTION=\" foobar \"\nREFERECENCES=https://me.sap.com/notes/1234\n[block]\nIO_SCHEDULER=noop, none, foobar\n"' if is_sle('>=16');
+    my $note2_content = '"[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n"';
+    $note2_content = '"[version]\n#VERSION=0\nDATE=foobar\nDESCRIPTION=\" foobar \"\nREFERENCES=https://me.sap.com/notes/1234\n[block]\nIO_SCHEDULER=foobar, noop, none\n"' if is_sle('>=16');
 
     my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
     $result = "ok";
@@ -79,14 +86,12 @@ sub test_bsc1152598 {
     record_info "bsc1152598";
 
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1");
-    assert_script_run
-'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=noop, none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
+    $self->wrap_assert_script_run_with_newlines($note1_content, $custom_note_path);
     $self->wrap_script_run("saptune note apply scheduler-test");
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
     $self->wrap_script_run("saptune revert all");
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1");
-    assert_script_run
-'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n" > /etc/saptune/extra/scheduler-test.conf';
+    $self->wrap_assert_script_run_with_newlines($note2_content, $custom_note_path);
     $self->wrap_script_run('saptune note apply scheduler-test');
     $self->wrap_script_run("grep -E -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler");
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
@@ -98,6 +103,9 @@ sub test_bsc1152598 {
 
 sub test_delete {
     my ($self) = @_;
+    # Note's version header is different in SLES 16
+    my $note_content = "'[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"'";
+    $note_content = "'[version]\nVERSION=0\nDATE=01.01.1971\nDESCRIPTION=testnote\nREFERENCES=https://me.sap.com/notes/1234\n'" if is_sle('>=16');
 
     my $dir = "Pattern/testpattern_saptune-delete+rename";
     my $note = "2161991";
@@ -120,7 +128,7 @@ sub test_delete {
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#1_2");
 
     # (applied, override)
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/${note}";
+    $self->wrap_assert_script_run_with_newlines($note_content, "/etc/saptune/override/${note}");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#1_3");
     $self->wrap_script_run("! saptune note delete ${note}");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#1_3");
@@ -139,14 +147,14 @@ sub test_delete {
 
     # (applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_1");
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("saptune note apply testnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_2");
     $self->wrap_script_run("! saptune note delete testnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_2");
 
     # (applied, override)
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/testnote";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/override/testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_3");
     $self->wrap_script_run("! saptune note delete testnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_3");
@@ -160,7 +168,7 @@ sub test_delete {
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_1");
 
     # (not-applied, no override)
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_5");
     $self->wrap_script_run("yes n | saptune note delete testnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_5");
@@ -187,6 +195,9 @@ sub test_rename {
 
     my $dir = "Pattern/testpattern_saptune-delete+rename";
     my $note = "2161991";
+    # Note's header format is different in SLES 16
+    my $note_content = "'[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"'";
+    $note_content = "'[version]\nVERSION=0\nDATE=01.01.1971\nDESCRIPTION=testnote\nREFERENCES=https://me.sap.com/notes/1234\n'" if is_sle('>=16');
 
     ### Renaming a shipped Note (without override/with override + not applied/applied)
     $result = "ok";
@@ -206,7 +217,7 @@ sub test_rename {
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#1_2");
 
     # (applied, override)
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/${note}";
+    $self->wrap_assert_script_run_with_newlines($note_content, "/etc/saptune/override/${note}");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#1_3");
     $self->wrap_script_run("! saptune note rename ${note} newnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#1_3");
@@ -223,13 +234,13 @@ sub test_rename {
 
     # (applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_1");
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("saptune note apply testnote");
     $self->wrap_script_run("! saptune note rename testnote newnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_2");
 
     # (applied, override)
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/testnote";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/override/testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_3");
     $self->wrap_script_run("! saptune note rename testnote newnote");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_3");
@@ -254,7 +265,7 @@ sub test_rename {
 
     $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#3_1");
-    assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
+    $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#3_2");
     $self->wrap_script_run("! saptune note rename testnote ${note}");
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#3_2");
@@ -335,11 +346,13 @@ sub test_override {
 sub test_solution {
     my ($self, $solution) = @_;
 
-    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
-    $result = "ok";
+    my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
+    $result = 'ok';
     $self->result("$result");
     record_info "solution $solution";
 
+    # SLES for SAP 16 comes pre-configured with the SAP_Base solution. We need to revert it before starting
+    $self->wrap_script_run('saptune solution revert SAP_Base') if is_sle('>=16');
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_baseline_Cust");
     $self->wrap_script_run("mr_test dump Pattern/${SLE}/testpattern_solution_${solution}_b > baseline_testpattern_solution_${solution}_b");
     $self->wrap_script_run("saptune solution apply $solution");
@@ -414,13 +427,17 @@ sub test_x86_64 {
     my $SLE;
     my $note;
 
-    if (is_sle(">=15")) {
-        $SLE = "SLE15";
-        $note = "2684254";
+    if (is_sle('>=16')) {
+        $SLE = 'SLE16';
+        $note = '3577842';
+    }
+    elsif (is_sle('>=15')) {
+        $SLE = 'SLE15';
+        $note = '2684254';
     }
     else {
-        $SLE = "SLE12";
-        $note = "2205917";
+        $SLE = 'SLE12';
+        $note = '2205917';
     }
 
     record_info "x86_64";
@@ -439,12 +456,12 @@ sub test_x86_64 {
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_2");
     $self->wrap_script_run("saptune note revert $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1");
-    assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=powersave\\ngovernor=powersave\\nforce_latency=' > /etc/saptune/override/$note";
+    $self->wrap_assert_script_run_with_newlines("'[cpu]\\nenergy_perf_bias=powersave\\ngovernor=powersave\\nforce_latency='", "/etc/saptune/override/$note");
     $self->wrap_script_run("saptune note apply $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_3");
     $self->wrap_script_run("saptune note revert $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1");
-    assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=\\ngovernor=\\nforce_latency=\\n' > /etc/saptune/override/$note";
+    $self->wrap_assert_script_run_with_newlines("'[cpu]\\nenergy_perf_bias=\\ngovernor=\\nforce_latency=\\n'", "/etc/saptune/override/$note");
     $self->wrap_script_run("saptune note apply $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_4");
     $self->wrap_script_run("saptune note revert $note");
@@ -478,6 +495,24 @@ sub wrapup_log_file {
     }
     my $json = encode_json \%results;
     assert_script_run "echo '$json' > $results_file";
+}
+
+sub wrap_assert_script_run_with_newlines {
+    my ($self, $content, $file) = @_;
+    # When calling assert_script_run() with a text that includes newlines (\n), the
+    # wait_serial() API called by assert_script_run() internally, can fail and show
+    # error details even on tests which are otherwise working. Since this module
+    # uses this a lot to create custom notes in the form:
+    # assert_script_run "echo -e 'note\ncontent\n' > /path/to/file";
+    # This method provides a workaround to avoid wait_serial() errors:
+    # 1. First it checks the file can be written to, with assert_script_run() and an
+    #    empty content
+    # 2. Then actually writes to the file using enter_cmd() and print the return value
+    #    of the command
+    # 3. Finally waits for the return value
+    assert_script_run "echo > $file";
+    enter_cmd "echo -e $content > $file ; echo enter_cmd_DONE-\$?";
+    wait_serial qr/enter_cmd_DONE-\d/;
 }
 
 sub wrap_script_run {
