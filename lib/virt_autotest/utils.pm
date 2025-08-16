@@ -424,6 +424,10 @@ sub check_guest_health {
     if ($vmstate eq "ok") {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
         return 'fail' if $failures;
+        # julie debug:
+        enter_cmd("ssh root\@$vm 'ping -c3 10.145.10.207'", timeout => 10);
+        enter_cmd("ssh root\@$vm 'ping -c3 192.168.123.1'", timeout => 10);
+        save_screenshot;
         record_info("Healthy guest!", "$vm looks good so far!");
     }
     else {
@@ -481,11 +485,18 @@ sub download_script {
             # Have to output debug info at here because no logs will be uploaded if there are connection problems
             if (script_run("ssh root\@$machine 'hostname'") == 0) {
                 $script_url =~ /^https?:\/\/([\w\.]+)(:\d+)?\/.*/;
-                script_run("ssh root\@$machine 'ping $1'");
-                script_run("ssh root\@$machine 'traceroute $1'");
-                script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
-                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
-                script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
+                enter_cmd("ssh root\@$machine 'ping -c3 $1'", timeout => 10);
+                save_screenshot;
+                enter_cmd("ssh root\@$machine 'traceroute $1'", timeout => 10);
+                enter_cmd("ssh root\@$machine 'ping -c3 openqa.suse.de'", timeout => 10);
+                save_screenshot;
+                enter_cmd("ssh root\@$machine 'ping -c3 10.145.10.207'", timeout => 10);
+                enter_cmd("ssh root\@$machine 'ping -c3 192.168.123.1'", timeout => 10);
+                enter_cmd("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'", timeout => 10);
+                save_screenshot;
+                enter_cmd("ssh root\@$machine 'ip a'");
+                enter_cmd("ssh root\@$machine 'cat /etc/resolv.conf'");
+                enter_cmd('cat /etc/resolv.conf');
             }
             else {
                 record_info("machine is not ssh accessible", "$machine", result => 'fail');
