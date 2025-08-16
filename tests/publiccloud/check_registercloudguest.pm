@@ -60,10 +60,9 @@ sub run {
                 die('guestregister.service is not disabled');
             }
 
-            # TODO: this code need to be uncommented when all Azure and GCE images will migrate to guestregister-lic-watcher.timer
-            #if (is_azure() || is_gce()) {
-            #    $instance->ssh_assert_script_run(cmd => "systemctl is-enabled guestregister-lic-watcher.timer");
-            #}
+            if (is_azure() || is_gce()) {
+                $instance->ssh_assert_script_run(cmd => "systemctl is-enabled guestregister-lic-watcher.timer");
+            }
 
             if ($instance->ssh_script_run(cmd => 'sudo test -s /var/log/cloudregister') == 0) {
                 die('/var/log/cloudregister is not empty');
