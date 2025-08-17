@@ -34,7 +34,7 @@ sub run_tests {
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap.txt";
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests);
+    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
 
     run_command 'podman rm -vf $(podman ps -aq --external) || true';
     run_command "podman system reset -f";

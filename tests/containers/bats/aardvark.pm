@@ -25,7 +25,7 @@ sub run_tests {
 
     my $log_file = "aardvark.tap.txt";
 
-    return bats_tests($log_file, \%env, "");
+    return bats_tests($log_file, \%env, "", 800);
 }
 
 sub run {

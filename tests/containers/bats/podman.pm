@@ -34,7 +34,7 @@ sub run_tests {
 
     run_command "podman system service --timeout=0 &" if ($remote);
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests);
+    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 

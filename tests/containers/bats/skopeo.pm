@@ -31,7 +31,7 @@ sub run_tests {
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root") . ".tap.txt";
 
-    return bats_tests($log_file, \%env, $skip_tests);
+    return bats_tests($log_file, \%env, $skip_tests, 800);
 }
 
 sub run {

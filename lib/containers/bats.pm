@@ -382,7 +382,7 @@ sub bats_post_hook {
 }
 
 sub bats_tests {
-    my ($log_file, $_env, $skip_tests) = @_;
+    my ($log_file, $_env, $skip_tests, $timeout) = @_;
     my %env = %{$_env};
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
@@ -416,7 +416,7 @@ sub bats_tests {
     run_command "echo $log_file .. > $log_file";
     run_command "echo '# $package $version $os_version' >> $log_file";
     push @commands, $cmd;
-    my $ret = script_run($cmd, timeout => 7000);
+    my $ret = script_run($cmd, timeout => $timeout);
 
     unless (get_var("BATS_TESTS")) {
         $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
