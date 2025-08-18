@@ -563,7 +563,7 @@ sub untick_welcome_on_next_startup {
  handle_welcome_screen([timeout => $timeout]);
 
 openSUSE Welcome window should be auto-launched.
-Disable auto-launch on next boot and close application.
+Disable auto-launch on next boot and close application (If the checkbox is present)
 Also handle workarounds when needed.
 
 =cut
@@ -572,7 +572,15 @@ sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
     send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
-    untick_welcome_on_next_startup;
+    # The checkbox to start on boot is now dropped, but we need to care for it
+    # in the case of older installs where the autostart is still there.
+    check_screen('opensuse-welcome-show-on-boot');
+    if (match_has_tag('opensuse-welcome-show-on-boot')) {
+        untick_welcome_on_next_startup;
+    } else {
+        assert_and_click_until_screen_change('opensuse-welcome-close', 5, 5);
+        assert_screen("generic-desktop");
+    }
 }
 
 =head2 start_root_shell_in_xterm
