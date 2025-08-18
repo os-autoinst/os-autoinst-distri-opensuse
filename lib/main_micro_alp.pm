@@ -158,6 +158,7 @@ sub load_selfinstall_boot_tests {
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         loadtest 'jeos/firstrun';
     }
+    loadtest 'transactional/host_config';
     replace_opensuse_repos_tests if is_repo_replacement_required;
 }
 
