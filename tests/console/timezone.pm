@@ -46,7 +46,7 @@ sub run {
     assert_script_run("rpm -q timezone");
 
     validate_script_output("zdump Europe/London", sub { m/Europe\/London\s+\w{3} \w{3}\s+\d+ (\d{2}|:){5} \d{4} (GMT|BST)/ });
-    validate_script_output("date", sub { m/\w{3} \w{3}\s+\d+ (\d{2}|:){5} \w+ \d{4}/ });
+    validate_script_output("date", sub { m/\w{3} \w{3}\s+\d+ (\d{2}|:){5} (AM|PM) \w+ \d{4}/ });
 
     my $zdump_cmd = "zdump -v Europe/Rome | grep -E 'Sun Mar 25 [0-9]{2}:[0:9]{2}:[0-9]{2} 2018'";
 
