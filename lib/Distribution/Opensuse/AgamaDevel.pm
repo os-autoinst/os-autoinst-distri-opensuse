@@ -14,6 +14,7 @@ use parent 'susedistribution';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
+use Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage;
 use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
@@ -24,11 +25,18 @@ use Yam::Agama::Pom::EnterPassphraseForSwapPage;
 use Yam::Agama::Pom::EnterPassphraseForHomePage;
 
 use Utils::Architectures;
+use testapi;
 
 sub get_grub_menu_agama {
-    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
-    });
+    if (is_ppc64le()) {
+        record_soft_failure 'bsc#1248161 "Boot from hard disk" hasnt been implemented on ppc64le';
+        return Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage->new({
+                grub_menu_agama => Yam::Agama::Pom::GrubMenuAgamaPage->new({
+                        grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()})});
+    } else {
+        return Yam::Agama::Pom::GrubMenuAgamaPage->new({
+                grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+    }
 }
 
 sub get_grub_menu_base {

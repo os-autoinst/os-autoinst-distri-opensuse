@@ -15,14 +15,14 @@ sub new {
     my ($class, $args) = @_;
     return bless {
         grub_menu_base => $args->{grub_menu_base},
-        tag_agama_installer_highlighted => 'grub-menu-agama-installer-highlighted',
+        tag_first_entry_highlighted => 'grub-menu-first-entry-highlighted',
+        tag_install_product => 'grub-menu-install-product',
     }, $class;
 }
 
 sub expect_is_shown {
     my ($self) = @_;
-    send_key_until_needlematch($self->{tag_agama_installer_highlighted}, 'down') unless check_screen($self->{tag_agama_installer_highlighted}, 10);
-    assert_screen($self->{tag_agama_installer_highlighted}, 60);
+    assert_screen($self->{tag_first_entry_highlighted}, 60);
 }
 
 sub boot_from_hd {
@@ -33,6 +33,11 @@ sub boot_from_hd {
 sub select_check_installation_medium_entry {
     my ($self) = @_;
     send_key_until_needlematch('grub-menu-agama-mediacheck-highlighted', 'down');
+}
+
+sub select_install_product {
+    my ($self) = @_;
+    send_key_until_needlematch($self->{tag_install_product}, 'down');
 }
 
 sub select_rescue_system_entry {
