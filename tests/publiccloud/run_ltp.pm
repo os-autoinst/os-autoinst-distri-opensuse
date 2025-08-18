@@ -26,12 +26,16 @@ use version_utils;
 my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
 
-sub should_fully_build_ltp {
+sub should_fully_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
 }
 
-sub should_partially_build_ltp {
+sub should_partially_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_BUILD', 0);    # 1 if env var is set, otherwise 0
+}
+
+sub should_partially_build_ltp_from_git_modules_install {
+    return get_var('PUBLIC_CLOUD_LTP_BUILD_MODULES', 0);    # 1 if env var is set, otherwise 0
 }
 
 sub install_build_deps {
@@ -51,8 +55,6 @@ sub prepare_ltp_git {
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
 
     my $ltp_build_timeout = 5 * 60;
-
-    $self->install_build_deps($instance);
 
     $instance->run_ssh_command("rm -rf $ltp_dir");
     $instance->run_ssh_command("git clone --depth 1 -b $repo_branch $repo_url $ltp_dir");
@@ -91,6 +93,20 @@ sub partially_build_ltp_from_git {
             timeout => $ltp_subdir_build_timeout
         );
     }
+    record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
+}
+
+sub partially_build_ltp_from_git_modules_install {
+    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+
+    my $start = time();
+    my $ltp_subdir_build_timeout = 5 * 60;
+
+    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+    $instance->run_ssh_command(
+        cmd => "sudo make -C $ltp_dir -j\$(getconf _NPROCESSORS_ONLN) modules-install",
+        timeout => $ltp_subdir_build_timeout
+    );
     record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
 }
 
@@ -197,11 +213,13 @@ sub run {
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
-    if (should_fully_build_ltp()) {
+    $self->install_build_deps($instance);
+    if (should_fully_build_ltp_from_git()) {
         $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
         $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp();
+        $self->partially_build_ltp_from_git_modules_install($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
+        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git();
     }
 
     $self->gen_ltp_env($instance, $ltp_pkg);
@@ -367,7 +385,7 @@ sub cleanup {
 sub gen_ltp_env {
     my ($self, $instance, $ltp_pkg) = @_;
     my $ltp_version = get_var('LTP_RELEASE', 'master');
-    unless (should_partially_build_ltp() || should_fully_build_ltp()) {
+    unless (should_partially_build_ltp_from_git() || should_fully_build_ltp_from_git()) {
         $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
     }
     $self->{ltp_env} = prepare_whitelist_environment();
