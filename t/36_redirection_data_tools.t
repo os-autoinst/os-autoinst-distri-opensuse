@@ -74,4 +74,12 @@ subtest '[get_nw_hosts]' => sub {
     }
 };
 
+subtest '[get_pas_host]' => sub {
+    my $mockObject = sles4sap::console_redirection::redirection_data_tools->new($mock_data);
+    my %pas_host = %{$mockObject->get_pas_host()};
+    my $expected_host = 'nw_pas';
+    note('PAS host found: ' . join(' ', keys %pas_host));
+    ok(grep(/$expected_host/, keys(%pas_host)), "NW list contains host '$expected_host'");
+};
+
 done_testing();

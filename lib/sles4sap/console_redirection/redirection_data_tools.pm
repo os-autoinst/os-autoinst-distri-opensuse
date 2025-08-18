@@ -79,4 +79,22 @@ sub get_nw_hosts {
     return \%result;
 }
 
+=head2 get_pas_host
+
+    get_pas_host();
+
+Returns B<ARRAYREF> containing only ENSA2 pas connection data
+B<Example:>
+{
+    hostname => {ip_address => '192.168.0.1', ssh_user => 'username'}
+};
+
+=cut
+
+sub get_pas_host {
+    my $self = shift;
+    my %result = map { %{$_} } ($self->{nw_pas});
+    return \%result;
+}
+
 1;
