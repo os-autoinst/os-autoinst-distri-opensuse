@@ -61,8 +61,8 @@ sub prepare_virtual_env {
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
         } elsif ($version !~ /15\.[1-3]/) {
             $python = 'python3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            push @packages, qw(python311);
+            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout) unless ($host_distri =~ /opensuse/);
+            push @packages, qw(git-core python311);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
     } else {
