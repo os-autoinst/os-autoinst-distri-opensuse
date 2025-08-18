@@ -21,7 +21,7 @@ The module performs two main tasks:
   repositories by adding an entry to `/etc/hosts` and configuring any specified
   incident repositories.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 

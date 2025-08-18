@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: zypper patch and reboot
+# Summary: Run zypper patch and reboot
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
@@ -18,7 +18,7 @@ the systems to ensure that all updates, including any kernel updates, are
 correctly applied and active. This step helps ensure the SUTs are in a
 consistent and up-to-date state for subsequent tests.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 This module does not require any specific configuration variables for its core functionality.
 Some variables are needed for the correct execution of the post_fail_hook
@@ -44,7 +44,6 @@ established. This module uses it in the C<post_fail_hook> to clean up the
 peering connection if the test fails.
 
 =back
-
 
 =head1 MAINTAINER
 

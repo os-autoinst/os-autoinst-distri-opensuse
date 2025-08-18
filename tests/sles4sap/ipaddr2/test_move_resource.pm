@@ -1,8 +1,50 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Test the movement of an IPaddr2 cluster resource between two VMs.
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+ipaddr2/test_move_resource - Test IPaddr2 resource migration in a cluster
+
+=head1 DESCRIPTION
+
+This test verifies the functionality of moving an IPaddr2 cluster resource
+between two virtual machines in a high-availability setup. It uses `crm`
+commands to move the resource and then checks if the web service is correctly
+served from the new master node. The test performs the move in both directions
+(VM1 to VM2 and VM2 to VM1) and includes sanity checks for OS connectivity and
+cluster status.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. This module currently only supports 'AZURE'.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+If set to 1, deployment logs are collected in case of a test failure.
+
+=item B<IPADDR2_CLOUDINIT>
+
+If not set to 0, cloud-init logs are collected in case of a test failure.
+
+=item B<IBSM_RG>
+
+The name of the resource group for the IBSM (Infrastructure Backup and Support
+Module), used for cleaning up network peerings.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

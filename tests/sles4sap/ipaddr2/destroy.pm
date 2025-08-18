@@ -22,7 +22,7 @@ Its main tasks are:
 
 This module is typically the last one to run in the test suite.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -38,7 +38,7 @@ network peering was established and needs to be cleaned up.
 
 =item B<IPADDR2_DIAGNOSTIC>
 
-If enabled (1), extended deployment logs (e.g., boot diagnostics) are
+If enabled (1), extended deployment logs (for example, boot diagnostics) are
 collected on failure.
 
 =item B<IPADDR2_CLOUDINIT>

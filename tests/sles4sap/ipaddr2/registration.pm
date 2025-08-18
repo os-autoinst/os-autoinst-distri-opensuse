@@ -23,7 +23,7 @@ If cloud-init is disabled (B<IPADDR2_CLOUDINIT> is 0), this module will:
 After registration (or if cloud-init was enabled), it refreshes the software repositories
 for both SUT VMs and lists them for logging purposes.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
