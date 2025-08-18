@@ -315,6 +315,12 @@ sub ipaddr2_infra_deploy {
         name => $as,
         region => $args{region},
         fault_count => 2);
+    # Next two lines are for debug purpose only:
+    # in time to time next vm create fails for missing AS
+    az_vm_as_list(resource_group => $rg);
+    az_vm_as_show(
+        resource_group => $rg,
+        name => $as);
 
     my $storage_name;
     if ($args{diagnostic}) {
