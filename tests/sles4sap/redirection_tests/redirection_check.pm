@@ -22,7 +22,7 @@ sub run {
             my %host_data = %{$redirection_data{$instance_type}{$hostname}};
             record_info("Host: $hostname");
             connect_target_to_serial(
-                destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user});
+                destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user}, switch_root => 1);
 
             # Check if hostnames matches with what is expected
             # Check API calls: script_output, assert_script_run
