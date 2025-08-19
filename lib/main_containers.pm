@@ -322,12 +322,11 @@ sub load_container_tests {
     ## Helm chart tests. Add your individual helm chart tests here.
     if (my $chart = get_var('HELM_CHART')) {
         set_var('K3S_ENABLE_COREDNS', 1);
-
-        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
+        if ($chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/ && check_var('HOST_VERSION', '15-SP7')) {
+        } elsif ($chart =~ m/private-registry/) {
             set_var('K3S_ENABLE_TRAEFIK', 1);
-            loadtest 'containers/charts/privateregistry';
+            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
         }
         else {
             die "Unsupported HELM_CHART value or HOST_VERSION";
