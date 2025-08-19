@@ -1,7 +1,11 @@
 ---
-name: agama
+name: agama_install_fips_ker_mode
 description: >
   Perform interactive installation with agama.
+  FIPS is set up during installation in kernel mode by setting `BOOTPARAMS` to `fips=1`.
+vars:
+  FIPS_INSTALLATION: 1
+  BOOTPARAMS: 'fips=1'
 schedule:
   - yam/agama/boot_agama
   - yam/agama/agama_arrange
@@ -13,6 +17,7 @@ schedule:
   - yam/validate/validate_connectivity
   - yam/validate/validate_first_user
   - console/validate_repos
+  - fips/fips_setup
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
