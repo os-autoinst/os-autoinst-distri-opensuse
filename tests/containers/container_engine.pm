@@ -140,7 +140,7 @@ sub basic_container_tests {
         # ATM only SLEM 6.0 & SLEM 6.1 use crun for podman
         if ($oci_runtime ne "runc") {
             if ($runtime eq "podman" && is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
-                record_soft_failure("bsc#1239088", "podman 5.2 uses crun instead of runc");
+                record_soft_failure("bsc#1239088 - podman 5.2 uses crun instead of runc");
             } else {
                 die "Unexpected OCI runtime: $oci_runtime";
             }
