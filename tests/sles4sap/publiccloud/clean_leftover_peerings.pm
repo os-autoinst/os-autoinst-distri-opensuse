@@ -6,7 +6,7 @@
 
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
-use sles4sap::qesap::qesap_azure qw(qesap_az_clean_old_peerings);
+use sles4sap::qesap::azure qw(qesap_az_clean_old_peerings);
 use publiccloud::utils qw(is_azure);
 use sles4sap::azure_cli;
 

@@ -37,7 +37,7 @@ use Carp;
 use utils qw(script_retry random_string);
 use testapi;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap::qesap::qesap_azure;
+use sles4sap::qesap::azure;
 use sles4sap::azure_cli;
 
 use Exporter 'import';

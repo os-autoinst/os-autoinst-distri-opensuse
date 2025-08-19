@@ -25,7 +25,7 @@
 
 =cut
 
-package sles4sap::qesap::qesap_azure;
+package sles4sap::qesap::azure;
 
 use strict;
 use warnings;
@@ -34,7 +34,7 @@ use Mojo::JSON qw(decode_json);
 use Exporter 'import';
 use File::Basename;
 use sles4sap::azure_cli;
-use sles4sap::qesap::qesap_utils;
+use sles4sap::qesap::utils;
 use mmapi 'get_current_job_id';
 use testapi;
 
@@ -408,7 +408,7 @@ sub qesap_az_get_tenant_id {
     my (%args) = @_;
     croak 'Missing < subscription_id > argument' unless $args{subscription_id};
     my $az_cmd = 'az account show --only-show-errors';
-    $az_cmd .= "--subscription $args{subscription_id} --query 'tenantId' -o tsv";
+    $az_cmd .= " --subscription $args{subscription_id} --query 'tenantId' -o tsv";
     my $tenant_id = script_output($az_cmd);
     die "Returned output '$tenant_id' does not match ID pattern" unless (az_validate_uuid_pattern(uuid => $tenant_id));
     return $tenant_id;

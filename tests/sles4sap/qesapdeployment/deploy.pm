@@ -7,7 +7,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap::qesap::qesap_azure;
+use sles4sap::qesap::azure;
 
 sub run {
     my ($self) = @_;
