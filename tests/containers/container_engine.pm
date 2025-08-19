@@ -137,9 +137,14 @@ sub basic_container_tests {
     if (!get_var("OCI_RUNTIME")) {
         my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
         my $oci_runtime = script_output("$runtime info -f '$template'");
-        # Only SLEM 6.0 & SLEM 6.1 use crun for podman
-        my $expected = ($runtime eq "podman" && is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) ? "crun" : "runc";
-        die "Unexpected OCI runtime: $oci_runtime != $expected" if ($oci_runtime ne $expected);
+        # ATM only SLEM 6.0 & SLEM 6.1 use crun for podman
+        if ($oci_runtime ne "runc") {
+            if ($runtime eq "podman" && is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
+                record_soft_failure("bsc#1239088", "podman 5.2 uses crun instead of runc");
+            } else {
+                die "Unexpected OCI runtime: $oci_runtime";
+            }
+        }
     }
 
     ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
