@@ -29,7 +29,7 @@ sub run {
     elsif (is_qemu) {
         my $host_os_ver = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
         foreach my $guest (keys %virt_autotest::common::guests) {
-            run_tests($guest) if ($guest eq $host_os_ver || $guest eq "${host_os_ver}TD" || $guest eq "${host_os_ver}PV" || $guest eq "${host_os_ver}HVM");
+            run_tests($guest) if ($guest eq $host_os_ver || $guest eq "${host_os_ver}TD" || $guest eq "${host_os_ver}PV" || $guest eq "${host_os_ver}HVM" || $guest eq "${host_os_ver}ES");
         }
     }
 }
