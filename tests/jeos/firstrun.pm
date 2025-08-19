@@ -13,7 +13,7 @@ use base "opensusebasetest";
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
 use version_utils qw(is_wsl is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro
-  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos);
+  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -132,8 +132,8 @@ sub verify_partition_label {
 
 sub verify_selinux {
     if (has_selinux_by_default) {
-        # SELinux is default, should be enabled and in enforcing mode
-        validate_script_output('sestatus', sub { m/SELinux status: .*enabled/ && m/Current mode: .*enforcing/ }, fail_message => 'SELinux is NOT enabled and set to enforcing');
+        my $mode = is_sle('>=16.0') && is_sles4sap() ? 'permissive' : 'enforcing';
+        validate_script_output('sestatus', sub { m/SELinux status: .*enabled/ && m/Current mode: .*$mode/ }, fail_message => "SELinux is NOT enabled and set to $mode");
     } else {
         # SELinux is not default, but might be supported
         my $selinux_supported = script_run("grep -qw selinux /sys/kernel/security/lsm") == 0;
