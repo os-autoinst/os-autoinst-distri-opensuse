@@ -958,5 +958,33 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "bsc#1236723": {
+        "description": "hv_storvsc.*: tag#\\d+ cmd 0x5a status: scsi 0x2 srb 0x86 host 0xc0000001",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "bug"
+    },
+    "bsc#1246862": {
+        "description": "hcnscan:error code 5, Failed to load bonding module|hcn-init-NetworkManager.service: Failed with result 'exit-code'|Failed to start hybrid virtual network scan and config for NetworkManager",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "bug"
+    },
+    "bsc#1238885": {
+        "description": "kernel: Could not retrieve perf counters \\(-19\\)",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "replenish-aarch74": {
+        "description": "kernel: sched: DL replenish lagged too much",
+        "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
     }
 }
