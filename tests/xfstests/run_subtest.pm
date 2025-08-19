@@ -135,15 +135,15 @@ sub run {
     bmwqemu::fctinfo("$generate_name");
     my $targs = OpenQA::Test::RunArgs->new();
     my $whitelist_entry;
-    $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600);
+    $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600, type_command => 1, proceed_on_failure => 1);
     $targs->{name} = $test;
     $targs->{time} = $time;
     $targs->{status} = $status;
     if ($status =~ /FAILED|SKIPPED|SOFTFAILED/) {
         if ($status =~ /FAILED|SOFTFAILED/) {
-            $targs->{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600);
-            $targs->{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600);
-            $targs->{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600);
+            $targs->{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600, type_command => 1, proceed_on_failure => 1);
+            $targs->{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600, type_command => 1, proceed_on_failure => 1);
+            $targs->{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600, type_command => 1, proceed_on_failure => 1);
             if (exists($softfail_list{$generate_name})) {
                 $targs->{status} = 'SOFTFAILED';
                 $targs->{failinfo} = 'XFSTESTS_SOFTFAIL set in configuration';
