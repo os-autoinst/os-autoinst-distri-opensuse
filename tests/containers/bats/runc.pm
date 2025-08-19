@@ -50,8 +50,10 @@ sub run {
     bats_sources $runc_version;
 
     # Compile helpers used by the tests
-    my $cmds = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d -printf '%f ' || true";
-    run_command "make $cmds || true";
+    my $helpers = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d ! -name _bin -printf '%f ' || true";
+    record_info("helpers", $helpers);
+    run_command "make $helpers || true";
+
     unless (get_var("BATS_TESTS")) {
         # Skip this test due to https://github.com/opencontainers/runc/issues/4841
         run_command "rm -f tests/integration/cgroups.bats" if is_ppc64le;

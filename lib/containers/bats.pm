@@ -316,9 +316,9 @@ sub collect_coredumps {
         my $core = "core.$exe.$pid.core";
 
         # Dumping and compressing coredumps may take some time
-        script_run("coredumpctl -o $core dump $pid", 300);
+        my $out = script_output("coredumpctl -o $core dump $pid", timeout => 300, proceed_on_failure => 1);
+        record_info("COREDUMP", $out);
         script_run("xz -9v $core", 300);
-        record_info("COREDUMP", $exe);
     }
 }
 

@@ -94,6 +94,7 @@ sub run {
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
+    record_info("helpers", $helpers);
     run_command "make $helpers", timeout => 600;
 
     my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
