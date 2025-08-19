@@ -261,10 +261,6 @@ sub load_image_tests_in_k8s {
     }
 }
 
-sub load_image_tests_in_openshift {
-    loadtest 'containers/openshift_image';
-}
-
 sub load_kubectl_tests {
     my $run_args = OpenQA::Test::RunArgs->new();
     my @k8s_versions = split('\s+', get_var("KUBERNETES_VERSIONS", ""));
@@ -288,7 +284,6 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
-        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIMES', 'openshift');
         loadtest 'containers/bci_prepare';
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
@@ -387,7 +382,6 @@ sub load_container_tests {
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
                 load_image_tests_in_k8s($run_args) if (/k8s/i);
-                load_image_tests_in_openshift if (/openshift/i);
             }
         } else {
             # Container Host tests
