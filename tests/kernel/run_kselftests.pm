@@ -46,7 +46,7 @@ sub install_from_git
 sub install_from_repo
 {
     my $repo = get_var('KSELFTEST_REPO', '');
-    zypper_call("ar -f $repo kselftests");
+    zypper_call("ar -p 1 -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call("install -y kselftests");
 }
