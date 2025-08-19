@@ -74,8 +74,7 @@ sub qesap_az_get_resource_group {
     my (%args) = @_;
     my $substring = $args{substring} ? " | grep $args{substring}" : "";
     my $job_id = get_var('QESAP_DEPLOYMENT_IMPORT', get_current_job_id());    # in case existing deployment is used
-    my $cmd = "az group list --query \"[].name\" -o tsv | grep $job_id" . $substring;
-    my $result = script_output($cmd, proceed_on_failure => 1);
+    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id $substring", proceed_on_failure => 1);
     record_info('QESAP RG', "result:$result");
     return $result;
 }
@@ -99,8 +98,8 @@ sub qesap_az_get_resource_group {
 sub qesap_az_vnet_peering {
     my (%args) = @_;
     foreach (qw(source_group target_group)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => "[0].name");
-    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => "[0].name");
+    my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => '[0].name');
+    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => '[0].name');
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
     my $vnet_show_cmd = 'az network vnet show --query id --output tsv';
@@ -203,7 +202,7 @@ sub qesap_az_vnet_peering_delete {
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => "[0].name");
+    my $target_vnet = az_network_vnet_get(resource_group => $args{target_group}, query => '[0].name');
 
     my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
@@ -216,7 +215,7 @@ sub qesap_az_vnet_peering_delete {
     my $source_ret = 0;
     record_info('Destroying job_resources->IBSM peering');
     if ($args{source_group}) {
-        my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => "[0].name");
+        my $source_vnet = az_network_vnet_get(resource_group => $args{source_group}, query => '[0].name');
         $source_ret = qesap_az_simple_peering_delete(
             rg => $args{source_group},
             vnet_name => $source_vnet,
@@ -225,7 +224,7 @@ sub qesap_az_vnet_peering_delete {
     }
     else {
         record_info('NO PEERING',
-            "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
+            'No peering between job VMs and IBSM - maybe it was not created, or the resources have been destroyed.');
     }
     record_info('Destroying IBSM -> job_resources peering');
     my $target_ret = qesap_az_simple_peering_delete(
@@ -238,7 +237,7 @@ sub qesap_az_vnet_peering_delete {
         record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
         return;
     }
-    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
+    record_soft_failure('Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487');
 }
 
 =head3 qesap_az_peering_list_cmd
@@ -288,7 +287,7 @@ sub qesap_az_get_peering_name {
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
 
     my $job_id = get_current_job_id();
-    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{resource_group}, vnet => az_network_vnet_get(resource_group => $args{resource_group}, query => "[0].name"));
+    my $cmd = qesap_az_peering_list_cmd(resource_group => $args{resource_group}, vnet => az_network_vnet_get(resource_group => $args{resource_group}, query => '[0].name'));
     $cmd .= ' | grep ' . $job_id;
     return script_output($cmd, proceed_on_failure => 1);
 }
@@ -341,7 +340,7 @@ sub qesap_az_clean_old_peerings {
 
     while (my ($key, $value) = each %peerings) {
         if (qesap_is_job_finished(job_id => $value)) {
-            record_info("Leftover Peering", "$key is leftover from a finished job. Attempting to delete...");
+            record_info('Leftover Peering', "$key is leftover from a finished job. Attempting to delete...");
             qesap_az_simple_peering_delete(rg => $args{rg}, vnet_name => $args{vnet}, peering_name => $key);
         }
     }
@@ -394,20 +393,24 @@ sub qesap_az_setup_native_fencing_permissions {
 
 =head2 qesap_az_get_tenant_id
 
-    qesap_az_get_tenant_id( subscription_id=>$subscription_id )
+    qesap_az_get_tenant_id( subscription_id => $subscription_id )
 
     Returns tenant ID related to the specified subscription ID.
-    subscription_id - valid azure subscription
 
+=over
+
+=item B<SUBSCRIPTION_ID> - valid azure subscription
+
+=back
 =cut
 
 sub qesap_az_get_tenant_id {
-    my ($subscription_id) = @_;
-    croak 'Missing subscription ID argument' unless $subscription_id;
-    my $az_cmd = "az account show --only-show-errors";
-    my $az_cmd_args = "--subscription $subscription_id --query 'tenantId' -o tsv";
-    my $tenant_id = script_output(join(' ', $az_cmd, $az_cmd_args));
-    die "Returned output '$tenant_id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $tenant_id));
+    my (%args) = @_;
+    croak 'Missing < subscription_id > argument' unless $args{subscription_id};
+    my $az_cmd = 'az account show --only-show-errors';
+    $az_cmd .= "--subscription $args{subscription_id} --query 'tenantId' -o tsv";
+    my $tenant_id = script_output($az_cmd);
+    die "Returned output '$tenant_id' does not match ID pattern" unless (az_validate_uuid_pattern(uuid => $tenant_id));
     return $tenant_id;
 }
 
@@ -511,7 +514,7 @@ sub qesap_az_list_container_files {
         my @files = split(/\n/, $ret);
         return join(',', @files);
     }
-    croak "The list azure files command output is empty or undefined.";
+    croak 'The list azure files command output is empty or undefined.';
 }
 
 =head2 qesap_az_diagnostic_log
@@ -525,14 +528,13 @@ Return a list of diagnostic file paths on the JumpHost
 sub qesap_az_diagnostic_log {
     my @diagnostic_log_files;
     my $rg = qesap_az_get_resource_group();
-    my $az_list_vm_cmd = "az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json";
-    my $vm_data = decode_json(script_output($az_list_vm_cmd));
+    my $vm_data = decode_json(script_output("az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json"));
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
     foreach (@{$vm_data}) {
         record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
         # Ignore the return code, so also miss the pipefail setting
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
+        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '&>', $boot_diagnostics_log));
         push(@diagnostic_log_files, $boot_diagnostics_log);
     }
     return @diagnostic_log_files;

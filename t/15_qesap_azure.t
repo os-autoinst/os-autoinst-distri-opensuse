@@ -24,8 +24,22 @@ subtest '[qesap_az_get_resource_group]' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /az group list.*/ } @calls), 'az command properly composed');
-    ok((any { /.*CRAB.*/ } @calls), 'az filtered by jobId');
+    ok((any { /grep.*CRAB.*/ } @calls), 'az filtered by jobId');
     ok($result eq 'BOAT', 'function return is equal to the script_output return');
+};
+
+subtest '[qesap_az_get_resource_group] substring' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
+    $qesap->redefine(get_current_job_id => sub { return 'CRAB'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $result = qesap_az_get_resource_group(substring => 'LOBSTER');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az group list.*/ } @calls), 'az command properly composed');
+    ok((any { /grep.*CRAB.*grep.*LOBSTER.*/ } @calls), 'az filtered by jobId and substring');
 };
 
 subtest '[qesap_az_vnet_peering] missing group arguments' => sub {
@@ -162,14 +176,16 @@ subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
     dies_ok { ok qesap_az_setup_native_fencing_permissions(%mandatory_args) } 'PASS with all args defined';
 };
 
+subtest '[qesap_az_get_tenant_id] missing arguments' => sub {
+    dies_ok { qesap_az_get_tenant_id() } 'Expected failure: missing mandatory arg';
+};
+
 subtest '[qesap_az_get_tenant_id]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
-    dies_ok { qesap_az_get_tenant_id() } 'Expected failure: missing mandatory arg';
-
     my $valid_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
     $qesap->redefine(script_output => sub { return $valid_uuid; });
-    #$qesap->redefine(az_validate_uuid_pattern => sub { return $valid_uuid; });
-    is qesap_az_get_tenant_id($valid_uuid), 'c0ffeeee-c0ff-eeee-1234-123456abcdef', 'Returned value is a valid UUID';
+
+    is qesap_az_get_tenant_id(subscription_id => $valid_uuid), 'c0ffeeee-c0ff-eeee-1234-123456abcdef', 'Returned value is a valid UUID';
 };
 
 subtest '[qesap_az_get_active_peerings] die for missing mandatory arguments' => sub {
@@ -366,7 +382,7 @@ subtest '[qesap_az_diagnostic_log] one VMs' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /az vm boot-diagnostics get-boot-log.*/ } @calls), 'Proper base command for vm boot-diagnostics get-boot-log');
     ok((any { /.*--ids MARLIN.*/ } @calls), 'Proper id in boot-diagnostics');
-    ok((any { /.*tee.*boot-diagnostics_NEMO.*/ } @calls), 'Proper output file in boot-diagnostics');
+    ok((any { /.*boot-diagnostics_NEMO.*/ } @calls), 'Proper output file in boot-diagnostics');
     ok((scalar @log_files == 1), 'Exactly one returned logs for one VM');
 };
 

@@ -40,7 +40,7 @@ our @EXPORT = qw(
 
 =head1 DESCRIPTION
 
-    Package with utils internal methods
+    Package with util qesap-deployment functions
 
 =head2 Methods
 
