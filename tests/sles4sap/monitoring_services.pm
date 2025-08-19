@@ -257,13 +257,14 @@ sub run {
     select_serial_terminal;
 
     configure_alloy if is_sle('>=16');
-    # Configure Exporters
-    configure_ha_exporter if get_var('HA_CLUSTER');
-    configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
-    configure_sap_host_exporter(rsc_id => $rsc_id, instance_id => $instance_id) if get_var('NW');
-    barrier_wait "MONITORING_CONF_DONE_$cluster_name" if get_var('HA_CLUSTER');    # Synchronize the nodes if needed
-    configure_node_exporter;
-
+    if (is_sle('>16') || is_sle("<=15-SP7")) {
+        # Configure Exporters
+        configure_ha_exporter if get_var('HA_CLUSTER');
+        configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
+        configure_sap_host_exporter(rsc_id => $rsc_id, instance_id => $instance_id) if get_var('NW');
+        barrier_wait "MONITORING_CONF_DONE_$cluster_name" if get_var('HA_CLUSTER');    # Synchronize the nodes if needed
+        configure_node_exporter;
+    }
 }
 
 sub test_flags {
