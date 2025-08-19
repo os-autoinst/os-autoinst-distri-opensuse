@@ -424,7 +424,11 @@ sub check_guest_health {
     if ($vmstate eq "ok") {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
         return 'fail' if $failures;
-        record_info("Healthy guest!", "$vm looks good so far!");
+        if (script_run("ssh root\@$machine 'ping -c3 www.opensuse.org'") == 0) {
+            record_info("Healthy guest!", "$vm looks good so far!");
+        } else {
+            record_info("Possible network inaccessibility", "Unable to access www.opensuse.org from $machine!", result => 'fail');
+        }
     }
     else {
         record_info("Skip check_failures_in_journal for $vm", "$vm is not in desired state judged by either virsh or xl tool stack", result => 'softfail');
@@ -482,19 +486,15 @@ sub download_script {
             if (script_run("ssh root\@$machine 'hostname'") == 0) {
                 $script_url =~ /^https?:\/\/([\w\.]+)(:\d+)?\/.*/;
                 record_info("Guest $machine ssh accessible from host", "Debugging its network availability", result => 'fail');
-                enter_cmd("ssh root\@$machine 'ping -c3 $1'", timeout => 10);
-                save_screenshot;
-                enter_cmd("ssh root\@$machine 'traceroute $1'", timeout => 10);
-                enter_cmd("ssh root\@$machine 'ping -c3 openqa.suse.de'", timeout => 10);
-                save_screenshot;
-                enter_cmd("ssh root\@$machine 'ping -c3 10.145.10.207'", timeout => 10);
-                enter_cmd("ssh root\@$machine 'ping -c3 192.168.123.1'", timeout => 10);
-                enter_cmd("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'", timeout => 10);
-                save_screenshot;
-                enter_cmd("ssh root\@$machine 'ip a'");
-                enter_cmd("ssh root\@$machine 'cat /etc/resolv.conf'");
-                enter_cmd('cat /etc/resolv.conf');
-                save_screenshot;
+                script_run("ssh root\@$machine 'ping -c3 $1'");
+                script_run("ssh root\@$machine 'traceroute $1'");
+                script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
+                script_run("ssh root\@$machine 'ping -c3 10.145.10.207'");
+                script_run("ssh root\@$machine 'ping -c3 192.168.123.1'");
+                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'", timeout => 10);
+                script_run("ssh root\@$machine 'ip a'");
+                script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
+                script_run('cat /etc/resolv.conf');
                 record_info("Debugging done", "for Guest $machine", result => 'fail');
             }
             else {
