@@ -1278,7 +1278,7 @@ sub load_consoletests {
     if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_krypton_argon && !is_virtualization_server && !is_vmware) {
         loadtest "console/firewall_enabled";
     }
-    if (is_sle('>=16.0') && get_var('FLAVOR', '') =~ /Minimal-VM-Cloud-sap/) {
+    if (is_sle('>=16.0') && get_var('FLAVOR', '') =~ /Minimal-VM-.*-sap/) {
         loadtest "console/validate_selinux_permissive";
     }
     if (is_jeos) {
