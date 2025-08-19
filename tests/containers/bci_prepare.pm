@@ -27,6 +27,7 @@ use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use transactional qw(trup_call reboot_on_changes);
 
 sub prepare_virtual_env {
     my ($version, $sp, $host_distri) = @_;
@@ -65,6 +66,9 @@ sub prepare_virtual_env {
             push @packages, qw(git-core python311);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
+    } elsif ($host_distri =~ /micro/) {
+        trup_call('pkg in skopeo tar git jq');
+        reboot_on_changes;
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -72,8 +76,8 @@ sub prepare_virtual_env {
     assert_script_run("$python --version");
     assert_script_run("$python -m venv bci");
     assert_script_run("source $virtualenv");
-    assert_script_run('pip --quiet install --upgrade pip', timeout => $install_timeout);
-    assert_script_run('pip --quiet install tox', timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install --upgrade pip", timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install tox", timeout => $install_timeout);
     assert_script_run('deactivate');
 }
 
@@ -110,7 +114,7 @@ sub run {
     # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     # For BCI tests using podman, buildah package is also needed
-    install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
+    install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
 }
 
 sub test_flags {
