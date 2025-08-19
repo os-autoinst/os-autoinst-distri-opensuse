@@ -23,7 +23,6 @@ subtest '[qesap_aws_get_vpc_id]' => sub {
 
     set_var('PUBLIC_CLOUD_REGION', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    # qesap_az_get_peering_name
     ok((any { /aws ec2 describe-instances/ } @calls), 'Base command aws ec2 describe-instances');
     ok((any { /--region OCEAN/ } @calls), 'Region from argument');
     ok((any { /--filters.*Values=LATTE/ } @calls), 'Filter resource_group in tag');

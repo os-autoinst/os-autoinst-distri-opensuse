@@ -5,16 +5,16 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use Test::Mock::Time;
-
 use List::Util qw(any none);
-
 use testapi qw(set_var);
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::qesap_azure;
+
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
 
 
 subtest '[qesap_az_get_resource_group]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(get_current_job_id => sub { return 'CRAB'; });
@@ -35,7 +35,7 @@ subtest '[qesap_az_vnet_peering] missing group arguments' => sub {
 };
 
 subtest '[qesap_az_vnet_peering]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(az_network_vnet_get => sub {
             my (%args) = @_;
@@ -69,7 +69,7 @@ subtest '[qesap_az_get_peering_name] missing resource_group arguments' => sub {
 };
 
 subtest '[qesap_az_vnet_peering_delete]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(get_current_job_id => sub { return 42; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'NEMO'; });
@@ -90,7 +90,7 @@ subtest '[qesap_az_vnet_peering_delete]' => sub {
 };
 
 subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     my @soft_failure;
     $qesap->redefine(get_current_job_id => sub { return 42; });
@@ -130,9 +130,9 @@ subtest '[qesap_az_setup_native_fencing_permissions] missing argument' => sub {
 };
 
 subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     my $vm_id = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return $vm_id; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
 
@@ -149,8 +149,8 @@ subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
 };
 
 subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'AnneBonny'; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
 
@@ -163,7 +163,7 @@ subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
 };
 
 subtest '[qesap_az_get_tenant_id]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     dies_ok { qesap_az_get_tenant_id() } 'Expected failure: missing mandatory arg';
 
     my $valid_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
@@ -173,7 +173,7 @@ subtest '[qesap_az_get_tenant_id]' => sub {
 };
 
 subtest '[qesap_az_get_active_peerings] die for missing mandatory arguments' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
 
     # Test missing arguments
     dies_ok { qesap_az_get_active_peerings(); } "Expected die if called without arguments";
@@ -182,7 +182,7 @@ subtest '[qesap_az_get_active_peerings] die for missing mandatory arguments' => 
 };
 
 subtest '[qesap_az_get_active_peerings] test correct ID extraction' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
 
     $qesap->redefine(script_output => sub {
             if ($_[0] =~ /myresourcegroup/ && $_[0] =~ /myvnetname/) {
@@ -197,12 +197,12 @@ subtest '[qesap_az_get_active_peerings] test correct ID extraction' => sub {
     );
 
     foreach my $key (keys %expected_results) {
-        ok($results{$key} == $expected_results{$key}, "Correct job id extracted for vnet name $key");
+        ok(($results{$key} == $expected_results{$key}), "Correct job id extracted for vnet name $key");
     }
 };
 
 subtest '[qesap_az_get_active_peerings] test for incorrect job ID' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my %results;
 
     $qesap->redefine(script_output => sub {
@@ -211,14 +211,14 @@ subtest '[qesap_az_get_active_peerings] test for incorrect job ID' => sub {
             }
     });
     # Test incorrect job ID
-    ok(!exists $results{"vnet-nojobid-vnet-other"}, "No job id extracted for vnet name without a valid job id");
+    ok((!exists $results{"vnet-nojobid-vnet-other"}), "No job id extracted for vnet name without a valid job id");
 };
 
 subtest '[qesap_az_clean_old_peerings]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap_az = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @delete_calls;
 
-    $qesap->redefine(qesap_az_get_active_peerings => sub {
+    $qesap_az->redefine(qesap_az_get_active_peerings => sub {
             return (
                 peering1 => '100001',
                 peering2 => '100002',
@@ -226,23 +226,24 @@ subtest '[qesap_az_clean_old_peerings]' => sub {
             );
     });
 
-    $qesap->redefine(qesap_is_job_finished => sub {
-            my ($job_id) = @_;
-            return $job_id eq '100001' || $job_id eq '100003';    # Jobs 100001 and 100003 are finished
+    $qesap_az->redefine(qesap_is_job_finished => sub {
+            my (%args) = @_;
+            return $args{job_id} eq '100001' || $args{job_id} eq '100003';    # Jobs 100001 and 100003 are finished
     });
 
-    $qesap->redefine(qesap_az_simple_peering_delete => sub {
+    $qesap_az->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    $qesap_az->redefine(qesap_az_simple_peering_delete => sub {
             my (%args) = @_;
             push @delete_calls, $args{peering_name};
     });
 
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
     qesap_az_clean_old_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
 
-    ok(any { $_ eq 'peering1' } @delete_calls, "Peering1 was deleted");
-    ok(none { $_ eq 'peering2' } @delete_calls, "Peering2 was not deleted");
-    ok(any { $_ eq 'peering3' } @delete_calls, "Peering3 was deleted");
+    note("\n  DC-->  " . join("\n  DC-->  ", @delete_calls));
+    ok((any { $_ eq 'peering1' } @delete_calls), "Peering1 was deleted");
+    ok((none { $_ eq 'peering2' } @delete_calls), "Peering2 was not deleted");
+    ok((any { $_ eq 'peering3' } @delete_calls), "Peering3 was deleted");
 };
 
 subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
@@ -252,7 +253,7 @@ subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
 };
 
 subtest '[qesap_az_create_sas_token]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -260,7 +261,7 @@ subtest '[qesap_az_create_sas_token]' => sub {
     my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok($ret eq 'BOAT', "The function return the token returned by the az command");
+    ok(($ret eq 'BOAT'), "The function return the token returned by the az command");
     ok((any { /az storage container generate-sas.*/ } @calls), 'Main az command `az storage container generate-sas` properly composed');
     ok((any { /.*--account-name DORY.*/ } @calls), 'storage argument is used for --account-name');
     ok((any { /.*--name NEMO.*/ } @calls), 'container argument is used for --name');
@@ -272,7 +273,7 @@ subtest '[qesap_az_create_sas_token]' => sub {
 };
 
 subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -284,7 +285,7 @@ subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
 };
 
 subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -303,7 +304,7 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
 };
 
 subtest '[qesap_az_list_container_files] missing arguments' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     dies_ok { qesap_az_list_container_files(storage => 'TAD', token => 'SAS', prefix => 'GURGLE') } 'Missing container argument';
     dies_ok { qesap_az_list_container_files(container => 'BLOAT', token => 'SAS', prefix => 'GURGLE') } 'Missing storage argument';
     dies_ok { qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', prefix => 'GURGLE') } 'Missing token argument';
@@ -311,7 +312,7 @@ subtest '[qesap_az_list_container_files] missing arguments' => sub {
 };
 
 subtest '[qesap_az_list_container_files] bad output' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     my $so_ret = '';
     $qesap->redefine(script_output => sub { return $so_ret; });
@@ -321,7 +322,7 @@ subtest '[qesap_az_list_container_files] bad output' => sub {
 };
 
 subtest '[qesap_az_list_container_files] command composition' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GURGLE/ifrit.rpm\nGURGLE/shiva.src.rpm' });
     qesap_az_list_container_files(container => 'BLOAT', storage => 'TAD', token => 'SAS', prefix => 'GURGLE');
@@ -333,7 +334,7 @@ subtest '[qesap_az_list_container_files] command composition' => sub {
 };
 
 subtest '[qesap_az_diagnostic_log] no VMs' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(qesap_az_get_resource_group => sub { return 'DENTIST'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -351,7 +352,7 @@ subtest '[qesap_az_diagnostic_log] no VMs' => sub {
 };
 
 subtest '[qesap_az_diagnostic_log] one VMs' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_azure', no_auto => 1);
     my @calls;
     $qesap->redefine(qesap_az_get_resource_group => sub { return 'DENTIST'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -368,6 +369,5 @@ subtest '[qesap_az_diagnostic_log] one VMs' => sub {
     ok((any { /.*tee.*boot-diagnostics_NEMO.*/ } @calls), 'Proper output file in boot-diagnostics');
     ok((scalar @log_files == 1), 'Exactly one returned logs for one VM');
 };
-
 
 done_testing;

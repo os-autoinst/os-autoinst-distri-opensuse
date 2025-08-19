@@ -11,6 +11,7 @@ use testapi;
 use publiccloud::utils;
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::qesap_azure;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
