@@ -424,7 +424,7 @@ sub check_guest_health {
     if ($vmstate eq "ok") {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
         return 'fail' if $failures;
-        if (script_run("ssh root\@$vm 'ping -c3 www.opensuse.org'") == 0) {
+        if (script_run("ssh root\@$vm 'ping -c3 www.opensuse.org'") == 0 or script_run("ssh root\@$vm 'ping -c3 www.qemu.org'") == 0) {
             record_info("Healthy guest!", "$vm looks good so far!");
         } else {
             record_info("Possible network inaccessibility", "Unable to access www.opensuse.org from $vm!", result => 'fail');
