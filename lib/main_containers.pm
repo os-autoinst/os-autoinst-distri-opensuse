@@ -55,6 +55,14 @@ sub load_image_test {
 }
 
 sub load_third_party_image_test {
+    # Third party image tests are not needed or redundant on:
+    # - Staging
+    # - Public Cloud
+    # - VMWare due to lack of latest CPU version support
+    # - Testing alternative cgroups version
+    # - Testing latest Tumbleweed image with CONTAINER_IMAGE_TO_TEST
+    # - FIPS tests
+    return if (is_staging || is_public_cloud || is_vmware || get_var("CONTAINERS_CGROUP_VERSION") || get_var("CONTAINER_IMAGE_TO_TEST") || get_var("FIPS_ENABLED"));
     my ($run_args) = @_;
     loadtest('containers/third_party_images', run_args => $run_args, name => $run_args->{runtime} . '_3rd_party_images');
 }
@@ -133,7 +141,7 @@ sub load_host_tests_podman {
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_third_party_image_test($run_args) unless (is_staging || is_public_cloud);
+    load_third_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # podman artifact needs podman 5.4.0
