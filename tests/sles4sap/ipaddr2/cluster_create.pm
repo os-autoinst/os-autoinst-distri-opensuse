@@ -22,7 +22,7 @@ Its primary tasks are:
 - Initializes and configures the Pacemaker cluster across the two SUT nodes,
   preparing them for high-availability resource management.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 

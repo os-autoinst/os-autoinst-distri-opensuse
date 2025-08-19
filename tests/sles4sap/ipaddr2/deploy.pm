@@ -16,7 +16,7 @@ It creates the necessary resources in Azure, which includes:
 - One bastion VM, serving as an entry point to the infrastructure.
 - Two VMs that will be later joined in a crm cluster, forming the SUT (System Under Test).
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 

@@ -19,7 +19,7 @@ It performs the following key configuration steps:
   and between the two SUT VMs.
 - Generates SSH keys on the SUT VMs to allow passwordless communication between them.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -36,7 +36,7 @@ If enabled (default, 1), this step is skipped, assuming cloud-init has already p
 =item B<IPADDR2_ROOTLESS>
 
 Determines the user for internal SSH key generation. If set to 0, keys are
-generated for the 'root' user. Otherwise, the default user (e.g., 'cloudadmin') is used.
+generated for the 'root' user. Otherwise, the default user (for example, 'cloudadmin') is used.
 
 =item B<IPADDR2_KEYCHECK_OLD>
 

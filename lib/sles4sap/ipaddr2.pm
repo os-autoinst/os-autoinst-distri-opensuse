@@ -13,12 +13,12 @@ use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
 use mmapi qw( get_current_job_id );
-use sles4sap::azure_cli;
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use sles4sap::ibsm;
+use sles4sap::azure_cli;
 
 
 =head1 SYNOPSIS
@@ -67,6 +67,7 @@ use constant SSH_KEY_ID => 'id_rsa';
 use constant SSH_VERBOSE => '-vvv';
 use constant SSH_LOG => '/var/tmp/ssh_sut.log';
 use constant SSH_PROXY_LOG => '/var/tmp/ssh_proxy_sut.log';
+use constant PING_CMD => 'ping -c 3';
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
@@ -77,8 +78,6 @@ our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our %priv_net_address_range = get_private_ip_range();
 our $priv_ip_range = $priv_net_address_range{priv_ip_range};
 our $frontend_ip = $priv_ip_range . '.50';
-our $ping_cmd = 'ping -c 3';
-our $key_id = 'id_rsa';
 
 =head2 get_private_ip_range
 
@@ -966,7 +965,7 @@ sub ipaddr2_os_connectivity_sanity {
 
     # intentionally ignore the return as ping or nc
     # could be missing on the qcow2 running the test
-    script_run("$ping_cmd $args{bastion_ip}");
+    script_run(PING_CMD . " $args{bastion_ip}");
     script_run("nc -vz -w 1 $args{bastion_ip} 22");
 
     foreach my $i (1 .. 2) {
@@ -978,7 +977,7 @@ sub ipaddr2_os_connectivity_sanity {
             ipaddr2_get_internal_vm_name(id => $i)) {
             # tracepath is not available by default in 12sp5
             # so only use ping and dig
-            foreach my $cmd ($ping_cmd, 'dig') {
+            foreach my $cmd (PING_CMD, 'dig') {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
@@ -988,11 +987,11 @@ sub ipaddr2_os_connectivity_sanity {
 
     # Check if the two internal VM can ping one to each other
     ipaddr2_ssh_internal(id => 1,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2)),
+        cmd => join(' ', PING_CMD, ipaddr2_get_internal_vm_private_ip(id => 2)),
         bastion_ip => $args{bastion_ip});
 
     ipaddr2_ssh_internal(id => 2,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 1)),
+        cmd => join(' ', PING_CMD, ipaddr2_get_internal_vm_private_ip(id => 1)),
         bastion_ip => $args{bastion_ip});
 }
 
@@ -1513,7 +1512,6 @@ Return 1 if all modules are registered, 0 if at least one is not.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_check {
@@ -1556,7 +1554,6 @@ ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_register {
@@ -1603,7 +1600,6 @@ This function is in charge to:
 =item B<external_repo> - Optional argument: allow to add a PackageHub product
 
 =back
-
 =cut
 
 sub ipaddr2_configure_web_server {
@@ -1647,7 +1643,6 @@ Call zypper refresh
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_repo_refresh {
@@ -1676,7 +1671,6 @@ List all configured zypper repos
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_repo_list {
@@ -1790,7 +1784,6 @@ Move the rsc_web_00 resource to the indicated node
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_crm_move {
@@ -1824,7 +1817,6 @@ Clear all location constrain used during the test
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_crm_clear {
@@ -1861,7 +1853,6 @@ Return 1 as soon as it gets the id in the response. Return 0 if not within 10 mi
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_wait_for_takeover {
@@ -1905,7 +1896,6 @@ Return result of searching str_match in the curl response
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_get_web {
@@ -1937,7 +1927,6 @@ the resources.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_test_master_vm {
@@ -2005,7 +1994,7 @@ sub ipaddr2_test_master_vm {
 
     # Check if the master internal VM can ping the virtual IP
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => join(' ', $ping_cmd, $frontend_ip),
+        cmd => join(' ', PING_CMD, $frontend_ip),
         bastion_ip => $args{bastion_ip});
 }
 
@@ -2025,7 +2014,6 @@ the resources.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_test_other_vm {
@@ -2061,7 +2049,6 @@ Create network peering
 =item B<ibsm_rg> - Resource group of the IBSm
 
 =back
-
 =cut
 
 sub ipaddr2_network_peering_create {
@@ -2094,7 +2081,6 @@ Add download.suse.de server to hosts by specifying IBSM address
 =item B<repo_host> - host name of the repo server. Default is download.suse.de.
 
 =back
-
 =cut
 
 sub ipaddr2_repos_add_server_to_hosts {
@@ -2143,7 +2129,6 @@ Patch system
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_patch_system {
@@ -2240,7 +2225,6 @@ Register addons on SUT
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_addons {

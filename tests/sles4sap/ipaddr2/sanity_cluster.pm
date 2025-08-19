@@ -18,7 +18,7 @@ It primarily calls the C<ipaddr2_cluster_sanity> function from the shared
 library to perform the checks.
 
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -28,7 +28,7 @@ Specifies the public cloud provider. This module currently only supports 'AZURE'
 
 =item B<IPADDR2_DIAGNOSTIC>
 
-If enabled (1), extended deployment logs (e.g., boot diagnostics) are
+If enabled (1), extended deployment logs (for example, boot diagnostics) are
 collected on failure.
 
 =item B<IPADDR2_CLOUDINIT>

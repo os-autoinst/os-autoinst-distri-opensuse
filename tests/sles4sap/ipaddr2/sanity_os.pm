@@ -20,7 +20,7 @@ SSH key setup for the configured user, systemd state, and cloud-init status.
 The cluster-level checks validate the overall status of the Pacemaker cluster
 and ensure all configured resources are running as expected.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -37,7 +37,7 @@ cluster running as 'root'.
 
 =item B<IPADDR2_DIAGNOSTIC>
 
-If enabled (1), extended deployment logs (e.g., boot diagnostics) are collected on failure.
+If enabled (1), extended deployment logs (for example, boot diagnostics) are collected on failure.
 
 =item B<IPADDR2_CLOUDINIT>
 
