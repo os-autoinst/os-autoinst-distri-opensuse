@@ -20,8 +20,10 @@
       <li><a href="#zp_ibsm2sut_peering_name">zp_ibsm2sut_peering_name</a></li>
       <li><a href="#zp_azure_netpeering">zp_azure_netpeering</a></li>
       <li><a href="#zp_ssh_connect">zp_ssh_connect</a></li>
-      <li><a href="#zp_add_repos">zp_add_repos</a></li>
+      <li><a href="#zp_repos_add">zp_repos_add</a></li>
       <li><a href="#zp_zypper_patch">zp_zypper_patch</a></li>
+      <li><a href="#zp_scc_check">zp_scc_check</a></li>
+      <li><a href="#zp_scc_register">zp_scc_register</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/cloud_zypper_patch.pm</h1>
@@ -64,7 +66,7 @@
 
 <dl>
 
-<dt id="target_rg---optional-name-of-the-resource-group-of-the-IBSm"><b>target_rg</b> - (optional) name of the resource group of the IBSm</dt>
+<dt id="ibsm_rg---optional-name-of-the-resource-group-of-the-IBSm"><b>ibsm_rg</b> - (optional) name of the resource group of the IBSm</dt>
 <dd>
 
 </dd>
@@ -72,7 +74,7 @@
 
 <h2 id="zp_ibsm2sut_peering_name">zp_ibsm2sut_peering_name</h2>
 
-<pre><code>my $peering_name = zp_ibsm2sut_peering_name(target_rg =&gt; get_required_var(&#39;ZP_IBSM_RG&#39;));</code></pre>
+<pre><code>my $peering_name = zp_ibsm2sut_peering_name(target_rg =&gt; get_required_var(&#39;IBSM_RG&#39;));</code></pre>
 
 <p>Get the Azure resource group name for this test</p>
 
@@ -90,7 +92,7 @@
 
 <h2 id="zp_azure_netpeering">zp_azure_netpeering</h2>
 
-<pre><code>zp_azure_netpeering(target_rg =&gt; get_required_var(&#39;ZP_IBSM_RG&#39;))</code></pre>
+<pre><code>zp_azure_netpeering(target_rg =&gt; get_required_var(&#39;IBSM_RG&#39;))</code></pre>
 
 <dl>
 
@@ -106,17 +108,53 @@
 
 <p>First ssh connections</p>
 
-<h2 id="zp_add_repos">zp_add_repos</h2>
+<h2 id="zp_repos_add">zp_repos_add</h2>
 
-<pre><code>zp_add_repos()</code></pre>
+<pre><code>zp_repos_add()</code></pre>
 
 <p>Add MU repos to the zypper list</p>
+
+<dl>
+
+<dt id="ip---IBSm-IP"><b>ip</b> - IBSm IP</dt>
+<dd>
+
+</dd>
+<dt id="name---hostname-of-the-download-server"><b>name</b> - hostname of the download server</dt>
+<dd>
+
+</dd>
+<dt id="repos---array-of-repos.-It-could-be-an-empty-list"><b>repos</b> - array of repos. It could be an empty list.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="zp_zypper_patch">zp_zypper_patch</h2>
 
 <pre><code>zp_zypper_patch()</code></pre>
 
 <p>Run zypper patch</p>
+
+<h2 id="zp_scc_check">zp_scc_check</h2>
+
+<pre><code>my $is_registered = zp_scc_check();</code></pre>
+
+<p>Check if the OS is registered by calling SUSEConnect -s. Return 1 if all modules are registered, 0 if at least one is not.</p>
+
+<h2 id="zp_scc_register">zp_scc_register</h2>
+
+<pre><code>zp_scc_register(scc_code =&gt; &#39;1234567890&#39;);</code></pre>
+
+<p>Register the image. (For the moment) it only supports registercloudguest endpoint. Notice that this library also supports registration through ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.</p>
+
+<dl>
+
+<dt id="scc_code---registration-code"><b>scc_code</b> - registration code</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
