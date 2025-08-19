@@ -491,7 +491,7 @@ sub download_script {
                 script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
                 script_run("ssh root\@$machine 'ping -c3 10.145.10.207'");
                 script_run("ssh root\@$machine 'ping -c3 192.168.123.1'");
-                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'", timeout => 10);
+                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
                 script_run("ssh root\@$machine 'ip a'");
                 script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
                 script_run('cat /etc/resolv.conf');
