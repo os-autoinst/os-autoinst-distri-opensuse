@@ -171,8 +171,11 @@ sub run {
         $tests .= "--test $_ " for @tests;
     }
 
-    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
-    assert_script_run("./run_kselftest.sh --per-test-log --override-timeout $timeout $tests > summary.tap", 7200);
+    my $timeout;
+    if ($timeout = get_var('KSELFTEST_TIMEOUT')) {
+        $timeout = "--override-timeout $timeout";    # Individual timeout for each test in the collection
+    }
+    assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests > summary.tap", 7200);
     $self->post_process($collection, @tests);
 }
 
