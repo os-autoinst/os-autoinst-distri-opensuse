@@ -8,9 +8,7 @@ vars:
   BOOTPARAMS: 'fips=1'
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
-  - yam/agama/patch_agama_tests
-  - yam/agama/agama
+  - '{{agama_flavor}}'
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_base_product
@@ -21,3 +19,12 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+conditional_schedule:
+  agama_flavor:
+    FLAVOR:
+      Online:
+        - yam/agama/agama_auto
+      Full:
+        - yam/agama/agama_arrange
+        - yam/agama/patch_agama_tests
+        - yam/agama/agama
