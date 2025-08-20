@@ -17,6 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
 use Utils::Backends 'is_pvm';
+use Utils::Architectures 'is_aarch64';
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 
 my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
@@ -26,7 +27,11 @@ sub reboot_and_select_serial_term {
 
     is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot if !is_transactional;
+    if (is_sle('>=16') && is_aarch64) {
+        $self->wait_boot_past_bootloader(textmode => 1);
+    } else {
+        $self->wait_boot if !is_transactional;
+    }
     select_serial_terminal;
     return;
 }
