@@ -58,16 +58,13 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use publiccloud::utils;
 use sles4sap::ipaddr2 qw(
-  ipaddr2_deployment_logs
-  ipaddr2_cloudinit_logs
-  ipaddr2_infra_destroy
   ipaddr2_scc_addons
   ipaddr2_scc_check
   ipaddr2_scc_register
   ipaddr2_repo_refresh
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -117,9 +114,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

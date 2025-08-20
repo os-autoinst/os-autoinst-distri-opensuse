@@ -62,16 +62,10 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::azure qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_pubip
-  ipaddr2_cluster_sanity
-  ipaddr2_deployment_logs
-  ipaddr2_infra_destroy
-  ipaddr2_cloudinit_logs
   ipaddr2_os_sanity
-  ipaddr2_azure_resource_group
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -88,7 +82,6 @@ sub run {
     my %sanity_args = (bastion_ip => $bastion_ip);
     $sanity_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_os_sanity(%sanity_args);
-    ipaddr2_cluster_sanity(bastion_ip => $bastion_ip);
 }
 
 sub test_flags {
@@ -97,12 +90,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 
