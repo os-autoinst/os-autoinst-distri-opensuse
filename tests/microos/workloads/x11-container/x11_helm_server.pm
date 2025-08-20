@@ -39,15 +39,11 @@ sub run {
         $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
     }
 
-    select_serial_terminal();
+    select_serial_terminal;
 
     set_hostname(get_var('HOSTNAME') // 'server');
     setup_static_mm_network('10.0.2.101/24');
     ensure_client_reachable();
-
-    # Permit ssh login as root
-    # assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
-    # assert_script_run("systemctl restart sshd");
 
     # Install the package SUSE certificate
     enter_trup_shell;
@@ -57,8 +53,7 @@ sub run {
     exit_trup_shell;
     check_reboot_changes;
 
-
-    # # Install helm
+    # Install helm
     install_k3s();
     set_var('HELM_INSTALL_UPSTREAM', 1);
     install_helm();
@@ -76,20 +71,13 @@ sub run {
     # Enable loop play to ensure the "pactl list sink-inputs" can get a verbose list for each active audio stream
     assert_and_click("firefox_loop_play");
 
-    # Notify that the server is ready
-    # mutex_create("x11_helm_server_ready");
-    #
-    # wait_for_children();
-
-    select_serial_terminal();
+    select_serial_terminal;
 
     my $pod_name = script_output("kubectl get pods -n kiosk -o name | cut -d '/' -f 2");
-    assert_script_run("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'ps aux'");
+    validate_script_output("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'ps aux'", sub { /^pulse.*pulseaudio$/m });
     assert_script_run("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'pactl list sink-inputs'");
 
     assert_script_run("helm uninstall kiosk --namespace kiosk");
-
-    select_console 'root-console';
 }
 
 1;
