@@ -199,7 +199,7 @@
 
 <pre><code>my $res = az_network_vnet_get(resource_group =&gt; &#39;openqa-rg&#39;)</code></pre>
 
-<p>Return the output of az network vnet list</p>
+<p>Return the output of az network vnet list as an object. Take care that this command is always calling the az cli with --json and returns the decoded object. But the format of the object can change accordingly to the provided value of --query. It is also possible that some query result in the function to die on decode_json.</p>
 
 <dl>
 
@@ -529,7 +529,7 @@
 
 <h2 id="az_vm_as_show">az_vm_as_show</h2>
 
-<pre><code>az_vm_as_show(resource_group =&gt; &#39;openqa-rg&#39;);</code></pre>
+<pre><code>az_vm_as_show(resource_group =&gt; &#39;openqa-rg&#39;, name =&gt; &#39;openqa-as&#39;);</code></pre>
 
 <p>Show all the details of an availability set. For the moment it only show and does not return anything.</p>
 
@@ -1067,6 +1067,10 @@
 
 </dd>
 <dt id="vnet---existing-vnet-in-resource_group-used-as-source-of-the-peering1"><b>vnet</b> - existing vnet in resource_group, used as source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Optional-Timeout-for-the-assert_script_run-command"><b>timeout</b> - (Optional) Timeout for the assert_script_run command</dt>
 <dd>
 
 </dd>

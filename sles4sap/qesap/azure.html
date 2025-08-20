@@ -20,11 +20,6 @@
       <li><a href="#Methods">Methods</a>
         <ul>
           <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
-          <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
-          <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
-          <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
-          <li><a href="#qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</a></li>
-          <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
           <li><a href="#qesap_az_get_active_peerings">qesap_az_get_active_peerings</a></li>
         </ul>
       </li>
@@ -64,106 +59,6 @@ SPDX-License-Identifier: FSFAP</code></pre>
 <dl>
 
 <dt id="SUBSTRING---optional-substring-to-be-used-with-additional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with additional grep at the end of the command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering">qesap_az_vnet_peering</h3>
-
-<pre><code>Create a pair of network peering between
-the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source"><b>SOURCE_GROUP</b> - resource group of source</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target"><b>TARGET_GROUP</b> - resource group of target</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</h3>
-
-<pre><code>Delete a single peering one way</code></pre>
-
-<dl>
-
-<dt id="RG---Name-of-the-resource-group"><b>RG</b> - Name of the resource group</dt>
-<dd>
-
-</dd>
-<dt id="VNET_NAME---Name-of-the-vnet"><b>VNET_NAME</b> - Name of the vnet</dt>
-<dd>
-
-</dd>
-<dt id="PEERING_NAME---Name-of-the-peering"><b>PEERING_NAME</b> - Name of the peering</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---Optional-Timeout-for-the-script_run-command"><b>TIMEOUT</b> - (Optional) Timeout for the script_run command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</h3>
-
-<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source.-This-parameter-is-optional-if-not-provided-the-related-peering-will-be-ignored"><b>SOURCE_GROUP</b> - resource group of source. This parameter is optional, if not provided the related peering will be ignored.</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target.-This-parameter-is-mandatory-and-the-associated-resource-group-is-supposed-to-still-exist"><b>TARGET_GROUP</b> - resource group of target. This parameter is mandatory and the associated resource group is supposed to still exist.</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins1"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</h3>
-
-<pre><code>Compose the azure peering list command, using the provided:
-- resource group, and
-- vnet
-Returns the command string to be run.</code></pre>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
-<dd>
-
-</dd>
-<dt id="VNET---vnet-connected-to-the-peering"><b>VNET</b> - vnet connected to the peering</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
-
-<pre><code>Search for all network peering related to both:
- - resource group related to the current job
- - the provided resource group.
-Returns the peering name or
-empty string if a peering doesn&#39;t exist</code></pre>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering1"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
 <dd>
 
 </dd>

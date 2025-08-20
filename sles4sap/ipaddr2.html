@@ -60,6 +60,7 @@
       <li><a href="#ipaddr2_repos_add_server_to_hosts">ipaddr2_repos_add_server_to_hosts</a></li>
       <li><a href="#ipaddr2_patch_system">ipaddr2_patch_system</a></li>
       <li><a href="#ipaddr2_scc_addons">ipaddr2_scc_addons</a></li>
+      <li><a href="#ipaddr2_cleanup">ipaddr2_cleanup</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -214,8 +215,7 @@
     src          =&gt; 1,
     dst          =&gt; 2,
     user         =&gt; &#39;cloudadmin&#39;,
-    key_checking =&gt; &#39;accept-new&#39;,
-);</code></pre>
+    key_checking =&gt; &#39;accept-new&#39;);</code></pre>
 
 <p>Helper for <code>ipaddr2_internal_key_gen</code> and contribute to establish password-less SSH access from a source internal VM to a destination internal VM for a specific user. It takes the public SSH key of the source VM (previously generated and stored on the openQA worker) and adds it to the <code>authorized_keys</code> file on the destination VM.</p>
 
@@ -251,7 +251,7 @@
 
 <pre><code>ipaddr2_deployment_sanity()</code></pre>
 
-<p>Run some checks on the existing deployment using the az command line. die in case of failure</p>
+<p>Run some checks on the existing deployment using the az command line. Die in case of failure</p>
 
 <h2 id="ipaddr2_os_sanity">ipaddr2_os_sanity</h2>
 
@@ -660,7 +660,7 @@
 
 <h2 id="ipaddr2_get_internal_vm_name">ipaddr2_get_internal_vm_name</h2>
 
-<pre><code>my $vm_name = ipaddr2_get_internal_vm_name(id =&gt; 42);</code></pre>
+<pre><code>my $vm_name = ipaddr2_get_internal_vm_name(id =&gt; 2);</code></pre>
 
 <p>Compose and return a string for the vm name</p>
 
@@ -674,7 +674,7 @@
 
 <h2 id="ipaddr2_get_internal_vm_private_ip">ipaddr2_get_internal_vm_private_ip</h2>
 
-<pre><code>my $private_ip = ipaddr2_get_internal_vm_private_ip(id =&gt; 42);</code></pre>
+<pre><code>my $private_ip = ipaddr2_get_internal_vm_private_ip(id =&gt; 2);</code></pre>
 
 <p>compose and return a string representing the VM private IP</p>
 
@@ -688,7 +688,7 @@
 
 <h2 id="ipaddr2_get_worker_tmp_for_internal_vm">ipaddr2_get_worker_tmp_for_internal_vm</h2>
 
-<pre><code>my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);</code></pre>
+<pre><code>my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(2);</code></pre>
 
 <p>Return a path in /tmp of the worker used to store files associated two one of the internal VM</p>
 
@@ -824,7 +824,9 @@
 
 <h2 id="ipaddr2_repos_add_server_to_hosts">ipaddr2_repos_add_server_to_hosts</h2>
 
-<pre><code>ipaddr2_repos_add_server_to_hosts(ibsm_ip =&gt; , incident_repos =&gt; &#39;AAAA,BBBB&#39;);</code></pre>
+<pre><code>ipaddr2_repos_add_server_to_hosts(
+    ibsm_ip =&gt; get_required_var(&#39;IBSM_IP&#39;),
+    incident_repos =&gt; &#39;AAAA,BBBB&#39;);</code></pre>
 
 <p>Add download.suse.de server to hosts by specifying IBSM address</p>
 
@@ -864,7 +866,7 @@
 
 <h2 id="ipaddr2_scc_addons">ipaddr2_scc_addons</h2>
 
-<pre><code>ipaddr2_scc_addons();</code></pre>
+<pre><code>ipaddr2_scc_addons(scc_addons =&gt; get_var(&#39;SCC_ADDONS&#39;));</code></pre>
 
 <p>Register addons on SUT</p>
 
@@ -875,6 +877,28 @@
 
 </dd>
 <dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it33"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_cleanup">ipaddr2_cleanup</h2>
+
+<dl>
+
+<dt id="diagnostic---Optionally-collect-diagnostic-logs-from-setting-IPADDR2_DIAGNOSTIC"><b>diagnostic</b> - Optionally collect diagnostic logs, from setting IPADDR2_DIAGNOSTIC</dt>
+<dd>
+
+</dd>
+<dt id="cloudinit---Optionally-collect-cloudinit-logs-from-setting-IPADDR2_CLOUDINIT"><b>cloudinit</b> - Optionally collect cloudinit logs, from setting IPADDR2_CLOUDINIT</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_rg---Optionally-delete-the-network-peering-to-IBSs-from-setting-IBSM_RG"><b>ibsm_rg</b> - Optionally delete the network peering to IBSs, from setting IBSM_RG</dt>
+<dd>
+
+</dd>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it34"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
