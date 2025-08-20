@@ -21,7 +21,7 @@
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
-# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deploymnet (default '/usr/bin/python3')
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deployment (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use base 'sles4sap_publiccloud_basetest';
@@ -85,7 +85,7 @@ sub run {
     set_var('ISCSI_ENABLED', check_var('FENCING_MECHANISM', 'sbd') ? 'true' : 'false');
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
-    # Within the qe-sap-deployment terraform code, in each differend CSP implementation,
+    # Within the qe-sap-deployment terraform code, in each different CSP implementation,
     # an empty string means no peering.
     # This "trick" is needed to only have one conf.yaml
     # for both jobs that creates the peering with terraform or the az cli
@@ -167,7 +167,7 @@ sub run {
     # This is the path where community.sles-for-sap repo
     # has been cloned.
     # Not all the conf.yaml used by this file needs it but
-    # it is just easyer to define it here for all.
+    # it is just easier to define it here for all.
     set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
     my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
     if (get_var('QESAP_SCC_NO_REGISTER')) {

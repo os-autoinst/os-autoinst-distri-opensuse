@@ -1,13 +1,30 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module schedules cleanup at the end of the test queue.
 
+=head1 NAME
+
+hana_sr_schedule_cleanup.pm - Schedules the cleanup test module.
+
+=head1 DESCRIPTION
+
+This module schedules the 'sles4sap/publiccloud/qesap_cleanup' test module to be executed at the end of the test queue.
+This is necessary to ensure that resource cleanup is the very last action performed, especially when other test modules
+also use 'loadtest' to schedule tests.
+
+=head1 SETTINGS
+
+This module does not have any specific settings. It passes the test run arguments to the scheduled cleanup module.
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 package hana_sr_schedule_cleanup;
 
-use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';
