@@ -59,24 +59,10 @@
           <li><a href="#qesap_add_server_to_hosts">qesap_add_server_to_hosts</a></li>
           <li><a href="#qesap_import_instances">qesap_import_instances</a></li>
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
-          <li><a href="#qesap_is_job_finished">qesap_is_job_finished</a></li>
-          <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
-          <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
-          <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
-          <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
-          <li><a href="#qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</a></li>
-          <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
-          <li><a href="#qesap_az_get_active_peerings">qesap_az_get_active_peerings</a></li>
         </ul>
       </li>
-      <li><a href="#qesap_az_clean_old_peerings">qesap_az_clean_old_peerings</a></li>
       <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
-      <li><a href="#qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</a></li>
-      <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
-      <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
-      <li><a href="#qesap_az_list_container_files">qesap_az_list_container_files</a></li>
-      <li><a href="#qesap_az_diagnostic_log">qesap_az_diagnostic_log</a></li>
-      <li><a href="#qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</a></li>
+      <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
       <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
     </ul>
   </li>
@@ -255,7 +241,7 @@ This function is not expected to internally die, any failure has to be handled b
     logname =&gt; &#39;somefile.txt&#39;
     [, verbose =&gt; 1, cmd_options =&gt; &#39;--parallel 3&#39;, timeout =&gt; 1200, retries =&gt; 5, destroy =&gt; 1] );
 
-Execute &#39;qesap.py ... teraform&#39; and eventually retry for some specific errors.
+Execute &#39;qesap.py ... terraform&#39; and eventually retry for some specific errors.
 Test returns execution result in same format of qesap_execute.</code></pre>
 
 <dl>
@@ -661,7 +647,7 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <h3 id="qesap_upload_supportconfig_logs">qesap_upload_supportconfig_logs</h3>
 
-<pre><code>Genarate supportconfig log on a host and upload the resulting tarball to openqa</code></pre>
+<pre><code>Generate supportconfig log on a host and upload the resulting tarball to openqa</code></pre>
 
 <dl>
 
@@ -754,163 +740,6 @@ qesap_import_instances(&lt;$test_id&gt;)</code></pre>
 <pre><code>Downloads assets required for re-using infrastructure from previously exported test.
 qesap_export_instances()</code></pre>
 
-<h3 id="qesap_is_job_finished">qesap_is_job_finished</h3>
-
-<pre><code>Get whether a specified job is still running or not. 
-In cases of ambiguous responses, they are considered to be in `running` state.</code></pre>
-
-<dl>
-
-<dt id="JOB_ID---id-of-job-to-check"><b>JOB_ID</b> - id of job to check</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_resource_group">qesap_az_get_resource_group</h3>
-
-<p>Query and return the resource group used by the qe-sap-deployment</p>
-
-<dl>
-
-<dt id="SUBSTRING---optional-substring-to-be-used-with-additional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with additional grep at the end of the command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering">qesap_az_vnet_peering</h3>
-
-<pre><code>Create a pair of network peering between
-the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source"><b>SOURCE_GROUP</b> - resource group of source</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target"><b>TARGET_GROUP</b> - resource group of target</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</h3>
-
-<pre><code>Delete a single peering one way</code></pre>
-
-<dl>
-
-<dt id="RG---Name-of-the-resource-group"><b>RG</b> - Name of the resource group</dt>
-<dd>
-
-</dd>
-<dt id="VNET_NAME---Name-of-the-vnet"><b>VNET_NAME</b> - Name of the vnet</dt>
-<dd>
-
-</dd>
-<dt id="PEERING_NAME---Name-of-the-peering"><b>PEERING_NAME</b> - Name of the peering</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---Optional-Timeout-for-the-script_run-command"><b>TIMEOUT</b> - (Optional) Timeout for the script_run command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</h3>
-
-<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source.-This-parameter-is-optional-if-not-provided-the-related-peering-will-be-ignored"><b>SOURCE_GROUP</b> - resource group of source. This parameter is optional, if not provided the related peering will be ignored.</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target.-This-parameter-is-mandatory-and-the-associated-resource-group-is-supposed-to-still-exist"><b>TARGET_GROUP</b> - resource group of target. This parameter is mandatory and the associated resource group is supposed to still exist.</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins1"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_peering_list_cmd">qesap_az_peering_list_cmd</h3>
-
-<pre><code>Compose the azure peering list command, using the provided:
-- resource group, and
-- vnet
-Returns the command string to be run.</code></pre>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
-<dd>
-
-</dd>
-<dt id="VNET---vnet-connected-to-the-peering"><b>VNET</b> - vnet connected to the peering</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
-
-<pre><code>Search for all network peering related to both:
- - resource group related to the current job
- - the provided resource group.
-Returns the peering name or
-empty string if a peering doesn&#39;t exist</code></pre>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering1"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_active_peerings">qesap_az_get_active_peerings</h3>
-
-<pre><code>Get active peering for Azure jobs</code></pre>
-
-<dl>
-
-<dt id="RG---Resource-group-in-question"><b>RG</b> - Resource group in question</dt>
-<dd>
-
-</dd>
-<dt id="VNET---vnet-name-of-rg"><b>VNET</b> - vnet name of rg</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h2 id="qesap_az_clean_old_peerings">qesap_az_clean_old_peerings</h2>
-
-<pre><code>Delete leftover peering for Azure jobs that finished without cleaning up</code></pre>
-
-<dl>
-
-<dt id="RG---Resource-group-in-question1"><b>RG</b> - Resource group in question</dt>
-<dd>
-
-</dd>
-<dt id="VNET---vnet-name-of-rg1"><b>VNET</b> - vnet name of rg</dt>
-<dd>
-
-</dd>
-</dl>
-
 <h2 id="qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</h2>
 
 <pre><code>Delete leftover peering resources for AWS jobs that finished without cleaning up.
@@ -925,109 +754,17 @@ that the current job is running on.</code></pre>
 </dd>
 </dl>
 
-<h2 id="qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</h2>
+<h2 id="qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</h2>
 
-<pre><code>qesap_az_setup_native_fencing_permissions(vmname=&gt;$vm_name,
-    resource_group=&gt;$resource_group);
+<pre><code>qesap_terraform_ansible_deploy_retry( error_log=&gt;$error_log )
+    error_log - ansible error log file name
 
-Sets up managed identity (MSI) by enabling system assigned identity and
-role &#39;Virtual Machine Contributor&#39;</code></pre>
-
-<dl>
-
-<dt id="VM_NAME---VM-name"><b>VM_NAME</b> - VM name</dt>
-<dd>
-
-</dd>
-<dt id="RESOURCE_GROUP---resource-group-resource-belongs-to"><b>RESOURCE_GROUP</b> - resource group resource belongs to</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h2 id="qesap_az_get_tenant_id">qesap_az_get_tenant_id</h2>
-
-<pre><code>qesap_az_get_tenant_id( subscription_id=&gt;$subscription_id )
-
-Returns tenant ID related to the specified subscription ID.
-subscription_id - valid azure subscription</code></pre>
-
-<h2 id="qesap_az_create_sas_token">qesap_az_create_sas_token</h2>
-
-<p>Generate a SAS URI token for a storage container of choice</p>
-
-<p>Return the token string</p>
-
-<dl>
-
-<dt id="STORAGE---Storage-account-name-used-fur-the---account-name-argument-in-az-commands"><b>STORAGE</b> - Storage account name used fur the --account-name argument in az commands</dt>
-<dd>
-
-</dd>
-<dt id="CONTAINER---container-name-within-the-storage-account"><b>CONTAINER</b> - container name within the storage account</dt>
-<dd>
-
-</dd>
-<dt id="KEYNAME---name-of-the-access-key-within-the-storage-account"><b>KEYNAME</b> - name of the access key within the storage account</dt>
-<dd>
-
-</dd>
-<dt id="PERMISSION---access-permissions.-Syntax-is-what-documented-in-az-storage-container-generate-sas---help.-Some-of-them-of-interest:-a-dd-c-reate-d-elete-e-xecute-l-ist-m-ove-r-ead-w-rite.-Default-is-r"><b>PERMISSION</b> - access permissions. Syntax is what documented in &#39;az storage container generate-sas --help&#39;. Some of them of interest: (a)dd (c)reate (d)elete (e)xecute (l)ist (m)ove (r)ead (w)rite. Default is &#39;r&#39;</dt>
-<dd>
-
-</dd>
-<dt id="LIFETIME---life-time-of-the-token-in-minutes-default-is-10min"><b>LIFETIME</b> - life time of the token in minutes, default is 10min</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h2 id="qesap_az_list_container_files">qesap_az_list_container_files</h2>
-
-<p>Returns a list of the files that exist inside a given path in a given container in Azure storage.</p>
-
-<p>Generated command looks like this:</p>
-
-<p>az storage blob list --account-name &lt;account_name&gt; --container-name &lt;container_name&gt; --sas-token &quot;&lt;my_token&gt;&quot; --prefix &lt;path_inside_container&gt; --query &quot;[].{name:name}&quot; --output tsv</p>
-
-<dl>
-
-<dt id="STORAGE---Storage-account-name-used-fur-the---account-name-argument-in-az-commands1"><b>STORAGE</b> - Storage account name used fur the --account-name argument in az commands</dt>
-<dd>
-
-</dd>
-<dt id="CONTAINER---container-name-within-the-storage-account1"><b>CONTAINER</b> - container name within the storage account</dt>
-<dd>
-
-</dd>
-<dt id="TOKEN---name-of-the-SAS-token-to-access-the-account-needs-to-have-l-permission"><b>TOKEN</b> - name of the SAS token to access the account (needs to have l permission)</dt>
-<dd>
-
-</dd>
-<dt id="PREFIX---the-local-path-inside-the-container-to-list-file-inside-a-folder-named-dir-this-would-be-dir"><b>PREFIX</b> - the local path inside the container (to list file inside a folder named &#39;dir&#39;, this would be &#39;dir&#39;)</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h2 id="qesap_az_diagnostic_log">qesap_az_diagnostic_log</h2>
-
-<p>Call `az vm boot-diagnostics json` for each running VM in the resource group associated to this openQA job</p>
-
-<p>Return a list of diagnostic file paths on the JumpHost</p>
-
-<h2 id="qesap_terrafom_ansible_deploy_retry">qesap_terrafom_ansible_deploy_retry</h2>
-
-<pre><code>    qesap_terrafom_ansible_deploy_retry( error_log=&gt;$error_log )
-        error_log - ansible error log file name
-
-    Retry to deploy terraform + ansible. This function is only expected to be called if a previous `qesap.py`
-    execution returns a non zero exit code. If this function is called after a successful execution,
-    the qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
-    an unknown error is in the log and skipping the retry and this function will return 1.
-.
-    Return 0: this function manage the failure properly, perform a retry and retry was a successful deployment
-    Return 1: something went wrong or this function does not know what to do with the failure</code></pre>
+Retry to deploy terraform + ansible. This function is only expected to be called if a previous `qesap.py`
+execution returns a non zero exit code. If this function is called after a successful execution,
+the qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
+an unknown error is in the log and skipping the retry and this function will return 1..
+Return 0: this function manage the failure properly, perform a retry and retry was a successful deployment
+Return 1: something went wrong or this function does not know what to do with the failure</code></pre>
 
 <dl>
 
