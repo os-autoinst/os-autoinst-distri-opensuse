@@ -13,6 +13,7 @@ use lockapi;
 use mmapi;
 use utils;
 use mm_network 'setup_static_mm_network';
+use containers::helm;
 use containers::k8s;
 use transactional;
 use serial_terminal;
@@ -27,17 +28,8 @@ sub ensure_client_reachable {
 sub run {
     my ($self) = @_;
     my $release_name = "kiosk";
-    my $namespace = "kiosk";
-    my $helm_values = "kiosk_values.yaml";
+    my $helm_values = autoinst_url("/data/x11/helm_chart/kiosk_values.yaml");
     my $helm_chart = get_required_var("HELM_CHART");
-
-    my $set_options = "";
-    if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
-        my ($repository, $tag) = split(':', $image, 2);
-        my $helm_values_image_path = get_required_var('HELM_VALUES_IMAGE_PATH');
-
-        $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
-    }
 
     select_serial_terminal;
 
@@ -58,10 +50,8 @@ sub run {
     set_var('HELM_INSTALL_UPSTREAM', 1);
     install_helm();
 
-    # Get the kiosk_values.yaml
-    assert_script_run("curl " . autoinst_url("/data/x11/helm_chart/$helm_values") . " -o $helm_values", 60);
     # Deploy using Helm
-    assert_script_run("helm install -n $namespace --create-namespace -f $helm_values $set_options $release_name $helm_chart", timeout => 100);
+    helm_install_chart($helm_chart, $helm_values, $release_name);
 
     select_console 'root-console';
 
@@ -73,11 +63,11 @@ sub run {
 
     select_serial_terminal;
 
-    my $pod_name = script_output("kubectl get pods -n kiosk -o name | cut -d '/' -f 2");
-    validate_script_output("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'ps aux'", sub { /^pulse.*pulseaudio$/m });
-    assert_script_run("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'pactl list sink-inputs'");
+    my $pod_name = script_output("kubectl get pods -o name | cut -d '/' -f 2");
+    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m);
+    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m);
 
-    assert_script_run("helm uninstall kiosk --namespace kiosk");
+    assert_script_run("helm uninstall kiosk");
 }
 
 1;
