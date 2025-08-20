@@ -49,10 +49,16 @@ sub run {
             timeout => 3600,
             verbose => 1);
         my $find_cmd = join(' ',
-            'find',
+            'timeout', '10',
+            'find', '-P', '-O3',
             '/tmp/results/',
             '-type', 'f',
-            '-iname', "*.xml");
+            '-iname', "*.xml",
+            '-print', '2>/dev/null',
+            ';',
+            '[', '$?', '-eq', '124', ']',
+            '&&', 'echo', '"Command find timed out"'
+        );
         my $ansible_output = script_output("cat $ret[1]");
         my $reference;
         my $desc_known_issue;
