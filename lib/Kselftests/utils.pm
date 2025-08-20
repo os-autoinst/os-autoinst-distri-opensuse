@@ -13,6 +13,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use Kselftests::parser;
 use LTP::WhiteList;
 use version_utils qw(is_sle);
 use base 'opensusebasetest';
@@ -73,7 +74,8 @@ sub post_process {
 
     for my $test (@tests) {
         $test_index++;
-        my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it
+        my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it, sub . with _
+        my $sanitized_test_name = $test_name =~ s/\./_/gr;    # Dots should be underscore for better handling in Perl and YAML files
 
         # Check test result in the summary
         my $summary_ln;
@@ -82,7 +84,7 @@ sub post_process {
             $summary_ln_idx++;
             if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
                 my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
-                if ($test_failed && $whitelist->find_whitelist_entry($env, $collection, $test_name)) {
+                if ($test_failed && $whitelist->find_whitelist_entry($env, $collection, $sanitized_test_name)) {
                     $ret = 1;
                     record_info("Known Issue", "$test marked as softfail");
                     $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
@@ -97,9 +99,14 @@ sub post_process {
 
         # Check each subtest result in the individual test log
         my @log = split(/\n/, script_output("cat /tmp/$test_name"));    # When using `--per-test-log`, that's where they are found
+        my $parser = Kselftests::parser::factory($collection, $sanitized_test_name);
         my $hardfails = 0;
         my $fails = 0;
         for my $test_ln (@log) {
+            $test_ln = $parser->parse_line($test_ln);
+            if (!$test_ln) {
+                next;
+            }
             if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
                 my $subtest_idx = $1;
                 my $subtest_name = $2;
