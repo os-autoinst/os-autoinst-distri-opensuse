@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "autrace" utility traces individual processes in a fashion similar to strace.
@@ -9,7 +9,7 @@
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle check_version);
 
 sub get_pid {
     # Call this fuction to extract pid from autrace output in command line
@@ -22,6 +22,12 @@ sub get_pid {
 }
 
 sub run {
+    my $audit_version = script_output("rpm -q --qf '%{version}\n' audit");
+    if (check_version('>=4', $audit_version)) {
+        record_info('TEST SKIPPED', "autrace has been removed from audit >= 4.");
+        return;
+    }
+
     my $audit_log = '/var/log/audit/audit.log';
     my $tmp_output = '/tmp/out';
 
