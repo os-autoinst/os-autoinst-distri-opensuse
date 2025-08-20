@@ -53,12 +53,10 @@ sub run {
             'find', '-P', '-O3',
             '/tmp/results/',
             '-type', 'f',
-            '-iname', "*.xml",
-            '-print', '2>/dev/null',
-            ';',
-            '[', '$?', '-eq', '124', ']',
-            '&&', 'echo', '"Command find timed out"'
-        );
+            '-iname', '*.xml',
+            '-print', '2>/dev/null;',
+            '[', '$?', '-ne', '124', ']',
+            '||', 'echo', '"Command find timed out"');
         my $ansible_output = script_output("cat $ret[1]");
         my $reference;
         my $desc_known_issue;
