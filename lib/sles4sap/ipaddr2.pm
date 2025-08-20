@@ -6,6 +6,7 @@
 # Summary: Library sub and shared data for the ipaddr2 cloud test.
 
 package sles4sap::ipaddr2;
+
 use strict;
 use warnings FATAL => 'all';
 use testapi;
@@ -16,7 +17,6 @@ use mmapi qw( get_current_job_id );
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
-use sles4sap::qesap::azure qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
 
@@ -58,6 +58,7 @@ our @EXPORT = qw(
   ipaddr2_network_peering_create
   ipaddr2_patch_system
   ipaddr2_repos_add_server_to_hosts
+  ipaddr2_cleanup
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -450,7 +451,6 @@ sub ipaddr2_infra_deploy {
     my $bastion_ip = ipaddr2_bastion_pubip();
 
 Get the only public IP in the deployment associated to the VM used as bastion.
-
 =cut
 
 sub ipaddr2_bastion_pubip {
@@ -728,8 +728,7 @@ sub ipaddr2_internal_key_gen {
         src          => 1,
         dst          => 2,
         user         => 'cloudadmin',
-        key_checking => 'accept-new',
-    );
+        key_checking => 'accept-new');
 
 Helper for C<ipaddr2_internal_key_gen> and contribute to
 establish password-less SSH access from a source internal VM to a
@@ -780,6 +779,7 @@ sub ipaddr2_internal_key_authorize {
 
     # This is the destination VM where to register the public key
     $vm_name = ipaddr2_get_internal_vm_private_ip(id => $args{dst});
+
     # Create a place where to temporary upload the key
     ipaddr2_ssh_internal(id => $args{dst},
         cmd => "mkdir -p $remote_key_tmp_path",
@@ -827,8 +827,7 @@ sub ipaddr2_internal_key_authorize {
     ipaddr2_deployment_sanity()
 
 Run some checks on the existing deployment using the
-az command line.
-die in case of failure
+az command line. Die in case of failure
 =cut
 
 sub ipaddr2_deployment_sanity {
@@ -1717,7 +1716,7 @@ sub ipaddr2_infra_destroy {
 
 =head2 ipaddr2_get_internal_vm_name
 
-    my $vm_name = ipaddr2_get_internal_vm_name(id => 42);
+    my $vm_name = ipaddr2_get_internal_vm_name(id => 2);
 
 Compose and return a string for the vm name
 
@@ -1736,7 +1735,7 @@ sub ipaddr2_get_internal_vm_name {
 
 =head2 ipaddr2_get_internal_vm_private_ip
 
-    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 42);
+    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 2);
 
 compose and return a string representing the VM private IP
 
@@ -1755,7 +1754,7 @@ sub ipaddr2_get_internal_vm_private_ip {
 
 =head2 ipaddr2_get_worker_tmp_for_internal_vm
 
-    my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);
+    my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(2);
 
 Return a path in /tmp of the worker used to store files associated
 two one of the internal VM
@@ -2055,16 +2054,17 @@ sub ipaddr2_network_peering_create {
     my (%args) = @_;
     croak 'Missing mandatory argument < ibsm_rg >' unless $args{ibsm_rg};
 
-    # remove the older peering
-    my $vnet_name = az_network_vnet_get(resource_group => $args{ibsm_rg}, query => "[0].name");
-    qesap_az_clean_old_peerings(rg => $args{ibsm_rg}, vnet => $vnet_name);
-
-    qesap_az_vnet_peering(source_group => ipaddr2_azure_resource_group(), target_group => $args{ibsm_rg});
+    ibsm_network_peering_azure_create(
+        ibsm_rg => $args{ibsm_rg},
+        sut_rg => ipaddr2_azure_resource_group(),
+        name_prefix => DEPLOY_PREFIX);
 }
 
 =head2 ipaddr2_repos_add_server_to_hosts
 
-    ipaddr2_repos_add_server_to_hosts(ibsm_ip => , incident_repos => 'AAAA,BBBB');
+    ipaddr2_repos_add_server_to_hosts(
+        ibsm_ip => get_required_var('IBSM_IP'),
+        incident_repos => 'AAAA,BBBB');
 
 Add download.suse.de server to hosts by specifying IBSM address
 
@@ -2212,7 +2212,7 @@ sub ipaddr2_patch_system {
 
 =head2 ipaddr2_scc_addons
 
-    ipaddr2_scc_addons();
+    ipaddr2_scc_addons(scc_addons => get_var('SCC_ADDONS'));
 
 Register addons on SUT
 
@@ -2244,6 +2244,41 @@ sub ipaddr2_scc_addons {
             register_addon($remote_cmd, $addon);
         }
     }
+}
+
+=head2 ipaddr2_cleanup
+
+
+
+=over
+
+=item B<diagnostic> - Optionally collect diagnostic logs, from setting IPADDR2_DIAGNOSTIC
+
+=item B<cloudinit> - Optionally collect cloudinit logs, from setting IPADDR2_CLOUDINIT
+
+=item B<ibsm_rg> - Optionally delete the network peering to IBSs, from setting IBSM_RG
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_cleanup {
+    my (%args) = @_;
+    $args{diagnostic} //= 0;
+    $args{cloudinit} //= 1;
+
+    ipaddr2_deployment_logs() if ($args{diagnostic} == 1);
+    ipaddr2_cloudinit_logs() unless ($args{cloudinit} == 0);
+    if ($args{ibsm_rg}) {
+        ibsm_network_peering_azure_delete(
+            sut_rg => ipaddr2_azure_resource_group(),
+            sut_vnet => get_current_job_id(),
+            ibsm_rg => $args{ibsm_rg});
+    }
+    ipaddr2_infra_destroy();
 }
 
 1;

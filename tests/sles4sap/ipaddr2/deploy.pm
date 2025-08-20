@@ -53,7 +53,7 @@ of a custom image in Azure Blob Storage uploaded via B<publiccloud_upload_img>.
 If not set, a catalog image specified via B<PUBLIC_CLOUD_IMAGE_ID>
 is used.
 
-=item B<SCC_REGCODE_SLES4SAP> 
+=item B<SCC_REGCODE_SLES4SAP>
 
 SUSE Customer Center registration code for SLES for SAP.
 Required if the OS image is BYOS.
@@ -77,11 +77,8 @@ use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
   ipaddr2_cloudinit_create
   ipaddr2_infra_deploy
-  ipaddr2_deployment_logs
   ipaddr2_deployment_sanity
-  ipaddr2_infra_destroy
-  ipaddr2_cloudinit_logs
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -144,9 +141,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
     $self->SUPER::post_fail_hook;
 }
 

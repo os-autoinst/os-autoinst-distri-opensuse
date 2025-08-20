@@ -265,7 +265,11 @@ sub az_network_vnet_subnet_update {
 
     my $res = az_network_vnet_get(resource_group => 'openqa-rg')
 
-Return the output of az network vnet list
+Return the output of az network vnet list as an object.
+Take care that this command is always calling the az cli with --json
+and returns the decoded object. But the format of the object can change
+accordingly to the provided value of --query. It is also possible that
+some query result in the function to die on decode_json.
 
 =over
 
@@ -692,7 +696,7 @@ sub az_vm_as_list {
 
 =head2 az_vm_as_show
 
-    az_vm_as_show(resource_group => 'openqa-rg');
+    az_vm_as_show(resource_group => 'openqa-rg', name => 'openqa-as');
 
 Show all the details of an availability set. For the moment it only show and does not return anything.
 
@@ -709,11 +713,13 @@ sub az_vm_as_show {
     my (%args) = @_;
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+
     my $az_cmd = join(' ', 'az vm availability-set show',
         '--resource-group', $args{resource_group},
         '--name', $args{name},
         '-o table');
     assert_script_run($az_cmd);
+
     $az_cmd = join(' ', 'az vm availability-set list-sizes',
         '--resource-group', $args{resource_group},
         '--name', $args{name});
@@ -1436,6 +1442,8 @@ Delete a specific network peering
 
 =item B<vnet> - existing vnet in resource_group, used as source of the peering
 
+=item B<timeout> - (Optional) Timeout for the assert_script_run command
+
 =back
 =cut
 
@@ -1924,4 +1932,5 @@ sub az_group_exists {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
 }
+
 1;
