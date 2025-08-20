@@ -1,10 +1,11 @@
 ---
 name: agama_rmt
 description: >
-  Perform agama interactive installation with RMT registration
+  Perform agama interactive installation with custom registration
 schedule:
   - yam/agama/boot_agama
   - yam/agama/agama_arrange
+  - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - installation/grub_test
