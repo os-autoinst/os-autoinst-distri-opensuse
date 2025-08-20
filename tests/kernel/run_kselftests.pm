@@ -46,7 +46,7 @@ sub install_from_git
 sub install_from_repo
 {
     my $repo = get_var('KSELFTEST_REPO', '');
-    zypper_call("ar -f $repo kselftests");
+    zypper_call("ar -p 1 -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call("install -y kselftests");
 }
@@ -171,8 +171,11 @@ sub run {
         $tests .= "--test $_ " for @tests;
     }
 
-    my $timeout = get_var('KSELFTEST_TIMEOUT', 45);    # Individual timeout for each test in the collection
-    assert_script_run("./run_kselftest.sh --per-test-log --override-timeout $timeout $tests > summary.tap", 7200);
+    my $timeout;
+    if ($timeout = get_var('KSELFTEST_TIMEOUT')) {
+        $timeout = "--override-timeout $timeout";    # Individual timeout for each test in the collection
+    }
+    assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests > summary.tap", 7200);
     $self->post_process($collection, @tests);
 }
 
