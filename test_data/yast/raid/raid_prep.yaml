@@ -53,7 +53,7 @@ disks:
         role: raw-volume
 mds:
   - name: md0
-    raid_level: 0
+    raid_level: "%RAIDLEVEL%"
     devices:
       - vda2
       - vdb2
