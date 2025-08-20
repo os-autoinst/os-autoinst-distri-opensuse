@@ -56,7 +56,7 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
+use sles4sap::qesap::azure qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_deployment_logs
   ipaddr2_cloudinit_logs

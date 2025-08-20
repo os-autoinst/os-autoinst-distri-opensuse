@@ -19,6 +19,7 @@ use serial_terminal 'select_serial_terminal';
 use testapi;
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::azure;
 use Data::Dumper;
 
 sub test_flags {
@@ -61,7 +62,7 @@ sub run {
         push @bashrc_vars, "export SPN_APPLICATION_ID=$spn_application_id";
         push @bashrc_vars, "export SPN_APP_PASSWORD=$spn_application_password";
 
-        my $tenant_id = qesap_az_get_tenant_id($subscription_id);
+        my $tenant_id = qesap_az_get_tenant_id(subscription_id => $subscription_id);
         die 'Tenant ID is required in case of Azure SPN fencing' unless $tenant_id;
         push @bashrc_vars, "export TENANT_ID=$tenant_id";
 

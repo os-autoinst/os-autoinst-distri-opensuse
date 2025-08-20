@@ -16,7 +16,7 @@ use mmapi qw( get_current_job_id );
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
+use sles4sap::qesap::azure qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
 

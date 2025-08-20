@@ -27,7 +27,7 @@ use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version is_sle);
 use hacluster;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap::qesap::qesap_aws;
+use sles4sap::qesap::aws;
 use publiccloud::utils;
 use publiccloud::provider;
 use publiccloud::ssh_interactive qw(select_host_console);
