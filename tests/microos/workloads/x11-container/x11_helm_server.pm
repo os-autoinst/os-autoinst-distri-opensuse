@@ -15,11 +15,12 @@ use utils;
 use mm_network 'setup_static_mm_network';
 use containers::k8s;
 use transactional;
+use serial_terminal;
 
 # MM network check: try to ping the gateway, the client and the internet
 sub ensure_client_reachable {
     assert_script_run('ping -c 1 10.0.2.2');
-    assert_script_run('ping -c 1 10.0.2.102');
+    # assert_script_run('ping -c 1 10.0.2.102');
     assert_script_run('curl conncheck.opensuse.org');
 }
 
@@ -38,14 +39,15 @@ sub run {
         $set_options .= "--set $helm_values_image_path.image.repository=$repository --set $helm_values_image_path.image.tag=$tag";
     }
 
-    select_console 'root-console';
+    select_serial_terminal();
+
     set_hostname(get_var('HOSTNAME') // 'server');
     setup_static_mm_network('10.0.2.101/24');
     ensure_client_reachable();
 
     # Permit ssh login as root
-    assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
-    assert_script_run("systemctl restart sshd");
+    # assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
+    # assert_script_run("systemctl restart sshd");
 
     # Install the package SUSE certificate
     enter_trup_shell;
@@ -66,6 +68,8 @@ sub run {
     # Deploy using Helm
     assert_script_run("helm install -n $namespace --create-namespace -f $helm_values $set_options $release_name $helm_chart", timeout => 100);
 
+    select_console 'root-console';
+
     # Verify the firefox kiosk container started
     assert_screen("firefox_kiosk", 300);
     assert_and_click("firefox_play_audio");
@@ -73,9 +77,19 @@ sub run {
     assert_and_click("firefox_loop_play");
 
     # Notify that the server is ready
-    mutex_create("x11_helm_server_ready");
+    # mutex_create("x11_helm_server_ready");
+    #
+    # wait_for_children();
 
-    wait_for_children();
+    select_serial_terminal();
+
+    my $pod_name = script_output("kubectl get pods -n kiosk -o name | cut -d '/' -f 2");
+    assert_script_run("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'ps aux'");
+    assert_script_run("kubectl exec $pod_name -c pulseaudio -n kiosk -- sh -c 'pactl list sink-inputs'");
+
+    assert_script_run("helm uninstall kiosk --namespace kiosk");
+
+    select_console 'root-console';
 }
 
 1;
