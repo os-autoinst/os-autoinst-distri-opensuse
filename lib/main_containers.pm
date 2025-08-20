@@ -316,6 +316,8 @@ sub load_helm_chart_tests {
         loadtest 'containers/charts/rmt';
     } elsif ($chart =~ m/private-registry/) {
         loadtest 'containers/charts/privateregistry';
+    } elsif ($chart =~ m/kiosk/) {
+        loadtest 'containers/charts/kiosk_firefox';
     }
     else {
         die "Unsupported HELM_CHART value or HOST_VERSION";
