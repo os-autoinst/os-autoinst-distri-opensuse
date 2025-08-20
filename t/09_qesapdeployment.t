@@ -784,6 +784,7 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -817,6 +818,7 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -899,6 +901,26 @@ subtest '[qesap_supportconfig_logs]' => sub {
     ok((any { /.*\/var\/tmp.*vmhana01.*supportconfig/ } @calls), 'supportconfig log file has the vmhana01 node name in it');
     ok((any { /.*\/var\/tmp.*vmhana02.*supportconfig/ } @calls), 'supportconfig log file has the vmhana02 node name in it');
     ok($upload_log_called eq 1), 'upload_log called';
+};
+
+subtest '[qesap_save_y2logs]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    my $upload_log_called = 0;
+
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
+    $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
+
+    qesap_save_y2logs(provider => 'SAND', host => 'boo');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /.*save_y2logs \/tmp\/boo-y2logs.*/ } @calls), 'save_y2logs is called');
+    ok((any { /.*chmod/ } @calls), 'chmod is called');
+    ok($upload_log_called eq 1, 'upload_log called');
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {

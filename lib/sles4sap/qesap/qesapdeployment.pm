@@ -79,6 +79,7 @@ our @EXPORT = qw(
   qesap_cluster_logs
   qesap_upload_crm_report
   qesap_supportconfig_logs
+  qesap_save_y2logs
   qesap_add_server_to_hosts
   qesap_calculate_deployment_name
   qesap_export_instances
@@ -1396,6 +1397,9 @@ sub qesap_cluster_logs {
             # Upload crm report
             qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
         }
+
+        # Collect logs in iscsi service node if there is.
+        qesap_save_y2logs(provider => $provider, host => 'iscsi[0]', failok => 1) if (script_run("grep -q 'iscsi' $inventory") == 0);
     }
 
     if ($provider eq 'AZURE') {
@@ -1405,6 +1409,53 @@ sub qesap_cluster_logs {
         }
         qesap_upload_logs();
     }
+}
+
+=head3 qesap_save_y2logs
+
+  Collect y2logs from nodes of a deployed cluster
+
+=over
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=item B<HOST> - node of a deployed cluster
+
+=back
+=cut
+
+sub qesap_save_y2logs {
+    my (%args) = @_;
+    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{failok} //= 0;
+
+    my $log_filename = "$args{host}-y2logs.tar.gz";
+
+    $log_filename =~ s/[\[\]"]//g;
+
+    qesap_ansible_cmd(cmd => "sudo save_y2logs /tmp/$log_filename",
+        provider => $args{provider},
+        filter => "\"$args{host}\"",
+        host_keys_check => 1,
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(7200),
+        failok => $args{failok});
+    qesap_ansible_cmd(cmd => "sudo chmod 755 /tmp/$log_filename",
+        provider => $args{provider},
+        filter => "\"$args{host}\"",
+        host_keys_check => 1,
+        verbose => 1,
+        timeout => bmwqemu::scale_timeout(7200),
+        failok => $args{failok});
+    my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
+        host => $args{host},
+        failok => $args{failok},
+        root => 1,
+        remote_path => '/tmp/',
+        out_path => '/tmp/ansible_script_output/',
+        file => "$log_filename",
+        verbose => 1);
+    upload_logs($local_path, failok => 1);
 }
 
 =head3 qesap_supportconfig_logs
