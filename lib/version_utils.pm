@@ -445,7 +445,7 @@ Returns true if called in a SAP test
 =cut
 
 sub is_sles4sap {
-    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
+    return get_var('FLAVOR', '') =~ /SAP/i || check_var('SLE_PRODUCT', 'sles4sap');
 }
 
 =head2 is_sles4sap_standard
