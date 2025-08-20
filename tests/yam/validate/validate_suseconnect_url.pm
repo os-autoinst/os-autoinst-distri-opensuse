@@ -13,7 +13,8 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    my $scc_url = get_required_var('SCC_URL');
+    my $agama_profile_options_regurl = qr/registration_url="(?<registration_url>.+)"/;
+    my $scc_url = (get_var('AGAMA_PROFILE_OPTIONS') =~ /$agama_profile_options_regurl/) ? $+{registration_url} : get_var('SCC_URL');
     validate_script_output("cat /etc/SUSEConnect", sub { m/\b$scc_url\b/ });
 }
 
