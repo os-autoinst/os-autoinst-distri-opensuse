@@ -264,7 +264,7 @@
         "type": "ignore"
     },
     "bsc#1245376": {
-        "description": "kernel: watchdog: watchdog0: watchdog did not stop!",
+        "description": "kernel: watchdog: watchdog0: watchdog did not stop!|Failed to send WATCHDOG=1 notification message: Connection refused",
         "products": {
             "sle-micro": ["6.2"],
             "opensuse": ["Tumbleweed"],
