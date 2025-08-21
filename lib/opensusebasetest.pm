@@ -919,10 +919,8 @@ sub wait_boot {
         $self->handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => 'pxe-custom-kernel', pxeselect => 'pxe-custom-kernel-selected');
     }
     # When no bounce back on power KVM, we need skip bootloader process and go ahead when 'displaymanager' matched.
-    elsif (get_var('OFW') && (check_screen('displaymanager', 5))) {
-    }
-    # SLE-16 boot on ppc64le results too quick to be captured, from grub2 to login prompt
-    elsif (get_var('OFW') && is_sle('16+') && is_ppc64le && (check_screen('linux-login', 10))) {
+    # minimal-VM does not have any display manager
+    elsif (get_var('OFW') && !check_var('DESKTOP', 'textmode') && (check_screen('displaymanager', 5))) {
     }
     elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
