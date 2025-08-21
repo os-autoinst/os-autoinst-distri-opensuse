@@ -64,7 +64,7 @@ sub run {
         $timeout = "--override-timeout $timeout";    # Individual timeout for each test in the collection
     }
 
-    assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests > summary.tap", 7200);
+    assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests | tee summary.tap", 7200);
 
     my $ret = post_process($collection, @tests);
     if ($ret) {
