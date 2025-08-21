@@ -1,0 +1,6 @@
+name: qam-incidentinstall
+description:    >
+    Maintainer: qe-core <qe-core@suse.de>
+schedule:
+    - boot/boot_to_desktop
+    - qam-updinstall/SLFO_update_install
