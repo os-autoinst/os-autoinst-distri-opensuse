@@ -150,12 +150,15 @@ sub ibsm_network_peering_azure_delete {
     foreach (qw(sut_rg ibsm_rg)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
+    # Take care to keep all the query to always return a json list, even if of a sigle element,
+    # and not a string.
+    my $vnet_get_query = '[].name';
     my $res = az_network_vnet_get(resource_group => $args{sut_rg},
-        query => $args{sut_vnet} ? "[?contains(name,'" . $args{sut_vnet} . "')].name" : '[0].name');
+        query => $args{sut_vnet} ? "[?contains(name,'" . $args{sut_vnet} . "')].name" : $vnet_get_query);
     my $sut_vnet = $res->[0];
 
     $res = az_network_vnet_get(resource_group => $args{ibsm_rg},
-        query => '[0].name');
+        query => $vnet_get_query);
     my $ibsm_vnet = $res->[0];
 
     $res = az_network_peering_list(resource_group => $args{sut_rg}, vnet => $sut_vnet);
