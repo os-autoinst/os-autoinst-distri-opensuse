@@ -54,8 +54,12 @@ sub create_sap_systems_tfvars {
     # use AV zones by default
     $args{av_zones} //= 'true';
     my $sap_sid = get_required_var('SAP_SID');
+    # Use full ENSA2 mounts by default. Simple mount does not cover FS failover.
+    my $use_simple_mount = get_var('SDAF_SIMPLE_MOUNT', 'false');
 
     croak 'Missing mandatory argument "$args{workload_vnet_code}"' unless $args{workload_vnet_code};
+    croak "OpenQA setting 'SDAF_SIMPLE_MOUNT' must be true or false. Got: $use_simple_mount"
+      unless $use_simple_mount =~ /true|false/;
 
     # Keep deployment scenario mandatory without defaults to keep setting consistent across all test modules
     my @components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
@@ -76,7 +80,7 @@ sub create_sap_systems_tfvars {
         bom_name => get_required_var('SDAF_BOM_NAME')
     );
     $tfvars_data{sap_systems_networking} = define_networking(workload_vnet_code => $args{workload_vnet_code});
-    $tfvars_data{cluster_settings} = define_cluster_settings();
+    $tfvars_data{cluster_settings} = define_cluster_settings(use_simple_mount => $use_simple_mount);
     $tfvars_data{database_tier} = define_database_tier(high_availability => $hana_ha, av_zones => $args{av_zones});
     $tfvars_data{application_tier} = define_application_tier(sap_sid => $sap_sid,
         enable_app_tier_deployment => $app_deployment);
@@ -177,9 +181,16 @@ Returns tfvars cluster definitions section in HASHREF format.
 B<Example:> {scs_cluster_type : '"AFA"', use_msi_for_clusters : 'true' ... }
 Pay attention to double quoting strings. They are very important in resulting file.
 
+=over
+
+=item * B<use_simple_mount>: Use simple mount setup without FS failover.
+
+=back
+
 =cut
 
 sub define_cluster_settings {
+    my (%args) = @_;
     # Convert OpenQA setting "SDAF_FENCING_MECHANISM" to value accepted by SDAF
     my $fencing_type = get_fencing_mechanism();
     my %result = (
@@ -187,7 +198,7 @@ sub define_cluster_settings {
         scs_cluster_type => qq|"$fencing_type"|,
         database_cluster_type => qq|"$fencing_type"|,
         use_msi_for_clusters => 'true',
-        use_simple_mount => 'true'
+        use_simple_mount => $args{use_simple_mount}
     );
     return (\%result);
 }
