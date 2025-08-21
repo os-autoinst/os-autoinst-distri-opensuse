@@ -178,7 +178,8 @@ sub sles4sap_cleanup {
     return 0 if ($args{cleanup_called});
 
     # If there's an open ssh connection to the VMs, return to host console first
-    select_host_console(force => 1);
+    # Useful for tests that use ssh_interactive modules
+    select_host_console(force => 1) if (get_var('MR_TEST', ''));
 
     # ETX is the same as pressing Ctrl-C on a terminal,
     # make sure the serial terminal is NOT blocked
