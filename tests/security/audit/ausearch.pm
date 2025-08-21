@@ -38,22 +38,26 @@ sub run {
     # 1. Read /etc/hostname to see if an event is logged
     assert_script_run("cat /etc/hostname");
 
-    # 2. Restart apparmor on SLE < 16
-    if (is_sle('<16')) {
+    # 2. Check if the SUT has apparmor
+    my $is_apparmor = script_run('systemctl status apparmor | grep "Active: active"');
+
+    # Confusing, but the previous cmd should return 0 if apparmor is there
+    if ($is_apparmor == 0) {
         assert_script_run('systemctl restart apparmor');
     }
 
     # Search for an event based on the given filename
-    assert_script_run("ausearch -f /etc > $tmp_output");
+    assert_script_run("ausearch -f /etc/hostname > $tmp_output");
 
     # Extract pid from output log
     script_run("tail -1 $tmp_output > $tmp_backup");
 
+    # todo: refactored (some regexp magic?) that works on all OS versions
     my $cut_index = 7;
     if (is_sle('>12-SP5')) {
         $cut_index = 9;
     }
-    if (is_sle('>=16')) {
+    if (is_tumbleweed || is_sle('>=16')) {
         $cut_index = 14;
     }
 
