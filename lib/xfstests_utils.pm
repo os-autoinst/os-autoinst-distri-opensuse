@@ -146,7 +146,7 @@ sub heartbeat_wait {
         else {
             my $status;
             ($virtio_console == 1) ? type_string "\n" : send_key 'ret';
-            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
+            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE", 120, type_command => 1, proceed_on_failure => 1);
             $ret =~ s/^\s+|\s+$//g;
             if ($ret == 0) {
                 $status = 'PASSED';
@@ -213,7 +213,7 @@ sub log_add {
     my $name = test_name($test);
     unless ($name and $status) { return; }
     my $cmd = "echo '$name ... ... $status (${time}s)' | tee -a $file";
-    my $ret = script_output($cmd);
+    my $ret = script_output($cmd, 60, type_command => 1, proceed_on_failure => 1);
     return $ret;
 }
 
@@ -228,7 +228,7 @@ dir      - xfstests installation dir (e.g. /opt/xfstests)
 sub tests_from_category {
     my ($category, $dir) = @_;
     my $cmd = "find '$dir/tests/$category' -regex '.*/[0-9]+'";
-    my $output = script_output($cmd, 60);
+    my $output = script_output($cmd, 120, type_command => 1, proceed_on_failure => 1);
     my @tests = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
@@ -259,7 +259,7 @@ sub exclude_grouplist {
         $cmd = "awk '/$group_name/' $INST_DIR/tests/$fstype/group.list | awk '{printf \"$fstype/\"}{printf \$1}{printf \",\"}' >> tmp.group";
         script_run($cmd) if ($test_folder eq "generic" and $test_ranges =~ /$fstype/);
         $cmd = "cat tmp.group";
-        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
+        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd, 120, type_command => 1, proceed_on_failure => 1), 0, -1));
         %tests_list = (%tests_list, %tmp_list);
     }
     return %tests_list;
@@ -287,7 +287,7 @@ sub include_grouplist {
         $cmd = "awk '/$group_name/' $INST_DIR/tests/$fstype/group.list | awk '{printf \"$fstype/\"}{printf \$1}{printf \",\"}' >> tmp.group";
         script_run($cmd) if ($test_folder eq "generic" and $test_ranges =~ /$fstype/);
         $cmd = "cat tmp.group";
-        my $tests = substr(script_output($cmd), 0, -1);
+        my $tests = substr(script_output($cmd, 120, type_command => 1, proceed_on_failure => 1), 0, -1);
         foreach my $single_test (split(/,/, $tests)) {
             push(@tests_list, $single_test);
         }
@@ -480,7 +480,7 @@ umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
     enter_cmd("$cmd");
-    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +"));
+    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +", 120, type_command => 1, proceed_on_failure => 1));
 }
 
 =head2 copy_all_log
@@ -512,7 +512,7 @@ Reload loop device for xfstests
 sub reload_loop_device {
     my ($self, $fstype) = @_;
     assert_script_run("losetup -fP $INST_DIR/test_dev");
-    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
+    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l", 60, type_command => 1, proceed_on_failure => 1);
     my $scratch_num = 1;
     while ($scratch_amount >= $scratch_num) {
         assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
@@ -608,7 +608,7 @@ sub test_run_without_heartbeat {
         reload_loop_device($self, $fstype) if $loop_device;
     }
     else {
-        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
+        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
         $status_num =~ s/^\s+|\s+$//g;
         if ($status_num == 0) {
             $test_status = 'PASSED';
@@ -627,7 +627,7 @@ sub test_run_without_heartbeat {
     }
     else {
         log_add($STATUS_LOG, $test, $test_status, $test_duration);
-        my $log_content = script_output("cat $LOG_DIR/subtest_result_num");
+        my $log_content = script_output("cat $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
         my $targs = {
             name => $test,
             status => $test_status,
