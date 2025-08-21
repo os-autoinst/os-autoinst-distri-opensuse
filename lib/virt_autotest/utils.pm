@@ -395,6 +395,8 @@ sub check_host_health {
     return unless is_x86_64 and (is_sle or is_opensuse);
 
     my $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal('localhost', no_cursor => 1) : check_failures_in_journal();
+    script_run("ip a");
+    script_run("nmcli con");
     unless ($failures) {
         record_info("Healthy host!");
         return 'pass';
@@ -488,6 +490,7 @@ sub download_script {
                 record_info("Guest $machine ssh accessible from host", "Debugging its network availability", result => 'fail');
                 script_run("ssh root\@$machine 'ping -c3 $1'");
                 script_run("ssh root\@$machine 'traceroute $1'");
+                script_run("ssh root\@$machine 'ip route show'");
                 script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
                 script_run("ssh root\@$machine 'ping -c3 10.145.10.207'");
                 script_run("ssh root\@$machine 'ping -c3 192.168.123.1'");
