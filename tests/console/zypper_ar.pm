@@ -22,6 +22,8 @@ sub run {
         foreach (@repos_to_add) {
             next unless get_var("REPO_$_");    # Skip repo if not defined
             $repourl = $urlprefix . "/" . get_var("REPO_$_");
+            # Remove other repos with the same URL, possibly added during installation already
+            assert_script_run "zypper rr $repourl";
             # Skip add repo if already added
             my $rc = script_run "zypper lr | grep -w $_ || zypper ar -c $repourl $_";
             # treat OSS error as test failure, others can be just recorded
