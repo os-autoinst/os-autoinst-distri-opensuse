@@ -24,14 +24,8 @@ sub action {
         record_soft_failure("Workaround for bsc#1228126");
         script_run("fdectl tpm-authorize");
     }
-    if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
-        # With sdbootutil, the snapshot is not changed. Verify that and test rebooting.
-        check_reboot_changes(0);
-        process_reboot(trigger => 1);
-    }
-    else {
-        check_reboot_changes($reboot);
-    }
+
+    check_reboot_changes($reboot);
 }
 
 sub run {
