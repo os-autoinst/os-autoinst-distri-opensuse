@@ -21,7 +21,11 @@ sub run {
     # Generate audit records for testing
     assert_script_run("echo '' > $audit_log");
 
-    if (is_sle('<16')) {
+    # Check if the SUT has apparmor and restart it
+    my $is_apparmor = script_run('systemctl status apparmor | grep "Active: active"');
+
+    # Confusing, but the previous cmd should return 0 if apparmor is there
+    if ($is_apparmor == 0) {
         assert_script_run('systemctl restart apparmor');
     } else {
         # SLE >=16 uses SELinux; let's generate logs with runcon

@@ -9,7 +9,6 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use Utils::Architectures qw(is_x86_64);
-use version_utils;
 
 sub run {
     my $audit_rules = '/etc/audit/rules.d/audit.rules';
@@ -24,7 +23,11 @@ sub run {
     # Make sure auditctl indeed disabled auditd
     assert_script_run("echo '' > $audit_log");
 
-    if (is_sle('<16')) {
+    # Check if the SUT has apparmor
+    my $is_apparmor = script_run('systemctl status apparmor | grep "Active: active"');
+
+    # Confusing, but the previous cmd should return 0 if apparmor is there
+    if ($is_apparmor == 0) {
         systemctl('restart apparmor');
 
         $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
@@ -46,7 +49,8 @@ sub run {
     # Make sure auditctl indeed enabled auditd
     assert_script_run("echo '' > $audit_log");
 
-    if (is_sle('<16')) {
+    # On apparmor based systems run this block too
+    if ($is_apparmor == 'active') {
         systemctl('restart apparmor');
 
         $ret = script_run("tail -1 $audit_log | grep SERVICE_START");
