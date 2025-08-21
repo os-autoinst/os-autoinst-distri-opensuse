@@ -455,7 +455,9 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
-        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
+        # Autoyast tests that aren't using yaml schedule, will schedule opensuse_welcome
+        # right after installation is finished
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable() && !get_var("AUTOYAST");
         if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION') && !get_var('LIVE_UPGRADE')) {
             loadtest "installation/system_workarounds";
         }
@@ -502,6 +504,7 @@ sub load_zdup_tests {
 sub load_autoyast_tests {
     #    init boot in load_boot_tests
     loadtest("autoyast/installation");
+    loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
     #   library function like send_key or reboot will not work, therefore exiting earlier
     return loadtest "locale/keymap_or_locale" if get_var('INSTALL_KEYBOARD_LAYOUT');
     loadtest("autoyast/console");
