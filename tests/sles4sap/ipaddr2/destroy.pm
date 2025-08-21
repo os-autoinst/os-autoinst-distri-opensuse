@@ -57,6 +57,8 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
+use mmapi qw( get_current_job_id );
+use sles4sap::ibsm qw( ibsm_network_peering_azure_delete );
 use sles4sap::ipaddr2 qw(
   ipaddr2_infra_destroy
   ipaddr2_azure_resource_group

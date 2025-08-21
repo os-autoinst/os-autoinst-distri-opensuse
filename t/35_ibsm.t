@@ -120,6 +120,8 @@ subtest '[ibsm_network_peering_azure_delete]' => sub {
     $ibsm->redefine(az_network_peering_list => sub {
             my (%args) = @_;
             note(" --> az_network_peering_list(resource_group => '$args{resource_group}', vnet => '$args{vnet}')");
+            # The function is calling the az cli with "[?contains(name,'" . $args{sut_vnet} . "')].name" or '[].name'
+            # that both return a json list, even if usually only of one element.
             return ['PEERING' . $args{resource_group}]; });
     my $peering_delete = 0;
     $ibsm->redefine(az_network_peering_delete => sub { $peering_delete = 1; return 0; });
