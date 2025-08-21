@@ -10,6 +10,7 @@ package Kselftests::parser;
 
 use Kselftests::parsers::main;
 use Kselftests::parsers::net::l2tp_sh;
+use Kselftests::parsers::livepatch;
 
 use testapi;
 use strict;
@@ -20,6 +21,9 @@ sub factory {
     my $obj;
     eval {
         my $pkg = "Kselftests::parsers::${collection}::${sanitized_test_name}";
+        $obj = $pkg->new();
+    } or eval {
+        my $pkg = "Kselftests::parsers::${collection}";
         $obj = $pkg->new();
     } or do {
         $obj = Kselftests::parsers::main->new();
