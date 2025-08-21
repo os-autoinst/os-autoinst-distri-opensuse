@@ -19,24 +19,24 @@ sub clean_up {
     assert_script_run("rm /etc/systemd/resolved.conf.d/dnssec.conf");
     assert_script_run("rm /etc/systemd/resolved.conf.d/dns_over_tls.conf");
     assert_script_run("mv /etc/resolv.conf{.bak,}");
-    systemctl 'enable NetworkManager', timeout => 30;
-    systemctl 'disable systemd-networkd', timeout => 30;
     systemctl 'disable --now systemd-resolved', timeout => 30;
-    systemctl 'start NetworkManager', timeout => 30;
-    zypper_call 'rr systemd-networkd systemd-resolved nss-mdns';
+    zypper_call 'rm systemd-resolved';
+    systemctl 'restart NetworkManager', timeout => 30;
+
 }
 
 sub run {
     select_serial_terminal;
 
-    zypper_call 'in systemd-networkd systemd-resolved nss-mdns';
-    systemctl 'disable NetworkManager', timeout => 30;
-    systemctl 'enable systemd-networkd', timeout => 30;
-    systemctl 'enable --now systemd-resolved', timeout => 30;
+    zypper_call 'in systemd-resolved';
+    systemctl 'stop NetworkManager', timeout => 30;
     assert_script_run("mv /etc/resolv.conf{,.bak}");
-    assert_script_run 'ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf';
-    assert_script_run "sed -i 's/^hosts:    /^hosts:    resolved /' /etc/nsswitch.conf";
+    systemctl 'enable --now systemd-resolved', timeout => 30;
+    assert_script_run 'ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf';
+    assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf";
+    assert_script_run "sed -i 's/^hosts:\(.*\)\(files\)/hosts:\1\2 resolved [!UNAVAIL=return]/' /etc/nsswitch.conf";
     script_run 'cat /etc/nsswitch.conf';
+    systemctl 'start NetworkManager', timeout => 30;
     validate_script_output("resolvectl status", sub { m/Global/ });
     validate_script_output("resolvectl query www.suse.com", sub { m/\d+\.\d+\.\d+\.\d+/ });
 
