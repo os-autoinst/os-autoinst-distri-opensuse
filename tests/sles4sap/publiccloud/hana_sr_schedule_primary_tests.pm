@@ -1,16 +1,39 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for scheduling multiple instances of tests which target "Master" HANA database.
-#
-# Parameters:
-#  HANASR_PRIMARY_ACTIONS - optional, override list of fencing actions
+
+=head1 NAME
+
+hana_sr_schedule_primary_tests.pm - Schedules tests targeting the primary HANA database.
+
+=head1 DESCRIPTION
+
+This module schedules multiple instances of the 'sles4sap/publiccloud/hana_sr_takeover'
+test. It is designed to test the high-availability and disaster recovery capabilities
+of a SAP HANA System Replication setup. The module iterates through a list of actions
+(e.g., 'stop', 'kill', 'crash') and applies them to the primary HANA database at each
+site, triggering a takeover by the secondary site.
+
+=head1 SETTINGS
+
+=over
+
+=item B<HANASR_PRIMARY_ACTIONS>
+
+An optional, comma-separated list of actions to be performed on the primary HANA
+database. This overrides the default list of actions, which is 'stop,kill,crash'.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 package hana_sr_schedule_primary_tests;
 
-use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use sles4sap_publiccloud;
 use testapi;

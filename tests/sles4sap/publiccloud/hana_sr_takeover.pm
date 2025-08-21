@@ -1,11 +1,42 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database takeover using various methods on "master" HANA database.
 
-use warnings FATAL => 'all';
+=head1 NAME
+
+hana_sr_takeover.pm - Performs a HANA database takeover.
+
+=head1 DESCRIPTION
+
+This module tests the takeover process in a SAP HANA System Replication environment.
+It simulates a failure on the primary (master) HANA database node using a specified
+action (e.g., 'stop', 'kill', 'crash'). After the failure is induced, the module
+verifies that the cluster correctly promotes the secondary node to become the new
+primary. It then checks the cluster status, ensures replication is re-established,
+and cleans up resources to return the cluster to a stable state.
+
+This module is typically scheduled by another test module (e.g., C<hana_sr_schedule_primary_tests.pm>)
+and receives its parameters through the C<$run_args> hashref. The C<action> and C<site_name>
+parameters, which define the test's behavior, are passed within the C<$run_args->{hana_test_definitions}{$test_name}> hashref.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+If set to 'EC2' and the takeover action is 'stop', a specific SBD (STONITH Block Device)
+delay is configured to prevent timing issues during the test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use sles4sap_publiccloud;
