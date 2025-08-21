@@ -52,8 +52,10 @@ sub run {
     }
     my $install_from = get_required_var('WSL_INSTALL_FROM');
     if ($install_from eq 'build') {
-        my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
-        my $wsl_appx_uri = data_url('ASSET_1');
+        # We can use WSL_CUSTOM_IMAGE var to provide a custom URL to download a
+        # different image from the ASSET_1 provided via IBS
+        my $wsl_appx_uri = get_var('WSL_CUSTOM_IMAGE', data_url('ASSET_1'));
+        my $wsl_appx_filename = (split /\//, $wsl_appx_uri)[-1];
         # Enable the 'developer mode' in Windows
         $self->run_in_powershell(
             cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
