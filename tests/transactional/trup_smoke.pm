@@ -25,8 +25,8 @@ sub action {
         script_run("fdectl tpm-authorize");
     }
     if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
-        # With sdbootutil, the snapshot is not changed. Verify that and test rebooting.
-        check_reboot_changes(0);
+        # Since transactional-update 5.1 a new snapshot is created, tough it won't have any actual difference
+        check_reboot_changes(1);
         process_reboot(trigger => 1);
     }
     else {
