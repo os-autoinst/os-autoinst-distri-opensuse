@@ -2005,7 +2005,7 @@ C<$delay> is the time between retries and defaults to C<30>.
 
 C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
 
-The command must return within C<$timeout> seconds (default: 25).
+The command must return within C<$timeout> seconds (default: 30).
 
 If the command doesn't return C<$expect> after C<$retry> retries,
 this function will die, if C<$die> is set.
