@@ -2032,11 +2032,11 @@ sub script_retry {
         $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
         $negate = '!';
     }
-    my $exec = join ' ', grep { defined && length } ($negate, 'timeout', $option, $timeout, $cmd);
+    my $exec = join ' ', grep { defined && length } ($negate, 'timeout -k 5', $option, $timeout, $cmd);
     my $ret;
     for (1 .. $retry) {
         # timeout for script_run must be larger than for the 'timeout ...' command
-        $ret = script_run($exec, ($timeout + 3));
+        $ret = script_run($exec, ($timeout + 10));
         last if defined($ret) && $ret == $ecode;
 
         die($fail_msg) if $retry == $_ && $die == 1;
