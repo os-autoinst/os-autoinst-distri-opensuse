@@ -51,14 +51,26 @@ sub run_test {
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
+    # Try with NM configuration file
+    record_info("Before enable VF", script_output("ip r"));
+    my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
+    script_run("cat $nm_config_file");
+    script_run("sed 's/no-auto-default=\*/no-auto-default=driver:iavf/' $nm_config_file");
+    script_run("cat $nm_config_file");
+    script_run("ip a");
+    script_run("nmcli con");
+
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(pfs => @host_pfs, number => get_var("ENABLE_VF_COUNT", '7'));
     record_info("VFs enabled", "@host_vfs");
 
+    record_info("Before enable VF", script_output("ip r"));
+    script_run("ip a");
+    script_run("nmcli con");
+
     # Restore /etc/resolv.conf after VFs are created
     assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
     script_run("cat /etc/resolv.conf");
-    script_run("/var/log/guest_installation_and_configuration/network_policy_bridge_device_br123_default_route_device_br0.sh");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
