@@ -25,6 +25,8 @@ sub run {
             # Remove other repos with the same effective URL, possibly added during installation already
             assert_script_run("zypper rr $repourl");
             assert_script_run("zypper rr ftp://" . get_var("REPO_HOST") . "/" . get_var("REPO_$_")) if get_var("REPO_HOST");
+            # zdup scenarios might have already $_ added as a repo but disabled
+            assert_script_run("zypper lr -E | grep -w $_ || zypper rr $_");
             # Skip add repo if already added
             my $rc = script_run "zypper lr | grep -w $_ || zypper ar -c $repourl $_";
             # treat OSS error as test failure, others can be just recorded
