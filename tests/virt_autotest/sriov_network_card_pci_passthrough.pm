@@ -58,6 +58,7 @@ sub run_test {
     # Restore /etc/resolv.conf after VFs are created
     assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
     script_run("cat /etc/resolv.conf");
+    script_run("/var/log/guest_installation_and_configuration/network_policy_bridge_device_br123_default_route_device_br0.sh");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
