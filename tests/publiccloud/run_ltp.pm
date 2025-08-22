@@ -15,7 +15,7 @@ use repo_tools 'generate_version';
 use Mojo::File;
 use Mojo::JSON;
 use Mojo::UserAgent;
-use LTP::utils qw(get_ltproot);
+use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
 use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
@@ -357,18 +357,10 @@ sub gen_ltp_env {
     unless (should_partially_build_ltp() || should_fully_build_ltp()) {
         $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
     }
-    $self->{ltp_env} = {
-        product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
-        revision => get_required_var('BUILD'),
-        arch => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
-        kernel => $instance->run_ssh_command(cmd => 'uname -r'),
-        backend => get_required_var('BACKEND'),
-        flavor => get_required_var('FLAVOR'),
-        ltp_version => $ltp_version,
-        gcc => '',
-        libc => '',
-        harness => 'SUSE OpenQA',
-    };
+    $self->{ltp_env} = prepare_whitelist_environment();
+    $self->{ltp_env}->{arch} = get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH"));
+    $self->{ltp_env}->{kernel} = $instance->run_ssh_command(cmd => 'uname -r');
+    $self->{ltp_env}->{ltp_version} = $ltp_version;
 
     record_info("LTP Environment", Dumper($self->{ltp_env}));
 
