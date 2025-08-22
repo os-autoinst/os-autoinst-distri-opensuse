@@ -464,7 +464,7 @@ subtest '[check_cluster_state]' => sub {
     $hacluster->redefine(script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
-    $hacluster->redefine(script_output => sub { return '4.4.2'; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -480,7 +480,7 @@ subtest '[check_cluster_state] assert calls normally' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
-    $hacluster->redefine(script_output => sub { return '4.4.2'; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -494,7 +494,7 @@ subtest '[check_cluster_state] proceed_on_failure' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
-    $hacluster->redefine(script_output => sub { return '4.4.2'; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
 
     check_cluster_state(proceed_on_failure => 1);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -508,7 +508,7 @@ subtest '[check_cluster_state] migration scenario' => sub {
     $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
-    $hacluster->redefine(script_output => sub { return '4.4.2'; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
     set_var('HDDVERSION', 'some version');
 
     check_cluster_state();
@@ -525,7 +525,7 @@ subtest '[check_cluster_state] old crmsh' => sub {
     $hacluster->redefine(script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
-    $hacluster->redefine(script_output => sub { return '3.6.0'; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=3.6.0'; });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -729,7 +729,7 @@ subtest '[crm_list_options] no op for crm verions older than 5.0.0' => sub {
     $hacluster->redefine(script_output => sub { push @calls, $_[0]; return $this_test_ver; });
     $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
 
-    foreach ('0.1.1', '4.3.2', '4.4.1', '4.4.2', '4.5.2') {
+    foreach ('crmshver=0.1.1', 'crmshver=4.3.2', 'crmshver=4.4.1', 'crmshver=4.4.2', 'crmshver=4.5.2') {
         @calls = ();
         $this_test_ver = $_;
         my $res = crm_list_options();
@@ -758,7 +758,7 @@ END
     $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
 
     foreach ('5.0.0', '5.0.4', '6.0.0') {
-        $this_test_ver = $_;
+        $this_test_ver = "crmshver=$_";
         @calls = ();
         my $res = crm_list_options();
         note("\n  -->  " . join("\n  -->  ", @calls));
@@ -775,7 +775,7 @@ subtest '[crm_list_options] invalid xml' => sub {
 
     my $this_test_ver;
     $hacluster->redefine(script_output => sub {
-            return $this_test_ver if ($_[0] =~ /rpm/);
+            return "crmshver=$this_test_ver" if ($_[0] =~ /rpm/);
             # Intentionally do not collect rpm calls
             push @calls, $_[0];
             # Intentionally invalid XML
