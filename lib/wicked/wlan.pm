@@ -180,7 +180,7 @@ sub prepare_packages {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
     }
-    zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
+    zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim wireless-regdb');
     # make sure, we do not run these deamons, as we need to run them in network namespace
     assert_script_run('systemctl disable --now dnsmasq');
     assert_script_run('systemctl disable --now radiusd');
