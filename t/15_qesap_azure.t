@@ -242,23 +242,39 @@ subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
     ok((any { /.*--expiry.*date.*30/ } @calls), 'Configured lifetime');
 };
 
+subtest '[qesap_az_create_sas_token] with invalid custom permissions' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    foreach my $perm ('*', 'r*', 'l*', 'rl*') {
+        dies_ok { qesap_az_create_sas_token(
+                container => 'NEMO',
+                storage => 'DORY',
+                keyname => 'MARLIN',
+                permission => $perm) } "Test unsupported permissions '$perm'";
+        note("\n  C-->  " . join("\n  C-->  ", @calls));
+        @calls = ();
+    }
+};
+
 subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my @calls;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => '*') } 'Test unsupported permissions';
-    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'r*') } 'Test unsupported permissions';
-    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'l*') } 'Test unsupported permissions';
-    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'rl*') } 'Test unsupported permissions';
-    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'r');
-    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'l');
-    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'rl');
-    qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'lr');
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok 1;
+    foreach my $perm ('r', 'l', 'rl', 'lr') {
+        qesap_az_create_sas_token(
+            container => 'NEMO',
+            storage => 'DORY',
+            keyname => 'MARLIN',
+            permission => $perm);
+        note("\n  C-->  " . join("\n  C-->  ", @calls));
+        ok((any { /permission $perm/ } @calls), "Main az command properly composed with permission $perm");
+        @calls = ();
+    }
 };
 
 subtest '[qesap_az_list_container_files] missing arguments' => sub {
