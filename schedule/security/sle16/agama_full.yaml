@@ -1,0 +1,19 @@
+---
+name: agama
+description: >
+  Perform interactive installation with agama.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_first_user
+  - console/validate_repos
+  - security/installation/enable_repos
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
