@@ -1995,7 +1995,8 @@ sub svirt_host_basedir {
 
  script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
 
-Repeat command until expected result or timeout.
+Repeat a command until the expected result is found or the overall timeout is
+hit.
 
 C<$expect> refers to the expected command exit code and defaults to C<0>.
 
