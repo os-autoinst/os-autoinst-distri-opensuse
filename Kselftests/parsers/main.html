@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/main.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/main.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>Although each test (i.e. the ones listed in kselftest-list.txt) in a collection (e.g. &#39;bpf&#39;, &#39;net&#39; or &#39;livepatch&#39;) is required to output valid KTAP output (lines starting with &quot;ok&quot; or &quot;not ok&quot;), they can have several subtests which are not required to do so.</p>
+
+<p>This poses a problem since we rely on the KTAP parser to show the results in a nice way within openQA, because there is no guarantee about their output format. Therefore, for each subtest that we might want to provide KTAP output to, a specific strategy might be deployed within the &#39;parsers&#39; subpackage.</p>
+
+<p>Each specific parse_line() implementation is responsible of processing a string found in the subtest output and returning valid KTAP if applicable, returning &#39;undef&#39; otherwise. The default simply returns the same input, so the post_process subroutine might be unable to check for known issues.</p>
+
+
+</body>
+
+</html>
+
+
