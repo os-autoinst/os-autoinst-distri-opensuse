@@ -16,7 +16,7 @@ use Mojo::File;
 use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
-use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
+use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies);
 use LTP::WhiteList;
 use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
 use publiccloud::ssh_interactive 'select_host_console';
@@ -84,13 +84,11 @@ sub partially_build_ltp_from_git {
     my $ltp_subdir_build_timeout = 5 * 60;
 
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+    $instance->run_ssh_command(
+        cmd => "make -C $ltp_dir -j\$(getconf _NPROCESSORS_ONLN) modules-install",
+        timeout => $ltp_subdir_build_timeout
+    );
 
-    foreach my $subdir (get_submodules_to_rebuild()) {
-        $instance->run_ssh_command(
-            cmd => "cd $ltp_dir/testcases/$subdir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
-            timeout => $ltp_subdir_build_timeout
-        );
-    }
     record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
 }
 
