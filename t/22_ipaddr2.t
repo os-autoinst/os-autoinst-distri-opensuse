@@ -849,7 +849,26 @@ subtest '[ipaddr2_scc_register]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
-    ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
+    ok((any { /registercloudguest.*force-new.*-r.*1234567890/ } @calls), 'registercloudguest register');
+};
+
+subtest '[ipaddr2_scc_register] scc_endpoint' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return;
+    });
+
+    ipaddr2_scc_register(id => 42, scc_code => '1234567890', scc_endpoint => 'SUSEConnect');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /SUSEConnect.*clean/ } @calls), 'SUSEConnect clean');
+    ok((any { /SUSEConnect.*-r.*1234567890/ } @calls), 'SUSEConnect register');
+    ok((none { /SUSEConnect.*force.*1234567890/ } @calls), 'SUSEConnect register does not have force-new');
 };
 
 subtest '[ipaddr2_cloudinit_logs]' => sub {
@@ -1064,7 +1083,7 @@ subtest '[ipaddr2_scc_addons] no args' => sub {
     dies_ok { ipaddr2_scc_addons(priv_ip_range => '1.2.3', scc_addons => '') } "die if empty scc_addons argument is provided";
 };
 
-subtest '[ipaddr2_scc_addons] one addon' => sub {
+subtest '[ipaddr2_scc_addons] addons' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my (@remotes, @addons);
@@ -1083,11 +1102,10 @@ subtest '[ipaddr2_scc_addons] one addon' => sub {
         note("\n  ADDON[$_] -->  " . join("\n  ADDON[$_] -->  ", @addons));
         $act = scalar @remotes;
         $exp = (1 + ($_ =~ tr/,//)) * 2;
-        ok $act eq $exp, "Expected remotes to have $exp elements but it has $act .";
+        ok(($act eq $exp), "Expected remotes to have $exp elements and it has $act");
         @remotes = ();
         @addons = ();
     }
-    ok 1;
 };
 
 subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {

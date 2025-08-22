@@ -1548,6 +1548,8 @@ ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
 
 =item B<scc_code> - registration code
 
+=item B<scc_endpoint> - by default it is registercloudguest
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
@@ -1561,13 +1563,16 @@ sub ipaddr2_scc_register {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{scc_endpoint} //= 'registercloudguest';
+    croak("SCC endpoint $args{scc_endpoint} is not supported.") unless ($args{scc_endpoint} eq 'SUSEConnect' || $args{scc_endpoint} eq 'registercloudguest');
 
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => 'sudo registercloudguest --clean',
+        cmd => "sudo $args{scc_endpoint} --clean",
         bastion_ip => $args{bastion_ip});
 
+    my $forcenew = ($args{scc_endpoint} eq 'registercloudguest') ? '--force-new' : '';
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => "sudo registercloudguest --force-new -r \"$args{scc_code}\"",
+        cmd => "sudo $args{scc_endpoint} $forcenew -r \"$args{scc_code}\"",
         timeout => 360,
         bastion_ip => $args{bastion_ip});
 }
