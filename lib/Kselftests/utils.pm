@@ -75,7 +75,7 @@ sub post_process {
     for my $test (@tests) {
         $test_index++;
         my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it, sub . with _
-        my $sanitized_test_name = $test_name =~ s/\./_/gr;    # Dots should be underscore for better handling in Perl and YAML files
+        my $sanitized_test_name = $test_name =~ s/\.|-/_/gr;    # Dots and hyphens should be underscore for better handling in Perl and YAML files
 
         # Check test result in the summary
         my $summary_ln;
