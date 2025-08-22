@@ -34,7 +34,7 @@ sub run {
     systemctl 'enable --now systemd-resolved', timeout => 30;
     assert_script_run 'ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf';
     assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf";
-    assert_script_run "sed -i 's/^hosts:\(.*\)\(files\)/hosts:\1\2 resolved [!UNAVAIL=return]/' /etc/nsswitch.conf";
+    assert_script_run "sed -i 's/^hosts:.*files/hosts: files resolved [!UNAVAIL=return]/' /etc/nsswitch.conf";
     script_run 'cat /etc/nsswitch.conf';
     systemctl 'start NetworkManager', timeout => 30;
     validate_script_output("resolvectl status", sub { m/Global/ });
