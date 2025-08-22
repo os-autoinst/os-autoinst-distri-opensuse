@@ -337,6 +337,8 @@ sub load_container_tests {
         } elsif ($chart =~ m/private-registry/) {
             set_var('K3S_ENABLE_TRAEFIK', 1);
             loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
+        } elsif ($chart =~ m/kiosk/) {
+            loadtest 'containers/charts/kiosk';
         }
         else {
             die "Unsupported HELM_CHART value or HOST_VERSION";
