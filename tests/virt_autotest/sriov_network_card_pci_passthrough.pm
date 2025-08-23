@@ -55,7 +55,7 @@ sub run_test {
     record_info("Before enable VF", script_output("ip r"));
     my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
     script_run("cat $nm_config_file");
-    script_run("sed 's/no-auto-default=\*/no-auto-default=driver:iavf/' $nm_config_file");
+    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf/' $nm_config_file");
     script_run("cat $nm_config_file");
     script_run("ip a");
     script_run("nmcli con");
