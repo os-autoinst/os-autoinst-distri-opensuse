@@ -1,0 +1,79 @@
+From 96ef4d3bee53ed17bf62670837b51c73911d7455 Mon Sep 17 00:00:00 2001
+From: Laura Brehm <laurabrehm@hey.com>
+Date: Fri, 27 Sep 2024 13:36:48 +0100
+Subject: [PATCH 1/2] tests/exec: expect 127 exit code for missing executable
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Docker Engine has always returned `126` when starting an exec fails due
+to a missing binary, but this was due to a bug in the daemon causing the
+correct exit code to be overwritten in some cases – see: https://github.com/moby/moby/issues/45795
+
+Change tests to expect correct exit code (`127`).
+
+Signed-off-by: Laura Brehm <laurabrehm@hey.com>
+---
+ tests/integration/models_containers_test.py | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/tests/integration/models_containers_test.py b/tests/integration/models_containers_test.py
+index 476263ae23..c65f3d7f88 100644
+--- a/tests/integration/models_containers_test.py
++++ b/tests/integration/models_containers_test.py
+@@ -359,8 +359,11 @@ def test_exec_run_failed(self):
+             "alpine", "sh -c 'sleep 60'", detach=True
+         )
+         self.tmp_containers.append(container.id)
+-        exec_output = container.exec_run("docker ps")
+-        assert exec_output[0] == 126
++        exec_output = container.exec_run("non-existent")
++        # older versions of docker return `126` in the case that an exec cannot
++        # be started due to a missing executable. We're fixing this for the
++        # future, so accept both for now.
++        assert exec_output[0] == 127 or exec_output == 126
+ 
+     def test_kill(self):
+         client = docker.from_env(version=TEST_API_VERSION)
+
+From b1265470e64c29d8b270e43387c5abb442e084c7 Mon Sep 17 00:00:00 2001
+From: Laura Brehm <laurabrehm@hey.com>
+Date: Fri, 27 Sep 2024 15:05:08 +0100
+Subject: [PATCH 2/2] tests/exec: add test for exit code from exec
+
+Execs should return the exit code of the exec'd process, if it started.
+
+Signed-off-by: Laura Brehm <laurabrehm@hey.com>
+---
+ tests/integration/models_containers_test.py | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/tests/integration/models_containers_test.py b/tests/integration/models_containers_test.py
+index c65f3d7f88..2cd713ec8a 100644
+--- a/tests/integration/models_containers_test.py
++++ b/tests/integration/models_containers_test.py
+@@ -353,6 +353,15 @@ def test_exec_run_success(self):
+         assert exec_output[0] == 0
+         assert exec_output[1] == b"hello\n"
+ 
++    def test_exec_run_error_code_from_exec(self):
++        client = docker.from_env(version=TEST_API_VERSION)
++        container = client.containers.run(
++            "alpine", "sh -c 'sleep 20'", detach=True
++        )
++        self.tmp_containers.append(container.id)
++        exec_output = container.exec_run("sh -c 'exit 42'")
++        assert exec_output[0] == 42
++
+     def test_exec_run_failed(self):
+         client = docker.from_env(version=TEST_API_VERSION)
+         container = client.containers.run(
+@@ -363,7 +372,7 @@ def test_exec_run_failed(self):
+         # older versions of docker return `126` in the case that an exec cannot
+         # be started due to a missing executable. We're fixing this for the
+         # future, so accept both for now.
+-        assert exec_output[0] == 127 or exec_output == 126
++        assert exec_output[0] == 127 or exec_output[0] == 126
+ 
+     def test_kill(self):
+         client = docker.from_env(version=TEST_API_VERSION)
