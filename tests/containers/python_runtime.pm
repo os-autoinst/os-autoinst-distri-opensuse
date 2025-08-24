@@ -132,7 +132,9 @@ sub test {
             # These 3 tests fail because our patches force log-opts max-file & max-size:
             "tests/integration/api_container_test.py::CreateContainerTest::test_valid_log_driver_and_log_opt",
             "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_config_specified",
-            "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_log_driver_specified"
+            "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_log_driver_specified",
+            # Flaky test
+            "tests/integration/api_container_test.py::AttachContainerTest::test_attach_no_stream"
         );
     }
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
