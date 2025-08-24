@@ -109,6 +109,18 @@ sub setup {
 sub test {
     my $target = shift;
 
+    # Used by pytest to ignore whole files
+    my @ignore = ();
+    if ($runtime eq "docker") {
+        # Docker Swarm doesn't work with our weird IPv6 setup with multiple "valid" addresses
+        push @ignore, (
+            "tests/integration/api_swarm_test.py",
+            "tests/integration/models_swarm_test.py"
+        );
+    }
+    my $ignore = join " ", map { "--ignore=$_" } @ignore;
+
+    # Used by pytest to ignore individual tests
     my @deselect = ();
     if ($runtime eq "docker") {
         push @deselect, (
@@ -117,9 +129,7 @@ sub test {
             # These 3 tests fail because our patches force log-opts max-file & max-size:
             "tests/integration/api_container_test.py::CreateContainerTest::test_valid_log_driver_and_log_opt",
             "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_config_specified",
-            "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_log_driver_specified",
-            # This test fails because we have a weird IPv6 setup with multiple "valid" addresses
-            "tests/integration/models_swarm_test.py::SwarmTest::test_join_on_already_joined_swarm"
+            "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_log_driver_specified"
         );
     }
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
@@ -135,7 +145,7 @@ sub test {
         $env{TZ} = "UTC";
     }
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
-    my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $deselect";
+    my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
     script_run "$env pytest $pytest_args $tests/$target |& tee $target.txt", timeout => 3600;
 
