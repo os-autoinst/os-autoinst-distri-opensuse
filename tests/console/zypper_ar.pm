@@ -1,12 +1,14 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2018 SUSE LLC
+# Copyright 2012-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zypper
-# Summary: Add repos from corresponding mirror only if do not exist
-# Maintainer: Max Lin <mlin@suse.com>
+# Summary: Prepare system with the repositories to be tested
+# - Remove repositories by alias and url, as they could be leftovers in zdup scenarios or installer
+# - Add to be tested repositories
+# Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
 use base "consoletest";
 use testapi;
