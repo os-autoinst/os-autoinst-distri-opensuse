@@ -1,7 +1,4 @@
 {
-  bootloader: {
-    stopOnBootMenu: true
-  },
   files: [{
      destination: '/usr/local/share/dummy.xml',
      url: 'dummy.xml'

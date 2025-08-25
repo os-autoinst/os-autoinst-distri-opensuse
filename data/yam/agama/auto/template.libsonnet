@@ -1,5 +1,6 @@
-local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
+local base_lib = import 'lib/base.libsonnet';
+local bootloader_lib = import 'lib/bootloader.libsonnet';
 local dasd_lib = import 'lib/dasd.libsonnet';
 local iscsi_lib = import 'lib/iscsi.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
@@ -10,6 +11,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=false,
+         extra_kernelparams='',
          dasd=false,
          extra_repositories=false,
          files=false,
@@ -28,7 +30,10 @@ function(bootloader=false,
          ssl_certificates=false,
          storage='',
          user=true) {
-  [if bootloader == true then 'bootloader']: base_lib['bootloader'],
+  [if bootloader == true || extra_kernelparams != '' then 'bootloader']: std.prune({
+   stopOnBootMenu: if bootloader then true,
+   extraKernelParams: if extra_kernelparams != '' then extra_kernelparams,
+  }),
   [if dasd == true then 'dasd']: dasd_lib.dasd(),
   [if files == true then 'files']: base_lib['files'],
   [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
