@@ -93,7 +93,8 @@ sub run {
         $self->run_in_powershell(
             cmd => "wsl-firstboot",
             code => sub {
-                assert_screen("jeos-wsl-firstboot-welcome");
+                assert_screen(["wsl-distro-minimized", "jeos-wsl-firstboot-welcome"]);
+                click_lastmatch if match_has_tag "wsl-distro-minimized";
             }
         ) if ($wsl_image_ext eq 'xz');
     } elsif ($install_from eq 'msstore') {
