@@ -9,8 +9,24 @@
 package Kselftests::parser;
 
 use Kselftests::parsers::main;
+
 use Kselftests::parsers::net::l2tp_sh;
+
 use Kselftests::parsers::livepatch;
+
+use Kselftests::parsers::bpf::test_bpftool_sh;
+use Kselftests::parsers::bpf::test_lru_map;
+use Kselftests::parsers::bpf::test_maps;
+use Kselftests::parsers::bpf::test_progs;
+use Kselftests::parsers::bpf::test_progs_cpuv4;
+use Kselftests::parsers::bpf::test_progs_no_alu32;
+use Kselftests::parsers::bpf::test_sockmap;
+use Kselftests::parsers::bpf::test_tag;
+use Kselftests::parsers::bpf::test_tc_edt_sh;
+use Kselftests::parsers::bpf::test_tc_tunnel_sh;
+use Kselftests::parsers::bpf::test_tcpnotify_user;
+use Kselftests::parsers::bpf::test_verifier;
+use Kselftests::parsers::bpf::test_xdping_sh;
 
 use testapi;
 use strict;
