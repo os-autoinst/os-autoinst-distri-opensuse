@@ -16,8 +16,6 @@ use warnings FATAL => 'all';
 use Yam::Agama::Pom::GrubMenuLeapPage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage;
-use testapi qw(record_soft_failure);
-use Utils::Architectures qw(is_ppc64le);
 
 sub get_grub_menu_installed_system {
     my $self = shift;
@@ -25,15 +23,9 @@ sub get_grub_menu_installed_system {
 }
 
 sub get_grub_menu_agama {
-    if (is_ppc64le()) {
-        record_soft_failure 'bsc#1248161 Boot from hard disk has not been implemented on ppc64le';
-        return Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage->new({
-                grub_menu_agama => Yam::Agama::Pom::GrubMenuAgamaPage->new({
-                        grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()})});
-    } else {
-        return Yam::Agama::Pom::GrubMenuAgamaPage->new({
-                grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
-    }
+    return Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage->new({
+            grub_menu_agama => Yam::Agama::Pom::GrubMenuAgamaPage->new({
+                    grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()})});
 }
 
 1;
