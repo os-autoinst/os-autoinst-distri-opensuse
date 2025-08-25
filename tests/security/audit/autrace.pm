@@ -33,18 +33,13 @@ sub run {
 
     select_console 'root-console';
 
-    if (is_sle("<=12-SP5")) {
-        # on 12-SP5 and lower, the file may have incorrect permission thus causing the test to fail.
-        script_run("chmod 600 $audit_log");
-    }
+    # on 12-SP5 and lower, the file may have incorrect permission thus causing the test to fail.
+    script_run("chmod 600 $audit_log") if is_sle("<=12-SP5");
 
     # Use autrace to trace an individual process, output will be logged to audit log
-    my $ret = script_run('autrace /bin/ls /tmp');
-    if ($ret) {
-        record_info('autrace_output: ', 'autrace will report error here as expected');
-    } else {
-        record_info('Error: ', 'autrace should report error here', result => 'fail');
-    }
+    script_run('autrace /bin/ls /tmp')
+      ? record_info('autrace_output: ', 'autrace will report error here as expected')
+      : record_info('Error: ', 'autrace should report error here', result => 'fail');
 
     # Delete all existing rules
     assert_script_run('auditctl -D');

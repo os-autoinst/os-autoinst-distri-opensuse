@@ -14,14 +14,10 @@ sub run {
     select_console 'root-console';
 
     # Install packages if they are not installed by default
-    if (script_run('rpm -q audit')) {
-        zypper_call('in audit libaudit1');
-    }
+    zypper_call('in audit libaudit1') if script_run('rpm -q audit');
 
-    if (!is_sle("<=12-SP5")) {
-        # Check auditd status by default on a clean new VM
-        systemctl('is-active auditd');
-    }
+    # Check auditd status by default on a clean new VM
+    systemctl('is-active auditd') unless is_sle("<=12-SP5");
 
     # Stop auditd
     systemctl('stop auditd');
