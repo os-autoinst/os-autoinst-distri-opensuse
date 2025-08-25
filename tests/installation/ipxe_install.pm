@@ -192,9 +192,13 @@ sub set_bootscript_agama_cmdline_extra {
         $agama_install_url =~ s/^\s+|\s+$//g;
         $cmdline_extra .= "inst.install_url=$agama_install_url ";
     }
-    # Add register URL
-    if (my $register_url = get_var('SCC_URL')) {
-        $cmdline_extra .= "inst.register_url=$register_url ";
+    # Add register URL, we don't need to register the system in case:
+    #   1. Any install repos are used
+    #   2. Register the system via scc, see https://bugzilla.suse.com/show_bug.cgi?id=1246600
+    unless (get_var('INST_INSTALL_URL')) {
+        if (my $register_url = get_var('SCC_URL')) {
+            $cmdline_extra .= "inst.register_url=$register_url " unless $register_url =~ /https:\/\/scc.suse.com/;
+        }
     }
     if (is_ipmi) {
         my $ipxe_console = get_required_var('IPXE_CONSOLE');
