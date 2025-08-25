@@ -69,7 +69,7 @@ sub run {
 
         my $wsl_image_ext = (split /\./, $wsl_image_filename)[-1];
         record_info("$wsl_image_ext");
-        if ($wsl_image_ext == 'appx') {
+        if ($wsl_image_ext eq 'appx') {
             $self->run_in_powershell(
                 cmd => "Add-AppxPackage -Path C:\\$wsl_image_filename",
                 timeout => 60
@@ -81,7 +81,7 @@ sub run {
                 assert_and_click("welcome_to_wsl", timeout => 120);
                 send_key "alt-f4";
             }
-        } elsif ($wsl_image_ext == 'xz') {
+        } elsif ($wsl_image_ext eq 'xz') {
             $self->run_in_powershell(cmd => "mkdir C:\\$WSL_version");
             $self->run_in_powershell(
                 cmd => "wsl --import $WSL_version C:\\$WSL_version C:\\$wsl_image_filename",
