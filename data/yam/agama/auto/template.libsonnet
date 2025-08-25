@@ -17,6 +17,8 @@ function(bootloader=false,
          localization='',
          packages='',
          patterns='',
+         patterns_to_add='',
+         patterns_to_remove='',
          product='',
          registration_code='',
          registration_code_ha='',
@@ -33,8 +35,10 @@ function(bootloader=false,
   [if files == true then 'files']: base_lib['files'],
   [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
   [if localization == true then 'localization']: base_lib['localization'],
-  [if patterns != '' || packages != '' || extra_repositories then 'software']: std.prune({
-    patterns: if patterns != '' then std.split(patterns, ','),
+  [if patterns != '' || packages != '' || extra_repositories || patterns_to_add != '' || patterns_to_remove != '' then 'software']: std.prune({
+    patterns: if patterns_to_add != '' || patterns_to_remove != ''  
+      then software_lib.modify_patterns(patterns_to_add, patterns_to_remove)  
+      else if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
     extraRepositories: if extra_repositories then software_lib['extraRepositories'],
   }),
