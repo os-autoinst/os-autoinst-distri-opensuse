@@ -90,13 +90,10 @@ sub run {
             assert_and_click("welcome_to_wsl", timeout => 120);
             send_key "alt-f4";
         }
-        $self->run_in_powershell(
-            cmd => "wsl-firstboot",
-            code => sub {
-                assert_screen(["wsl-distro-minimized", "jeos-wsl-firstboot-welcome"]);
-                click_lastmatch if match_has_tag "wsl-distro-minimized";
-            }
-        ) if ($wsl_image_ext eq 'xz');
+        if ($wsl_image_ext eq 'xz') {
+            assert_and_click("wsl-distro-minimized");
+            enter_cmd_slow "wsl-firstboot";
+        }
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store, legacy or modern.
         if (check_var('WSL_FIRSTBOOT', 'yast')) {
