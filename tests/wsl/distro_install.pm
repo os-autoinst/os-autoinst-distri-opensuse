@@ -54,29 +54,46 @@ sub run {
     if ($install_from eq 'build') {
         # We can use WSL_CUSTOM_IMAGE var to provide a custom URL to download a
         # different image from the ASSET_1 provided via IBS
-        my $wsl_appx_uri = get_var('WSL_CUSTOM_IMAGE', data_url('ASSET_1'));
-        my $wsl_appx_filename = (split /\//, $wsl_appx_uri)[-1];
+        my $wsl_image_uri = get_var('WSL_CUSTOM_IMAGE', data_url('ASSET_1'));
+        my $wsl_image_filename = (split /\//, $wsl_image_uri)[-1];
         # Enable the 'developer mode' in Windows
         $self->run_in_powershell(
             cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
         );
         $self->run_in_powershell(
-            cmd => "Start-BitsTransfer -Source $wsl_appx_uri -Destination C:\\\\$wsl_appx_filename",
+            cmd => "Start-BitsTransfer -Source $wsl_image_uri -Destination C:\\\\$wsl_image_filename",
             timeout => 60
         );
 
         $self->install_certificates;
 
-        $self->run_in_powershell(
-            cmd => "Add-AppxPackage -Path C:\\$wsl_appx_filename",
-            timeout => 60
-        );
-        $self->close_powershell;
-        $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
-        assert_and_click 'wsl-suse-startup-search';
-        if (check_var('DISTRI', 'sle') || is_aarch64) {
-            assert_and_click("welcome_to_wsl", timeout => 120);
-            send_key "alt-f4";
+        my $wsl_image_ext = (split /\./, $wsl_image_filename)[-1];
+        if ($wsl_image_ext == 'appx') {
+            $self->run_in_powershell(
+                cmd => "Add-AppxPackage -Path C:\\$wsl_image_filename",
+                timeout => 60
+            );
+            $self->close_powershell;
+            $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
+            assert_and_click 'wsl-suse-startup-search';
+            if (check_var('DISTRI', 'sle') || is_aarch64) {
+                assert_and_click("welcome_to_wsl", timeout => 120);
+                send_key "alt-f4";
+            }
+        } elsif ($wsl_image_ext == 'tar.xz') {
+            $self->run_in_powershell(cmd => "mkdir C:\\$WSL_version");
+            $self->run_in_powershell(
+                cmd => "wsl --import $WSL_version C:\\$WSL_version C:\\$wsl_image_filename",
+                timeout => 120
+            );
+            $self->run_in_powershell(
+                cmd => "wsl-firstboot",
+                code => sub {
+                    assert_screen("jeos-wsl-firstboot-welcome");
+                }
+            );
+        } else {
+            die("The image provided is not in .appx neither .tar.xz format.\nImage extension: $wsl_image_ext");
         }
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store, legacy or modern.
