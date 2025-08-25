@@ -9,7 +9,8 @@ local software_lib = import 'lib/software.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 
-function(bootloader=false,
+function(add_patterns='',
+         bootloader=false,
          dasd=false,
          extra_repositories=false,
          files=false,
@@ -21,6 +22,7 @@ function(bootloader=false,
          registration_code='',
          registration_code_ha='',
          registration_url='',
+         remove_patterns='',
          root_password=true,
          scripts_pre='',
          scripts_post_partitioning='',
@@ -33,8 +35,10 @@ function(bootloader=false,
   [if files == true then 'files']: base_lib['files'],
   [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
   [if localization == true then 'localization']: base_lib['localization'],
-  [if patterns != '' || packages != '' || extra_repositories then 'software']: std.prune({
-    patterns: if patterns != '' then std.split(patterns, ','),
+  [if patterns != '' || packages != '' || extra_repositories || add_patterns != '' || remove_patterns != '' then 'software']: std.prune({
+    patterns: if add_patterns != '' || remove_patterns != ''  
+      then software_lib.change_patterns(add_patterns, remove_patterns)  
+      else if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
     extraRepositories: if extra_repositories then software_lib['extraRepositories'],
   }),
