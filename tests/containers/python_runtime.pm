@@ -47,7 +47,7 @@ sub setup {
         systemctl "enable --now podman.socket";
     } else {
         assert_script_run "cp -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
-        assert_script_run qq(echo '"hosts": ["tcp://127.0.0.1:2375", "unix:///var/run/docker.sock"]' > /etc/docker/daemon.json);
+        assert_script_run qq(echo '{"hosts": ["tcp://127.0.0.1:2375", "unix:///var/run/docker.sock"]}' > /etc/docker/daemon.json);
         record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
         systemctl "daemon-reload";
         systemctl "enable --now docker";
