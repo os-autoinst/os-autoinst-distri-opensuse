@@ -10,6 +10,7 @@ use Mojo::Base "windowsbasetest";
 use testapi;
 use version_utils;
 use Utils::Architectures 'is_aarch64';
+use utils qw(enter_cmd_slow);
 
 sub install_certificates {
     my ($self) = @_;
