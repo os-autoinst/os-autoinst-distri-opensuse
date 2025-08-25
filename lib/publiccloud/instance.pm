@@ -899,9 +899,9 @@ sub upload_supportconfig_log {
 
 sub wait_for_state {
     my ($self, $state) = @_;
-    my $attempts = 60;
+    my $attempts = 120;
     while (lc($self->provider->get_state_from_instance($self)) !~ /$state/ && $attempts-- > 0) {
-        sleep 5;
+        sleep 15;
     }
     die("The instance state is not '$state' but '" . lc($self->provider->get_state_from_instance($self)) . "' instead.") unless ($attempts > 0);
 }
