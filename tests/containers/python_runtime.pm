@@ -84,8 +84,7 @@ sub setup {
         my @patches = ($runtime eq "podman") ? qw(572 575) : qw(3261 3290 3354);
         foreach my $patch (@patches) {
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
-            # We need git 2.47.0+ to use `--ours` with `git apply -3`
-            assert_script_run "git apply -3 --ours $patch.patch";
+            assert_script_run "git apply $patch.patch";
         }
     }
 
