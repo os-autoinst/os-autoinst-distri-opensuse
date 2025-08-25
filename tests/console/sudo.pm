@@ -62,7 +62,7 @@ sub full_test {
     assert_script_run 'id -un|grep ^bernhard';
     sudo_with_pw 'sudo id -un', grep => '^root';
     # I/O redirection; the redirection happens as user, not in sudo context, so should fail
-    sudo_with_pw 'sudo echo 2 >/run/openqa_sudo_test', expected_screen => 'user-console';
+    assert_script_run '! sudo echo 2 >/run/openqa_sudo_test';
     # confirm that the I/O redirection above indeed did not write to the file
     assert_script_run 'grep 1 /run/openqa_sudo_test';
     # fail with permission denied
