@@ -183,8 +183,8 @@ sub load_host_tests_podman {
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
-    unless (is_jeos || is_staging || is_transactional || !is_tumbleweed || get_var("OCI_RUNTIME")) {
-        loadtest('containers/python_runtime', run_args => $run_args, name => "python_podman");
+    unless (is_jeos || is_staging || is_transactional || get_var("OCI_RUNTIME")) {
+        loadtest('containers/python_runtime', run_args => $run_args, name => "python_podman") if ((is_tumbleweed || is_sle(">=16")) && (is_aarch64 || is_x86_64));
     }
     loadtest('containers/podmansh') if (is_tumbleweed && !is_staging && !is_transactional);
 }
@@ -218,8 +218,8 @@ sub load_host_tests_docker {
         # select_user_serial_terminal is broken on public cloud
         loadtest 'containers/rootless_docker' unless (is_public_cloud);
     }
-    unless (is_jeos || is_staging || is_transactional || !is_tumbleweed || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
-        loadtest('containers/python_runtime', run_args => $run_args, name => "python_docker");
+    unless (is_jeos || is_staging || is_transactional || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
+        loadtest('containers/python_runtime', run_args => $run_args, name => "python_docker") if ((is_tumbleweed || is_sle(">=16")) && (is_aarch64 || is_x86_64));
     }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
