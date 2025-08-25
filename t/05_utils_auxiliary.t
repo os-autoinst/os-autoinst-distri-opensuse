@@ -34,7 +34,7 @@ subtest 'script_retry' => sub {
     my $cmd;
     $testapi->redefine('script_run', sub { $cmd = shift; 0 });
     is script_retry('true', delay => 0, retry => 2, timeout => 1), 0, 'script_retry(true) is ok mocked to collect call';
-    is $cmd, 'timeout 1 true', 'expected concatenated command (no double spaces)';
+    is $cmd, 'timeout -k 5 1 true', 'expected concatenated command (no double spaces)';
 };
 
 
