@@ -20,7 +20,6 @@ use utils;
 use containers::helm;
 use containers::k8s qw(install_kubectl install_helm);
 
-
 our $release_name = "privateregistry";
 
 sub run {

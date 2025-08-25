@@ -13,14 +13,12 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);
-use containers::k8s qw(install_kubectl install_helm install_k3s);
+use containers::k8s qw(install_helm install_k3s);
 
 sub run {
     select_serial_terminal;
-    return undef unless get_var('HELM_CHART');
-    install_kubectl() unless script_run("which kubectl") == 0;
-    install_helm() unless script_run("which helm") == 0;
     install_k3s() unless script_run("which k3s") == 0;
+    install_helm() unless script_run("which helm") == 0;
     systemctl 'disable --now firewalld';
 }
 

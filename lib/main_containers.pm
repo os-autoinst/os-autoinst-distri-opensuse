@@ -401,11 +401,9 @@ sub load_container_tests {
         );
 
         loadtest 'containers/scc_login_to_registry' if is_sle() && $spr_credentials_defined;
-        set_var('K3S_ENABLE_COREDNS', 1);
         if ($chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
         } elsif ($chart =~ m/private-registry/) {
-            set_var('K3S_ENABLE_TRAEFIK', 1);
             loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
         }
         else {
