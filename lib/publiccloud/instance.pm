@@ -428,13 +428,13 @@ sub wait_for_ssh {
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
-    my $ip_checked = 0;
 
     # Looping until SSH port 22 is reachable or timeout.
     while (($duration = time() - $start_time) < $args{timeout}) {
         $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
         last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
+
         sleep $delay;
     }    # endloop
 
@@ -917,9 +917,9 @@ sub upload_supportconfig_log {
 
 sub wait_for_state {
     my ($self, $state) = @_;
-    my $attempts = 60;
+    my $attempts = 120;
     while (lc($self->provider->get_state_from_instance($self)) !~ /$state/ && $attempts-- > 0) {
-        sleep 5;
+        sleep 15;
     }
     die("The instance state is not '$state' but '" . lc($self->provider->get_state_from_instance($self)) . "' instead.") unless ($attempts > 0);
 }

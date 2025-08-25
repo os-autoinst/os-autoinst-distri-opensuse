@@ -129,7 +129,7 @@ sub debug {
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {publiccloud_multi_module => 1};
 }
 
 1;

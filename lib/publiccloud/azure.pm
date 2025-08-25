@@ -589,6 +589,27 @@ sub stop_instance {
     die("Failed to stop instance $id") unless ($attempts > 0);
 }
 
+sub suspend_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+
+    die("Cannot suspend instance which is not running.") if (lc($self->get_state_from_instance($instance)) ne 'running');
+    assert_script_run("az vm deallocate --resource-group $resource_group --name $instance_id", quiet => 1, timeout => 3600);
+    $instance->wait_for_state('deallocated');
+}
+
+sub resume_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
+    $instance_id =~ s/.*\/(.*)/$1/;
+    my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
+
+    script_run("az vm start --resource-group $resource_group --name $instance_id", quiet => 1, timeout => 3600);
+    $instance->wait_for_state('running');
+}
+
 sub start_instance
 {
     my ($self, $instance, %args) = @_;
