@@ -32,7 +32,7 @@ sub sudo_with_pw {
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
         enter_cmd "expect -c 'spawn $command;expect \"password for*:\" {send \"$password\\r\";interact'} default {exit 1}";
-        sleep 2;
+        assert_screen $args{expected_screen} // 'root-console';
     }
     else {
         assert_script_run("expect -c '${env}spawn $command;expect \"password for*:\" {send \"$password\\r\";interact} default {exit 1}'$grep", timeout => $args{timeout});
@@ -63,7 +63,7 @@ sub full_test {
     assert_script_run 'id -un|grep ^bernhard';
     sudo_with_pw 'sudo id -un', grep => '^root';
     # I/O redirection; the redirection happens as user, not in sudo context, so should fail
-    sudo_with_pw 'sudo echo 2 >/run/openqa_sudo_test';
+    sudo_with_pw 'sudo echo 2 >/run/openqa_sudo_test', expected_screen => 'user-console';
     # confirm that the I/O redirection above indeed did not write to the file
     assert_script_run 'grep 1 /run/openqa_sudo_test';
     # fail with permission denied
@@ -95,7 +95,7 @@ sub full_test {
     sudo_with_pw 'sudo sed -i "s/^ALL\[\[\:space\:\]\]*ALL/#ALL ALL/" /etc/sudoers';
     sudo_with_pw 'sudo su - sudo_test';
     test_sudoers $test_password;
-    sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password";
+    sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password", expected_screen => 'user-console';
     assert_script_run 'grep -i "not allowed" check_err.log';
     enter_cmd 'exit';
     select_console 'root-console';
