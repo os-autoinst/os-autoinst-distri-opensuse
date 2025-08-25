@@ -54,6 +54,10 @@ sub run {
     # Delete all those snapshots we just created so other tests are not confused
     assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 240);
     assert_script_run("snapper list");
+    # check whether average system load is below treshold
+    # the load should get below 0.7
+    script_run(qq@for i in {1..100}; do read -d' ' load </proc/loadavg; [ "\${load/./}" -le 6 ] && break; sleep 6; done; echo LOAD_OK > /dev/$serialdev@, 0);
+    wait_serial('LOAD_OK', 900) || die 'System average load was not settled after taking snapshots';
 }
 
 
