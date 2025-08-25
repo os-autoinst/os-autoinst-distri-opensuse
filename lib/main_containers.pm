@@ -300,6 +300,10 @@ sub update_host_and_publish_hdd {
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
+    if (my $chart = get_var('HELM_CHART')) {
+        set_var('K3S_ENABLE_COREDNS', 1);
+        set_var('K3S_ENABLE_TRAEFIK', 1) if ($chart =~ m/private-registry/);
+    }
 
     if (get_var('CONTAINER_UPDATE_HOST')) {
         update_host_and_publish_hdd();
@@ -333,21 +337,6 @@ sub load_container_tests {
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
         loadtest 'containers/slem_rancher';
-        return;
-    }
-
-    ## Helm chart tests. Add your individual helm chart tests here.
-    if (my $chart = get_var('HELM_CHART')) {
-        set_var('K3S_ENABLE_COREDNS', 1);
-        if ($chart =~ m/rmt-helm$/) {
-            loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/) {
-            set_var('K3S_ENABLE_TRAEFIK', 1);
-            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
-        }
-        else {
-            die "Unsupported HELM_CHART value or HOST_VERSION";
-        }
         return;
     }
 
@@ -405,5 +394,27 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
+
+    ## Helm chart tests. Add your individual helm chart tests here.
+    if (my $chart = get_var('HELM_CHART')) {
+        loadtest 'containers/k3s_ensure_essentials_installed';
+
+        my $spr_credentials_defined = !!(
+            get_var('SCC_REGISTRY', 0)
+            && get_var('SCC_PROXY_USERNAME', 0)
+            && get_var('SCC_PROXY_PASSWORD', 0)
+        );
+
+        loadtest 'containers/scc_login_to_registry' if is_sle() && $spr_credentials_defined;
+        if ($chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } elsif ($chart =~ m/private-registry/) {
+            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
+        }
+        else {
+            die "Unsupported HELM_CHART value or HOST_VERSION";
+        }
+    }
+
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }

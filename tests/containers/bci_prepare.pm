@@ -21,12 +21,14 @@
 
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
-use utils qw(zypper_call script_retry);
+use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(get_os_release);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use containers::helm;
+use containers::k8s qw(install_k3s);
 
 sub prepare_virtual_env {
     my ($version, $sp, $host_distri) = @_;
@@ -111,6 +113,11 @@ sub run {
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
+
+    if (get_var('BCI_PREPARE') && helm_is_supported() && check_var('HOST_VERSION', '15-SP7')) {
+        install_k3s();
+        systemctl 'disable --now firewalld';
+    }
 }
 
 sub test_flags {
