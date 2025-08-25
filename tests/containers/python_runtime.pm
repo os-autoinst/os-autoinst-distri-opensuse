@@ -28,7 +28,7 @@ sub setup {
     my $python3 = "python3";
     my @pkgs = ($runtime, "$python3-$runtime");
     push @pkgs, qq(git-core jq make $python3-pytest);
-    push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq(password-store $python3-paramiko $python3-pytest-timeout);
+    push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq($python3-paramiko $python3-pytest-timeout);
     install_packages(@pkgs);
 
     # Add IP to /etc/hosts
@@ -90,6 +90,8 @@ sub setup {
     }
 
     if ($runtime eq "docker") {
+        assert_script_run "curl -sSLo /usr/local/bin/pass https://raw.githubusercontent.com/zx2c4/password-store/refs/heads/master/src/password-store.sh";
+        assert_script_run "chmod +x /usr/local/bin/pass";
         # Fill credentials store. Taken from https://github.com/docker/docker-py/blob/main/tests/Dockerfile
         assert_script_run "gpg2 --import ./tests/gpg-keys/secret";
         assert_script_run "gpg2 --import-ownertrust ./tests/gpg-keys/ownertrust";
