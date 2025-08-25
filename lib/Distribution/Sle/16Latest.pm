@@ -17,6 +17,7 @@ use Yam::Agama::Pom::GrubMenuSlesPage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
 use Yam::Agama::Pom::GrubMenuAgamaDeprecatedEntryOrderPage;
 use testapi qw(record_soft_failure);
+use Utils::Architectures qw(is_ppc64le);
 
 sub get_grub_menu_installed_system {
     my $self = shift;
