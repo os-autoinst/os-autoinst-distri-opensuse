@@ -76,11 +76,13 @@ sub full_test {
     sudo_with_pw 'sudo -i';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /root';
-    enter_cmd "exit", wait_still_screen => 3;
+    enter_cmd 'exit';
+    assert_screen 'user-console';
     sudo_with_pw 'sudo -s';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /home/bernhard';
-    enter_cmd "exit", wait_still_screen => 3;
+    enter_cmd 'exit';
+    assert_screen 'user-console';
     # environment variables
     assert_script_run 'ENVVAR=test132 env | grep ENVVAR=test132';
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
@@ -95,7 +97,8 @@ sub full_test {
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password";
     assert_script_run 'grep -i "not allowed" check_err.log';
-    enter_cmd "exit", wait_still_screen => 3;
+    enter_cmd 'exit';
+    select_console 'root-console';
 }
 
 sub run {
