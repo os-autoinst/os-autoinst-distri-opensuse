@@ -19,6 +19,7 @@ sub new {
         tag_array_ref_any_first_screen_shown => [
             qw(agama-product-selection
               agama-configuring-the-product
+              agama-error-fetching-profile
               agama-unsupported-autoyast-elements
               agama-installing
               agama-sle-overview
