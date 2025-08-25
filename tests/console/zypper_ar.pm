@@ -27,11 +27,7 @@ sub run {
             assert_script_run("zypper rr ftp://" . get_var("REPO_HOST") . "/" . get_var("REPO_$_")) if get_var("REPO_HOST");
             # zdup scenarios might have already $_ added as a repo but disabled
             assert_script_run("zypper rr $_");
-            my $rc = script_run "zypper ar -c $repourl $_";
-            # treat OSS error as test failure, others can be just recorded
-            if ($rc) {
-                ($_ =~ m/^OSS$/) ? die 'Adding OSS repo failed!' : record_info("$_ repo failure", "zypper exited with code $rc");
-            }
+            assert_script_run("zypper ar $repourl $_");
         }
     }
     elsif (is_staging && get_var('ISO_1')) {
