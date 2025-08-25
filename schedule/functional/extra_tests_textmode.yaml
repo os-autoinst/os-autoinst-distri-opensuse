@@ -205,4 +205,5 @@ schedule:
     - console/valgrind
     - console/sssd_389ds_functional
     - console/tcpdump
+    - console/apache2_php_fpm
     - console/zypper_log_packages
