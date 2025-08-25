@@ -30,7 +30,7 @@ sub sudo_with_pw {
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
-        enter_cmd "expect -c 'spawn $command;expect \"password for*:\" {send \"$password\\r\";interact'} default {exit 1}";
+        enter_cmd "expect -c 'spawn $command;expect \"password for*:\" {send \"$password\\r\";interact} default {exit 1}'";
         assert_screen $args{expected_screen} // 'root-console';
     }
     else {
