@@ -283,6 +283,9 @@ sub run {
         $grub_param .= ' printk.time=1';
     }
 
+    # this will print /all/ kernel messages to the console. So in case kernel panic we will have some data to analyse
+    assert_script_run('echo 1 | tee /sys/module/printk/parameters/ignore_loglevel');
+
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1') && !check_var('REMOVE_KGRAFT', '1')) {
         my $lp_tag = (is_sle('>=15-sp4') || is_sle_micro) ? 'lp' : 'lp-';
