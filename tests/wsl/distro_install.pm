@@ -74,28 +74,28 @@ sub run {
                 cmd => "Add-AppxPackage -Path C:\\$wsl_image_filename",
                 timeout => 60
             );
-            $self->close_powershell;
-            $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
-            assert_and_click 'wsl-suse-startup-search';
-            if (check_var('DISTRI', 'sle') || is_aarch64) {
-                assert_and_click("welcome_to_wsl", timeout => 120);
-                send_key "alt-f4";
-            }
         } elsif ($wsl_image_ext eq 'xz') {
             $self->run_in_powershell(cmd => "mkdir C:\\$WSL_version");
             $self->run_in_powershell(
                 cmd => "wsl --import $WSL_version C:\\$WSL_version C:\\$wsl_image_filename",
-                timeout => 120
-            );
-            $self->run_in_powershell(
-                cmd => "wsl-firstboot",
-                code => sub {
-                    assert_screen("jeos-wsl-firstboot-welcome");
-                }
+                timeout => 60
             );
         } else {
             die("The image provided is not in .appx neither .tar.xz format.\nImage extension: $wsl_image_ext");
         }
+        $self->close_powershell;
+        $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
+        assert_and_click 'wsl-suse-startup-search';
+        if (check_var('DISTRI', 'sle') || is_aarch64) {
+            assert_and_click("welcome_to_wsl", timeout => 120);
+            send_key "alt-f4";
+        }
+        $self->run_in_powershell(
+            cmd => "wsl-firstboot",
+            code => sub {
+                assert_screen("jeos-wsl-firstboot-welcome");
+            }
+        ) if ($wsl_image_ext eq 'xz');
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store, legacy or modern.
         if (check_var('WSL_FIRSTBOOT', 'yast')) {
