@@ -7,7 +7,7 @@
 # Summary: Test podman & docker python packages
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base 'containers::basetest';
+use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
@@ -18,26 +18,17 @@ use Utils::Architectures qw(is_x86_64);
 my $runtime;
 
 # Translate RPM arch to Go arch
-sub deb_arch {
-    my $arch = shift;
-    if ($arch eq "x86_64") {
-        return "amd64";
-    } elsif ($arch eq "aarch64") {
-        return "arm64";
-    } else {
-        return $arch;
-    }
+sub deb_arch ($arch) {
+    return "amd64" if $arch eq "x86_64";
+    return "arm64" if $arch eq "aarch64";
+    return $arch;
 }
 
 sub setup {
     my $python3 = "python3";
     my @pkgs = ($runtime, "$python3-$runtime");
     push @pkgs, qq(git-core jq make $python3-pytest);
-    if ($runtime eq "podman") {
-        push @pkgs, qq($python3-fixtures $python3-requests-mock);
-    } else {
-        push @pkgs, qq(password-store $python3-paramiko $python3-pytest-timeout);
-    }
+    push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq(password-store $python3-paramiko $python3-pytest-timeout);
     install_packages(@pkgs);
 
     # Add IP to /etc/hosts
@@ -107,9 +98,7 @@ sub setup {
     }
 }
 
-sub test {
-    my $target = shift;
-
+sub test ($target) {
     # Used by pytest to ignore whole files
     my @ignore = ();
     if ($runtime eq "docker") {
@@ -174,10 +163,7 @@ sub run {
 
     setup;
 
-    my @targets = (qw(unit integration));
-    foreach my $target (@targets) {
-        test $target;
-    }
+    test $_ foreach (qw(unit integration));
     if ($runtime eq "docker") {
         assert_script_run "export DOCKER_HOST=ssh://root@127.0.0.1";
         test "ssh";
