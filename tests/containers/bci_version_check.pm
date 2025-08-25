@@ -42,7 +42,9 @@ sub run {
         die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
     }
 
-    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
+    die "Pulling container image '$image' timed out. Likely a new build is already being prepared. Look for a new build and ignore this test run.\n"
+      if script_run("timeout 60 $engine pull -q $image") == 124;
+    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 2);
     record_info('Inspect', script_output("$engine inspect $image"));
 
     if ($build && $build ne 'UNKNOWN') {
