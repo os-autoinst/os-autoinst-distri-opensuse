@@ -68,7 +68,7 @@ sub run {
         $self->install_certificates;
 
         my $wsl_image_ext = (split /\./, $wsl_image_filename)[-1];
-        record_info("wsl_image_ext");
+        record_info("$wsl_image_ext");
         if ($wsl_image_ext == 'appx') {
             $self->run_in_powershell(
                 cmd => "Add-AppxPackage -Path C:\\$wsl_image_filename",
