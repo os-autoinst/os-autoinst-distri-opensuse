@@ -401,17 +401,22 @@ sub wait_for_ssh {
     my ($duration, $exit_code, $sshout, $sysout);
 
     # skip SLES4SAP as incompatible with get_public_ip
-    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP') && !$args{wait_stop}) {
         my $public_ip_from_provider = $self->provider->get_public_ip();
-        if ($self->public_ip ne $public_ip_from_provider) {
-            record_info('IP CHANGED', "The address we know is $self->public_ip but provider returns $public_ip_from_provider");
+        if ($public_ip_from_provider =~ /null/) {
+            sleep(60);
+            $public_ip_from_provider = $self->provider->get_public_ip();
+        }
+
+        if ($self->public_ip ne $public_ip_from_provider && $public_ip_from_provider !~ /null/) {
+            record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider");
             $self->public_ip($public_ip_from_provider);
         }
     }
 
     # Looping until SSH port 22 is reachable or timeout.
     while (($duration = time() - $start_time) < $args{timeout}) {
-        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
+        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22');
         last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
 
@@ -476,7 +481,9 @@ sub wait_for_ssh {
 
         # Finally make sure that SSH works
         while (($duration = time() - $start_time) < $args{timeout}) {
-            $exit_code = $self->ssh_script_run(cmd => "true", username => $args{username}, timeout => $args{timeout} - $duration);
+            my $ssh_timeout = $args{timeout} - $duration - 15;
+            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none';
+            $exit_code = script_run("timeout $ssh_timeout ssh -v $ssh_opts -l $args{username} $self->{public_ip} true", timeout => $args{timeout} - $duration);
             last if isok($exit_code);
             sleep $delay;
         }
@@ -887,6 +894,15 @@ sub upload_supportconfig_log {
     $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 7200);
     $self->ssh_script_run(cmd => 'sudo chmod 755 /var/tmp/scc_supportconfig.txz', timeout => 3600);
     $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
+}
+
+sub wait_for_state {
+    my ($self, $state) = @_;
+    my $attempts = 120;
+    while (lc($self->provider->get_state_from_instance($self)) !~ /$state/ && $attempts-- > 0) {
+        sleep 15;
+    }
+    die("The instance state is not '$state' but '" . lc($self->provider->get_state_from_instance($self)) . "' instead.") unless ($attempts > 0);
 }
 
 1;

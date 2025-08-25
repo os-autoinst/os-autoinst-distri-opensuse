@@ -36,8 +36,9 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest('publiccloud/run_ltp', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_NETCONFIG')) {
+    } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
+        loadtest('publiccloud/suspending', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -98,7 +99,7 @@ my $should_use_runargs = sub {
       PUBLIC_CLOUD_SMOKETEST
       PUBLIC_CLOUD_AZURE_NFS_TEST
       PUBLIC_CLOUD_NVIDIA
-      PUBLIC_CLOUD_NETCONFIG
+      PUBLIC_CLOUD_FUNCTIONAL
       PUBLIC_CLOUD_AHB
       PUBLIC_CLOUD_NEW_INSTANCE_TYPE);
     return grep { exists $bmwqemu::vars{$_} } @public_cloud_variables;
@@ -124,8 +125,9 @@ sub load_latest_publiccloud_tests {
     elsif (&$should_use_runargs()) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest("publiccloud/registration", run_args => $args);
-        if (get_var('PUBLIC_CLOUD_NETCONFIG')) {
+        if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
+            loadtest('publiccloud/suspending', run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
             loadtest('publiccloud/ahb', run_args => $args);
         } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
