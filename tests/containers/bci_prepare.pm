@@ -48,6 +48,9 @@ sub prepare_virtual_env {
         script_retry("apt-get -y install python3-venv", timeout => $install_timeout);
     } elsif ($host_distri =~ /centos|rhel/) {
         script_retry("dnf install -y --allowerasing git-core python3 jq", timeout => $install_timeout);
+    } elsif ($host_distri =~ /micro/) {
+        trup_call('pkg in skopeo tar git jq');
+        reboot_on_changes;
     } elsif ($host_distri =~ /opensuse|sles/) {
         my @packages = ('jq', 'skopeo');
         # Avoid PackageKit to conflict about lock with zypper
@@ -66,9 +69,6 @@ sub prepare_virtual_env {
             push @packages, qw(git-core python311);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
-    } elsif ($host_distri =~ /micro/) {
-        trup_call('pkg in skopeo tar git jq');
-        reboot_on_changes;
     } else {
         die("Host is not supported for running BCI tests.");
     }
