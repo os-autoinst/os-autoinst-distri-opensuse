@@ -3,7 +3,7 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Parser for the net:l2tp.sh subtest
+# Summary: Parser for the net:l2tp.sh selftest
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package Kselftests::parsers::net::l2tp_sh;
