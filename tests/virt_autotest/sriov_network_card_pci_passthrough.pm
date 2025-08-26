@@ -226,7 +226,7 @@ sub enable_vf {
     # Enable specified VFs on a random PF by modifying SYS PCI
     my $random_pf = $pfs_ref -> [int(rand(@$pfs_ref))];
     print "julie: \$random_pf=$random_pf\n";
-    assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
+    assert_script_run("echo $number > /sys/bus/pci/devices/0000:$random_pf/sriov_numvfs");
 
     # It takes a litte longer on SLE16 due to network activation
     script_retry("lspci | grep Ethernet | grep \"Virtual Function\"", delay => 5, retry => 3);
