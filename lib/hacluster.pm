@@ -1824,7 +1824,7 @@ sub crm_list_options {
     my (%args) = @_;
 
     my $outver = script_output(q|rpm -q --qf 'crmshver=%{VERSION}\n' crmsh|);
-    my ($ver) = $outver =~ /^crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $outver";
+    my ($ver) = $outver =~ /crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $outver";
     my $cmp_result = package_version_cmp($ver, '5.0.0');
     return 0 if ($cmp_result < 0);
     my $out;
