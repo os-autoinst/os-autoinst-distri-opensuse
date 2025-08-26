@@ -407,7 +407,7 @@ sub wait_for_ssh {
             $public_ip_from_provider = $self->provider->get_public_ip();
         }
 
-        # Update the public IP address if it differst
+        # Update the public IP address if it differs
         if ($self->public_ip ne $public_ip_from_provider) {
             record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
             $self->public_ip($public_ip_from_provider);
