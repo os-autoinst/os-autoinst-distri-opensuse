@@ -43,6 +43,8 @@ sub _setup_serial_device {
 sub use_search_feature {
     my ($self, $string_to_search) = @_;
     return unless ($string_to_search);
+    # Trim whitespaces to prevent Windows Searchbar to fail
+    $string_to_search =~ s/^\s+|\s+$//g;
 
     send_key_until_needlematch "windows-search-bar", 'super-s';
     wait_still_screen stilltime => 2, timeout => 15;
