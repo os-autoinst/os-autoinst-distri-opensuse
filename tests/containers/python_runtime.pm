@@ -106,6 +106,8 @@ sub setup {
     unless ($repo) {
         my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3199 3203 3206 3231 3290) : qw(3290 3354));
         foreach my $patch (@patches) {
+            my $url = "https://github.com/$github_org/$runtime-py/pull/$patch";
+            record_info("patch", $url);
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
             assert_script_run "git apply -3 --ours $patch.patch";
         }
