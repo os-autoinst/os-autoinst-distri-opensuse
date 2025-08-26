@@ -372,7 +372,6 @@ Parameters:
                          (e.g. when cloud-init state is cleared)
  username => default: username().
  systemup_check => If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop.
- scan_ssh_host_key => If true, rescan the SSH host key (that's alsos needed when host changed its address)
  logs => If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.
 
 Return:
@@ -401,10 +400,17 @@ sub wait_for_ssh {
     my ($duration, $exit_code, $sshout, $sysout);
 
     # skip SLES4SAP as incompatible with get_public_ip
-    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP') && !$args{wait_stop}) {
         my $public_ip_from_provider = $self->provider->get_public_ip();
-        if ($self->public_ip ne $public_ip_from_provider) {
-            record_info('IP CHANGED', "The address we know is $self->public_ip but provider returns $public_ip_from_provider");
+        # Loop until provider returns something else than 'null' or timeout
+        while ($public_ip_from_provider =~ /null/ && ($duration = time() - $start_time) < $args{timeout}) {
+            sleep($delay);
+            $public_ip_from_provider = $self->provider->get_public_ip();
+        }
+
+        # Update the public IP address if it differst
+        if ($self->public_ip ne $public_ip_from_provider && $public_ip_from_provider !~ /null/) {
+            record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
             $self->public_ip($public_ip_from_provider);
         }
     }
@@ -476,7 +482,9 @@ sub wait_for_ssh {
 
         # Finally make sure that SSH works
         while (($duration = time() - $start_time) < $args{timeout}) {
-            $exit_code = $self->ssh_script_run(cmd => "true", username => $args{username}, timeout => $args{timeout} - $duration);
+            # After the instance is resumed from hibernation the SSH can freeze
+            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=90';
+            $exit_code = script_run("ssh -v $ssh_opts -l $args{username} $self->{public_ip} true", timeout => 100);
             last if isok($exit_code);
             sleep $delay;
         }
