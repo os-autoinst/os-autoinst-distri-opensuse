@@ -99,7 +99,7 @@ sub setup {
     assert_script_run "cd ~/$runtime-py";
 
     unless ($repo) {
-        my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3290 3354) : qw(3261 3290 3354));
+        my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3199 3203 3206 3231 3290) : qw(3290 3354));
         foreach my $patch (@patches) {
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
             assert_script_run "git apply -3 --ours $patch.patch";
