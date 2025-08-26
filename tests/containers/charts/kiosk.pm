@@ -21,7 +21,7 @@ sub run {
 
     select_serial_terminal;
     my $helm_chart = get_required_var("HELM_CHART");
-    my $helm_values = autoinst_url("/data/x11/helm_chart/kiosk_values.yaml");
+    my $helm_values = autoinst_url("/data/containers/kiosk_helm_values.yaml");
 
     # Install helm
     set_var('HELM_INSTALL_UPSTREAM', 1);
