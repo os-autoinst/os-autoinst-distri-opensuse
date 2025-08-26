@@ -7,9 +7,8 @@ schedule:
     - yam/agama/agama_auto
     - installation/grub_test
     - installation/first_boot
+    - console/zypper_lr
     - console/system_prepare
-    - qam-minimal/install_update
-    - qam-minimal/update_minimal
     - console/hostname
     - console/force_scheduled_tasks
     - shutdown/grub_set_bootargs

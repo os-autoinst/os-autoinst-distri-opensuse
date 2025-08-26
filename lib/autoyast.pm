@@ -21,7 +21,7 @@ use warnings;
 use testapi;
 use Utils::Backends;
 use Utils::Architectures;
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_agama);
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Find qw(finddepth);
@@ -714,6 +714,10 @@ sub expand_variables {
       SCC_REGCODE_LTSS SCC_REGCODE_WE SCC_REGCODE_SLES4SAP SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
       AGAMA_PRODUCT_ID OSDISK SUT_NETDEVICE
       REPO_SLE_MODULE_DEVELOPMENT_TOOLS SCC_REGCODE_LIVE);
+    if (is_agama && get_var('STAGING', '')) {
+        record_info 'Add extra repo for staging incident';
+        push @vars, 'INCIDENT_REPO';
+    }
     # Push more variables to expand from the job setting
     my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
     if (get_var 'SALT_FORMULAS_PATH') {
