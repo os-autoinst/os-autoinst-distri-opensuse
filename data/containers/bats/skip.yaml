@@ -1,26 +1,37 @@
 aardvark-dns:
   # Note on patches:
   # https://github.com/containers/aardvark-dns/pull/519 is needed for 100-basic-name-resolution
+  # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
+  # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 619
+    - 623
     BATS_IGNORE:
   sle-16.0:
     BATS_PATCHES:
+    - 581
     - 619
+    - 623
     BATS_IGNORE:
   sle-15-SP7:
     BATS_PATCHES:
     - 519
+    - 581
+    - 623
     BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP6:
     BATS_PATCHES:
     - 519
+    - 581
+    - 623
     BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP5:
     BATS_PATCHES:
     - 519
+    - 581
+    - 623
     BATS_IGNORE: 100-basic-name-resolution
 buildah:
   # Note on patches:
