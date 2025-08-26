@@ -26,6 +26,7 @@ sub run {
     elsif (match_has_tag('welcome_to_wsl')) {
         click_lastmatch;
         send_key 'alt-f4';
+        $self->open_powershell_as_admin;
     }
     $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
     $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}", timeout => 60);
