@@ -55,18 +55,19 @@ sub run_test {
     record_info("Before enable VF", script_output("ip r"));
     my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
     script_run("cat $nm_config_file");
-    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf,driver:igbvf/' $nm_config_file");
+    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf,driver:ixgbevf/' $nm_config_file");
     script_run("cat $nm_config_file");
     script_run("ip a");
     script_run("nmcli con");
 
-    # enable 8 vfs for the SR-IOV device on host
+    # Enable VFs for the SR-IOV devices on host
     my @host_vfs = enable_vf(number => get_var("ENABLE_VF_COUNT", '7'), pfs => \@host_pfs);
     record_info("VFs enabled", "@host_vfs");
 
-    record_info("Before enable VF", script_output("ip r"));
+    record_info("After enabling VF", script_output("ip r"));
     script_run("ip a");
     script_run("nmcli con");
+    script_run("nmcli -f GENERAL.DRIVER,GENERAL.DRIVER-VERSION device show");
 
     # Restore /etc/resolv.conf after VFs are created
     assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
@@ -213,22 +214,19 @@ sub find_sriov_ethernet_devices {
     return @sriov_devices;
 }
 
-#enable 8 virtual functions for the specified physical functions of the SR-IOV network device
+#Enable $number VFs for one of the passing PFs of the SR-IOV network devices
 sub enable_vf {
     my %args = @_;
     my $pfs_ref = $args{pfs};
+    # All SR-IOV ethernet cards allow the maxium fv number is above 7
     my $number = $args{number} // 7;
     print "julie: \$number=$number\n";
     print "julie: \@\$pfs_ref=@$pfs_ref\n";
 
-    #enable VFs for SR-IOV PFs by modifying SYS PCI
-    #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
-    #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
-    #also modifying SYS PCI allows to enable specified PFs
-    foreach my $pf (@$pfs_ref) {
-        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
-        assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
-    }
+    # Enable specified VFs on a random PF by modifying SYS PCI
+    my $random_pf = $pfs_ref[int(rand(@$pfs_ref))];
+    print "julie: \$random_pf=$random_pf\n";
+    assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
 
     # It takes a litte longer on SLE16 due to network activation
     script_retry("lspci | grep Ethernet | grep \"Virtual Function\"", delay => 5, retry => 3);

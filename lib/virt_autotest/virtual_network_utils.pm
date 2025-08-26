@@ -26,6 +26,7 @@ use version_utils qw(is_sle is_alp is_opensuse);
 use Utils::Architectures;
 use virt_autotest::utils;
 use virt_autotest::domain_management_utils qw(construct_uri);
+use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use mm_network;
 
 our @EXPORT
@@ -77,7 +78,9 @@ sub create_host_bridge_nm {
         script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
-        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a"));
+        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a", proceed_on_failure => 1));
+	enter_cmd "ip a; echo DONE > /dev/$serialdev";
+        reconnect_when_ssh_console_broken unless defined(wait_serial 'DONE', timeout => 30);
     }
 }
 
