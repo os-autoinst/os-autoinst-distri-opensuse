@@ -63,11 +63,15 @@ sub setup {
     if ($runtime eq "podman") {
         systemctl "enable --now podman.socket";
     } else {
-        assert_script_run "cp -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
-        assert_script_run qq(echo '{"hosts": ["tcp://127.0.0.1:2375", "unix:///var/run/docker.sock"]}' > /etc/docker/daemon.json);
-        record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
-        systemctl "daemon-reload";
-        systemctl "enable --now docker";
+        assert_script_run q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
+        record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
+        if (is_sle("<16")) {
+            # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
+            assert_script_run "export DOCKER_HOST=tcp://127.0.0.1:2375";
+            assert_script_run "echo 0 > /etc/docker/suse-secrets-enable";
+        }
+        systemctl "enable docker";
+        systemctl "restart docker";
         record_info("docker info", script_output("docker info"));
         # Setup docker credentials helpers
         my $credstore_version = "v0.9.3";
@@ -208,7 +212,7 @@ sub run {
 
 sub cleanup() {
     script_run "unset DOCKER_HOST";
-    script_run "cp -f /etc/docker/daemon.json.bak /etc/docker/daemon.json";
+    script_run q(sed -ri 's/^(DOCKER_OPTS)=.*/\1=""/' /etc/sysconfig/docker);
     script_run "cd / ; rm -rf /root/$runtime-py";
 }
 
