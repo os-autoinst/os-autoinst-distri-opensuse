@@ -14,13 +14,13 @@ sub run {
     my $self = shift;
 
     # Editing configuration
-    script_run('agama config edit', timeout => 0);
+    wait_screen_change { script_run('agama config edit', timeout => 0)};
     type_string(":\%s|bernhard|jose|g\n");
     type_string(":wq\n");
     assert_script_run('agama config show | grep jose');
 
     # Restoring original value
-    script_run('agama config edit', timeout => 0);
+    wait_screen_change { script_run('agama config edit', timeout => 0)};
     type_string(":\%s|jose|bernhard|g\n");
     type_string(":wq");
 
