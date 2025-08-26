@@ -463,7 +463,7 @@ sub qesap_aws_vnet_peering {
         return 0;
     }
 
-    # For qe-sap-deployment this one match or contain the Terraform deloyment_name
+    # For qe-sap-deployment this one match or contain the Terraform deployment_name
     my $vpc_tag_name = qesap_aws_get_vpc_workspace(vpc_id => $args{vpc_id});
     unless ($vpc_tag_name) {
         record_info('AWS PEERING', 'Empty vpc_tag_name');
