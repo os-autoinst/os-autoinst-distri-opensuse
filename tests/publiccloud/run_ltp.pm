@@ -161,6 +161,19 @@ sub upload_ltp_logs
     die $@ if $@;
 }
 
+sub dump_kernel_config
+{
+    my ($self, $instance) = @_;
+
+    record_info("uname -a", $instance->run_ssh_command(cmd => "uname -a"));
+
+    my $uname_r = $instance->run_ssh_command(cmd => "uname -r");
+    chomp $uname_r;
+
+    record_info("KERNEL CONFIG", $instance->run_ssh_command(cmd => 'cat /boot/config-$uname_r'));
+    record_info("ver_linux", $instance->run_ssh_command("/opt/ltp/ver_linux"));
+}
+
 sub run {
     my ($self, $args) = @_;
     my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
@@ -178,6 +191,8 @@ sub run {
 
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
+
+    $self->dump_kernel_config($instance);
 
     $self->prepare_scripts();
     $self->register_instance($instance, $qam);
