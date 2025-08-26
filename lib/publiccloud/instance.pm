@@ -402,8 +402,7 @@ sub wait_for_ssh {
     # skip SLES4SAP as incompatible with get_public_ip
     if (!get_var('PUBLIC_CLOUD_SLES4SAP') && !$args{wait_stop}) {
         my $public_ip_from_provider = $self->provider->get_public_ip();
-        # Loop until provider returns something else than 'null' or timeout
-        while ($public_ip_from_provider =~ /null/ && ($duration = time() - $start_time) < $args{timeout}) {
+        until ($public_ip_from_provider !~ /null/ || ($duration = time() - $start_time) >= $args{timeout}) {
             sleep($delay);
             $public_ip_from_provider = $self->provider->get_public_ip();
         }
