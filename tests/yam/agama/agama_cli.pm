@@ -13,11 +13,17 @@ use Utils::Backends qw(is_svirt);
 sub run {
     my $self = shift;
 
+    # Editing configuration
     script_run('agama config edit', timeout => 0);
-    assert_screen('agama-config-edit');
-    send_key(':');
-    send_key('q');
-    send_key('ret');
+    type_string(':%s|bernhard|jose|g');
+    type_string(':wq');
+    assert_script_run('agama config show | grep jose');
+
+    # Restoring original value
+    script_run('agama config edit', timeout => 0);
+    type_string(':%s|jose|bernhard|g');
+    type_string(':wq');
+
     assert_script_run('agama install', timeout => 2400);
     $self->upload_agama_logs();
 
