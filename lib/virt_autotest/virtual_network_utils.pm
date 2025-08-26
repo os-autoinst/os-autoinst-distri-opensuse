@@ -502,7 +502,7 @@ EOF
     my $detect_signature = script_output("cat $args{resolvconf} | grep \"#Modified by parallel_guest_migration_base.pm module\"", proceed_on_failure => 1);
     my $detect_name_server = script_output("cat $args{resolvconf} | grep \"nameserver $args{resolvip}\"", proceed_on_failure => 1);
     my $detect_domain_name = script_output("cat $args{resolvconf} | grep \"$args{domainname}\"", proceed_on_failure => 1);
-    $ret |= assert_script_run("cp $args{resolvconf} /etc/resolv_backup.conf") if ($detect_signature eq '');
+    $ret |= script_run("cp $args{resolvconf} /etc/resolv_backup.conf") if ($detect_signature eq '');
     $ret |= assert_script_run("awk -v dnsvar=$args{resolvip} \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' $args{resolvconf} > $args{resolvconf}.tmp") if ($detect_name_server eq '');
     if ($detect_domain_name eq '') {
         $ret |= assert_script_run("cp $args{resolvconf} $args{resolvconf}.tmp") if (script_run("ls $args{resolvconf}.tmp") != 0);

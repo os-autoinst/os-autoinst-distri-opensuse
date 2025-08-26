@@ -53,10 +53,12 @@ sub run_test {
 
     # Try with NM configuration file
     record_info("Before enable VF", script_output("ip r"));
-    my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
-    script_run("cat $nm_config_file");
-    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf,driver:ixgbevf/' $nm_config_file");
-    script_run("cat $nm_config_file");
+    #    my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
+    #    script_run("cat $nm_config_file");
+    #    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf,driver:ixgbevf/' $nm_config_file");
+    #    script_run("cat $nm_config_file");
+    #    script_run("cp $nm_config_file /etc/NetworkManager/NetworkManager.conf");
+    #    script_run("cat /etc/NetworkManager/NetworkManager.conf");
     script_run("ip a");
     script_run("nmcli con");
 
@@ -442,8 +444,8 @@ sub post_fail_hook {
         check_guest_health($_);
     }
     virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");
-    $self->SUPER::post_fail_hook;
-    restore_original_guests($vm_xml_save_dir);
+    #julie    $self->SUPER::post_fail_hook;
+    #julie    restore_original_guests($vm_xml_save_dir);
 
 }
 
