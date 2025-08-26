@@ -11,7 +11,7 @@ lib/qesapdeploymnet.pm @mpagot
 lib/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
 tests/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
 data/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
-lib/main_containers.pm @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
+lib/main_containers.pm @pdostal @grisu48 @mloviska @ricardobranco777
 
 # Transactional systems
 products/microos/ @mloviska @ricardobranco777
@@ -20,7 +20,7 @@ products/sle-micro/ @mloviska @ricardobranco777
 products/alp/ @mloviska @ricardobranco777
 tests/jeos/ @mloviska @ricardobranco777
 tests/transactional/ @mloviska @ricardobranco777
-lib/main_micro_alp.pm @mloviska @jlausuch @ricardobranco777
+lib/main_micro_alp.pm @mloviska @ricardobranco777
 
 # pdostal
 tests/console/sshd.pm @pdostal
