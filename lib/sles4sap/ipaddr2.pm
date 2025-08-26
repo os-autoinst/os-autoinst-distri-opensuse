@@ -13,6 +13,10 @@ use testapi;
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
+# Intentionally not use NetAddr::IP as it result in module to try
+# a Fully Qualified Domain Name which returns an ipV4 address or an ipV6 address
+# embodied in that order. This feature can be disabled with:
+use NetAddr::IP::Lite ':nofqdn';
 use mmapi qw( get_current_job_id );
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
@@ -450,14 +454,15 @@ sub ipaddr2_infra_deploy {
 
     my $bastion_ip = ipaddr2_bastion_pubip();
 
-Get the only public IP in the deployment associated to the VM used as bastion.
+Get the only public IP in the deployment associated to the VM used as bastion. Function is getting
+the IP address using az cli, so it could die if the az cli fails to return a valid IP.
 =cut
 
 sub ipaddr2_bastion_pubip {
     my $rg = ipaddr2_azure_resource_group();
-    return az_network_publicip_get(
-        resource_group => $rg,
-        name => $bastion_pub_ip);
+    my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip);
+    my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
+    return $ip_obj->addr;
 }
 
 =head2 ipaddr2_bastion_ssh_addr
