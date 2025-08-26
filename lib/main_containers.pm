@@ -336,21 +336,6 @@ sub load_container_tests {
         return;
     }
 
-    ## Helm chart tests. Add your individual helm chart tests here.
-    if (my $chart = get_var('HELM_CHART')) {
-        set_var('K3S_ENABLE_COREDNS', 1);
-        if ($chart =~ m/rmt-helm$/) {
-            loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/) {
-            set_var('K3S_ENABLE_TRAEFIK', 1);
-            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
-        }
-        else {
-            die "Unsupported HELM_CHART value or HOST_VERSION";
-        }
-        return;
-    }
-
     if ($runtime eq 'k3s') {
         loadtest 'containers/run_container_in_k3s';
         return;
@@ -405,5 +390,27 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
+
+    ## Helm chart tests. Add your individual helm chart tests here.
+    if (my $chart = get_var('HELM_CHART')) {
+        loadtest 'containers/k3s_ensure_essentials_installed';
+
+        my $spr_credentials_defined = !!(
+            get_var('SCC_REGISTRY', 0)
+            && get_var('SCC_PROXY_USERNAME', 0)
+            && get_var('SCC_PROXY_PASSWORD', 0)
+        );
+
+        loadtest 'containers/scc_login_to_registry' if is_sle() && $spr_credentials_defined;
+        if ($chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } elsif ($chart =~ m/private-registry/) {
+            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
+        }
+        else {
+            die "Unsupported HELM_CHART value or HOST_VERSION";
+        }
+    }
+
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }
