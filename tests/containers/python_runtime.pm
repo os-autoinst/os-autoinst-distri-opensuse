@@ -14,6 +14,7 @@ use version_utils;
 use utils;
 use containers::common qw(install_packages);
 use Utils::Architectures qw(is_x86_64);
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 my $runtime;
 
@@ -25,8 +26,9 @@ sub deb_arch ($arch) {
 }
 
 sub setup {
-    my $python3 = "python3";
-    my @pkgs = ($runtime, "$python3-$runtime");
+    add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
+    my $python3 = is_sle("<16") ? "python311" : "python3";
+    my @pkgs = ($runtime, $python3, "$python3-$runtime");
     push @pkgs, qq(git-core jq make $python3-pytest);
     push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq($python3-paramiko $python3-pytest-timeout);
     install_packages(@pkgs);
@@ -60,6 +62,8 @@ sub setup {
         assert_script_run "chmod +x /usr/local/bin/docker-credential-pass";
     }
 
+    # Transform "python311" into "python3.11" and leave "python3" as is
+    $python3 =~ s/^python3(\d{2})$/python3.$1/;
     my $version = script_output "$python3 -c 'import $runtime; print($runtime.__version__)'";
     record_info("Version", $version);
     my $branch = ($runtime eq "podman") ? "v$version" : $version;
@@ -81,7 +85,7 @@ sub setup {
     assert_script_run "cd ~/$runtime-py";
 
     unless ($repo) {
-        my @patches = ($runtime eq "podman") ? qw(572 575) : qw(3261 3290 3354);
+        my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3290 3354) : qw(3261 3290 3354));
         foreach my $patch (@patches) {
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
             assert_script_run "git apply $patch.patch";
