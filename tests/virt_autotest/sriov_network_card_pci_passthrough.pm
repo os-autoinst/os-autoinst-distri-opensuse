@@ -224,7 +224,7 @@ sub enable_vf {
     print "julie: \@\$pfs_ref=@$pfs_ref\n";
 
     # Enable specified VFs on a random PF by modifying SYS PCI
-    my $random_pf = $pfs_ref[int(rand(@$pfs_ref))];
+    my $random_pf = $pfs_ref -> [int(rand(@$pfs_ref))];
     print "julie: \$random_pf=$random_pf\n";
     assert_script_run("echo $number > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
 
