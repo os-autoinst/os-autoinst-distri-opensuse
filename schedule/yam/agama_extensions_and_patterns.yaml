@@ -9,7 +9,7 @@ schedule:
   - yam/agama/agama
   - installation/grub_test
   - installation/first_boot
-  - yam/validate/validate_registered_addons
+  - yam/validate/validate_registered_products
   - yam/validate/validate_installed_patterns
   - console/validate_repos
   - yam/validate/validate_suseconnect_url
