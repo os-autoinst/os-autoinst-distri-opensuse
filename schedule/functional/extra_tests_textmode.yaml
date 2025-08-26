@@ -108,6 +108,7 @@ conditional_schedule:
                 - console/libjpeg_turbo
                 - console/valkey
                 - '{{velociraptor_tests}}'
+                - console/apache2_php_fpm
     velociraptor_tests:
         ARCH:
             x86_64:
@@ -205,5 +206,4 @@ schedule:
     - console/valgrind
     - console/sssd_389ds_functional
     - console/tcpdump
-    - console/apache2_php_fpm
     - console/zypper_log_packages
