@@ -89,6 +89,8 @@ EOF
     systemctl('restart apache2');
     systemctl('is-active apache2');
 
+    assert_script_run('a2enmod -l | grep dav');
+
     # Create SVN repository
     assert_script_run("mkdir -pZ $repo_root");
     assert_script_run("svnadmin create $repo_root");
