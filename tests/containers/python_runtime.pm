@@ -25,13 +25,27 @@ sub deb_arch ($arch) {
     return $arch;
 }
 
+sub install_git {
+    # We need git 2.47.0+ to use `--ours` with `git apply -3`
+    if (is_sle) {
+        my $version = get_var("VERSION");
+        if (is_sle('<16')) {
+            $version =~ s/-/_/;
+            $version = "SLE_$version";
+        }
+        assert_script_run "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
+    }
+    assert_script_run "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
 sub setup {
     add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
     my $python3 = is_sle("<16") ? "python311" : "python3";
     my @pkgs = ($runtime, $python3, "$python3-$runtime");
-    push @pkgs, qq(git-core jq make $python3-pytest);
+    push @pkgs, qq(jq make $python3-pytest);
     push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq($python3-paramiko $python3-pytest-timeout);
     install_packages(@pkgs);
+    install_git;
 
     # Add IP to /etc/hosts
     my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
@@ -88,7 +102,7 @@ sub setup {
         my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3290 3354) : qw(3261 3290 3354));
         foreach my $patch (@patches) {
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
-            assert_script_run "git apply $patch.patch";
+            assert_script_run "git apply -3 --ours $patch.patch";
         }
     }
 
