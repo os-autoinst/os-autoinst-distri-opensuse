@@ -77,7 +77,11 @@ sub create_host_bridge_nm {
         script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
-        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a"));
+        save_screenshot;
+        # Re-establish the SSH connection, poo#187197
+        reset_consoles;
+        select_console('root-ssh');
+        record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a", proceed_on_failure => 1, timeout => 60));
     }
 }
 
