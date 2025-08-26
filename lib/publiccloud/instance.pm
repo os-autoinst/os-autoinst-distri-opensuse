@@ -408,7 +408,7 @@ sub wait_for_ssh {
         }
 
         # Update the public IP address if it differst
-        if ($self->public_ip ne $public_ip_from_provider && $public_ip_from_provider !~ /null/) {
+        if ($self->public_ip ne $public_ip_from_provider) {
             record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
             $self->public_ip($public_ip_from_provider);
         }
@@ -482,8 +482,8 @@ sub wait_for_ssh {
         # Finally make sure that SSH works
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
-            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=90';
-            $exit_code = script_run("ssh -v $ssh_opts -l $args{username} $self->{public_ip} true", timeout => 100);
+            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
+            $exit_code = script_run("ssh -v $ssh_opts -l $args{username} $self->{public_ip} true", timeout => $args{timeout} - $duration);
             last if isok($exit_code);
             sleep $delay;
         }
