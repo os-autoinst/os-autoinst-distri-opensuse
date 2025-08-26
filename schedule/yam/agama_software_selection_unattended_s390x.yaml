@@ -1,0 +1,11 @@
+---
+name: agama_software_selection_unattended_s390x
+description: |
+  - Prepare url for agama.auto boot parameterer form auto-installation.
+  - Remove selinux pattern and add some other patterns.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - boot/reconnect_mgmt_console
+  - yam/validate/validate_installed_patterns
