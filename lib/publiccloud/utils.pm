@@ -23,6 +23,7 @@ use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_o
 use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
+use mmapi qw(get_current_job_id);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
 my $openqa_port_allowed = 0;
@@ -31,6 +32,7 @@ our @EXPORT = qw(
   deregister_addon
   define_secret_variable
   get_credentials
+  generate_tags
   validate_repo
   is_byos
   is_ondemand
@@ -789,6 +791,18 @@ sub zypper_install_available_remote {
     my $available_ref = get_available_packages_remote($instance, $packages_ref);
     return unless @$available_ref;
     zypper_install_remote($instance, $available_ref);
+}
+
+=head2  generate_tags
+
+Generate string containing tags needed by every resource created in Public Cloud by openQA
+=cut
+
+sub generate_tags {
+    my $job_id = get_current_job_id();
+    my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
+    my $created_by = "$openqa_url/t$job_id";
+    return "openqa-job=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url";
 }
 
 1;

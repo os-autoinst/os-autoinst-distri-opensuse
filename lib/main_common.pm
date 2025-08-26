@@ -1848,6 +1848,10 @@ sub load_rollback_tests {
     }
 }
 
+sub load_extra_tests_himmelblau {
+    loadtest("console/azure_himmelblau");
+}
+
 sub load_extra_tests_filesystem {
     loadtest "console/lsof";
     loadtest "console/autofs";
