@@ -16,6 +16,7 @@ use containers::common qw(install_packages);
 use Utils::Architectures qw(is_x86_64);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
+my $api_version;
 my $runtime;
 
 # Translate RPM arch to Go arch
@@ -97,6 +98,10 @@ sub setup {
     assert_script_run "cd ~";
     assert_script_run "git clone --branch $branch https://github.com/$github_org/$runtime-py", timeout => 300;
     assert_script_run "cd ~/$runtime-py";
+    if ($runtime eq "docker") {
+        $api_version = get_var("DOCKER_API_VERSION", script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version');
+        record_info("API version", $api_version);
+    }
 
     unless ($repo) {
         my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3199 3203 3206 3231 3290) : qw(3290 3354));
@@ -157,7 +162,6 @@ sub test ($target) {
 
     my %env = ();
     if ($runtime eq "docker") {
-        my $api_version = script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version';
         $env{DOCKER_TEST_API_VERSION} = $api_version;
         # Fix docker-py test issues with datetimes on different timezones by using UTC
         $env{TZ} = "UTC";
