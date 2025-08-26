@@ -479,12 +479,13 @@ sub wait_for_ssh {
             script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
         }
 
+        my $exit_ssh;
         # Finally make sure that SSH works
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
             my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_code = script_run("ssh -v $ssh_opts -l $args{username} $self->{public_ip} true", timeout => $args{timeout} - $duration);
-            last if isok($exit_code);
+            $exit_ssh = script_run("ssh $ssh_opts -l $args{username} $self->{public_ip} true", timeout => $args{timeout} - $duration);
+            last if isok($exit_ssh);
             sleep $delay;
         }
 
