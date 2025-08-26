@@ -34,7 +34,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman);
-    push @pkgs, is_sle('<16') ? 'netcat-openbsd' : 'ncat';
+    push @pkgs, is_sle('<16') ? 'netcat-openbsd' : (is_sle ? 'ncat' : 'socat');
     push @pkgs, (is_tumbleweed || is_sle('>=16.0')) ? 'dbus-1-daemon' : 'dbus-1';
     $self->bats_setup(@pkgs);
 
