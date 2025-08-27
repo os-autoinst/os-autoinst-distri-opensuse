@@ -41,9 +41,10 @@ sub run {
 
     # deacivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
-        foreach (split(',', get_var('SCC_SUBTRACTIONS'))) {
-            my $extension = get_addon_fullname($_);
-            remove_suseconnect_product($extension);
+        foreach my $addon (split(',', get_var('SCC_SUBTRACTIONS'))) {
+            my $extension = get_addon_fullname($addon);
+            # NVIDIA Compute is not versioned by SP
+            remove_suseconnect_product($extension, (($addon eq 'nvidia') ? '15' : ()));
         }
     }
 
@@ -55,7 +56,7 @@ sub run {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
-        reconnect_mgmt_console;
+        reconnect_mgmt_console(timeout => 600);
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
