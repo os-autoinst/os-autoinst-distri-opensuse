@@ -484,7 +484,7 @@ sub wait_for_ssh {
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
             my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_ssh = script_run("ssh $ssh_opts -l $args{username} $self->{public_ip} true", timeout => $args{timeout} - $duration);
+            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, proceed_on_failure => 1);
             last if isok($exit_ssh);
             sleep $delay;
         }
