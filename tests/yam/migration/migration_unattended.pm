@@ -53,7 +53,7 @@ sub run {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
-        reconnect_mgmt_console;
+        reconnect_mgmt_console(timeout => 500);
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
@@ -61,7 +61,7 @@ sub run {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
         assert_screen('grub-menu-migration', 120);
         send_key 'ret';
-        assert_screen('migration-running');
+        assert_screen('migration-running', 120);
         assert_screen('grub2', 600);
     }
 }
