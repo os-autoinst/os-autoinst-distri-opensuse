@@ -25,7 +25,7 @@ sub run {
     script_run('agama config edit', timeout => 0);
     wait_still_screen();
     type_string(":\%s/jose/bernhard/g\n");
-    type_string(":wq");
+    type_string(":wq\n");
     wait_still_screen();
 
     assert_script_run('agama install', timeout => 2400);
