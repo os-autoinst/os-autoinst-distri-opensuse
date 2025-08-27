@@ -14,17 +14,21 @@ sub run {
     my $self = shift;
 
     # Editing configuration
-    wait_screen_change {script_run('agama config edit', timeout => 0)};
+    script_run('agama config edit', timeout => 0);
+    wait_still_screen();
     type_string(":\%s|bernhard|jose|g\n");
     type_string(":wq\n");
-    wait_screen_change {assert_script_run('agama config show | grep jose')};
+    wait_still_screen();
+    assert_script_run('agama config show | grep jose');
 
     # Restoring original value
-    wait_screen_change {script_run('agama config edit', timeout => 0)};
+    script_run('agama config edit', timeout => 0);
+    wait_still_screen();
     type_string(":\%s|jose|bernhard|g\n");
     type_string(":wq");
+    wait_still_screen();
 
-    wait_screen_change {assert_script_run('agama install', timeout => 2400)};
+    assert_script_run('agama install', timeout => 2400);
     $self->upload_agama_logs();
 
     # make sure we will boot from hard disk next time
