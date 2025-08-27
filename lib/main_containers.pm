@@ -393,7 +393,7 @@ sub load_container_tests {
 
     ## Helm chart tests. Add your individual helm chart tests here.
     if (my $chart = get_var('HELM_CHART')) {
-        loadtest 'containers/k3s_ensure_essentials_installed';
+        loadtest 'containers/k3s_ensure_essentials_installed' if check_var('HOST_VERSION', '15-SP7');
 
         my $spr_credentials_defined = !!(
             get_var('SCC_REGISTRY', 0)
