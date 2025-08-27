@@ -16,7 +16,7 @@ sub run {
     # Editing configuration
     script_run('agama config edit', timeout => 0);
     wait_still_screen();
-    type_string(":\%s|bernhard|jose|g\n");
+    type_string(":\%s/bernhard/jose/g\n");
     type_string(":wq\n");
     wait_still_screen();
     assert_script_run('agama config show | grep jose');
@@ -24,7 +24,7 @@ sub run {
     # Restoring original value
     script_run('agama config edit', timeout => 0);
     wait_still_screen();
-    type_string(":\%s|jose|bernhard|g\n");
+    type_string(":\%s/jose/bernhard/g\n");
     type_string(":wq");
     wait_still_screen();
 
