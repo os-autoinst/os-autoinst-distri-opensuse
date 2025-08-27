@@ -139,7 +139,7 @@
 
 <pre><code>my $bastion_ip = ipaddr2_bastion_pubip();</code></pre>
 
-<p>Get the only public IP in the deployment associated to the VM used as bastion.</p>
+<p>Get the only public IP in the deployment associated to the VM used as bastion. Function is getting the IP address using az cli, so it could die if the az cli fails to return a valid IP.</p>
 
 <h2 id="ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</h2>
 
