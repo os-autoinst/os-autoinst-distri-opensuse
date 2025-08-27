@@ -59,7 +59,7 @@ sub run {
         $tests .= "--test $_ " for @tests;
     }
 
-    my $timeout;
+    my $timeout = '';
     if ($timeout = get_var('KSELFTEST_TIMEOUT')) {
         $timeout = "--override-timeout $timeout";    # Individual timeout for each test in the collection
     }
