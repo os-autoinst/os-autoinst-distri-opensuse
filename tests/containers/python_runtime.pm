@@ -151,6 +151,16 @@ sub test ($target) {
             # Flaky test
             "tests/integration/api_container_test.py::AttachContainerTest::test_attach_no_stream"
         );
+        if (is_sle("<16")) {
+            push @deselect, (
+                # These tests fail due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
+                "tests/unit/client_test.py::ClientTest::test_default_pool_size_unix",
+                "tests/unit/client_test.py::ClientTest::test_pool_size_unix",
+                "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
+                "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
+                "tests/unit/api_test.py::UnixSocketStreamTest::test_early_stream_response"
+            );
+        }
     } else {
         push @deselect, (
             # This test depends on an image available only for x86_64
@@ -189,7 +199,8 @@ sub run {
     setup;
 
     test $_ foreach (qw(unit integration));
-    if ($runtime eq "docker") {
+    # This test fails on SLES 15 due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
+    if ($runtime eq "docker" && (is_sle(">=16.0") || is_tumbleweed)) {
         assert_script_run "export DOCKER_HOST=ssh://root@127.0.0.1";
         test "ssh";
     }
