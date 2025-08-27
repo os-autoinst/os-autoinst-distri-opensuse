@@ -16,6 +16,7 @@ use containers::common qw(install_packages);
 use Utils::Architectures qw(is_x86_64);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
+my $api_version;
 my $runtime;
 
 # Translate RPM arch to Go arch
@@ -25,13 +26,27 @@ sub deb_arch ($arch) {
     return $arch;
 }
 
+sub install_git {
+    # We need git 2.47.0+ to use `--ours` with `git apply -3`
+    if (is_sle) {
+        my $version = get_var("VERSION");
+        if (is_sle('<16')) {
+            $version =~ s/-/_/;
+            $version = "SLE_$version";
+        }
+        assert_script_run "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
+    }
+    assert_script_run "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
 sub setup {
     add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
     my $python3 = is_sle("<16") ? "python311" : "python3";
     my @pkgs = ($runtime, $python3, "$python3-$runtime");
-    push @pkgs, qq(git-core jq make $python3-pytest);
+    push @pkgs, qq(jq make $python3-pytest);
     push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq($python3-paramiko $python3-pytest-timeout);
     install_packages(@pkgs);
+    install_git;
 
     # Add IP to /etc/hosts
     my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
@@ -48,11 +63,15 @@ sub setup {
     if ($runtime eq "podman") {
         systemctl "enable --now podman.socket";
     } else {
-        assert_script_run "cp -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
-        assert_script_run qq(echo '{"hosts": ["tcp://127.0.0.1:2375", "unix:///var/run/docker.sock"]}' > /etc/docker/daemon.json);
-        record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
-        systemctl "daemon-reload";
-        systemctl "enable --now docker";
+        assert_script_run q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
+        record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
+        if (is_sle("<16")) {
+            # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
+            assert_script_run "export DOCKER_HOST=tcp://127.0.0.1:2375";
+            assert_script_run "echo 0 > /etc/docker/suse-secrets-enable";
+        }
+        systemctl "enable docker";
+        systemctl "restart docker";
         record_info("docker info", script_output("docker info"));
         # Setup docker credentials helpers
         my $credstore_version = "v0.9.3";
@@ -83,12 +102,18 @@ sub setup {
     assert_script_run "cd ~";
     assert_script_run "git clone --branch $branch https://github.com/$github_org/$runtime-py", timeout => 300;
     assert_script_run "cd ~/$runtime-py";
+    if ($runtime eq "docker") {
+        $api_version = get_var("DOCKER_API_VERSION", script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version');
+        record_info("API version", $api_version);
+    }
 
     unless ($repo) {
-        my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3290 3354) : qw(3261 3290 3354));
+        my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3199 3203 3206 3231 3290) : qw(3290 3354));
         foreach my $patch (@patches) {
+            my $url = "https://github.com/$github_org/$runtime-py/pull/$patch";
+            record_info("patch", $url);
             assert_script_run "curl -O " . data_url("containers/patches/$runtime-py/$patch.patch");
-            assert_script_run "git apply $patch.patch";
+            assert_script_run "git apply -3 --ours $patch.patch";
         }
     }
 
@@ -130,6 +155,16 @@ sub test ($target) {
             # Flaky test
             "tests/integration/api_container_test.py::AttachContainerTest::test_attach_no_stream"
         );
+        if (is_sle("<16")) {
+            push @deselect, (
+                # These tests fail due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
+                "tests/unit/client_test.py::ClientTest::test_default_pool_size_unix",
+                "tests/unit/client_test.py::ClientTest::test_pool_size_unix",
+                "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
+                "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
+                "tests/unit/api_test.py::UnixSocketStreamTest::test_early_stream_response"
+            );
+        }
     } else {
         push @deselect, (
             # This test depends on an image available only for x86_64
@@ -143,7 +178,6 @@ sub test ($target) {
 
     my %env = ();
     if ($runtime eq "docker") {
-        my $api_version = script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version';
         $env{DOCKER_TEST_API_VERSION} = $api_version;
         # Fix docker-py test issues with datetimes on different timezones by using UTC
         $env{TZ} = "UTC";
@@ -169,7 +203,8 @@ sub run {
     setup;
 
     test $_ foreach (qw(unit integration));
-    if ($runtime eq "docker") {
+    # This test fails on SLES 15 due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
+    if ($runtime eq "docker" && (is_sle(">=16.0") || is_tumbleweed)) {
         assert_script_run "export DOCKER_HOST=ssh://root@127.0.0.1";
         test "ssh";
     }
@@ -177,7 +212,7 @@ sub run {
 
 sub cleanup() {
     script_run "unset DOCKER_HOST";
-    script_run "cp -f /etc/docker/daemon.json.bak /etc/docker/daemon.json";
+    script_run q(sed -ri 's/^(DOCKER_OPTS)=.*/\1=""/' /etc/sysconfig/docker);
     script_run "cd / ; rm -rf /root/$runtime-py";
 }
 
