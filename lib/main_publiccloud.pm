@@ -29,7 +29,7 @@ sub load_maintenance_publiccloud_tests {
     } else {
         loadtest("publiccloud/registration", run_args => $args);
     }
-    loadtest "publiccloud/transfer_repos", run_args => $args;
+    loadtest "publiccloud/transfer_repos", run_args => $args unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
