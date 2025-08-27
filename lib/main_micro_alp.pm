@@ -316,7 +316,7 @@ sub load_slem_on_pc_tests {
         loadtest("publiccloud/registration", run_args => $args);
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
-            loadtest("publiccloud/transfer_repos", run_args => $args);
+            loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
