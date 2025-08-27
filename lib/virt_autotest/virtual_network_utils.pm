@@ -26,7 +26,6 @@ use version_utils qw(is_sle is_alp is_opensuse);
 use Utils::Architectures;
 use virt_autotest::utils;
 use virt_autotest::domain_management_utils qw(construct_uri);
-use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use mm_network;
 
 our @EXPORT
