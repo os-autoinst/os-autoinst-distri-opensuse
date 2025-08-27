@@ -170,7 +170,7 @@ sub dump_kernel_config
     my $uname_r = $instance->run_ssh_command(cmd => "uname -r");
     chomp $uname_r;
 
-    record_info("KERNEL CONFIG", $instance->run_ssh_command(cmd => 'cat /boot/config-$uname_r'));
+    record_info("KERNEL CONFIG", $instance->run_ssh_command(cmd => "cat /boot/config-$uname_r"));
     record_info("ver_linux", $instance->run_ssh_command("/opt/ltp/ver_linux"));
 }
 
@@ -191,8 +191,6 @@ sub run {
 
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
-
-    $self->dump_kernel_config($instance);
 
     $self->prepare_scripts();
     $self->register_instance($instance, $qam);
@@ -224,6 +222,7 @@ sub run {
 
     my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env);
 
+    $self->dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
     script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
