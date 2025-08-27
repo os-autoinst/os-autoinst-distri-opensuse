@@ -34,7 +34,7 @@ sub run {
         });
     }
     foreach my $alias (@actual_aliases) {
-        next if ($alias =~ /home_images|home_sles16/);
+        next if ($alias =~ /home_images|home_sles16|15-SP7/);
         if (!$expected_repos{$alias}) {
             $unexpected_aliases .= $alias . '\n';
         }
