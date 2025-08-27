@@ -217,7 +217,7 @@ sub guest_is_sle {
 
     # Version check
     $guest_name =~ /sles-*(\d{2})(?:-*sp(\d))?/;
-    my $version = $2 eq '' ? "$1-sp0" : "$1-sp$2";
+    my $version = defined($2) ? "$1-sp$2" : "$1-sp0";
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
 }
 
@@ -853,7 +853,7 @@ EOF
         assert_script_run("sed -i -r \'/^Host \\*/a \\    IdentityFile $args{ssh_id_file}\' $args{ssh_config_file}");
     }
     assert_script_run("chmod 600 $args{ssh_config_file}");
-    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{sh_config_file}"));
+    record_info("Content of $args{ssh_config_file} after common ssh config setup", script_output("cat $args{ssh_config_file};ls -lah $args{ssh_config_file}"));
     return;
 }
 
