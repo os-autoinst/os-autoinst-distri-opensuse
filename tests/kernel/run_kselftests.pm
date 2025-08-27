@@ -38,6 +38,7 @@ sub run {
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
     my @all_tests = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
+    record_info("Available Tests", join("\n", @all_tests));
 
     # Filter which tests will run using KSELFTEST_TESTS
     my @tests = @{get_var_array('KSELFTEST_TESTS')};
@@ -46,6 +47,7 @@ sub run {
     # Filter which tests will *NOT* run using KSELFTEST_SKIP
     my @skip = map { s/^\s+|\s+$//gr } @{get_var_array('KSELFTEST_SKIP')};
     if (@skip) {
+        record_info("Skipping Tests", join("\n", @skip));
         my %skip = map { $_ => 1 } @skip;
         # Remove tests that are in @skip
         @tests = grep { !$skip{$_} } @tests;
@@ -54,8 +56,10 @@ sub run {
     # Run specific tests if the arrays have different lengths
     my $tests = '';
     if (@tests == @all_tests) {
+        record_info("Running Collection", $collection);
         $tests = "--collection $collection";
     } else {
+        record_info("Running Tests", join("\n", @tests));
         $tests .= "--test $_ " for @tests;
     }
 
