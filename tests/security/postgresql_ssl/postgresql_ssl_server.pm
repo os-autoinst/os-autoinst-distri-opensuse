@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: The server side of postgresql ssl connection test.
@@ -10,13 +10,12 @@
 use base 'consoletest';
 use testapi;
 use utils;
-use Utils::Architectures;
+use Utils::Architectures 'is_s390x';
 use lockapi;
 use mmapi 'wait_for_children';
 use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
     my $server_ip = get_var('SERVER_IP', '10.0.2.101');
     my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
     my $pg_hba_config = '/var/lib/pgsql/data/pg_hba.conf';
@@ -36,29 +35,31 @@ sub run {
     zypper_call('in postgresql-server');
     systemctl('start postgresql');
 
+    # Check if postgresql service is running
+    systemctl('is-active postgresql');
+
     # Setup key
     assert_script_run('cd /var/lib/pgsql/data');
     assert_script_run('openssl genrsa -out server.key 2048');
     assert_script_run('chmod 400 server.key');
     assert_script_run('chown postgres.postgres server.key');
-    assert_script_run('openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=example.com"');
+    assert_script_run('openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj "/C=DE/ST=Berlin/L=Berlin/O=QA/OU=security/CN=example.com"');
     assert_script_run('cp server.crt root.crt');
 
     # Setup password
-    enter_cmd 'su - postgres';
-    wait_still_screen(1);
-    enter_cmd('psql');
-    wait_still_screen(1);
-    enter_cmd '\password postgres';
-    wait_still_screen(1);
-    enter_cmd $passwd;
-    wait_still_screen(1);
-    enter_cmd $passwd;
-    wait_still_screen(1);
-    enter_cmd '\q';
-    wait_still_screen(1);
-    enter_cmd 'exit';
-    wait_still_screen(1);
+    my @commands = (
+        'su - postgres',
+        'psql',
+        '\password postgres',
+        $passwd,
+        $passwd,
+        '\q',
+        'exit',
+    );
+    for my $command (@commands) {
+        enter_cmd $command;
+        wait_still_screen(1);
+    }
     save_screenshot;
 
     # Setup configuration
@@ -78,7 +79,7 @@ sub run {
     # Stop postgresql service
     systemctl('stop postgresql');
 
-    # Delete the ip that we added if arch is s390x
+    # Delete the ip address we added if arch is s390x
     assert_script_run("ip addr del $server_ip/24 dev $netdev") if (is_s390x);
 }
 
