@@ -1,8 +1,19 @@
 name:           leap16_agama_install
 description:    >
     This is prepare install opensuse-16.0 agama installer
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader
+      ppc64le:
+        - installation/bootloader
+      s390x:
+        - installation/bootloader_s390
+      x86_64:
+        - installation/bootloader
 schedule:
-  - installation/bootloader
+  - '{{bootloader}}'
   - installation/agama
   - installation/agama_reboot
   - installation/grub_test
