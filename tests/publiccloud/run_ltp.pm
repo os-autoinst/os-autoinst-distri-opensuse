@@ -321,7 +321,6 @@ sub prepare_ltp_cmd {
 
     my $python_exec = get_python_exec();
     my $cmd = "$python_exec kirk ";
-    $cmd .= "--framework ltp ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
     $cmd .= '--suite-timeout=5400 ';
