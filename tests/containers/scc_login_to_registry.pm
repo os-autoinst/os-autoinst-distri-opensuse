@@ -13,6 +13,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);
+use containers::k8s qw(install_kubectl install_helm);
 
 sub run {
     my $registry = get_required_var('SCC_REGISTRY');
@@ -20,6 +21,9 @@ sub run {
     my $password = get_required_var('SCC_PROXY_PASSWORD');
 
     select_serial_terminal;
+
+    install_kubectl();
+    install_helm();
 
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
