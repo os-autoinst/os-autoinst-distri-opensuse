@@ -359,7 +359,7 @@ sub install_dependencies_nfs {
       nfs-kernel-server
       nfs4-acl-tools
     );
-    push @deps, 'ktls-utils' if ($NFS_VERSION =~ 'TLS');
+    push @deps, 'ktls-utils', 'openssl-3' if ($NFS_VERSION =~ 'TLS');
     push @deps, 'krb5-client', 'krb5-server' if ($NFS_VERSION =~ 'krb5');
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
