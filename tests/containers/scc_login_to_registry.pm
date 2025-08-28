@@ -26,16 +26,16 @@ sub run {
     # Container runtime login
     assert_script_run(
         qq(echo "$password" | $runtime login -u "$username" --password-stdin $registry)
-    );
+    ) if script_run("command -v $runtime") == 0;
 
     # If HELM_CHART is set, also log in Helm's OCI registry (covers oci:// charts)
     if (get_var('HELM_CHART')) {
         assert_script_run(
             qq(echo "$password" | helm registry login -u "$username" --password-stdin $registry)
-        );
+        ) if script_run("command -v helm") == 0;
         assert_script_run(
             qq(kubectl create secret docker-registry suse-registry --docker-server=$registry --docker-username=$username --docker-password=$password)
-        );
+        ) if script_run("command -v kubectl") == 0;
     }
 }
 

@@ -28,7 +28,7 @@ use containers::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::helm;
-use containers::k8s qw(install_k3s);
+use containers::k8s qw(install_k3s install_helm);
 
 sub prepare_virtual_env {
     my ($version, $sp, $host_distri) = @_;
@@ -117,6 +117,7 @@ sub run {
     if (get_var('BCI_PREPARE') && helm_is_supported() && check_var('HOST_VERSION', '15-SP7')) {
         install_k3s();
         systemctl 'disable --now firewalld';
+        install_helm();
     }
 }
 
