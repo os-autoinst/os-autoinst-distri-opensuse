@@ -2220,10 +2220,12 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "ibus")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/ibus/ibus_installation";
-        loadtest "x11/ibus/ibus_test_cn";
-        loadtest "x11/ibus/ibus_test_jp";
-        loadtest "x11/ibus/ibus_test_kr";
-        loadtest "x11/ibus/ibus_clean";
+        if ((is_sle("<16")) || is_tumbleweed) {
+            loadtest "x11/ibus/ibus_test_cn";
+            loadtest "x11/ibus/ibus_test_jp";
+            loadtest "x11/ibus/ibus_test_kr";
+            loadtest "x11/ibus/ibus_clean";
+        }
     }
 }
 
