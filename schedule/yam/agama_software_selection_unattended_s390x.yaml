@@ -6,6 +6,6 @@ schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
   - yam/agama/agama
-  - installation/grub_test
   - boot/reconnect_mgmt_console
+  - installation/first_boot
   - yam/validate/validate_installed_patterns
