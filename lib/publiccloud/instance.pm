@@ -359,17 +359,15 @@ When the IP differs from `$self->public_ip` we update `$self->public_ip`.
 =cut
 
 sub update_instance_ip {
-    my ($self, %args) = @_;
-    $args{timeout} //= 600;
-    my $delay = $args{timeout} > 180 ? 5 : 1;
+    my $self = shift;
+    my $timeout = 300;
+    my $delay = 5;
+    my $changed = 0;
+    my $public_ip_from_provider = $self->provider->get_public_ip();
 
-    # skip SLES4SAP as incompatible with get_public_ip
-    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $public_ip_from_provider = $self->provider->get_public_ip();
-        
-        my $duration;
-        my $start_time = time();
-        until ($public_ip_from_provider !~ /null/ || ($duration = time() - $start_time) >= $args{timeout}) {
+    return if (get_var('PUBLIC_CLOUD_SLES4SAP');) {
+    until ($public_ip_from_provider !~ /null/ || (time() - $start_time) >= 300 {
+    ...
             sleep($delay);
             $public_ip_from_provider = $self->provider->get_public_ip();
         }
