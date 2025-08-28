@@ -22,7 +22,7 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry systemctl);
-use version_utils qw(get_os_release);
+use version_utils qw(get_os_release is_sle);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
@@ -114,7 +114,7 @@ sub run {
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
 
-    if (get_var('BCI_PREPARE') && helm_is_supported() && check_var('HOST_VERSION', '15-SP7')) {
+    if (get_var('BCI_PREPARE') && is_sle("15-SP7+", get_var('HOST_VERSION', get_required_var('VERSION')))) {
         install_k3s();
         systemctl 'disable --now firewalld';
         install_helm();
