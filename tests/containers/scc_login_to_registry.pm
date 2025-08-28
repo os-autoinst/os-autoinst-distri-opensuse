@@ -27,6 +27,9 @@ sub run {
     assert_script_run(
         qq(echo "$password" | helm registry login -u "$username" --password-stdin $registry)
     );
+    assert_script_run(
+        qq(kubectl create secret docker-registry suse-registry --docker-server=$registry --docker-username=$username --docker-password=$password)
+    );
 }
 
 sub test_flags {
