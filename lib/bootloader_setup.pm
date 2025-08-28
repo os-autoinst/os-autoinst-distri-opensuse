@@ -344,7 +344,7 @@ sub select_bootmenu_option {
 
     # Special handling for Agama
     if (get_var('AGAMA')) {
-        send_key_until_needlematch 'boot-agama-installation', 'up', 11, 5;
+        send_key_until_needlematch 'boot-agama-installation', 'down', 11, 5;
         return 0;
     }
     if (get_var('LIVECD')) {
