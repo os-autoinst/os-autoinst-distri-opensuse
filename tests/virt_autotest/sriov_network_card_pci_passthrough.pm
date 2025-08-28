@@ -53,13 +53,6 @@ sub run_test {
 
     # Try with NM configuration file
     record_info("Before enable VF", script_output("ip r"));
-    my $nm_config_file = "/usr/lib/NetworkManager/conf.d/00-server.conf";
-    script_run("cat $nm_config_file");
-    script_run("cat /usr/lib/NetworkManager/NetworkManager.conf");
-    #    script_run("sed -i 's/no-auto-default=\\*/no-auto-default=driver:iavf,driver:ixgbevf/' $nm_config_file");
-    #    script_run("cat $nm_config_file");
-    #    script_run("cp $nm_config_file /etc/NetworkManager/NetworkManager.conf");
-    script_run("cat /etc/NetworkManager/NetworkManager.conf");
     script_run("ip a");
     script_run("nmcli con");
 
@@ -70,7 +63,6 @@ sub run_test {
     record_info("After enabling VF", script_output("ip r"));
     script_run("ip a");
     script_run("nmcli con");
-    script_run("nmcli -f GENERAL.DRIVER,GENERAL.DRIVER-VERSION device show");
 
     # Restore /etc/resolv.conf after VFs are created
     assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
@@ -223,12 +215,9 @@ sub enable_vf {
     my $pfs_ref = $args{pfs};
     # All SR-IOV ethernet cards allow the maxium fv number is above 7
     my $number = $args{number} // 7;
-    print "julie: \$number=$number\n";
-    print "julie: \@\$pfs_ref=@$pfs_ref\n";
 
     # Enable specified VFs on a random PF by modifying SYS PCI
     my $random_pf = $pfs_ref -> [int(rand(@$pfs_ref))];
-    print "julie: \$random_pf=$random_pf\n";
     assert_script_run("echo $number > /sys/bus/pci/devices/0000:$random_pf/sriov_numvfs");
 
     # It takes a litte longer on SLE16 due to network activation

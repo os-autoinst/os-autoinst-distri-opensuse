@@ -429,7 +429,7 @@ sub check_guest_health {
         if (script_run("ssh root\@$vm 'ping -c3 www.opensuse.org'") == 0 or script_run("ssh root\@$vm 'ping -c3 www.qemu.org'") == 0) {
             record_info("Healthy guest!", "$vm looks good so far!");
         } else {
-            record_info("Possible network inaccessibility", "Unable to access www.opensuse.org from $vm!", result => 'fail');
+            record_info("Possible network inaccessibility", "Unable to access outside network from $vm!", result => 'fail');
         }
     }
     else {
