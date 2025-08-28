@@ -59,7 +59,10 @@ sub run_test {
     my @host_vfs = enable_vf(number => get_var("ENABLE_VF_COUNT", '7'), pfs => \@host_pfs);
     record_info("VFs enabled", "@host_vfs");
     enter_cmd "ip r; echo DONE > /dev/$serialdev";
-    { reset_consoles; select_console('root-ssh'); } unless defined(wait_serial 'DONE', timeout => 30);
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
+        reset_consoles;
+        select_console('root-ssh');
+    }
     script_run("ip a");
     script_run("nmcli con");
 
