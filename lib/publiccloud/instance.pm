@@ -362,24 +362,21 @@ sub update_instance_ip {
     my $self = shift;
     my $timeout = 300;
     my $delay = 5;
-    my $changed = 0;
+
+    return if (get_var('PUBLIC_CLOUD_SLES4SAP'));
+
+    my $start_time = time();
     my $public_ip_from_provider = $self->provider->get_public_ip();
-
-    return if (get_var('PUBLIC_CLOUD_SLES4SAP');) {
-    until ($public_ip_from_provider !~ /null/ || (time() - $start_time) >= 300 {
-    ...
-            sleep($delay);
-            $public_ip_from_provider = $self->provider->get_public_ip();
-        }
-
-        # Update the public IP address if it differs
-        if ($self->public_ip ne $public_ip_from_provider) {
-            record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
-            $self->public_ip($public_ip_from_provider);
-        }
+    until ($public_ip_from_provider !~ /null/ || (time() - $start_time) >= $timeout) {
+        sleep($delay);
+        $public_ip_from_provider = $self->provider->get_public_ip();
     }
 
-    return true;
+    # Update the public IP address if it differs
+    if ($self->public_ip ne $public_ip_from_provider and $public_ip_from_provider !~ /null/) {
+        record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
+        $self->public_ip($public_ip_from_provider);
+    }
 }
 
 =head2 wait_for_ssh
@@ -599,7 +596,6 @@ sub softreboot {
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
 
-    # wait till ssh is available again
     $self->update_instance_ip();
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
 
