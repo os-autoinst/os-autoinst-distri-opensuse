@@ -56,7 +56,7 @@ sub run {
     $software{'salt-minion'} = {
         repo => $repo,
         installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
-        condition => sub { is_sle('15+') },
+        condition => sub { is_sle('15+') && is_sle('<15-SP7') },
     };
     $software{'sles-ltss-release'} = {
         repo => $ltss_release_repo ? $ltss_release_repo : 'LTSS',
