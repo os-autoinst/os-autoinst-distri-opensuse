@@ -392,7 +392,9 @@ sub load_container_tests {
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
 
     ## Helm chart tests. Add your individual helm chart tests here.
-    if (my $chart = get_var('HELM_CHART')) {
+    # Helm chart tests are not executed on k8s
+    if (get_var('HELM_CHART') && $runtime !~ /k8s/) {
+        my $chart = get_var('HELM_CHART');
         my $spr_credentials_defined = !!(
             get_var('SCC_REGISTRY', 0)
             && get_var('SCC_PROXY_USERNAME', 0)
