@@ -24,6 +24,7 @@
       <li><a href="#upload_log">upload_log</a></li>
       <li><a href="#upload_check_logs_tar">upload_check_logs_tar</a></li>
       <li><a href="#wait_for_guestregister">wait_for_guestregister</a></li>
+      <li><a href="#update_instance_ip">update_instance_ip</a></li>
       <li><a href="#wait_for_ssh">wait_for_ssh</a></li>
       <li><a href="#isok">isok</a></li>
       <li><a href="#softreboot">softreboot</a></li>
@@ -102,6 +103,12 @@
 <pre><code>wait_for_guestregister([timeout =&gt; 300]);</code></pre>
 
 <p>Run command <code>systemctl is-active guestregister</code> on the instance in a loop and wait till guestregister is ready. If guestregister finish with state failed, a soft-failure will be recorded. If guestregister will not finish within <code>timeout</code> seconds, job dies. In case of BYOS images we checking that service is inactive and quit Returns the time needed to wait for the guestregister to complete. <code>wait_for_guestregister</code> is called inside <code>create_instance()</code>, enabled by <code>check_guestregister</code></p>
+
+<h2 id="update_instance_ip">update_instance_ip</h2>
+
+<pre><code>update_instance_ip(timeout =&gt; 600)</code></pre>
+
+<p>This subroutine checks the public IP cloud provider provides for the VM. When the IP differs from `$self-&gt;public_ip` we update `$self-&gt;public_ip`.</p>
 
 <h2 id="wait_for_ssh">wait_for_ssh</h2>
 
