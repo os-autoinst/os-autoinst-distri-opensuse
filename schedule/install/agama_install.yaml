@@ -11,7 +11,7 @@ conditional_schedule:
       s390x:
         - installation/bootloader_s390
       x86_64:
-        - installation/bootloader
+        - installation/bootloader_uefi
 schedule:
   - '{{bootloader}}'
   - installation/agama
