@@ -1,0 +1,60 @@
+From effde1ca42792f8c92fe3a2398e32082102352dc Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 28 Aug 2025 17:40:48 +0200
+Subject: [PATCH] tests: Get rid of netcat on the host and use Bash's /dev/tcp
+
+The only remaining uses of nc now are in containers.
+---
+ test/system/200-pod.bats         | 2 +-
+ test/system/500-networking.bats  | 4 ++--
+ test/system/helpers.network.bash | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/test/system/200-pod.bats b/test/system/200-pod.bats
+index ffcab5a1bf..4acfd0a443 100644
+--- a/test/system/200-pod.bats
++++ b/test/system/200-pod.bats
+@@ -338,7 +338,7 @@ EOF
+     # send a random string to the container. This will cause the container
+     # to output the string to its logs, then exit.
+     teststring=$(random_string 30)
+-    echo "$teststring" | nc 127.0.0.1 $port_out
++    echo "$teststring" > /dev/tcp/127.0.0.1/$port_out
+ 
+     # Confirm that the container log output is the string we sent it.
+     run_podman wait $cid
+diff --git a/test/system/500-networking.bats b/test/system/500-networking.bats
+index 44e8e1ce58..27887b619b 100644
+--- a/test/system/500-networking.bats
++++ b/test/system/500-networking.bats
+@@ -153,7 +153,7 @@ load helpers.network
+ 
+         # emit random string, and check it
+         teststring=$(random_string 30)
+-        echo "$teststring" | nc 127.0.0.1 $myport
++        echo "$teststring" > /dev/tcp/127.0.0.1/$myport
+ 
+         run_podman logs $cid
+         # Sigh. We can't check line-by-line, because 'nc' output order is
+@@ -296,7 +296,7 @@ load helpers.network
+ 
+     # emit random string, and check it
+     teststring=$(random_string 30)
+-    echo "$teststring" | nc 127.0.0.1 $myport
++    echo "$teststring" > /dev/tcp/127.0.0.1/$myport
+ 
+     run_podman logs $cid
+     # Sigh. We can't check line-by-line, because 'nc' output order is
+diff --git a/test/system/helpers.network.bash b/test/system/helpers.network.bash
+index 0ffcabc576..8d0b419b36 100644
+--- a/test/system/helpers.network.bash
++++ b/test/system/helpers.network.bash
+@@ -423,7 +423,7 @@ function wait_for_port() {
+ function tcp_port_probe() {
+     local address="${2:-0.0.0.0}"
+ 
+-    : | nc "${address}" "${1}"
++    (exec echo -n >/dev/tcp/"$address/$1") >/dev/null 2>&1
+ }
+ 
+ ### Pasta Helpers ##############################################################

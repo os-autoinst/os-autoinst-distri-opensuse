@@ -111,6 +111,7 @@ podman:
     - 26017
     - 26798
     - 26920
+    - 26921
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL: 200-pod 520-checkpoint
     BATS_IGNORE_ROOT_REMOTE:
@@ -125,6 +126,7 @@ podman:
     - 26017
     - 26798
     - 26920
+    - 26921
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL: 200-pod
     BATS_IGNORE_ROOT_REMOTE:
