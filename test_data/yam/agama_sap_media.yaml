@@ -10,7 +10,7 @@ os_release:
   CPE_NAME: "cpe:/o:suse:sles:16:%VERSION%"
   SUSE_SUPPORT_PRODUCT: "SUSE Linux Enterprise Server for SAP applications"
 repos:
-  - name: SUSE Linux Enterprise Server for SAP applications %VERSION% Beta
+  - name: SUSE Linux Enterprise Server for SAP applications %VERSION%
     alias: SLES_SAP
     uri: dvd:/install
     enabled: 'No'
