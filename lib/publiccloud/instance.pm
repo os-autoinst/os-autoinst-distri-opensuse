@@ -349,6 +349,41 @@ sub wait_for_guestregister {
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
+=head2 update_instance_ip
+
+    update_instance_ip(timeout => 600)
+
+This subroutine checks the public IP cloud provider provides for the VM.
+When the IP differs from `$self->public_ip` we update `$self->public_ip`.
+
+=cut
+
+sub update_instance_ip {
+    my ($self, %args) = @_;
+    $args{timeout} //= 600;
+    my $delay = $args{timeout} > 180 ? 5 : 1;
+
+    # skip SLES4SAP as incompatible with get_public_ip
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        my $public_ip_from_provider = $self->provider->get_public_ip();
+        
+        my $duration;
+        my $start_time = time();
+        until ($public_ip_from_provider !~ /null/ || ($duration = time() - $start_time) >= $args{timeout}) {
+            sleep($delay);
+            $public_ip_from_provider = $self->provider->get_public_ip();
+        }
+
+        # Update the public IP address if it differs
+        if ($self->public_ip ne $public_ip_from_provider) {
+            record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
+            $self->public_ip($public_ip_from_provider);
+        }
+    }
+
+    return true;
+}
+
 =head2 wait_for_ssh
 
     wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, scan_ssh_host_key => 0] [, ...])
@@ -398,21 +433,6 @@ sub wait_for_ssh {
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
-
-    # skip SLES4SAP as incompatible with get_public_ip
-    if (!get_var('PUBLIC_CLOUD_SLES4SAP') && !$args{wait_stop}) {
-        my $public_ip_from_provider = $self->provider->get_public_ip();
-        until ($public_ip_from_provider !~ /null/ || ($duration = time() - $start_time) >= $args{timeout}) {
-            sleep($delay);
-            $public_ip_from_provider = $self->provider->get_public_ip();
-        }
-
-        # Update the public IP address if it differs
-        if ($self->public_ip ne $public_ip_from_provider) {
-            record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
-            $self->public_ip($public_ip_from_provider);
-        }
-    }
 
     # Looping until SSH port 22 is reachable or timeout.
     while (($duration = time() - $start_time) < $args{timeout}) {
@@ -580,6 +600,9 @@ sub softreboot {
 
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
+
+    # wait till ssh is available again
+    $self->update_instance_ip();
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
 
     # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
@@ -622,6 +645,7 @@ sub start {
     $args{timeout} //= 600;
     $args{scan_ssh_host_key} //= 0;
     $self->provider->start_instance($self, @_);
+    $self->update_instance_ip();
     return $self->wait_for_ssh(timeout => $args{timeout}, scan_ssh_host_key => $args{scan_ssh_host_key});
 }
 
