@@ -122,7 +122,7 @@ sub run {
     # Needed to create the SAS URI token
     if (!is_azure()) {
         my $azure_client = publiccloud::azure_client->new();
-        $azure_client->init();
+        $azure_client->init(namespace => 'sapha');
     }
 
     # variable to be conditionally used to hold ptf file names,
