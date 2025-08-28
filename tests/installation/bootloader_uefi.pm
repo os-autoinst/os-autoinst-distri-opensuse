@@ -176,7 +176,7 @@ sub run {
         return;
     }
 
-    bootmenu_default_params;
+    bootmenu_default_params(in_grub_edit => 1);
     save_screenshot();
     unless (is_selfinstall) {
         bootmenu_remote_target;

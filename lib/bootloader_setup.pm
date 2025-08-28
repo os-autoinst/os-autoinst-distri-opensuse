@@ -627,12 +627,14 @@ sub bootmenu_default_params {
         push @params, "Y2DEBUG=1";
     }
     elsif (get_var('AGAMA')) {
-        wait_screen_change { send_key "e" };
-        send_key "down";
-        send_key "down";
-        send_key "down";
-        send_key "down";
-        wait_screen_change { send_key "end" };
+        if (!$args{in_grub_edit}) {
+            wait_screen_change { send_key "e" };
+            send_key "down";
+            send_key "down";
+            send_key "down";
+            send_key "down";
+            wait_screen_change { send_key "end" };
+        }
         # REPO_0 should be set everywhere where we rsync repo (aside from iso)
         if (get_var('REPO_0')) {
             my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
