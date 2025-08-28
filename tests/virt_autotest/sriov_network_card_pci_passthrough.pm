@@ -51,16 +51,15 @@ sub run_test {
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
-    # Try with NM configuration file
-    record_info("Before enable VF", script_output("ip r"));
-    script_run("ip a");
+    record_info("Before enable VF", script_output("ip a"));
+    script_run("ip r");
     script_run("nmcli con");
 
     # Enable VFs for the SR-IOV devices on host
     my @host_vfs = enable_vf(number => get_var("ENABLE_VF_COUNT", '7'), pfs => \@host_pfs);
     record_info("VFs enabled", "@host_vfs");
-
-    record_info("After enabling VF", script_output("ip r"));
+    enter_cmd "ip r; echo DONE > /dev/$serialdev";
+    { reset_consoles; select_console('root-ssh'); } unless defined(wait_serial 'DONE', timeout => 30);
     script_run("ip a");
     script_run("nmcli con");
 
@@ -269,7 +268,6 @@ sub prepare_guest_for_sriov_passthrough {
             }
         }
 
-        #try undefine with --keep-nvram if undefine fails on uefi guest
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
         assert_script_run(" ! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
