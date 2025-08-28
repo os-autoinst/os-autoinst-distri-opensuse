@@ -8,4 +8,8 @@ local extra_repositories() = [
 
 {
   extraRepositories: extra_repositories(),
+  modify_patterns(add_patterns='', remove_patterns=''):: {
+    add: if add_patterns != '' then std.split(add_patterns, ','),
+    remove: if remove_patterns != '' then std.split(remove_patterns, ','),
+  },
 }
