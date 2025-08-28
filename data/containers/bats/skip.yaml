@@ -103,12 +103,14 @@ podman:
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
+  # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 25918
     - 25942
     - 26017
     - 26798
+    - 26920
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL: 200-pod 520-checkpoint
     BATS_IGNORE_ROOT_REMOTE:
@@ -122,6 +124,7 @@ podman:
     - 25942
     - 26017
     - 26798
+    - 26920
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL: 200-pod
     BATS_IGNORE_ROOT_REMOTE:
@@ -133,6 +136,7 @@ podman:
     - 24068
     - 25792
     - 25942
+    - 26920
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
@@ -144,6 +148,7 @@ podman:
     - 24068
     - 25792
     - 25942
+    - 26920
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
