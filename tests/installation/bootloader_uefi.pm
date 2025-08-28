@@ -151,8 +151,9 @@ sub run {
     elsif (get_var('VERSION') !~ /agama/) {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 3);
-        }
-        elsif (!(is_jeos || ((is_sle_micro || is_leap_micro) && !is_selfinstall)) && !is_microos('VMX')) {
+        } elsif (get_var("AGAMA")) {
+            select_bootmenu_option;
+        } elsif (!(is_jeos || ((is_sle_micro || is_leap_micro) && !is_selfinstall)) && !is_microos('VMX')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 11, 0.5);
         }
     }
