@@ -18,11 +18,11 @@ sub run {
     x11_start_program('xterm');
 
     my @applications = (
-        ['image/jpg', 'eog.desktop'],
-        ['image/png', 'eog.desktop'],
-        ['application/pdf', 'evince.desktop'],
-        ['application/x-bzip2', 'org.gnome.FileRoller.desktop'],
-        ['application/gzip', 'org.gnome.FileRoller.desktop']);
+        ['image/jpeg', 'org.gnome.Loupe.desktop'],
+        ['image/png', 'org.gnome.Loupe.desktop'],
+        ['application/pdf', 'org.gnome.Papers.desktop'],
+        ['application/x-bzip2', 'org.gnome.Nautilus.desktop'],
+        ['application/gzip', 'org.gnome.Nautilus.desktop']);
     my $defaultApps = check_default_apps(@applications);
     if ($defaultApps) {
         prepare_application_environment();
