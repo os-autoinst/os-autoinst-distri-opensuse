@@ -408,6 +408,7 @@ sub bats_tests {
         $cmd = "env $env hack/bats -t -T $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
+    $logfile .= ".tap.txt";
     $cmd .= " | tee -a $log_file";
 
     my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";

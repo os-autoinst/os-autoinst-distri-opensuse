@@ -30,7 +30,7 @@ sub run_tests {
         QUADLET => $quadlet,
     );
 
-    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local") . ".tap.txt";
+    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");
 
     run_command "podman system service --timeout=0 &" if ($remote);
 
