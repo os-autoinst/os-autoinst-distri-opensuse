@@ -72,7 +72,7 @@ sub test_ovs_dpdk {
     assert_script_run 'ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true';
 
     # check dpdk-init and version
-    record_soft_failure 'dpdk could not be initialized, it is related to issue bsc#1205702' if script_output('ovs-vsctl get Open_vSwitch . dpdk_initialize', m/1 false/);
+    record_info('bsc#1205702') if script_output('ovs-vsctl get Open_vSwitch . dpdk_initialize', m/1 false/);
     script_output('ovs-vsctl get Open_vSwitch . dpdk_version', m/1 DPDK/);
 
     # check dpdk_nic_bind --status-dev net
