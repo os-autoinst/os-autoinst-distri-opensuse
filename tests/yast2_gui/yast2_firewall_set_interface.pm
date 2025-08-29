@@ -17,6 +17,13 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     my $self = shift;
     select_console 'root-console';
+
+    my $network_daemon = script_output 'readlink /etc/systemd/system/network.service | sed \'s#.*/\(.*\)\.service#\1#\'';
+    if ($network_daemon == "NetworkManager") {
+        record_info('Skipped', 'YaST2 cannot manage firewall setting when using NetworkManager (boo#1207390)', result => 'softfail');
+        select_console 'x11', await_console => 0;
+        return;
+    }
     my $iface = iface();
     my %setting = (device => $iface, zone => 'public');
 
