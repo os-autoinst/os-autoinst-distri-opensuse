@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::bats;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 
 my $netavark;
 
@@ -30,11 +30,7 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(aardvark-dns cargo firewalld iproute2 jq make ncat protobuf-devel netavark);
-    if (is_tumbleweed || is_sle('>=16.0')) {
-        push @pkgs, qw(dbus-1-daemon);
-    } elsif (is_sle) {
-        push @pkgs, qw(dbus-1);
-    }
+    push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
 
     $self->bats_setup(@pkgs);
 
