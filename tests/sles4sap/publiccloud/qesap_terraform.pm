@@ -23,6 +23,7 @@
 # INSTANCE_ID - SAP instance id
 # ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deployment (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
+# HANA_NAMESPACE - used to configure the Azure credentials involved in obtaining the HANA media
 
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
@@ -122,7 +123,7 @@ sub run {
     # Needed to create the SAS URI token
     if (!is_azure()) {
         my $azure_client = publiccloud::azure_client->new();
-        $azure_client->init(namespace => 'sapha');
+        $azure_client->init(namespace => get_var('HANA_NAMESPACE', 'sapha'));
     }
 
     # variable to be conditionally used to hold ptf file names,

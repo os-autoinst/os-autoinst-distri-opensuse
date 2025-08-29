@@ -25,7 +25,7 @@ sub run {
     # Needed to create the SAS URI token
     if ($provider_setting ne 'AZURE') {
         my $azure_client = publiccloud::azure_client->new();
-        $azure_client->init(namespace => 'sapha');
+        $azure_client->init(namespace => get_var('QESAPDEPLOY_HANA_NAMESPACE', 'sapha'));
     }
 
     my %variables;
@@ -79,9 +79,9 @@ sub run {
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
     $variables{SCC_LTSS_REGCODE} = get_var('SCC_REGCODE_LTSS', '');
     $variables{SCC_LTSS_MODULE} = get_var('QESAPDEPLOY_SCC_LTSS_MODULE', '');
-    if ($provider_setting eq 'EC2') {
-        $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
-    }
+
+    $variables{GOOGLE_PROJECT} = get_var('QESAPDEPLOY_GOOGLE_PROJECT', 'ei-sle-qa-sap-8469') if ($provider_setting eq 'GCE');
+    $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge') if ($provider_setting eq 'EC2');
 
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
     $variables{HANA_CONTAINER} = get_required_var('QESAPDEPLOY_HANA_CONTAINER');
