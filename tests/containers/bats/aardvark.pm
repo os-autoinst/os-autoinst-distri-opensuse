@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use containers::bats;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 
 my $aardvark = "";
 
@@ -34,7 +34,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman socat);
-    push @pkgs, (is_tumbleweed || is_sle('>=16.0')) ? 'dbus-1-daemon' : 'dbus-1';
+    push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
     $self->bats_setup(@pkgs);
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";

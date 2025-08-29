@@ -102,8 +102,8 @@ With runc as `OCI_RUNTIME`
 | SLES 15 SP6           | [![logo]][sp6_a]   | [![logo]][sp6_b]   | [![logo]][sp6_n]   | [![logo]][sp6_p]   | [![logo]][sp6_r]   | [![logo]][sp6_s]   |
 | SLES 15 SP6 (aarch64) | [![logo]][sp6a_a]  |                    | [![logo]][sp6a_n]  | [![logo]][sp6a_p]  | [![logo]][sp6a_r]  | [![logo]][sp6a_s]  |
 | SLES 15 SP6 (s390x)   |                    |                    |                    |                    | [![logo]][sp6s_r]  | [![logo]][sp6s_s]  |
-| SLES 15 SP5           | [![logo]][sp5_a]   | [![logo]][sp5_b]   | [![logo]][sp5_n]   |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
-| SLES 15 SP5 (aarch64) | [![logo]][sp5a_a]  |                    | [![logo]][sp5a_n]  |                    | [![logo]][sp5a_r]  | [![logo]][sp5a_s]  |
+| SLES 15 SP5           |                    | [![logo]][sp5_b]   |                    |                    | [![logo]][sp5_r]   | [![logo]][sp5_s]   |
+| SLES 15 SP5 (aarch64) |                    |                    |                    |                    | [![logo]][sp5a_r]  | [![logo]][sp5a_s]  |
 | SLES 15 SP5 (s390x)   |                    |                    |                    |                    | [![logo]][sp5s_r]  | [![logo]][sp5s_s]  |
 | SLES 15 SP4           |                    | [![logo]][sp4_b]   |                    |                    | [![logo]][sp4_r]   | [![logo]][sp4_s]   |
 | SLES 15 SP4 (aarch64) |                    |                    |                    |                    | [![logo]][sp4a_r]  | [![logo]][sp4a_s]  |
@@ -220,14 +220,10 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 [sp6s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=s390x&test=runc_testsuite
 [sp6s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP6&arch=s390x&test=skopeo_testsuite
 
-[sp5_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=aardvark_testsuite
 [sp5_b]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=buildah_testsuite
-[sp5_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=netavark_testsuite
 [sp5_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=runc_testsuite
 [sp5_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=x86_64&test=skopeo_testsuite
 
-[sp5a_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=aardvark_testsuite
-[sp5a_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=netavark_testsuite
 [sp5a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=runc_testsuite
 [sp5a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP5&arch=aarch64&test=skopeo_testsuite
 
