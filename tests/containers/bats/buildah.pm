@@ -32,7 +32,7 @@ sub run_tests {
         STORAGE_DRIVER => $storage_driver,
     );
 
-    my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap.txt";
+    my $log_file = "buildah-" . ($rootless ? "user" : "root");
 
     my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
 

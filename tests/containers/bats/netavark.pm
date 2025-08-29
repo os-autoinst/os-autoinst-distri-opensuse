@@ -20,7 +20,7 @@ sub run_tests {
         NETAVARK => $netavark,
     );
 
-    my $log_file = "netavark.tap.txt";
+    my $log_file = "netavark";
 
     return bats_tests($log_file, \%env, "", 1200);
 }
