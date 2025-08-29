@@ -27,8 +27,7 @@ use Utils::Architectures;
 
 sub get_grub_menu_agama {
     return Yam::Agama::Pom::GrubMenuAgamaPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()
-    });
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
 }
 
 sub get_grub_menu_base {

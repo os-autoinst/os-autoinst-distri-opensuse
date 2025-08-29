@@ -157,6 +157,8 @@ sub run {
     push(@needles, 'inst-bootmenu') if (is_aarch64 && get_var('UPGRADE'));
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
+    # Yast is now honoring reboot_timeout=0, the popup needs to be handled
+    push(@needles, 'reboot_now');
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if is_backend_s390x;
     my $postpartscript = 0;
@@ -307,6 +309,9 @@ sub run {
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';
+        }
+        elsif (match_has_tag('reboot_now')) {
+            send_key 'alt-o';
         }
     }
 

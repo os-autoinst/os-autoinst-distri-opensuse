@@ -167,14 +167,15 @@ sub run {
     } @locale_conf;
 
     my $checks = 1;
-    my $record_info_result = ($rc_lc_defaults{LC_ALL} =~ /^ *$/);
+    my $total_result = 0;
+    my $record_info_result = (exists($rc_lc_defaults{LC_ALL}) && $rc_lc_defaults{LC_ALL} =~ /^ *$/);
     my $total_result += $record_info_result;
     record_info('LC_ALL',
         "Expected to be empty\nRC_LC_ALL = $rc_lc_defaults{LC_ALL}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
 
-    $record_info_result = ($rc_lc_defaults{LANG} =~ $rc_expected_data->{LANG});
+    $record_info_result = (exists($rc_lc_defaults{LANG}) && $rc_lc_defaults{LANG} =~ $rc_expected_data->{LANG});
     $total_result += $record_info_result;
     $checks++;
     record_info('LANG',
@@ -185,7 +186,7 @@ sub run {
     # ROOT_USES_LANG is not defined any more for TW
     if (!is_tumbleweed) {
         $checks++;
-        $record_info_result = ($rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
+        $record_info_result = (exists($rc_lc_defaults{ROOT_USES_LANG}) && $rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
         $total_result += $record_info_result;
 
         record_info('ROOT_USES_LANG',
@@ -194,17 +195,17 @@ sub run {
         );
     }
 
-    $record_info_result = ($rc_lc_defaults{LC_MESSAGES} =~ $rc_expected_data->{LANG});
+    $record_info_result = (exists($rc_lc_defaults{LC_MESSAGES}) && $rc_lc_defaults{LC_MESSAGES} =~ $rc_expected_data->{LANG});
     $total_result += $record_info_result;
     $checks++;
     record_info('LANG == LC_MESSAGES',
-        "Expected to be the same\nRC_LANG=$rc_lc_defaults{RC_LANG}\nLC_MESSAGES=$rc_lc_defaults{LC_MESSAGES}\n",
+        "Expected to be the same\nRC_LANG=$rc_lc_defaults{LANG}\nLC_MESSAGES=$rc_lc_defaults{LC_MESSAGES}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
 
-    if ($checks - $total_result) {
+    if (my $r = $checks - $total_result) {
         $self->result('fail');
-        record_info("Fails", "Number of failed checks: " . $checks - $total_result, result => 'fail');
+        record_info("Fails", "Number of failed checks: $r", result => 'fail');
     }
 
     ## Modify default locale, verify new setup, reboot and repeat verification

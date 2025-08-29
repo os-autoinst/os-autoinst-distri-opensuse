@@ -27,7 +27,7 @@ use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version is_sle);
 use hacluster;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap::qesap::qesap_aws;
+use sles4sap::qesap::aws;
 use publiccloud::utils;
 use publiccloud::provider;
 use publiccloud::ssh_interactive qw(select_host_console);
@@ -116,6 +116,7 @@ sub run_cmd {
     delete($args{timeout});
     delete($args{runas});
 
+    $self->{my_instance}->update_instance_ip();
     $self->{my_instance}->wait_for_ssh(timeout => $timeout);
     my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
@@ -178,7 +179,8 @@ sub sles4sap_cleanup {
     return 0 if ($args{cleanup_called});
 
     # If there's an open ssh connection to the VMs, return to host console first
-    select_host_console(force => 1);
+    # Useful for tests that use ssh_interactive modules
+    select_host_console(force => 1) if (get_var('MR_TEST', ''));
 
     # ETX is the same as pressing Ctrl-C on a terminal,
     # make sure the serial terminal is NOT blocked
@@ -391,6 +393,7 @@ sub stop_hana {
         # Crash needs to be executed as root and wait for host reboot
 
         # Ensure the remote node is in a normal state before to trigger the crash
+        $self->{my_instance}->update_instance_ip();
         $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
 
         $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c sync', timeout => $timeout);
@@ -438,6 +441,7 @@ sub stop_hana {
     else {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
+        $self->{my_instance}->update_instance_ip();
         $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
     }
 }

@@ -10,6 +10,7 @@
 # Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
+use Feature::Compat::Try;
 use version_utils;
 use registration;
 use testapi;
@@ -24,7 +25,11 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
-    register_addons_in_pc($args->{my_instance});
+    try {
+        register_addons_in_pc($args->{my_instance});
+    } catch ($e) {
+        force_soft_failure 'bsc#1245651' if $e =~ /bsc#1245651/;
+    }
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
     if (is_sle('>15-SP5') && is_container_host()) {
         $args->{my_instance}->ssh_assert_script_run('sudo zypper -n in --force-resolution -y curl');

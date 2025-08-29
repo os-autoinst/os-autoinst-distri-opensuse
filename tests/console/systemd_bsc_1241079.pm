@@ -106,7 +106,7 @@ sub run {
 
     add_test_service();
 
-    # you can reproduce the bug via job setting "REPRODUCE_BUG=1"
+    # you can reproduce the bug via job setting "REPRODUCE_BUG_1241079=1"
     if (get_var('REPRODUCE_BUG_1241079', '')) {
         $self->install_broken_pkgs();
         add_test_service();

@@ -1,13 +1,54 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for scheduling qesap-deployment related modules.
 
+=head1 NAME
+
+hana_sr_schedule_deployment.pm - Schedules the deployment of the test environment.
+
+=head1 DESCRIPTION
+
+This module schedules a sequence of other test modules to deploy the necessary
+test environment. The deployment process can be customized based on the provided
+settings. It can either create a new infrastructure using Terraform and configure it
+with Ansible, or it can reuse an existing infrastructure. It also performs
+pre-validation checks and, if configured, tests the Azure fence agent.
+
+=head1 SETTINGS
+
+=over
+
+=item B<QESAP_DEPLOYMENT_IMPORT>
+
+If set, the module will schedule tests to reuse an existing infrastructure
+instead of creating a new one.
+
+=item B<IS_MAINTENANCE>
+
+If set to '1', additional maintenance-related tests are scheduled, such as
+repository validation and cleaning up leftover network peerings.
+
+=item B<FENCING_MECHANISM>
+
+If set to 'native' and the provider is Azure, it schedules a test to verify
+the Azure fence agent configuration.
+
+=item B<AZURE_FENCE_AGENT_CONFIGURATION>
+
+Specifies the configuration method for the Azure fence agent (e.g., 'msi', 'spn').
+This is used to name the fence agent test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 package hana_sr_schedule_deployment;
 
-use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';

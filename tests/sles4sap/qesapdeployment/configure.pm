@@ -25,7 +25,7 @@ sub run {
     # Needed to create the SAS URI token
     if ($provider_setting ne 'AZURE') {
         my $azure_client = publiccloud::azure_client->new();
-        $azure_client->init();
+        $azure_client->init(namespace => 'sapha');
     }
 
     my %variables;

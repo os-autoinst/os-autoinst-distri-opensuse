@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: zypper patch and reboot
+# Summary: Run zypper patch and reboot
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
@@ -18,7 +18,7 @@ the systems to ensure that all updates, including any kernel updates, are
 correctly applied and active. This step helps ensure the SUTs are in a
 consistent and up-to-date state for subsequent tests.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 This module does not require any specific configuration variables for its core functionality.
 Some variables are needed for the correct execution of the post_fail_hook
@@ -45,7 +45,6 @@ peering connection if the test fails.
 
 =back
 
-
 =head1 MAINTAINER
 
 QE-SAP <qe-sap@suse.de>
@@ -55,20 +54,13 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
-  ipaddr2_deployment_logs
-  ipaddr2_cloudinit_logs
-  ipaddr2_azure_resource_group
-  ipaddr2_infra_destroy
   ipaddr2_patch_system
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
-
     select_serial_terminal;
-
     ipaddr2_patch_system();
 }
 
@@ -78,12 +70,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

@@ -1,26 +1,63 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Test the movement of an IPaddr2 cluster resource between two VMs.
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+ipaddr2/test_move_resource - Test IPaddr2 resource migration in a cluster
+
+=head1 DESCRIPTION
+
+This test verifies the functionality of moving an IPaddr2 cluster resource
+between two virtual machines in a high-availability setup. It uses `crm`
+commands to move the resource and then checks if the web service is correctly
+served from the new master node. The test performs the move in both directions
+(VM1 to VM2 and VM2 to VM1) and includes sanity checks for OS connectivity and
+cluster status.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. This module currently only supports 'AZURE'.
+
+=item B<IPADDR2_DIAGNOSTIC>
+
+If set to 1, deployment logs are collected in case of a test failure.
+
+=item B<IPADDR2_CLOUDINIT>
+
+If not set to 0, cloud-init logs are collected in case of a test failure.
+
+=item B<IBSM_RG>
+
+The name of the resource group for the IBSM (Infrastructure Backup and Support
+Module), used for cleaning up network peerings.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_pubip
   ipaddr2_crm_clear
   ipaddr2_crm_move
-  ipaddr2_deployment_logs
-  ipaddr2_infra_destroy
-  ipaddr2_cloudinit_logs
   ipaddr2_os_connectivity_sanity
   ipaddr2_test_master_vm
   ipaddr2_test_other_vm
   ipaddr2_wait_for_takeover
-  ipaddr2_azure_resource_group
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -88,12 +125,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

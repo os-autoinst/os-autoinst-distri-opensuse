@@ -6,19 +6,23 @@
 # Summary: Library sub and shared data for the ipaddr2 cloud test.
 
 package sles4sap::ipaddr2;
+
 use strict;
 use warnings FATAL => 'all';
 use testapi;
 use Carp qw( croak );
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
+# Intentionally not use NetAddr::IP as it result in module to try
+# a Fully Qualified Domain Name which returns an ipV4 address or an ipV6 address
+# embodied in that order. This feature can be disabled with:
+use NetAddr::IP::Lite ':nofqdn';
 use mmapi qw( get_current_job_id );
-use sles4sap::azure_cli;
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use utils qw( write_sut_file ssh_fully_patch_system);
 use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering qesap_az_clean_old_peerings);
 use sles4sap::ibsm;
+use sles4sap::azure_cli;
 
 
 =head1 SYNOPSIS
@@ -58,6 +62,7 @@ our @EXPORT = qw(
   ipaddr2_network_peering_create
   ipaddr2_patch_system
   ipaddr2_repos_add_server_to_hosts
+  ipaddr2_cleanup
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -67,6 +72,7 @@ use constant SSH_KEY_ID => 'id_rsa';
 use constant SSH_VERBOSE => '-vvv';
 use constant SSH_LOG => '/var/tmp/ssh_sut.log';
 use constant SSH_PROXY_LOG => '/var/tmp/ssh_proxy_sut.log';
+use constant PING_CMD => 'ping -c 3';
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
@@ -77,8 +83,6 @@ our $storage_account = DEPLOY_PREFIX . 'storageaccount';
 our %priv_net_address_range = get_private_ip_range();
 our $priv_ip_range = $priv_net_address_range{priv_ip_range};
 our $frontend_ip = $priv_ip_range . '.50';
-our $ping_cmd = 'ping -c 3';
-our $key_id = 'id_rsa';
 
 =head2 get_private_ip_range
 
@@ -315,6 +319,12 @@ sub ipaddr2_infra_deploy {
         name => $as,
         region => $args{region},
         fault_count => 2);
+    # Next two lines are for debug purpose only:
+    # in time to time next vm create fails for missing AS
+    az_vm_as_list(resource_group => $rg);
+    az_vm_as_show(
+        resource_group => $rg,
+        name => $as);
 
     my $storage_name;
     if ($args{diagnostic}) {
@@ -444,15 +454,15 @@ sub ipaddr2_infra_deploy {
 
     my $bastion_ip = ipaddr2_bastion_pubip();
 
-Get the only public IP in the deployment associated to the VM used as bastion.
-
+Get the only public IP in the deployment associated to the VM used as bastion. Function is getting
+the IP address using az cli, so it could die if the az cli fails to return a valid IP.
 =cut
 
 sub ipaddr2_bastion_pubip {
     my $rg = ipaddr2_azure_resource_group();
-    return az_network_publicip_get(
-        resource_group => $rg,
-        name => $bastion_pub_ip);
+    my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip);
+    my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
+    return $ip_obj->addr;
 }
 
 =head2 ipaddr2_bastion_ssh_addr
@@ -723,8 +733,7 @@ sub ipaddr2_internal_key_gen {
         src          => 1,
         dst          => 2,
         user         => 'cloudadmin',
-        key_checking => 'accept-new',
-    );
+        key_checking => 'accept-new');
 
 Helper for C<ipaddr2_internal_key_gen> and contribute to
 establish password-less SSH access from a source internal VM to a
@@ -775,6 +784,7 @@ sub ipaddr2_internal_key_authorize {
 
     # This is the destination VM where to register the public key
     $vm_name = ipaddr2_get_internal_vm_private_ip(id => $args{dst});
+
     # Create a place where to temporary upload the key
     ipaddr2_ssh_internal(id => $args{dst},
         cmd => "mkdir -p $remote_key_tmp_path",
@@ -822,8 +832,7 @@ sub ipaddr2_internal_key_authorize {
     ipaddr2_deployment_sanity()
 
 Run some checks on the existing deployment using the
-az command line.
-die in case of failure
+az command line. Die in case of failure
 =cut
 
 sub ipaddr2_deployment_sanity {
@@ -960,7 +969,7 @@ sub ipaddr2_os_connectivity_sanity {
 
     # intentionally ignore the return as ping or nc
     # could be missing on the qcow2 running the test
-    script_run("$ping_cmd $args{bastion_ip}");
+    script_run(PING_CMD . " $args{bastion_ip}");
     script_run("nc -vz -w 1 $args{bastion_ip} 22");
 
     foreach my $i (1 .. 2) {
@@ -972,7 +981,7 @@ sub ipaddr2_os_connectivity_sanity {
             ipaddr2_get_internal_vm_name(id => $i)) {
             # tracepath is not available by default in 12sp5
             # so only use ping and dig
-            foreach my $cmd ($ping_cmd, 'dig') {
+            foreach my $cmd (PING_CMD, 'dig') {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
@@ -982,11 +991,11 @@ sub ipaddr2_os_connectivity_sanity {
 
     # Check if the two internal VM can ping one to each other
     ipaddr2_ssh_internal(id => 1,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 2)),
+        cmd => join(' ', PING_CMD, ipaddr2_get_internal_vm_private_ip(id => 2)),
         bastion_ip => $args{bastion_ip});
 
     ipaddr2_ssh_internal(id => 2,
-        cmd => join(' ', $ping_cmd, ipaddr2_get_internal_vm_private_ip(id => 1)),
+        cmd => join(' ', PING_CMD, ipaddr2_get_internal_vm_private_ip(id => 1)),
         bastion_ip => $args{bastion_ip});
 }
 
@@ -1507,7 +1516,6 @@ Return 1 if all modules are registered, 0 if at least one is not.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_check {
@@ -1545,12 +1553,13 @@ ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
 
 =item B<scc_code> - registration code
 
+=item B<scc_endpoint> - by default it is registercloudguest
+
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_register {
@@ -1559,13 +1568,16 @@ sub ipaddr2_scc_register {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{scc_endpoint} //= 'registercloudguest';
+    croak("SCC endpoint $args{scc_endpoint} is not supported.") unless ($args{scc_endpoint} eq 'SUSEConnect' || $args{scc_endpoint} eq 'registercloudguest');
 
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => 'sudo registercloudguest --clean',
+        cmd => "sudo $args{scc_endpoint} --clean",
         bastion_ip => $args{bastion_ip});
 
+    my $forcenew = ($args{scc_endpoint} eq 'registercloudguest') ? '--force-new' : '';
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => "sudo registercloudguest --force-new -r \"$args{scc_code}\"",
+        cmd => "sudo $args{scc_endpoint} $forcenew -r \"$args{scc_code}\"",
         timeout => 360,
         bastion_ip => $args{bastion_ip});
 }
@@ -1597,7 +1609,6 @@ This function is in charge to:
 =item B<external_repo> - Optional argument: allow to add a PackageHub product
 
 =back
-
 =cut
 
 sub ipaddr2_configure_web_server {
@@ -1641,7 +1652,6 @@ Call zypper refresh
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_repo_refresh {
@@ -1670,7 +1680,6 @@ List all configured zypper repos
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_repo_list {
@@ -1717,7 +1726,7 @@ sub ipaddr2_infra_destroy {
 
 =head2 ipaddr2_get_internal_vm_name
 
-    my $vm_name = ipaddr2_get_internal_vm_name(id => 42);
+    my $vm_name = ipaddr2_get_internal_vm_name(id => 2);
 
 Compose and return a string for the vm name
 
@@ -1736,7 +1745,7 @@ sub ipaddr2_get_internal_vm_name {
 
 =head2 ipaddr2_get_internal_vm_private_ip
 
-    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 42);
+    my $private_ip = ipaddr2_get_internal_vm_private_ip(id => 2);
 
 compose and return a string representing the VM private IP
 
@@ -1755,7 +1764,7 @@ sub ipaddr2_get_internal_vm_private_ip {
 
 =head2 ipaddr2_get_worker_tmp_for_internal_vm
 
-    my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(42);
+    my $vm_tmp = ipaddr2_get_worker_tmp_for_internal_vm(2);
 
 Return a path in /tmp of the worker used to store files associated
 two one of the internal VM
@@ -1784,7 +1793,6 @@ Move the rsc_web_00 resource to the indicated node
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_crm_move {
@@ -1818,7 +1826,6 @@ Clear all location constrain used during the test
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_crm_clear {
@@ -1855,7 +1862,6 @@ Return 1 as soon as it gets the id in the response. Return 0 if not within 10 mi
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_wait_for_takeover {
@@ -1899,7 +1905,6 @@ Return result of searching str_match in the curl response
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_get_web {
@@ -1931,7 +1936,6 @@ the resources.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_test_master_vm {
@@ -1999,7 +2003,7 @@ sub ipaddr2_test_master_vm {
 
     # Check if the master internal VM can ping the virtual IP
     ipaddr2_ssh_internal(id => $args{id},
-        cmd => join(' ', $ping_cmd, $frontend_ip),
+        cmd => join(' ', PING_CMD, $frontend_ip),
         bastion_ip => $args{bastion_ip});
 }
 
@@ -2019,7 +2023,6 @@ the resources.
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_test_other_vm {
@@ -2055,23 +2058,23 @@ Create network peering
 =item B<ibsm_rg> - Resource group of the IBSm
 
 =back
-
 =cut
 
 sub ipaddr2_network_peering_create {
     my (%args) = @_;
     croak 'Missing mandatory argument < ibsm_rg >' unless $args{ibsm_rg};
 
-    # remove the older peering
-    my $vnet_name = az_network_vnet_get(resource_group => $args{ibsm_rg}, query => "[0].name");
-    qesap_az_clean_old_peerings(rg => $args{ibsm_rg}, vnet => $vnet_name);
-
-    qesap_az_vnet_peering(source_group => ipaddr2_azure_resource_group(), target_group => $args{ibsm_rg});
+    ibsm_network_peering_azure_create(
+        ibsm_rg => $args{ibsm_rg},
+        sut_rg => ipaddr2_azure_resource_group(),
+        name_prefix => DEPLOY_PREFIX);
 }
 
 =head2 ipaddr2_repos_add_server_to_hosts
 
-    ipaddr2_repos_add_server_to_hosts(ibsm_ip => , incident_repos => 'AAAA,BBBB');
+    ipaddr2_repos_add_server_to_hosts(
+        ibsm_ip => get_required_var('IBSM_IP'),
+        incident_repos => 'AAAA,BBBB');
 
 Add download.suse.de server to hosts by specifying IBSM address
 
@@ -2088,7 +2091,6 @@ Add download.suse.de server to hosts by specifying IBSM address
 =item B<repo_host> - host name of the repo server. Default is download.suse.de.
 
 =back
-
 =cut
 
 sub ipaddr2_repos_add_server_to_hosts {
@@ -2137,7 +2139,6 @@ Patch system
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_patch_system {
@@ -2221,7 +2222,7 @@ sub ipaddr2_patch_system {
 
 =head2 ipaddr2_scc_addons
 
-    ipaddr2_scc_addons();
+    ipaddr2_scc_addons(scc_addons => get_var('SCC_ADDONS'));
 
 Register addons on SUT
 
@@ -2234,7 +2235,6 @@ Register addons on SUT
                       to avoid having to query Azure to get it.
 
 =back
-
 =cut
 
 sub ipaddr2_scc_addons {
@@ -2254,6 +2254,41 @@ sub ipaddr2_scc_addons {
             register_addon($remote_cmd, $addon);
         }
     }
+}
+
+=head2 ipaddr2_cleanup
+
+
+
+=over
+
+=item B<diagnostic> - Optionally collect diagnostic logs, from setting IPADDR2_DIAGNOSTIC
+
+=item B<cloudinit> - Optionally collect cloudinit logs, from setting IPADDR2_CLOUDINIT
+
+=item B<ibsm_rg> - Optionally delete the network peering to IBSs, from setting IBSM_RG
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_cleanup {
+    my (%args) = @_;
+    $args{diagnostic} //= 0;
+    $args{cloudinit} //= 1;
+
+    ipaddr2_deployment_logs() if ($args{diagnostic} == 1);
+    ipaddr2_cloudinit_logs() unless ($args{cloudinit} == 0);
+    if ($args{ibsm_rg}) {
+        ibsm_network_peering_azure_delete(
+            sut_rg => ipaddr2_azure_resource_group(),
+            sut_vnet => get_current_job_id(),
+            ibsm_rg => $args{ibsm_rg});
+    }
+    ipaddr2_infra_destroy();
 }
 
 1;

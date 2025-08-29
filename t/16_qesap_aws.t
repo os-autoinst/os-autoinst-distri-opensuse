@@ -10,10 +10,10 @@ use List::Util qw(any none);
 use Data::Dumper;
 
 use testapi 'set_var';
-use sles4sap::qesap::qesap_aws;
+use sles4sap::qesap::aws;
 
 subtest '[qesap_aws_get_vpc_id]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     my @soft_failure;
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'FISHERMAN'; });
@@ -23,7 +23,6 @@ subtest '[qesap_aws_get_vpc_id]' => sub {
 
     set_var('PUBLIC_CLOUD_REGION', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    # qesap_az_get_peering_name
     ok((any { /aws ec2 describe-instances/ } @calls), 'Base command aws ec2 describe-instances');
     ok((any { /--region OCEAN/ } @calls), 'Region from argument');
     ok((any { /--filters.*Values=LATTE/ } @calls), 'Filter resource_group in tag');
@@ -36,7 +35,7 @@ subtest '[qesap_aws_vnet_peering] died args' => sub {
 };
 
 subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -53,7 +52,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
 };
 
 subtest '[qesap_aws_delete_transit_gateway_vpc_attachment] timeout' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_transit_gateway_vpc_attachment => sub {
@@ -70,7 +69,7 @@ subtest '[qesap_aws_delete_transit_gateway_vpc_attachment] timeout' => sub {
 };
 
 subtest '[qesap_aws_vnet_peering]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_mirror_tg => sub { return 'tgw-00deadbeef00'; });
@@ -115,7 +114,7 @@ subtest '[qesap_aws_vnet_peering]' => sub {
 };
 
 subtest '[qesap_aws_vnet_peering] qesap_aws_create_transit_gateway_vpc_attachment timeout' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_aws_get_mirror_tg => sub { return 'tgw-00deadbeef00'; });
@@ -160,7 +159,7 @@ subtest '[qesap_aws_vnet_peering] qesap_aws_create_transit_gateway_vpc_attachmen
 };
 
 subtest '[qesap_aws_vnet_peering] died when aws does not return expected output' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $tgw_return;
@@ -226,7 +225,7 @@ subtest '[qesap_aws_vnet_peering] died when aws does not return expected output'
 };
 
 subtest '[qesap_aws_create_config]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
 
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
@@ -242,7 +241,7 @@ subtest '[qesap_aws_create_config]' => sub {
 };
 
 subtest '[qesap_aws_create_credentials]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesap_aws', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
     my @contents;
 

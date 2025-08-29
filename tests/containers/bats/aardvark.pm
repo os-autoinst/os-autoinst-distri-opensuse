@@ -25,7 +25,7 @@ sub run_tests {
 
     my $log_file = "aardvark.tap.txt";
 
-    return bats_tests($log_file, \%env, "");
+    return bats_tests($log_file, \%env, "", 800);
 }
 
 sub run {
@@ -33,8 +33,7 @@ sub run {
     select_serial_terminal;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman);
-    push @pkgs, is_sle('<16') ? 'netcat-openbsd' : 'ncat';
+    my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman socat);
     push @pkgs, (is_tumbleweed || is_sle('>=16.0')) ? 'dbus-1-daemon' : 'dbus-1';
     $self->bats_setup(@pkgs);
 

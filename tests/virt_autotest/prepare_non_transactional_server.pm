@@ -39,7 +39,12 @@ sub run {
 sub prepare_networks {
     my $self = shift;
 
-    virt_autotest::virtual_network_utils::create_host_bridge_nm;
+    # Skip br0 bridge creation if SKIP_HOST_BRIDGE_SETUP is set
+    if (get_var('SKIP_HOST_BRIDGE_SETUP')) {
+        record_info("Host bridge preparation skipped", "Host bridge preparation skipped due to SKIP_HOST_BRIDGE_SETUP setting");
+    } else {
+        virt_autotest::virtual_network_utils::create_host_bridge_nm;
+    }
 }
 
 sub prepare_ground {

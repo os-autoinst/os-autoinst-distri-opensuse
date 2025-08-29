@@ -349,6 +349,36 @@ sub wait_for_guestregister {
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
+=head2 update_instance_ip
+
+    update_instance_ip(timeout => 600)
+
+This subroutine checks the public IP cloud provider provides for the VM.
+When the IP differs from `$self->public_ip` we update `$self->public_ip`.
+
+=cut
+
+sub update_instance_ip {
+    my $self = shift;
+    my $timeout = 300;
+    my $delay = 5;
+
+    return if (get_var('PUBLIC_CLOUD_SLES4SAP'));
+
+    my $start_time = time();
+    my $public_ip_from_provider = $self->provider->get_public_ip();
+    until ($public_ip_from_provider !~ /null/ || (time() - $start_time) >= $timeout) {
+        sleep($delay);
+        $public_ip_from_provider = $self->provider->get_public_ip();
+    }
+
+    # Update the public IP address if it differs
+    if ($self->public_ip ne $public_ip_from_provider and $public_ip_from_provider !~ /null/) {
+        record_info('IP CHANGED', "The address we know is $self->{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
+        $self->public_ip($public_ip_from_provider);
+    }
+}
+
 =head2 wait_for_ssh
 
     wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, scan_ssh_host_key => 0] [, ...])
@@ -371,7 +401,6 @@ Parameters:
                        * SUT regenerates it's SSH host keys
                          (e.g. when cloud-init state is cleared)
  username => default: username().
- public_ip => default: public_ip().
  systemup_check => If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop.
  logs => If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.
 
@@ -389,7 +418,6 @@ sub wait_for_ssh {
     $args{proceed_on_failure} //= $args{wait_stop};
     $args{systemup_check} //= not $args{wait_stop};
     $args{logs} //= 1;
-    $args{public_ip} //= $self->public_ip();
     # DMS migration (tests/publiccloud/migration.pm) is running under user "migration"
     # until it is not over we will receive "ssh permission denied (pubkey)" error
     # but it is not good reason to die early because after it will be over
@@ -403,17 +431,9 @@ sub wait_for_ssh {
 
     # Looping until SSH port 22 is reachable or timeout.
     while (($duration = time() - $start_time) < $args{timeout}) {
-        $exit_code = script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1);
+        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
         last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
         last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
-
-        # skip SLES4SAP as incompatible with get_public_ip
-        if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
-            my $public_ip_from_provider = $self->provider->get_public_ip();
-            if ($args{public_ip} ne $public_ip_from_provider) {
-                record_info('IP CHANGED', "The address we know is $args{public_ip} but provider returns $public_ip_from_provider", result => 'fail');
-            }
-        }
 
         sleep $delay;
     }    # endloop
@@ -427,55 +447,60 @@ sub wait_for_ssh {
         $sshout .= "as expected by stopping: OK.\n" if $args{wait_stop};
     }    # endif
 
-    # check also remote system is up and running:
-    #   SSH host key is not checked and master socket is not used
+    # Check also remote system is up and running:
     my $retry = 0;    # count retries of unexpected sysout
-    if ($args{systemup_check} and isok($exit_code)) {
-        my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none';
-        while (($duration = time() - $start_time) < $args{timeout}) {
-            # timeout recalculated removing consumed time until now
-            # We don't support password authentication so it would just block the terminal
-            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
-                timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
-            # result check
-            if ($sysout =~ m/initializing|starting/) {    # still starting
-                $exit_code = undef;
-            }
-            elsif ($sysout =~ m/running/) {    # startup OK
-                $exit_code = 0;
-                $sysout .= "\nSystem successfully booted";
-                last;
-            }
-            elsif ($sysout =~ m/degraded/) {    # up but with failed services to collect
-                $exit_code = 0;
-                $sysout .= "\nSystem booted, but some services failed:\n" .
-                  $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
-                    proceed_on_failure => 1, username => $args{username});
-                last;
-            }
-            elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
-                $exit_code = 1;
-                $sysout .= "\nCan not reach systemd target";
-                last;
-            }
-            else {    # other outcome or connection refused: retry/reloop
-                $exit_code = 2;
-                ++$retry;
-            }    # endif
-            sleep $delay;
-        }    # end loop
+    if (isok($exit_code)) {
+        if ($args{systemup_check}) {
+            # SSH host key is not checked and master socket is not used
+            my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none';
+            while (($duration = time() - $start_time) < $args{timeout}) {
+                # timeout recalculated removing consumed time until now
+                # We don't support password authentication so it would just block the terminal
+                $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
+                    timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
+                # result check
+                if ($sysout =~ m/initializing|starting/) {    # still starting
+                    $exit_code = undef;
+                }
+                elsif ($sysout =~ m/running/) {    # startup OK
+                    $exit_code = 0;
+                    $sysout .= "\nSystem successfully booted";
+                    last;
+                }
+                elsif ($sysout =~ m/degraded/) {    # up but with failed services to collect
+                    $exit_code = 0;
+                    $sysout .= "\nSystem booted, but some services failed:\n" .
+                      $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
+                        proceed_on_failure => 1, username => $args{username});
+                    last;
+                }
+                elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
+                    $exit_code = 1;
+                    $sysout .= "\nCan not reach systemd target";
+                    last;
+                }
+                else {    # other outcome or connection refused: retry/reloop
+                    $exit_code = 2;
+                    ++$retry;
+                }    # endif
+                sleep $delay;
+            }    # end loop
+        }    # endif
 
         if ($args{scan_ssh_host_key}) {
             record_info('RESCAN', 'Rescanning SSH host key');
             # Install server's ssh publicckeys to prevent authentication interactions
             # or instance address changes during VM reboots.
-            script_run("ssh-keyscan $args{public_ip} | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
+            script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
         }
 
+        my $exit_ssh;
         # Finally make sure that SSH works
         while (($duration = time() - $start_time) < $args{timeout}) {
-            $exit_code = $self->ssh_script_run(cmd => "true", username => $args{username}, timeout => $args{timeout} - $duration);
-            last if isok($exit_code);
+            # After the instance is resumed from hibernation the SSH can freeze
+            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
+            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, proceed_on_failure => 1);
+            last if isok($exit_ssh);
             sleep $delay;
         }
 
@@ -494,7 +519,12 @@ sub wait_for_ssh {
       ", $instance_msg, Duration: $duration sec.\nResult: $sshout";
     $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
-    record_info("WAIT CHECK", $instance_msg, result => ($sysout =~ m/\sfailed\s/ ? "fail" : "ok"));
+    # $sysout is not available if $args{systemup_check} is 0
+    if (defined($sysout)) {
+        record_info("WAIT CHECK", $instance_msg, result => ($sysout =~ m/\sfailed\s/) ? "fail" : "ok");
+    } else {
+        record_info("WAIT CHECK", $instance_msg);
+    }
     # OK
     return $duration if (isok($exit_code) and not $args{wait_stop});
     # FAIL
@@ -565,6 +595,8 @@ sub softreboot {
 
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
+
+    $self->update_instance_ip();
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
 
     # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
@@ -607,6 +639,7 @@ sub start {
     $args{timeout} //= 600;
     $args{scan_ssh_host_key} //= 0;
     $self->provider->start_instance($self, @_);
+    $self->update_instance_ip();
     return $self->wait_for_ssh(timeout => $args{timeout}, scan_ssh_host_key => $args{scan_ssh_host_key});
 }
 
@@ -877,8 +910,8 @@ sub do_systemd_analyze_time {
 
 sub upload_supportconfig_log {
     my ($self, %args) = @_;
-    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 7200);
-    $self->ssh_script_run(cmd => 'sudo chmod 755 /var/tmp/scc_supportconfig.txz', timeout => 3600);
+    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 600);
+    $self->ssh_script_run(cmd => 'sudo chmod 0644 /var/tmp/scc_supportconfig.txz');
     $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
 }
 

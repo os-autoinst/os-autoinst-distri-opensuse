@@ -23,7 +23,7 @@ If cloud-init is disabled (B<IPADDR2_CLOUDINIT> is 0), this module will:
 After registration (or if cloud-init was enabled), it refreshes the software repositories
 for both SUT VMs and lists them for logging purposes.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -45,6 +45,10 @@ A comma-separated list of SUSE Customer Center addons to register.
 Each selected addon will require its own registration code in a dedicated variable.
 This is used only when B<IPADDR2_CLOUDINIT> is set to 0.
 
+=item B<PUBLIC_CLOUD_SCC_ENDPOINT>
+
+Used by PC B<register_addon>, if not specified the test uses registercloudguest.
+
 =back
 
 =head1 MAINTAINER
@@ -58,16 +62,13 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use publiccloud::utils;
 use sles4sap::ipaddr2 qw(
-  ipaddr2_deployment_logs
-  ipaddr2_cloudinit_logs
-  ipaddr2_infra_destroy
   ipaddr2_scc_addons
   ipaddr2_scc_check
   ipaddr2_scc_register
   ipaddr2_repo_refresh
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -88,13 +89,18 @@ sub run {
                     bastion_ip => $bastion_ip,
                     id => $_);
                 record_info('is_registered', "$is_registered");
-                # Conditionally register the SLES for SAP instance.
-                # Registration is attempted only if the instance is not currently registered and a
-                # registration code ('SCC_REGCODE_SLES4SAP') is available.
-                ipaddr2_scc_register(
-                    bastion_ip => $bastion_ip,
-                    id => $_,
-                    scc_code => get_required_var('SCC_REGCODE_SLES4SAP')) if ($is_registered ne 1);
+                if ($is_registered ne 1) {
+
+                    # Conditionally register the SLES for SAP instance.
+                    # Registration is attempted only if the instance is not currently registered and a
+                    # registration code ('SCC_REGCODE_SLES4SAP') is available.
+                    my %reg_args = (
+                        bastion_ip => $bastion_ip,
+                        id => $_,
+                        scc_code => get_required_var('SCC_REGCODE_SLES4SAP'));
+                    $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT') if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
+                    ipaddr2_scc_register(%reg_args);
+                }
             }
         }
         # Optionally register addons
@@ -117,9 +123,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

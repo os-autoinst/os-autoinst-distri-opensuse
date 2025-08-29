@@ -1,16 +1,39 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for scheduling multiple instances of tests which target secondary HANA database.
-#
-# Parameters:
-#  HANASR_SECONDARY_ACTIONS - optional, override list of fencing actions
+
+=head1 NAME
+
+hana_sr_schedule_replica_tests.pm - Schedules tests targeting the secondary (replica) HANA database.
+
+=head1 DESCRIPTION
+
+This module schedules multiple instances of the 'sles4sap/publiccloud/hana_sr_test_secondary'
+test. It is designed to test the resilience and behavior of the secondary (replica)
+HANA database in a System Replication setup. The module iterates through a list of
+actions (e.g., 'stop', 'kill', 'crash') and applies them to the secondary HANA
+database.
+
+=head1 SETTINGS
+
+=over
+
+=item B<HANASR_SECONDARY_ACTIONS>
+
+An optional, comma-separated list of actions to be performed on the secondary HANA
+database. This overrides the default list of actions, which is 'stop,kill,crash'.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 package hana_sr_schedule_replica_tests;
 
-use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';

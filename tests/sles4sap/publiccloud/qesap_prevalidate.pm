@@ -31,6 +31,7 @@ sub run {
         $self->{my_instance} = $instance;
         my $instance_id = $instance->{'instance_id'};
         # Check ssh connection for all hosts
+        $instance->update_instance_ip();
         $instance->wait_for_ssh();
 
         # Skip instances without HANA db or setup without cluster

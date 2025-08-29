@@ -21,7 +21,7 @@
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
-# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deploymnet (default '/usr/bin/python3')
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deployment (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use base 'sles4sap_publiccloud_basetest';
@@ -32,6 +32,7 @@ use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::azure;
 use sles4sap::azure_cli;
 use sles4sap::ibsm;
 use serial_terminal 'select_serial_terminal';
@@ -84,7 +85,7 @@ sub run {
     set_var('ISCSI_ENABLED', check_var('FENCING_MECHANISM', 'sbd') ? 'true' : 'false');
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
-    # Within the qe-sap-deployment terraform code, in each differend CSP implementation,
+    # Within the qe-sap-deployment terraform code, in each different CSP implementation,
     # an empty string means no peering.
     # This "trick" is needed to only have one conf.yaml
     # for both jobs that creates the peering with terraform or the az cli
@@ -121,7 +122,7 @@ sub run {
     # Needed to create the SAS URI token
     if (!is_azure()) {
         my $azure_client = publiccloud::azure_client->new();
-        $azure_client->init();
+        $azure_client->init(namespace => 'sapha');
     }
 
     # variable to be conditionally used to hold ptf file names,
@@ -166,7 +167,7 @@ sub run {
     # This is the path where community.sles-for-sap repo
     # has been cloned.
     # Not all the conf.yaml used by this file needs it but
-    # it is just easyer to define it here for all.
+    # it is just easier to define it here for all.
     set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
     my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
     if (get_var('QESAP_SCC_NO_REGISTER')) {
@@ -268,6 +269,8 @@ sub run {
         $self->{my_instance} = $instance;
         $self->set_cli_ssh_opts;
         my $expected_hostname = $instance->{instance_id};
+        # We need to scan for the SSH host key as the Ansible later
+        $instance->update_instance_ip();
         $instance->wait_for_ssh();
 
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');

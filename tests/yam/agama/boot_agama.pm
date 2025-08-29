@@ -26,7 +26,7 @@ sub prepare_boot_params {
     my @params = ();
 
     # add mandatory boot params
-    push @params, 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0')), 'console=tty';
+    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
@@ -88,6 +88,7 @@ sub run {
     my @params = prepare_boot_params();
 
     $grub_menu->expect_is_shown();
+    $grub_menu->select_install_product();
     $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
     $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
     $grub_menu->edit_current_entry();
@@ -96,7 +97,7 @@ sub run {
     $grub_entry_edition->boot();
 
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
-    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/ || check_var('AGAMA_ALERT_POPUP', 'invalid_profile')) {
+    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
     } else {
         $agama_up_an_running->expect_is_shown();

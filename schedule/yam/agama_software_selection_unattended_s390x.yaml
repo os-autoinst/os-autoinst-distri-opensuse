@@ -1,0 +1,11 @@
+---
+name: agama_software_selection_unattended_s390x
+description: |
+  - Installation with software pattern selection and remove selinux pattern.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_installed_patterns

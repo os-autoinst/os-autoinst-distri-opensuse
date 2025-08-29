@@ -91,8 +91,7 @@ sub install_ncat {
         if (is_aarch64) {
             run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
         } elsif (is_ppc64le) {
-            # This should be temporary until ncat 7.95 is published for Tumbleweed
-            run_command "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Leap:/16.0:/NonFree/standard/openSUSE:Leap:16.0:NonFree.repo";
+            run_command "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Factory:/PowerPC:/NonFree/standard/openSUSE:Factory:PowerPC:NonFree.repo";
         } elsif (is_s390x) {
             run_command "zypper addrepo http://download.opensuse.org/ports/zsystems/tumbleweed/repo/non-oss/ non-oss";
         } else {
@@ -317,9 +316,9 @@ sub collect_coredumps {
         my $core = "core.$exe.$pid.core";
 
         # Dumping and compressing coredumps may take some time
-        script_run("coredumpctl -o $core dump $pid", 300);
+        my $out = script_output("coredumpctl -o $core dump $pid", timeout => 300, proceed_on_failure => 1);
+        record_info("COREDUMP", $out);
         script_run("xz -9v $core", 300);
-        record_info("COREDUMP", $exe);
     }
 }
 
@@ -383,7 +382,7 @@ sub bats_post_hook {
 }
 
 sub bats_tests {
-    my ($log_file, $_env, $skip_tests) = @_;
+    my ($log_file, $_env, $skip_tests, $timeout) = @_;
     my %env = %{$_env};
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
@@ -417,11 +416,11 @@ sub bats_tests {
     run_command "echo $log_file .. > $log_file";
     run_command "echo '# $package $version $os_version' >> $log_file";
     push @commands, $cmd;
-    my $ret = script_run($cmd, timeout => 7000);
+    my $ret = script_run($cmd, timeout => $timeout);
 
     unless (get_var("BATS_TESTS")) {
         $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
-        my @skip_tests = split(/\s+/, join(' ', get_var('BATS_SKIP', $settings->{BATS_SKIP}), $skip_tests));
+        my @skip_tests = split(/\s+/, join(' ', get_var('BATS_IGNORE', $settings->{BATS_IGNORE}), $skip_tests));
         patch_logfile($log_file, @skip_tests);
     }
 

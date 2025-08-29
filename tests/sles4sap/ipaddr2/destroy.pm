@@ -22,7 +22,7 @@ Its main tasks are:
 
 This module is typically the last one to run in the test suite.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -38,7 +38,7 @@ network peering was established and needs to be cleaned up.
 
 =item B<IPADDR2_DIAGNOSTIC>
 
-If enabled (1), extended deployment logs (e.g., boot diagnostics) are
+If enabled (1), extended deployment logs (for example, boot diagnostics) are
 collected on failure.
 
 =item B<IPADDR2_CLOUDINIT>
@@ -57,13 +57,12 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
+use mmapi qw( get_current_job_id );
+use sles4sap::ibsm qw( ibsm_network_peering_azure_delete );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_deployment_logs
   ipaddr2_infra_destroy
-  ipaddr2_cloudinit_logs
   ipaddr2_azure_resource_group
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -74,8 +73,12 @@ sub run {
     select_serial_terminal;
 
     if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
+        ibsm_network_peering_azure_delete(
+            sut_rg => ipaddr2_azure_resource_group(),
+            sut_vnet => get_current_job_id(),
+            ibsm_rg => $ibsm_rg);
     }
+    ipaddr2_cloudinit_logs() unless (check_var('IPADDR2_CLOUDINIT', 0));
     ipaddr2_infra_destroy();
 }
 
@@ -85,12 +88,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

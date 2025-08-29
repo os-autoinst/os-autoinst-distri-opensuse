@@ -1,0 +1,37 @@
+---
+name: create_hdd_rt
+description: >
+  Prepare image with internal RT repositories.
+vars:
+  SCC_ADDONS: sdk
+schedule:
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/consoletest_setup
+  - fips/fips_setup
+  - rt/add_repositories
+  - console/install_rt_kernel
+  - locale/keymap_or_locale
+  - console/force_scheduled_tasks
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

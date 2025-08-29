@@ -31,6 +31,10 @@ subtest 'script_retry' => sub {
     is script_retry('bash -c "if [[ -f test ]]; then exit 0; else touch test; exit 1; fi"', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry - OK on second try";
     # Note: This is the only test that waits for one second. Disable if time is crucial.
     dies_ok { script_retry('sleep 10', retry => 1, delay => 0, timeout => 1) } 'script_retry(sleep) is expected to die';
+    my $cmd;
+    $testapi->redefine('script_run', sub { $cmd = shift; 0 });
+    is script_retry('true', delay => 0, retry => 2, timeout => 1), 0, 'script_retry(true) is ok mocked to collect call';
+    is $cmd, 'timeout -k 5 1 true', 'expected concatenated command (no double spaces)';
 };
 
 

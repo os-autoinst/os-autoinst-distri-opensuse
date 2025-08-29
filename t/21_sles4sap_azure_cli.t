@@ -283,6 +283,25 @@ subtest '[az_vm_as_create]' => sub {
     ok((any { /az vm availability-set create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_vm_as_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return; });
+    az_vm_as_list(resource_group => 'Arlecchino');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm availability-set list/ } @calls), 'Correct composition of the main command');
+};
+
+subtest '[az_vm_as_show]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_vm_as_show(resource_group => 'Arlecchino',
+        name => 'Truffaldino');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm availability-set show/ } @calls), 'Correct composition of the main command');
+};
+
 subtest '[az_vm_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -717,6 +736,7 @@ subtest '[az_network_peering_delete]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     my $res = az_network_peering_delete(
         name => 'Pantalone',

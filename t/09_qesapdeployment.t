@@ -1149,28 +1149,6 @@ subtest '[qesap_prepare_env] AWS' => sub {
     ok($qesap_create_aws_credentials_called, '$qesap_create_aws_credentials called');
 };
 
-subtest '[qesap_is_job_finished]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @results = ();
-    $qesap->redefine(script_output => sub {
-            if ($_[0] =~ /100000/) { return "not json"; }
-            if ($_[0] =~ /200000/) { return "{\"job\":{\"state\":\"donaldduck\"}}"; }
-            if ($_[0] =~ /300000/) { return "{\"job\":{\"state\":\"running\"}}"; }
-    });
-
-    $qesap->redefine(get_required_var => sub { return ''; });
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    push @results, qesap_is_job_finished(100000);
-    push @results, qesap_is_job_finished(200000);
-    push @results, qesap_is_job_finished(300000);
-
-
-    ok($results[0] == 0, "Consider 'running' state if the openqa job status response isn't JSON");
-    ok($results[1] == 1, "Considered 'finished' state if the openqa job status response exists and isn't 'running'");
-    ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
-};
-
 subtest '[qesap_get_nodes_names]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
@@ -1219,7 +1197,7 @@ subtest '[qesap_add_server_to_hosts]' => sub {
     ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, no retry, error' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, no retry, error' => sub {
     # Simulate to call the qesap_terraform_ansible_deploy_retry but
     # error_detection does not find and known error in the log. It is something could
     # happen if this function is called after a failure of some kind error_detection
@@ -1232,13 +1210,13 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, n
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret eq 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret eq 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, no retry, error. More layers' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, no retry, error. More layers' => sub {
     # Like previous test but only mock testapi
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
@@ -1255,14 +1233,14 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, n
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok $ret eq 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret eq 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
@@ -1271,13 +1249,13 @@ subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retr
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret == 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no sudo password Ansible failures' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] no sudo password Ansible failures' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
@@ -1291,13 +1269,13 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no sudo password Ansible failures
     });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $ret == 0, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 0";
     ok $qesap_execute_calls eq 1, "qesap_execute() called once (qesap_execute_calls: $qesap_execute_calls expected 1)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] reboot timeout Ansible failures' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
@@ -1311,9 +1289,9 @@ subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' 
     });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $ret == 0, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 0";
     # 3 = "terraform -d" + "terraform" + "ansible"
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };

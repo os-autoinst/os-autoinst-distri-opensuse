@@ -14,11 +14,14 @@ This module runs sanity checks specifically on the Pacemaker cluster created
 for the ipaddr2 test. It verifies the cluster's health, ensuring that it is
 properly configured and all resources are in the expected state.
 
-It primarily calls the C<ipaddr2_cluster_sanity> function from the shared
-library to perform the checks.
+It performs the following checks:
 
+- Verifies the overall cluster health using C<crm status>.
+- Ensures the cluster reports no issues via C<crm_mon>.
+- Confirms that exactly three primitive resources are configured.
+- Checks for the presence of the nginx resource agent and its corresponding package.
 
-=head1 VARIABLES
+=head1 SETTINGS
 
 =over
 
@@ -28,7 +31,7 @@ Specifies the public cloud provider. This module currently only supports 'AZURE'
 
 =item B<IPADDR2_DIAGNOSTIC>
 
-If enabled (1), extended deployment logs (e.g., boot diagnostics) are
+If enabled (1), extended deployment logs (for example, boot diagnostics) are
 collected on failure.
 
 =item B<IPADDR2_CLOUDINIT>
@@ -53,15 +56,10 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
-use sles4sap::qesap::qesapdeployment qw (qesap_az_vnet_peering_delete);
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_pubip
   ipaddr2_cluster_sanity
-  ipaddr2_deployment_logs
-  ipaddr2_infra_destroy
-  ipaddr2_cloudinit_logs
-  ipaddr2_azure_resource_group
-);
+  ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
@@ -81,12 +79,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_deployment_logs() if check_var('IPADDR2_DIAGNOSTIC', 1);
-    ipaddr2_cloudinit_logs() unless check_var('IPADDR2_CLOUDINIT', 0);
-    if (my $ibsm_rg = get_var('IBSM_RG')) {
-        qesap_az_vnet_peering_delete(source_group => ipaddr2_azure_resource_group(), target_group => $ibsm_rg);
-    }
-    ipaddr2_infra_destroy();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG'));
     $self->SUPER::post_fail_hook;
 }
 

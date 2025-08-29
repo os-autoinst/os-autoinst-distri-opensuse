@@ -13,7 +13,7 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     select_serial_terminal;
-    zypper_call('mr -e -a') if check_var('FLAVOR', 'Full-QR');
+    zypper_call('mr -e -a') if check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full');
 }
 
 sub test_flags {

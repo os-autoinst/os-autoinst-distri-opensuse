@@ -854,8 +854,7 @@ sub activate_console {
         else {
             # on s390x we need to login here by providing a password
             handle_password_prompt if is_s390x;
-            send_key_until_needlematch('inst-console', 'ret') if is_ppc64le && is_agama;
-            assert_screen "inst-console";
+            assert_screen 'inst-console';
         }
     }
 

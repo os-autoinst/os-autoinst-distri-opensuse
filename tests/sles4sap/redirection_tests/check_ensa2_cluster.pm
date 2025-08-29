@@ -15,7 +15,7 @@ use sles4sap::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
 use hacluster qw(wait_for_idle_cluster check_cluster_state);
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
-use hacluster qw($crm_mon_cmd);
+use hacluster qw($crm_mon_cmd list_configured_sbd sbd_device_report);
 use sles4sap::sapcontrol qw(sapcontrol);
 
 =head1 NAME
@@ -58,8 +58,12 @@ B<The key tasks performed by this module include:>
 
 =head1 OPENQA SETTINGS
 
-Test module does not use any OpenQA settings
+=over
 
+=item * B<EXPECTED_SBD_DEVICES_COUNT> : Number of expected SBD devices. Performs check against what is currently found
+    on the cluster. Optional.
+
+=back
 =cut
 
 
@@ -74,41 +78,49 @@ sub run {
     my %results;
 
     # ENSA2 cluster result collection
-    for my $host (keys(%ensa2_hosts)) {
+    for my $ensa2_host (keys(%ensa2_hosts)) {
         # Everything is now executed on SUT, not worker VM
-        my $ip_addr = $ensa2_hosts{$host}{ip_address};
-        my $user = $ensa2_hosts{$host}{ssh_user};
-        my %instance_results;
+        my $ip_addr = $ensa2_hosts{$ensa2_host}{ip_address};
+        my $user = $ensa2_hosts{$ensa2_host}{ssh_user};
+        my %ensa2_instance_results;
         die "Redirection data missing. Got:\nIP: $ip_addr\nUSER: $user\n" unless $ip_addr and $user;
 
         connect_target_to_serial(destination_ip => $ip_addr, ssh_user => $user, switch_root => 'yes');
         wait_for_idle_cluster();
 
         my $instance_data = saphostctrl_list_instances(as_root => 'yes', running => 'yes');
-        # loop commands
-        $instance_results{'CRM status'} = script_output($crm_mon_cmd, quiet => 1);
-        $instance_results{'HA Check Config'} = sapcontrol(
+
+        $ensa2_instance_results{'CRM status'} = script_output($crm_mon_cmd, quiet => 1);
+        $ensa2_instance_results{'HA Check Config'} = sapcontrol(
             webmethod => 'HACheckConfig',
             instance_id => $instance_data->[0]{instance_id},
             sidadm => $instance_data->[0]{sap_sid},
             return_output => 'yes');
-        $instance_results{'HA Failover Config'} = sapcontrol(
+        $ensa2_instance_results{'HA Failover Config'} = sapcontrol(
             webmethod => 'HACheckFailoverConfig',
             instance_id => $instance_data->[0]{instance_id},
             sidadm => $instance_data->[0]{sap_sid},
             return_output => 'yes');
 
-        $results{$host} = \%instance_results;
+        my $sbd_devices = list_configured_sbd();
+        if (get_var('EXPECTED_SBD_DEVICES_COUNT') || get_fencing_type() =~ /sbd/) {
+            $ensa2_instance_results{'SBD devices'} = sbd_device_report(
+                device_list => $sbd_devices, expected_sbd_devices_count => get_var('EXPECTED_SBD_DEVICES_COUNT'));
+        }
+        $results{$ensa2_host} = \%ensa2_instance_results;
+
         check_cluster_state();
         disconnect_target_from_serial();
     }
 
     record_info('RESULTS');
-    for my $host (keys(%results)) {
-        record_info("Host: $host");
-        my %host_results = %{$results{$host}};
+    for my $ensa2_host (keys(%results)) {
+        record_info("STATUS $ensa2_host");
+        my $ensa2_host_results = $results{$ensa2_host};
         # Loop over result title and command output
-        record_info($_, $host_results{$_}) foreach keys(%host_results);
+        record_info($_, $ensa2_host_results->{$_}) foreach keys(%{$ensa2_host_results});
+        my $sbd_check = $ensa2_host_results->{'SBD check'};
+        die($sbd_check) if $sbd_check && $sbd_check =~ /FAIL/;
     }
 }
 

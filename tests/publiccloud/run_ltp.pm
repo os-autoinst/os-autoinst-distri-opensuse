@@ -15,7 +15,7 @@ use repo_tools 'generate_version';
 use Mojo::File;
 use Mojo::JSON;
 use Mojo::UserAgent;
-use LTP::utils qw(get_ltproot);
+use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
 use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
@@ -161,6 +161,19 @@ sub upload_ltp_logs
     die $@ if $@;
 }
 
+sub dump_kernel_config
+{
+    my ($self, $instance) = @_;
+
+    record_info("uname -a", $instance->run_ssh_command(cmd => "uname -a"));
+
+    my $uname_r = $instance->run_ssh_command(cmd => "uname -r");
+    chomp $uname_r;
+
+    record_info("KERNEL CONFIG", $instance->run_ssh_command(cmd => "cat /boot/config-$uname_r"));
+    record_info("ver_linux", $instance->run_ssh_command("/opt/ltp/ver_linux"));
+}
+
 sub run {
     my ($self, $args) = @_;
     my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
@@ -209,6 +222,7 @@ sub run {
 
     my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env);
 
+    $self->dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
     script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
@@ -321,7 +335,6 @@ sub prepare_ltp_cmd {
 
     my $python_exec = get_python_exec();
     my $cmd = "$python_exec kirk ";
-    $cmd .= "--framework ltp ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
     $cmd .= '--suite-timeout=5400 ';
@@ -357,18 +370,10 @@ sub gen_ltp_env {
     unless (should_partially_build_ltp() || should_fully_build_ltp()) {
         $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
     }
-    $self->{ltp_env} = {
-        product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
-        revision => get_required_var('BUILD'),
-        arch => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
-        kernel => $instance->run_ssh_command(cmd => 'uname -r'),
-        backend => get_required_var('BACKEND'),
-        flavor => get_required_var('FLAVOR'),
-        ltp_version => $ltp_version,
-        gcc => '',
-        libc => '',
-        harness => 'SUSE OpenQA',
-    };
+    $self->{ltp_env} = prepare_whitelist_environment();
+    $self->{ltp_env}->{arch} = get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH"));
+    $self->{ltp_env}->{kernel} = $instance->run_ssh_command(cmd => 'uname -r');
+    $self->{ltp_env}->{ltp_version} = $ltp_version;
 
     record_info("LTP Environment", Dumper($self->{ltp_env}));
 

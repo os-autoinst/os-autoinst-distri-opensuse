@@ -55,11 +55,11 @@ sub ensure_system_ready_and_register {
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect --cleanup'), 200);
         my $cmd = join(' ',
             $args{ssh_command},
-            qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com ; echo rc-\$?));
+            qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com));
         my $ret = script_output($cmd, timeout => 600);
         $ret =~ s/Instance registry setup done, sessions must be restarted !//g;
         #Avoid issue currentSMTInfo.obj
-        die "registercloudguest failed: $ret" unless ($ret =~ /rc-(0|1)\s*$/);
+        die "registercloudguest failed: $ret" unless ($ret =~ /(rc-(0|1)\s*$|Registration succeeded)/);
         assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
     }
 }
@@ -72,6 +72,10 @@ sub run {
     my $rg = get_required_var('RG');
     my $vm = get_required_var('VM_NAME');
 
+    my $wt = az_vm_wait_running(
+        resource_group => $rg,
+        name => $vm,
+        timeout => 1200);
     my $start_time = time();
     while ((time() - $start_time) < 300) {
         my $ret = script_run("nc -vz -w 1 $vm_ip 22", quiet => 1);
@@ -82,10 +86,6 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('SSH', 'VM reachable with SSH');
 
-    my $wt = az_vm_wait_running(
-        resource_group => $rg,
-        name => $vm,
-        timeout => 1200);
     my $register_code = get_required_var('SCC_REGCODE_SLES4SAP');
     my %system_register_args = (
         reg_code => $register_code,

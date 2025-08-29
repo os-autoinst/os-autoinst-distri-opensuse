@@ -40,7 +40,6 @@ sub is_regproxy_required {
 
 sub load_config_tests {
     loadtest 'transactional/tdup' if get_var('TDUP');
-    loadtest 'transactional/host_config' unless is_dvd;
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
@@ -78,6 +77,7 @@ sub load_boot_from_disk_tests {
     }
 
     loadtest 'installation/system_workarounds' if (is_aarch64 && is_microos);
+    loadtest 'transactional/host_config';
     replace_opensuse_repos_tests if is_repo_replacement_required;
 }
 
@@ -158,6 +158,7 @@ sub load_selfinstall_boot_tests {
     if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         loadtest 'jeos/firstrun';
     }
+    loadtest 'transactional/host_config';
     replace_opensuse_repos_tests if is_repo_replacement_required;
 }
 
@@ -315,7 +316,7 @@ sub load_slem_on_pc_tests {
         loadtest("publiccloud/registration", run_args => $args);
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
-            loadtest("publiccloud/transfer_repos", run_args => $args);
+            loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
@@ -348,7 +349,6 @@ sub load_slem_on_pc_tests {
 sub load_xfstests_tests {
     if (check_var('XFSTESTS', 'installation')) {
         load_boot_from_disk_tests;
-        loadtest 'transactional/host_config';
         loadtest 'console/suseconnect_scc';
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {

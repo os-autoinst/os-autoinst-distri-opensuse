@@ -34,7 +34,7 @@ sub run_tests {
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root") . ".tap.txt";
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests);
+    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
 
     run_command 'podman rm -vf $(podman ps -aq --external) || true';
     run_command "podman system reset -f";
@@ -94,13 +94,14 @@ sub run {
 
     # Compile helpers used by the tests
     my $helpers = script_output 'echo $(grep ^all: Makefile | grep -o "bin/[a-z]*" | grep -v bin/buildah)';
+    record_info("helpers", $helpers);
     run_command "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_SKIP_USER');
+    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_SKIP_ROOT');
+    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
 
     die "buildah tests failed" if ($errors);
 }

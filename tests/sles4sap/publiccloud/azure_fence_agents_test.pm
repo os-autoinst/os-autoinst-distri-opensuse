@@ -1,24 +1,60 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Test module for azure stonith based fencing agent
-# Settings:
-#   FENCING_MECHANISM - needs to be set  to 'native'
-#   PUBLIC_CLOUD_PROVIDER - needs to be set to 'AZURE'
-#   AZURE_FENCE_AGENT_CONFIGURATION - set to 'msi' or 'spn'
-#   SPN related settings:
-#       _SECRET_AZURE_SPN_APPLICATION_ID - application ID for fencing agent
-#       _SECRET_AZURE_SPN_APP_PASSWORD - application password used by fencing agent
 
-use warnings FATAL => 'all';
+# Summary: Test module for azure stonith based fencing agent
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+azure_fence_agents_test.pm - Test module for azure stonith based fencing agent
+
+=head1 DESCRIPTION
+
+This module tests the Azure fence agent. It verifies that the fence agent,
+configured with either MSI (Managed Service Identity) or SPN (Service Principal Name),
+can successfully list the cluster nodes. This ensures that the fencing mechanism
+is correctly configured and operational.
+
+=head1 SETTINGS
+
+=over
+
+=item B<FENCING_MECHANISM>
+
+Specifies the fencing mechanism. Must be set to 'native' for this test.
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. Must be set to 'AZURE' for this test.
+
+=item B<AZURE_FENCE_AGENT_CONFIGURATION>
+
+Specifies the Azure fence agent configuration method. Can be 'msi' or 'spn'.
+
+=item B<_SECRET_AZURE_SPN_APPLICATION_ID>
+
+The application ID for the Service Principal Name (SPN) used by the fencing agent.
+Required when B<AZURE_FENCE_AGENT_CONFIGURATION> is 'spn'.
+
+=item B<_SECRET_AZURE_SPN_APP_PASSWORD>
+
+The application password for the Service Principal Name (SPN) used by the fencing agent.
+Required when B<AZURE_FENCE_AGENT_CONFIGURATION> is 'spn'.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use base 'sles4sap_publiccloud_basetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
+use sles4sap::qesap::azure;
 use Data::Dumper;
 
 sub test_flags {
@@ -61,7 +97,7 @@ sub run {
         push @bashrc_vars, "export SPN_APPLICATION_ID=$spn_application_id";
         push @bashrc_vars, "export SPN_APP_PASSWORD=$spn_application_password";
 
-        my $tenant_id = qesap_az_get_tenant_id($subscription_id);
+        my $tenant_id = qesap_az_get_tenant_id(subscription_id => $subscription_id);
         die 'Tenant ID is required in case of Azure SPN fencing' unless $tenant_id;
         push @bashrc_vars, "export TENANT_ID=$tenant_id";
 
@@ -82,6 +118,7 @@ sub run {
         $self->{my_instance} = $instance;
         # do not probe VMs that are not part of the cluster
         next unless grep(/^$instance->{instance_id}$/, @cluster_nodes);
+        $instance->update_instance_ip();
         $instance->wait_for_ssh();
         my $scp_cmd = join('', 'scp /tmp/bashrc ',
             $instance->{username},

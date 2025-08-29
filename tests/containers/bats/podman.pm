@@ -34,7 +34,7 @@ sub run_tests {
 
     run_command "podman system service --timeout=0 &" if ($remote);
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests);
+    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
@@ -49,8 +49,9 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.24 gpg2 jq libgpgme-devel
-      libseccomp-devel make ncat netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container xfsprogs);
+      libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu libcriu2) if is_tumbleweed;
+    push @pkgs, qw(netcat-openbsd) if is_sle("<16");
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
@@ -98,19 +99,24 @@ sub run {
     # Compile helpers used by the tests
     run_command "make podman-testing || true", timeout => 600;
 
-    # user / local
-    my $errors = run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_SKIP_USER_LOCAL');
+    my $errors = 0;
+    unless (check_var("BATS_IGNORE_USER", "all")) {
+        # user / local
+        $errors += run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
 
-    # user / remote
-    $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_SKIP_USER_REMOTE');
+        # user / remote
+        $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_IGNORE_USER_REMOTE');
+    }
 
     switch_to_root;
 
-    # root / local
-    $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_SKIP_ROOT_LOCAL');
+    unless (check_var("BATS_IGNORE_ROOT", "all")) {
+        # root / local
+        $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_IGNORE_ROOT_LOCAL');
 
-    # root / remote
-    $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_SKIP_ROOT_REMOTE');
+        # root / remote
+        $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_IGNORE_ROOT_REMOTE');
+    }
 
     die "podman tests failed" if ($errors);
 }

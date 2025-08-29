@@ -156,10 +156,7 @@ Installs kubectl from the respositories
 =cut
 
 sub install_kubectl {
-    if (script_run("which kubectl") == 0) {
-        record_info('kubectl preinstalled', script_output('kubectl version --client'));
-        return;
-    }
+    return if (script_run("which kubectl") == 0);
 
     # kubectl is in the container module
     add_suseconnect_product(get_addon_fullname('contm')) if (is_sle("<16"));
@@ -174,6 +171,8 @@ Installs helm from our upstream or repositories
 =cut
 
 sub install_helm {
+    return if (script_run("which helm") == 0);
+
     if (get_var('HELM_INSTALL_UPSTREAM')) {
         assert_script_run("curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3");
         assert_script_run("chmod 700 get_helm.sh");

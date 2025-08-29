@@ -13,10 +13,10 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
-use hacluster qw(wait_for_idle_cluster check_cluster_state);
+use hacluster qw(wait_for_idle_cluster check_cluster_state get_fencing_type);
 use sles4sap::database_hana qw(hdb_info);
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
-use hacluster qw($crm_mon_cmd);
+use hacluster qw($crm_mon_cmd list_configured_sbd sbd_device_report);
 
 =head1 NAME
 
@@ -52,6 +52,8 @@ B<The key tasks performed by this module include:>
 
 =item * Collect B<HDB info> command output
 
+=item * In case of SBD based fencing is detected, collect data about SBD devices and perform optional check.
+
 =item * Check cluster state
 
 =item * Disconnect from database node
@@ -62,7 +64,12 @@ B<The key tasks performed by this module include:>
 
 =head1 OPENQA SETTINGS
 
-Test module does not use any OpenQA settings
+=over
+
+=item * B<EXPECTED_SBD_DEVICES_COUNT> : Number of expected SBD devices. Performs check against what is currently found
+    on the cluster. Optional.
+
+=back
 
 =cut
 
@@ -81,30 +88,37 @@ sub run {
         # Everything is now executed on SUT, not worker VM
         my $ip_addr = $database_hosts{$host}{ip_address};
         my $user = $database_hosts{$host}{ssh_user};
-        my %instance_results;
+        my %db_instance_results;
         die "Redirection data missing. Got:\nIP: $ip_addr\nUSER: $user\n" unless $ip_addr and $user;
-
         connect_target_to_serial(destination_ip => $ip_addr, ssh_user => $user, switch_root => 'yes');
         wait_for_idle_cluster();
 
         my $instance_data = saphostctrl_list_instances(as_root => 'yes', running => 'yes');
 
         # Collected results will be displayed at the end of the module
-        $instance_results{Release} = script_output('cat /etc/os-release', quiet => 1);
-        $instance_results{'System Replication'} = script_output('SAPHanaSR-showAttr', quiet => 1);
-        $instance_results{'CRM status'} = script_output($crm_mon_cmd, quiet => 1);
-        $instance_results{'HDB info'} = hdb_info(switch_user => $instance_data->[0]{sidadm}, quiet => 'true');
-        $results{$host} = \%instance_results;
+        $db_instance_results{Release} = script_output('cat /etc/os-release', quiet => 1);
+        $db_instance_results{'System Replication'} = script_output('SAPHanaSR-showAttr', quiet => 1);
+        $db_instance_results{'CRM status'} = script_output($crm_mon_cmd, quiet => 1);
+        $db_instance_results{'HDB info'} = hdb_info(switch_user => $instance_data->[0]{sidadm}, quiet => 'true');
+
+        my $sbd_devices = list_configured_sbd();
+        if (get_var('EXPECTED_SBD_DEVICES_COUNT') || get_fencing_type() =~ /sbd/) {
+            $db_instance_results{'SBD devices'} = sbd_device_report(
+                device_list => $sbd_devices, expected_sbd_devices_count => get_var('EXPECTED_SBD_DEVICES_COUNT'));
+        }
+        $results{$host} = \%db_instance_results;
 
         check_cluster_state();
         disconnect_target_from_serial();
     }
-    record_info('RESULTS');
-    for my $host (keys(%results)) {
-        record_info("Host: $host");
-        my $host_results = $results{$host};
+
+    for my $db_host (keys(%results)) {
+        record_info("STATUS $db_host");
+        my $host_results = $results{$db_host};
         # Loop over result title and command output
         record_info($_, $host_results->{$_}) foreach keys(%{$host_results});
+        my $sbd_check = $host_results->{'SBD devices'};
+        die($sbd_check) if $sbd_check && $sbd_check =~ /FAIL/;
     }
 }
 

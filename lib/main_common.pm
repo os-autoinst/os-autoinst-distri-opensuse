@@ -455,7 +455,9 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
-        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
+        # Autoyast tests that aren't using yaml schedule, will schedule opensuse_welcome
+        # right after installation is finished
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable() && !get_var("AUTOYAST");
         if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION') && !get_var('LIVE_UPGRADE')) {
             loadtest "installation/system_workarounds";
         }
@@ -502,6 +504,7 @@ sub load_zdup_tests {
 sub load_autoyast_tests {
     #    init boot in load_boot_tests
     loadtest("autoyast/installation");
+    loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
     #   library function like send_key or reboot will not work, therefore exiting earlier
     return loadtest "locale/keymap_or_locale" if get_var('INSTALL_KEYBOARD_LAYOUT');
     loadtest("autoyast/console");
@@ -1278,7 +1281,7 @@ sub load_consoletests {
     if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_krypton_argon && !is_virtualization_server && !is_vmware) {
         loadtest "console/firewall_enabled";
     }
-    if (is_sle('>=16.0') && get_var('FLAVOR', '') =~ /Minimal-VM-Cloud-sap/) {
+    if (is_sle('>=16.0') && get_var('FLAVOR', '') =~ /Minimal-VM-.*-sap/) {
         loadtest "console/validate_selinux_permissive";
     }
     if (is_jeos) {
@@ -2454,6 +2457,7 @@ sub set_mu_virt_vars {
     # Set PXE resource
     unless (get_var('PXE_PRODUCT_NAME') || get_var('MIRROR_HTTP')) {
         unless (get_var('IPXE')) {
+            set_var('IPXE', 0);
             # PRG1 lab SUTs use pxe way
             my $pxe_product_name = "SLE-" . get_required_var('VERSION');
             if (is_sle('15+')) {
@@ -2497,6 +2501,7 @@ sub set_mu_virt_vars {
     if (is_sle('15+')) {
         $scc_addons .= ',' if ($scc_addons);
         $scc_addons .= 'base,sdk,serverapp,desktop';
+        $scc_addons .= ',contm' if (get_var('KUBEVIRT_TEST'));
     }
     set_var('SCC_ADDONS', "$scc_addons");
 

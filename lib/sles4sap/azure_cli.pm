@@ -40,6 +40,8 @@ our @EXPORT = qw(
   az_network_lb_probe_create
   az_network_lb_rule_create
   az_vm_as_create
+  az_vm_as_list
+  az_vm_as_show
   az_img_from_vhd_create
   az_vm_create
   az_vm_list
@@ -263,7 +265,11 @@ sub az_network_vnet_subnet_update {
 
     my $res = az_network_vnet_get(resource_group => 'openqa-rg')
 
-Return the output of az network vnet list
+Return the output of az network vnet list as an object.
+Take care that this command is always calling the az cli with --json
+and returns the decoded object. But the format of the object can change
+accordingly to the provided value of --query. It is also possible that
+some query result in the function to die on decode_json.
 
 =over
 
@@ -640,9 +646,9 @@ Create an availability set. Later on VM can be assigned to it.
 
 =over
 
-=item B<resource_group> - existing resource group where to create the Availability set
+=item B<resource_group> - existing resource group where to create the availability set
 
-=item B<region> - region where to create the Availability set
+=item B<region> - region where to create the availability set
 
 =item B<name> - availability set name
 
@@ -663,6 +669,60 @@ sub az_vm_as_create {
         '-n', $args{name},
         '-l', $args{region},
         $fc_cmd);
+    assert_script_run($az_cmd);
+}
+
+=head2 az_vm_as_list
+
+    az_vm_as_list(resource_group => 'openqa-rg');
+
+List all availability set in a resource group.
+
+=over
+
+=item B<resource_group> - existing resource group where to create the availability set
+
+=back
+=cut
+
+sub az_vm_as_list {
+    my (%args) = @_;
+    croak("Argument < resource_group > missing") unless $args{resource_group};
+    my $az_cmd = join(' ', 'az vm availability-set list',
+        '--resource-group', $args{resource_group},
+        '--query "[].{name:name}" -o tsv');
+    return script_output($az_cmd);
+}
+
+=head2 az_vm_as_show
+
+    az_vm_as_show(resource_group => 'openqa-rg', name => 'openqa-as');
+
+Show all the details of an availability set. For the moment it only show and does not return anything.
+
+=over
+
+=item B<resource_group> - existing resource group where to create the availability set
+
+=item B<name> - name of the availability set
+
+=back
+=cut
+
+sub az_vm_as_show {
+    my (%args) = @_;
+    foreach (qw(resource_group name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $az_cmd = join(' ', 'az vm availability-set show',
+        '--resource-group', $args{resource_group},
+        '--name', $args{name},
+        '-o table');
+    assert_script_run($az_cmd);
+
+    $az_cmd = join(' ', 'az vm availability-set list-sizes',
+        '--resource-group', $args{resource_group},
+        '--name', $args{name});
     assert_script_run($az_cmd);
 }
 
@@ -1382,6 +1442,8 @@ Delete a specific network peering
 
 =item B<vnet> - existing vnet in resource_group, used as source of the peering
 
+=item B<timeout> - (Optional) Timeout for the assert_script_run command
+
 =back
 =cut
 
@@ -1389,12 +1451,13 @@ sub az_network_peering_delete {
     my (%args) = @_;
     foreach (qw(name resource_group vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= bmwqemu::scale_timeout(300);
 
     my $az_cmd = join(' ', 'az network vnet peering delete',
         '--name', $args{name},
         '--resource-group', $args{resource_group},
         '--vnet-name', $args{vnet});
-    assert_script_run($az_cmd);
+    return script_run($az_cmd, timeout => $args{timeout});
 }
 
 =head2 az_disk_create

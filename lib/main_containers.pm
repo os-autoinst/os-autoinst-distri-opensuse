@@ -54,7 +54,22 @@ sub load_image_test {
     loadtest('containers/image', run_args => $run_args, name => 'image_' . $run_args->{runtime});
 }
 
-sub load_3rd_party_image_test {
+sub load_third_party_image_test {
+    # Third party image tests are not needed or redundant on:
+    # - Staging
+    # - Public Cloud
+    # - VMWare due to lack of latest CPU version support
+    # - Testing alternative cgroups version
+    # - Testing docker-stable with CONTAINERS_DOCKER_FLAVOUR
+    # - Testing latest Tumbleweed image with CONTAINER_IMAGE_TO_TEST
+    # - FIPS tests
+    # - Testing a different OCI runtime like crun
+    return if (is_staging || is_public_cloud || is_vmware ||
+        get_var("CONTAINERS_CGROUP_VERSION") ||
+        get_var("CONTAINERS_DOCKER_FLAVOUR") ||
+        get_var("CONTAINER_IMAGE_TO_TEST") ||
+        get_var("FIPS_ENABLED") ||
+        get_var("OCI_RUNTIME"));
     my ($run_args) = @_;
     loadtest('containers/third_party_images', run_args => $run_args, name => $run_args->{runtime} . '_3rd_party_images');
 }
@@ -133,7 +148,7 @@ sub load_host_tests_podman {
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args) unless (is_staging || is_public_cloud);
+    load_third_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # podman artifact needs podman 5.4.0
@@ -168,6 +183,10 @@ sub load_host_tests_podman {
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
+    # python3-podman is not available on SLES - https://bugzilla.suse.com/show_bug.cgi?id=1248415
+    unless (is_jeos || is_public_cloud || is_staging || is_transactional || get_var("OCI_RUNTIME")) {
+        loadtest('containers/python_runtime', run_args => $run_args, name => "python_podman") if (is_tumbleweed && (is_aarch64 || is_x86_64));
+    }
     loadtest('containers/podmansh') if (is_tumbleweed && !is_staging && !is_transactional);
 }
 
@@ -176,7 +195,7 @@ sub load_host_tests_docker {
     load_container_engine_test($run_args);
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_3rd_party_image_test($run_args);
+    load_third_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
@@ -199,6 +218,9 @@ sub load_host_tests_docker {
     if (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"))) {
         # select_user_serial_terminal is broken on public cloud
         loadtest 'containers/rootless_docker' unless (is_public_cloud);
+    }
+    unless (is_jeos || is_public_cloud || is_staging || is_transactional || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
+        loadtest('containers/python_runtime', run_args => $run_args, name => "python_docker") if ((is_tumbleweed || is_sle(">=16")) && (is_aarch64 || is_x86_64));
     }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
@@ -246,10 +268,6 @@ sub load_image_tests_in_k8s {
     }
 }
 
-sub load_image_tests_in_openshift {
-    loadtest 'containers/openshift_image';
-}
-
 sub load_kubectl_tests {
     my $run_args = OpenQA::Test::RunArgs->new();
     my @k8s_versions = split('\s+', get_var("KUBERNETES_VERSIONS", ""));
@@ -273,7 +291,6 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
-        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIMES', 'openshift');
         loadtest 'containers/bci_prepare';
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
@@ -305,7 +322,7 @@ sub load_container_tests {
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
-        if (get_var('BCI_TESTS') && !get_var('BCI_SKIP')) {
+        if (get_var('BCI_TESTS')) {
             loadtest 'containers/bci_collect_stats' if (get_var('IMAGE_STORE_DATA'));
             # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
@@ -316,22 +333,6 @@ sub load_container_tests {
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
         loadtest 'containers/slem_rancher';
-        return;
-    }
-
-    ## Helm chart tests. Add your individual helm chart tests here.
-    if (my $chart = get_var('HELM_CHART')) {
-        set_var('K3S_ENABLE_COREDNS', 1);
-
-        if ($chart eq 'helm' || $chart =~ m/rmt-helm$/) {
-            loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/ && check_var('HOST_VERSION', '15-SP7')) {
-            set_var('K3S_ENABLE_TRAEFIK', 1);
-            loadtest 'containers/charts/privateregistry';
-        }
-        else {
-            die "Unsupported HELM_CHART value or HOST_VERSION";
-        }
         return;
     }
 
@@ -361,13 +362,10 @@ sub load_container_tests {
         $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
-                unless (get_var('BCI_SKIP')) {
-                    # Implicitly trigger bci_prepare when a custom test repo has been set, otherwise it won't be enabled.
-                    loadtest('containers/bci_prepare') if (check_var('BCI_PREPARE', '1') || get_var('BCI_TESTS_REPO'));
-                    loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
-                    # For Base image we also run traditional image.pm test
-                    load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
-                }
+                loadtest('containers/bci_prepare');
+                loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
+                # For Base image we also run traditional image.pm test
+                load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
             } elsif (is_sle_micro) {
                 # Test toolbox image updates
                 loadtest('microos/toolbox') unless (is_staging);
@@ -376,7 +374,6 @@ sub load_container_tests {
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
                 load_image_tests_in_k8s($run_args) if (/k8s/i);
-                load_image_tests_in_openshift if (/openshift/i);
             }
         } else {
             # Container Host tests
@@ -392,6 +389,28 @@ sub load_container_tests {
             loadtest 'containers/apptainer' if (/apptainer/i);
         }
     }
-    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
+    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
+
+    ## Helm chart tests. Add your individual helm chart tests here.
+    # Helm chart tests are not executed on k8s
+    if (get_var('HELM_CHART') && $runtime !~ /k8s/) {
+        my $chart = get_var('HELM_CHART');
+        my $spr_credentials_defined = !!(
+            get_var('SCC_REGISTRY', 0)
+            && get_var('SCC_PROXY_USERNAME', 0)
+            && get_var('SCC_PROXY_PASSWORD', 0)
+        );
+
+        loadtest 'containers/scc_login_to_registry' if is_sle() && $spr_credentials_defined;
+        if ($chart =~ m/rmt-helm$/) {
+            loadtest 'containers/charts/rmt';
+        } elsif ($chart =~ m/private-registry/) {
+            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
+        }
+        else {
+            die "Unsupported HELM_CHART value or HOST_VERSION";
+        }
+    }
+
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }

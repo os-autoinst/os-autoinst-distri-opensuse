@@ -1,4 +1,4 @@
-# Copyright 2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "aulastlog" can print the last login for all users of a

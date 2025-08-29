@@ -22,7 +22,7 @@ sub run_tests {
 
     my $log_file = "netavark.tap.txt";
 
-    return bats_tests($log_file, \%env, "");
+    return bats_tests($log_file, \%env, "", 1200);
 }
 
 sub run {
@@ -51,6 +51,7 @@ sub run {
 
     # Compile helpers & patch tests
     run_command "make examples", timeout => 600;
+
     unless (get_var("BATS_TESTS")) {
         run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
     }

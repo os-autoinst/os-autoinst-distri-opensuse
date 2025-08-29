@@ -1,87 +1,98 @@
 aardvark-dns:
   # Note on patches:
   # https://github.com/containers/aardvark-dns/pull/519 is needed for 100-basic-name-resolution
+  # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
+  # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 619
-    BATS_SKIP:
+    - 623
+    BATS_IGNORE:
   sle-16.0:
     BATS_PATCHES:
+    - 581
     - 619
-    BATS_SKIP:
+    - 623
+    BATS_IGNORE:
   sle-15-SP7:
     BATS_PATCHES:
     - 519
-    BATS_SKIP: 100-basic-name-resolution
+    - 581
+    - 623
+    BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP6:
     BATS_PATCHES:
     - 519
-    BATS_SKIP: 100-basic-name-resolution
+    - 581
+    - 623
+    BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP5:
     BATS_PATCHES:
     - 519
-    BATS_SKIP: 100-basic-name-resolution
+    - 581
+    - 623
+    BATS_IGNORE: 100-basic-name-resolution
 buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-16.0:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP:
-    BATS_SKIP_ROOT: bud
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT: bud
+    BATS_IGNORE_USER:
   sle-15-SP7:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP:
-    BATS_SKIP_ROOT: bud run
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT: bud run
+    BATS_IGNORE_USER:
   sle-15-SP6:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP:
-    BATS_SKIP_ROOT: bud run
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT: bud run
+    BATS_IGNORE_USER:
   sle-15-SP5:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud
-    BATS_SKIP_ROOT: run
-    BATS_SKIP_USER:
+    BATS_IGNORE: bud
+    BATS_IGNORE_ROOT: run
+    BATS_IGNORE_USER:
   sle-15-SP4:
     BATS_PATCHES:
     - 6226
-    BATS_SKIP: bud
-    BATS_SKIP_ROOT: run
-    BATS_SKIP_USER:
+    BATS_IGNORE: bud
+    BATS_IGNORE_ROOT: run
+    BATS_IGNORE_USER:
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   opensuse-Tumbleweed:
-    BATS_SKIP:
+    BATS_IGNORE:
   sle-16.0:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP:
+    BATS_IGNORE:
   sle-15-SP7:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP6:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP5:
     BATS_PATCHES:
     - 1191
-    BATS_SKIP: 250-bridge-nftables
+    BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -92,17 +103,20 @@ podman:
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
+  # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 25918
     - 25942
     - 26017
     - 26798
-    BATS_SKIP:
-    BATS_SKIP_ROOT_LOCAL: 200-pod
-    BATS_SKIP_ROOT_REMOTE:
-    BATS_SKIP_USER_LOCAL: 252-quadlet
-    BATS_SKIP_USER_REMOTE: 130-kill
+    - 26920
+    - 26921
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT_LOCAL: 200-pod 520-checkpoint
+    BATS_IGNORE_ROOT_REMOTE:
+    BATS_IGNORE_USER_LOCAL: 252-quadlet
+    BATS_IGNORE_USER_REMOTE: 130-kill
   sle-16.0:
     BATS_PATCHES:
     - 25792
@@ -111,95 +125,99 @@ podman:
     - 25942
     - 26017
     - 26798
-    BATS_SKIP:
-    BATS_SKIP_ROOT_LOCAL: 200-pod
-    BATS_SKIP_ROOT_REMOTE:
-    BATS_SKIP_USER_LOCAL:
-    BATS_SKIP_USER_REMOTE: 130-kill
+    - 26920
+    - 26921
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT_LOCAL: 200-pod
+    BATS_IGNORE_ROOT_REMOTE:
+    BATS_IGNORE_USER_LOCAL:
+    BATS_IGNORE_USER_REMOTE: 130-kill
   sle-15-SP7:
     BATS_PATCHES:
     - 21875
     - 24068
     - 25792
     - 25942
-    BATS_SKIP:
-    BATS_SKIP_ROOT_LOCAL:
-    BATS_SKIP_ROOT_REMOTE:
-    BATS_SKIP_USER_LOCAL:
-    BATS_SKIP_USER_REMOTE:
+    - 26920
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT_LOCAL:
+    BATS_IGNORE_ROOT_REMOTE:
+    BATS_IGNORE_USER_LOCAL:
+    BATS_IGNORE_USER_REMOTE:
   sle-15-SP6:
     BATS_PATCHES:
     - 21875
     - 24068
     - 25792
     - 25942
-    BATS_SKIP:
-    BATS_SKIP_ROOT_LOCAL:
-    BATS_SKIP_ROOT_REMOTE:
-    BATS_SKIP_USER_LOCAL:
-    BATS_SKIP_USER_REMOTE:
+    - 26920
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT_LOCAL:
+    BATS_IGNORE_ROOT_REMOTE:
+    BATS_IGNORE_USER_LOCAL:
+    BATS_IGNORE_USER_REMOTE:
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
   opensuse-Tumbleweed:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-16.0:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-15-SP7:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER: run userns
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER: run userns
   sle-15-SP6:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER: run userns
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER: run userns
   sle-15-SP5:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER: run userns
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER: run userns
   sle-15-SP4:
     BATS_PATCHES:
     - 4825
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER: run userns
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER: run userns
 skopeo:
   opensuse-Tumbleweed:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-16.0:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-15-SP7:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-15-SP6:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-15-SP5:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
   sle-15-SP4:
-    BATS_SKIP:
-    BATS_SKIP_ROOT:
-    BATS_SKIP_USER:
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
 

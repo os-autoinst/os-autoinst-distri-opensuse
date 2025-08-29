@@ -523,6 +523,7 @@ sub prepare_whitelist_environment {
         flavor => get_var('FLAVOR'),
         arch => get_var('ARCH'),
         backend => get_var('BACKEND'),
+        machine => get_var('MACHINE'),
         kernel => '',
         libc => '',
         gcc => '',

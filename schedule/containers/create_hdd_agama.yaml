@@ -34,10 +34,6 @@ conditional_schedule:
         FIPS:
             '1':
                 - fips/fips_setup
-    bci_prepare:
-        BCI_PREPARE:
-            '1':
-                - containers/bci_prepare
 
 schedule:
     - '{{boot_64}}'
@@ -49,7 +45,7 @@ schedule:
     - containers/install_updates
     - console/system_prepare
     - '{{fips}}'
-    - '{{bci_prepare}}'
+    - containers/bci_prepare
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'

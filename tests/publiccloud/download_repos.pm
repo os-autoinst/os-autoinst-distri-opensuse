@@ -29,71 +29,65 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
 
-    if (get_var('PUBLIC_CLOUD_SKIP_MU')) {
-        # Skip maintenance updates. This is useful for debug runs
-        record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
+    # Remove the ~/repos so they can be redownloaded
+    if (get_var('PUBLIC_CLOUD_REDOWNLOAD_MU')) {
+        script_run("rm -rf ~/repos");
+    }
+    # Skip if we already downloaded the repos
+    if (get_repo_status() == 1) {
+        record_info("Downloaded", "Skipping download because the repositories have been already downloaded");
         return;
-    } else {
-        # Remove the ~/repos so they can be redownloaded
-        if (get_var('PUBLIC_CLOUD_REDOWNLOAD_MU')) {
-            script_run("rm -rf ~/repos");
+    }
+
+    assert_script_run("mkdir ~/repos");
+    assert_script_run("cd ~/repos");
+    # Note: Clear previous qem_download_status.txt file here
+    assert_script_run("echo 'Starting download' > ~/repos/qem_download_status.txt");
+
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    assert_script_run('touch /tmp/repos.list.txt');
+
+    # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
+    my $count = scalar @repos;
+    my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+    die "No test repositories" if ($check_empty_repos && $count == 0);
+    my $ret = 0;
+    my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*,*.mirrorlist'";
+    my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
+
+    set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
+
+    for my $maintrepo (@repos) {
+        unless (validate_repo($maintrepo)) {
+            set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
+            next;
         }
-        # Skip if we already downloaded the repos
-        if (get_repo_status() == 1) {
-            record_info("Downloaded", "Skipping download because the repositories have been already downloaded");
-            return;
-        }
 
-        assert_script_run("mkdir ~/repos");
-        assert_script_run("cd ~/repos");
-        # Note: Clear previous qem_download_status.txt file here
-        assert_script_run("echo 'Starting download' > ~/repos/qem_download_status.txt");
+        script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
+        my ($parent) = $maintrepo =~ 'https?://(.*)$';
+        my ($domain) = $parent =~ '^([a-zA-Z.]*)';
+        my ($realpath) = $parent =~ m|ibs/(.*)|;
 
-        # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
-        # Those two variables contain list of repositories separated by comma
-        set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
-        my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
-        assert_script_run('touch /tmp/repos.list.txt');
-
-        # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
-        my $count = scalar @repos;
-        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
-        die "No test repositories" if ($check_empty_repos && $count == 0);
-        my $ret = 0;
-        my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*,*.mirrorlist'";
-        my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
-
-        set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
-
-        for my $maintrepo (@repos) {
-            unless (validate_repo($maintrepo)) {
-                set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
-                next;
-            }
-
-            script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
-            my ($parent) = $maintrepo =~ 'https?://(.*)$';
-            my ($domain) = $parent =~ '^([a-zA-Z.]*)';
-            my ($realpath) = $parent =~ m|ibs/(.*)|;
-
-            $ret = script_run("wget -nH --cut-dirs=1 --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600);
-            if ($ret !~ /0|8/) {
-                # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
-                record_info('Softfail', "Download /failed (rc=$ret):\n$maintrepo", result => 'softfail');
-                script_run("echo 'Download failed for $maintrepo ...' >> ~/repos/qem_download_status.txt");
+        $ret = script_run("wget -nH --cut-dirs=1 --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600);
+        if ($ret !~ /0|8/) {
+            # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
+            record_info('Softfail', "Download /failed (rc=$ret):\n$maintrepo", result => 'softfail');
+            script_run("echo 'Download failed for $maintrepo ...' >> ~/repos/qem_download_status.txt");
+        } else {
+            assert_script_run("echo -en '\\n" . ('#' x 80) . "\\n# $maintrepo:\\n' >> /tmp/repos.list.txt");
+            assert_script_run("echo 'Downloaded $maintrepo:' \$(du -hs $realpath | cut -f1) >> ~/repos/qem_download_status.txt");
+            if (script_run("ls $realpath/*.repo") == 0) {
+                assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s/*.repo), random_string(4), $realpath));
+                assert_script_run("find $realpath >> /tmp/repos.list.txt");
+            } elsif (is_sle_micro(">=6.0")) {
+                assert_script_run("find $realpath >> /tmp/repos.list.txt");
             } else {
-                assert_script_run("echo -en '\\n" . ('#' x 80) . "\\n# $maintrepo:\\n' >> /tmp/repos.list.txt");
-                assert_script_run("echo 'Downloaded $maintrepo:' \$(du -hs $realpath | cut -f1) >> ~/repos/qem_download_status.txt");
-                if (script_run("ls $realpath/*.repo") == 0) {
-                    assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s/*.repo), random_string(4), $realpath));
-                    assert_script_run("find $realpath >> /tmp/repos.list.txt");
-                } elsif (is_sle_micro(">=6.0")) {
-                    assert_script_run("find $realpath >> /tmp/repos.list.txt");
-                } else {
-                    record_info('Softfail', "No .repo file found in $realpath. This directory will be removed.", result => 'softfail');
-                    assert_script_run("echo 'No .repo found for $maintrepo' >> ~/repos/qem_download_status.txt");
-                    assert_script_run("rm -rf $realpath");
-                }
+                record_info('Softfail', "No .repo file found in $realpath. This directory will be removed.", result => 'softfail');
+                assert_script_run("echo 'No .repo found for $maintrepo' >> ~/repos/qem_download_status.txt");
+                assert_script_run("rm -rf $realpath");
             }
         }
 
