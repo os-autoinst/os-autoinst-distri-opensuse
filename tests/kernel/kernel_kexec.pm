@@ -13,8 +13,6 @@ use utils;
 sub run {
     my $self = shift;
     select_serial_terminal;
-    # clear console to prevent linux-login to match before reboot
-    clear_console;
     # Copy kernel image and rename it
     my $find_output = script_output('find /boot -maxdepth 1 -name "*$(uname -r)"', 600);
     record_info('Find output', $find_output);
