@@ -400,7 +400,7 @@ sub bats_tests {
     }
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
-    my $cmd = "env $env bats --tap -T $tests";
+    my $cmd = "env $env bats --report-formatter junit --tap -T $tests";
     # With podman we must use its own hack/bats instead of calling bats directly
     if ($package eq "podman") {
         my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
@@ -408,7 +408,8 @@ sub bats_tests {
         $cmd = "env $env hack/bats -t -T $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
-    $logfile .= ".tap.txt";
+    my $xmlfile = "$log_file.xml";
+    $log_file .= ".tap.txt";
     $cmd .= " | tee -a $log_file";
 
     my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
@@ -418,6 +419,7 @@ sub bats_tests {
     run_command "echo '# $package $version $os_version' >> $log_file";
     push @commands, $cmd;
     my $ret = script_run($cmd, timeout => $timeout);
+    script_run "mv report.xml $xmlfile";
 
     unless (get_var("BATS_TESTS")) {
         $skip_tests = get_var($skip_tests, $settings->{$skip_tests});
@@ -426,6 +428,7 @@ sub bats_tests {
     }
 
     parse_extra_log(TAP => $log_file);
+    upload_logs($xmlfile);
 
     run_command "sudo rm -rf $tmp_dir || true";
 
@@ -497,6 +500,7 @@ sub bats_sources {
     if ($package eq "podman") {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
+        assert_script_run q(sed -ri 's/(bats_opts)=.*/\1=(--report-formatter junit)/' hack/bats);
     }
 }
 
