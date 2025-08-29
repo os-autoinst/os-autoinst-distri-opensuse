@@ -30,8 +30,7 @@ sub run {
 
     power_action('reboot', keepconsole => 1, first_reboot => 1);
 
-    assert_screen('grub-menu-migration');
-    assert_screen('migration-running');
+    assert_screen([qw(grub-menu-migration migration-running)]);
     assert_screen('grub2', 400);
 }
 
