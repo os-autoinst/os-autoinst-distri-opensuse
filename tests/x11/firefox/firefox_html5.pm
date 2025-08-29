@@ -16,6 +16,7 @@ use base "x11test";
 use testapi;
 use utils;
 use x11utils 'default_gui_terminal';
+use version_utils "is_sle";
 
 sub run {
     my ($self) = @_;
@@ -28,6 +29,12 @@ sub run {
     assert_script_run 'curl --connect-timeout 5 --max-time 10 --retry-connrefused 5 --retry-delay 1 --retry-max-time 40 http://localhost:48080/';
     send_key 'alt-tab';    #Switch to firefox
     $self->firefox_open_url('http://localhost:48080/html5_video', assert_loaded_url => 'firefox-testvideo');
+    if (is_sle('<16.0')) {
+        # Switch back to xterm and close it, see https://progress.opensuse.org/issues/187971
+        wait_screen_change { send_key "alt-tab" };
+        wait_screen_change { send_key "alt-f4" };
+        send_key 'alt-tab';    #Switch to firefox
+    }
     $self->exit_firefox;
     send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
 }
