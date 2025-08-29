@@ -478,7 +478,7 @@ sub bats_sources {
             record_info("patch", $url);
             if ($patch =~ /^\d+$/) {
                 push @commands, "curl $curl_opts -O $url";
-                assert_script_run "curl -O " . data_url("containers/bats/patches/$package/$patch.patch");
+                assert_script_run "curl -O " . data_url("containers/patches/$package/$patch.patch");
             } else {
                 run_command "curl $curl_opts -O $url", timeout => 900;
             }

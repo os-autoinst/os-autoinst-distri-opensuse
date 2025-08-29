@@ -61,7 +61,7 @@ NOTES
 
 ## Adding patches to `BATS_PATCHES`
 
-Note: We add the patches to our tree to avoid hitting secondary rate-limits at Github.
+Note: We add the [patches](../../../data/containers/patches) to our tree to avoid hitting secondary rate-limits at Github.
 
 1. Identify the commit that fixes the issue.
 1. Identify the PR ID associated with the commit with `gh pr list --search $COMMIT_SHA --state merged`
