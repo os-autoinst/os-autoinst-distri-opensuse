@@ -81,6 +81,10 @@ sub create_host_bridge_nm {
         # Re-establish the SSH connection, poo#187197
         reset_consoles;
         select_console('root-ssh');
+        # julie
+        script_run("nmcli con modify br0 ipv4.route-metric 100");
+        script_run("nmcli con up br0");
+        script_run("ip r");
         record_info("Create a Host Bridge Network Interface - $host_bridge for sles16", script_output("ip a", proceed_on_failure => 1, timeout => 60));
     }
 }
