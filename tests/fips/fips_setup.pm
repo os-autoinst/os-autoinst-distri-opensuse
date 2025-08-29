@@ -27,7 +27,7 @@ sub reboot_and_select_serial_term {
 
     is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    if (is_sle('>=16') && is_aarch64) {
+    if (is_sle('>=16') && is_aarch64 && (check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full'))) {
         $self->wait_boot_past_bootloader(textmode => 1);
     } else {
         $self->wait_boot if !is_transactional;
