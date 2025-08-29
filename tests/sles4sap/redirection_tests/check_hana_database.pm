@@ -13,10 +13,9 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
-use hacluster qw(wait_for_idle_cluster check_cluster_state get_fencing_type);
+use hacluster;
 use sles4sap::database_hana qw(hdb_info);
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
-use hacluster qw($crm_mon_cmd list_configured_sbd sbd_device_report);
 
 =head1 NAME
 
