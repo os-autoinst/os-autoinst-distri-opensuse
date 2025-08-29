@@ -14,6 +14,7 @@ use utils;
 use power_action_utils qw(power_action);
 use Utils::Systemd qw(systemctl);
 use version_utils qw(is_sle);
+use serial_terminal qw(select_serial_terminal);
 
 sub check_package
 {
@@ -35,6 +36,7 @@ sub check_package
 sub rollback_and_reboot {
     my ($self, $rollback_id) = @_;
     assert_script_run("snapper rollback $rollback_id");
+
     assert_script_run("snapper list");
     power_action('reboot');
     if (is_aarch64) {
@@ -43,7 +45,8 @@ sub rollback_and_reboot {
     else {
         $self->wait_boot;
     }
-    select_console('root-console');
+
+    select_serial_terminal();
     assert_script_run("snapper list");
     # check whether SUSEConnect --rollback is running executed by rollback-reset-registration
     # this might cause a system management lock by zypper
@@ -66,7 +69,7 @@ sub run {
         tcpdump => '/usr/sbin/tcpdump'
     );
 
-    select_console('root-console');
+    select_serial_terminal();
     my $file = '/etc/openQA_snapper_test';
     my $pkgname = is_sle('16.0+') ? 'tcpdump' : 'zsh';
     my $check_path = $checks{$pkgname};
