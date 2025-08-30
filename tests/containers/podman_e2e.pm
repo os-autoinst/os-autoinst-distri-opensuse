@@ -78,7 +78,9 @@ sub setup {
     assert_script_run "cd ~/podman";
 
     unless ($repo) {
-        my @patches = qw(26936);
+        # - https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
+        # - https://github.com/containers/podman/pull/26936 - Skip some tests that fail on runc
+        my @patches = qw(26934 26936);
         foreach my $patch (@patches) {
             my $url = "https://github.com/$github_org/podman/pull/$patch";
             record_info("patch", $url);
