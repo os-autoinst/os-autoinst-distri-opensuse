@@ -67,15 +67,18 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_scc_register
   ipaddr2_repo_refresh
   ipaddr2_repo_list
-  ipaddr2_bastion_pubip
   ipaddr2_cleanup);
 
 sub run {
     my ($self) = @_;
 
+    # Try to catch as many variable issues as possible
+    # before to start.
+    die('Azure is the only CSP supported for the moment')
+      unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+
     select_serial_terminal;
 
-    my $bastion_ip = ipaddr2_bastion_pubip();
 
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually performed by the cloudinit script
@@ -85,9 +88,7 @@ sub run {
         if (get_var('SCC_REGCODE_SLES4SAP')) {
             foreach (1 .. 2) {
                 # Check if somehow the image is already registered or not
-                my $is_registered = ipaddr2_scc_check(
-                    bastion_ip => $bastion_ip,
-                    id => $_);
+                my $is_registered = ipaddr2_scc_check(id => $_);
                 record_info('is_registered', "$is_registered");
                 if ($is_registered ne 1) {
 
@@ -95,7 +96,6 @@ sub run {
                     # Registration is attempted only if the instance is not currently registered and a
                     # registration code ('SCC_REGCODE_SLES4SAP') is available.
                     my %reg_args = (
-                        bastion_ip => $bastion_ip,
                         id => $_,
                         scc_code => get_required_var('SCC_REGCODE_SLES4SAP'));
                     $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT') if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
@@ -105,15 +105,14 @@ sub run {
         }
         # Optionally register addons
         ipaddr2_scc_addons(
-            bastion_ip => $bastion_ip,
             scc_addons => get_required_var('SCC_ADDONS')
         ) if (get_var('SCC_ADDONS'));
     }
 
     foreach my $id (1 .. 2) {
         # refresh repo
-        ipaddr2_repo_refresh(id => $id, bastion_ip => $bastion_ip);
-        ipaddr2_repo_list(id => $id, bastion_ip => $bastion_ip);
+        ipaddr2_repo_refresh(id => $id);
+        ipaddr2_repo_list(id => $id);
     }
 }
 

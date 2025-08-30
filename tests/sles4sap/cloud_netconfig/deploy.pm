@@ -17,7 +17,7 @@ single network interface.
 
 The created resources include:
 
-=over 4
+=over
 
 =item * A virtual machine (VM) to host the test.
 
@@ -27,7 +27,7 @@ The created resources include:
 
 =item * Three IP configurations associated with the single NIC:
 
-=over 2
+=over
 
 =item - The primary IP configuration with a public IP address.
 
@@ -43,7 +43,7 @@ The created resources include:
 
 =head1 VARIABLES
 
-=over 4
+=over
 
 =item B<PUBLIC_CLOUD_PROVIDER>
 

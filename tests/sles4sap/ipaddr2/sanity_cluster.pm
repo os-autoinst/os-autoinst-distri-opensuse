@@ -57,7 +57,6 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_bastion_pubip
   ipaddr2_cluster_sanity
   ipaddr2_cleanup);
 
@@ -69,8 +68,7 @@ sub run {
 
     select_serial_terminal;
 
-    my $bastion_ip = ipaddr2_bastion_pubip();
-    ipaddr2_cluster_sanity(bastion_ip => $bastion_ip);
+    ipaddr2_cluster_sanity();
 }
 
 sub test_flags {

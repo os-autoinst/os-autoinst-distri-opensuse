@@ -63,7 +63,6 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_bastion_pubip
   ipaddr2_os_sanity
   ipaddr2_cleanup);
 
@@ -75,11 +74,9 @@ sub run {
 
     select_serial_terminal;
 
-    my $bastion_ip = ipaddr2_bastion_pubip();
-
     # Default for ipaddr2_os_sanity is cloudadmin.
     # It has to know about it to decide which ssh are expected in internal VMs
-    my %sanity_args = (bastion_ip => $bastion_ip);
+    my %sanity_args;
     $sanity_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
     ipaddr2_os_sanity(%sanity_args);
 }

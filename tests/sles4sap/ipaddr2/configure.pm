@@ -55,8 +55,8 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
+  ipaddr2_context_create
   ipaddr2_bastion_key_accept
-  ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_cleanup);
@@ -70,10 +70,13 @@ sub run {
     select_serial_terminal;
 
     record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
-    my $bastion_ip = ipaddr2_bastion_pubip();
-    ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
 
-    my %int_key_args = (bastion_ip => $bastion_ip);
+    # This call will refresh the context and add the bastion_ip if available.
+    # No need to be called with slot argument here as bastion_ip is not affected by that.
+    ipaddr2_context_create();
+    ipaddr2_bastion_key_accept();
+
+    my %int_key_args;
     # unsupported option "accept-new" for default ssh used in 12sp5
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
     ipaddr2_internal_key_accept(%int_key_args);
@@ -89,8 +92,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    ipaddr2_cleanup(
-        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+    ipaddr2_cleanup(diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
         cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
     $self->SUPER::post_fail_hook;
 }
