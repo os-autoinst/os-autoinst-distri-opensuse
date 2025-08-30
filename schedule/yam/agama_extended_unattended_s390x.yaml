@@ -8,6 +8,7 @@ schedule:
   - yam/agama/agama
   - boot/reconnect_mgmt_console
   - installation/first_boot
+  - yam/validate/validate_kernel_params
   - yam/validate/validate_packages
   - yam/validate/validate_post_partitioning
   - yam/validate/validate_deployed_files
