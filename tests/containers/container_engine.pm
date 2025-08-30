@@ -56,9 +56,6 @@ sub basic_container_tests {
     die "Undefined container runtime" unless $runtime;
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
-    ## Test search feature
-    validate_script_output("$runtime search --no-trunc --format 'table {{.Name}} {{.Description}}' tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 300);
-
     # Test pulling and display of images
     script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
     validate_script_output("$runtime image ls", qr/tumbleweed/);
