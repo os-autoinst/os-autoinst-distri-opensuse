@@ -13,6 +13,7 @@ schedule:
   - yam/validate/validate_first_user
   - yam/validate/validate_hostname
   - yam/validate/validate_snapshots
+  - yam/validate/validate_registered_products
   - console/validate_repos
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
