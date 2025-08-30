@@ -1,0 +1,40 @@
+From e1a0202d51f04c9a4e968a8bb9f4387405fe7069 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 30 Aug 2025 18:59:39 +0200
+Subject: [PATCH] test/e2e: Skip some tests that fail on runc
+
+Skip some volume tests that fail on runc since
+https://github.com/opencontainers/runc/pull/3990
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/run_volume_test.go | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/test/e2e/run_volume_test.go b/test/e2e/run_volume_test.go
+index b0020e1c67..9bfe165df3 100644
+--- a/test/e2e/run_volume_test.go
++++ b/test/e2e/run_volume_test.go
+@@ -447,6 +447,11 @@ var _ = Describe("Podman run with volumes", func() {
+ 		Expect(separateVolumeSession).Should(ExitCleanly())
+ 		Expect(separateVolumeSession.OutputToString()).To(Equal(baselineOutput))
+ 
++		// The remainder of this test fails on runc since https://github.com/opencontainers/runc/pull/3990
++		if !strings.Contains(podmanTest.OCIRuntime, "crun") {
++			return
++		}
++
+ 		copySession := podmanTest.Podman([]string{"run", "--rm", "-v", "testvol3:/etc/apk:copy", ALPINE, "stat", "-c", "%h", "/etc/apk/arch"})
+ 		copySession.WaitWithDefaultTimeout()
+ 		Expect(copySession).Should(ExitCleanly())
+@@ -857,6 +862,10 @@ VOLUME /test/`, ALPINE)
+ 	})
+ 
+ 	It("podman run with --mount and named volume with driver-opts", func() {
++		// This test fails on runc since https://github.com/opencontainers/runc/pull/3990
++		if !strings.Contains(podmanTest.OCIRuntime, "crun") {
++			Skip("Test only works on crun")
++		}
+ 		// anonymous volume mount with driver opts
+ 		vol := "type=volume,source=test_vol,dst=/test,volume-opt=type=tmpfs,volume-opt=device=tmpfs,volume-opt=o=nodev"
+ 		session := podmanTest.Podman([]string{"run", "--rm", "--mount", vol, ALPINE, "echo", "hello"})

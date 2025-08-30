@@ -313,6 +313,11 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
+    if (get_var("DELETEME")) {
+        loadtest "containers/podman_e2e";
+        return;
+    }
+
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
         $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
