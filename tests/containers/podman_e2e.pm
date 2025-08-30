@@ -78,7 +78,7 @@ sub setup {
     assert_script_run "cd ~/podman";
 
     unless ($repo) {
-        my @patches = ();
+        my @patches = qw(26936);
         foreach my $patch (@patches) {
             my $url = "https://github.com/$github_org/podman/pull/$patch";
             record_info("patch", $url);
