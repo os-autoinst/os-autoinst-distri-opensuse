@@ -15,6 +15,7 @@ function(bootloader=false,
          files=false,
          iscsi=false,
          localization='',
+         only_required=false,
          packages='',
          patterns='',
          patterns_to_add='',
@@ -35,12 +36,16 @@ function(bootloader=false,
   [if files == true then 'files']: base_lib['files'],
   [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
   [if localization == true then 'localization']: base_lib['localization'],
-  [if patterns != '' || packages != '' || extra_repositories || patterns_to_add != '' || patterns_to_remove != '' then 'software']: std.prune({
+  [if patterns != '' || packages != '' || extra_repositories ||
+      patterns_to_add != '' || patterns_to_remove != '' ||
+      only_required then 'software']:
+  std.prune({
     patterns: if patterns_to_add != '' || patterns_to_remove != ''  
       then software_lib.modify_patterns(patterns_to_add, patterns_to_remove)  
       else if patterns != '' then std.split(patterns, ','),
     packages: if packages != '' then std.split(packages, ','),
     extraRepositories: if extra_repositories then software_lib['extraRepositories'],
+    onlyRequired: if only_required then true,
   }),
   [if product != '' then 'product']: {
     [if registration_code_ha != '' then 'addons']: std.prune([
