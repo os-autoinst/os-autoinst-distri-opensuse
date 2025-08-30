@@ -487,11 +487,16 @@ sub wait_for_ssh {
             }    # end loop
         }    # endif
 
+        # TEMPORARY FAKE ERROR TRIGGERED FOR TESTING PURPOSES, TO REMOVE AFTER CHECK:
+        $exit_code = 3;
+
         if ($args{scan_ssh_host_key}) {
             record_info('RESCAN', 'Rescanning SSH host key');
+            my $known_hosts_2 = "/home/$testapi::username/.ssh/known_hosts";
+            $known_hosts_2 = "" unless (-f $known_hosts_2);
             # Install server's ssh publicckeys to prevent authentication interactions
             # or instance address changes during VM reboots.
-            script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts /home/$testapi::username/.ssh/known_hosts");
+            script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts $known_hosts_2");
         }
 
         my $exit_ssh;
@@ -499,11 +504,20 @@ sub wait_for_ssh {
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
             my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, proceed_on_failure => 1);
+            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => int($args{timeout}) - int($duration), proceed_on_failure => 1);
             last if isok($exit_ssh);
             sleep $delay;
         }
 
+        # Merge results
+        $exit_code = $exit_ssh || $exit_code;
+        # System issues debugging:
+        unless (isok($exit_code)) {
+            # validate sshd_config configuration file and verbose ssh debugging
+            my $debug = script_output("ssh " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'sudo sshd -t && echo sshd OK || echo sshd config error'", timeout => 90, proceed_on_failure => 1) . "\n";
+            $debug .= script_output("ssh -vvv" . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
+            record_info('SSH CHECK', "Check ssh on error\n" . $debug, result => 'fail');
+        }
         # Log upload
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
             #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
@@ -520,13 +534,10 @@ sub wait_for_ssh {
     $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
     # $sysout is not available if $args{systemup_check} is 0
-    if (defined($sysout)) {
-        record_info("WAIT CHECK", $instance_msg, result => ($sysout =~ m/\sfailed\s/) ? "fail" : "ok");
-    } else {
-        record_info("WAIT CHECK", $instance_msg);
-    }
+    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => (defined($sysout) && $sysout =~ m/\sfailed\s/) ? "fail" : "ok");
+
     # OK
-    return $duration if (isok($exit_code) and not $args{wait_stop});
+    return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
     # FAIL
     croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
