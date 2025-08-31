@@ -6,7 +6,6 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 619
     - 623
     BATS_IGNORE:
   sle-16.0:
