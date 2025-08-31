@@ -37,7 +37,6 @@ buildah:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
