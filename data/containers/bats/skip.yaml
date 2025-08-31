@@ -6,7 +6,6 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 619
     - 623
     BATS_IGNORE:
   sle-16.0:
@@ -38,7 +37,6 @@ buildah:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
@@ -106,8 +104,6 @@ podman:
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 25918
-    - 25942
     - 26017
     - 26798
     - 26920
