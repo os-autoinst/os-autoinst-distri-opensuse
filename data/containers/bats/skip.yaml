@@ -104,8 +104,6 @@ podman:
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   opensuse-Tumbleweed:
     BATS_PATCHES:
-    - 25918
-    - 25942
     - 26017
     - 26798
     - 26920
