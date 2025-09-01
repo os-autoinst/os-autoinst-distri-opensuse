@@ -13,14 +13,18 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);
+use containers::helm;
 use containers::k8s qw(install_kubectl install_helm);
+use main_containers qw(is_suse_host);
 
 sub run {
+    select_serial_terminal;
+
+    return unless is_suse_host() && helm_is_supported();
+
     my $registry = get_required_var('SCC_REGISTRY');
     my $username = get_required_var('SCC_PROXY_USERNAME');
     my $password = get_required_var('SCC_PROXY_PASSWORD');
-
-    select_serial_terminal;
 
     install_helm();
 
