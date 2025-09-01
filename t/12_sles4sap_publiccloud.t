@@ -529,7 +529,7 @@ subtest '[get_hana_topology]' => sub {
         }
     );
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
-    $sles4sap_publiccloud->redefine(run_cmd => sub {
+    $sles4sap_publiccloud->redefine(run_cmd_retry => sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return "Output does no matter as calculate_hana_topology is redefined.";

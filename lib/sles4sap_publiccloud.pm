@@ -37,6 +37,7 @@ use saputils;
 
 our @EXPORT = qw(
   run_cmd
+  run_cmd_retry
   get_promoted_hostname
   is_hana_resource_running
   stop_hana
@@ -121,6 +122,44 @@ sub run_cmd {
     my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
     return $out;
+}
+
+=head2 run_cmd_retry
+    run_cmd_retry(cmd => 'command', [retry => 3, timeout => 60, delay => 10]);
+
+    Runs a command C<cmd> via ssh in the given VM and log the output.
+    If command fails or C<timeout> is reached, then the command will be
+    retried for C<retry> times, with C<delay> seconds of interval in between.
+
+=over
+
+=item B<cmd> - command string to be executed remotely
+
+=item B<timeout> - command execution timeout
+
+=item B<retry> - number of retry attempts
+
+=item B<delay> - idle time between retry attempts
+
+=item B<...> - pass through all other arguments supported by run_cmd
+
+=back
+=cut
+
+sub run_cmd_retry {
+    my ($self, %args) = @_;
+    my $timeout = delete $args{timeout} // 60;
+    my $retry = delete $args{retry} // 3;
+    my $delay = delete $args{delay} // 10;
+    delete($args{proceed_on_failure});
+
+    for (1 .. $retry) {
+        my $ret = eval { $self->run_cmd(timeout => $timeout, proceed_on_failure => 0, %args); };
+        return $ret if (defined $ret);
+        sleep $delay;
+        record_soft_failure('jsc#TEAM-10485 SSH timeout or failure, retrying');
+    }
+    die('Maximum number of SSH retry attempts exceeded');
 }
 
 =head2 get_promoted_hostname()
@@ -244,7 +283,7 @@ sub get_hana_topology {
     my ($self) = @_;
     my $output_format = get_var('USE_SAP_HANA_SR_ANGI') ? 'json' : 'script';
     $self->wait_for_idle(timeout => 240);
-    my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=$output_format", quiet => 1);
+    my $cmd_out = $self->run_cmd_retry(cmd => "SAPHanaSR-showAttr --format=$output_format", quiet => 1);
     return calculate_hana_topology(input_format => $output_format, input => $cmd_out);
 }
 
