@@ -45,6 +45,7 @@ my $settings;
 my %tests_dir = (
     "aardvark-dns" => "test",
     buildah => "tests",
+    conmon => "test",
     netavark => "test",
     podman => "test/system",
     runc => "tests/integration",

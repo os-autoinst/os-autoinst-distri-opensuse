@@ -5,6 +5,7 @@ This directory contains [BATS framework](https://github.com/bats-core/bats-core)
 | --- | --- |
 | [aardvark-dns](aardvark.pm) | https://github.com/containers/aardvark-dns/tree/main/test |
 | [buildah](buildah.pm) | https://github.com/containers/buildah/tree/main/tests |
+| [conmon](conmon.pm) | https://github.com/containers/conmon/tree/main/test |
 | [netavark](netavark.pm) | https://github.com/containers/netavark/tree/main/test |
 | [podman](podman.pm) | https://github.com/containers/podman/tree/main/test/system |
 | [runc](runc.pm) | https://github.com/opencontainers/runc/tree/main/tests/integration |

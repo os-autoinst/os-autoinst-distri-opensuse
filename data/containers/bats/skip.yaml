@@ -70,6 +70,21 @@ buildah:
     BATS_IGNORE: bud
     BATS_IGNORE_ROOT: run
     BATS_IGNORE_USER:
+conmon:
+  # Note on patches:
+  # https://github.com/containers/conmon/pull/579 is needed to enable tests
+  opensuse-Tumbleweed:
+    BATS_PATCHES:
+    - 579
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
+  sle-16.0:
+    BATS_PATCHES:
+    - 579
+    BATS_IGNORE:
+    BATS_IGNORE_ROOT:
+    BATS_IGNORE_USER:
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
