@@ -31,6 +31,8 @@ sub run {
     zypper_call 'in systemd-resolved';
     systemctl 'stop NetworkManager', timeout => 30;
     assert_script_run("mv /etc/resolv.conf{,.bak}");
+    # Add workaround for bsc#1248501
+    assert_script_run("touch /usr/share/dbus-1/system.d/org.freedesktop.resolve1.conf");
     systemctl 'enable --now systemd-resolved', timeout => 30;
     assert_script_run 'ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf';
     assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf";
