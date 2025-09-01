@@ -19,6 +19,7 @@ sub clean_up {
     assert_script_run("rm /etc/systemd/resolved.conf.d/dnssec.conf");
     assert_script_run("rm /etc/systemd/resolved.conf.d/dns_over_tls.conf");
     assert_script_run("mv /etc/resolv.conf{.bak,}");
+    assert_script_run("rm /etc/nsswitch.conf");
     systemctl 'disable --now systemd-resolved', timeout => 30;
     zypper_call 'rm systemd-resolved';
     systemctl 'restart NetworkManager', timeout => 30;
