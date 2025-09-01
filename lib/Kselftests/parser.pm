@@ -27,6 +27,7 @@ use Kselftests::parsers::bpf::test_tc_tunnel_sh;
 use Kselftests::parsers::bpf::test_tcpnotify_user;
 use Kselftests::parsers::bpf::test_verifier;
 use Kselftests::parsers::bpf::test_xdping_sh;
+use Kselftests::parsers::bpf::test_xsk_sh;
 
 use testapi;
 use strict;
