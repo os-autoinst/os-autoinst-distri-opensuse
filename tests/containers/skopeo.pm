@@ -9,8 +9,8 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';    # used in select_serial_terminal
-use utils 'zypper_call';    # used in zypper_call
+use serial_terminal 'select_serial_terminal';
+use utils qw(script_retry zypper_call);
 use version_utils qw(is_transactional is_vmware is_opensuse);
 use transactional;
 use containers::common qw(install_packages);
@@ -98,6 +98,9 @@ sub run {
     my $registry_image = is_opensuse ? "registry.opensuse.org/opensuse/registry:latest" : "registry.suse.com/suse/registry:latest";
     assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
         fail_message => "Failed to start local registry container");
+
+    ######### Wait until the registry is up
+    script_retry("curl http://localhost:5050/v2", delay => 2, fail_message => "Local registry not reachable");
 
     ######### Pull the image into a our local repository
     # skipping tls verification as by default most local registries don't have certificates
