@@ -931,12 +931,9 @@ subtest '[get_fencing_type] ' => sub {
         'external/sbd' => 'primitive some-name stonith:external/sbd \\',
         'fence_azure_arm' => 'primitive rsc_st_azure stonith:fence_azure_arm \\',
     );
-
-    for my $expected_result (keys(%tested_values)) {
-        $hacluster->redefine(script_output => sub { return $tested_values{$expected_result}; });
-        is get_fencing_type, $expected_result, "Return correct fencing type '$expected_result'";
-    }
-
+    my @tested_keys = keys(%tested_values);
+    $hacluster->redefine(script_output => sub { return $tested_values{shift(@tested_keys)}; });
+    is get_fencing_type, $_, "Return correct fencing type '$_'" foreach @tested_keys;
 };
 
 done_testing;
