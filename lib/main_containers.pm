@@ -401,7 +401,7 @@ sub load_container_tests {
             && get_var('SCC_PROXY_PASSWORD', 0)
         );
 
-        loadtest 'containers/scc_login_to_registry' if is_sle() && $spr_credentials_defined;
+        loadtest 'containers/scc_login_to_registry' if check_var('HOST_VERSION', '15-SP7') && $spr_credentials_defined;
         if ($chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
         } elsif ($chart =~ m/private-registry/) {
