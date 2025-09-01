@@ -10,7 +10,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use publiccloud::utils qw(is_byos registercloudguest);
+use publiccloud::utils qw(is_byos is_ec2 registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
@@ -57,6 +57,13 @@ sub run {
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));
+
+    # Check that xen-tools-domU is available
+    if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
+        $instance->ssh_assert_script_run(cmd => 'rpm -qi xen-tools-domU');
+        # This command is available in the above package
+        record_info('Xen version', $instance->ssh_script_output('xen-detect'));
+    }
 
     my $test_package = get_var('TEST_PACKAGE', 'jq');
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
