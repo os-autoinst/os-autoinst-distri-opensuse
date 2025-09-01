@@ -48,6 +48,7 @@
         chroot: true,
         content: |||
           #!/usr/bin/env bash
+          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
           systemctl enable sshd
         |||
       }
