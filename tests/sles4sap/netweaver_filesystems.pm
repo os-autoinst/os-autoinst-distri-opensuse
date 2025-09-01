@@ -24,6 +24,15 @@ sub run {
     my $sap_dir = "/usr/sap/$sid";
     my ($proto, $path) = $self->fix_path(get_required_var('NW'));
     my $nfs_client_service_name = is_sle('16+') ? 'nfs-client.target' : 'nfs.service';
+    # The following lines use TEST, VERSION and FLAVOR to calculate a dir name for nfs shares.
+    # The job TEST names include *_supportserver, *_node01 and _node02, which are removed
+    # in order to get the same name for all nodes.
+    my $test_name = get_required_var('TEST');
+    $test_name =~ s/_(?:node\d+|supportserver)\z//i;
+    my $subdir = join '_', $test_name, get_required_var('FLAVOR'), get_required_var('VERSION');
+    $subdir =~ s/[^A-Za-z0-9._-]+/_/g;
+    my $sapmnt_base = "$path/$arch/nfs_share/sapmnt";
+    my $usrsapsys_base = "$path/$arch/nfs_share/usrsapsys";
 
     # LUN information is needed after for the HA configuration
     set_var('INSTANCE_LUN', "$lun");
@@ -37,10 +46,15 @@ sub run {
     assert_script_run "chmod 0777 \"$lun\" $sap_dir/${type}${instance_id}";
 
     # Mount NFS filesystem
-    assert_script_run "echo '$path/$arch/nfs_share/sapmnt /sapmnt $proto defaults,bg 0 0' >> /etc/fstab";
-    assert_script_run "echo '$path/$arch/nfs_share/usrsapsys $sap_dir/SYS $proto defaults,bg 0 0' >> /etc/fstab";
     systemctl "enable $nfs_client_service_name";
     systemctl "start $nfs_client_service_name";
+
+    assert_script_run "mkdir -p /sapmnt '$sap_dir/SYS'";
+    assert_script_run "mount -t $proto '$sapmnt_base' /sapmnt && mkdir -p /sapmnt/'$subdir' && umount /sapmnt";
+    assert_script_run "mount -t $proto '$usrsapsys_base' '$sap_dir/SYS' && mkdir -p '$sap_dir/SYS/$subdir' && umount '$sap_dir/SYS'";
+    assert_script_run "echo '$sapmnt_base/$subdir /sapmnt $proto defaults,bg 0 0' >> /etc/fstab";
+    assert_script_run "echo '$usrsapsys_base/$subdir $sap_dir/SYS $proto defaults,bg 0 0' >> /etc/fstab";
+
     foreach my $mountpoint ('/sapmnt', "$sap_dir/SYS") {
         assert_script_run "mkdir -p $mountpoint && mount $mountpoint";
 
