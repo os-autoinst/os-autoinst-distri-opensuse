@@ -405,7 +405,7 @@ sub load_container_tests {
         if ($chart =~ m/rmt-helm$/) {
             loadtest 'containers/charts/rmt';
         } elsif ($chart =~ m/private-registry/) {
-            loadtest 'containers/charts/privateregistry' if (check_var('HOST_VERSION', '15-SP7'));
+            loadtest 'containers/charts/privateregistry';
         }
         else {
             die "Unsupported HELM_CHART value or HOST_VERSION";
