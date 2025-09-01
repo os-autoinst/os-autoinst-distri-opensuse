@@ -31,7 +31,7 @@ vars:
   DESKTOP: 'textmode'
   HA_CLUSTER: '1'
   HDD_SCC_REGISTERED: '1'
-  TIMEOUT_SCALE: '2'
+  TIMEOUT_SCALE: '4'
 schedule:
   - '{{barrier_init}}'
   - installation/bootloader
