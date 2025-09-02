@@ -49,15 +49,14 @@ package unified_guest_installation;
 use base 'concurrent_guest_installations';
 use testapi;
 use Carp;
-use Utils::Backends 'use_ssh_serial_console';
-use virt_autotest::utils qw(check_guest_health);
-use ipmi_backend_utils;
+use Utils::Backends;
+use virt_autotest::utils qw(check_guest_health select_backend_console);
+use virt_autotest::domain_management_utils;
 
 sub run {
     my $self = shift;
 
-    select_console 'sol', await_console => 0;
-    use_ssh_serial_console;
+    select_backend_console(init => 0);
 
     $self->reveal_myself;
     return if get_var('SKIP_GUEST_INSTALL');
@@ -85,6 +84,7 @@ sub run {
 
     $self->concurrent_guest_installations_run(\%store_of_guests);
     check_guest_health($_) foreach (@guest_names);
+    virt_autotest::domain_management_utils::shutdown_guest(guest => join(" ", split(/\|/, get_required_var('UNIFIED_GUEST_LIST')))) if (get_var('KEEP_GUEST_SHUTOFF'));
     return $self;
 }
 

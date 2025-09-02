@@ -23,6 +23,7 @@ use Net::IP qw(:PROC);
 use File::Basename;
 use LWP::Simple 'head';
 use Utils::Architectures;
+use Utils::Backends;
 use IO::Socket::INET;
 use mm_network;
 use Carp;
@@ -98,6 +99,9 @@ our @EXPORT = qw(
   reconnect_console_if_not_good
   get_guest_settings
   reselect_openqa_console
+  select_backend_console
+  double_check_xen_role
+  check_kvm_modules
 );
 
 my %log_cursors;
@@ -1556,6 +1560,89 @@ sub reselect_openqa_console {
         enter_cmd("reset") for (0 .. 2);
         $reselect_console_counter -= $countdown;
     }
+}
+
+=head2 select_backend_console
+
+Select corresponding ipmi or qemu backend console 'root-ssh' or 'root-console'.
+If argument init is set, select ipmi backend 'sol' console. User can also set
+arguments console or wait to select cusotmized console in desired behavior.
+=cut
+
+sub select_backend_console {
+    my (%args) = @_;
+    $args{init} //= 1;
+    $args{wait} //= 0;
+
+    if (is_ipmi) {
+        $args{console} //= ($args{init} ? 'sol' : 'root-ssh');
+    }
+    elsif (is_qemu) {
+        $args{console} //= 'root-console';
+    }
+
+    reset_consoles;
+    if (is_ipmi) {
+        select_console($args{console}, await_console => $args{wait});
+        use_ssh_serial_console if (!$args{init});
+    }
+    elsif (is_qemu) {
+        migration::reset_consoles_tty();
+        select_console($args{console}, await_console => $args{wait});
+        ensure_serialdev_permissions;
+        serial_terminal::prepare_serial_console();
+    }
+}
+
+=head2 double_check_xen_role
+
+Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen
+domain0 kernel panic(bsc#1192258). Need to double-check xen role after matched 
+bootmenu-xen-kernel needle successfully.
+=cut
+
+sub double_check_xen_role {
+    record_info 'INFO', 'Double-check xen kernel';
+    if (script_run('lsmod | grep xen') == 0) {
+        diag("Boot up xen kernel successfully");
+    }
+    else {
+        record_info 'INFO', 'Check Xen hypervisor as Grub2 menuentry';
+        die 'Check Xen hypervisor as Grub2 menuentry failed' if (script_run('grub2-once --list | grep Xen') != 0);
+        save_screenshot;
+        die 'Double-check xen kernel failed';
+    }
+
+    # for modular libvirt, virtxend is expected in "loaded: active or inactive" status.
+    # virtxend.socket seems to be always in "loaded: active" status
+    unless (is_monolithic_libvirtd) {
+        die 'virtxend.socket is not running!' unless script_run("systemctl is-active virtxend.socket") eq 0;
+    }
+
+    record_info 'INFO', 'Check if start bootloader from a read-only snapshot';
+    assert_script_run('touch /root/read-only.fs && rm -rf /root/read-only.fs');
+    save_screenshot;
+}
+
+=head2 check_kvm_modules
+
+Check whether kvm moduldes are successfully loaded on running system.
+=cut
+
+sub check_kvm_modules {
+    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+        save_screenshot;
+        die "KVM modules are not loaded!";
+    }
+
+    # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
+    # virtqemud.socket seems to be always in "loaded: active" status
+    unless (is_monolithic_libvirtd) {
+        unless (get_var('TEST_SUITE_NAME') =~ /kubevirt-tests/ or script_run("systemctl is-active virtqemud.socket") eq 0) {
+            die 'virtqemud.socket is not running!';
+        }
+    }
+    record_info("KVM", "kvm modules are loaded!");
 }
 
 1;

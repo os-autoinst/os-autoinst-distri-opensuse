@@ -153,7 +153,7 @@ Return product version from SCC and product name, so-called unversioned products
 
 sub get_product_version {
     my ($name) = @_;
-    my $version = scc_version(get_var('VERSION', ''));
+    my $version = scc_version(get_var('VERSION_UPGRADE_FROM', get_var('VERSION_TO_INSTALL', get_var('VERSION', ''))));
     return $version =~ s/^(\d*)\.\d$/$1/r if is_sle('<15') && grep(/^$name$/, @unversioned_products);
     return $version;
 }

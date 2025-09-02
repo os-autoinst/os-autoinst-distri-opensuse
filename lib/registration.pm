@@ -13,7 +13,6 @@ use Utils::Backends qw(is_qemu);
 use serial_terminal 'select_serial_terminal';
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry script_output_retry wait_for_purge_kernels);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama);
-use transactional qw(trup_call process_reboot);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 use YaST::workarounds;
@@ -174,7 +173,7 @@ in format X-SPY into X.Y.
 
 sub scc_version {
     my $version = shift;
-    $version //= get_required_var('VERSION');
+    $version //= get_var('VERSION_UPGRADE_FROM', get_var('VERSION_TO_INSTALL', get_var('VERSION', '')));
     return $version =~ s/-SP/./gr;
 }
 
