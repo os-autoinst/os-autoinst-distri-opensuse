@@ -697,6 +697,7 @@ elsif (is_public_cloud) {
 }
 elsif (is_container_test) {
     load_container_tests();
+    load_helm_chart_tests() if (get_var("HELM_CHART"));
 }
 elsif (get_var("NFV")) {
     load_kernel_baremetal_tests();
