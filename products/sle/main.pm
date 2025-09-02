@@ -773,27 +773,6 @@ elsif (get_var('SMT')) {
 elsif (get_var("HA_CLUSTER")) {
     load_ha_cluster_tests();
 }
-elsif (get_var("QA_TESTSET")) {
-    boot_hdd_image;
-    if (get_var('INSTALL_KOTD')) {
-        loadtest 'kernel/install_kotd';
-    }
-    if (check_var('QA_TESTSET', 'kernel_kexec')) {
-        loadtest 'kernel/kernel_kexec';
-    }
-    elsif (check_var('QA_TESTSET', 'kernel_multipath')) {
-        loadtest 'kernel/multipath_iscsi';
-    }
-    else {
-        loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
-    }
-}
-elsif (get_var("QA_TESTSUITE")) {
-    boot_hdd_image;
-    loadtest "qa_automation/prepare_qa_repo";
-    loadtest "qa_automation/install_test_suite";
-    loadtest "qa_automation/execute_test_run";
-}
 elsif (get_var('XFSTESTS')) {
     if (get_var('CHANGE_KERNEL_REPO') ||
         get_var('CHANGE_KERNEL_PKG') ||
