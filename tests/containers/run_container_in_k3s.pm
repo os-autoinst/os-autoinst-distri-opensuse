@@ -54,12 +54,6 @@ sub run {
         assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
         validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
     }
-
-}
-
-sub cleanup {
-    my ($self) = @_;
-    uninstall_k3s();
 }
 
 sub post_fail_hook {
@@ -71,12 +65,10 @@ sub post_fail_hook {
     record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
     script_run('kubectl describe pods --all-namespaces');
     script_run('kubectl describe jobs --all-namespaces');
-    $self->cleanup();
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->cleanup();
 }
 
 
