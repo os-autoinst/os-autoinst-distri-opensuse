@@ -40,7 +40,7 @@ sub run {
 
     # 2. Check if the SUT has apparmor
     # If apparmor is available, the return value is 0
-    assert_script_run('systemctl restart apparmor') if script_run('systemctl status apparmor | grep "Active: active"');
+    assert_script_run('systemctl restart apparmor') if script_run('systemctl status apparmor | grep "Active: active"') == 0;
 
     # Search for an event based on the given filename
     assert_script_run("ausearch -f /etc/hostname > $tmp_output");
