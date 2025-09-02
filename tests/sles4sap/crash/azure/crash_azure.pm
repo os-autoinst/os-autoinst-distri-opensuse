@@ -22,7 +22,7 @@ sub run {
     # Crash test
     my $ssh_cmd = get_required_var('SSH_CMD');
     my $vm_ip = get_required_var('VM_IP');
-    my $instance = publiccloud::instance->new(public_ip => $vm_ip);
+    my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
 
     record_info('PATCH', 'Fully patch system start');
     my $remote = '-o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
