@@ -2,7 +2,6 @@ name: fips_ker_mode_textmode_core
 description:    >
     This is for FIPS testing of core modules in kernel mode on a textmode system.
 schedule:
-    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - fips/fips_setup
