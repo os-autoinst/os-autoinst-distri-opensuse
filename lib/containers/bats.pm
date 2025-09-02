@@ -260,6 +260,7 @@ sub bats_setup {
     }
     # We use xz to compress core files
     push @pkgs, "xz";
+    @pkgs = uniq sort @pkgs;
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 300;
 
     configure_oci_runtime $oci_runtime;

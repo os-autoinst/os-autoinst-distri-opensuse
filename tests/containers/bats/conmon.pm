@@ -10,13 +10,12 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils qw(is_tumbleweed);
 use containers::bats;
-
-my $oci_runtime;
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
+    my ($rootless, $oci_runtime, $skip_tests) = ($params{rootless}, $params{oci_runtime}, $params{skip_tests});
 
     return 0 if check_var($skip_tests, "all");
 
@@ -25,7 +24,7 @@ sub run_tests {
         RUNTIME_BINARY => "/usr/bin/$oci_runtime",
     );
 
-    my $log_file = "conmon-" . ($rootless ? "user" : "root");
+    my $log_file = "conmon-$oci_runtime-" . ($rootless ? "user" : "root");
 
     return bats_tests($log_file, \%env, $skip_tests, 800);
 }
@@ -34,9 +33,14 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
+    my @oci_runtimes = ();
     my @pkgs = qw(conmon);
-    $oci_runtime = get_var("OCI_RUNTIME", "runc");
-    push @pkgs, $oci_runtime;
+    if (my $oci_runtime = get_var("OCI_RUNTIME")) {
+        push @oci_runtimes, $oci_runtime;
+    } else {
+        push @oci_runtimes, is_tumbleweed ? qw(crun runc) : qw(runc);
+    }
+    push @pkgs, @oci_runtimes;
 
     $self->bats_setup(@pkgs);
 
@@ -47,11 +51,17 @@ sub run {
     # Download conmon sources
     bats_sources $conmon_version;
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
+    my $errors = 0;
+
+    foreach my $oci_runtime (@oci_runtimes) {
+        $errors += run_tests(rootless => 1, oci_runtime => $oci_runtime, skip_tests => 'BATS_IGNORE_USER');
+    }
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+    foreach my $oci_runtime (@oci_runtimes) {
+        $errors += run_tests(rootless => 0, oci_runtime => $oci_runtime, skip_tests => 'BATS_IGNORE_ROOT');
+    }
 
     die "conmon tests failed" if ($errors);
 }
