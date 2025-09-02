@@ -1995,7 +1995,8 @@ sub svirt_host_basedir {
 
  script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
 
-Repeat command until expected result or timeout.
+Repeat a command until the expected result is found or the overall timeout is
+hit.
 
 C<$expect> refers to the expected command exit code and defaults to C<0>.
 
@@ -2005,7 +2006,7 @@ C<$delay> is the time between retries and defaults to C<30>.
 
 C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
 
-The command must return within C<$timeout> seconds (default: 25).
+The command must return within C<$timeout> seconds (default: 30).
 
 If the command doesn't return C<$expect> after C<$retry> retries,
 this function will die, if C<$die> is set.

@@ -29,12 +29,20 @@ subtest 'script_retry' => sub {
     # This fails on first run but succeeds on second run. Test if we are actually retrying
     is script_retry('rm -f test', retry => 1, delay => 0, timeout => 1), 0, 'removing test file';
     is script_retry('bash -c "if [[ -f test ]]; then exit 0; else touch test; exit 1; fi"', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry - OK on second try";
-    # Note: This is the only test that waits for one second. Disable if time is crucial.
-    dies_ok { script_retry('sleep 10', retry => 1, delay => 0, timeout => 1) } 'script_retry(sleep) is expected to die';
+    my $called = 0;
+    $testapi->redefine('script_run', sub { ++$called; $testapi->original('script_run') });
+    dies_ok { script_retry('sleep 10', retry => 3, delay => 0, timeout => .0001) } 'script_retry(sleep) is expected to die';
     my $cmd;
-    $testapi->redefine('script_run', sub { $cmd = shift; 0 });
+    is $called, 3, 'command called multiple times on timeout';
+    $testapi->redefine('script_run', sub { $cmd = shift; ++$called; 0 });
+    $called = 0;
     is script_retry('true', delay => 0, retry => 2, timeout => 1), 0, 'script_retry(true) is ok mocked to collect call';
     is $cmd, 'timeout -k 5 1 true', 'expected concatenated command (no double spaces)';
+    is $called, 1, 'command called once for successful execution';
+    $called = 0;
+    $testapi->redefine('script_run', sub { ++$called; 1 });
+    throws_ok { script_retry('false', retry => 3, delay => 0, timeout => .0001, fail_message => 'will fail') } qr/will fail/, 'expected to die on false';
+    is $called, 3, 'command called multiple times on failing command';
 };
 
 
