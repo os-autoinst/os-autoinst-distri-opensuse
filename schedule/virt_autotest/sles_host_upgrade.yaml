@@ -1,0 +1,37 @@
+name: sles_host_upgrade.yaml
+description: |
+  Host upgrade from previous SLES equivalent to current SLES textmode.
+schedule:
+  - '{{prepare_host_installation}}'
+  - '{{prepare_virtualization}}'
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - '{{network_prepare}}'
+  - yam/migration/migration_unattended
+  - installation/grub_test
+  - installation/first_boot
+  - console/zypper_lr
+  - yam/validate/validate_migration_logs
+  - '{{verify_virtualization}}'
+conditional_schedule:
+  prepare_host_installation:
+    BACKEND:
+      qemu:
+        - yam/migration/setup_upgrade_env
+        - autoyast/prepare_profile
+        - installation/bootloader_start
+        - autoyast/installation
+        - installation/first_boot
+  prepare_virtualization:
+    VIRT_AUTOTEST:
+      '1':
+        - virt_autotest/prepare_non_transactional_server
+        - virt_autotest/unified_guest_installation
+  network_prepare:
+    BACKEND:
+      qemu:
+        - console/hostname
+  verify_virtualization:
+    VIRT_AUTOTEST:
+      '1':
+        - virt_autotest/verify_virtualization

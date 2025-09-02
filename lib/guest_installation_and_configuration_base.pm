@@ -42,6 +42,7 @@ use version_utils;
 use Utils::Systemd;
 use mm_network;
 use Utils::Architectures;
+use Utils::Backends;
 use guest_installation_and_configuration_metadata;
 
 our $AUTOLOAD;
@@ -162,7 +163,7 @@ sub revise_guest_version_and_build {
 
     $self->reveal_myself;
     if ($self->{guest_version} eq '') {
-        $self->{guest_version} = ((get_var('REPO_0_TO_INSTALL', '') eq '') ? (lc get_required_var('VERSION')) : (lc get_required_var('TARGET_DEVELOPING_VERSION')));
+        $self->{guest_version} = ((get_var('REPO_0_TO_INSTALL', '') eq '') ? (lc get_required_var('VERSION')) : (lc get_required_var('VERSION_TO_INSTALL')));
         record_info("Guest $self->{guest_name} does not have guest_version set.Set it to test suite setting VERSION", "Please pay attention ! It is now $self->{guest_version}");
     }
 
@@ -250,10 +251,11 @@ sub prepare_common_environment {
         virt_autotest::utils::setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
         script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
-        $_host_params{host_sutip} = get_required_var('SUT_IP');
+        $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
         my $_default_device = ((!$_default_route) ? 'br0' : (split(' ', script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1")))[4]);
         $_host_params{host_ipaddr} = (split('/', (split(' ', script_output("ip addr show dev $_default_device | grep \"inet \"")))[1]))[0];
+        $_host_params{host_sutip} = $_host_params{host_ipaddr} if (is_qemu);
         $_host_params{host_name} = script_output("hostname");
         # For SUTs with multiple interfaces, `dnsdomainname` sometimes does not work
         $_host_params{host_domain_name} = script_output("dnsdomainname", proceed_on_failure => 1);
@@ -404,10 +406,10 @@ sub config_guest_name {
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_installation_result} eq '') {
-        $self->{guest_domain_name} = 'testvirt.net' if ($self->{guest_domain_name} eq '');
         if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
             $self->{guest_domain_name} = $_host_params{host_domain_name};
         }
+        $self->{guest_domain_name} = 'testvirt.net' if ($self->{guest_domain_name} eq '');
         $self->{guest_name_options} = "--name $self->{guest_name}";
     }
     return $self;
@@ -493,6 +495,30 @@ sub config_guest_memory {
     $self->{guest_memory_options} .= " --memorybacking $self->{guest_memorybacking}" if ($self->{guest_memorybacking} ne '');
     if (($self->{guest_installation_result} eq 'PASSED') and ($_current_memory_options ne $self->{guest_memory_options})) {
         $self->modify_guest_params($self->{guest_name}, 'guest_memory_options');
+    }
+    return $self;
+}
+
+=head2 config_guest_numa
+
+  config_guest_numa($self[, guest_numatune => 'numatune'])
+
+Configure [guest_numa_options]. User can still change [guest_numatune], by
+passing non-empty arguments using hash. If installation already passes,
+modify_guest_params will be called to modify [guest_numatune] using already
+modified [guest_numa_options].
+
+=cut
+
+sub config_guest_numa {
+    my $self = shift;
+
+    $self->reveal_myself;
+    my $_current_numa_options = $self->{guest_numa_options};
+    $self->config_guest_params(@_) if (scalar(@_) gt 0);
+    $self->{guest_numa_options} .= " --numatune $self->{guest_numatune}" if ($self->{guest_numatune} ne '');
+    if (($self->{guest_installation_result} eq 'PASSED') and ($_current_numa_options ne $self->{guest_numa_options})) {
+        $self->modify_guest_params($self->{guest_name}, 'guest_numa_options');
     }
     return $self;
 }
@@ -1158,7 +1184,8 @@ sub config_guest_network_vnet_services {
 Loosen iptables rules for [guest_network_device]. Additionally, write commands
 executed into crontab to re-execute them automatically on reboot if host reboots
 somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug
-bsc#1222229.
+bsc#1222229. Calling virt_autotest::virtual_network_utils::config_network_device_policy
+to do the actual work.
 
 =cut
 
@@ -1166,36 +1193,7 @@ sub config_guest_network_vnet_policy {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_network_policy_config_file = $_host_params{common_log_folder} . '/network_policy_vnet_device_' . $self->{guest_network_device} . '.sh';
-    type_string("cat > $_network_policy_config_file <<EOF
-#!/bin/bash
-HOME=/root
-LOGNAME=root
-PATH=/sbin:/usr/sbin:/usr/local/sbin:/root/bin:/usr/local/bin:/usr/bin:/bin
-LANG=POSIX
-SHELL=/bin/bash
-PWD=/root
-iptables-save > $self->{guest_log_folder}/iptables_before_modification_by_$self->{guest_name}
-systemctl stop firewalld
-systemctl disable firewalld
-systemctl stop apparmor
-systemctl disable apparmor
-systemctl stop named
-systemctl disable named
-systemctl stop dhcpd
-systemctl disable dhcpd
-iptables --append FORWARD --in-interface $self->{guest_network_device} -j ACCEPT;
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.ipv4.conf.all.forwarding=1
-iptables-save > $self->{guest_log_folder}/iptables_after_modification_by_$self->{guest_name}
-EOF
-");
-    foreach (split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1))) {
-        script_run("iptables --table nat --append POSTROUTING --out-interface $_ -j MASQUERADE");
-    }
-    assert_script_run("chmod 777 $_network_policy_config_file");
-    record_info("Network policy config file", script_output("cat $_network_policy_config_file", proceed_on_failure => 0));
-    script_run("$_network_policy_config_file", timeout => 60);
+    my $_network_policy_config_file = virt_autotest::virtual_network_utils::config_network_device_policy(logdir => $self->{guest_log_folder}, name => $self->{guest_name}, netdev => $self->{guest_network_device});
     $self->schedule_tasks_on_boot(_task => "$_network_policy_config_file");
     return $self;
 }
@@ -1338,7 +1336,8 @@ Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and
 on all default route devices and [guest_network_device]. Additionally, write
 commands executed into crontab to re-execute them automatically on reboot if host
 reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product
-bug bsc#1222229.
+bug bsc#1222229. Calling virt_autotest::virtual_network_utils::config_network_device_policy
+to do the actual work.
 
 =cut
 
@@ -1346,47 +1345,7 @@ sub config_guest_network_bridge_policy {
     my ($self, $_guest_network_device) = @_;
 
     $self->reveal_myself;
-    my @_default_route_devices = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", proceed_on_failure => 0));
-    my $_iptables_default_route_devices = '';
-    $_iptables_default_route_devices = "iptables --table nat --append POSTROUTING --out-interface $_ -j MASQUERADE\n" . $_iptables_default_route_devices foreach (@_default_route_devices);
-    my $_network_policy_config_file = $_host_params{common_log_folder} . '/network_policy_bridge_device_' . $_guest_network_device . '_default_route_device';
-    $_network_policy_config_file = $_network_policy_config_file . '_' . $_ foreach (@_default_route_devices);
-    $_network_policy_config_file = $_network_policy_config_file . '.sh';
-    type_string("cat > $_network_policy_config_file <<EOF
-#!/bin/bash
-HOME=/root
-LOGNAME=root
-PATH=/sbin:/usr/sbin:/usr/local/sbin:/root/bin:/usr/local/bin:/usr/bin:/bin
-LANG=POSIX
-SHELL=/bin/bash
-PWD=/root
-iptables-save > $self->{guest_log_folder}/iptables_before_modification_by_$self->{guest_name}
-systemctl stop SuSEFirewall2
-systemctl disable SuSEFirewall2
-systemctl stop firewalld
-systemctl disable firewalld
-systemctl stop apparmor
-systemctl disable apparmor
-systemctl stop named
-systemctl disable named
-systemctl stop dhcpd
-systemctl disable dhcpd
-iptables -P INPUT ACCEPT
-iptables -P FORWARD ACCEPT
-iptables -P OUTPUT ACCEPT
-iptables -t nat -F
-iptables -F
-iptables -X
-$_iptables_default_route_devices
-iptables --append FORWARD --in-interface $_guest_network_device -j ACCEPT
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.ipv4.conf.all.forwarding=1
-iptables-save > $self->{guest_log_folder}/iptables_after_modification_by_$self->{guest_name}
-EOF
-");
-    assert_script_run("chmod 777 $_network_policy_config_file");
-    record_info("Network policy config file", script_output("cat $_network_policy_config_file", proceed_on_failure => 0));
-    script_run("$_network_policy_config_file", timeout => 60);
+    my $_network_policy_config_file = virt_autotest::virtual_network_utils::config_network_device_policy(logdir => $self->{guest_log_folder}, name => $self->{guest_name}, netdev => $_guest_network_device);
     $self->schedule_tasks_on_boot(_task => "$_network_policy_config_file");
     return $self;
 }
@@ -2198,7 +2157,7 @@ sub config_guest_installation_command {
 
     $self->reveal_myself;
     $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} "
-      . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
+      . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_numa_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
       . "$self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
       . "$self->{guest_installation_method_options} $self->{guest_installation_automation_options} $self->{guest_installation_extra_args_options} "
       . "$self->{guest_graphics_and_video_options} $self->{guest_sysinfo_options} $self->{guest_serial_options} $self->{guest_channel_options} "
@@ -2285,6 +2244,7 @@ sub prepare_guest_installation {
     $self->config_guest_name;
     $self->config_guest_vcpus;
     $self->config_guest_memory;
+    $self->config_guest_numa;
     $self->config_guest_os_variant;
     $self->config_guest_virtualization;
     $self->config_guest_platform;
@@ -2377,7 +2337,9 @@ sub get_guest_installation_session {
         record_info("Guest $self->{guest_name} installation screen process info had already been known", "$self->{guest_name} $self->{guest_installation_session}");
         return $self;
     }
-    my $installation_tty = script_output("tty | awk -F\"/\" 'BEGIN { OFS=\"-\" } {print \$3,\$4}\'", proceed_on_failure => 1);
+    my $installation_tty = script_output("tty | awk -F\"/\" \'{print \$3}'", proceed_on_failure => 1);
+    my $installation_tty_num = script_output("tty | awk -F\"/\" \'{print \$4}\'", proceed_on_failure => 1);
+    $installation_tty = $installation_tty . '-' . $installation_tty_num if ($installation_tty_num ne '');
     #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
     my $installation_pid = script_output("ps ax | grep -i \"SCREEN -t $self->{guest_name}\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1);
     $self->{guest_installation_session} = (($installation_pid eq '') ? '' : ($installation_pid . ".$installation_tty." . (split(/\./, $_host_params{host_name}))[0]));
@@ -2485,7 +2447,7 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(agama-installer-live-root text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(autoyast-packages-being-installed agama-installer-live-root text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
@@ -2554,8 +2516,12 @@ sub monitor_guest_installation {
         }
         $self->{guest_installation_attached} = 'false';
     }
-    elsif (match_has_tag('guest-installation-in-progress')) {
+    elsif (match_has_tag('guest-installation-in-progress') or match_has_tag('autoyast-packages-being-installed')) {
         save_screenshot;
+        if (match_has_tag('autoyast-packages-being-installed')) {
+            send_key('ret');
+            save_screenshot;
+        }
         record_info("Guest $self->{guest_name} installation is still in progress", "Sit back and wait");
     }
     save_screenshot;
@@ -2654,8 +2620,7 @@ sub verify_guest_agama_installation_done {
         enter_cmd("exit");
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
-            reset_consoles;
-            select_console('root-ssh');
+            select_backend_console(init => 0);
             $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
@@ -2712,8 +2677,7 @@ sub save_guest_agama_installation_logs {
         enter_cmd("exit");
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
-            reset_consoles;
-            select_console('root-ssh');
+            select_backend_console(init => 0);
             $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
@@ -2763,22 +2727,25 @@ sub check_guest_installation_result_via_ssh {
     $self->reveal_myself;
     my $_guest_transient_hostname_via_ipaddr = '';
     my $_guest_transient_hostname_via_name = '';
+    my $_ret = 1;
     record_info("Going to use guest $self->{guest_name} ip address to detect installation result directly.", "No any interested needle or text-login/guest-console-text-login needle is detected.Just a moment");
     $self->get_guest_ipaddr if (is_agama_guest(guest => $self->{guest_name}) or is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
+        $_ret = script_run("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", timeout => 60);
         $_guest_transient_hostname_via_ipaddr = script_output("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
         save_screenshot;
-        if ($_guest_transient_hostname_via_ipaddr ne '') {
+        if ($_guest_transient_hostname_via_ipaddr ne '' and $_ret == 0) {
             record_info("Guest $self->{guest_name} can be connected via ssh using ip $self->{guest_ipaddr} directly", "So far so good.");
             if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
-                $_guest_transient_hostname_via_ipaddr =~ s/.$self->{guest_domain_name}//g;
+                $_guest_transient_hostname_via_ipaddr =~ s/\.$self->{guest_domain_name}//g;
                 virt_autotest::utils::add_alias_in_ssh_config('/root/.ssh/config', $_guest_transient_hostname_via_ipaddr, $self->{guest_domain_name}, $self->{guest_name});
             }
             save_screenshot;
+            $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
             $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
             save_screenshot;
-            if ($_guest_transient_hostname_via_name ne '') {
+            if ($_guest_transient_hostname_via_name ne '' and $_ret == 0) {
                 record_info("Installation succeeded with good ssh connection for guest $self->{guest_name}", "Well done ! Mark it as PASSED");
                 $self->record_guest_installation_result('PASSED');
             }
@@ -2786,13 +2753,15 @@ sub check_guest_installation_result_via_ssh {
                 if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
                     virt_autotest::utils::add_guest_to_hosts("$_guest_transient_hostname_via_ipaddr", $self->{guest_ipaddr});
                     virt_autotest::utils::add_guest_to_hosts("$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name}", $self->{guest_ipaddr});
+                    $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", timeout => 60);
                     $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", proceed_on_failure => 1);
                 }
                 else {
                     virt_autotest::utils::add_guest_to_hosts($self->{guest_name}, $self->{guest_ipaddr});
+                    $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
                     $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
                 }
-                if ($_guest_transient_hostname_via_name ne '') {
+                if ($_guest_transient_hostname_via_name ne '' and $_ret == 0) {
                     record_info("Installation succeeded with good ssh connection for guest $self->{guest_name} using /etc/hosts", "Although querying guest with FQDN failed, still mark installation as PASSED", result => 'fail');
                     $self->record_guest_installation_result('PASSED');
                 }
@@ -3056,8 +3025,7 @@ sub do_detach_guest_installation_screen {
     }
     else {
         record_info("Failed to detach $self->{guest_name} installation screen process $self->{guest_installation_session}", "Bad luck !");
-        reset_consoles;
-        select_console('root-ssh');
+        select_backend_console(init => 0);
         $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
         type_string("reset\n");
         wait_still_screen;
@@ -3331,7 +3299,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs");
+    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;

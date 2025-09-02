@@ -135,6 +135,7 @@ our @EXPORT = qw(
   install_extra_packages
   render_autoinst_url
   is_agama_guest
+  upload_folders
 );
 
 our @EXPORT_OK = qw(
@@ -3265,7 +3266,10 @@ sub is_reboot_needed {
 
     my $check_reboot_needed = "zypper needs-rebooting";
     $check_reboot_needed = "ssh $args{username}\@$args{address} \"$check_reboot_needed\"" if ($args{address} ne 'localhost');
-    return 1 if (script_run("$check_reboot_needed") == 102 or get_var('NEEDS_REBOOTING'));
+    if (script_run("$check_reboot_needed") == 102 or get_var('_NEEDS_REBOOTING')) {
+        set_var('_NEEDS_REBOOTING', 0);
+        return 1;
+    }
     return 0;
 }
 
@@ -3365,6 +3369,35 @@ sub is_agama_guest {
 
     croak("Guest or domain name must be given") if (!$args{guest});
     return $args{guest} =~ /agama/img;
+}
+
+=head2 upload_folders
+
+ upload_folders(folders => 'absolute path to folder separated by commas');
+
+Compress folders to files and call upload_logs to upload. The arguments are folders
+which accept absolute path to folders and store which indicates the absolute path to
+a folder that stores compressed files
+=cut
+
+sub upload_folders {
+    my %args = @_;
+    $args{folders} //= '';
+    $args{store} //= '/var/log';
+    $args{failok} //= 1;
+    $args{cleanup} //= 1;
+
+    croak("Absolute path to folders must be given") if (!$args{folders});
+    foreach my $folder (split(/,/, $args{folders})) {
+        my $file = $folder;
+        $file =~ s|/$|| if ($file ne '/');
+        $file =~ s/\//_/g;
+        $file =~ s/^_+//g if ($file ne '_');
+        $args{store} =~ s|/$|| if ($args{store} ne '/');
+        script_run("tar -I 'gzip -9' -cvf $args{store}/$file.tar.gz $folder");
+        upload_logs("$args{store}/$file.tar.gz", failok => $args{failok});
+        script_run("rm -f -r $args{store}/$file.tar.gz") if ($args{cleanup});
+    }
 }
 
 1;
