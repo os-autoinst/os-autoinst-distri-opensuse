@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: audio-html-config
+data:
+  audio.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Sample audio file</title>
+    </head>
+    <body>
+      <audio loop controls> <!-- autoplay is blocked in modern browsers -->
+        <source src="https://github.com/os-autoinst/os-autoinst-distri-opensuse/raw/refs/heads/master/data/bar.wav" type="audio/wav">
+        Your browser does not support the audio tag.
+      </audio>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-test
+  labels:
+    app: nginx-test
+spec:
+  containers:
+    - name: nginx
+      image: registry.suse.com/suse/nginx
+      volumeMounts:
+        - name: html-volume
+          mountPath: /srv/www/htdocs/audio.html
+          subPath: audio.html
+  volumes:
+    - name: html-volume
+      configMap:
+        name: audio-html-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-test
+spec:
+  type: ClusterIP
+  clusterIP: 10.43.0.69
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nginx-test

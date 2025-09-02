@@ -1,6 +1,6 @@
 # SUSE"s openQA tests
 #
-# Copyright 2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Deploy X11, pulseaudio, firefox kiosk
@@ -21,11 +21,14 @@ sub run {
 
     select_serial_terminal;
     my $helm_chart = get_required_var("HELM_CHART");
-    my $helm_values = autoinst_url("/data/containers/kiosk_helm_values.yaml");
+    my $helm_values = autoinst_url("/data/containers/helm/kiosk/values.yaml");
 
     # Install helm
-    set_var('HELM_INSTALL_UPSTREAM', 1);
     install_helm();
+
+    # Run an nginx container with a test page and wait for it
+    assert_script_run("kubectl apply -f " . autoinst_url("/data/containers/helm/kiosk/nginx.yaml"));
+    assert_script_run("kubectl wait --for=condition=Ready pod/nginx-test --timeout=60s");
 
     # login to graphical tty before starting
     select_console 'root-console';
@@ -36,20 +39,15 @@ sub run {
 
     # Verify the firefox kiosk container started
     select_console 'root-console';
-    assert_screen("firefox_kiosk", 300);
-    assert_and_click("firefox_play_audio");
-    # Enable loop play to ensure the "pactl list sink-inputs" can get a verbose list for each active audio stream
-    assert_and_click("firefox_loop_play");
+    assert_screen 'firefox_kiosk', 300;
+    assert_and_click 'firefox_play_audio';
 
     select_serial_terminal;
 
-    my $pod_name = script_output("kubectl get pods -o name | cut -d '/' -f 2");
+    my $pod_name = script_output("kubectl get pods -o name | grep kiosk | cut -d '/' -f 2");
 
-    # check if pulseaudio is running
-    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m);
-
-    # check if firefox allocates a sink
-    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m);
+    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m), fail_message => 'pulseaudio is not running';
+    validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m), fail_message => 'firefox did not allocate an audio sink';
 
     assert_script_run("helm uninstall kiosk");
 }
