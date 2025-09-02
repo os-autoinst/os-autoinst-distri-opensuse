@@ -604,7 +604,7 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <pre><code>script_retry($cmd, [expect =&gt; $expect], [retry =&gt; $retry], [delay =&gt; $delay], [timeout =&gt; $timeout], [die =&gt; $die]);</code></pre>
 
-<p>Repeat command until expected result or timeout.</p>
+<p>Repeat a command until the expected result is found or the overall timeout is hit.</p>
 
 <p><code>$expect</code> refers to the expected command exit code and defaults to <code>0</code>.</p>
 
@@ -614,7 +614,7 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p><code>$fail_message</code> is an optional error message in case of failure. Defaults to &quot;Waiting for Godot&quot;.</p>
 
-<p>The command must return within <code>$timeout</code> seconds (default: 25).</p>
+<p>The command must return within <code>$timeout</code> seconds (default: 30).</p>
 
 <p>If the command doesn&#39;t return <code>$expect</code> after <code>$retry</code> retries, this function will die, if <code>$die</code> is set.</p>
 
