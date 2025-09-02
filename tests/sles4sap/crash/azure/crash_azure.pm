@@ -27,11 +27,7 @@ sub run {
     record_info('PATCH', 'Fully patch system start');
     my $remote = '-o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
     ssh_fully_patch_system($remote);
-    assert_script_run(join(' ',
-            $ssh_cmd,
-            'sudo',
-            'reboot'),
-        timeout => 600);
+    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
