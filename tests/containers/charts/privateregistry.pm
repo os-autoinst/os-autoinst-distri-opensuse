@@ -44,14 +44,16 @@ sub run {
     foreach my $component (@private_registry_components) {
         validate_script_output_retry("kubectl get pods -l component=$component", qr/$component/, title => "$component status:", fail_message => "$release_name-$component didn't deploy");
         my $full_pod_name = script_output("kubectl get pods -l component=$component --no-headers -o custom-columns=':metadata.name'");
-        validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", fail_message => "$full_pod_name is not in the Ready state!");
-
+        validate_script_output_retry("kubectl get pod $full_pod_name --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "$component readiness", retry => 10, delay => 30, fail_message => "$full_pod_name is not in the Ready state");
     }
 
-    #Install Traefik manually
-    assert_script_run("helm install traefik oci://ghcr.io/traefik/helm/traefik --namespace kube-system");
-    my $traefik_pod = script_output("kubectl get pods -n kube-system --no-headers -l app.kubernetes.io/name=traefik -o custom-columns=':metadata.name'");
-    validate_script_output_retry("kubectl get pod $traefik_pod -n kube-system --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "Traefik readiness");
+    # Install Traefik manually when not pre-installed
+    # TODO: Remove this part, once the k3s installation has been moved to the "Create HDD" job.
+    if (script_output("kubectl get pods -n kube-system") !~ /traefik/) {
+        assert_script_run("helm install traefik oci://ghcr.io/traefik/helm/traefik --namespace kube-system");
+        my $traefik_pod = script_output("kubectl get pods -n kube-system --no-headers -l app.kubernetes.io/name=traefik -o custom-columns=':metadata.name'");
+        validate_script_output_retry("kubectl get pod $traefik_pod -n kube-system --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "Traefik readiness");
+    }
 
 
     # Get the webui credentials & ingress url
