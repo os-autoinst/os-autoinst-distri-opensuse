@@ -77,6 +77,7 @@ set retry_times 2
 set ret_result 1
 set fail_string sad_to_fail
 set pass_string glad_go_pass
+set supportconfig_excluded_features "aFSLIST AUDIT SELINUX"
 
 while { \${retry_times} > 0 } {
       if { \${hypervisor} == {KVM} } {
@@ -105,7 +106,10 @@ while { \${retry_times} > 0 } {
          expect -re "~( |\\\])#"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
-            send "supportconfig -y -A -x aFSLIST,AUDIT,SELINUX -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
+            send "export excluded_features=\"\""
+            send "for feature in \${supportconfig_excluded_features};do if supportconfig -F | grep -i \$feature &> /dev/null;then excluded_features=\"\${excluded_features},\$feature\";fi;done"
+            send "excluded_features=\${excluded_features#,}"
+            send "supportconfig -y -A -x \${excluded_features} -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
          }
          if { \${extra_logs} == {sos_report} } {
             send "rm -f -r \${logs_folder}/*sosreport*\r"
@@ -199,8 +203,12 @@ function collect_system_log_and_diagnosis() {
 	   else	   
     	      local time_stamp=`date '+%Y%m%d%H%M%S'`
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -x aFSLIST,AUDIT,SELINUX -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	      ${sshpass_ssh_cmd} supportconfig -y -A -x aFSLIST,AUDIT,SELINUX -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	      local supportconfig_excluded_features="aFSLIST AUDIT SELINUX"
+	      local excluded_features=""
+	      for feature in ${supportconfig_excluded_features};do if supportconfig -F | grep -i $feature &> /dev/null;then excluded_features="${excluded_features},$feature";fi;done
+	      excluded_features=${excluded_features#,}
+	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -x ${excluded_features} -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      ${sshpass_ssh_cmd} supportconfig -y -A -x ${excluded_features} -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
 	   fi
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then

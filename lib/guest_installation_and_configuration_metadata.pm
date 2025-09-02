@@ -47,6 +47,7 @@ our %_guest_params = (
     'guest_name' => '',    # virt-install --name [guest_name]
     'guest_domain_name' => '',    # this will be used for dns configuration, not virt-install argument
     'guest_memory' => '',    # virt-install --memory [guest_memory]
+    'guest_numatune' => '',    # virt-install --numatune [guest_numatune]
     'guest_vcpus' => '',    # virt-install --vcpus [guest_vcpus]
     'guest_cpumodel' => '',    # virt-install --cpu [guest_cpumodel]
     'guest_metadata' => '',    # virt-install --metadata [guest_metadata]
@@ -202,6 +203,7 @@ our %_guest_params = (
     'guest_name_options' => '',    # [guest_name_options] = "--name [guest_name]"
     'guest_memory_options' => '',    # [guest_memory_options] = "--memory [guest_memory] --memballoon [guest_memballoon]
                                      # --memdev [guest_memdev] --memtune [guest_memtune] --memorybacking [guest_memorybacking]"
+    'guest_numa_options' => '',    # [guest_numa_options] = "--numatune [guest_numatune]"
     'guest_vcpus_options' => '',    # [guest_vcpus_options] = "--vcpus [guest_vcpus]"
     'guest_cpumodel_options' => '',    # [guest_cpumodel_options] = "--cpu [guest_cpumodel]"
     'guest_metadata_options' => '',    # [guest_metadata_options] = "--metadata [guest_metadata]"
