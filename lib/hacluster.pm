@@ -2064,7 +2064,7 @@ Returns full type name ('external/sbd', 'fence_azure_arm', ...).
 =cut
 
 sub get_fencing_type {
-    my $stonith_type = script_output('crm configure show related:stonith | grep primitive');
+    my $stonith_type = script_output('crm configure show type:primitive | grep stonith');
     $stonith_type =~ m/stonith:(.*)\s/;
     return $1;
 }
