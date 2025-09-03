@@ -46,7 +46,7 @@ sub run {
         last if defined($ret) and $ret == 0;
         sleep 10;
     }
-    my $services_output = script_output(join(' ', $ssh_cmd, 'sudo systemctl --failed --no-pager --plain'), 100);
+    my $services_output = script_output(join(' ', $ssh_cmd, $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
     record_info('Failed services', "Service status : $services_output");
     my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
     die "Found failed services:\n$services_output" if @failed_units;
