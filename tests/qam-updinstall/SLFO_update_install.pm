@@ -30,6 +30,10 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures qw(is_s390x);
 
+my @conflicting_packages = (
+    'coreutils-single',
+);
+
 sub get_patch {
     my ($incident_id, $repos) = @_;
     $repos =~ tr/,/ /;
@@ -66,6 +70,7 @@ sub run {
     record_info "Patches", "@patches";
 
     for my $patch (@patches) {
+        my @update_conflicts;
         # Get info about the update patch.
         my $patch_info = script_output("zypper -n info -t patch $patch", 200);
         my @patchinfo = split '\n', $patch_info;
@@ -87,7 +92,35 @@ sub run {
             map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflicting packages: @patch_conflicts\n";
 
+        for my $pkg (@patch_conflicts) {
+            if (grep($pkg eq $_, @conflicting_packages)) {
+                push(@update_conflicts, $pkg);
+                # remove the conflicting package from list which is used for preinstall
+                @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
+            }
+        }
+
         disable_test_repositories($repos_count);
+
+        # install conflicting packages one by one
+        if (@update_conflicts) {
+            record_info 'Conflicts', "@update_conflicts";
+            for my $single_package (@update_conflicts) {
+                record_info 'Conflict preinstall', "Install conflicting package $single_package before update repo is enabled";
+                zypper_call("-v in -l --force-resolution --solver-focus Update $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
+
+                enable_test_repositories($repos_count);
+
+                # Patch binaries already installed.
+                record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
+                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+
+                record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
+                assert_script_run("snapper rollback $rollback_number");
+                reboot_and_login;
+                disable_test_repositories($repos_count);
+            }
+        }
 
         # Install released binaries present in patch
         record_info 'Preinstall', 'Install affected packages before update repo is enabled';
