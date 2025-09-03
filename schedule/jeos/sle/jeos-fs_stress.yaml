@@ -26,6 +26,4 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - qa_automation/prepare_qa_repo
-    - qa_automation/install_test_suite
-    - qa_automation/execute_test_run
+    - console/fs_stress
