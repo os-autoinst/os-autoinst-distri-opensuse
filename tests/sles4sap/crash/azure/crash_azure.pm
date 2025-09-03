@@ -38,14 +38,7 @@ sub run {
         username => 'cloudadmin');
 
     record_info('Wait until', 'Wait until SUT is back again');
-    my $start_time = time();
-    my $ret;
-    while ((time() - $start_time) < 300) {
-        $ret = script_output("ssh -o StrictHostKeyChecking=no cloudadmin\@$vm_ip 'nc -vz -w 2 $vm_ip 22'", quiet => 1);
-        record_info('NC', $ret);
-        last if defined($ret) and $ret =~ /22 port \[tcp\/ssh\] succeeded!/;
-        sleep 10;
-    }
+    $instance->wait_for_ssh(timeout => 600, scan_ssh_host_key => 1);
     my $services_output = script_output(join(' ', 'ssh', $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
     record_info('Failed services', "Service status : $services_output");
     my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
