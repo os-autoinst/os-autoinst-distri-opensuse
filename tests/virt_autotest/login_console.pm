@@ -98,6 +98,39 @@ sub check_kvm_modules {
     record_info("KVM", "kvm modules are loaded!");
 }
 
+# Set up br0 with virt-bridge-setup tool over sol console
+# refer to https://susedoc.github.io/release-notes/sles-16.0/html/release-notes/index.html#v160-virt-bridge-setup
+sub setup_br0 {
+    record_info("setting up br0", "over sol console");
+    select_console 'sol', await_console => 1;
+    send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+    if (check_screen('text-login')) {
+        enter_cmd "root";
+        assert_screen "password-prompt";
+        type_password;
+        send_key 'ret';
+    }
+    assert_screen "text-logged-in-root";
+    # enter_cmd("virt-bridge-setup -m --stp no -d 2>&1 | tee virt-bridge-setup.output");
+    enter_cmd("virt-bridge-setup -d");
+    save_screenshot;
+    enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
+    save_screenshot;
+    enter_cmd("ip a");
+    save_screenshot;
+    sleep 30;
+    enter_cmd("ip a");
+    save_screenshot;
+    enter_cmd("nmcli con");
+    save_screenshot;
+    sleep 30;
+    enter_cmd("ip a");
+    save_screenshot;
+    enter_cmd("nmcli con");
+    save_screenshot;
+    record_info("End", "of setting up br0 on sol console");
+}
+
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
 #the host and upgrade from installation media. Please refer to this document:
@@ -229,6 +262,9 @@ sub login_to_console {
         send_key 'ret';
     }
 
+    # Setup br0
+    setup_br0 if is_sle('16+') and !is_s390x and get_var('VIRT_AUTOTEST');
+
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
     # For SLE15 and TW autoyast installation, sshd configurations have been created in its autoyast profiles
@@ -257,6 +293,24 @@ sub login_to_console {
         assert_script_run("swapoff $swap_partition");
         assert_script_run('swapon --fixpgsz');
         assert_script_run('getconf PAGESIZE');
+    }
+
+    # julie debug
+    unless (is_s390x or !is_agama or !get_var('VIRT_AUTOTEST')) {
+        record_info("Julie debug begin", "");
+        script_run("rpm -q virt-bridge-setup");
+        # end of install
+        script_run("nmcli con");
+        script_run("ip a");
+	script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+	#	enter_cmd("nohup virt-bridge-setup -m --stp no -d 2>&1 | tee virt-bridge-setup.output");
+	script_run("journalctl -e | tail -30");
+	script_run("nmcli con");
+	script_run("ip a");
+	script_run("ls -l");
+	script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+	script_run("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
+        record_info("End of debug", "");
     }
 
     # double-check xen role for xen host

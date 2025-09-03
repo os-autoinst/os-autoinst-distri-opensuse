@@ -543,7 +543,12 @@ sub reconnect_when_ssh_console_broken {
     record_info("WARN", "ssh connection is broken and switch to SOL console", result => 'fail');
     select_console 'sol', await_console => 0;
     # Wait host bootup if it crashes
-    die "Unable to connect machine" unless check_port_state(get_required_var('SUT_IP'), 22, 10);
+    unless (check_port_state(get_required_var('SUT_IP'), 22, 10)) {
+        record_info("WARN", "Unable to connect machine over ssh", result => 'fail');
+        select_console 'sol', await_console => 1;
+        enter_cmd("ip a");   #julie debug
+        enter_cmd("nmcli con");
+    }
     reset_consoles;
     record_info("switch back to ssh console to collect logs");
     select_console('root-ssh');

@@ -32,7 +32,7 @@ sub run {
     $self->prepare_bootloader;
     $self->prepare_services;
     $self->prepare_reboot;
-    $self->prepare_networks;
+    #    $self->prepare_networks;
     $self->restore_ground;
 }
 
