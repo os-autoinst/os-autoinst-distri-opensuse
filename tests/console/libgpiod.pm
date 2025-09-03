@@ -57,7 +57,7 @@ sub run {
     # Set GPIO 31, as output, value 1, for 40 seconds
     assert_script_run("gpioset --daemonize -c $gpiochipX 31=1");
     # Check it is used by gpioset and set as output
-    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:	unnamed         	output consumer=gpioset/ };
+    validate_script_output "gpioinfo -c $gpiochipX | grep 31", sub { m/line  31:    unnamed             output consumer="?gpioset"?/ };
     # Stop daemonized gpioset
     assert_script_run("pkill gpioset");
     # Now, the gpio should be released (but remains as output)
