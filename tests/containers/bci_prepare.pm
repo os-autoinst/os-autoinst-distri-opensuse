@@ -29,6 +29,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::helm;
 use containers::k8s qw(install_k3s install_helm);
+use transactional qw(trup_call reboot_on_changes);
 
 sub prepare_virtual_env {
     my ($version, $sp, $host_distri) = @_;
@@ -49,6 +50,12 @@ sub prepare_virtual_env {
         script_retry("apt-get -y install python3-venv", timeout => $install_timeout);
     } elsif ($host_distri =~ /centos|rhel/) {
         script_retry("dnf install -y --allowerasing git-core python3 jq", timeout => $install_timeout);
+    } elsif ($host_distri =~ /micro/i) {
+        # this works only for sle-micro 6.0 and 6.1
+        # 6.2 is officially sles 16.0 with transactional variant
+        # it is enough to run BCI on server variant only
+        trup_call('pkg in skopeo tar git jq');
+        reboot_on_changes;
     } elsif ($host_distri =~ /opensuse|sles/) {
         my @packages = ('jq', 'skopeo');
         # Avoid PackageKit to conflict about lock with zypper
@@ -74,8 +81,8 @@ sub prepare_virtual_env {
     assert_script_run("$python --version");
     assert_script_run("$python -m venv bci");
     assert_script_run("source $virtualenv");
-    assert_script_run('pip --quiet install --upgrade pip', timeout => $install_timeout);
-    assert_script_run('pip --quiet install tox', timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install --upgrade pip", timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install tox", timeout => $install_timeout);
     assert_script_run('deactivate');
 }
 
@@ -112,7 +119,8 @@ sub run {
     # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     # For BCI tests using podman, buildah package is also needed
-    install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
+    # buildah is not present in any sle-micro, including 6.2
+    install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
 }
 
 sub test_flags {
