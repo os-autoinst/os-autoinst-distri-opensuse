@@ -111,8 +111,8 @@ sub setup_br0 {
         send_key 'ret';
     }
     assert_screen "text-logged-in-root";
-    # enter_cmd("virt-bridge-setup -m --stp no -d 2>&1 | tee virt-bridge-setup.output");
-    enter_cmd("virt-bridge-setup -d");
+    enter_cmd("virt-bridge-setup -m --stp no -d 2>&1 | tee virt-bridge-setup.output");
+    #enter_cmd("virt-bridge-setup -d");
     save_screenshot;
     enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
     save_screenshot;
@@ -298,7 +298,7 @@ sub login_to_console {
     # julie debug
     unless (is_s390x or !is_agama or !get_var('VIRT_AUTOTEST')) {
         record_info("Julie debug begin", "");
-        script_run("rpm -q virt-bridge-setup");
+        script_output("rpm -q virt-bridge-setup");
         # end of install
         script_run("nmcli con");
         script_run("ip a");
