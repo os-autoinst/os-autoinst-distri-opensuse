@@ -220,6 +220,14 @@ sub install_kubevirt_packages {
         foreach (split(' ', $virt_manifests_pkgs), $virt_tests_pkg) {
             $pkgs_from_incident_repo += 1 if (script_output("zypper info $_ | awk -F': ' '/^Repository/{print \$2}'") =~ /^TEST_/);
         }
+        # Patch the kubevirt-operator manifest to use images from the SUSE internal registry
+        my $incident_id = get_required_var('INCIDENT_ID');
+        my $manifest = "/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml";
+        my $src_repo = "registry.suse.com";
+        my $dst_repo = "registry.suse.de/suse/maintenance/$incident_id/containerfile";
+
+        assert_script_run("sed -i 's|$src_repo|$dst_repo|g' $manifest");
+        record_info("Patch kubevirt-operator to suse.de");
 
         if ($pkgs_from_incident_repo < 1) {
             die "No kubevirt packages were installed from incident repositary.";
@@ -729,9 +737,9 @@ sub upload_test_results {
             upload_logs("$html_dir/$_", log_name => "$_");
         }
 
-        my $openqa_host = get_var('OPENQA_URL');
+        my $openqa_url = get_var('OPENQA_URL');
         my $job_id = get_current_job_id();
-        record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/junit-noframes.html");
+        record_info('HTML report URL', "$openqa_url/tests/$job_id/file/junit-noframes.html");
     }
 }
 

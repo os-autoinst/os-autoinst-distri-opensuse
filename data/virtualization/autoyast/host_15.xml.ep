@@ -50,6 +50,12 @@
         <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools-OBS/<%= $get_var->('VERSION') %>/x86_64/update/</media_url>
 	<alias>Development-Tools-OBS-IBS</alias>
       </listentry>
+        % if ($get_var->('CONTM_TEST_ISSUES')) {
+        <listentry>
+          <media_url>http://download.suse.de/ibs/SUSE:/Maintenance:/<%= $get_var->('CONTM_TEST_ISSUES') %>/SUSE_Updates_SLE-Module-Development-Tools-OBS_<%= $get_var->('VERSION') %>_x86_64/</media_url>
+          <alias>TEST_9</alias>
+        </listentry>
+        % }
       % }
       % my $n =0;
       % for my $repo (@$repos) {
