@@ -56,7 +56,8 @@ sub ensure_system_ready_and_register {
         my $cmd = join(' ',
             $args{ssh_command},
             qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com));
-        my $ret = script_output($cmd, timeout => 600);
+        # Ignore no current registration server set.
+        my $ret = script_output("$cmd 2>&1", timeout => 600);
         $ret =~ s/Instance registry setup done, sessions must be restarted !//g;
         #Avoid issue currentSMTInfo.obj
         die "registercloudguest failed: $ret" unless ($ret =~ /(rc-(0|1)\s*$|Registration succeeded)/);
