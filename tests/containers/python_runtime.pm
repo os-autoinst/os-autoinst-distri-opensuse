@@ -206,7 +206,7 @@ sub test ($target) {
 
 sub run {
     my ($self, $args) = @_;
-    $runtime = $args->{runtime};
+    $runtime = $args->{runtime} // get_var("CONTAINER_RUNTIMES");
 
     select_serial_terminal;
 
