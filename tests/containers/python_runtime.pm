@@ -108,6 +108,16 @@ sub setup {
     }
 
     unless ($repo) {
+        # podman-py patches:
+        # - https://github.com/containers/podman-py/pull/572 - tests: Fix tests to reflect removal of rw as default option
+        # - https://github.com/containers/podman-py/pull/575 - tests: Fix deprecation warning for utcfromtimestamp()
+        # docker-py patches:
+        # - https://github.com/docker/docker-py/pull/3199 - Bump default API version to 1.43 (Moby 24.0)
+        # - https://github.com/docker/docker-py/pull/3203 - integration/commit: Don't check for deprecated fields
+        # - https://github.com/docker/docker-py/pull/3206 - Update Ruff, fix some minor issues
+        # - https://github.com/docker/docker-py/pull/3231 - Bump default API version to 1.44 (Moby 25.0)
+        # - https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
+        # - https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
         my @patches = ($runtime eq "podman") ? qw(572 575) : (is_sle("<16") ? qw(3199 3203 3206 3231 3290) : qw(3290 3354));
         foreach my $patch (@patches) {
             my $url = "https://github.com/$github_org/$runtime-py/pull/$patch";
@@ -196,7 +206,7 @@ sub test ($target) {
 
 sub run {
     my ($self, $args) = @_;
-    $runtime = $args->{runtime};
+    $runtime = $args->{runtime} // get_var("CONTAINER_RUNTIMES");
 
     select_serial_terminal;
 
