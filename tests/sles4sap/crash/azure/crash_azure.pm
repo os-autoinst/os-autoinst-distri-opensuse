@@ -42,7 +42,7 @@ sub run {
     my $start_time = time();
     my $ret;
     while ((time() - $start_time) < 300) {
-        $ret = script_run("nc -vz -w 2 $vm_ip 22", quiet => 1);
+        $ret = script_run("ssh -o StrictHostKeyChecking=no cloudadmin\@$vm_ip 'nc -vz -w 2 $vm_ip 22'", quiet => 1);
         last if defined($ret) and $ret == 0;
         sleep 10;
     }
