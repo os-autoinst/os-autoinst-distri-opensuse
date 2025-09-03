@@ -43,7 +43,7 @@ sub run {
     my ($duration, $exit_code, $sshout, $sysout);
     while (($duration = time() - $start_time) < 300) {
         $exit_code = script_run('nc -vz -w 1 ' . $vm_ip . ' 22', quiet => 1);
-        last if (isok($exit_code));    # ssh port open ok
+        last if ($instance->isok($exit_code));    # ssh port open ok
 
         sleep $delay;
     }
