@@ -20,7 +20,6 @@ sub run {
     my ($self) = @_;
 
     # Crash test
-    my $ssh_cmd = get_required_var('SSH_CMD');
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
 
@@ -42,11 +41,12 @@ sub run {
     my $start_time = time();
     my $ret;
     while ((time() - $start_time) < 300) {
-        $ret = script_run("ssh -o StrictHostKeyChecking=no cloudadmin\@$vm_ip 'nc -vz -w 2 $vm_ip 22'", quiet => 1);
-        last if defined($ret) and $ret == 0;
+        $ret = script_output("ssh -o StrictHostKeyChecking=no cloudadmin\@$vm_ip 'nc -vz -w 2 $vm_ip 22'", quiet => 1);
+        record_info('NC', $ret);
+        last if defined($ret) and $ret =~ /22 port \[tcp\/ssh\] succeeded!/;
         sleep 10;
     }
-    my $services_output = script_output(join(' ', $ssh_cmd, $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
+    my $services_output = script_output(join(' ', 'ssh', $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
     record_info('Failed services', "Service status : $services_output");
     my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
     die "Found failed services:\n$services_output" if @failed_units;
