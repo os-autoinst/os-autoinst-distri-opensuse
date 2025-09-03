@@ -21,7 +21,7 @@ use serial_terminal 'select_serial_terminal';
 use containers::utils qw(reset_container_network_if_needed);
 use File::Basename;
 use utils qw(systemctl);
-use version_utils qw(get_os_release check_version);
+use version_utils qw(get_os_release check_version is_sle);
 
 my $error_count;
 
@@ -33,7 +33,7 @@ sub skip_testrun {
     return 1 unless get_var('BCI_TESTS');
 
     # Skip Spack on SLES12-SP5 (https://bugzilla.suse.com/show_bug.cgi?id=1224345)
-    return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && check_version('<15', get_required_var('HOST_VERSION')));
+    return 1 if (check_var('BCI_IMAGE_NAME', 'spack') && is_sle && check_version('<15', get_required_var('HOST_VERSION')));
 
     # Skip Kiwi on RES, CentOS, Ubuntu
     my $bci_image_name = get_var('BCI_IMAGE_NAME');
