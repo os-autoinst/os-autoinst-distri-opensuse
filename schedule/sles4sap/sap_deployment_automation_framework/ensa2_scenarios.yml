@@ -16,8 +16,13 @@ schedule:
   - sles4sap/redirection_tests/ensa2_schedule_sapinstance_tests
   - sles4sap/redirection_tests/ensa2_hanadb_sapcontrol_move_ascs
   - sles4sap/redirection_tests/ensa2_hanadb_refresh_sapinstances
+  - '{{ensa2_setup_Netweaver_WebGUI_access}}'
 conditional_schedule:
   hana_cluster_check:
     HANA_CLUSTER_CHECK:
       1:
         - sles4sap/redirection_tests/hana_cluster_check
+  ensa2_setup_Netweaver_WebGUI_access:
+    SAP_ENABLE_WEBUI:
+      1:
+        - sles4sap/redirection_tests/ensa2_setup_Netweaver_WebGUI_access
