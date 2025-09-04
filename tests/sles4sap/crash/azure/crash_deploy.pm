@@ -36,9 +36,9 @@ sub run {
 
     my $os_ver;
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        $os_ver = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+        $os = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        $os_ver = get_required_var('CLUSTER_OS_VER');
+        $os = $provider->get_image_id();
     }
 
     assert_script_run('rm ~/.ssh/config');

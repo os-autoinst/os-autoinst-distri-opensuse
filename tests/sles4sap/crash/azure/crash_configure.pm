@@ -93,8 +93,6 @@ sub run {
     ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
 
     assert_script_run("$ssh_cmd sudo reboot", timeout => 600);
-    select_serial_terminal;
-    wait_serial(qr/\#/, timeout => 600);
     record_info('Done', 'Test finished');
 }
 
