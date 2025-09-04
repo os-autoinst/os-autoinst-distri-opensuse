@@ -47,7 +47,7 @@ sub run {
     # Resume the instance and wait until it is reachable via SSH
     $provider->resume_instance($instance);
     $instance->update_instance_ip();
-    $instance->wait_for_ssh(scan_ssh_host_key => 1, systemup_check => 0);
+    $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
     # Print the journalctl messages happening during the hibernation period
     $instance->ssh_assert_script_run('sudo chronyc -a makestep');

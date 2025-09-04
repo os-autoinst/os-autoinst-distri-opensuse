@@ -916,12 +916,16 @@ sub upload_supportconfig_log {
 }
 
 sub wait_for_state {
-    my ($self, $state) = @_;
-    my $attempts = 120;
-    while (lc($self->provider->get_state_from_instance($self)) !~ /$state/ && $attempts-- > 0) {
+    my ($self, $state, $timeout) = @_;
+    $timeout //= 1800;
+    my $deadline = time() + $timeout;
+    my $current;
+    while (time() < $deadline) {
+        $current = lc($self->provider->get_state_from_instance($self));
+        return if ($current =~ /$state/);
         sleep 15;
     }
-    die("The instance state is not '$state' but '" . lc($self->provider->get_state_from_instance($self)) . "' instead.") unless ($attempts > 0);
+    die("The instance state is not '$state' but '$current' instead.");
 }
 
 1;
