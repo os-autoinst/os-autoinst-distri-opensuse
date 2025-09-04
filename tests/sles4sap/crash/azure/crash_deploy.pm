@@ -36,7 +36,7 @@ sub run {
 
     my $os_ver;
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        $os_ver = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+        $os_ver = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
         $os_ver = $provider->get_image_id();
     }
