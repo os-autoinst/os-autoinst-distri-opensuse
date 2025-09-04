@@ -1013,7 +1013,7 @@ sub libreoffice_start_program {
     my %start_program_args;
     $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
     x11_start_program($program, %start_program_args);
-    if (check_screen('welcome-to-libreoffice')) {
+    if (check_screen('popup-welcome-to-libreoffice')) {
         send_key "alt-f4";
     }
     if (check_screen([qw(ooffice-tip-of-the-day oomath-tip-of-the-day)], 5)) {
