@@ -31,3 +31,6 @@ repos:
     uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
     enabled: 'No'
     filter: name
+products:
+  - SLES
+  - sle-ha
