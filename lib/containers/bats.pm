@@ -31,6 +31,8 @@ our @EXPORT = qw(
   bats_setup
   bats_sources
   bats_tests
+  install_git
+  mount_tmp_vartmp
   run_command
   switch_to_root
   switch_to_user
@@ -203,7 +205,9 @@ sub patch_logfile {
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
 }
 
-sub fix_tmp {
+# /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
+# Bind-mount it to /var/tmp
+sub mount_tmp_vartmp {
     my $override_conf = <<'EOF';
 [Unit]
 ConditionPathExists=/var/tmp
@@ -287,7 +291,7 @@ sub bats_setup {
     # Disable tmpfs from next boot
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
-        fix_tmp;
+        mount_tmp_vartmp;
     }
 
     # Switch to cgroup v2 if not already active
@@ -340,7 +344,7 @@ sub bats_post_hook {
     assert_script_run "mkdir -p $log_dir || true";
     assert_script_run "cd $log_dir";
 
-    script_run "rm -rf $test_dir";
+    script_run "rm -rf $test_dir" unless ($test_dir eq "/var/tmp/");
 
     collect_calltraces;
     collect_coredumps;
