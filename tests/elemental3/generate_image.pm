@@ -40,7 +40,7 @@ sub run {
     my @sysexts;
 
     # Clean image filename (useful for cloned jobs)
-    $img_filename =~ tr/\/#:/_/;
+    $img_filename =~ tr/\/#/_/;
 
     # Define timeouts based on the architecture
     my $timeout = (is_aarch64) ? 480 : 240;
