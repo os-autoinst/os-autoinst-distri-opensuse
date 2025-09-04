@@ -13,6 +13,7 @@ use strict;
 use warnings FATAL => 'all';
 use testapi;
 use parent 'Installation::WizardPage';
+use version_utils;
 
 use constant {
     PARTITIONING_SCHEME_PAGE => 'inst-partitioning-scheme',
@@ -31,7 +32,10 @@ sub press_next {
 
 sub select_enable_disk_encryption_checkbox {
     assert_screen(PARTITIONING_SCHEME_PAGE);
-    send_key('alt-a');
+    # after https://build.opensuse.org/request/show/1277719 there's a new control
+    # Authentication, which takes the 'alt-a' change is currently in Staging:F
+    my $shortcut = (is_tumbleweed && check_var("VERSION", "Staging:F")) ? 'alt-d' : 'alt-a';
+    send_key($shortcut);
 }
 
 sub enter_password {
