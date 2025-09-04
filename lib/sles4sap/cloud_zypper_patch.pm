@@ -13,8 +13,9 @@ use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
 use mmapi qw(get_current_job_id);
-use sles4sap::azure_cli;
 use publiccloud::utils qw(get_ssh_private_key_path);
+use sles4sap::azure_cli;
+use sles4sap::ibsm;
 
 
 =head1 SYNOPSIS
@@ -180,26 +181,10 @@ sub zp_azure_netpeering {
     my (%args) = @_;
     croak('Argument < target_rg > missing') unless $args{target_rg};
 
-    my $rg = zp_azure_resource_group();
-
-    my $target_vnet = az_network_vnet_get(resource_group => $args{target_rg});
-    my $target_vnet_name = @$target_vnet[0];
-
-    az_network_peering_create(
-        name => join('-', $rg, $vnet, $target_vnet_name),
-        source_rg => $rg,
-        source_vnet => $vnet,
-        target_rg => $args{target_rg},
-        target_vnet => $target_vnet_name);
-    az_network_peering_create(
-        name => zp_ibsm2sut_peering_name(target_rg => $args{target_rg}, target_vnet_name => $target_vnet_name),
-        source_rg => $args{target_rg},
-        source_vnet => $target_vnet_name,
-        target_rg => $rg,
-        target_vnet => $vnet);
-
-    az_network_peering_list(resource_group => $rg, vnet => $vnet);
-    az_network_peering_list(resource_group => $args{target_rg}, vnet => $target_vnet_name);
+    ibsm_network_peering_azure_create(
+        ibsm_rg => $args{target_rg},
+        sut_rg => zp_azure_resource_group(),
+        name_prefix => DEPLOY_PREFIX);
 }
 
 =head2 zp_ssh_connect
