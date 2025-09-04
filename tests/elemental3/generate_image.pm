@@ -39,6 +39,9 @@ sub run {
     my $rke2_sysext_found;
     my @sysexts;
 
+    # Clean image filename (useful for cloned jobs)
+    $img_filename =~ tr/\/#:/_/;
+
     # Define timeouts based on the architecture
     my $timeout = (is_aarch64) ? 480 : 240;
 
@@ -73,7 +76,7 @@ sub run {
 
     # Get the system extensions list
     # NOTE: '/' is mandatory at the end of $sysext_path!
-    my @list = split(/[\r\n]+/, script_output("curl -s ${sysext_path}/ | sed -n 's/.*>\\(.*-.*-.*${sysext_arch}.raw\\)<.*/\\1/p'"));
+    my @list = split(/[\r\n]+/, script_output("curl -s ${sysext_path}/ | sed -n 's/.*href=\"\\(.*_${sysext_arch}.raw\\)\">.*/\\1/p'"));
 
     # Clean the list
     foreach (sort @list) {
