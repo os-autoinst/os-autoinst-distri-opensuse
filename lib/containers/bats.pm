@@ -31,6 +31,7 @@ our @EXPORT = qw(
   bats_setup
   bats_sources
   bats_tests
+  install_git
   mount_tmp_vartmp
   run_command
   switch_to_root
