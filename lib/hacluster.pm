@@ -305,8 +305,9 @@ Returns the number of nodes configured in the cluster.
 =cut
 
 sub get_node_number {
-    my $index = is_sle('15-sp2+') ? 2 : 1;
-    return script_output "crm_mon -1 | awk '/ nodes configured/ { print \$$index }'";
+    my $out = script_output "crm_mon -1";
+    my ($number) = $out =~ /(\d+) nodes configured/ or die "get_node_number: unexpected crm_mon output";
+    return $number;
 }
 
 =head2 get_node_index
