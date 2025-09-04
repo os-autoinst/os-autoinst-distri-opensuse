@@ -17,6 +17,8 @@ sub run {
 
     select_console 'root-console';
 
+    my %expected_repos = map { $_->{alias} => 1 } @{$test_data->{repos}};
+    my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>6 {print \$3}\'"));
     script_output 'zypper -n lr --uri';
 
     foreach my $repo (@{$test_data->{repos}}) {
@@ -29,6 +31,12 @@ sub run {
                 Enabled => $repo->{enabled},
                 Autorefresh => $repo->{autorefresh}
         });
+    }
+    foreach my $alias (@actual_aliases) {
+        continue if ($alias =~ /home_images|home_sles16/);
+        if (!$expected_repos{$alias}) {
+            die("Unexpected repository found: $alias");
+        }
     }
 }
 
