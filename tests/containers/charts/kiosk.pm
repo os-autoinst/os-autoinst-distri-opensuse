@@ -16,6 +16,23 @@ use utils;
 use containers::helm;
 use containers::k8s qw(install_helm);
 
+
+my $base_url = autoinst_url;
+my $audio_html = <<_EOF_;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sample audio file</title>
+</head>
+<body>
+  <audio loop controls> <!-- autoplay is blocked in modern browsers -->
+    <source src="$base_url/data/bar.wav" type="audio/wav">
+    Your browser does not support the audio tag.
+  </audio>
+</body>
+</html>
+_EOF_
+
 sub run {
     my ($self) = @_;
 
@@ -27,6 +44,7 @@ sub run {
     install_helm();
 
     # Run an nginx container with a test page and wait for it
+    assert_script_run("kubectl create configmap audio-html-config --from-literal=audio.html='$audio_html'");
     assert_script_run("kubectl apply -f " . autoinst_url("/data/containers/helm/kiosk/nginx.yaml"));
     assert_script_run("kubectl wait --for=condition=Ready pod/nginx-test --timeout=60s");
 
