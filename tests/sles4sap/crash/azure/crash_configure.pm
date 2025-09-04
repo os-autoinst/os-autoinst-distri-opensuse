@@ -90,12 +90,7 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('SSH', 'VM reachable with SSH');
 
-    my $register_code = get_required_var('SCC_REGCODE_SLES4SAP');
-    my %system_register_args = (
-        reg_code => $register_code,
-        ssh_command => $ssh_cmd,
-    );
-    ensure_system_ready_and_register(%system_register_args);
+    ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
 
     assert_script_run("$ssh_cmd sudo reboot", timeout => 600);
     select_serial_terminal;
