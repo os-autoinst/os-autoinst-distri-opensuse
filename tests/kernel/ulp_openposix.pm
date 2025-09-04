@@ -79,6 +79,8 @@ sub setup_ulp {
         record_info('Tools tests', "No incident provided, testing lastest livepatching tools.");
     }
 
+    my $packver = zypper_search("-sx -t package $packname");
+
     # Find glibc versions targeted by livepatch package
     my $provides = script_output("zypper -n info --provides $repo_args $packname");
     my @versions = $provides =~ m/^\s*libc_([^()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
@@ -98,7 +100,8 @@ sub setup_ulp {
 
     prepare_ltp_env;
     return OpenQA::Test::RunArgs->new(run_id => 0,
-        glibc_versions => \@versions, packname => $packname);
+        glibc_versions => \@versions, packname => $packname,
+        packver => $$packver[0]{version});
 }
 
 sub run {
@@ -136,7 +139,7 @@ sub run {
     if ($tinfo->{run_id} < $#{$tinfo->{glibc_versions}}) {
         my $runargs = OpenQA::Test::RunArgs->new(run_id => $tinfo->{run_id} + 1,
             glibc_versions => $tinfo->{glibc_versions},
-            packname => $tinfo->{packname});
+            packname => $tinfo->{packname}, packver => $tinfo->{packver});
 
         loadtest_kernel('ulp_openposix', run_args => $runargs);
     }
