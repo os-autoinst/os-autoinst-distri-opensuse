@@ -26,10 +26,6 @@ sub run {
         record_info('unsupported', 'Only GCE supports VM suspending. EC2 and Azure do hibernation but that is not supported.');
         return 1;
     }
-    if (is_sle('=15-SP7')) {
-        record_soft_failure('bsc#1245571 - Latest SLES 15 SP7 Image does not suspend on Google Cloud');
-        return 1;
-    }
 
     # Print and record the boot ID
     record_info('UPTIME', $instance->ssh_script_output('awk "{print \$1}" /proc/uptime'));
