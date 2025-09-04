@@ -40,9 +40,6 @@ sub run {
     my $helm_chart = get_required_var("HELM_CHART");
     my $helm_values = autoinst_url("/data/containers/helm/kiosk/values.yaml");
 
-    # Install helm
-    install_helm();
-
     # Run an nginx container with a test page and wait for it
     assert_script_run("kubectl create configmap audio-html-config --from-literal=audio.html='$audio_html'");
     assert_script_run("kubectl apply -f " . autoinst_url("/data/containers/helm/kiosk/nginx.yaml"));
@@ -62,7 +59,7 @@ sub run {
 
     select_serial_terminal;
 
-    my $pod_name = script_output("kubectl get pods -o name | grep kiosk | cut -d '/' -f 2");
+    my $pod_name = script_output("kubectl get pods -o name | awk -F/ '/kiosk/ { print \$2; exit }'");
 
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m, fail_message => 'pulseaudio is not running');
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m, fail_message => 'firefox did not allocate an audio sink');
