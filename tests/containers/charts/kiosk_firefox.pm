@@ -47,10 +47,20 @@ sub run {
     my $pod_name = script_output("kubectl get pods -o name | awk -F/ '/kiosk/ { print \$2 }'");
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m, fail_message => 'pulseaudio is not running');
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m, fail_message => 'firefox did not allocate an audio sink');
+}
 
+sub cleanup {
     assert_script_run("helm uninstall kiosk");
     script_run("kubectl delete -f " . autoinst_url("/data/containers/helm/kiosk/nginx.yaml"));
-    script_run("kubectl create configmap audio-html-config");
+    script_run("kubectl delete configmap audio-html-config");
+}
+
+sub post_run_hook {
+    cleanup();
+}
+
+sub post_fail_hook {
+    cleanup();
 }
 
 1;
