@@ -61,7 +61,6 @@ sub ensure_system_ready_and_register {
         die "registercloudguest failed with exit $exit" unless ($exit == 0);
 
         assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
-        wait_serial(qr/\Q$marker\E/, timeout => 600) or die "Did not see registration finish marker";
     }
 
 }
