@@ -24,8 +24,7 @@ sub run {
     my $self = shift;
 
     my $product_id = get_var('AGAMA_PRODUCT_ID');
-    my $agama_help = script_output('agama', proceed_on_failure => 1);
-    diag($agama_help);
+    my $agama_help = script_output('agama 2>&1 | tee', proceed_on_failure => 1);
     die 'Agama Help not shown' unless $agama_help =~ "Agama's command-line interface";
 
     assert_script_run('agama config show | jq -C');
