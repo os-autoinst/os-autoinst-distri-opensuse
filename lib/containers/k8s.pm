@@ -52,7 +52,7 @@ sub check_k3s {
 }
 
 sub ensure_k3s_start {
-    systemctl('start k3s');
+    systemctl('start k3s', timeout => 180);
     systemctl('is-active k3s');
 }
 
