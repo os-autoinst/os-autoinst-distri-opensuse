@@ -59,8 +59,7 @@ sub run {
 
     select_serial_terminal;
 
-    my $pod_name = script_output("kubectl get pods -o name | awk -F/ '/kiosk/ { print \$2; exit }'");
-
+    my $pod_name = script_output("kubectl get pods -o name | awk -F/ '/kiosk/ { print \$2 }'");
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'ps aux'", qr/^pulse.*pulseaudio$/m, fail_message => 'pulseaudio is not running');
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m, fail_message => 'firefox did not allocate an audio sink');
 
