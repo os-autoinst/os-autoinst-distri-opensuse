@@ -62,7 +62,7 @@ sub run {
         select_console 'installation';
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
-    script_run('agama finish');
+    script_run('agama finish', timeout => 0);
 }
 
 1;
