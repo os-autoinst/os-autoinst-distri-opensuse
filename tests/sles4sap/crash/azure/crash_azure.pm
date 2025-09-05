@@ -24,7 +24,7 @@ sub run {
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
 
     record_info('PATCH', 'Fully patch system start');
-    my $remote = '-o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
+    my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
     ssh_fully_patch_system($remote);
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
