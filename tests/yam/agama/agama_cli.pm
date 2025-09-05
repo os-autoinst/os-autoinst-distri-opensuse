@@ -49,6 +49,11 @@ sub run {
     my $agama_event = script_output('cat /tmp/agama_events.out');
     die 'Agama connected event not shown' unless $agama_event =~ "ClientConnected";
 
+    script_run('agama auth login', timeout => 0);
+    type_string($testapi::password);
+    my $agama_token = script_output('agama auth show');
+    die 'Not authenticated in Agama' unless $agama_token eq 'Not authenticated in localhost';
+
     assert_script_run('agama install', timeout => 2400);
     $self->upload_agama_logs();
 
