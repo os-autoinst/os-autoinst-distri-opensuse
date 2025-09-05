@@ -11,7 +11,7 @@ use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_svirt);
 
 sub agama_config_edit {
-    my $regex = @_;
+    my $regex = shift;
 
     script_run('agama config edit', timeout => 0);
     wait_still_screen();
