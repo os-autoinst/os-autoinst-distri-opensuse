@@ -44,7 +44,7 @@ sub run {
     assert_script_run('agama config show | grep jose');
     agama_config_edit(":\%s/jose/bernhard/g\n");
 
-    my $agama_event = script_output('agama events', timeout => 1, proceed_on_failure => 1);
+    my $agama_event = script_output('agama events', timeout => 0, proceed_on_failure => 1);
     die 'Agama connected event not shown' unless $agama_event =~ "ClientConnected";
 
     assert_script_run('agama install', timeout => 2400);
