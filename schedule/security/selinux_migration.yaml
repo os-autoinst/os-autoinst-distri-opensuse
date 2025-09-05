@@ -1,0 +1,5 @@
+name: selinux-migration
+description: >
+    This is for SElinux policy migration test
+schedule:
+    - security/selinux/selinux_migration
