@@ -64,6 +64,8 @@ sub run {
     validate_script_output("kubectl exec $pod_name -c pulseaudio -- sh -c 'pactl list sink-inputs'", qr/application.name = "Firefox"/m && qr/application.process.host = "$pod_name"/m, fail_message => 'firefox did not allocate an audio sink');
 
     assert_script_run("helm uninstall kiosk");
+    script_run("kubectl delete -f " . autoinst_url("/data/containers/helm/kiosk/nginx.yaml"));
+    script_run("kubectl create configmap audio-html-config");
 }
 
 1;
