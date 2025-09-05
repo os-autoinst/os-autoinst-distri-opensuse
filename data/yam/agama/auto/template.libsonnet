@@ -8,6 +8,7 @@ local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
 local software_lib = import 'lib/software.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
+local answers_lib = import 'lib/answers.libsonnet';
 
 function(bootloader=true,
          bootloader_timeout=false,
@@ -31,6 +32,7 @@ function(bootloader=true,
          scripts_post='',
          ssl_certificates=false,
          storage='',
+         decrypt_password='',
          user=true) (
         base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
         {
@@ -61,6 +63,7 @@ function(bootloader=true,
             [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
             [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
           },
+          [if decrypt_password != '' then 'questions']: answers_lib.questions_decrypt(decrypt_password),
           [if std.startsWith(storage, 'raid') then 'storage']: storage_lib[storage],
           [if storage == 'home_on_iscsi' then 'storage']: storage_lib.home_on_iscsi,
           [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
