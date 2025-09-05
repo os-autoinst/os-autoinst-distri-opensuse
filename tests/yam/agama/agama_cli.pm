@@ -54,7 +54,7 @@ sub run {
     type_string($testapi::password);
     wait_still_screen();
     my $agama_token = script_output('agama auth show');
-    die 'Not authenticated in Agama' unless $agama_token eq 'Not authenticated in localhost';
+    die 'Not authenticated in Agama' unless $agama_token =~ 'Not authenticated in localhost';
 
     assert_script_run('agama install', timeout => 2400);
     $self->upload_agama_logs();
