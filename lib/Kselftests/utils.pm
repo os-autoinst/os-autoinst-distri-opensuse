@@ -22,6 +22,7 @@ our @EXPORT = qw(
   install_from_git
   install_from_repo
   post_process
+  validate_kconfig
 );
 
 sub install_from_git
@@ -41,6 +42,7 @@ sub install_from_git
     }
 
     assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
+    script_run("cp tools/testing/selftests/$collection/config* tools/testing/selftests/kselftest_install/$collection");
 }
 
 sub install_from_repo
@@ -137,6 +139,46 @@ sub post_process {
     parse_extra_log(KTAP => 'kselftest.tap.txt');    # Append .txt so that it can be easily previewed within openQA
 
     return $ret;
+}
+
+sub validate_kconfig
+{
+    my ($collection) = @_;
+    if (script_run("test -f $collection/config") != 0) {
+        return;
+    }
+    my @expected = split(/\n/, script_output("cat $collection/config*"));
+    if (!@expected) {
+        return;
+    }
+    my $kver = script_output('uname -r');
+    if (script_run("test -f /boot/config-$kver") != 0) {
+        record_info('KConfig', "Unable to find /boot/config-$kver file");
+        return;
+    }
+    assert_script_run('wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/config && chmod +x config');
+    my @mismatches;
+    for my $expected (@expected) {
+        my ($sym, $expected_st);
+        if ($expected =~ /^#\s(CONFIG_[^\s]+)\s+is\s+not\s+set/) {
+            $sym = $1;
+            $expected_st = "undef";
+        } elsif ($expected =~ /^(CONFIG_[^=\s]+)=(.+)$/) {
+            $sym = $1;
+            $expected_st = $2;
+        } else {
+            next;
+        }
+        my $actual_st = script_output("./config --state --file /boot/config-$kver $sym");
+        if ($actual_st ne $expected_st) {
+            my $mismatch = "$sym => $actual_st (actual) -> $expected_st (expected)";
+            push(@mismatches, $mismatch);
+        }
+    }
+    if (@mismatches) {
+        script_output("cat <<'EOF' > config_mismatches.txt\n" . join("\n", @mismatches) . "\nEOF");
+        upload_logs("config_mismatches.txt");
+    }
 }
 
 1;
