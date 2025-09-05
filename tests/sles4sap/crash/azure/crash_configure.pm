@@ -53,19 +53,17 @@ sub ensure_system_ready_and_register {
     if ($args{reg_code}) {
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'), 200);
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect --cleanup'), 200);
-        # Ignore no current registration server set 2>&1
+
         my $cmd = join(' ',
             $args{ssh_command},
             qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com));
-        my $ret = script_output("$cmd 2>&1", timeout => 600, proceed_on_failure => 1);
-        if ($ret =~ /No current registration server set/) {
-            record_info('WARN', 'System was not registered before (harmless cleanup warning)');
-        }
-        $ret =~ s/Instance registry setup done, sessions must be restarted !//g;
-        #Avoid issue currentSMTInfo.obj
-        die "registercloudguest failed: $ret" unless ($ret =~ /(rc-(0|1)\s*$|Registration succeeded)/);
-        assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
+        my $exit = script_run($cmd, 600);
+        die "registercloudguest failed with exit $exit" unless ($exit == 0);
+
+        assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
+        wait_serial(qr/\Q$marker\E/, timeout => 600) or die "Did not see registration finish marker";
     }
+
 }
 
 sub run {
