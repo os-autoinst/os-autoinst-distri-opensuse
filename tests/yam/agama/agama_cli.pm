@@ -1,7 +1,7 @@
 ## Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Run installation through CLI with Agama
+# Summary: Check Agama CLI commands performing tests on each command and running installation.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::agama_base;
@@ -51,9 +51,8 @@ sub run {
 
     script_run('agama auth login', timeout => 0);
     type_string("$testapi::password\n");
-    wait_still_screen();
     my $agama_token = script_output('agama auth show');
-    die 'Not authenticated in Agama' unless $agama_token =~ 'Not authenticated in localhost';
+    die 'Not authenticated in Agama' if $agama_token =~ 'Not authenticated in localhost';
 
     assert_script_run('agama install', timeout => 2400);
     $self->upload_agama_logs();
