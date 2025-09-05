@@ -18,12 +18,12 @@ use utils qw(zypper_call);
 sub configure_himmelblau {
     # Allow login from users in the provided domain and groups.
     # If users are provided directly (e.g. user@domain.com for `pam_allow_groups`) they will be allowed.
-    my ($ALLOWED_DOMAIN, $ALLOWED_USER) = @_;
+    my ($allowed_domain, $allowed_user) = @_;
     my $CONFIG_FILE = "/etc/himmelblau/himmelblau.conf";
     my $ENABLE_DEBUG_LOGS = "true";
 
-    assert_script_run("sed -i -e 's/# domains =/domains = $ALLOWED_DOMAIN/g' $CONFIG_FILE");
-    assert_script_run("sed -i -e 's/# pam_allow_groups =.*/pam_allow_groups = $ALLOWED_USER/g' $CONFIG_FILE");
+    assert_script_run("sed -i -e 's/# domains =/domains = $allowed_domain/g' $CONFIG_FILE");
+    assert_script_run("sed -i -e 's/# pam_allow_groups =.*/pam_allow_groups = $allowed_user/g' $CONFIG_FILE");
     assert_script_run("sed -i -e 's/# debug =.*/debug = $ENABLE_DEBUG_LOGS/g' $CONFIG_FILE");
 
     record_info("Himmelblau configured");
@@ -47,9 +47,9 @@ sub configure_pam {
 
 sub run {
     my ($self, $args) = @_;
-    my $ALLOWED_DOMAIN = get_required_var('HIMMELBLAU_ALLOWED_DOMAINS');
-    my $ALLOWED_USER = get_required_var('HIMMELBLAU_ALLOWED_USERS');
-    my $USER = "$ALLOWED_USER\@$ALLOWED_DOMAIN";
+    my $allowed_domain = get_required_var('HIMMELBLAU_ALLOWED_DOMAINS');
+    my $allowed_user = get_required_var('HIMMELBLAU_ALLOWED_USERS');
+    my $user = "$allowed_user\@$allowed_domain";
     select_serial_terminal;
 
     # Install Himmelblau
@@ -58,7 +58,7 @@ sub run {
     zypper_call("install himmelblau");
 
     # Configure the relevant services
-    configure_himmelblau($ALLOWED_DOMAIN, $USER);
+    configure_himmelblau($allowed_domain, $user);
     configure_nss();
     configure_pam();
 
@@ -66,10 +66,10 @@ sub run {
     assert_script_run("systemctl enable himmelblaud himmelblaud-tasks --now");
 
     # Test if Himmelblau can get the user and generate the /etc/passwd entry
-    validate_script_output("getent passwd $USER", qr/\/home\/$USER/);
+    validate_script_output("getent passwd $user", qr/\/home\/$user/);
 
     # Test if Himmelblau can map the user from Azure Entra ID
-    validate_script_output("su -l $USER -c whoami", qr/$ALLOWED_USER/);
+    validate_script_output("su -l $user -c whoami", qr/$allowed_user/);
 }
 
 1;
