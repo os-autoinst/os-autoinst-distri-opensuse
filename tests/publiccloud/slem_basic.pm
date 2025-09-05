@@ -10,22 +10,12 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use publiccloud::utils qw(is_byos is_ec2 registercloudguest);
+use publiccloud::utils qw(is_byos is_azure is_ec2 registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
 use List::Util 'sum';
-
-sub has_wicked {
-    # Check if the image is expected to have wicked
-    return 0 if (is_sle_micro('5.3+'));
-
-    # Helper to check (wrong SLES) version due to poo#128681
-    my $version = get_var('VERSION');
-    return 1 if check_version("<15-SP4", $version, qr/\d{2}(?:-sp\d)?/);
-    return 0;
-}
 
 sub check_avc {
     my ($self) = @_;
@@ -71,9 +61,38 @@ sub run {
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
 
-    # Ensure NetworkManager is used on SLEM 5.3+
-    my $expected_network_service = has_wicked() ? 'wicked' : 'NetworkManager';
-    $instance->ssh_assert_script_run("systemctl is-active $expected_network_service", fail_message => "$expected_network_service is not active");
+    # Test Networking. On SLEM6+ it needs to be NetworkManager. On <SLEM6 it must be either wicked or NetworkManager but never both at the same time
+    if (is_sle_micro('<6.0')) {
+        my $nm_active = $instance->ssh_script_run("systemctl is-active NetworkManager") == 0;
+        my $wicked_active = $instance->ssh_script_run("systemctl is-active wicked") == 0;
+
+        die "Neither wicked nor NetworkManager are active" unless ($nm_active || $wicked_active);
+        if ($nm_active && $wicked_active) {
+            if (is_azure || is_ec2) {
+                record_soft_failure("bsc#1248284 - NetworkManager and wicked active at the same time");
+            } else {
+                die "wicked and NetworkManager cannot be active at the same time";
+            }
+        }
+
+        my $nm_enabled = $instance->ssh_script_run("systemctl is-enabled NetworkManager") == 0;
+        my $wicked_enabled = $instance->ssh_script_run("systemctl is-enabled wicked") == 0;
+
+        die "Neither wicked nor NetworkManager are enabled" unless ($nm_enabled || $wicked_enabled);
+        if ($nm_enabled && $wicked_enabled) {
+            if (is_azure || is_ec2) {
+                record_soft_failure("bsc#1248284 - NetworkManager and wicked enabled at the same time");
+            } else {
+                die "wicked and NetworkManager cannot be enabled at the same time";
+            }
+        }
+    } else {
+        $instance->ssh_assert_script_run("systemctl is-active NetworkManager", fail_message => "NetworkManager is not active");
+        $instance->ssh_assert_script_run("systemctl is-enabled NetworkManager", fail_message => "NetworkManager is not enabled");
+
+        $instance->ssh_assert_script_run("! systemctl is-active wicked", fail_message => "wicked must not be active");
+        $instance->ssh_assert_script_run("! systemctl is-enabled wicked", fail_message => "wicked must be disabled");
+    }
 
     # package installation test
     my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);

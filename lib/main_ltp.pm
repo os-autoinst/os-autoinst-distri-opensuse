@@ -59,7 +59,7 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel/) {
+        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Online-Kernel-Updates-Staging|Online-Increments/) {
             loadtest_kernel 'update_kernel';
         }
 

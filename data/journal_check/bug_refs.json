@@ -211,14 +211,6 @@
         },
         "type": "bug"
     },
-    "boo#1197904": {
-        "description": "check_config_dict\\(\\) takes 2 positional arguments but 3 were given",
-        "products": {
-            "opensuse": ["15.3", "15.4"],
-            "sle": ["15-SP3", "15-SP4"]
-        },
-        "type": "bug"
-    },
     "bsc#1197679": {
         "description": "route ipv4 0.0.0.0/0 via.*dev eth0#2 type unicast table main scope universe protocol dhcp covered by a ipv4:dhcp lease",
         "products": {

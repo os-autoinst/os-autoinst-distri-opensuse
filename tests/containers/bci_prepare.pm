@@ -113,14 +113,6 @@ sub run {
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
-
-    if ($host_distri =~ /opensuse|sles/) {
-        if (get_var('BCI_PREPARE') && is_sle("15-SP7+", get_var('HOST_VERSION', get_required_var('VERSION')))) {
-            install_k3s();
-            systemctl 'disable --now firewalld';
-            install_helm();
-        }
-    }
 }
 
 sub test_flags {

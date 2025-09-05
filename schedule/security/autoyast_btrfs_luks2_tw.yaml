@@ -12,6 +12,7 @@ schedule:
   - installation/boot_encrypt
   - installation/first_boot
   - autoyast/console
+  - console/system_prepare
   - console/zypper_ar
   - console/zypper_ref
   - security/tpm2/tpm2_env_setup

@@ -11,4 +11,4 @@ repos:
     uri: https://download.opensuse.org/repositories/science/16.0/
     enabled: 'Yes'
     filter: name
-bootloader_timeout: '8'
+bootloader_timeout: '15'

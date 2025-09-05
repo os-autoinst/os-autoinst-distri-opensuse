@@ -305,8 +305,9 @@ Returns the number of nodes configured in the cluster.
 =cut
 
 sub get_node_number {
-    my $index = is_sle('15-sp2+') ? 2 : 1;
-    return script_output "crm_mon -1 | awk '/ nodes configured/ { print \$$index }'";
+    my $out = script_output "crm_mon -1";
+    my ($number) = $out =~ /(\d+) nodes configured/ or die "get_node_number: unexpected crm_mon output";
+    return $number;
 }
 
 =head2 get_node_index
@@ -2064,7 +2065,7 @@ Returns full type name ('external/sbd', 'fence_azure_arm', ...).
 =cut
 
 sub get_fencing_type {
-    my $stonith_type = script_output('crm configure show related:stonith | grep primitive');
+    my $stonith_type = script_output('crm configure show type:primitive | grep stonith');
     $stonith_type =~ m/stonith:(.*)\s/;
     return $1;
 }

@@ -99,6 +99,8 @@ HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test su
 HPC_WAREWULF_CONTAINER_NAME | string | The OS name which is expected to run from HPC_WAREWULF_CONTAINER.
 HPC_WAREWULF_CONTAINER_USERNAME | string | Defining username enables authentication for containers, needs valid HPC subscription on SCC for containers from registry.suse.com. If you want use default HPC subscription, just set same value as in SCC_EMAIL
 _SECRET_HPC_WAREWULF_CONTAINER_PASSWORD | string | Password for container, needs valid HPC subscription on SCC for containers from registry.suse.com. If not specified it will use code from SCC_REGCODE_HPC
+INSTALL_HELM | boolean | | If set, install HELM
+INSTALL_K3S | boolean | | If set, install K3S
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.

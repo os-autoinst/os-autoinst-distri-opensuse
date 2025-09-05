@@ -23,6 +23,7 @@ our @EXPORT = qw(
   is_container_test
   is_suse_host
   load_container_tests
+  load_helm_chart_tests
   load_container_engine_test
 );
 
@@ -298,6 +299,29 @@ sub update_host_and_publish_hdd {
     loadtest 'shutdown/svirt_upload_assets' if is_s390x;
 }
 
+sub load_helm_chart_tests {
+    # Helm chart tests are not executed on k8s
+    my $runtimes = get_var('CONTAINER_RUNTIMES');
+    return if ($runtimes =~ /k8s/);
+
+    my $chart = get_required_var('HELM_CHART');
+    my $spr_credentials_defined = !!(
+        get_var('SCC_REGISTRY', 0)
+        && get_var('SCC_PROXY_USERNAME', 0)
+        && get_var('SCC_PROXY_PASSWORD', 0)
+    );
+
+    loadtest 'containers/scc_login_to_registry' if (is_sle() && $spr_credentials_defined);
+    if ($chart =~ m/rmt-helm$/) {
+        loadtest 'containers/charts/rmt';
+    } elsif ($chart =~ m/private-registry/) {
+        loadtest 'containers/charts/privateregistry';
+    }
+    else {
+        die "Unsupported HELM_CHART value or HOST_VERSION";
+    }
+}
+
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
@@ -311,6 +335,11 @@ sub load_container_tests {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         # On Public Cloud we're already booted in the SUT
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
+    }
+
+    if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
+        loadtest "containers/$_" foreach (split('\s+', $container_tests));
+        return;
     }
 
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
@@ -390,27 +419,5 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
-
-    ## Helm chart tests. Add your individual helm chart tests here.
-    # Helm chart tests are not executed on k8s
-    if (get_var('HELM_CHART') && $runtime !~ /k8s/) {
-        my $chart = get_var('HELM_CHART');
-        my $spr_credentials_defined = !!(
-            get_var('SCC_REGISTRY', 0)
-            && get_var('SCC_PROXY_USERNAME', 0)
-            && get_var('SCC_PROXY_PASSWORD', 0)
-        );
-
-        loadtest 'containers/scc_login_to_registry' if check_var('HOST_VERSION', '15-SP7') && $spr_credentials_defined;
-        if ($chart =~ m/rmt-helm$/) {
-            loadtest 'containers/charts/rmt';
-        } elsif ($chart =~ m/private-registry/) {
-            loadtest 'containers/charts/privateregistry';
-        }
-        else {
-            die "Unsupported HELM_CHART value or HOST_VERSION";
-        }
-    }
-
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }

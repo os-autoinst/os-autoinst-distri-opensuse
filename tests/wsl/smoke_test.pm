@@ -26,8 +26,9 @@ sub run {
     elsif (match_has_tag('welcome_to_wsl')) {
         click_lastmatch;
         send_key 'alt-f4';
-        # We need to re-open powershell for o3 yast-firstrun scenario
-        if (check_var('WSL_FIRSTBOOT', 'yast')) {
+        # We need to re-open powershell for o3 install from build scenario.
+        # osd deals with welcome_to_wsl during installation in distro_install.pm
+        if (check_var('WSL_INSTALL_FROM', 'build')) {
             $self->open_powershell_as_admin;
         }
     }
