@@ -50,8 +50,7 @@ sub run {
     die 'Agama connected event not shown' unless $agama_event =~ "ClientConnected";
 
     script_run('agama auth login', timeout => 0);
-    wait_still_screen();
-    type_string($testapi::password);
+    type_string("$testapi::password\n");
     wait_still_screen();
     my $agama_token = script_output('agama auth show');
     die 'Not authenticated in Agama' unless $agama_token =~ 'Not authenticated in localhost';
