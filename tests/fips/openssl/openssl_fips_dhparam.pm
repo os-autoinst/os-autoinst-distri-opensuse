@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: testing openSSL dhparam and
@@ -27,6 +27,7 @@ sub create_user {
 
 sub run_fips_dhparam_tests {
     my $openssl_binary = shift // "openssl";
+    my $openssl_output = '/tmp/openssl_output';
     # SLE Micro doesn't have user created by default
     create_user if is_transactional;
 
@@ -34,15 +35,12 @@ sub run_fips_dhparam_tests {
     assert_script_run "$openssl_binary dhparam -out dhparams_2048.pem 2048";
     clear_console;
 
-    enter_cmd "$openssl_binary s_server -key generatedkey.key -cert generatedcert.crt -dhparam dhparams_2048.pem -cipher DHE --accept 44330";
-    assert_screen "openssl-fips-dhparam_accept_conn";
+    my $server_pid = background_script_run("$openssl_binary s_server -key generatedkey.key -cert generatedcert.crt -dhparam dhparams_2048.pem -cipher DHE --accept 44330");
 
-    select_console 'user-console';
-    validate_script_output "$openssl_binary s_client -connect localhost:44330 < /dev/null", sub { m/CONNECTED.*/ };
+    clear_console;
+    validate_script_output "echo | $openssl_binary s_client -connect localhost:44330", sub { m/CONNECTED.*/ };
 
-    # the openssl server is still running so do not expect a ready prompt
-    select_console 'root-console', await_console => 0;
-    send_key "ctrl-c";
+    assert_script_run("kill $server_pid");
 }
 
 sub run {
