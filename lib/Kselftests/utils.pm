@@ -147,7 +147,8 @@ sub validate_kconfig
     if (script_run("test -f $collection/config") != 0) {
         return;
     }
-    my @expected = split(/\n/, script_output("cat $collection/config*"));
+    my $arch = script_output('uname -m');
+    my @expected = split(/\n/, script_output("cat $collection/{config,config.$arch}"));
     if (!@expected) {
         return;
     }
