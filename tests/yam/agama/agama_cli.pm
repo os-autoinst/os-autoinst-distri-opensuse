@@ -23,7 +23,7 @@ sub agama_config_edit {
 sub run {
     my $self = shift;
 
-    my product_id = get_var('AGAMA_PRODUCT_ID');
+    my $product_id = get_var('AGAMA_PRODUCT_ID');
     my $agama_help = script_output('agama');
     diag($agama_help);
     die 'Agama Help not shown' unless $agama_help =~ "Agama's command-line interface";
