@@ -75,7 +75,7 @@ sub run {
 
     # Download podman sources
     my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
-    bats_sources $podman_version;
+    patch_sources $podman_version, "test/system", bats_patches();
 
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 
