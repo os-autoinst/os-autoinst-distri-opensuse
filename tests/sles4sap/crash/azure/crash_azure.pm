@@ -25,7 +25,10 @@ sub run {
 
     record_info('PATCH', 'Fully patch system start');
     my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
-    ssh_fully_patch_system($remote);
+    my $cmd = "ssh $remote 'sudo zypper -n patch'";
+    my $ret = script_run($cmd, 1500);
+    $ret = script_run($cmd, 6000);
+
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
