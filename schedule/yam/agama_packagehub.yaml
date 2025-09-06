@@ -1,0 +1,15 @@
+---
+name: agama_packagehub
+description: >
+  Perform interactive installation with packagehub and software pattern selection.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/patch_agama_tests
+  - yam/agama/import_agama_profile
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_registered_addons
+  - yam/validate/validate_installed_patterns
+  - console/validate_repos
