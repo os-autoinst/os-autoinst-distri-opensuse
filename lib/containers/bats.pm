@@ -312,7 +312,7 @@ sub collect_coredumps {
     script_run('coredumpctl list > coredumpctl.txt');
 
     # Get PID and executable for all dumps
-    my @lines = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$8 != "SIGQUIT" && $9 == "present" { print $5, $10 }'}, proceed_on_failure => 1);
+    my @lines = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5, $10 }'}, proceed_on_failure => 1);
 
     foreach my $line (@lines) {
         my ($pid, $exe) = split /\s+/, $line;
