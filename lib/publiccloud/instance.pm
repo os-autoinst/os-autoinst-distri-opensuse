@@ -915,4 +915,17 @@ sub upload_supportconfig_log {
     $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
 }
 
+sub wait_for_state {
+    my ($self, $state, $timeout) = @_;
+    $timeout //= 1800;
+    my $deadline = time() + $timeout;
+    my $current;
+    while (time() < $deadline) {
+        $current = lc($self->provider->get_state_from_instance($self));
+        return if ($current =~ /$state/);
+        sleep 15;
+    }
+    die("The instance state is not '$state' but '$current' instead.");
+}
+
 1;
