@@ -52,7 +52,8 @@ sub setup {
     run_command "cd ~/compose";
 
     unless ($repo) {
-        my @patches = ();
+        # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+        my @patches = qw(13214);
         foreach my $patch (@patches) {
             my $url = "https://github.com/docker/compose/pull/$patch";
             record_info("patch", $url);
