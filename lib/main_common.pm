@@ -2161,13 +2161,6 @@ sub load_x11_remote {
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_podman_client')) {
         loadtest 'microos/workloads/x11-container/x11_podman_client';
     }
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_server')) {
-        loadtest 'transactional/host_config';
-        loadtest 'microos/workloads/x11-container/x11_helm_server';
-    }
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'x11_helm_client')) {
-        loadtest 'microos/workloads/x11-container/x11_helm_client';
-    }
 }
 
 
