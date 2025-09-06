@@ -41,7 +41,6 @@ our @EXPORT = qw(
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
-my $package;
 my $settings;
 
 my @commands = ();
@@ -175,6 +174,8 @@ sub enable_modules {
 sub patch_logfile {
     my ($log_file, @skip_tests) = @_;
 
+    my $package = get_required_var("BATS_PACKAGE");
+
     die "BATS failed!" if (script_run("test -e $log_file") != 0);
 
     @skip_tests = uniq sort @skip_tests;
@@ -216,7 +217,7 @@ EOF
 sub bats_setup {
     my ($self, @pkgs) = @_;
 
-    $package = get_required_var("BATS_PACKAGE");
+    my $package = get_required_var("BATS_PACKAGE");
 
     push @commands, "### RUN AS root";
 
@@ -299,6 +300,8 @@ sub bats_setup {
 }
 
 sub collect_coredumps {
+    my $package = get_var("BATS_PACKAGE", "");
+
     script_run('coredumpctl list > coredumpctl.txt');
 
     # Get PID and executable for all dumps
@@ -381,6 +384,8 @@ sub bats_tests {
     my ($log_file, $_env, $skip_tests, $timeout) = @_;
     my %env = %{$_env};
 
+    my $package = get_required_var("BATS_PACKAGE");
+
     # Subdirectory in repo containing BATS tests
     my %tests_dir = (
         "aardvark-dns" => "test",
@@ -444,6 +449,7 @@ sub bats_tests {
 
 sub bats_settings {
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+    my $package = get_required_var("BATS_PACKAGE");
 
     assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
     my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
@@ -462,11 +468,15 @@ sub bats_patches {
 }
 
 sub patch_sources {
-    my ($version, $tests_dir, $patches) = @_;
+    my ($package, $branch, $tests_dir, $patches) = @_;
     my @patches = @{$patches};
 
-    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
-    my $branch = "v$version";
+    my $github_org = "containers";
+    if ($package eq "runc") {
+        $github_org = "opencontainers";
+    } elsif ($package =~ /compose|docker/) {
+        $github_org = "docker";
+    }
 
     # Support these cases for GITHUB_REPO: [<GITHUB_ORG>]#BRANCH
     # 1. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, your_gh_user#test-patch, etc
