@@ -1,0 +1,54 @@
+From 4e2ced66a517e1497bc7fc0d237da6426b7927f0 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 5 Sep 2025 23:14:44 +0200
+Subject: [PATCH] test: Set stop_signal to SIGTERM
+
+The official nginx images set STOPSIGNAL to SIGQUIT which dumps core.
+Set it to SIGTERM to avoid dumping core on e2e tests.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ pkg/e2e/fixtures/dependencies/recreate-no-deps.yaml   | 1 +
+ pkg/e2e/fixtures/restart-test/compose-depends-on.yaml | 3 +++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/pkg/e2e/fixtures/dependencies/recreate-no-deps.yaml b/pkg/e2e/fixtures/dependencies/recreate-no-deps.yaml
+index 08e2cb3465b..0b44c273dfb 100644
+--- a/pkg/e2e/fixtures/dependencies/recreate-no-deps.yaml
++++ b/pkg/e2e/fixtures/dependencies/recreate-no-deps.yaml
+@@ -9,6 +9,7 @@ services:
+ 
+   nginx:
+     image: nginx:alpine
++    stop_signal: SIGTERM
+     healthcheck:
+       test:     "echo | nc -w 5 localhost:80"
+       interval: 2s
+diff --git a/pkg/e2e/fixtures/restart-test/compose-depends-on.yaml b/pkg/e2e/fixtures/restart-test/compose-depends-on.yaml
+index 250d93f742e..092d862f698 100644
+--- a/pkg/e2e/fixtures/restart-test/compose-depends-on.yaml
++++ b/pkg/e2e/fixtures/restart-test/compose-depends-on.yaml
+@@ -3,6 +3,7 @@ services:
+     image: nginx:alpine
+     init: true
+     command: tail -f /dev/null
++    stop_signal: SIGTERM
+     depends_on:
+       nginx: {condition: service_healthy, restart: true}
+ 
+@@ -10,6 +11,7 @@ services:
+     image: nginx:alpine
+     init: true
+     command: tail -f /dev/null
++    stop_signal: SIGTERM
+     depends_on:
+       nginx: { condition: service_healthy }
+ 
+@@ -17,6 +19,7 @@ services:
+     image: nginx:alpine
+     labels:
+       TEST: ${LABEL:-test}
++    stop_signal: SIGTERM
+     healthcheck:
+       test:     "echo | nc -w 5 localhost:80"
+       interval: 2s
