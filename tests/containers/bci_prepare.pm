@@ -29,6 +29,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::helm;
 use containers::k8s qw(install_k3s install_helm);
+use transactional qw(trup_call reboot_on_changes);
 
 sub prepare_virtual_env {
     my ($version, $sp, $host_distri) = @_;
@@ -49,24 +50,37 @@ sub prepare_virtual_env {
         script_retry("apt-get -y install python3-venv", timeout => $install_timeout);
     } elsif ($host_distri =~ /centos|rhel/) {
         script_retry("dnf install -y --allowerasing git-core python3 jq", timeout => $install_timeout);
+    } elsif ($host_distri =~ /micro/i) {
+        # this works only for sle-micro 6.0 and 6.1
+        # 6.2 is officially sles 16.0 with transactional variant
+        trup_call('pkg in skopeo tar git jq');
+        reboot_on_changes;
     } elsif ($host_distri =~ /opensuse|sles/) {
         my @packages = ('jq', 'skopeo');
-        # Avoid PackageKit to conflict about lock with zypper
-        script_run("timeout 20 pkcon quit");
-        # Wait for any zypper tasks in the background to finish
-        assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
-        my $version = "$version.$sp";
-        if ($version =~ /12\./) {
-            $python = 'python3.6';
-            @packages = ('jq');
-            # PackageHub is needed for jq
-            script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-        } elsif ($version !~ /15\.[1-3]/) {
-            $python = 'python3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout) unless ($host_distri =~ /opensuse/);
-            push @packages, qw(git-core python311);
+        # starting with 6.2, the sle-micro is just another sles 16
+        # with a different variant, Micro
+        if (script_run('. /etc/os-release && [ "${VARIANT}" = "Micro" ]') == 0) {
+            push @packages, qw(tar git);
+            trup_call("pkg in @packages");
+            reboot_on_changes;
+        } else {
+            # Avoid PackageKit to conflict about lock with zypper
+            script_run("timeout 20 pkcon quit");
+            # Wait for any zypper tasks in the background to finish
+            assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
+            my $version = "$version.$sp";
+            if ($version =~ /12\./) {
+                $python = 'python3.6';
+                @packages = ('jq');
+                # PackageHub is needed for jq
+                script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            } elsif ($version !~ /15\.[1-3]/) {
+                $python = 'python3.11';
+                script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout) unless ($host_distri =~ /opensuse/);
+                push @packages, qw(git-core python311);
+            }
+            zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
         }
-        zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -74,8 +88,8 @@ sub prepare_virtual_env {
     assert_script_run("$python --version");
     assert_script_run("$python -m venv bci");
     assert_script_run("source $virtualenv");
-    assert_script_run('pip --quiet install --upgrade pip', timeout => $install_timeout);
-    assert_script_run('pip --quiet install tox', timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install --upgrade pip", timeout => $install_timeout);
+    assert_script_run("$python -m pip --quiet install tox", timeout => $install_timeout);
     assert_script_run('deactivate');
 }
 
@@ -112,7 +126,8 @@ sub run {
     # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIMES');
     # For BCI tests using podman, buildah package is also needed
-    install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
+    # buildah is not present in any sle-micro, including 6.2
+    install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && ($host_distri !~ /micro/i && (script_run('. /etc/os-release && [ "${VARIANT}" = "Micro" ]') == 1)));
 }
 
 sub test_flags {
