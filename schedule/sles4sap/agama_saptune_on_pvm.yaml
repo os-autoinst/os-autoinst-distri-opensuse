@@ -12,6 +12,7 @@ vars:
 schedule:
   - installation/bootloader
   - installation/agama_reboot
+  - installation/grub_test
   - installation/first_boot
   - console/system_prepare
   - sles4sap/saptune/mr_test

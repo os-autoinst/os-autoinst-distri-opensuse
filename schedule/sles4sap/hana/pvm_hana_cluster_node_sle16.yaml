@@ -40,6 +40,7 @@ schedule:
   - '{{barrier_init}}'
   - installation/bootloader
   - installation/agama_reboot
+  - installation/grub_test
   - installation/first_boot
   - ha/wait_barriers
   - console/system_prepare
@@ -78,9 +79,11 @@ conditional_schedule:
     HA_CLUSTER_INIT:
       yes:
         - boot/reconnect_mgmt_console
+        - installation/grub_test
         - installation/first_boot
   boot_to_desktop_non_init:
     HA_CLUSTER_INIT:
       no:
         - boot/reconnect_mgmt_console
+        - installation/grub_test
         - installation/first_boot
