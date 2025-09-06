@@ -111,6 +111,12 @@ sub update_password {
     # Restore the password with --add-samba-data as requested by poo#91950
     script_retry("adcli update --verbose --computer-password-lifetime=0 --domain '$AD_domain' --add-samba-data", retry => 3, delay => 60, fail_message => "Error re-adding password with samba data");
 
+    # wbinfo -t gives "failed to call wbcCheckTrustCredentials: WBC_ERR_AUTH_ERROR" in FIPS mode, see bsc#1249042
+    if (get_var('FIPS_ENABLED')) {
+        record_soft_failure("bsc#1249042 - winbind issue in FIPS mode");
+        return;
+    }
+
     # Check the trust secret for the domain
     if (script_run("wbinfo -tP") != 0) {
         my $output = script_output('wbinfo -tP', proceed_on_failure => 1);
@@ -142,12 +148,6 @@ sub run {
         record_info("Not available", "this test run is not available for SLES version older than 12-SP3.");
         return;
     }
-    # when run in FIPS mode, bail out on < 15-SP6 due to lack of proper support for crypto-policies
-    # https://jira.suse.com/browse/PED-12018
-    if (get_var('FIPS_ENABLED') && is_sle('<15-SP6')) {
-        record_info('TEST SKIPPED', 'missing crypto-policies support for legacy AD auth');
-        return;
-    }
     select_serial_terminal;
 
     # Ensure the required variables are set
@@ -162,6 +162,17 @@ sub run {
 
     $NetworkManager = 1 if is_networkmanager;
     samba_sssd_install();
+
+    # when in FIPS mode, we need to set the correct crypto policy
+    # bail out if the system is too old to support AD in FIPS mode
+    if (get_var('FIPS_ENABLED')) {
+        if (is_sle('<15-SP6')) {
+            record_info('TEST SKIPPED', 'missing crypto-policies support for legacy AD auth');
+            return 0;
+        }
+        assert_script_run 'update-crypto-policies --set FIPS:AD-SUPPORT';
+    }
+
     randomize_hostname();    # Prevent race condition with parallel test runs
     disable_ipv6();    # AD host is not reachable via IPv6 on some of our workers
     join_domain();
