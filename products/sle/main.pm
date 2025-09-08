@@ -24,7 +24,7 @@ use main_publiccloud;
 use main_security;
 use Utils::Architectures;
 use DistributionProvider;
-use virt_autotest::utils qw(is_registered_sles is_sles_mu_virt_test);
+use virt_autotest::utils qw(is_registered_sles is_sles_mu_virt_test is_sles16_mu_virt_test);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -659,6 +659,12 @@ $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failure
 if (is_sles_mu_virt_test) {
     set_mu_virt_vars;
     diag "Set necessary variables for SLES MU virtualization test before loadtest is done!";
+}
+
+# Handle SLES16 MU virtualization test with enhanced logic
+if (is_sles16_mu_virt_test()) {
+    set_sles16_mu_virt_vars();
+    diag "Set necessary variables for SLES16 MU virtualization test before loadtest is done!";
 }
 
 if (load_yaml_schedule) {

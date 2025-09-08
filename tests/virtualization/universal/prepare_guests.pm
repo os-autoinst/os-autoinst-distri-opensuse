@@ -18,10 +18,23 @@ use virt_autotest::utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use Mojo::Template;
 use File::Copy 'copy';
 use File::Path 'make_path';
 
 sub create_profile {
+    my ($vm_name, $arch, $mac, $ip) = @_;
+
+    die "VM name is required" unless defined $vm_name && length $vm_name;
+
+    # SLES16 uses Agama, with AutoYaST fallback on failure
+    return (is_sles16_mu_virt_test() && $vm_name =~ /sles16/i)
+      ? eval { create_agama_profile($vm_name, $arch, $mac, $ip) }
+      || create_autoyast_profile($vm_name, $arch, $mac, $ip)
+      : create_autoyast_profile($vm_name, $arch, $mac, $ip);
+}
+
+sub create_autoyast_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
     my $version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
     my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
@@ -64,6 +77,45 @@ sub create_profile {
     make_path('ulogs');
     copy(hashed_string("$vm_name.xml"), "ulogs/$vm_name.xml");
     return autoinst_url . "/files/$vm_name.xml";
+}
+
+# Create Agama configuration for SLES16 guest installation
+sub create_agama_profile {
+    my ($vm_name, $arch, $mac, $ip) = @_;
+
+    script_run("command -v jsonnet") == 0 or die "Jsonnet command not found";
+
+    # Reuse existing template variable patterns
+    my $vars = {
+        vm_name => $vm_name,
+        arch => $arch,
+        mac => $mac,
+        ip => $ip,
+        version => $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r,
+        scc_code => get_required_var("SCC_REGCODE"),
+        sut_ip => get_required_var("SUT_IP"),
+        password => $testapi::password,
+        check_var => \&check_var,
+        get_var => \&get_required_var
+    };
+
+    my $profile = get_test_data("virtualization/agama/guest_sles16.jsonnet");
+    my $output = Mojo::Template->new(vars => 1)->render($profile, $vars);
+
+    # UEFI configuration handling
+    my %guests = %virt_autotest::common::guests;
+    if (exists $guests{$vm_name} && exists $guests{$vm_name}->{boot_firmware} && $guests{$vm_name}->{boot_firmware} eq 'efi') {
+        # Enable secure boot for Agama configuration
+        $output =~ s/"secure_boot": false/"secure_boot": true/;
+        record_info("UEFI Config", "Modified agama profile for $vm_name to enable secure boot for UEFI");
+    }
+
+    save_tmp_file("$vm_name.json", $output);
+    make_path('ulogs');
+    copy(hashed_string("$vm_name.json"), "ulogs/$vm_name.json");
+
+    record_info("Agama Profile", "Created Agama JSON configuration for SLES16 guest: $vm_name");
+    return autoinst_url . "/files/$vm_name.json";
 }
 
 sub gen_osinfo {

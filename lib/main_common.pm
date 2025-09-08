@@ -110,6 +110,7 @@ our @EXPORT = qw(
   rescuecdstep_is_applicable
   set_defaults_for_username_and_password
   set_mu_virt_vars
+  set_sles16_mu_virt_vars
   setup_env
   snapper_is_applicable
   ssh_key_import
@@ -2513,6 +2514,140 @@ sub set_mu_virt_vars {
 
     # Save vars
     bmwqemu::save_vars();
+}
+
+# Set variables specifically for SLES16 MU virtualization tests
+# Based on set_mu_virt_vars but adapted for SLES16 architecture differences:
+# - Agama installer support instead of AutoYaST only
+# - KVM-only virtualization (no Xen, Hyper-V, or VMware support)
+# - Different package and service names
+# - Enhanced UEFI and Secure Boot support
+sub set_sles16_mu_virt_vars {
+    diag "Setting SLES16 MU virtualization test variables";
+
+    # Set VIRT_AUTOTEST to enable virtualization testing infrastructure
+    set_var('VIRT_AUTOTEST', 1);
+
+    # Set UPDATE_PACKAGE based on BUILD (format example, BUILD=:33310:dtb-armv7l)
+    my $BUILD = get_required_var('BUILD');
+    $BUILD =~ /^:(\d+):([^:]+)$/im;
+
+    die "BUILD value is $BUILD, but does not match required format." if (!$2);
+    my $_pkg = $2;
+    my $_update_package = '';
+
+    # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
+    if ($_pkg =~ /none/) {
+        $_update_package = '';
+    } elsif ($_pkg =~ /qemu|kvm|virt-manager|libguestfs|libslirp|virtio/) {
+        # SLES16 focuses on KVM/QEMU virtualization stack only
+        $_update_package = $_pkg;
+    } elsif ($_pkg =~ /libvirt/) {
+        $_update_package = 'libvirt-client';
+    } else {
+        $_update_package = 'kernel-default';
+    }
+
+    set_var('UPDATE_PACKAGE', $_update_package);
+    diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
+
+    # Set SLES16-specific virtualization variables
+    set_var('SLES16_MU_VIRT_TEST', 1);
+    set_var('AGAMA_INSTALLER_SUPPORT', 1);
+
+    # SLES16 supports KVM only (no Xen, Hyper-V, or VMware)
+    set_var('SKIP_XEN_TESTS', 1);    # Xen is not supported in SLES16
+
+    # Set default hypervisor to KVM if not specified
+    unless (get_var('HOST_HYPERVISOR')) {
+        set_var('HOST_HYPERVISOR', 'kvm');
+    }
+
+    # Verify only KVM is supported for SLES16
+    my $hypervisor = get_var('HOST_HYPERVISOR', '');
+    if ($hypervisor && $hypervisor !~ /^(kvm|qemu)$/) {
+        die "ERROR: SLES16 only supports KVM/QEMU hypervisor. Got: $hypervisor";
+    }
+
+    # Check if repo is LTSS-Extended-Security and sets EXTENDED_SECURITY to 1
+    set_var('EXTENDED_SECURITY', (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? 1 : 0);
+
+    # Set PATCH_WITH_ZYPPER
+    set_var('PATCH_WITH_ZYPPER', 1) unless (check_var('PATCH_WITH_ZYPPER', 0));
+
+    # Agama installer configuration (SLES16 exclusive)
+    set_var('INSTALLER', 'agama');
+    set_var('AGAMA_PROFILE', 'virt_autotest/host_unattended_installation_files/agama/sle16.jsonnet');
+
+    # SLES16 uses UEFI boot by default for bare-metal installations
+    # This is a key architectural difference from SLES15 (Legacy BIOS)
+    unless (get_var('UEFI_PFLASH_VARS')) {
+        set_var('UEFI', 1);
+        set_var('UEFI_PFLASH_VARS', '/usr/share/qemu/ovmf-x86_64-vars.bin') if is_x86_64;
+        diag "SLES16: Enabled UEFI boot mode for bare-metal installation";
+    }
+
+    # Set PXE resource (similar to SLE15 but adapted for SLES16)
+    unless (get_var('PXE_PRODUCT_NAME') || get_var('MIRROR_HTTP')) {
+        unless (get_var('IPXE')) {
+            set_var('IPXE', 0);
+            # PRG1 lab SUTs use pxe way
+            my $pxe_product_name = "SLE-" . get_required_var('VERSION') . "-Full-LATEST";
+            set_var('PXE_PRODUCT_NAME', $pxe_product_name);
+        } else {
+            # OSD SUTs use ipxe way
+            my $mirror_http = 'http://' . get_required_var('OPENQA_HOSTNAME') . '/assets/repo/fixed/';
+            $mirror_http .= 'SLE-' . get_required_var('VERSION') . '-Full-' . get_required_var('ARCH') . '-GM-Media1/';
+            set_var('MIRROR_HTTP', $mirror_http);
+        }
+    }
+
+    # Set SCC_REGCODE_LTSS(for host)
+    my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
+    # $product final format: 16, 16.1, etc.
+    my $product = get_required_var('VERSION');
+    $product =~ s/-SP/\./i;
+    diag("Host product is $product.");
+    if (exists $ltss_products{"$product"}) {
+        set_var('SCC_REGCODE_LTSS', $ltss_products{"$product"});
+    }
+
+    # Set SCC_REGCODE_LTSS_ES(for host) - future extension for SLES16
+    my %ltss_es_products = @{get_var_array("LTSS_ES_REGCODES_SECRET")};
+    if (exists $ltss_es_products{"$product"}) {
+        set_var('SCC_REGCODE_LTSS_ES', $ltss_es_products{"$product"});
+    }
+
+    # Set SCC_ADDONS for SLES16
+    my $scc_addons = '';
+    $scc_addons .= 'ltss' if (exists $ltss_products{"$product"});
+    # SLES16 addon configuration
+    if ($scc_addons) {
+        $scc_addons .= ',';
+    }
+    $scc_addons .= 'base,sdk,serverapp,desktop';
+    $scc_addons .= ',contm' if (get_var('KUBEVIRT_TEST'));
+    set_var('SCC_ADDONS', "$scc_addons");
+
+    # Set TERADATA (if applicable to SLES16)
+    if (get_var('INCIDENT_REPO', '') =~ /TERADATA/) {
+        set_var('TERADATA', get_var('VERSION'));
+    }
+
+    # SLES16-specific virtualization feature flags
+    set_var('UEFI_BOOT_SUPPORT', 1) unless defined get_var('UEFI_BOOT_SUPPORT');
+    set_var('SECURE_BOOT_SUPPORT', 1) unless defined get_var('SECURE_BOOT_SUPPORT');
+    set_var('TPM_SUPPORT', 1) unless defined get_var('TPM_SUPPORT');
+
+    # Guest configuration defaults for SLES16
+    set_var('GUEST_OS', 'sle16') unless defined get_var('GUEST_OS');
+    set_var('GUEST_VERSION', '16') unless defined get_var('GUEST_VERSION');
+    set_var('MAX_GUEST_MEMORY', '4096') unless defined get_var('MAX_GUEST_MEMORY');
+    set_var('GUEST_VCPUS', '2') unless defined get_var('GUEST_VCPUS');
+
+    # Save vars
+    bmwqemu::save_vars();
+    diag "SLES16 MU virtualization variables configured successfully";
 }
 
 sub load_hypervisor_tests {

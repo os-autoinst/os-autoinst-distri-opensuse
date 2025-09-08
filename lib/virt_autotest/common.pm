@@ -122,7 +122,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
-        }
+          }
+        # Note: SLES16+ does not support Xen virtualization (no HVM/PV variants)
+        # SLES16 guest configurations are only available in KVM/REGRESSION context
     );
     # Filter out guests not allowed for the detected SLE version
     if (is_sle('=12-SP5')) {
@@ -232,7 +234,28 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP7
-        }
+        },
+        # SLES16 guest configurations for MU testing
+        sles16 => {
+            name => 'sles16',
+            agama => 'agama_kvm/sles16_PRG.jsonnet',
+            extra_params => '--os-variant sle16-unknown',
+            distro => 'SLE_16',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-16-Full-GM/x86_64/DVD1/',
+            boot_firmware => 'bios',    # Default BIOS boot
+            installer => 'agama',    # Use Agama installer for SLES16
+        },
+        sles16efi => {
+            name => 'sles16efi',
+            agama => 'agama_kvm/sles16_efi_PRG.jsonnet',
+            extra_params => '--os-variant sle16-unknown',
+            distro => 'SLE_16',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-16-Full-GM/x86_64/DVD1/',
+            boot_firmware => 'efi',    # UEFI boot for modern systems
+            installer => 'agama',    # Use Agama installer for SLES16
+        },
+        # Future SLES16 SP versions - interface reserved for compatibility
+        # sles16sp1, sles16sp1efi, etc. will be added when needed
     );
     # Filter out guests not allowed for the detected SLE version
     if (is_sle('=12-SP3')) {
@@ -279,6 +302,22 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
+    } elsif (is_sle('>=16')) {
+        # SLES16+ MU testing - supports KVM, Hyper-V, VMware with Agama installer
+        # Current implementation: sles16, sles16efi
+        # Future SP versions will be added as needed (interface reserved)
+        my @allowed_guests = qw(sles16 sles16efi);
+
+        # Filter guests based on test requirements
+        if (get_var('ENABLE_SEV_SNP', 1) || get_var('PREFER_UEFI_GUESTS', 1)) {
+            @allowed_guests = qw(sles16efi);    # Prefer UEFI guests for advanced features
+        }
+
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+        my $hypervisor = get_var('HOST_HYPERVISOR', 'kvm');
+        diag "SLES16+ detected: Using $hypervisor guests with Agama installer";
     } else {
         %guests = ();
     }
@@ -316,6 +355,11 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp7 => {
             name => 'sles15sp7',
         },
+        # SLES16 support for VMware - basic version only
+        sles16 => {
+            name => 'sles16',
+        },
+        # Future SLES16 SP versions will be added here when needed
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 
@@ -351,6 +395,11 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp7 => {
             vm_name => 'sles-15.7_openQA-virtualization-maintenance',
         },
+        # SLES16 support for Hyper-V - basic version only
+        sles16 => {
+            vm_name => 'sles-16_openQA-virtualization-maintenance',
+        },
+        # Future SLES16 SP versions will be added here when needed
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 }

@@ -38,6 +38,7 @@ our @EXPORT = qw(
   is_xen_host
   is_kvm_host
   is_sles_mu_virt_test
+  is_sles16_mu_virt_test
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -189,6 +190,15 @@ sub is_hyperv_virtualization {
 # Return 1 if it is SLES MU virt test, otherwise return 0
 sub is_sles_mu_virt_test {
     return is_sle && get_var('REGRESSION', '') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
+}
+
+# Check if this is a SLES16 MU virtualization test
+# SLES16 has different architecture compared to SLES15:
+# - Uses Agama installer instead of AutoYaST
+# - Supports KVM only (no Xen, Hyper-V, or VMware support)
+# - Different installation and guest management workflows
+sub is_sles16_mu_virt_test {
+    return is_sle('>=16') && get_var('REGRESSION', '') =~ /kvm|qemu/ && !get_var("VIRT_AUTOTEST");
 }
 
 #return 1 if it is a fv guest judging by name
@@ -592,7 +602,25 @@ sub create_guest {
         my ($autoyastURL, $diskformat, $virtinstall);
         $autoyastURL = $autoyast;
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
-        $extra_args = "autoyast=$autoyastURL $extra_args";
+
+        # Determine installer type based on guest version
+        my $is_sles16_guest = is_sles16_mu_virt_test() && ($name =~ /sles16/i);
+
+        if ($is_sles16_guest) {
+            # Verify Agama service is available before using it
+            my $agama_check = script_run("curl -s --connect-timeout 5 $autoyastURL > /dev/null", die_on_timeout => 0);
+            if ($agama_check != 0) {
+                record_info("AGAMA_UNAVAILABLE", "Agama config URL not accessible: $autoyastURL. Falling back to AutoYaST");
+                $extra_args = "autoyast=$autoyastURL $extra_args";
+            } else {
+                # For SLES16, use Agama installer instead of AutoYaST
+                $extra_args = "agama.config_url=$autoyastURL $extra_args";
+                record_info("Agama Install", "Using Agama installer for SLES16 guest: $name");
+            }
+        } else {
+            # For SLES15 and earlier, use traditional AutoYaST
+            $extra_args = "autoyast=$autoyastURL $extra_args";
+        }
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
