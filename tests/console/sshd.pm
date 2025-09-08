@@ -68,7 +68,7 @@ sub run {
     services::sshd::do_ssh_cleanup();
 }
 
-sub test_cryptographic_policies() {
+sub test_cryptographic_policies {
     my %args = @_;
     my $remote_user = $args{remote_user};
 
