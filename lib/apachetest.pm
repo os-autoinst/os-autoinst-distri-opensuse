@@ -144,7 +144,11 @@ sub setup_apache2 {
 "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for NSS FIPS 140-2 Certificate DB (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
     else {
-        systemctl 'start apache2';
+        if (systemctl 'start apache2', ignore_failure => 1) {
+            record_info('poo#179678', 'Job for apache2.service may fail because start of the service was attempted too often');
+            sleep 5;
+            systemctl 'start apache2';
+        }
     }
     systemctl 'is-active apache2';
 
