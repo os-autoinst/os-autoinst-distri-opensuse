@@ -1,3 +1,5 @@
+local repo = '{{INCIDENT_REPO}}';
+local urls = std.split(repo, ',');
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -23,13 +25,18 @@
   },
   software: {
     packages: [],
-    extraRepositories: [
-      {
-        alias: 'TEST_0',
-        url: '{{INCIDENT_REPO}}',
-        allowUnsigned: true
-      }
-    ],
+    extraRepositories:
+      if repo != '' then
+        [
+          {
+            alias: 'TEST_' + std.toString(i),
+            url: urls[i],
+            allowUnsigned: true
+          }
+          for i in std.range(0, std.length(urls) -1)
+        ]
+      else
+        [],
     onlyRequired: false
   },
   questions: {
