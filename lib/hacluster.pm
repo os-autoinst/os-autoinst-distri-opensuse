@@ -772,7 +772,7 @@ sub check_cluster_state {
     # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
     # Fall back to the older method of checking Online vs. Configured nodes
     my $out = script_output(q|rpm -q --qf 'crmshver=%{VERSION}\n' crmsh|);
-    my ($ver) = $out =~ /^crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $out";
+    my ($ver) = $out =~ /crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $out";
     my $cmp_result = package_version_cmp($ver, '4.4.2');
     if ($cmp_result < 0) {
         $cmd_sub->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
