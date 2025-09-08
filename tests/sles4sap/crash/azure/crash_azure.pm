@@ -22,6 +22,7 @@ sub run {
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
+    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     record_info('PATCH', 'Fully patch system start');
     my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
