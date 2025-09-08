@@ -5,67 +5,72 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 623
     BATS_IGNORE:
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 581
     - 619
     - 623
     BATS_IGNORE:
   sle-15-SP7:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 519
     - 581
     - 623
     BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP6:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 519
     - 581
     - 623
     BATS_IGNORE: 100-basic-name-resolution
   sle-15-SP5:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 519
     - 581
     - 623
     BATS_IGNORE: 100-basic-name-resolution
 buildah:
   # Note on patches:
+  # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   opensuse-Tumbleweed:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT: bud
     BATS_IGNORE_USER:
   sle-15-SP7:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
+    - 5495
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT: bud run
     BATS_IGNORE_USER:
   sle-15-SP6:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
+    - 5495
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT: bud run
     BATS_IGNORE_USER:
   sle-15-SP5:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
+    - 5495
     - 6226
     BATS_IGNORE: bud
     BATS_IGNORE_ROOT: run
     BATS_IGNORE_USER:
   sle-15-SP4:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
+    - 5495
     - 6226
     BATS_IGNORE: bud
     BATS_IGNORE_ROOT: run
@@ -74,13 +79,13 @@ conmon:
   # Note on patches:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
   opensuse-Tumbleweed:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 579
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 579
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
@@ -91,19 +96,19 @@ netavark:
   opensuse-Tumbleweed:
     BATS_IGNORE:
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 1191
     BATS_IGNORE:
   sle-15-SP7:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 1191
     BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP6:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 1191
     BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
   sle-15-SP5:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 1191
     BATS_IGNORE: 200-bridge-firewalld 250-bridge-nftables
 podman:
@@ -118,7 +123,7 @@ podman:
   # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   opensuse-Tumbleweed:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 26017
     - 26798
     - 26920
@@ -129,7 +134,7 @@ podman:
     BATS_IGNORE_USER_LOCAL: 252-quadlet
     BATS_IGNORE_USER_REMOTE: 130-kill
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 25792
     - 25858
     - 25918
@@ -144,7 +149,7 @@ podman:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE: 130-kill
   sle-15-SP7:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 21875
     - 24068
     - 25792
@@ -156,7 +161,7 @@ podman:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE:
   sle-15-SP6:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 21875
     - 24068
     - 25792
@@ -171,37 +176,37 @@ runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
   opensuse-Tumbleweed:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
   sle-16.0:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
   sle-15-SP7:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER: run userns
   sle-15-SP6:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER: run userns
   sle-15-SP5:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER: run userns
   sle-15-SP4:
-    BATS_PATCHES:
+    GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:

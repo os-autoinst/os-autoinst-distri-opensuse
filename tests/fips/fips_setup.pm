@@ -76,6 +76,8 @@ sub install_fips {
         # crypto-policies script reports Cannot handle transactional systems.
     } elsif (((is_sle('>=15-SP4') || is_jeos || is_tumbleweed)) && !get_var("FIPS_ENV_MODE")) {
         zypper_call("in crypto-policies-scripts");
+        # Explicitly install openssl-3 on s390x SLE16 https://bugzilla.suse.com/show_bug.cgi?id=1247463
+        zypper_call("in openssl-3") if (is_s390x && is_sle('>=16'));
     } elsif (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE")) {
         # No crypto-policies in older SLE
         zypper_call("in -t pattern fips");

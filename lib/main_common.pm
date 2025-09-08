@@ -2726,7 +2726,7 @@ sub load_sles4sap_tests {
     loadtest "console/check_os_release";
     loadtest "sles4sap/desktop_icons" if (is_desktop_installed());
     loadtest "sles4sap/patterns";
-    loadtest "sles4sap/sapconf";
+    loadtest "sles4sap/sapconf" if is_sle('<16.0');
     loadtest "sles4sap/saptune";
     loadtest "sles4sap/saptune/mr_test" if (get_var('MR_TEST'));
     if (get_var('NW')) {

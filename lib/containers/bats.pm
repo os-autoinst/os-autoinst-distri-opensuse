@@ -27,10 +27,13 @@ use File::Basename;
 use Utils::Architectures;
 
 our @EXPORT = qw(
+  bats_patches
   bats_post_hook
   bats_setup
-  bats_sources
   bats_tests
+  install_git
+  mount_tmp_vartmp
+  patch_sources
   run_command
   switch_to_root
   switch_to_user
@@ -38,19 +41,7 @@ our @EXPORT = qw(
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
-my $package;
 my $settings;
-
-# Subdirectory in repo containing BATS tests
-my %tests_dir = (
-    "aardvark-dns" => "test",
-    buildah => "tests",
-    conmon => "test",
-    netavark => "test",
-    podman => "test/system",
-    runc => "tests/integration",
-    skopeo => "systemtest",
-);
 
 my @commands = ();
 
@@ -183,6 +174,8 @@ sub enable_modules {
 sub patch_logfile {
     my ($log_file, @skip_tests) = @_;
 
+    my $package = get_required_var("BATS_PACKAGE");
+
     die "BATS failed!" if (script_run("test -e $log_file") != 0);
 
     @skip_tests = uniq sort @skip_tests;
@@ -203,7 +196,9 @@ sub patch_logfile {
     assert_script_run "bats_skip_notok $log_file " . join(' ', @skip_tests) if (@skip_tests);
 }
 
-sub fix_tmp {
+# /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
+# Bind-mount it to /var/tmp
+sub mount_tmp_vartmp {
     my $override_conf = <<'EOF';
 [Unit]
 ConditionPathExists=/var/tmp
@@ -222,7 +217,7 @@ EOF
 sub bats_setup {
     my ($self, @pkgs) = @_;
 
-    $package = get_required_var("BATS_PACKAGE");
+    my $package = get_required_var("BATS_PACKAGE");
 
     push @commands, "### RUN AS root";
 
@@ -287,7 +282,7 @@ sub bats_setup {
     # Disable tmpfs from next boot
     if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
         # Bind mount /tmp to /var/tmp
-        fix_tmp;
+        mount_tmp_vartmp;
     }
 
     # Switch to cgroup v2 if not already active
@@ -305,6 +300,8 @@ sub bats_setup {
 }
 
 sub collect_coredumps {
+    my $package = get_var("BATS_PACKAGE", "");
+
     script_run('coredumpctl list > coredumpctl.txt');
 
     # Get PID and executable for all dumps
@@ -340,7 +337,7 @@ sub bats_post_hook {
     assert_script_run "mkdir -p $log_dir || true";
     assert_script_run "cd $log_dir";
 
-    script_run "rm -rf $test_dir";
+    script_run "rm -rf $test_dir" unless ($test_dir eq "/var/tmp/");
 
     collect_calltraces;
     collect_coredumps;
@@ -386,6 +383,19 @@ sub bats_post_hook {
 sub bats_tests {
     my ($log_file, $_env, $skip_tests, $timeout) = @_;
     my %env = %{$_env};
+
+    my $package = get_required_var("BATS_PACKAGE");
+
+    # Subdirectory in repo containing BATS tests
+    my %tests_dir = (
+        "aardvark-dns" => "test",
+        buildah => "tests",
+        conmon => "test",
+        netavark => "test",
+        podman => "test/system",
+        runc => "tests/integration",
+        skopeo => "systemtest",
+    );
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
     run_command "mkdir -p $tmp_dir";
@@ -439,6 +449,7 @@ sub bats_tests {
 
 sub bats_settings {
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+    my $package = get_required_var("BATS_PACKAGE");
 
     assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
     my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
@@ -447,19 +458,32 @@ sub bats_settings {
     return $yaml->{$package}{$os_version};
 }
 
-sub bats_sources {
-    my $version = shift;
+sub bats_patches {
     $settings = bats_settings;
+    my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
+    if (!@patches && defined $settings->{GITHUB_PATCHES}) {
+        @patches = @{$settings->{GITHUB_PATCHES}};
+    }
+    return \@patches;
+}
 
-    my $github_org = ($package eq "runc") ? "opencontainers" : "containers";
-    my $branch = "v$version";
+sub patch_sources {
+    my ($package, $branch, $tests_dir, $patches) = @_;
+    my @patches = @{$patches};
 
-    # Support these cases for BATS_REPO: [<GITHUB_ORG>]#BRANCH
+    my $github_org = "containers";
+    if ($package eq "runc") {
+        $github_org = "opencontainers";
+    } elsif ($package =~ /compose|docker/) {
+        $github_org = "docker";
+    }
+
+    # Support these cases for GITHUB_REPO: [<GITHUB_ORG>]#BRANCH
     # 1. As GITHUB_ORG#TAG: SUSE#suse-v4.9.5, your_gh_user#test-patch, etc
     # 2. As TAG only: main, v1.2.3, etc
     # 3. Empty. Use default for repo based on package version
 
-    my $repo = get_var("BATS_REPO", "");
+    my $repo = get_var("GITHUB_REPO", "");
     if ($repo =~ /#/) {
         ($github_org, $branch) = split("#", $repo, 2);
     } elsif ($repo) {
@@ -472,13 +496,8 @@ sub bats_sources {
     run_command "cd $test_dir";
     run_command "git checkout $branch";
 
-    # We use BATS_PATCHES="none" to specify that we don't want to patch anything
-    unless (check_var("BATS_PATCHES", "none")) {
-        my @patches = split(/\s+/, get_var("BATS_PATCHES", ""));
-        if (!@patches && defined $settings->{BATS_PATCHES}) {
-            @patches = @{$settings->{BATS_PATCHES}};
-        }
-
+    # We use GITHUB_PATCHES="none" to specify that we don't want to patch anything
+    unless (check_var("GITHUB_PATCHES", "none")) {
         foreach my $patch (@patches) {
             my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
             record_info("patch", $url);
@@ -494,7 +513,7 @@ sub bats_sources {
             # ignore missing files.
             my $file = basename($url);
             my $apply_cmd = "git apply -3 --ours $file";
-            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir{$package}/*' $file";
+            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file";
             run_command $apply_cmd;
         }
     }
