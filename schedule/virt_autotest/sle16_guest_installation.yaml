@@ -14,6 +14,7 @@ schedule:
   - '{{snapshot}}'
   - '{{sriov_network_card_pci_passthrough_test}}'
   - '{{virtual_network_test}}'
+  - '{{storag_test}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -53,3 +54,7 @@ conditional_schedule:
     ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH:
       1:
         - virt_autotest/sriov_network_card_pci_passthrough
+  storage_test:
+    ENABLE_STORAGE:
+      1:
+        - virtualization/universal/storage
