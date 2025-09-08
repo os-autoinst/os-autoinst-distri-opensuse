@@ -148,7 +148,7 @@ sub validate_kconfig
         return;
     }
     my $arch = script_output('uname -m');
-    my @expected = split(/\n/, script_output("cat $collection/{config,config.$arch}"));
+    my @expected = split(/\n/, script_output("cat $collection/{config,config.$arch}", proceed_on_failure => 1));
     if (!@expected) {
         return;
     }
