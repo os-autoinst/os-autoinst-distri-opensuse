@@ -22,8 +22,8 @@ sub run {
 
     my $repo_home = "http://download.suse.de/ibs/home:/fcrozat:/SLES16/SLE_\$releasever";
     my $repo_images = 'http://download.suse.de/ibs/home:/fcrozat:/SLES16/images/';
-    zypper_call("ar -p 90 '$repo_home' home_sles16");
-    zypper_call("ar -p 90 $repo_images home_images");
+    zypper_call("ar --refresh -p 90 '$repo_home' home_sles16");
+    zypper_call("ar --refresh -p 90 $repo_images home_images");
 
     # install the migration image and active it
     zypper_call("--gpg-auto-import-keys -n in suse-migration-sle16-activation");
