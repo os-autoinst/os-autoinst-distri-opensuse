@@ -64,7 +64,13 @@ sub install
     zypper_call("install -l $variant");
     my $version = script_output("rpm -qa --queryformat '%{VERSION}\n' $variant | cut -d '_' -f1 | sort -u | tail -n 1");
     record_info("NVIDIA Version", $version);
-    zypper_call("install -l nvidia-compute-utils-G06 == $version");
+
+    my $workaround;
+    if ($version < 580) {
+        $workaround = "nvidia-persistenced == $version";
+        record_soft_failure("bsc#1249098 - workaround for Nvidia driver dependency issue");
+    }
+    zypper_call("install -l nvidia-compute-utils-G06 == $version $workaround");
 
     exit_trup_shell if is_transactional;
 
