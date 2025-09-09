@@ -29,11 +29,10 @@ sub run {
     my %cmd_params = (
         cmd => 'sudo zypper -n patch',
         timeout => 600,
-        rc_only => 1,
         ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
         username => 'cloudadmin'
     );
-    assert_script_run($instance->run_ssh_command(%cmd_params));
+    $instance->run_ssh_command(%cmd_params);
 
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
