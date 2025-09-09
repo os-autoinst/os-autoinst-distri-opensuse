@@ -29,7 +29,7 @@ sub run {
     my %cmd_params = (
         cmd => 'sudo zypper -n patch',
         timeout => 600,
-        ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
+        ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
         username => 'cloudadmin'
     );
     $instance->run_ssh_command(%cmd_params);
