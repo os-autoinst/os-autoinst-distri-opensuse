@@ -2,9 +2,10 @@ name: 389ds_sssd
 description:    >
     This is for 389ds and sssd authentication
 schedule:
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
-    - network/setup_multimachine
+    - '{{setup_multimachine}}'
     - '{{fips_setup}}'
     - '{{tls_389ds}}'
 conditional_schedule:
@@ -18,3 +19,9 @@ conditional_schedule:
                 - security/389ds/tls_389ds_server
             client:
                 - security/389ds/tls_389ds_sssd_client
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine

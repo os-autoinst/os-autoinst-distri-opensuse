@@ -13,15 +13,16 @@ use testapi;
 use utils;
 use warnings;
 use strict;
-use Utils::Systemd 'disable_and_stop_service';
+use network_utils 'iface';
+use Utils::Architectures 'is_s390x';
+use utils qw(set_hostname);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 
-our @EXPORT = qw($remote_ip $remote_name $inst_ca_dir $tls_dir $ldap_user $uid);
-our $remote_ip = '10.0.2.101';
-our $remote_name = '389ds';
-our $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
-our $tls_dir = '/etc/openldap/certs';
-our $ldap_user = get_var('SSS_USERNAME');
-our $uid = '1003';
+my $remote_name = '389ds';
+my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
+my $tls_dir = '/etc/openldap/certs';
+my $ldap_user = get_var('SSS_USERNAME');
+my $uid = '1003';
 
 sub install_service {
     zypper_call("in 389-ds sssd sssd-ldap openssl");
@@ -31,12 +32,22 @@ sub install_service {
 
 # The function below covers all required steps for 389ds sssd client's configuration
 sub config_service {
+    my $server_ip = get_var('SERVER_IP', '10.0.2.101');
+    my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
+    if (is_s390x) {
+        assert_script_run("ip addr add $client_ip/24 dev " . iface);
+        assert_script_run("echo \"$client_ip client minion\" >> /etc/hosts");
+        disable_and_stop_service('firewalld', ignore_failure => 1);
+        disable_and_stop_service('apparmor', ignore_failure => 1);
+    }
+
     # Copy the /etc/hosts, sample sssd.conf and CA files from server
     # Configure tls CA key on client
     assert_script_run("mkdir -p $tls_dir");
-    exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@$remote_ip:/etc/hosts /etc/hosts");
-    exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@$remote_ip:/tmp/sssd.conf /tmp");
-    exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@$remote_ip:$inst_ca_dir/ca.crt $tls_dir");
+    my $ssh_port = is_s390x ? '-P 2222' : '';
+    exec_and_insert_password("scp $ssh_port -o StrictHostKeyChecking=no root\@$server_ip:/etc/hosts /etc/hosts");
+    exec_and_insert_password("scp $ssh_port -o StrictHostKeyChecking=no root\@$server_ip:/tmp/sssd.conf /tmp");
+    exec_and_insert_password("scp $ssh_port -o StrictHostKeyChecking=no root\@$server_ip:$inst_ca_dir/ca.crt $tls_dir");
     assert_script_run("/usr/bin/openssl rehash $tls_dir");
     assert_script_run("chmod o+r $tls_dir/ca.crt");    # From version 2.10 onwards sssd runs as user "sssd"
 

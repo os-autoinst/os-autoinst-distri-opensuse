@@ -7,6 +7,7 @@ schedule:
   - '{{barrier_init}}'
   - yam/agama/boot_agama
   - installation/agama_reboot
+  - installation/grub_test
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup

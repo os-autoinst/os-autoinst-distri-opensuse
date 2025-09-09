@@ -15,6 +15,7 @@ schedule:
   - '{{sriov_network_card_pci_passthrough_test}}'
   - '{{virtual_network_test}}'
   - '{{hotplugging_test}}'
+  - '{{storage_test}}'
 conditional_schedule:
   host_installation:
     DO_NOT_INSTALL_HOST:
@@ -63,3 +64,7 @@ conditional_schedule:
         - virtualization/universal/hotplugging_vCPUs
         - virtualization/universal/hotplugging_memory
         - virtualization/universal/hotplugging_cleanup
+  storage_test:
+    ENABLE_STORAGE:
+      1:
+        - virtualization/universal/storage
